@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.model &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,11 +129,11 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.model</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c"># flake8: noqa</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># flake8: noqa</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.model.__init__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[ibeis.model.__init__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">Config</span>
 <span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">detect</span>
@@ -141,29 +141,29 @@
 <span class="kn">from</span> <span class="nn">ibeis.model</span> <span class="kn">import</span> <span class="n">preproc</span>
 
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
-    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.model]&#39;</span><span class="p">)</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[ibeis.model]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="reload_subs"><a class="viewcode-back" href="../../ibeis.model.html#ibeis.model.reload_subs">[docs]</a><span class="k">def</span> <span class="nf">reload_subs</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Reloads ibeis.model and submodules &quot;&quot;&quot;</span>
     <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">Config</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">detect</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">hots</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">preproc</span><span class="p">,</span> <span class="s">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">Config</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">detect</span><span class="p">,</span> <span class="s1">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">hots</span><span class="p">,</span> <span class="s1">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">preproc</span><span class="p">,</span> <span class="s1">&#39;reload_subs&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="c"># hackish way of propogating up the new reloaded submodule attributes</span>
+        <span class="c1"># hackish way of propogating up the new reloaded submodule attributes</span>
         <span class="n">reassign_submodule_attributes</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span></div>
 <span class="n">rrrr</span> <span class="o">=</span> <span class="n">reload_subs</span>
 
 <span class="n">IMPORT_TUPLES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="s">&#39;Config&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;detect&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;hots&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;preproc&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;Config&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;detect&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;hots&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;preproc&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
 <span class="p">]</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Regen Command:</span>
@@ -203,7 +203,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

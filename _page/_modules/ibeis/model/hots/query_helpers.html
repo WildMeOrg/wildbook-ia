@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.query_helpers &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.model.hots.query_helpers &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,14 +133,14 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.model.hots.query_helpers</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c"># TODO: ADD COPYRIGHT TAG</span>
-<span class="c"># TODO: Restructure</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># TODO: ADD COPYRIGHT TAG</span>
+<span class="c1"># TODO: Restructure</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[query_helpers]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[query_helpers]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_query_components"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_helpers.get_query_components">[docs]</a><span class="k">def</span> <span class="nf">get_query_components</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
@@ -173,37 +173,37 @@
     <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">with_metadata</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">query_request</span><span class="o">.</span><span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">qaids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;!!! nothing to search&#39;</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;!!! nothing to query&#39;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;!!! nothing to search&#39;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;!!! nothing to query&#39;</span>
     <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_load</span><span class="p">()</span>
     <span class="n">pipeline_locals_</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">testrun_pipeline_upto</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="n">qaid2_nns</span>            <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_nns&#39;</span><span class="p">]</span>
-    <span class="n">qaid2_nnvalid0</span>       <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_nnvalid0&#39;</span><span class="p">]</span>
-    <span class="n">qaid2_filtweights</span>    <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_filtweights&#39;</span><span class="p">]</span>
-    <span class="n">qaid2_nnfilts</span>        <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_nnfilts&#39;</span><span class="p">]</span>
-    <span class="n">qaid2_chipmatch_FILT</span> <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_FILT&#39;</span><span class="p">]</span>
-    <span class="n">qaid2_chipmatch_SVER</span> <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_SVER&#39;</span><span class="p">]</span>
-    <span class="n">qaid2_svtups</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;qaid2_svtups&#39;</span><span class="p">]</span>
-    <span class="c">#---</span>
+    <span class="n">qaid2_nns</span>            <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s1">&#39;qaid2_nns&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_nnvalid0</span>       <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s1">&#39;qaid2_nnvalid0&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_filtweights</span>    <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s1">&#39;qaid2_filtweights&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_nnfilts</span>        <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s1">&#39;qaid2_nnfilts&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_chipmatch_FILT</span> <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s1">&#39;qaid2_chipmatch_FILT&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_chipmatch_SVER</span> <span class="o">=</span> <span class="n">pipeline_locals_</span><span class="p">[</span><span class="s1">&#39;qaid2_chipmatch_SVER&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_svtups</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;qaid2_svtups&#39;</span><span class="p">]</span>
+    <span class="c1">#---</span>
     <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_chipmatch_SVER</span><span class="p">)</span>
-    <span class="c">#####################</span>
-    <span class="c"># Testing components</span>
-    <span class="c">#####################</span>
-    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[components]&#39;</span><span class="p">):</span>
+    <span class="c1">#####################</span>
+    <span class="c1"># Testing components</span>
+    <span class="c1">#####################</span>
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[components]&#39;</span><span class="p">):</span>
         <span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span> <span class="o">=</span> <span class="n">qaid2_nns</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
         <span class="n">qfx2_aid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">)</span>
         <span class="n">qfx2_fx</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_featxs</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">)</span>
-        <span class="n">qfx2_gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">qfx2_aid</span><span class="p">)</span>  <span class="c"># NOQA</span>
-        <span class="n">qfx2_nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qfx2_aid</span><span class="p">)</span>  <span class="c"># NOQA</span>
+        <span class="n">qfx2_gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">qfx2_aid</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+        <span class="n">qfx2_nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qfx2_aid</span><span class="p">)</span>  <span class="c1"># NOQA</span>
         <span class="n">filtkey_list</span><span class="p">,</span> <span class="n">qfx2_scores</span><span class="p">,</span> <span class="n">qfx2_valids</span> <span class="o">=</span> <span class="n">qaid2_nnfilts</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
         <span class="n">qaid2_nnfilt_ORIG</span>    <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">identity_filter</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">)</span>
         <span class="n">qaid2_chipmatch_ORIG</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">build_chipmatches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid2_nns</span><span class="p">,</span> <span class="n">qaid2_nnfilt_ORIG</span><span class="p">)</span>
         <span class="n">qaid2_qres_ORIG</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_ORIG</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">qaid2_qres_FILT</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">chipmatch_to_resdict</span><span class="p">(</span><span class="n">qaid2_chipmatch_FILT</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">qaid2_qres_SVER</span> <span class="o">=</span> <span class="n">qaid2_qres</span>
-    <span class="c">#####################</span>
-    <span class="c"># Relevant components</span>
-    <span class="c">#####################</span>
+    <span class="c1">#####################</span>
+    <span class="c1"># Relevant components</span>
+    <span class="c1">#####################</span>
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">qaids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">qres_ORIG</span> <span class="o">=</span> <span class="n">qaid2_qres_ORIG</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
     <span class="n">qres_FILT</span> <span class="o">=</span> <span class="n">qaid2_qres_FILT</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
@@ -213,7 +213,7 @@
 
 </div>
 <div class="viewcode-block" id="data_index_integrity"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_helpers.data_index_integrity">[docs]</a><span class="k">def</span> <span class="nf">data_index_integrity</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;checking qreq.data_index integrity&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;checking qreq.data_index integrity&#39;</span><span class="p">)</span>
 
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">desc_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -227,15 +227,15 @@
     <span class="n">dx2_aid</span>  <span class="o">=</span> <span class="n">qreq</span><span class="o">.</span><span class="n">data_index</span><span class="o">.</span><span class="n">dx2_aid</span>
     <span class="n">dx2_fx</span>   <span class="o">=</span> <span class="n">qreq</span><span class="o">.</span><span class="n">data_index</span><span class="o">.</span><span class="n">dx2_fx</span>
 
-    <span class="c"># For each descriptor create a (aid, fx) pair indicating its</span>
-    <span class="c"># chip id and the feature index in that chip id.</span>
+    <span class="c1"># For each descriptor create a (aid, fx) pair indicating its</span>
+    <span class="c1"># chip id and the feature index in that chip id.</span>
     <span class="n">nFeat_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">desc_list</span><span class="p">))</span>
     <span class="n">_dx2_aid</span> <span class="o">=</span> <span class="p">[[</span><span class="n">aid</span><span class="p">]</span> <span class="o">*</span> <span class="n">nFeat</span> <span class="k">for</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">nFeat</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nFeat_list</span><span class="p">)]</span>
     <span class="n">_dx2_fx</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">nFeat</span><span class="p">))</span> <span class="k">for</span> <span class="n">nFeat</span> <span class="ow">in</span> <span class="n">nFeat_list</span><span class="p">]</span>
 
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">_dx2_fx</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">_dx2_aid</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;... loop checks&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;... loop checks&#39;</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)):</span>
         <span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="n">count</span><span class="p">]</span>
@@ -244,73 +244,73 @@
         <span class="n">dx_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dx2_aid</span> <span class="o">==</span> <span class="n">aid</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">dx2_data</span><span class="p">[</span><span class="n">dx_list</span><span class="p">]</span> <span class="o">==</span> <span class="n">desc_list</span><span class="p">[</span><span class="n">count</span><span class="p">])</span>
         <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">dx2_fx</span><span class="p">[</span><span class="n">dx_list</span><span class="p">]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dx_list</span><span class="p">)))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;... seems ok&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;... seems ok&#39;</span><span class="p">)</span>
 
 
-<span class="c">#def find_matchable_chips(ibs):</span>
-<span class="c">#    &quot;&quot;&quot; quick and dirty test to score by number of assignments &quot;&quot;&quot;</span>
-<span class="c">#    import six</span>
-<span class="c">#    from . import match_chips3 as mc3</span>
-<span class="c">#    from . import matching_functions as pipeline</span>
-<span class="c">#    qreq = ibs.qreq</span>
-<span class="c">#    qaids = ibs.get_valid_aids()</span>
-<span class="c">#    qreq = mc3.prep_query_request(qreq=qreq, qaids=qaids, daids=qaids)</span>
-<span class="c">#    mc3.pre_exec_checks(ibs, qreq)</span>
-<span class="c">#    qaid2_nns = pipeline.nearest_neighbors(ibs, qaids, qreq)</span>
-<span class="c">#    pipeline.rrr()</span>
-<span class="c">#    qaid2_nnfilt = pipeline.identity_filter(qaid2_nns, qreq)</span>
-<span class="c">#    qaid2_chipmatch_FILT = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq)</span>
-<span class="c">#    qaid2_ranked_list = {}</span>
-<span class="c">#    qaid2_ranked_scores = {}</span>
-<span class="c">#    for qaid, cmtup_old in six.iteritems(qaid2_chipmatch_FILT):</span>
-<span class="c">#        (aid2_fm, aid2_fs, aid2_fk) = cmtup_old</span>
-<span class="c">#        #aid2_nMatches = {aid: fs.sum() for (aid, fs) in six.iteritems(aid2_fs)}</span>
-<span class="c">#        aid2_nMatches = {aid: len(fm) for (aid, fm) in six.iteritems(aid2_fs)}</span>
-<span class="c">#        nMatches_list = np.array(aid2_nMatches.values())</span>
-<span class="c">#        aid_list      = np.array(aid2_nMatches.keys())</span>
-<span class="c">#        sortx = nMatches_list.argsort()[::-1]</span>
-<span class="c">#        qaid2_ranked_list[qaid] = aid_list[sortx]</span>
-<span class="c">#        qaid2_ranked_scores[qaid] = nMatches_list[sortx]</span>
+<span class="c1">#def find_matchable_chips(ibs):</span>
+<span class="c1">#    &quot;&quot;&quot; quick and dirty test to score by number of assignments &quot;&quot;&quot;</span>
+<span class="c1">#    import six</span>
+<span class="c1">#    from . import match_chips3 as mc3</span>
+<span class="c1">#    from . import matching_functions as pipeline</span>
+<span class="c1">#    qreq = ibs.qreq</span>
+<span class="c1">#    qaids = ibs.get_valid_aids()</span>
+<span class="c1">#    qreq = mc3.prep_query_request(qreq=qreq, qaids=qaids, daids=qaids)</span>
+<span class="c1">#    mc3.pre_exec_checks(ibs, qreq)</span>
+<span class="c1">#    qaid2_nns = pipeline.nearest_neighbors(ibs, qaids, qreq)</span>
+<span class="c1">#    pipeline.rrr()</span>
+<span class="c1">#    qaid2_nnfilt = pipeline.identity_filter(qaid2_nns, qreq)</span>
+<span class="c1">#    qaid2_chipmatch_FILT = pipeline.build_chipmatches(qaid2_nns, qaid2_nnfilt, qreq)</span>
+<span class="c1">#    qaid2_ranked_list = {}</span>
+<span class="c1">#    qaid2_ranked_scores = {}</span>
+<span class="c1">#    for qaid, cmtup_old in six.iteritems(qaid2_chipmatch_FILT):</span>
+<span class="c1">#        (aid2_fm, aid2_fs, aid2_fk) = cmtup_old</span>
+<span class="c1">#        #aid2_nMatches = {aid: fs.sum() for (aid, fs) in six.iteritems(aid2_fs)}</span>
+<span class="c1">#        aid2_nMatches = {aid: len(fm) for (aid, fm) in six.iteritems(aid2_fs)}</span>
+<span class="c1">#        nMatches_list = np.array(aid2_nMatches.values())</span>
+<span class="c1">#        aid_list      = np.array(aid2_nMatches.keys())</span>
+<span class="c1">#        sortx = nMatches_list.argsort()[::-1]</span>
+<span class="c1">#        qaid2_ranked_list[qaid] = aid_list[sortx]</span>
+<span class="c1">#        qaid2_ranked_scores[qaid] = nMatches_list[sortx]</span>
 
-<span class="c">#    scores_list = []</span>
-<span class="c">#    strings_list = []</span>
-<span class="c">#    for qaid in qaids:</span>
-<span class="c">#        aid   = qaid2_ranked_list[qaid][0]</span>
-<span class="c">#        score = qaid2_ranked_scores[qaid][0]</span>
-<span class="c">#        strings_list.append(&#39;qaid=%r, aid=%r, score=%r&#39; % (qaid, aid, score))</span>
-<span class="c">#        scores_list.append(score)</span>
-<span class="c">#    sorted_scorestr = np.array(strings_list)[np.array(scores_list).argsort()]</span>
-<span class="c">#    print(&#39;\n&#39;.join(sorted_scorestr))</span>
+<span class="c1">#    scores_list = []</span>
+<span class="c1">#    strings_list = []</span>
+<span class="c1">#    for qaid in qaids:</span>
+<span class="c1">#        aid   = qaid2_ranked_list[qaid][0]</span>
+<span class="c1">#        score = qaid2_ranked_scores[qaid][0]</span>
+<span class="c1">#        strings_list.append(&#39;qaid=%r, aid=%r, score=%r&#39; % (qaid, aid, score))</span>
+<span class="c1">#        scores_list.append(score)</span>
+<span class="c1">#    sorted_scorestr = np.array(strings_list)[np.array(scores_list).argsort()]</span>
+<span class="c1">#    print(&#39;\n&#39;.join(sorted_scorestr))</span>
 
 </div>
 <div class="viewcode-block" id="check_sift_desc"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.query_helpers.check_sift_desc">[docs]</a><span class="k">def</span> <span class="nf">check_sift_desc</span><span class="p">(</span><span class="n">desc</span><span class="p">):</span>
-    <span class="n">varname</span> <span class="o">=</span> <span class="s">&#39;desc&#39;</span>
+    <span class="n">varname</span> <span class="o">=</span> <span class="s1">&#39;desc&#39;</span>
     <span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.shape=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">varname</span><span class="p">,</span> <span class="n">desc</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.dtype=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">varname</span><span class="p">,</span> <span class="n">desc</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.shape=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">varname</span><span class="p">,</span> <span class="n">desc</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.dtype=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">varname</span><span class="p">,</span> <span class="n">desc</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
 
     <span class="k">assert</span> <span class="n">desc</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">128</span>
     <span class="k">assert</span> <span class="n">desc</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span>
-    <span class="c"># Checks to make sure descriptors are close to valid SIFT descriptors.</span>
-    <span class="c"># There will be error because of uint8</span>
-    <span class="n">target</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c"># this should be 1.0</span>
+    <span class="c1"># Checks to make sure descriptors are close to valid SIFT descriptors.</span>
+    <span class="c1"># There will be error because of uint8</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># this should be 1.0</span>
     <span class="n">bindepth</span> <span class="o">=</span> <span class="mf">256.0</span>
-    <span class="n">L2_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">desc</span> <span class="o">/</span> <span class="n">bindepth</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.0</span>  <span class="c"># why?</span>
+    <span class="n">L2_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(((</span><span class="n">desc</span> <span class="o">/</span> <span class="n">bindepth</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.0</span>  <span class="c1"># why?</span>
     <span class="n">err</span> <span class="o">=</span> <span class="p">(</span><span class="n">target</span> <span class="o">-</span> <span class="n">L2_list</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
     <span class="n">thresh</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mf">256.0</span>
     <span class="n">invalids</span> <span class="o">=</span> <span class="n">err</span> <span class="o">&gt;=</span> <span class="n">thresh</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">invalids</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;There are </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> problem SIFT descriptors&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">invalids</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalids</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> problem SIFT descriptors&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">invalids</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalids</span><span class="p">)))</span>
         <span class="n">L2_range</span> <span class="o">=</span> <span class="n">L2_list</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">L2_list</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
         <span class="n">indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">invalids</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;L2_range = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">L2_range</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;thresh = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">thresh</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;L2_list.mean() = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">L2_list</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;at indexes: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">indexes</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;with errors: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">err</span><span class="p">[</span><span class="n">indexes</span><span class="p">])</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;L2_range = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">L2_range</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;thresh = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">thresh</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;L2_list.mean() = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">L2_list</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;at indexes: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">indexes</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;with errors: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">err</span><span class="p">[</span><span class="n">indexes</span><span class="p">])</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;There are </span><span class="si">%d</span><span class="s"> OK SIFT descriptors&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">desc</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;There are </span><span class="si">%d</span><span class="s1"> OK SIFT descriptors&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">desc</span><span class="p">),))</span>
     <span class="k">return</span> <span class="n">invalids</span></div>
 </pre></div>
 
@@ -345,7 +345,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

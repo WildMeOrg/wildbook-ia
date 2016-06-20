@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.expt.experiment_configs &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.expt.experiment_configs &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.expt" href="../expt.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,8 +131,8 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.expt.experiment_configs</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c"># TODO: Need test harness to do (something smarter than) gridsearch of these guys</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># TODO: Need test harness to do (something smarter than) gridsearch of these guys</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">In this file dicts specify all possible combinations of the varied parameters</span>
 <span class="sd">and lists specify the union of parameters</span>
@@ -141,18 +141,18 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[cfgbank]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[cfgbank]&#39;</span><span class="p">)</span>
 
 
 <span class="n">ALIAS_KEYS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;proot&#39;</span><span class="p">:</span> <span class="s">&#39;pipeline_root&#39;</span><span class="p">,</span>
-    <span class="s">&#39;RI&#39;</span><span class="p">:</span> <span class="s">&#39;rotation_invariance&#39;</span><span class="p">,</span>
-    <span class="s">&#39;AI&#39;</span><span class="p">:</span> <span class="s">&#39;affine_invariance&#39;</span><span class="p">,</span>
-    <span class="c">#&#39;AQH&#39;: &#39;augment_queryside_hack&#39;,</span>
-    <span class="s">&#39;QRH&#39;</span><span class="p">:</span> <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">,</span>
-    <span class="s">&#39;SV&#39;</span><span class="p">:</span> <span class="s">&#39;sv_on&#39;</span><span class="p">,</span>
-    <span class="c">#&#39;SVxy&#39;: &#39;xy_thresh&#39;,</span>
-    <span class="c">#&#39;SVxy&#39;: &#39;xy_thresh&#39;,</span>
+    <span class="s1">&#39;proot&#39;</span><span class="p">:</span> <span class="s1">&#39;pipeline_root&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;RI&#39;</span><span class="p">:</span> <span class="s1">&#39;rotation_invariance&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;AI&#39;</span><span class="p">:</span> <span class="s1">&#39;affine_invariance&#39;</span><span class="p">,</span>
+    <span class="c1">#&#39;AQH&#39;: &#39;augment_queryside_hack&#39;,</span>
+    <span class="s1">&#39;QRH&#39;</span><span class="p">:</span> <span class="s1">&#39;augment_queryside_hack&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SV&#39;</span><span class="p">:</span> <span class="s1">&#39;sv_on&#39;</span><span class="p">,</span>
+    <span class="c1">#&#39;SVxy&#39;: &#39;xy_thresh&#39;,</span>
+    <span class="c1">#&#39;SVxy&#39;: &#39;xy_thresh&#39;,</span>
 <span class="p">}</span>
 
 
@@ -189,23 +189,28 @@
 <div class="viewcode-block" id="apply_EllQRH"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_configs.apply_EllQRH">[docs]</a><span class="k">def</span> <span class="nf">apply_EllQRH</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">apply_param</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">augment_queryside_hack</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">affine_invariance</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </div>
-<span class="n">exclude_vars</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>   <span class="c"># this line is before tests</span>
+<span class="n">exclude_vars</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>   <span class="c1"># this line is before tests</span>
 
 <span class="n">default</span> <span class="o">=</span> <span class="p">[{}]</span>
-<span class="n">baseline</span> <span class="o">=</span> <span class="p">[{}]</span>
+
+<span class="n">baseline</span> <span class="o">=</span> <span class="p">[{</span>
+    <span class="s1">&#39;resize_dim&#39;</span><span class="p">:</span> <span class="s1">&#39;area&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;dim_size&#39;</span><span class="p">:</span> <span class="mi">450</span><span class="p">,</span>
+<span class="p">}]</span>
+<span class="c1">#baseline = [{}]</span>
 
 <span class="n">ScoreMech</span> <span class="o">=</span> <span class="n">candidacy_namescore</span> <span class="o">=</span> <span class="p">[</span>
     <span class="p">{</span>
-        <span class="s">&#39;score_method&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
-        <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;score_method&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s1">&#39;nsum&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;prescore_method&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s1">&#39;nsum&#39;</span><span class="p">],</span>
     <span class="p">},</span>
-    <span class="c">#{</span>
-    <span class="c">#    &#39;score_method&#39;:      [&#39;nsum&#39;],</span>
-    <span class="c">#    &#39;prescore_method&#39;:   [&#39;csum&#39;],</span>
-    <span class="c">#},</span>
+    <span class="c1">#{</span>
+    <span class="c1">#    &#39;score_method&#39;:      [&#39;nsum&#39;],</span>
+    <span class="c1">#    &#39;prescore_method&#39;:   [&#39;csum&#39;],</span>
+    <span class="c1">#},</span>
     <span class="p">{</span>
-        <span class="s">&#39;score_method&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>
-        <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;score_method&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s1">&#39;csum&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;prescore_method&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s1">&#39;csum&#39;</span><span class="p">],</span>
     <span class="p">}</span>
 <span class="p">]</span>
 
@@ -228,863 +233,81 @@
 <span class="sd">    Infer the best pipeline config based on the metadata</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">metadata</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">ibs</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;ibs&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ibs&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;PZ_Master1&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;PZ_Master1&#39;</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">apply_param</span><span class="p">(</span><span class="n">CircQRH</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">dbname</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;GZ_Master1&#39;</span><span class="p">,</span> <span class="s">&#39;GZ_ALL&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">dbname</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;GZ_Master1&#39;</span><span class="p">,</span> <span class="s1">&#39;GZ_ALL&#39;</span><span class="p">]:</span>
                 <span class="k">return</span> <span class="n">apply_param</span><span class="p">(</span><span class="n">Ell</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">dbname</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;NNP_MasterGIRM_core&#39;</span><span class="p">,</span> <span class="s">&#39;GIRM_Master1&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">dbname</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;NNP_MasterGIRM_core&#39;</span><span class="p">,</span> <span class="s1">&#39;GIRM_Master1&#39;</span><span class="p">]:</span>
                 <span class="k">return</span> <span class="n">apply_param</span><span class="p">(</span><span class="n">Ell</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">dbname</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;WS_Hard&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">dbname</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;WS_Hard&#39;</span><span class="p">]:</span>
                 <span class="k">return</span> <span class="n">apply_param</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">default</span>
 
 </div>
 <span class="n">featscoremetch</span> <span class="o">=</span> <span class="p">[</span>
     <span class="p">{</span>
-        <span class="s">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-        <span class="s">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
+        <span class="s1">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s1">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
     <span class="p">},</span>
     <span class="p">{</span>
-        <span class="s">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-        <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
+        <span class="s1">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s1">&#39;ratio_thresh&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
     <span class="p">},</span>
     <span class="p">{</span>
-        <span class="s">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-        <span class="s">&#39;dist_on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-        <span class="s">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
+        <span class="s1">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s1">&#39;dist_on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s1">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
     <span class="p">},</span>
     <span class="p">{</span>
-        <span class="s">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-        <span class="s">&#39;const_on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-        <span class="s">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
+        <span class="s1">&#39;lnbnn_on&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s1">&#39;const_on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s1">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
     <span class="p">},</span>
-    <span class="c">#{</span>
-    <span class="c">#    &#39;lnbnn_on&#39;: False,</span>
-    <span class="c">#    &#39;lograt_on&#39;: True,</span>
-    <span class="c">#},</span>
-<span class="p">]</span>
-
-<span class="c"># only best for grevys</span>
-<span class="n">invarbest</span> <span class="o">=</span> <span class="p">[{</span>
-    <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-    <span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-<span class="p">}]</span>
-
-
-<span class="n">invar3</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{</span>
-        <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-        <span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-        <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-        <span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-        <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-        <span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-    <span class="p">},</span>
-<span class="p">]</span>
-
-
-<span class="n">invar4</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{</span>
-        <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-        <span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-        <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-        <span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-        <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-        <span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-        <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-        <span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-    <span class="p">},</span>
+    <span class="c1">#{</span>
+    <span class="c1">#    &#39;lnbnn_on&#39;: False,</span>
+    <span class="c1">#    &#39;lograt_on&#39;: True,</span>
+    <span class="c1">#},</span>
 <span class="p">]</span>
 
 
 <div class="viewcode-block" id="get_candidacy_dbnames"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_configs.get_candidacy_dbnames">[docs]</a><span class="k">def</span> <span class="nf">get_candidacy_dbnames</span><span class="p">():</span>
     <span class="k">return</span> <span class="p">[</span>
-        <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;NNP_MasterGIRM_core&#39;,</span>
-        <span class="s">&#39;PZ_Master0&#39;</span><span class="p">,</span>
-        <span class="s">&#39;NNP_Master3&#39;</span><span class="p">,</span>
-        <span class="s">&#39;GZ_ALL&#39;</span><span class="p">,</span>
-        <span class="s">&#39;PZ_FlankHack&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;JAG_Kelly&#39;,</span>
-        <span class="c">#&#39;JAG_Kieryn&#39;,</span>
-        <span class="c">#&#39;LF_Bajo_bonito&#39;,</span>
-        <span class="c">#&#39;LF_OPTIMIZADAS_NI_V_E&#39;,</span>
-        <span class="c">#&#39;LF_WEST_POINT_OPTIMIZADAS&#39;,</span>
-        <span class="c">#&#39;GZ_Master0&#39;,</span>
-        <span class="c">#&#39;GIR_Tanya&#39;,</span>
+        <span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span>
+        <span class="c1">#&#39;NNP_MasterGIRM_core&#39;,</span>
+        <span class="s1">&#39;PZ_Master0&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NNP_Master3&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;GZ_ALL&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PZ_FlankHack&#39;</span><span class="p">,</span>
+        <span class="c1">#&#39;JAG_Kelly&#39;,</span>
+        <span class="c1">#&#39;JAG_Kieryn&#39;,</span>
+        <span class="c1">#&#39;LF_Bajo_bonito&#39;,</span>
+        <span class="c1">#&#39;LF_OPTIMIZADAS_NI_V_E&#39;,</span>
+        <span class="c1">#&#39;LF_WEST_POINT_OPTIMIZADAS&#39;,</span>
+        <span class="c1">#&#39;GZ_Master0&#39;,</span>
+        <span class="c1">#&#39;GIR_Tanya&#39;,</span>
     <span class="p">]</span>
 
-
-<span class="c">#def candidacy_annot_selections():</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    --aidcfg</span>
-<span class="c">#    controlled</span>
-<span class="c">#    controlled</span>
-<span class="c">#    # See manual helpers for now</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    candidacy_aidcfg = {</span>
-<span class="c">#        &#39;controlled&#39;: False</span>
-<span class="c">#    }</span>
-<span class="c">#    pass</span>
-
-</div>
-<span class="n">candk</span> <span class="o">=</span> <span class="n">candidacy_k</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">10</span><span class="p">]},</span>
-<span class="p">]</span>
-
-<span class="n">candknorm</span> <span class="o">=</span> <span class="n">candidacy_k</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{</span>
-        <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
-        <span class="s">&#39;Knorm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
-    <span class="p">},</span>
-<span class="p">]</span>
-
-<span class="n">candidacy_baseline</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{},</span>
-    <span class="c">#{&#39;fg_on&#39;: [True]},</span>
-    <span class="p">{</span><span class="s">&#39;sv_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">]},</span>
-    <span class="c">#{&#39;score_method&#39;: [&#39;csum&#39;], &#39;prescore_method &#39;: [&#39;csum&#39;]},</span>
-    <span class="p">{</span><span class="s">&#39;nNameShortlistSVER&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">200</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s">&#39;rotation_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span> <span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s">&#39;rotation_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">]},</span>
-<span class="p">]</span>
-
-
-<span class="c"># Test all combinations of invariance</span>
+<span class="c1"># Test all combinations of invariance</span></div>
 <span class="n">invar</span> <span class="o">=</span> <span class="n">candinvar</span> <span class="o">=</span> <span class="n">candidacy_invariance</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">],</span> <span class="s">&#39;rotation_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">],</span> <span class="s">&#39;rotation_invariance&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">],</span> <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s">&#39;rotation_invariance&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">],</span> <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s">&#39;rotation_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">],</span> <span class="s">&#39;rotation_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s">&#39;rotation_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s1">&#39;affine_invariance&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">],</span> <span class="s1">&#39;rotation_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s1">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s1">&#39;affine_invariance&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">],</span> <span class="s1">&#39;rotation_invariance&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">],</span> <span class="s1">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s1">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s1">&#39;rotation_invariance&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">],</span> <span class="s1">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s1">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s1">&#39;rotation_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s1">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s1">&#39;affine_invariance&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">],</span> <span class="s1">&#39;rotation_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s1">&#39;augment_queryside_hack&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">]},</span>
+    <span class="p">{</span><span class="s1">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s1">&#39;rotation_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">],</span> <span class="s1">&#39;augment_queryside_hack&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">]},</span>
 <span class="p">]</span>
 
-<span class="n">candidacy_linear</span> <span class="o">=</span> <span class="n">candidacy_baseline</span> <span class="o">+</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s">&#39;algorithm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;linear&#39;</span><span class="p">],</span> <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s">&#39;algorithm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;linear&#39;</span><span class="p">],</span> <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s">&#39;augment_queryside_hack&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">]},</span>
-<span class="p">]</span>
+<span class="c1"># Special value used to specify the current IBEIS configuration</span>
+<span class="n">custom</span> <span class="o">=</span> <span class="s1">&#39;custom&#39;</span>
 
 
-<span class="c">#--------------</span>
+<span class="n">include_vars</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>  <span class="c1"># this line is after tests</span>
 
-
-<span class="n">elph</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;histeq&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">]},</span>
-    <span class="p">{</span><span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;adapteq&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">]},</span>
-<span class="p">]</span>
-
-
-<span class="n">pyrscale</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;maxPyramidLevels&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-    <span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
-    <span class="s">&#39;rotation_invariance&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>
-<span class="p">}</span>
-
-<span class="n">small_best</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="s">&#39;checks&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="mi">1024</span><span class="p">],</span>  <span class="c"># , 8192],</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span>               <span class="p">[</span><span class="mi">4</span><span class="p">],</span>  <span class="c"># 5, 10],</span>
-    <span class="c">#&#39;xy_thresh&#39;:      [.01],  # [.002],</span>
-    <span class="s">&#39;xy_thresh&#39;</span><span class="p">:</span>       <span class="p">[</span><span class="o">.</span><span class="mo">005</span><span class="p">],</span>  <span class="c"># # [.002],</span>
-    <span class="s">&#39;nShortlist&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="mi">50</span><span class="p">],</span>
-    <span class="c">#&#39;use_chip_extent&#39;: [False, True],</span>
-    <span class="s">&#39;use_chip_extent&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
-    <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
-    <span class="s">&#39;dim_size&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">450</span><span class="p">],</span>
-    <span class="s">&#39;fg_on&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-<span class="p">}</span>
-
-
-<span class="n">nsum</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
-    <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
-<span class="p">})</span>
-
-
-<span class="n">rrvsone_best</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">nsum</span><span class="p">,</span> <span class="p">{</span>
-    <span class="s">&#39;rrvsone_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">rrvsone_grid</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">rrvsone_best</span><span class="p">,</span> <span class="p">{</span>
-    <span class="s">&#39;grid_scale_factor&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">.</span><span class="mo">05</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">15</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">25</span><span class="p">,</span> <span class="o">.</span><span class="mi">3</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">][::</span><span class="mi">1</span><span class="p">],</span>
-    <span class="s">&#39;grid_steps&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span>
-    <span class="s">&#39;grid_sigma&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">nsum_nosv</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">nsum</span><span class="p">,</span> <span class="p">{</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">False</span><span class="p">],</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
-    <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">vsmany</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span>               <span class="p">[</span><span class="mi">4</span><span class="p">],</span>  <span class="c"># 5, 10],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 2, 3],</span>
-    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s">&#39;nsum&#39;</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">vsone</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s">&#39;vsone&#39;</span><span class="p">],</span>
-    <span class="s">&#39;checks&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">256</span><span class="p">],</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span>             <span class="p">[</span><span class="mi">2</span><span class="p">],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-    <span class="s">&#39;ratio_weight&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
-    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="o">.</span><span class="mi">625</span><span class="p">],</span>
-    <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">pzmastertest</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">29</span><span class="p">],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">fgweight</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
-    <span class="s">&#39;fg_on&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">]</span>  <span class="c"># , 0.0],</span>
-<span class="p">})</span>
-
-
-<span class="n">vary_sver</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
-    <span class="s">&#39;sv_on&#39;</span>          <span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;use_chip_extent&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;xy_thresh&#39;</span>       <span class="p">:</span> <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="o">.</span><span class="mo">001</span><span class="p">],</span>
-    <span class="s">&#39;fg_on&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;algorithm&#39;</span>       <span class="p">:</span> <span class="p">[</span><span class="s">&#39;linear&#39;</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">sver_new</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
-    <span class="s">&#39;sv_on&#39;</span>           <span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;use_chip_extent&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;xy_thresh&#39;</span>       <span class="p">:</span> <span class="p">[</span><span class="o">.</span><span class="mo">001</span><span class="p">],</span>
-    <span class="s">&#39;fg_on&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-    <span class="c">#&#39;algorithm&#39;       : [&#39;linear&#39;],</span>
-<span class="p">})</span>
-
-<span class="n">nov6</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
-<span class="p">})</span>
-
-
-<span class="n">K</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">small_best</span><span class="p">,</span> <span class="p">{</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="c"># Feature parameters</span>
-<span class="n">featparams</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="c">#&#39;threshold&#39;: [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0</span>
-    <span class="s">&#39;numberOfScales&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-    <span class="c">#&#39;maxIterations&#39;: [16, 32],</span>
-    <span class="c">#&#39;convergenceThreshold&#39;: [.05, .1],</span>
-    <span class="c">#&#39;initialSigma&#39;: [6.0, 3.0, 2.0, 1.6, 1.2, 1.1],</span>
-    <span class="s">&#39;initialSigma&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">3.2</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">],</span>
-    <span class="c">#&#39;edgeEigenValueRatio&#39;: [10, 5, 3],</span>
-<span class="p">}</span>
-
-<span class="n">featparams_big</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;threshold&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">16.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">32.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">],</span>  <span class="c"># 8.0  / 3.0</span>
-    <span class="s">&#39;numberOfScales&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-    <span class="s">&#39;maxIterations&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span>
-    <span class="s">&#39;convergenceThreshold&#39;</span><span class="p">:</span> <span class="p">[</span><span class="o">.</span><span class="mo">05</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">],</span>
-    <span class="c">#&#39;initialSigma&#39;: [6.0, 3.0, 2.0, 1.6, 1.2, 1.1],</span>
-    <span class="s">&#39;initialSigma&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">3.2</span><span class="p">,</span> <span class="mf">2.4</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">],</span>
-    <span class="s">&#39;edgeEigenValueRatio&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-<span class="p">}</span>
-
-<span class="n">smk00</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">64000</span><span class="p">],</span>  <span class="c"># True, False],</span>
-<span class="p">}</span>
-
-<span class="c"># HACKED IN</span>
-<span class="n">featparams_big2</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span>
-    <span class="n">featparams_big</span><span class="p">,</span>
-    <span class="p">{</span>
-        <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span>
-        <span class="s">&#39;fg_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-    <span class="p">})</span>
-<span class="c"># low threshold = more keypoints</span>
-<span class="c"># low initialSigma = more keypoints</span>
-
-
-<span class="n">vsone_best</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span><span class="n">vsone</span><span class="p">,</span> <span class="p">{</span> <span class="p">})</span>
-
-
-<span class="n">smk_test2</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
-<span class="p">}</span>
-
-<span class="n">asmk</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;asmk&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">False</span><span class="p">],</span>  <span class="c"># True, False],</span>
-<span class="p">}</span>
-
-<span class="n">smk</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">False</span><span class="p">],</span>  <span class="c"># True, False],</span>
-<span class="p">}</span>
-
-<span class="n">smk0</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;asmk&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">False</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">64000</span><span class="p">],</span>  <span class="c"># True, False],</span>
-<span class="p">}</span>
-
-<span class="n">smk1</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">False</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">64000</span><span class="p">],</span>  <span class="c"># True, False],</span>
-<span class="p">}</span>
-
-<span class="n">smk2</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">64000</span><span class="p">],</span>  <span class="c"># True, False],</span>
-<span class="p">}</span>
-
-
-<span class="c"># Test to make sure things are working for oxford</span>
-<span class="n">oxford</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>            <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="mi">64000</span><span class="p">,</span> <span class="mi">128000</span><span class="p">],</span>
-    <span class="s">&#39;xy_thresh&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="o">.</span><span class="mo">001</span><span class="p">],</span>
-    <span class="s">&#39;use_chip_extent&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
-<span class="p">}</span>
-
-<span class="n">smkd</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">8000</span><span class="p">],</span>  <span class="c"># True, False],</span>
-<span class="p">}</span>
-
-<span class="n">smk3</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">],</span>
-    <span class="c">#&#39;smk_thresh&#39;:    [0.0, 0.001],  # True, False],</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">64000</span><span class="p">],</span>  <span class="c"># True, False],</span>
-<span class="p">}</span>
-
-<span class="n">smk5</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;smk_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">],</span>
-    <span class="s">&#39;smk_alpha&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="mi">3</span><span class="p">],</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">128000</span><span class="p">,</span> <span class="mi">64000</span><span class="p">,</span> <span class="mi">8000</span><span class="p">],</span>
-<span class="p">}</span>
-
-
-<span class="n">smk6</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="c">#&#39;pipeline_root&#39;: [&#39;smk&#39;],</span>
-    <span class="c">#&#39;sv_on&#39;:         [False, True],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;nAssign&#39;</span><span class="p">:</span>       <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
-    <span class="s">&#39;massign_equal_weights&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
-    <span class="c">#&#39;smk_thresh&#39;:    [0.0, 0.001],</span>
-    <span class="c">#&#39;smk_alpha&#39;:     [3],</span>
-    <span class="c">#&#39;nWords&#39;:        [128000, 64000, 8000],</span>
-    <span class="c">#&#39;nWords&#39;:        [128000],</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">64000</span><span class="p">,</span> <span class="mi">128000</span><span class="p">],</span>
-<span class="p">}</span>
-
-
-<span class="c"># when vocab is clipped only self matches will be allowed</span>
-<span class="c"># so set nAssign = 2 at least for this case (PZ_MTEST)</span>
-<span class="n">smk6d</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="c">#&#39;pipeline_root&#39;: [&#39;smk&#39;, &#39;asmk&#39;, &#39;vsmany&#39;],</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">],</span>
-    <span class="c">#&#39;sv_on&#39;:         [False, True],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
-    <span class="s">&#39;nAssign&#39;</span><span class="p">:</span>       <span class="p">[</span><span class="mi">10</span><span class="p">],</span>
-    <span class="s">&#39;massign_equal_weights&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-    <span class="c">#&#39;smk_thresh&#39;:    [0.0, 0.001],</span>
-    <span class="c">#&#39;smk_alpha&#39;:     [3],</span>
-    <span class="c">#&#39;nWords&#39;:        [128000, 64000, 8000],</span>
-    <span class="c">#&#39;nWords&#39;:        [128000],</span>
-    <span class="c">#&#39;nWords&#39;:        [64000, 128000],</span>
-    <span class="s">&#39;allow_self_match&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>
-<span class="p">}</span>
-
-
-<span class="n">smk6_overnight</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="c">#&#39;pipeline_root&#39;: [&#39;smk&#39;, &#39;vsmany&#39;],</span>
-    <span class="c">#&#39;pipeline_root&#39;: [&#39;smk&#39;],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;nAssign&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
-    <span class="c">#&#39;nAssign&#39;:       [2, 4, 10],</span>
-    <span class="s">&#39;massign_equal_weights&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># , False],</span>
-    <span class="c">#&#39;smk_thresh&#39;:    [0.0, 0.0001],</span>
-    <span class="c">#&#39;smk_alpha&#39;:     [3],</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="mi">128000</span><span class="p">,</span> <span class="mi">64000</span><span class="p">,</span> <span class="mi">8000</span><span class="p">],</span>
-    <span class="c">#&#39;nWords&#39;:        [128000],</span>
-<span class="p">}</span>
-
-
-<span class="n">smk7_overnight</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="c">#&#39;pipeline_root&#39;: [&#39;smk&#39;, &#39;vsmany&#39;],</span>
-    <span class="c">#&#39;pipeline_root&#39;: [&#39;smk&#39;],</span>
-    <span class="s">&#39;loglnbnn_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;crowded_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;nAssign&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
-    <span class="c">#&#39;nAssign&#39;:       [2, 4, 10],</span>
-    <span class="s">&#39;massign_equal_weights&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># , False],</span>
-    <span class="c">#&#39;smk_thresh&#39;:    [0.0, 0.0001],</span>
-    <span class="c">#&#39;smk_alpha&#39;:     [3],</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="mi">128000</span><span class="p">,</span> <span class="mi">64000</span><span class="p">,</span> <span class="mi">8000</span><span class="p">],</span>
-    <span class="c">#&#39;nWords&#39;:        [128000],</span>
-<span class="p">}</span>
-
-
-<span class="n">lnbnn2_base</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">],</span>
-    <span class="s">&#39;loglnbnn_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">],</span>
-    <span class="s">&#39;normonly_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">],</span>
-<span class="p">}</span>
-
-<span class="n">lnbnn2_w1</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span>
-    <span class="n">lnbnn2_base</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s">&#39;loglnbnn_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
-    <span class="p">})</span>
-
-<span class="n">lnbnn2_w2</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span>
-    <span class="n">lnbnn2_base</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s">&#39;normonly_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
-    <span class="p">})</span>
-
-<span class="n">lnbnn2_w3</span> <span class="o">=</span> <span class="n">augbase</span><span class="p">(</span>
-    <span class="n">lnbnn2_base</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
-    <span class="p">})</span>
-
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">CommandLine:</span>
-
-<span class="sd">python dev.py --allgt -t lnbnn2 --db PZ_Mothers --noqcache</span>
-<span class="sd">python dev.py --allgt -t lnbnn2 --db GZ_ALL --noqcache</span>
-<span class="sd">&#39;&#39;&#39;</span>
-
-<span class="n">lnbnn2</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">lnbnn2_w1</span><span class="p">,</span>
-    <span class="n">lnbnn2_w2</span><span class="p">,</span>
-    <span class="n">lnbnn2_w3</span>
-<span class="p">]</span>
-
-
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">SINGLE QUERY COMMANDS</span>
-<span class="sd">python dev.py -t smk6d --db PZ_Mothers --allgt --index 0:1 --noqcache</span>
-
-<span class="sd">&#39;&#39;&#39;</span>
-
-
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">TESTING COMMANDS:</span>
-<span class="sd">python dev.py -t smk6d --db PZ_Mothers --allgt --index 20:30 --noqcache</span>
-
-<span class="sd">python dev.py -t smk6 --db PZ_Mothers --allgt</span>
-<span class="sd">python dev.py -t smk6 --db GZ_ALL --allgt</span>
-
-<span class="sd">python dev.py --db GZ_ALL --vdd</span>
-<span class="sd">python dev.py --db PZ_Mothers --vdd</span>
-
-<span class="sd"># GZ_HARDCASE</span>
-<span class="sd">python dev.py -t smk6 --db GZ_ALL --allgt --index 2 12 35 36 37</span>
-<span class="sd">python dev.py -t smk6 --db GZ_ALL --allgt --index 2 12 35 36 37 --va</span>
-
-<span class="sd">python dev.py -t smk6d --db GZ_ALL --allgt --index 2 12 --verbose --noqcache --debug2</span>
-<span class="sd">python dev.py -t smk6d --db GZ_ALL --allgt --index 2 12 --va</span>
-
-<span class="sd">python dev.py -t smk6d --db GZ_ALL --allgt --index 2 --verbose --noqcache --debug2</span>
-<span class="sd">&#39;&#39;&#39;</span>
-
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">COMPUTE RESULTS COMMANDS:</span>
-
-<span class="sd">python dev.py -t smk6 --db PZ_Mothers --allgt</span>
-<span class="sd">python dev.py -t smk6 --db GZ_ALL --allgt</span>
-<span class="sd">&#39;&#39;&#39;</span>
-
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">VIEW RESULTS COMMANDS:</span>
-
-<span class="sd">python dev.py -t smk6 --db PZ_Mothers --allgt --va --vf</span>
-<span class="sd">python dev.py -t smk6 --db GZ_ALL --allgt --va --vf</span>
-<span class="sd">&#39;&#39;&#39;</span>
-
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">HARD CASES COMMANDS:</span>
-
-<span class="sd">python dev.py -t smk6 --db PZ_Mothers --allgt --va --vf --index 2 3 4 5 6 7 8 10 13 14 15 16 17 18 19 20 21 24 25 28 31 32 34 36 37 38 39 40 43 44 45 46 47 48 49 50 51 52 53 55 56 58 59 60 63 64 65 66 69 70 73 74 76 77 78 80 81 82 83 86 88 90 91 93 94 95 96 97 98 99 101 103 104</span>
-<span class="sd">python dev.py -t smk6 --db GZ_ALL --allgt --va --vf</span>
-<span class="sd">&#39;&#39;&#39;</span>
-
-<span class="c"># Things to try:</span>
-<span class="c"># * negentropy</span>
-<span class="c"># * lower nAssign</span>
-<span class="c"># * more nWords</span>
-<span class="c"># * no multi assign weights</span>
-<span class="c"># * no cliphack</span>
-<span class="c"># * float32 rvecs</span>
-<span class="c"># Things to fix:</span>
-<span class="c"># * batched queries (possibly intermintent reporting)</span>
-
-<span class="n">smk_test</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;vsmany&#39;</span><span class="p">,</span> <span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">False</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;smk_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="o">.</span><span class="mo">001</span><span class="p">],</span>
-    <span class="s">&#39;smk_alpha&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="mi">3</span><span class="p">],</span>
-    <span class="s">&#39;massign_alpha&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.2</span><span class="p">],</span>
-    <span class="s">&#39;massign_sigma&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">80.0</span><span class="p">],</span>
-    <span class="s">&#39;nAssign&#39;</span><span class="p">:</span>       <span class="p">[</span><span class="mi">4</span><span class="p">],</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">64000</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;massign_equal_weights&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;vocab_weighting&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;idf&#39;</span><span class="p">,</span> <span class="s">&#39;negentropy&#39;</span><span class="p">],</span>  <span class="c"># &#39;idf&#39;</span>
-<span class="p">}</span>
-
-<span class="n">smk_best</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>         <span class="p">[</span><span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;smk_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mf">0.0</span><span class="p">],</span>
-    <span class="s">&#39;smk_alpha&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="mi">3</span><span class="p">],</span>
-    <span class="s">&#39;vocab_weighting&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;idf&#39;</span><span class="p">],</span>
-    <span class="s">&#39;nAssign&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">],</span>
-<span class="p">}</span>
-
-<span class="n">smk_8k</span> <span class="o">=</span> <span class="n">smk_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">smk_8k</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">8000</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">smk_64k</span> <span class="o">=</span> <span class="n">smk_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">smk_64k</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">64000</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">smk_128k</span> <span class="o">=</span> <span class="n">smk_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">smk_128k</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;nWords&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">128000</span><span class="p">],</span>
-<span class="p">})</span>
-
-
-<span class="c"># ---</span>
-<span class="c"># Older SMK Tests</span>
-<span class="c"># ---</span>
-
-
-<span class="n">smk_8k_compare</span> <span class="o">=</span> <span class="n">smk_8k</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">smk_8k_compare</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;smk&#39;</span><span class="p">,</span> <span class="s">&#39;asmk&#39;</span><span class="p">,</span>  <span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="c"># --- -------------------------------</span>
-<span class="c"># Vsmany - vsone tests</span>
-<span class="c"># ---</span>
-
-
-<span class="n">vsmany_2</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="s">&#39;checks&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="mi">1024</span><span class="p">],</span>  <span class="c"># , 8192],</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span>               <span class="p">[</span><span class="mi">5</span><span class="p">],</span>  <span class="c"># 5, 10],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 2, 3],</span>
-    <span class="s">&#39;Krecip&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># , 5, 10],</span>
-    <span class="s">&#39;bboxdist_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;recip_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;bursty_weight&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;ratio_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;lograt_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;bboxdist_thresh&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c"># .5,]</span>
-    <span class="s">&#39;recip_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 0</span>
-    <span class="s">&#39;bursty_thresh&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c"># 1.2, 1.6</span>
-    <span class="s">&#39;lnbnn_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;lograt_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;nShortlist&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="mi">50</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>
-    <span class="s">&#39;max_alts&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">1000</span><span class="p">],</span>
-<span class="p">}</span>
-
-<span class="n">vsone_1</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;vsone&#39;</span><span class="p">],</span>
-    <span class="s">&#39;checks&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="mi">256</span><span class="p">],</span>  <span class="c"># , 8192],</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span>               <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 5, 10],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 2, 3],</span>
-    <span class="s">&#39;Krecip&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># , 5, 10],</span>
-    <span class="s">&#39;bboxdist_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;recip_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;bursty_weight&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;ratio_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;lograt_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;bboxdist_thresh&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c"># .5,]</span>
-    <span class="s">&#39;recip_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 0</span>
-    <span class="s">&#39;bursty_thresh&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="o">.</span><span class="mi">6666</span><span class="p">],</span>  <span class="c"># 1.2, 1.6</span>
-    <span class="s">&#39;lnbnn_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;lograt_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;nShortlist&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="mi">50</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># , &#39;pl&#39;],  #, &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
-    <span class="s">&#39;max_alts&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">500</span><span class="p">],</span>
-<span class="p">}</span>
-
-<span class="n">vsone_std</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>  <span class="s">&#39;vsone&#39;</span><span class="p">,</span>
-    <span class="s">&#39;checks&#39;</span><span class="p">:</span>        <span class="mi">256</span><span class="p">,</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span>             <span class="mi">1</span><span class="p">,</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>         <span class="mi">1</span><span class="p">,</span>
-    <span class="s">&#39;Krecip&#39;</span><span class="p">:</span>        <span class="mi">0</span><span class="p">,</span>
-    <span class="s">&#39;ratio_weight&#39;</span><span class="p">:</span>  <span class="mi">1</span><span class="p">,</span>
-    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>  <span class="mi">0</span><span class="p">,</span>
-    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>  <span class="o">.</span><span class="mi">666</span><span class="p">,</span>
-<span class="p">}</span>
-
-<span class="n">vsmany_scoremethod</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="s">&#39;checks&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="mi">1024</span><span class="p">],</span>  <span class="c"># , 8192],</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span>               <span class="p">[</span><span class="mi">5</span><span class="p">],</span>  <span class="c"># 5, 10],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 2, 3],</span>
-    <span class="s">&#39;Krecip&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># , 5, 10],</span>
-    <span class="s">&#39;bboxdist_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;recip_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;bursty_weight&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;ratio_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;lograt_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;bboxdist_thresh&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c"># .5,]</span>
-    <span class="s">&#39;recip_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 0</span>
-    <span class="s">&#39;bursty_thresh&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c"># 1.2, 1.6</span>
-    <span class="s">&#39;lnbnn_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;lograt_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;nShortlist&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="mi">50</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">,</span> <span class="s">&#39;pl&#39;</span><span class="p">,</span> <span class="s">&#39;plw&#39;</span><span class="p">,</span> <span class="s">&#39;borda&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
-    <span class="s">&#39;max_alts&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">1000</span><span class="p">],</span>
-<span class="p">}</span>
-
-<span class="n">vsmany_best</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="s">&#39;checks&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="mi">1024</span><span class="p">],</span>  <span class="c"># , 8192],</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span>               <span class="p">[</span><span class="mi">4</span><span class="p">],</span>  <span class="c"># 5, 10],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 2, 3],</span>
-    <span class="s">&#39;Krecip&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># , 5, 10],</span>
-    <span class="s">&#39;bboxdist_weight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;recip_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;bursty_weight&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;ratio_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;lograt_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;bboxdist_thresh&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c"># .5,]</span>
-    <span class="s">&#39;recip_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 0</span>
-    <span class="s">&#39;bursty_thresh&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c"># 1.2, 1.6</span>
-    <span class="s">&#39;lnbnn_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;lograt_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;xy_thresh&#39;</span><span class="p">:</span>       <span class="p">[</span><span class="o">.</span><span class="mo">01</span><span class="p">],</span>  <span class="c"># [.002],</span>
-    <span class="s">&#39;nShortlist&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="mi">50</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;prescore_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># &#39;bordaw&#39;, &#39;topk&#39;, &#39;topkw&#39;],  # , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
-    <span class="s">&#39;max_alts&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">1000</span><span class="p">],</span>
-    <span class="s">&#39;dim_size&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">450</span><span class="p">],</span>
-<span class="p">}</span>
-<span class="c">#best = vsmany_best</span>
-
-<span class="n">gv_test</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">gv_test</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;nogravity_hack&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>
-    <span class="s">&#39;gravity_weighting&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>
-    <span class="c">#&#39;use_adaptive_scale&#39;: [True, False],</span>
-<span class="p">})</span>
-
-
-<span class="c"># 450 works the best on GZ</span>
-<span class="n">chipsize_test</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">chipsize_test</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;dim_size&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">400</span><span class="p">,</span> <span class="mi">450</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">750</span><span class="p">],</span>
-<span class="p">})</span>
-
-
-<span class="n">shortlist_test</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">shortlist_test</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;nShortlist&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">coverage</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">coverage</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">,</span> <span class="s">&#39;coverage&#39;</span><span class="p">,</span> <span class="s">&#39;coverage1&#39;</span><span class="p">,</span> <span class="s">&#39;coverage2&#39;</span><span class="p">,</span> <span class="s">&#39;coverage3&#39;</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">adaptive_test</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">adaptive_test</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
-    <span class="s">&#39;use_adaptive_scale&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">overnight</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">overnight</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="c">#&#39;K&#39;:                   [5, 7, 10, 20],</span>
-    <span class="c">#&#39;Knorm&#39;:               [1, 3, 5, 10],</span>
-    <span class="c">#&#39;normalizer_rule&#39;:     [&#39;name&#39;, &#39;last&#39;],</span>
-    <span class="c">#&#39;use_adaptive_scale&#39;:  [True, False],</span>
-    <span class="c">#&#39;score_method&#39;:        [&#39;pl&#39;, &#39;csum&#39;],  # , &#39;pl&#39;],  #, &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
-<span class="p">})</span>
-
-<span class="n">overnight_huge</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">overnight_huge</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span>                   <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>               <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
-    <span class="s">&#39;normalizer_rule&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;last&#39;</span><span class="p">],</span>
-    <span class="s">&#39;use_adaptive_scale&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>
-    <span class="c">#&#39;scale_min&#39;: [0, 10, 20],</span>
-    <span class="c">#&#39;score_method&#39;:        [&#39;pl&#39;, &#39;csum&#39;],  # , &#39;pl&#39;],  #, &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
-<span class="p">})</span>
-
-
-<span class="n">overnight_k</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">overnight_k</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">k_small</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">k_small</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">k_big</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">k_big</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">normrule</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">normrule</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span>
-    <span class="s">&#39;normalizer_rule&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;last&#39;</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">normrule2</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">normrule2</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-    <span class="s">&#39;normalizer_rule&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;last&#39;</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">small_scale_test</span> <span class="o">=</span> <span class="n">small_scale</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">small_scale_test</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;scale_min&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span>
-    <span class="s">&#39;scale_max&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">9001</span><span class="p">],</span>
-<span class="p">})</span>
-
-
-<span class="n">scale_test</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">scale_test</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;scale_min&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span>
-    <span class="s">&#39;scale_max&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">9001</span><span class="p">],</span>
-    <span class="c">#&#39;use_adaptive_scale&#39;: [True, False],</span>
-<span class="p">})</span>
-
-
-<span class="n">vsmany_score</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">vsmany_score</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">,</span> <span class="s">&#39;pl&#39;</span><span class="p">,</span> <span class="s">&#39;plw&#39;</span><span class="p">,</span> <span class="s">&#39;borda&#39;</span><span class="p">,</span> <span class="s">&#39;bordaw&#39;</span><span class="p">],</span>
-<span class="p">})</span>
-
-<span class="n">vsmany_nosv</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">vsmany_nosv</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">False</span><span class="p">]</span>
-<span class="p">})</span>
-
-<span class="n">vsmany_sv</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">vsmany_sv</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;xy_thresh&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="o">.</span><span class="mo">001</span><span class="p">,</span> <span class="o">.</span><span class="mo">002</span><span class="p">]</span>
-<span class="p">})</span>
-
-<span class="n">vsmany_k</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">vsmany_k</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">30</span><span class="p">]</span>
-<span class="p">})</span>
-
-
-<span class="n">vsmany_big_social</span> <span class="o">=</span> <span class="n">vsmany_best</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">vsmany_big_social</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span>                <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>            <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-    <span class="s">&#39;Krecip&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>     <span class="p">[</span><span class="s">&#39;pl&#39;</span><span class="p">,</span> <span class="s">&#39;plw&#39;</span><span class="p">,</span> <span class="s">&#39;csum&#39;</span><span class="p">,</span> <span class="s">&#39;borda&#39;</span><span class="p">,</span> <span class="s">&#39;bordaw&#39;</span><span class="p">],</span>
-<span class="p">})</span>
-
-
-<span class="n">vsmany_1</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="s">&#39;vsmany&#39;</span><span class="p">],</span>
-    <span class="s">&#39;checks&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="mi">1024</span><span class="p">],</span>  <span class="c"># , 8192],</span>
-    <span class="s">&#39;K&#39;</span><span class="p">:</span>               <span class="p">[</span><span class="mi">5</span><span class="p">],</span>  <span class="c"># 5, 10],</span>
-    <span class="s">&#39;Knorm&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 2, 3],</span>
-    <span class="s">&#39;Krecip&#39;</span><span class="p">:</span>          <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># , 5, 10],</span>
-    <span class="s">&#39;bboxdist_weight&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;recip_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;bursty_weight&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;ratio_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;lnbnn_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;lograt_weight&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 1,]</span>
-    <span class="s">&#39;bboxdist_thresh&#39;</span><span class="p">:</span>  <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c"># .5,]</span>
-    <span class="s">&#39;recip_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c"># 0</span>
-    <span class="s">&#39;bursty_thresh&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;ratio_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c"># 1.2, 1.6</span>
-    <span class="s">&#39;lnbnn_thresh&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;lograt_thresh&#39;</span><span class="p">:</span>   <span class="p">[</span><span class="bp">None</span><span class="p">],</span>  <span class="c">#</span>
-    <span class="s">&#39;nShortlist&#39;</span><span class="p">:</span>      <span class="p">[</span><span class="mi">50</span><span class="p">],</span>
-    <span class="s">&#39;sv_on&#39;</span><span class="p">:</span>           <span class="p">[</span><span class="bp">True</span><span class="p">],</span>  <span class="c"># True, False],</span>
-    <span class="s">&#39;score_method&#39;</span><span class="p">:</span>    <span class="p">[</span><span class="s">&#39;csum&#39;</span><span class="p">],</span>  <span class="c"># , &#39;nsum&#39;, &#39;borda&#39;, &#39;topk&#39;, &#39;nunique&#39;]</span>
-    <span class="s">&#39;max_alts&#39;</span><span class="p">:</span>        <span class="p">[</span><span class="mi">1000</span><span class="p">],</span>
-<span class="p">}</span>
-
-<span class="c"># Special value used to specify the current IBEIS configuration</span>
-<span class="n">custom</span> <span class="o">=</span> <span class="s">&#39;custom&#39;</span>
-
-
-<span class="n">include_vars</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>  <span class="c"># this line is after tests</span>
-
-<span class="c"># List of all valid tests</span>
+<span class="c1"># List of all valid tests</span>
 <span class="n">TEST_NAMES</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">include_vars</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">exclude_vars</span><span class="p">)</span>
 </pre></div>
 
@@ -1119,7 +342,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -1,0 +1,845 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.viz.viz_tmp &mdash; ibeis 1.5.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.viz" href="../viz.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../viz.html">ibeis.viz</a> &raquo;</li>
+      
+    <li>ibeis.viz.viz_tmp</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.viz.viz_tmp</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Displays the matching graph of individuals</span>
+
+<span class="sd">WindowsDepends:</span>
+<span class="sd">    pip install networkx</span>
+<span class="sd">    wget http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.38.msi</span>
+<span class="sd">    graphviz-2.38.msi</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">plottool.abstract_interaction</span> <span class="kn">import</span> <span class="n">AbstractInteraction</span>
+<span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="c1">#import sys</span>
+<span class="c1">#from os.path import join</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Cannot import networkx. pip install networkx&#39;</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_name_rowid_edges_from_nids"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.get_name_rowid_edges_from_nids">[docs]</a><span class="k">def</span> <span class="nf">get_name_rowid_edges_from_nids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nids</span><span class="p">):</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nids</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">itertools</span>
+    <span class="n">unflat_edges</span> <span class="o">=</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">aids</span><span class="p">))</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">aid_pairs</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">unflat_edges</span><span class="p">)</span> <span class="k">if</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">aids1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">aids2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span>
+
+</div>
+<div class="viewcode-block" id="get_name_rowid_edges_from_aids"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.get_name_rowid_edges_from_aids">[docs]</a><span class="k">def</span> <span class="nf">get_name_rowid_edges_from_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="n">aids_list</span><span class="p">,</span> <span class="n">nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">group_annots_by_name</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="c1">#aids_list = ibs.get_name_aids(nids)</span>
+    <span class="kn">import</span> <span class="nn">itertools</span>
+    <span class="n">unflat_edges</span> <span class="o">=</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">aids</span><span class="p">))</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">aid_pairs</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">unflat_edges</span><span class="p">)</span> <span class="k">if</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">aids1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">aids2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span>
+
+</div>
+<div class="viewcode-block" id="make_netx_graph_from_aidpairs"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.make_netx_graph_from_aidpairs">[docs]</a><span class="k">def</span> <span class="nf">make_netx_graph_from_aidpairs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">,</span> <span class="n">unique_aids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c1"># Enumerate annotmatch properties</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>  <span class="c1"># NOQA</span>
+    <span class="c1">#rng = np.random.RandomState(0)</span>
+    <span class="c1">#edge_props = {</span>
+    <span class="c1">#    &#39;weight&#39;: rng.rand(len(aids1)),</span>
+    <span class="c1">#    #&#39;reviewer_confidence&#39;: rng.rand(len(aids1)),</span>
+    <span class="c1">#    #&#39;algo_confidence&#39;: rng.rand(len(aids1)),</span>
+    <span class="c1">#}</span>
+    <span class="c1">#edge_keys = list(edge_props.keys())</span>
+    <span class="c1">#edge_vals = ut.dict_take(edge_props, edge_keys)</span>
+    <span class="k">if</span> <span class="n">unique_aids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">unique_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aids1</span> <span class="o">+</span> <span class="n">aids2</span><span class="p">))</span>
+    <span class="c1"># Make a graph between the chips</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_aids</span><span class="p">))</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">))</span>
+    <span class="c1">#, *edge_vals))</span>
+    <span class="n">node_lbls</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;aid&#39;</span><span class="p">,</span> <span class="s1">&#39;int&#39;</span><span class="p">)]</span>
+    <span class="c1">#edge_lbls = [(&#39;weight&#39;, &#39;float&#39;)]</span>
+
+    <span class="c1"># Make a graph between the chips</span>
+    <span class="n">netx_nodes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">ntup</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">{</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">val</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">node_lbls</span><span class="p">,</span> <span class="n">ntup</span><span class="p">[</span><span class="mi">1</span><span class="p">:])})</span>
+                  <span class="k">for</span> <span class="n">ntup</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">nodes</span><span class="p">)]</span>
+    <span class="n">netx_edges</span> <span class="o">=</span> <span class="p">[(</span><span class="n">etup</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">etup</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">{})</span> <span class="k">for</span> <span class="n">etup</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">edges</span><span class="p">)]</span>
+    <span class="c1">#netx_edges = [(etup[0], etup[1], {key[0]: val for (key, val) in zip(edge_lbls, etup[2:])})</span>
+    <span class="c1">#              for etup in iter(edges)]</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">netx_nodes</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">netx_edges</span><span class="p">)</span>
+    <span class="c1">#import plottool as pt</span>
+    <span class="c1">#nx.set_edge_attributes(graph, &#39;color&#39;, pt.DARK_ORANGE)</span>
+    <span class="k">return</span> <span class="n">graph</span>
+
+</div>
+<div class="viewcode-block" id="ensure_names_are_connected"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.ensure_names_are_connected">[docs]</a><span class="k">def</span> <span class="nf">ensure_names_are_connected</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">):</span>
+    <span class="n">aug_graph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">to_undirected</span><span class="p">()</span>
+    <span class="n">orig_edges</span> <span class="o">=</span> <span class="n">aug_graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()</span>
+    <span class="n">unflat_edges</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">aids</span><span class="p">))</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
+    <span class="n">aid_pairs</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">unflat_edges</span><span class="p">)</span> <span class="k">if</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">new_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="n">aug_graph</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+
+    <span class="n">preweighted_edges</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_edge_attributes</span><span class="p">(</span><span class="n">aug_graph</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">preweighted_edges</span><span class="p">:</span>
+        <span class="n">orig_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">orig_edges</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">preweighted_edges</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+    <span class="n">aug_graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">new_edges</span><span class="p">)</span>
+    <span class="c1"># Ensure the largest possible set of original edges is in the MST</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">aug_graph</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">edge</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">new_edges</span><span class="p">]))</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">aug_graph</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">edge</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span> <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">orig_edges</span><span class="p">]))</span>
+    <span class="k">for</span> <span class="n">cc_sub_graph</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_component_subgraphs</span><span class="p">(</span><span class="n">aug_graph</span><span class="p">):</span>
+        <span class="n">mst_sub_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">minimum_spanning_tree</span><span class="p">(</span><span class="n">cc_sub_graph</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">mst_sub_graph</span><span class="o">.</span><span class="n">edges</span><span class="p">():</span>
+            <span class="n">redge</span> <span class="o">=</span> <span class="n">edge</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span> <span class="ow">or</span> <span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="o">*</span><span class="n">redge</span><span class="p">)):</span>
+                <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="o">*</span><span class="n">redge</span><span class="p">,</span> <span class="n">attr_dict</span><span class="o">=</span><span class="p">{})</span>
+
+</div>
+<div class="viewcode-block" id="make_netx_graph_from_aid_groups"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.make_netx_graph_from_aid_groups">[docs]</a><span class="k">def</span> <span class="nf">make_netx_graph_from_aid_groups</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">only_reviewed_matches</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                    <span class="n">invis_edges</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ensure_edges</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                    <span class="n">temp_nids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">allow_directed</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (ibeis.IBEISController): image analysis api</span>
+<span class="sd">        aids_list (list):</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; aids_list = [[1, 2, 3, 4], [5, 6, 7]]</span>
+<span class="sd">        &gt;&gt;&gt; invis_edges = [(1, 5)]</span>
+<span class="sd">        &gt;&gt;&gt; only_reviewed_matches = True</span>
+<span class="sd">        &gt;&gt;&gt; graph = make_netx_graph_from_aid_groups(ibs, aids_list,</span>
+<span class="sd">        &gt;&gt;&gt;                                         only_reviewed_matches,</span>
+<span class="sd">        &gt;&gt;&gt;                                         invis_edges)</span>
+<span class="sd">        &gt;&gt;&gt; list(nx.connected_components(graph.to_undirected()))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#aids_list, nid_list = ibs.group_annots_by_name(aid_list)</span>
+    <span class="n">unique_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">))</span>
+
+    <span class="c1"># grouped version</span>
+    <span class="n">unflat_edges</span> <span class="o">=</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">aids</span><span class="p">))</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="n">aid_pairs</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">unflat_edges</span><span class="p">)</span> <span class="k">if</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">aids1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">aids2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">only_reviewed_matches</span><span class="p">:</span>
+        <span class="n">annotmatch_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_superkey</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)</span>
+        <span class="n">annotmatch_rowids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
+        <span class="n">aids1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid1</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
+        <span class="n">aids2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid2</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
+
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">make_netx_graph_from_aidpairs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">,</span> <span class="n">unique_aids</span><span class="o">=</span><span class="n">unique_aids</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ensure_edges</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ensure_edges</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+            <span class="n">ensure_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">upper_diag_self_prodx</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())))</span>
+        <span class="n">ensure_edges_</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">ensure_edges</span><span class="p">:</span>
+            <span class="n">edge</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+            <span class="n">redge</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">edge</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># HACK</span>
+            <span class="k">if</span> <span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">):</span>
+                <span class="n">ensure_edges_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+                <span class="k">pass</span>
+                <span class="c1">#nx.set_edge_attributes(graph, &#39;weight&#39;, {edge: .001})</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="n">allow_directed</span><span class="p">)</span> <span class="ow">and</span> <span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="o">*</span><span class="n">redge</span><span class="p">):</span>
+                <span class="n">ensure_edges_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">redge</span><span class="p">)</span>
+                <span class="c1">#nx.set_edge_attributes(graph, &#39;weight&#39;, {redge: .001})</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ensure_edges_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+                <span class="c1">#graph.add_edge(*edge, weight=.001)</span>
+                <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">temp_nids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">unique_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># HACK</span>
+        <span class="n">unique_nids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()))</span>
+        <span class="c1">#unique_nids = temp_nids</span>
+
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;nid&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(),</span> <span class="n">unique_nids</span><span class="p">)))</span>
+
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">ensure_names_are_connected</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+
+    <span class="c1"># Color edges by nid</span>
+    <span class="n">color_by_nids</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">unique_nids</span><span class="o">=</span><span class="n">unique_nids</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">invis_edges</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">invis_edges</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">):</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;style&#39;</span><span class="p">,</span> <span class="p">{</span><span class="n">edge</span><span class="p">:</span> <span class="s1">&#39;invis&#39;</span><span class="p">})</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;invisible&#39;</span><span class="p">,</span> <span class="p">{</span><span class="n">edge</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;invis&#39;</span><span class="p">,</span> <span class="n">invisible</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="c1"># Hack color images orange</span>
+    <span class="k">if</span> <span class="n">ensure_edges</span><span class="p">:</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">,</span>
+                               <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">edge</span><span class="p">):</span> <span class="n">pt</span><span class="o">.</span><span class="n">ORANGE</span> <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">ensure_edges_</span><span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">graph</span>
+
+</div>
+<div class="viewcode-block" id="ensure_graph_nid_labels"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.ensure_graph_nid_labels">[docs]</a><span class="k">def</span> <span class="nf">ensure_graph_nid_labels</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">unique_nids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">unique_nids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">unique_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()))</span>
+    <span class="n">nodeattrs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(),</span> <span class="n">unique_nids</span><span class="p">))</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;nid&#39;</span><span class="p">,</span> <span class="n">nodeattrs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="color_by_nids"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.color_by_nids">[docs]</a><span class="k">def</span> <span class="nf">color_by_nids</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">unique_nids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nid2_color_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Colors edges and nodes by nid &quot;&quot;&quot;</span>
+    <span class="c1"># TODO use ut.color_nodes</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+
+    <span class="n">ensure_graph_nid_labels</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">unique_nids</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+    <span class="n">node_to_nid</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;nid&#39;</span><span class="p">)</span>
+    <span class="n">unique_nids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">node_to_nid</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">ncolors</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_nids</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ncolors</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">unique_colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">UNKNOWN_PURP</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">nid2_color_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">unique_colors</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="n">ncolors</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid2_color_</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">unique_colors</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">distinct_colors</span><span class="p">(</span><span class="n">ncolors</span><span class="p">)</span>
+    <span class="c1"># Find edges and aids strictly between two nids</span>
+    <span class="n">nid_to_color</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_nids</span><span class="p">,</span> <span class="n">unique_colors</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">nid2_color_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c1"># HACK NEED TO ENSURE COLORS ARE NOT REUSED</span>
+        <span class="n">nid_to_color</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">nid2_color_</span><span class="p">)</span>
+    <span class="n">edge_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+    <span class="n">edge_nids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unflat_take</span><span class="p">(</span><span class="n">node_to_nid</span><span class="p">,</span> <span class="n">edge_aids</span><span class="p">)</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">nids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">nids</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">nids</span> <span class="ow">in</span> <span class="n">edge_nids</span><span class="p">]</span>
+    <span class="n">flagged_edge_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">edge_aids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+    <span class="n">flagged_edge_nids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">edge_nids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+    <span class="n">flagged_edge_colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid_to_color</span><span class="p">[</span><span class="n">nids</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="k">for</span> <span class="n">nids</span> <span class="ow">in</span> <span class="n">flagged_edge_nids</span><span class="p">]</span>
+    <span class="n">edge_to_color</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">flagged_edge_aids</span><span class="p">,</span> <span class="n">flagged_edge_colors</span><span class="p">))</span>
+    <span class="n">node_to_color</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">,</span> <span class="n">nid_to_color</span><span class="p">),</span> <span class="n">node_to_nid</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="n">edge_to_color</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="n">node_to_color</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="augment_graph_mst"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.augment_graph_mst">[docs]</a><span class="k">def</span> <span class="nf">augment_graph_mst</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">graph</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="c1">#spantree_aids1_ = []</span>
+    <span class="c1">#spantree_aids2_ = []</span>
+    <span class="c1"># Add edges between all names</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
+    <span class="n">aug_digraph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="c1"># Change all weights in initial graph to be small (likely to be part of mst)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">aug_digraph</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mo">0001</span><span class="p">)</span>
+    <span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span> <span class="o">=</span> <span class="n">get_name_rowid_edges_from_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="c1"># Weight edges in the MST based on tenative distances</span>
+        <span class="c1"># Get tentative node positions</span>
+        <span class="n">initial_pos</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_nx_layout</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">to_undirected</span><span class="p">(),</span> <span class="s1">&#39;graphviz&#39;</span><span class="p">)[</span><span class="s1">&#39;node_pos&#39;</span><span class="p">]</span>
+        <span class="c1">#initial_pos = pt.get_nx_layout(graph.to_undirected(), &#39;agraph&#39;)[&#39;node_pos&#39;]</span>
+        <span class="n">edge_pts1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">initial_pos</span><span class="p">,</span> <span class="n">aids1</span><span class="p">)</span>
+        <span class="n">edge_pts2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">initial_pos</span><span class="p">,</span> <span class="n">aids2</span><span class="p">)</span>
+        <span class="n">edge_pts1</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">atleast_nd</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">edge_pts1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">edge_pts2</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">atleast_nd</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">edge_pts2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">edge_weights</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">L2</span><span class="p">(</span><span class="n">edge_pts1</span><span class="p">,</span> <span class="n">edge_pts2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">edge_weights</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids1</span><span class="p">)</span>
+    <span class="c1"># Create implicit fully connected (by name) graph</span>
+    <span class="n">aug_edges</span> <span class="o">=</span> <span class="p">[(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">w</span><span class="p">})</span>
+                  <span class="k">for</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">,</span> <span class="n">edge_weights</span><span class="p">)]</span>
+    <span class="n">aug_digraph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">aug_edges</span><span class="p">)</span>
+
+    <span class="c1"># Determine which edges need to be added to</span>
+    <span class="c1"># make original graph connected by name</span>
+    <span class="n">aug_graph</span> <span class="o">=</span> <span class="n">aug_digraph</span><span class="o">.</span><span class="n">to_undirected</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">cc_sub_graph</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_component_subgraphs</span><span class="p">(</span><span class="n">aug_graph</span><span class="p">):</span>
+        <span class="n">mst_sub_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">minimum_spanning_tree</span><span class="p">(</span><span class="n">cc_sub_graph</span><span class="p">)</span>
+        <span class="n">mst_edges</span> <span class="o">=</span> <span class="n">mst_sub_graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">mst_edges</span><span class="p">:</span>
+            <span class="n">redge</span> <span class="o">=</span> <span class="n">edge</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="c1">#attr_dict = {&#39;color&#39;: pt.DARK_ORANGE[0:3]}</span>
+            <span class="n">attr_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="n">pt</span><span class="o">.</span><span class="n">BLACK</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]}</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)</span> <span class="ow">or</span> <span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="o">*</span><span class="n">redge</span><span class="p">)):</span>
+                <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="o">*</span><span class="n">redge</span><span class="p">,</span> <span class="n">attr_dict</span><span class="o">=</span><span class="n">attr_dict</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="ensure_node_images"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.ensure_node_images">[docs]</a><span class="k">def</span> <span class="nf">ensure_node_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">graph</span><span class="p">):</span>
+    <span class="n">node_to_aid</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;aid&#39;</span><span class="p">)</span>
+    <span class="n">node_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()))</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">node_to_aid</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">node_list</span><span class="p">]</span>
+    <span class="c1">#aid_list = sorted(list(graph.nodes()))</span>
+    <span class="n">imgpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span>
+                                               <span class="n">config</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">dim_size</span><span class="o">=</span><span class="mi">200</span><span class="p">),</span>
+                                               <span class="n">read_extern</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;image&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">node_list</span><span class="p">,</span> <span class="n">imgpath_list</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">,</span> <span class="s1">&#39;rect&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="viz_netx_chipgraph"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.viz_netx_chipgraph">[docs]</a><span class="k">def</span> <span class="nf">viz_netx_chipgraph</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_image</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                       <span class="n">zoom</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="s1">&#39;neato&#39;</span><span class="p">,</span> <span class="n">as_directed</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                       <span class="n">augment_graph</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">layoutkw</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">framewidth</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    DEPRICATE or improve</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        graph (nx.DiGraph):</span>
+<span class="sd">        fnum (int):  figure number(default = None)</span>
+<span class="sd">        use_image (bool): (default = False)</span>
+<span class="sd">        zoom (float): (default = 0.4)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: pos</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis --tf viz_netx_chipgraph --show</span>
+
+<span class="sd">    Cand:</span>
+<span class="sd">        ibeis review_tagged_joins --save figures4/mergecase.png --figsize=15,15</span>
+<span class="sd">            --clipwhite --diskshow</span>
+<span class="sd">        ibeis compute_occurrence_groups --save figures4/occurgraph.png</span>
+<span class="sd">            --figsize=40,40 --clipwhite --diskshow</span>
+<span class="sd">        ~/code/ibeis/ibeis/algo/preproc/preproc_occurrence.py</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;PZ_MTEST&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; nid_list = ibs.get_valid_nids()[0:10]</span>
+<span class="sd">        &gt;&gt;&gt; fnum = None</span>
+<span class="sd">        &gt;&gt;&gt; use_image = True</span>
+<span class="sd">        &gt;&gt;&gt; zoom = 0.4</span>
+<span class="sd">        &gt;&gt;&gt; make_name_graph_interaction(ibs, nid_list, prog=&#39;neato&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[viz_graph] drawing chip graph&#39;</span><span class="p">)</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">layout</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="s1">&#39;agraph&#39;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;layout = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">layout</span><span class="p">,))</span>
+
+    <span class="k">if</span> <span class="n">use_image</span><span class="p">:</span>
+        <span class="n">ensure_node_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">,</span> <span class="s1">&#39;rect&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">layoutkw</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">layoutkw</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">layoutkw</span><span class="p">[</span><span class="s1">&#39;prog&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">layoutkw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;prog&#39;</span><span class="p">,</span> <span class="n">prog</span><span class="p">)</span>
+    <span class="n">layoutkw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">prog</span> <span class="o">==</span> <span class="s1">&#39;neato&#39;</span><span class="p">:</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">to_undirected</span><span class="p">()</span>
+
+    <span class="n">plotinfo</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span>
+                          <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                          <span class="c1"># img_dict=img_dict,</span>
+                          <span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">,</span>
+                          <span class="c1"># hacknonode=bool(use_image),</span>
+                          <span class="n">layoutkw</span><span class="o">=</span><span class="n">layoutkw</span><span class="p">,</span>
+                          <span class="n">as_directed</span><span class="o">=</span><span class="n">as_directed</span><span class="p">,</span>
+                          <span class="n">framewidth</span><span class="o">=</span><span class="n">framewidth</span><span class="p">,</span>
+                          <span class="p">)</span>
+    <span class="k">return</span> <span class="n">plotinfo</span>
+
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction">[docs]</a><span class="k">class</span> <span class="nc">AnnotGraphInteraction</span><span class="p">(</span><span class="n">AbstractInteraction</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">selected_aids</span><span class="o">=</span><span class="p">[],</span> <span class="n">use_image</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">nids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">temp_nids</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AnnotGraphInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aids</span> <span class="o">=</span> <span class="n">aids</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span> <span class="o">=</span> <span class="n">selected_aids</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_image</span> <span class="o">=</span> <span class="n">use_image</span>
+        <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">graph_iden</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">infr</span> <span class="o">=</span> <span class="n">graph_iden</span><span class="o">.</span><span class="n">AnnotInference2</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">nids</span><span class="p">,</span> <span class="n">temp_nids</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AnnotGraphInteraction.make_hud"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.make_hud">[docs]</a>    <span class="k">def</span> <span class="nf">make_hud</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates heads up display &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+        <span class="n">hl_slot</span><span class="p">,</span> <span class="n">hr_slot</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_bbox_positioner</span><span class="p">(</span>
+            <span class="n">y</span><span class="o">=.</span><span class="mo">02</span><span class="p">,</span> <span class="n">w</span><span class="o">=.</span><span class="mi">10</span><span class="p">,</span> <span class="n">h</span><span class="o">=.</span><span class="mo">03</span><span class="p">,</span> <span class="n">xpad</span><span class="o">=.</span><span class="mo">05</span><span class="p">,</span> <span class="n">startx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stopx</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Create buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;Auto Infer&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">make_inference</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hl_slot</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;Break&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">break_links</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hl_slot</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;Link&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">make_links</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hl_slot</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;Accept&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">confirm</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hr_slot</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;Deselect&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unselect_all</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hr_slot</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;Show&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">show_selected</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hr_slot</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+        <span class="c1">#self.append_button(next_text, callback=next_callback, rect=next_rect)</span>
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction.make_inference"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.make_inference">[docs]</a>    <span class="k">def</span> <span class="nf">make_inference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;self.selected_aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">,))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">infer_cut</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction.break_links"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.break_links">[docs]</a>    <span class="k">def</span> <span class="nf">break_links</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;self.selected_aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">,))</span>
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction.make_links"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.make_links">[docs]</a>    <span class="k">def</span> <span class="nf">make_links</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;self.selected_aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">,))</span>
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction.unselect_all"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.unselect_all">[docs]</a>    <span class="k">def</span> <span class="nf">unselect_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;self.selected_aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">,))</span>
+        <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">[:]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">toggle_selected_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction.confirm"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.confirm">[docs]</a>    <span class="k">def</span> <span class="nf">confirm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Not done yet&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction.show_selected"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.show_selected">[docs]</a>    <span class="k">def</span> <span class="nf">show_selected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;show_selected&#39;</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;fnum = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fnum</span><span class="p">,))</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+        <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_many_chips</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="c1">#fig.canvas.update()</span>
+        <span class="c1">#pt.iup()</span>
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction.update_netx_graph"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.update_netx_graph">[docs]</a>    <span class="k">def</span> <span class="nf">update_netx_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1">#self.graph = make_netx_graph_from_aid_groups(</span>
+        <span class="c1">#    ibs, aids_list, invis_edges=invis_edges,</span>
+        <span class="c1">#    ensure_edges=ensure_edges, temp_nids=temp_nids)</span>
+        <span class="k">pass</span>
+        <span class="c1"># TODO: allow for a subset of grouped aids to be shown</span>
+        <span class="c1">#self.graph = make_netx_graph_from_nids(ibs, nids)</span>
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction.plot"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_netx_graph</span><span class="p">()</span>
+        <span class="c1">#if split_check:</span>
+
+        <span class="n">node2_aid</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;aid&#39;</span><span class="p">)</span>
+        <span class="n">node2_label</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">node</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">:aid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">node2_aid</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">node2_label</span><span class="p">)</span>
+        <span class="c1">#{self.infr.model.graph}</span>
+        <span class="n">layoutkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="s1">&#39;neato&#39;</span><span class="p">,</span> <span class="n">splines</span><span class="o">=</span><span class="s1">&#39;spline&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="mi">10</span> <span class="o">/</span> <span class="mi">72</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotinfo</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span>
+                                   <span class="n">as_directed</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span>
+                                   <span class="n">layoutkw</span><span class="o">=</span><span class="n">layoutkw</span><span class="p">,</span>
+                                   <span class="n">use_image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_image</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enable_pan_and_zoom</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+        <span class="c1">#ax.autoscale()</span>
+
+        <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">highlight_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">make_hud</span><span class="p">()</span>
+        <span class="c1">#self.static_plot(fnum, pnum)</span>
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction.highlight_aid"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.highlight_aid">[docs]</a>    <span class="k">def</span> <span class="nf">highlight_aid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+        <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ORANGE</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2_node</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotinfo</span><span class="p">[</span><span class="s1">&#39;patch_frame_dict&#39;</span><span class="p">][</span><span class="n">node</span><span class="p">]</span>
+        <span class="n">frame</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+        <span class="n">frame</span><span class="o">.</span><span class="n">set_edgecolor</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction.toggle_images"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.toggle_images">[docs]</a>    <span class="k">def</span> <span class="nf">toggle_images</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_image</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction.toggle_selected_aid"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.toggle_selected_aid">[docs]</a>    <span class="k">def</span> <span class="nf">toggle_selected_aid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+        <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="c1">#self.highlight_aid(aid, pt.WHITE)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">highlight_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">DARK_BLUE</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">highlight_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">ORANGE</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction.on_key_press"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.on_key_press">[docs]</a>    <span class="k">def</span> <span class="nf">on_key_press</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;r&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;i&#39;</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
+            <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span>
+            <span class="n">_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_superkey</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">aid2</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">_rowid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_superkey</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="p">[</span><span class="n">aid1</span><span class="p">])</span>
+            <span class="n">rowid</span> <span class="o">=</span> <span class="n">_rowid</span>  <span class="c1"># NOQA</span>
+</div>
+<div class="viewcode-block" id="AnnotGraphInteraction.mark_pair_truth"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.AnnotGraphInteraction.mark_pair_truth">[docs]</a>    <span class="k">def</span> <span class="nf">mark_pair_truth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">truth</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;This funciton only work if exactly 2 are selected&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;aid2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid2</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;aid1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,))</span>
+</div>
+    <span class="nd">@ut.debug_function_exceptions</span>
+    <span class="k">def</span> <span class="nf">on_click_inside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event</span> <span class="o">=</span> <span class="n">event</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span>
+        <span class="c1">#print(ax)</span>
+        <span class="c1">#print(event.x)</span>
+        <span class="c1">#print(event.y)</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotinfo</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">pos_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
+
+        <span class="c1"># TODO: FIXME</span>
+        <span class="c1">#x = 10</span>
+        <span class="c1">#y = 10</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>  <span class="c1"># NOQA</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">ydata</span>
+        <span class="n">point</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span>
+        <span class="n">pos_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pos_list</span><span class="p">)</span>
+        <span class="n">index</span><span class="p">,</span> <span class="n">dist</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">closest_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">pos_list</span><span class="p">,</span> <span class="n">distfunc</span><span class="o">=</span><span class="n">vt</span><span class="o">.</span><span class="n">L2</span><span class="p">)</span>
+        <span class="c1">#print(&#39;dist = %r&#39; % (dist,))</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node2_aid</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
+        <span class="n">context_shown</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="n">CHECK_PAIR</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">CHECK_PAIR</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">context_shown</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;This funciton only work if exactly 2 are selected&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
+                    <span class="n">context_shown</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">)</span>
+                    <span class="n">qres</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="n">qreq_</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="n">inspect_gui</span><span class="o">.</span><span class="n">get_aidpair_context_menu_options</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">show_popup_menu</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+
+        <span class="n">SELECT_ANNOT</span> <span class="o">=</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="mi">35</span>
+        <span class="k">if</span> <span class="n">SELECT_ANNOT</span><span class="p">:</span>
+            <span class="c1">#print(ut.obj_str(ibs.get_annot_info(aid, default=True,</span>
+            <span class="c1">#                                    name=False, gname=False)))</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">toggle_selected_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">context_shown</span><span class="p">:</span>
+                <span class="c1"># right click</span>
+                <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_chip</span>
+                <span class="n">context_shown</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="c1">#refresh_func = functools.partial(viz.show_name, ibs, nid,</span>
+                <span class="c1">#fnum=fnum, sel_aids=sel_aids)</span>
+                <span class="n">refresh_func</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">config2_</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">options</span> <span class="o">=</span> <span class="n">interact_chip</span><span class="o">.</span><span class="n">build_annot_context_options</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">refresh_func</span><span class="o">=</span><span class="n">refresh_func</span><span class="p">,</span>
+                    <span class="n">with_interact_name</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                    <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">show_popup_menu</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="s1">&#39;Toggle images&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">toggle_images</span><span class="p">),</span>
+                <span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">show_popup_menu</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="make_name_graph_interaction"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_tmp.make_name_graph_interaction">[docs]</a><span class="k">def</span> <span class="nf">make_name_graph_interaction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">selected_aids</span><span class="o">=</span><span class="p">[],</span>
+                                <span class="n">with_all</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">invis_edges</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">ensure_edges</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_image</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                <span class="n">temp_nids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis --tf make_name_graph_interaction --db PZ_MTEST \</span>
+<span class="sd">            --aids=1,2,3,4,5,6,7,8,9 --show</span>
+
+<span class="sd">        python -m ibeis --tf make_name_graph_interaction --db LEWA_splits --nids=1 --show --split</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; exec(ut.execstr_funckw(make_name_graph_interaction), globals())</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb=&#39;testdb1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=defaultdb)</span>
+<span class="sd">        &gt;&gt;&gt; aids = ut.get_argval(&#39;--aids&#39;, type_=list, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; nids = ut.get_argval(&#39;--nids&#39;, type_=list, default=ibs.get_valid_nids()[0:5])</span>
+<span class="sd">        &gt;&gt;&gt; nids = None if aids is not None else nids</span>
+<span class="sd">        &gt;&gt;&gt; with_all = not ut.get_argflag(&#39;--no-with-all&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; make_name_graph_interaction(ibs, nids, aids, with_all=with_all)</span>
+<span class="sd">        &gt;&gt;&gt; #pt.zoom_factory()</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">aids</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">nids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nids</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">nids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">aids</span> <span class="o">+=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nids</span><span class="p">)</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+    <span class="n">nids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">with_all</span><span class="p">:</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nids</span><span class="p">))</span>
+    <span class="bp">self</span> <span class="o">=</span> <span class="n">AnnotGraphInteraction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">selected_aids</span><span class="o">=</span><span class="n">selected_aids</span><span class="p">,</span>
+                                 <span class="n">nids</span><span class="o">=</span><span class="n">nids</span><span class="p">,</span> <span class="n">temp_nids</span><span class="o">=</span><span class="n">temp_nids</span><span class="p">,</span>
+                                 <span class="n">use_image</span><span class="o">=</span><span class="n">use_image</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="c1">#infr.exec_split_check()</span>
+    <span class="c1">#if split_check:</span>
+    <span class="c1">#infr = exec_split_check(ibs, aid_list)</span>
+    <span class="c1">#ut.graph_info(graph, 1)</span>
+    <span class="c1">#ut.graph_info(infr.model.graph, 1)</span>
+    <span class="c1">#_aids2 = sorted(list(graph.nodes()))</span>
+    <span class="c1">#aid2_node = {key: val for val, key in enumerate(aid_list)}</span>
+    <span class="c1">#graph = infr.model.graph</span>
+    <span class="c1">#node_to_aid = nx.get_node_attributes(graph, &#39;aid&#39;)</span>
+    <span class="c1">#node_to_aid = dict(zip(graph.nodes(), graph.nodes()))</span>
+    <span class="c1">#self._aids2 = sorted(list(self.graph.nodes()))</span>
+    <span class="c1">#self.aid2_node = {key: val for val, key in enumerate(self._aids2)}</span>
+
+    <span class="c1">#node_list = sorted(list(graph.nodes()))</span>
+    <span class="c1">#_aids2 = [node_to_aid.get(node, node) for node in node_list]</span>
+    <span class="c1">#aid2_node = dict(zip(_aids2, node_list))</span>
+    <span class="c1">#node2_aid = node_to_aid</span>
+
+    <span class="c1">#ax = self.fig.axes[0]</span>
+    <span class="c1">#for index in range(len(ax.artists)):</span>
+    <span class="c1">#    artist = ax.artists[index]</span>
+    <span class="c1">#    bbox = artist.patch</span>
+    <span class="c1">#    bbox.set_facecolor(pt.ORANGE)</span>
+    <span class="c1">#    #offset_img = artist.offsetbox</span>
+    <span class="c1">#    #img = offset_img.get_data()</span>
+    <span class="c1">#    #offset_img.set_data(vt.draw_border(img, thickness=5))</span>
+
+    <span class="c1">#bbox = artist.patch</span>
+
+    <span class="c1">#ax.figure.canvas.draw()  # force re-draw</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_graph</span>
+<span class="sd">        python -m ibeis.viz.viz_graph --allexamples</span>
+<span class="sd">        python -m ibeis.viz.viz_graph --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.5.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

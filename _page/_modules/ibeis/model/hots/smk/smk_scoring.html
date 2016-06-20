@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.smk.smk_scoring &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.model.hots.smk.smk_scoring &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots.smk" href="../smk.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -135,22 +135,22 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.model.hots.smk.smk_scoring</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">The functions for scoring smk matches</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span>
-<span class="c">#import pandas as pd</span>
+<span class="c1">#import pandas as pd</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="c">#import scipy.sparse as spsparse</span>
-<span class="c">#from ibeis.model.hots import hstypes</span>
+<span class="c1">#import scipy.sparse as spsparse</span>
+<span class="c1">#from ibeis.model.hots import hstypes</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[smk_scoring]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[smk_scoring]&#39;</span><span class="p">)</span>
 
 
-<span class="n">DEBUG_SMK</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--debug-smk&#39;</span><span class="p">)</span>
+<span class="n">DEBUG_SMK</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--debug-smk&#39;</span><span class="p">)</span>
 
 
 <span class="nd">@profile</span>
@@ -205,31 +205,31 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">num_rvecs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">DEBUG_SMK</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">maws_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">maws_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_rvecs</span><span class="p">,</span> <span class="s">&#39;inconsistent lengths&#39;</span>
-        <span class="k">assert</span> <span class="n">num_rvecs</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">idf_list</span><span class="p">),</span> <span class="s">&#39;inconsistent lengths&#39;</span>
-        <span class="k">assert</span> <span class="n">maws_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">))</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">rvecs_list</span><span class="p">)),</span> <span class="s">&#39;inconsistent per word lengths&#39;</span>
-        <span class="k">assert</span> <span class="n">flags_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">))</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">)),</span> <span class="s">&#39;inconsistent per word lengths&#39;</span>
-        <span class="k">assert</span> <span class="n">flags_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_rvecs</span><span class="p">,</span> <span class="s">&#39;inconsistent lengths&#39;</span>
-    <span class="c"># Indexing with asymetric multi-assignment might get you a non 1 self score?</span>
-    <span class="c"># List of scores for every word.</span>
+        <span class="k">assert</span> <span class="n">maws_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">maws_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_rvecs</span><span class="p">,</span> <span class="s1">&#39;inconsistent lengths&#39;</span>
+        <span class="k">assert</span> <span class="n">num_rvecs</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">idf_list</span><span class="p">),</span> <span class="s1">&#39;inconsistent lengths&#39;</span>
+        <span class="k">assert</span> <span class="n">maws_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">))</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">rvecs_list</span><span class="p">)),</span> <span class="s1">&#39;inconsistent per word lengths&#39;</span>
+        <span class="k">assert</span> <span class="n">flags_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">))</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">)),</span> <span class="s1">&#39;inconsistent per word lengths&#39;</span>
+        <span class="k">assert</span> <span class="n">flags_list</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">flags_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_rvecs</span><span class="p">,</span> <span class="s1">&#39;inconsistent lengths&#39;</span>
+    <span class="c1"># Indexing with asymetric multi-assignment might get you a non 1 self score?</span>
+    <span class="c1"># List of scores for every word.</span>
     <span class="n">scores_list</span> <span class="o">=</span> <span class="n">score_matches</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">rvecs_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">,</span>
                                 <span class="n">maws_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">,</span>
                                 <span class="n">idf_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">DEBUG_SMK</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_rvecs</span><span class="p">,</span> <span class="s">&#39;bad rvec and score&#39;</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">idf_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores_list</span><span class="p">),</span> <span class="s">&#39;bad weight and score&#39;</span>
-    <span class="c"># Summation over all residual vector scores</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_rvecs</span><span class="p">,</span> <span class="s1">&#39;bad rvec and score&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">idf_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores_list</span><span class="p">),</span> <span class="s1">&#39;bad weight and score&#39;</span>
+    <span class="c1"># Summation over all residual vector scores</span>
     <span class="n">_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="n">scores</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">scores</span> <span class="ow">in</span>  <span class="n">scores_list</span><span class="p">))</span>
     <span class="n">_iter</span>  <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">iflatten</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="k">for</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">scores_list</span><span class="p">)</span>
     <span class="n">self_rawscore</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromiter</span><span class="p">(</span><span class="n">_iter</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">_count</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-    <span class="c"># Square root inverse to enforce normalized self-score is 1.0</span>
+    <span class="c1"># Square root inverse to enforce normalized self-score is 1.0</span>
     <span class="n">sccw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reciprocal</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">self_rawscore</span><span class="p">))</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">sccw</span><span class="p">),</span> <span class="s">&#39;sccw cannot be infinite&#39;</span>
-        <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">sccw</span><span class="p">),</span> <span class="s">&#39;sccw cannot be nan&#39;</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">sccw</span><span class="p">),</span> <span class="s1">&#39;sccw cannot be infinite&#39;</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">sccw</span><span class="p">),</span> <span class="s1">&#39;sccw cannot be nan&#39;</span>
     <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;problem computing self consistency criterion weight&#39;</span><span class="p">,</span>
-                      <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;num_rvecs&#39;</span><span class="p">],</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;problem computing self consistency criterion weight&#39;</span><span class="p">,</span>
+                      <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;num_rvecs&#39;</span><span class="p">],</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">num_rvecs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span>
         <span class="k">else</span><span class="p">:</span>
@@ -271,11 +271,11 @@
 <span class="sd">        &gt;&gt;&gt; idf_list = [1.0 for _ in qrvecs_list]</span>
 <span class="sd">        &gt;&gt;&gt; scores_list = score_matches(qrvecs_list, drvecs_list, qmaws_list, dmaws_list, smk_alpha, smk_thresh, idf_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Cosine similarity between normalized residuals</span>
+    <span class="c1"># Cosine similarity between normalized residuals</span>
     <span class="n">simmat_list</span> <span class="o">=</span> <span class="n">similarity_function</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">,</span> <span class="n">qflags_list</span><span class="p">,</span> <span class="n">dflags_list</span><span class="p">)</span>
-    <span class="c"># Apply sigma selectivity (power law) (BEFORE WEIGHTING)</span>
+    <span class="c1"># Apply sigma selectivity (power law) (BEFORE WEIGHTING)</span>
     <span class="n">scoremat_list</span> <span class="o">=</span> <span class="n">selectivity_function</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">)</span>
-    <span class="c"># Apply Weights (AFTER SELECTIVITY)</span>
+    <span class="c1"># Apply Weights (AFTER SELECTIVITY)</span>
     <span class="n">wscoremat_list</span> <span class="o">=</span> <span class="n">apply_weights</span><span class="p">(</span><span class="n">scoremat_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">,</span> <span class="n">dmaws_list</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wscoremat_list</span>
 
@@ -305,20 +305,20 @@
 <span class="sd">        &gt;&gt;&gt; qrvecs_list, drvecs_list = smk_debug.testdata_similarity_function()</span>
 <span class="sd">        &gt;&gt;&gt; simmat_list = similarity_function(qrvecs_list, drvecs_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># For int8: Downweight by the psuedo max squared, to get scores between 0 and 1</span>
+    <span class="c1"># For int8: Downweight by the psuedo max squared, to get scores between 0 and 1</span>
     <span class="n">simmat_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">rvecs_dot_uint8</span><span class="p">(</span><span class="n">qrvecs</span><span class="p">,</span> <span class="n">drvecs</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">qrvecs</span><span class="p">,</span> <span class="n">drvecs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">,</span> <span class="n">drvecs_list</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">),</span> <span class="s">&#39;bad simmat and qrvec&#39;</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">drvecs_list</span><span class="p">),</span> <span class="s">&#39;bad simmat and drvec&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">qrvecs_list</span><span class="p">),</span> <span class="s1">&#39;bad simmat and qrvec&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">drvecs_list</span><span class="p">),</span> <span class="s1">&#39;bad simmat and drvec&#39;</span>
 
     <span class="k">if</span> <span class="n">qflags_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">dflags_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># Set any scores resulting from flagged vectors to 1</span>
-        <span class="c"># Actually lets add .5  because we dont know if a flagged vector</span>
-        <span class="c"># is a good match, but if both database and query are flagged then</span>
-        <span class="c"># it must be a good match</span>
+        <span class="c1"># Set any scores resulting from flagged vectors to 1</span>
+        <span class="c1"># Actually lets add .5  because we dont know if a flagged vector</span>
+        <span class="c1"># is a good match, but if both database and query are flagged then</span>
+        <span class="c1"># it must be a good match</span>
         <span class="k">for</span> <span class="n">qflags</span><span class="p">,</span> <span class="n">dflags</span><span class="p">,</span> <span class="n">simmat</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qflags_list</span><span class="p">,</span> <span class="n">dflags_list</span><span class="p">,</span> <span class="n">simmat_list</span><span class="p">):</span>
             <span class="n">simmat</span><span class="p">[</span><span class="n">qflags</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.5</span>
             <span class="n">simmat</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">dflags</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.5</span>
@@ -329,15 +329,15 @@
         <span class="k">for</span> <span class="n">dflags</span><span class="p">,</span> <span class="n">simmat</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dflags_list</span><span class="p">,</span> <span class="n">simmat_list</span><span class="p">):</span>
             <span class="n">simmat</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">dflags</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">0.5</span>
 
-    <span class="c"># for float16: just perform the calculation</span>
-    <span class="c">#simmat_list = [</span>
-    <span class="c">#    qrvecs.dot(drvecs.T)</span>
-    <span class="c">#    for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)</span>
-    <span class="c">#]</span>
+    <span class="c1"># for float16: just perform the calculation</span>
+    <span class="c1">#simmat_list = [</span>
+    <span class="c1">#    qrvecs.dot(drvecs.T)</span>
+    <span class="c1">#    for qrvecs, drvecs in zip(qrvecs_list, drvecs_list)</span>
+    <span class="c1">#]</span>
 
-    <span class="c"># uint8 does not have nans. We need to use flag lists</span>
-    <span class="c">#for simmat in simmat_list:</span>
-    <span class="c">#    simmat[np.isnan(simmat)] = 1.0</span>
+    <span class="c1"># uint8 does not have nans. We need to use flag lists</span>
+    <span class="c1">#for simmat in simmat_list:</span>
+    <span class="c1">#    simmat[np.isnan(simmat)] = 1.0</span>
 
     <span class="k">return</span> <span class="n">simmat_list</span>
 
@@ -377,11 +377,11 @@
             <span class="nb">zip</span><span class="p">(</span><span class="n">simmat_list</span><span class="p">,</span> <span class="n">qmaws_list</span><span class="p">,</span> <span class="n">word_weight_list</span><span class="p">)</span>
         <span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;cannot just do dmaws&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;cannot just do dmaws&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wsim_list</span>
 
 
-<span class="c">#@profile</span></div>
+<span class="c1">#@profile</span></div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="selectivity_function"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_scoring.selectivity_function">[docs]</a><span class="k">def</span> <span class="nf">selectivity_function</span><span class="p">(</span><span class="n">wsim_list</span><span class="p">,</span> <span class="n">smk_alpha</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Selectivity function - sigma from SMK paper rscore = residual score</span>
@@ -430,12 +430,12 @@
 <span class="sd">        %timeit scores2.sum()</span>
 <span class="sd">        %timeit scores3.sum()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Apply powerlaw</span>
+    <span class="c1"># Apply powerlaw</span>
     <span class="n">scores_iter</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">mawmat</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mawmat</span><span class="p">),</span> <span class="n">smk_alpha</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">mawmat</span> <span class="ow">in</span> <span class="n">wsim_list</span>
     <span class="p">]</span>
-    <span class="c"># Apply threshold</span>
+    <span class="c1"># Apply threshold</span>
     <span class="n">scores_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">greater</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">smk_thresh</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">scores_iter</span>
@@ -476,7 +476,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

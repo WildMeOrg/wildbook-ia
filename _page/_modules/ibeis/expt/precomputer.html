@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.expt.precomputer &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.expt.precomputer &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.expt" href="../expt.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,7 +131,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.expt.precomputer</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_helpers</span>
@@ -169,11 +169,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis.init.main_helpers</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="k">if</span> <span class="n">db_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">&#39;candidacy&#39;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">db_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;candidacy&#39;</span><span class="p">]:</span>
         <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_configs</span>
-        <span class="n">db_list</span> <span class="o">=</span> <span class="n">experiment_configs</span><span class="o">.</span><span class="n">get_candidacy_dbnames</span><span class="p">()</span>  <span class="c"># HACK</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;db_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">db_list</span><span class="p">),))</span>
-    <span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;-t&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span>
+        <span class="n">db_list</span> <span class="o">=</span> <span class="n">experiment_configs</span><span class="o">.</span><span class="n">get_candidacy_dbnames</span><span class="p">()</span>  <span class="c1"># HACK</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;db_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">db_list</span><span class="p">),))</span>
+    <span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;-t&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span>
     <span class="k">for</span> <span class="n">db</span> <span class="ow">in</span> <span class="n">db_list</span><span class="p">:</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">db</span><span class="p">)</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_expanded_aids</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
@@ -209,62 +209,62 @@
 <span class="sd">        &gt;&gt;&gt; result = precfg(ibs, acfg_name_list, test_cfg_name_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Generate list of database annotation configurations</span>
+    <span class="c1"># Generate list of database annotation configurations</span>
     <span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_annotcfg_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">)</span>
-    <span class="c"># Generate list of query pipeline param configs</span>
+    <span class="c1"># Generate list of query pipeline param configs</span>
     <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">pipecfg_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_pipecfg_list</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
-    <span class="c">#cfgx2_lbl = experiment_helpers.get_varied_cfg_lbls(cfgdict_list)</span>
+    <span class="c1">#cfgx2_lbl = experiment_helpers.get_varied_cfg_lbls(cfgdict_list)</span>
 
-    <span class="n">expanded_aids_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;annot config&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autoadjust</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">expanded_aids_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;annot config&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autoadjust</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">nAcfg</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">acfgx</span><span class="p">,</span> <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">expanded_aids_iter</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harness] WARNING No query annotations specified&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[harness] WARNING No query annotations specified&#39;</span><span class="p">)</span>
             <span class="k">continue</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harness] WARNING No database annotations specified&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[harness] WARNING No database annotations specified&#39;</span><span class="p">)</span>
             <span class="k">continue</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">---Annot config&#39;</span><span class="p">,</span> <span class="s">&#39;turquoise&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">---Annot config&#39;</span><span class="p">,</span> <span class="s1">&#39;turquoise&#39;</span><span class="p">)</span>
 
-        <span class="n">nCfg</span>     <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">)</span>   <span class="c"># number of configurations (cols)</span>
+        <span class="n">nCfg</span>     <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">)</span>   <span class="c1"># number of configurations (cols)</span>
         <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
 
-        <span class="n">cfgiter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;query config&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autoadjust</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">parent_index</span><span class="o">=</span><span class="n">acfgx</span><span class="p">,</span> <span class="n">parent_nTotal</span><span class="o">=</span><span class="n">nAcfg</span><span class="p">)</span>
+        <span class="n">cfgiter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;query config&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">autoadjust</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">parent_index</span><span class="o">=</span><span class="n">acfgx</span><span class="p">,</span> <span class="n">parent_nTotal</span><span class="o">=</span><span class="n">nAcfg</span><span class="p">)</span>
 
         <span class="n">flag</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--delete-nn-cache&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--delete-nn-cache&#39;</span><span class="p">):</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">delete_neighbor_cache</span><span class="p">()</span>
             <span class="n">flag</span> <span class="o">=</span> <span class="bp">True</span>
 
         <span class="k">for</span> <span class="n">cfgx</span><span class="p">,</span> <span class="n">query_cfg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cfgiter</span><span class="p">):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(),</span> <span class="s">&#39;turquoise&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(),</span> <span class="s1">&#39;turquoise&#39;</span><span class="p">)</span>
             <span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
-            <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s"> cfg </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="p">(</span><span class="n">acfgx</span> <span class="o">*</span> <span class="n">nCfg</span><span class="p">)</span> <span class="o">+</span> <span class="n">cfgx</span> <span class="o">*</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nCfg</span> <span class="o">*</span> <span class="n">nAcfg</span><span class="p">)):</span>
+            <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1"> cfg </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="p">(</span><span class="n">acfgx</span> <span class="o">*</span> <span class="n">nCfg</span><span class="p">)</span> <span class="o">+</span> <span class="n">cfgx</span> <span class="o">*</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nCfg</span> <span class="o">*</span> <span class="n">nAcfg</span><span class="p">)):</span>
 
                 <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">query_cfg</span><span class="o">=</span><span class="n">query_cfg</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--preload&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--preload&#39;</span><span class="p">):</span>
                     <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_preload</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
                     <span class="n">flag</span> <span class="o">=</span> <span class="bp">True</span>
-                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--preload-chip&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--preload-chip&#39;</span><span class="p">):</span>
                     <span class="n">qreq_</span><span class="o">.</span><span class="n">ensure_chips</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">extra_tries</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
                     <span class="n">flag</span> <span class="o">=</span> <span class="bp">True</span>
-                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--preload-feat&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--preload-feat&#39;</span><span class="p">):</span>
                     <span class="n">qreq_</span><span class="o">.</span><span class="n">ensure_features</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
                     <span class="n">flag</span> <span class="o">=</span> <span class="bp">True</span>
-                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--preload-featweight&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--preload-featweight&#39;</span><span class="p">):</span>
                     <span class="n">qreq_</span><span class="o">.</span><span class="n">ensure_featweights</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
                     <span class="n">flag</span> <span class="o">=</span> <span class="bp">True</span>
-                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--preindex&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--preindex&#39;</span><span class="p">):</span>
                     <span class="n">flag</span> <span class="o">=</span> <span class="bp">True</span>
-                    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;vsone&#39;</span><span class="p">,</span> <span class="s1">&#39;vsmany&#39;</span><span class="p">]:</span>
                         <span class="n">qreq_</span><span class="o">.</span><span class="n">load_indexer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="n">flag</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;no flag specified&#39;</span>
-        <span class="k">assert</span> <span class="n">flag</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;no flag specified&#39;</span>
+            <span class="k">assert</span> <span class="n">flag</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">,</span> <span class="s1">&#39;no flag specified&#39;</span>
+        <span class="k">assert</span> <span class="n">flag</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">,</span> <span class="s1">&#39;no flag specified&#39;</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.expt.precomputer</span>
@@ -272,8 +272,8 @@
 <span class="sd">        python -m ibeis.expt.precomputer --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -308,7 +308,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

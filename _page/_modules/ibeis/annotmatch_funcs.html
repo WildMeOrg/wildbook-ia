@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.annotmatch_funcs &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.annotmatch_funcs &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,22 +129,22 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.annotmatch_funcs</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">filter</span><span class="p">,</span> <span class="nb">range</span>  <span class="c"># NOQA</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">filter</span><span class="p">,</span> <span class="nb">range</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[annotmatch_funcs]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[annotmatch_funcs]&#39;</span><span class="p">)</span>
 
-<span class="c"># Create dectorator to inject functions in this module into the IBEISController</span>
+<span class="c1"># Create dectorator to inject functions in this module into the IBEISController</span>
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="setup_pzmtest_subgraph"><a class="viewcode-back" href="../../ibeis.html#ibeis.annotmatch_funcs.setup_pzmtest_subgraph">[docs]</a><span class="k">def</span> <span class="nf">setup_pzmtest_subgraph</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
     <span class="n">nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nids</span><span class="p">)</span>
 
@@ -187,7 +187,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_autogen_annotmatch_funcs</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">_autogen_annotmatch_funcs</span><span class="o">.</span><span class="n">ANNOTMATCH_ROWID</span><span class="p">,)</span>
-    <span class="c"># FIXME: col_rowid is not correct</span>
+    <span class="c1"># FIXME: col_rowid is not correct</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid1_list</span><span class="p">)</span>
     <span class="n">andwhere_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">_autogen_annotmatch_funcs</span><span class="o">.</span><span class="n">ANNOT_ROWID1</span><span class="p">]</span>
     <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where2</span><span class="p">(</span>
@@ -239,7 +239,7 @@
     <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_autogen_annotmatch_funcs</span>
     <span class="k">if</span> <span class="n">force_method</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nInput</span> <span class="o">&lt;</span> <span class="mi">128</span> <span class="ow">or</span> <span class="p">(</span><span class="n">force_method</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)):</span>
         <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">_autogen_annotmatch_funcs</span><span class="o">.</span><span class="n">ANNOTMATCH_ROWID</span><span class="p">,)</span>
-        <span class="c"># FIXME: col_rowid is not correct</span>
+        <span class="c1"># FIXME: col_rowid is not correct</span>
         <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid2_list</span><span class="p">)</span>
         <span class="n">andwhere_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">_autogen_annotmatch_funcs</span><span class="o">.</span><span class="n">ANNOT_ROWID2</span><span class="p">]</span>
         <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where2</span><span class="p">(</span>
@@ -320,11 +320,11 @@
 
     <span class="k">if</span> <span class="n">force_method</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nInput</span> <span class="o">&lt;</span> <span class="mi">256</span> <span class="ow">or</span> <span class="p">(</span><span class="n">force_method</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)):</span>
         <span class="n">rowids1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_from_aid1</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="c"># This one is slow because aid2 is the second part of the index</span>
+        <span class="c1"># This one is slow because aid2 is the second part of the index</span>
         <span class="n">rowids2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowids_from_aid2</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rowids1</span><span class="p">,</span> <span class="n">rowids2</span><span class="p">)))</span>  <span class="c"># NOQA</span>
+        <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rowids1</span><span class="p">,</span> <span class="n">rowids2</span><span class="p">)))</span>  <span class="c1"># NOQA</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c"># This is much much faster than the other methods for large queries</span>
+        <span class="c1"># This is much much faster than the other methods for large queries</span>
         <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
         <span class="n">all_annotmatch_rowids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_annotmatch_rowids</span><span class="p">())</span>
         <span class="n">aids1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid1</span><span class="p">(</span><span class="n">all_annotmatch_rowids</span><span class="p">))</span>
@@ -341,16 +341,16 @@
         <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
-        <span class="c"># VERY SLOW</span>
+        <span class="c1"># VERY SLOW</span>
         <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">_autogen_annotmatch_funcs</span><span class="o">.</span><span class="n">ANNOTMATCH_ROWID</span><span class="p">,)</span>
-        <span class="c"># FIXME: col_rowid is not correct</span>
+        <span class="c1"># FIXME: col_rowid is not correct</span>
         <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">))</span>
         <span class="n">where_colnames</span> <span class="o">=</span> <span class="p">[</span><span class="n">_autogen_annotmatch_funcs</span><span class="o">.</span><span class="n">ANNOT_ROWID1</span><span class="p">,</span> <span class="n">_autogen_annotmatch_funcs</span><span class="o">.</span><span class="n">ANNOT_ROWID2</span><span class="p">]</span>
-        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;one&#39;</span><span class="p">):</span>
-            <span class="n">annotmatch_rowid_list1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where3</span><span class="p">(</span>  <span class="c"># NOQA</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s1">&#39;one&#39;</span><span class="p">):</span>
+            <span class="n">annotmatch_rowid_list1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where3</span><span class="p">(</span>  <span class="c1"># NOQA</span>
                 <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">ANNOTMATCH_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_colnames</span><span class="p">,</span>
-                <span class="n">logicop</span><span class="o">=</span><span class="s">&#39;OR&#39;</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="c"># Ensure funciton output is consistent</span>
+                <span class="n">logicop</span><span class="o">=</span><span class="s1">&#39;OR&#39;</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="c1"># Ensure funciton output is consistent</span>
     <span class="n">annotmatch_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">sorted</span><span class="p">,</span> <span class="n">annotmatch_rowid_list</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">annotmatch_rowid_list</span>
 
@@ -390,13 +390,13 @@
 <span class="sd">        &gt;&gt;&gt; result = get_annotmatch_subgraph(ibs)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#import ibeis</span>
-    <span class="c">#ibs = ibeis.opendb(db=&#39;PZ_MTEST&#39;)</span>
-    <span class="c">#rowids = ibs._get_all_annotmatch_rowids()</span>
-    <span class="c">#aids1 = ibs.get_annotmatch_aid1(rowids)</span>
-    <span class="c">#aids2 = ibs.get_annotmatch_aid2(rowids)</span>
-    <span class="c">#</span>
-    <span class="c">#</span>
+    <span class="c1">#import ibeis</span>
+    <span class="c1">#ibs = ibeis.opendb(db=&#39;PZ_MTEST&#39;)</span>
+    <span class="c1">#rowids = ibs._get_all_annotmatch_rowids()</span>
+    <span class="c1">#aids1 = ibs.get_annotmatch_aid1(rowids)</span>
+    <span class="c1">#aids2 = ibs.get_annotmatch_aid2(rowids)</span>
+    <span class="c1">#</span>
+    <span class="c1">#</span>
     <span class="n">nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()</span>
     <span class="n">nids</span> <span class="o">=</span> <span class="n">nids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
     <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nids</span><span class="p">)</span>
@@ -406,38 +406,39 @@
     <span class="n">aids1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">aids2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="c"># Enumerate annotmatch properties</span>
+    <span class="c1"># Enumerate annotmatch properties</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">edge_props</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;weight&#39;</span><span class="p">:</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids1</span><span class="p">)),</span>
-        <span class="s">&#39;reviewer_confidence&#39;</span><span class="p">:</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids1</span><span class="p">)),</span>
-        <span class="s">&#39;algo_confidence&#39;</span><span class="p">:</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids1</span><span class="p">)),</span>
+        <span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids1</span><span class="p">)),</span>
+        <span class="s1">&#39;reviewer_confidence&#39;</span><span class="p">:</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids1</span><span class="p">)),</span>
+        <span class="s1">&#39;algo_confidence&#39;</span><span class="p">:</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids1</span><span class="p">)),</span>
     <span class="p">}</span>
 
-    <span class="c"># Remove data that does not need to be visualized</span>
-    <span class="c"># (dont show all the aids if you dont have to)</span>
+    <span class="c1"># Remove data that does not need to be visualized</span>
+    <span class="c1"># (dont show all the aids if you dont have to)</span>
     <span class="n">thresh</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span>
-    <span class="n">flags</span> <span class="o">=</span> <span class="n">edge_props</span><span class="p">[</span><span class="s">&#39;weight&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">thresh</span>
-    <span class="n">aids1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
-    <span class="n">aids2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids2</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
-    <span class="n">edge_props</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">edge_props</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">edge_props</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">thresh</span>
+    <span class="n">aids1_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+    <span class="n">aids2_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids2</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+    <span class="n">chosen_props</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span><span class="n">edge_props</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">])</span>
+    <span class="n">edge_props</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">,</span> <span class="n">flag_list</span><span class="o">=</span><span class="n">flags</span><span class="p">),</span> <span class="n">chosen_props</span><span class="p">)</span>
 
     <span class="n">edge_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">edge_props</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="n">edge_vals</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">edge_props</span><span class="p">,</span> <span class="n">edge_keys</span><span class="p">)</span>
+    <span class="n">edge_attr_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">edge_keys</span><span class="p">,</span> <span class="n">vals_</span><span class="p">))</span> <span class="k">for</span> <span class="n">vals_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">edge_vals</span><span class="p">)]</span>
 
-    <span class="n">unique_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aids1</span> <span class="o">+</span> <span class="n">aids2</span><span class="p">))</span>
-
-    <span class="c"># Make a graph between the chips</span>
-    <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_aids</span><span class="p">))</span>
-    <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aids1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">,</span> <span class="o">*</span><span class="n">edge_vals</span><span class="p">))</span>
-    <span class="n">node_lbls</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="s">&#39;int&#39;</span><span class="p">)]</span>
-    <span class="n">edge_lbls</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;weight&#39;</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)]</span>
+    <span class="n">unique_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aids1_</span> <span class="o">+</span> <span class="n">aids2_</span><span class="p">))</span>
+    <span class="c1"># Make a graph between the chips</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">unique_aids</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aids1_</span><span class="p">,</span> <span class="n">aids2_</span><span class="p">,</span> <span class="n">edge_attr_list</span><span class="p">))</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
     <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_graph</span>
-    <span class="n">netx_graph</span> <span class="o">=</span> <span class="n">viz_graph</span><span class="o">.</span><span class="n">make_netx_graph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">node_lbls</span><span class="p">,</span> <span class="n">edge_lbls</span><span class="p">)</span>
     <span class="n">fnum</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="c">#zoom = kwargs.get(&#39;zoom&#39;, .4)</span>
-    <span class="n">zoom</span> <span class="o">=</span> <span class="o">.</span><span class="mi">4</span>
-    <span class="n">viz_graph</span><span class="o">.</span><span class="n">viz_netx_chipgraph</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">netx_graph</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">with_images</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="n">zoom</span><span class="p">)</span>
+    <span class="c1">#zoom = kwargs.get(&#39;zoom&#39;, .4)</span>
+    <span class="n">viz_graph</span><span class="o">.</span><span class="n">viz_netx_chipgraph</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">with_images</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">augment_graph</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -450,32 +451,32 @@
         <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">((</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
         <span class="n">truth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TRUTH_UNKNOWN</span> <span class="k">if</span> <span class="p">(</span><span class="n">nid1</span> <span class="o">==</span> <span class="n">nid2</span><span class="p">)</span> <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TRUTH_NOT_MATCH</span>
 
-    <span class="c">#annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]</span>
+    <span class="c1">#annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]</span>
     <span class="n">annotmatch_rowids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annotmatch</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">aid2</span><span class="p">])</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_reviewed</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="p">[</span><span class="bp">True</span><span class="p">])</span>
 
-    <span class="c"># Old functionality, remove. Reviewing should not set truth</span>
+    <span class="c1"># Old functionality, remove. Reviewing should not set truth</span>
     <span class="n">confidence</span>  <span class="o">=</span> <span class="mf">0.5</span>
-    <span class="c">#ibs.add_or_update_annotmatch(aid1, aid2, truth, confidence)</span>
+    <span class="c1">#ibs.add_or_update_annotmatch(aid1, aid2, truth, confidence)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_truth</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="p">[</span><span class="n">truth</span><span class="p">])</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annotmatch_confidence</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="p">[</span><span class="n">confidence</span><span class="p">])</span>
 
-    <span class="c">#if annotmatch_rowid is not None:</span>
-    <span class="c">#    ibs.set_annotmatch_truth([annotmatch_rowid], [truth])</span>
-    <span class="c">#    ibs.set_annotmatch_confidence([annotmatch_rowid], [confidence])</span>
-    <span class="c">#else:</span>
-    <span class="c">#    ibs.add_annotmatch([aid1], [aid2], annotmatch_truth_list=[truth], annotmatch_confidence_list=[confidence])</span>
+    <span class="c1">#if annotmatch_rowid is not None:</span>
+    <span class="c1">#    ibs.set_annotmatch_truth([annotmatch_rowid], [truth])</span>
+    <span class="c1">#    ibs.set_annotmatch_confidence([annotmatch_rowid], [confidence])</span>
+    <span class="c1">#else:</span>
+    <span class="c1">#    ibs.add_annotmatch([aid1], [aid2], annotmatch_truth_list=[truth], annotmatch_confidence_list=[confidence])</span>
 
 
-<span class="c">#@register_ibs_method</span>
-<span class="c">#def add_or_update_annotmatch(ibs, aid1, aid2, truth, confidence):</span>
-<span class="c">#    annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]</span>
-<span class="c">#    # TODO: sql add or update?</span>
-<span class="c">#    if annotmatch_rowid is not None:</span>
-<span class="c">#        ibs.set_annotmatch_truth([annotmatch_rowid], [truth])</span>
-<span class="c">#        ibs.set_annotmatch_confidence([annotmatch_rowid], [confidence])</span>
-<span class="c">#    else:</span>
-<span class="c">#        ibs.add_annotmatch([aid1], [aid2], annotmatch_truth_list=[truth], annotmatch_confidence_list=[confidence])</span>
+<span class="c1">#@register_ibs_method</span>
+<span class="c1">#def add_or_update_annotmatch(ibs, aid1, aid2, truth, confidence):</span>
+<span class="c1">#    annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]</span>
+<span class="c1">#    # TODO: sql add or update?</span>
+<span class="c1">#    if annotmatch_rowid is not None:</span>
+<span class="c1">#        ibs.set_annotmatch_truth([annotmatch_rowid], [truth])</span>
+<span class="c1">#        ibs.set_annotmatch_confidence([annotmatch_rowid], [confidence])</span>
+<span class="c1">#    else:</span>
+<span class="c1">#        ibs.add_annotmatch([aid1], [aid2], annotmatch_truth_list=[truth], annotmatch_confidence_list=[confidence])</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -516,49 +517,49 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">_set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... _set_annot_name_rowids(aids=</span><span class="si">%r</span><span class="s">, nids=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... names = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)))</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span> <span class="s">&#39;list must correspond&#39;</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;... _set_annot_name_rowids(aids=</span><span class="si">%r</span><span class="s1">, nids=</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;... names = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)))</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">),</span> <span class="s1">&#39;list must correspond&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
-        <span class="c"># Return the new annots in this name</span>
+        <span class="c1"># Return the new annots in this name</span>
         <span class="n">_aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
         <span class="n">_combo_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_aids</span> <span class="o">+</span> <span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="k">for</span> <span class="n">_aids</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">_aids_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)]</span>
         <span class="n">status</span> <span class="o">=</span> <span class="n">_combo_aids_list</span>
         <span class="k">return</span> <span class="n">status</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[marking_match] aid1 = </span><span class="si">%r</span><span class="s">, aid2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[marking_match] aid1 = </span><span class="si">%r</span><span class="s1">, aid2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">))</span>
 
     <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">nid1</span> <span class="o">==</span> <span class="n">nid2</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;...images already matched&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;...images already matched&#39;</span><span class="p">)</span>
         <span class="n">status</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">isunknown1</span><span class="p">,</span> <span class="n">isunknown2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="n">isunknown2</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...match unknown1 to unknown2 into 1 new name&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;...match unknown1 to unknown2 into 1 new name&#39;</span><span class="p">)</span>
             <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="n">next_nids</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...merge known1 into known2&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;...merge known1 into known2&#39;</span><span class="p">)</span>
             <span class="n">aid1_and_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
             <span class="n">aid2_and_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid2</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
             <span class="n">trivial_merge</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid1_and_groundtruth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid2_and_groundtruth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">trivial_merge</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">on_nontrivial_merge</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;no function is set up to handle nontrivial merges!&#39;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;no function is set up to handle nontrivial merges!&#39;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">on_nontrivial_merge</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
             <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">(</span><span class="n">aid1_and_groundtruth</span><span class="p">,</span> <span class="p">[</span><span class="n">nid2</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid1_and_groundtruth</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">isunknown2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown1</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...match unknown2 into known1&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;...match unknown2 into known1&#39;</span><span class="p">)</span>
             <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="p">[</span><span class="n">nid1</span><span class="p">])</span>
         <span class="k">elif</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...match unknown1 into known2&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;...match unknown1 into known2&#39;</span><span class="p">)</span>
             <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">nid2</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;impossible state&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;impossible state&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">status</span>
 
 </div>
@@ -590,44 +591,44 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">_set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;... _set_annot_name_rowids(</span><span class="si">%r</span><span class="s">, </span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;... _set_annot_name_rowids(</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
     <span class="n">nid1</span><span class="p">,</span> <span class="n">nid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">nid1</span> <span class="o">==</span> <span class="n">nid2</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;images are marked as having the same name... we must tread carefully&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;images are marked as having the same name... we must tread carefully&#39;</span><span class="p">)</span>
         <span class="n">aid1_groundtruth</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">noself</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid1_groundtruth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">aid1_groundtruth</span> <span class="o">==</span> <span class="p">[</span><span class="n">aid2</span><span class="p">]:</span>
-            <span class="c"># this is the only safe case for same name split</span>
-            <span class="c"># Change so the names are not the same</span>
+            <span class="c1"># this is the only safe case for same name split</span>
+            <span class="c1"># Change so the names are not the same</span>
             <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">on_nontrivial_split</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;no function is set up to handle nontrivial splits!&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;no function is set up to handle nontrivial splits!&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">on_nontrivial_split</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">isunknown1</span><span class="p">,</span> <span class="n">isunknown2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="n">isunknown2</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...nonmatch unknown1 and unknown2 into 2 new names&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;...nonmatch unknown1 and unknown2 into 2 new names&#39;</span><span class="p">)</span>
             <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
             <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...nonmatch known1 and known2... nothing to do (yet)&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;...nonmatch known1 and known2... nothing to do (yet)&#39;</span><span class="p">)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_pair_as_reviewed</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
             <span class="n">status</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">elif</span> <span class="n">isunknown2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown1</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...nonmatch unknown2 -&gt; newname and known1&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;...nonmatch unknown2 -&gt; newname and known1&#39;</span><span class="p">)</span>
             <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">isunknown1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">isunknown2</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;...nonmatch unknown1 -&gt; newname and known2&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;...nonmatch unknown1 -&gt; newname and known2&#39;</span><span class="p">)</span>
             <span class="n">next_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_nids</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">status</span> <span class="o">=</span>  <span class="n">_set_annot_name_rowids</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="n">next_nids</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;impossible state&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;impossible state&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">status</span>
 
 </div>
@@ -667,17 +668,17 @@
 <span class="sd">        np.array([  7.57e+07,   7.57e+07,   2.41e+06,   1.98e+08,   9.69e+07], dtype=np.float64)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)</span>
-    <span class="c">#unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)</span>
+    <span class="c1">#unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)</span>
+    <span class="c1">#unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)</span>
     <span class="n">unixtime_list1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_unixtimes_asfloat</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
     <span class="n">unixtime_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_unixtimes_asfloat</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">)</span>
-    <span class="c">#unixtime_list1[unixtime_list1 == -1] = np.nan</span>
-    <span class="c">#unixtime_list2[unixtime_list2 == -1] = np.nan</span>
+    <span class="c1">#unixtime_list1[unixtime_list1 == -1] = np.nan</span>
+    <span class="c1">#unixtime_list2[unixtime_list2 == -1] = np.nan</span>
     <span class="n">timedelta_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">unixtime_list1</span> <span class="o">-</span> <span class="n">unixtime_list2</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">timedelta_list</span>
 
 
-<span class="c"># AUTOGENED CONSTANTS:</span>
+<span class="c1"># AUTOGENED CONSTANTS:</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -728,12 +729,12 @@
 
 <span class="sd">    aid_list = ibs.get_valid_aids()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ANNOT_ROWID1</span> <span class="o">=</span> <span class="s">&#39;annot_rowid1&#39;</span>
-    <span class="n">ANNOT_ROWID2</span> <span class="o">=</span> <span class="s">&#39;annot_rowid2&#39;</span>
-    <span class="c">#params_iter = [(aid, aid) for aid in aid_list]</span>
-    <span class="c">#[(aid, aid) for aid in aid_list]</span>
-    <span class="c">#colnames = (ANNOT_ROWID1, ANNOT_ROWID2)</span>
-    <span class="c">#where_colnames = (ANNOT_ROWID1, ANNOT_ROWID2)</span>
+    <span class="n">ANNOT_ROWID1</span> <span class="o">=</span> <span class="s1">&#39;annot_rowid1&#39;</span>
+    <span class="n">ANNOT_ROWID2</span> <span class="o">=</span> <span class="s1">&#39;annot_rowid2&#39;</span>
+    <span class="c1">#params_iter = [(aid, aid) for aid in aid_list]</span>
+    <span class="c1">#[(aid, aid) for aid in aid_list]</span>
+    <span class="c1">#colnames = (ANNOT_ROWID1, ANNOT_ROWID2)</span>
+    <span class="c1">#where_colnames = (ANNOT_ROWID1, ANNOT_ROWID2)</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="p">[(</span><span class="n">aid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_ROWID2</span><span class="p">,)</span>
     <span class="n">andwhere_colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">ANNOT_ROWID1</span><span class="p">,)</span>
@@ -742,11 +743,11 @@
                                   <span class="n">andwhere_colnames</span><span class="o">=</span><span class="n">andwhere_colnames</span><span class="p">,</span>
                                   <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                                   <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
-    <span class="c">#logicop = &#39;OR&#39;</span>
-    <span class="c">#aids_list = ibs.db.get_where3(</span>
-    <span class="c">#    const.ANNOTMATCH_TABLE, colnames, params_iter,</span>
-    <span class="c">#    where_colnames=where_colnames, logicop=logicop, eager=eager,</span>
-    <span class="c">#    unpack_scalars=False, nInput=nInput)</span>
+    <span class="c1">#logicop = &#39;OR&#39;</span>
+    <span class="c1">#aids_list = ibs.db.get_where3(</span>
+    <span class="c1">#    const.ANNOTMATCH_TABLE, colnames, params_iter,</span>
+    <span class="c1">#    where_colnames=where_colnames, logicop=logicop, eager=eager,</span>
+    <span class="c1">#    unpack_scalars=False, nInput=nInput)</span>
     <span class="k">return</span> <span class="n">aids_list</span>
 
 </div>
@@ -796,7 +797,7 @@
     <span class="n">annotmatch_truth_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">or_lists</span><span class="p">(</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">flag_not_None_items</span><span class="p">(</span><span class="n">annotmatch_truth_list1</span><span class="p">),</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">flag_not_None_items</span><span class="p">(</span><span class="n">annotmatch_truth_list2</span><span class="p">))</span>
-    <span class="c">#annotmatch_reviewed_list = [truth is not None for truth in annotmatch_truth_list]</span>
+    <span class="c1">#annotmatch_reviewed_list = [truth is not None for truth in annotmatch_truth_list]</span>
     <span class="k">return</span> <span class="n">annotmatch_truth_list</span>
 
 </div>
@@ -805,6 +806,7 @@
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.annotmatch_funcs --exec-review_tagged_splits --show</span>
+<span class="sd">        python -m ibeis.annotmatch_funcs --exec-review_tagged_splits --show --db</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.gui.guiback import *  # NOQA</span>
@@ -832,20 +834,24 @@
 <span class="sd">        &gt;&gt;&gt; #back.run_annot_splits(aid_list)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;Review splits for tagd problem cases %r&#39; % (problem_aids))</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.viz import viz_graph</span>
-<span class="sd">        &gt;&gt;&gt; nids = [split_nids[0]]</span>
+<span class="sd">        &gt;&gt;&gt; nid = split_nids[0]</span>
 <span class="sd">        &gt;&gt;&gt; selected_aids = np.unique(problem_aids.ravel()).tolist()</span>
 <span class="sd">        &gt;&gt;&gt; selected_aids = [] if ut.get_argflag(&#39;--noselect&#39;) else  selected_aids</span>
-<span class="sd">        &gt;&gt;&gt; self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;selected_aids = %r&#39; % (selected_aids,))</span>
+<span class="sd">        &gt;&gt;&gt; selected_aids = []</span>
+<span class="sd">        &gt;&gt;&gt; aids = ibs.get_name_aids(nid)</span>
+<span class="sd">        &gt;&gt;&gt; self = viz_graph.make_name_graph_interaction(ibs, aids=aids,</span>
+<span class="sd">        &gt;&gt;&gt;                                              with_all=False,</span>
+<span class="sd">        &gt;&gt;&gt;                                              selected_aids=selected_aids,</span>
+<span class="sd">        &gt;&gt;&gt;                                              with_images=True,</span>
+<span class="sd">        &gt;&gt;&gt;                                              prog=&#39;neato&#39;, rankdir=&#39;LR&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;                                              augment_graph=False,</span>
+<span class="sd">        &gt;&gt;&gt;                                              ensure_edges=problem_aids.tolist())</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 
 <span class="sd">        rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])</span>
 <span class="sd">        ibs.get_annotmatch_prop(&#39;SplitCase&#39;, rowids)</span>
-
 <span class="sd">        #ibs.set_annotmatch_prop(&#39;SplitCase&#39;, rowids, [False])</span>
-
-<span class="sd">        viz_graph.viz_netx_chipgraph(ibs, netx_graph, with_images=True)</span>
-<span class="sd">        import plottool as pt</span>
-<span class="sd">        pt.iup()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 
@@ -909,22 +915,22 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.viz import viz_graph</span>
 <span class="sd">        &gt;&gt;&gt; nids = join_nids[0]</span>
 <span class="sd">        &gt;&gt;&gt; selected_aids = np.unique(problem_aid_pairs.ravel()).tolist()</span>
-<span class="sd">        &gt;&gt;&gt; self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids)</span>
+<span class="sd">        &gt;&gt;&gt; ut.flatten(ibs.get_name_aids(nids))</span>
+<span class="sd">        &gt;&gt;&gt; aids = ibs.sample_annots_general(ut.flatten(ibs.get_name_aids(nids)), sample_per_name=4, verbose=True)</span>
+<span class="sd">        &gt;&gt;&gt; import itertools</span>
+<span class="sd">        &gt;&gt;&gt; aids = ut.unique(aids + selected_aids)</span>
+<span class="sd">        &gt;&gt;&gt; self = viz_graph.make_name_graph_interaction(ibs, aids=aids, selected_aids=selected_aids, with_all=False, invis_edges=list(itertools.combinations(selected_aids, 2)))</span>
+<span class="sd">        &gt;&gt;&gt; #self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 
 <span class="sd">        rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])</span>
 <span class="sd">        ibs.get_annotmatch_prop(&#39;SplitCase&#39;, rowids)</span>
-
 <span class="sd">        #ibs.set_annotmatch_prop(&#39;SplitCase&#39;, rowids, [False])</span>
-
-<span class="sd">        viz_graph.viz_netx_chipgraph(ibs, netx_graph, with_images=True)</span>
-<span class="sd">        import plottool as pt</span>
-<span class="sd">        pt.iup()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.annotmatch_funcs</span>
@@ -932,8 +938,8 @@
 <span class="sd">        python -m ibeis.annotmatch_funcs --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -968,7 +974,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

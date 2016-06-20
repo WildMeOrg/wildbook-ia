@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.web.apis_json &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.web.apis_json &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,7 +129,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.web.apis_json</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Dependencies: flask, tornado</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -144,11 +144,12 @@
 <span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_api</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 
 
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/image/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="add_images_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.add_images_json">[docs]</a><span class="k">def</span> <span class="nf">add_images_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uri_list</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">image_width_list</span><span class="p">,</span>
                     <span class="n">image_height_list</span><span class="p">,</span> <span class="n">image_orig_name_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">image_ext_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                     <span class="n">image_time_posix_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">image_gps_lat_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                    <span class="n">image_gps_lon_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">image_notes_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                    <span class="n">image_gps_lon_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">image_orientation_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">image_notes_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    REST:</span>
 <span class="sd">        Method: POST</span>
@@ -199,6 +200,7 @@
 <span class="sd">        image_time_posix_list (list of int): list of image&#39;s POSIX timestamps</span>
 <span class="sd">        image_gps_lat_list (list of float): list of image&#39;s GPS latitude values</span>
 <span class="sd">        image_gps_lon_list (list of float): list of image&#39;s GPS longitude values</span>
+<span class="sd">        image_orientation_list (list of int): list of image&#39;s orientation flags</span>
 <span class="sd">        image_notes_list (list of str) : optional list of any related notes with</span>
 <span class="sd">            the images</span>
 <span class="sd">        **kwargs : key-value pairs passed to the ibs.add_images() function.</span>
@@ -241,22 +243,22 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">_get_standard_ext</span><span class="p">(</span><span class="n">gpath</span><span class="p">):</span>
         <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">gpath</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">return</span> <span class="s">&#39;.jpg&#39;</span> <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s">&#39;.jpeg&#39;</span> <span class="k">else</span> <span class="n">ext</span>
+        <span class="k">return</span> <span class="s1">&#39;.jpg&#39;</span> <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.jpeg&#39;</span> <span class="k">else</span> <span class="n">ext</span>
 
     <span class="k">def</span> <span class="nf">_parse_imageinfo</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">_resolve_uri</span><span class="p">():</span>
             <span class="n">list_</span> <span class="o">=</span> <span class="n">image_uri_list</span>
             <span class="k">if</span> <span class="n">list_</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="ow">or</span> <span class="n">list_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Must specify all required fields&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Must specify all required fields&#39;</span><span class="p">)</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">list_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">s3_dict_encode_to_str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">value</span>
 
-        <span class="k">def</span> <span class="nf">_resolve</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">assert_</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_resolve</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">assert_</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">list_</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_</span><span class="p">)</span> <span class="ow">or</span> <span class="n">list_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">assert_</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Must specify all required fields&#39;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Must specify all required fields&#39;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">default</span>
             <span class="k">return</span> <span class="n">list_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
 
@@ -279,26 +281,27 @@
             <span class="nb">int</span><span class="p">(</span><span class="n">_resolve</span><span class="p">(</span><span class="n">image_time_posix_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">)),</span>
             <span class="nb">float</span><span class="p">(</span><span class="n">_resolve</span><span class="p">(</span><span class="n">image_gps_lat_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">)),</span>
             <span class="nb">float</span><span class="p">(</span><span class="n">_resolve</span><span class="p">(</span><span class="n">image_gps_lon_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">)),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">_resolve</span><span class="p">(</span><span class="n">image_orientation_list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)),</span>
             <span class="n">_resolve</span><span class="p">(</span><span class="n">image_notes_list</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">param_tup</span>
 
-    <span class="c"># TODO: FIX ME SO THAT WE DON&#39;T HAVE TO LOCALIZE EVERYTHING</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;auto_localize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;auto_localize&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;sanitize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sanitize&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="c1"># TODO: FIX ME SO THAT WE DON&#39;T HAVE TO LOCALIZE EVERYTHING</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;auto_localize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;auto_localize&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;sanitize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sanitize&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
 
     <span class="n">index_list</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">image_uri_list</span><span class="p">))</span>
     <span class="n">params_gen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">_parse_imageinfo</span><span class="p">,</span> <span class="n">index_list</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                              <span class="n">force_serial</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">params_gen</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params_gen</span><span class="p">)</span>
     <span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">params_gen</span> <span class="p">]</span>
-    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">params_list</span><span class="o">=</span><span class="n">params_gen</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c"># NOQA</span>
-    <span class="c"># return gid_list</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">params_list</span><span class="o">=</span><span class="n">params_gen</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+    <span class="c1"># return gid_list</span>
     <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">image_uuid_list</span>
 
 </div>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="add_annots_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.add_annots_json">[docs]</a><span class="k">def</span> <span class="nf">add_annots_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="n">annot_bbox_list</span><span class="p">,</span>
                     <span class="n">annot_theta_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">annot_species_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                     <span class="n">annot_name_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">annot_notes_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -362,16 +365,256 @@
         <span class="k">for</span> <span class="n">uuid_</span> <span class="ow">in</span> <span class="n">annot_uuid_list</span>
     <span class="p">]</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">,</span>  <span class="c"># NOQA</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="o">=</span><span class="n">annot_uuid_list</span><span class="p">,</span>  <span class="c1"># NOQA</span>
                               <span class="n">bbox_list</span><span class="o">=</span><span class="n">annot_bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="o">=</span><span class="n">annot_theta_list</span><span class="p">,</span>
                               <span class="n">species_list</span><span class="o">=</span><span class="n">annot_species_list</span><span class="p">,</span> <span class="n">name_list</span><span class="o">=</span><span class="n">annot_name_list</span><span class="p">,</span>
                               <span class="n">notes_list</span><span class="o">=</span><span class="n">annot_notes_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="c"># return aid_list</span>
+    <span class="c1"># return aid_list</span>
     <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">annot_uuid_list</span>
 
 </div>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/image/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;DELETE&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/image/annot/uuids/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_image_annot_uuids_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_image_annot_uuids_json">[docs]</a><span class="k">def</span> <span class="nf">get_image_annot_uuids_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">):</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">annot_uuid_list</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/exemplar/flags/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="set_exemplars_from_quality_and_viewpoint_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.set_exemplars_from_quality_and_viewpoint_json">[docs]</a><span class="k">def</span> <span class="nf">set_exemplars_from_quality_and_viewpoint_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span>
+                                                  <span class="n">annot_name_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">annot_name_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c1"># Set names for query annotations</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">annot_name_list</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
+    <span class="n">new_aid_list</span><span class="p">,</span> <span class="n">new_flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">set_exemplars_from_quality_and_viewpoint</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">new_annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">new_aid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_annot_uuid_list</span><span class="p">,</span> <span class="n">new_flag_list</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/image/uris_original/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_image_uris_original_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_image_uris_original_json">[docs]</a><span class="k">def</span> <span class="nf">get_image_uris_original_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">):</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid_list</span><span class="p">)</span>
+    <span class="n">uri_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uris_original</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">uri_list</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/image/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_valid_image_uuids_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_valid_image_uuids_json">[docs]</a><span class="k">def</span> <span class="nf">get_valid_image_uuids_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/name/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_valid_name_uuids_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_valid_name_uuids_json">[docs]</a><span class="k">def</span> <span class="nf">get_valid_name_uuids_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_uuids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_valid_annot_uuids_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_valid_annot_uuids_json">[docs]</a><span class="k">def</span> <span class="nf">get_valid_annot_uuids_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_valid_imageset_uuids_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_valid_imageset_uuids_json">[docs]</a><span class="k">def</span> <span class="nf">get_valid_imageset_uuids_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_uuid</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/bboxes/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_bboxes_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_bboxes_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_bboxes_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/detect/confidence/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_detect_confidence_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_detect_confidence_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_detect_confidence_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_detect_confidence</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/exemplar/flags/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_exemplar_flags_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_exemplar_flags_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_exemplar_flags_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/thetas/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_thetas_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_thetas_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_thetas_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/verts/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_verts_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_verts_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_verts_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/verts/rotated/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_rotated_verts_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_rotated_verts_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_rotated_verts_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_rotated_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/yaws/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_yaws_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_yaws_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_yaws_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_yaws</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/notes/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_notes_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_notes_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_notes_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/num_verts/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_num_verts_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_num_verts_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_num_verts_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_num_verts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/name/uuids/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_name_rowids_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_name_rowids_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_name_rowids_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_uuids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/name/texts/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_name_texts_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_name_texts_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_name_texts_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/species/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_species_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_species_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_species_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/species/texts/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_species_texts_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_species_texts_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_species_texts_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/image/names/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_image_names_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_image_names_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_image_names_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/image/unixtimes/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_image_unixtimes_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_image_unixtimes_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_image_unixtimes_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_unixtimes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/image/gps/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_image_gps_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_image_gps_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_image_gps_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_gps</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/image/paths/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_image_paths_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_image_paths_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_image_paths_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_paths</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/image/uuids/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_image_uuids_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_image_uuids_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_image_uuids_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="n">image_uuid_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="bp">None</span> <span class="k">if</span> <span class="n">aid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_uuids</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">image_uuid_list</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/annot/uuids/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_imageset_annot_uuids_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_imageset_annot_uuids_json">[docs]</a><span class="k">def</span> <span class="nf">get_imageset_annot_uuids_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_uuid_list</span><span class="p">):</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_uuid</span><span class="p">(</span><span class="n">imageset_uuid_list</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="n">annot_uuids_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">annot_uuids_list</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/imageset/annot/aids/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_imageset_annot_aids_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_imageset_annot_aids_json">[docs]</a><span class="k">def</span> <span class="nf">get_imageset_annot_aids_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imageset_uuid_list</span><span class="p">):</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_uuid</span><span class="p">(</span><span class="n">imageset_uuid_list</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aids_list</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/qualities/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_qualities_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_qualities_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_qualities_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_qualities</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/quality/texts/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_quality_texts_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_quality_texts_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_quality_texts_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_quality_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/yaw_texts/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_yaw_texts_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_yaw_texts_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_yaw_texts_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_yaw_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/sex/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_sex_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_sex_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_sex_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_sex</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/sex/texts/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_sex_texts_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_sex_texts_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_sex_texts_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_sex_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/age/min/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_age_months_est_min_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_age_months_est_min_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_age_months_est_min_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_min</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/age/max/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_age_months_est_max_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_age_months_est_max_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_age_months_est_max_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_max</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/age/min/texts/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_age_months_est_min_texts_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_age_months_est_min_texts_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_age_months_est_min_texts_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_min_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/age/max/texts/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="get_annot_age_months_est_max_texts_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.get_annot_age_months_est_max_texts_json">[docs]</a><span class="k">def</span> <span class="nf">get_annot_age_months_est_max_texts_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_aids_from_uuid</span><span class="p">(</span><span class="n">annot_uuid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_age_months_est_max_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/image/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="delete_images_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.delete_images_json">[docs]</a><span class="k">def</span> <span class="nf">delete_images_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">image_uuid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    REST:</span>
@@ -386,7 +629,7 @@
     <span class="k">return</span> <span class="bp">True</span>
 
 </div>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/annot/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;DELETE&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/annot/json/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="delete_annots_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis_json.delete_annots_json">[docs]</a><span class="k">def</span> <span class="nf">delete_annots_json</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annot_uuid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    REST:</span>
@@ -401,7 +644,7 @@
     <span class="k">return</span> <span class="bp">True</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.web.app</span>
@@ -409,8 +652,8 @@
 <span class="sd">        python -m ibeis.web.app --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -445,7 +688,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

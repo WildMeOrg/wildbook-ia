@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.dbio.export_hsdb &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.dbio.export_hsdb &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,18 +129,18 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.dbio.export_hsdb</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python2.7</span>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="ch">#!/usr/bin/env python2.7</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Converts an IBEIS database to a hotspotter db</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="c"># TODO: ADD COPYRIGHT TAG</span>
+<span class="c1"># TODO: ADD COPYRIGHT TAG</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">relpath</span>
-<span class="c">#import ibeis</span>
+<span class="c1">#import ibeis</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[export_hsdb]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[export_hsdb]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_hsdb_image_gpaths"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_hsdb.get_hsdb_image_gpaths">[docs]</a><span class="k">def</span> <span class="nf">get_hsdb_image_gpaths</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
@@ -172,7 +172,7 @@
 <span class="sd">            &#39;../_ibsdb/images/d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg&#39;,</span>
 <span class="sd">        ]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">imgdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="s">&#39;images&#39;</span><span class="p">)</span>
+    <span class="n">imgdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="s1">&#39;images&#39;</span><span class="p">)</span>
     <span class="n">gpath_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">gpath_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">ensure_unixslash</span><span class="p">(</span><span class="n">relpath</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">imgdir</span><span class="p">))</span>
                    <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list_</span><span class="p">]</span>
@@ -243,28 +243,28 @@
 <span class="sd">             12,   12,    6,   [0  0  673  634],   0.00,                                             #</span>
 <span class="sd">             13,   13,    7,  [0  0  1114  545],   0.00,                                             #</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;export to hsdb&#39;</span><span class="p">)</span>
-    <span class="c">#ibs.inject_func(get_hsdb_image_gpaths)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;export to hsdb&#39;</span><span class="p">)</span>
+    <span class="c1">#ibs.inject_func(get_hsdb_image_gpaths)</span>
 
-    <span class="c"># Build Image Table</span>
+    <span class="c1"># Build Image Table</span>
     <span class="n">gid_list</span>        <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
     <span class="n">gpath_list</span>      <span class="o">=</span> <span class="n">get_hsdb_image_gpaths</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
     <span class="n">reviewed_list</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_reviewed</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-    <span class="c"># aif in hotspotter is equivilant to reviewed in IBEIS</span>
+    <span class="c1"># aif in hotspotter is equivilant to reviewed in IBEIS</span>
     <span class="n">image_table_csv</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_csv_table</span><span class="p">(</span>
         <span class="p">[</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">],</span>
-        <span class="p">[</span><span class="s">&#39;gid&#39;</span><span class="p">,</span> <span class="s">&#39;gname&#39;</span><span class="p">,</span> <span class="s">&#39;aif&#39;</span><span class="p">],</span>
-        <span class="s">&#39;# image table&#39;</span><span class="p">)</span>
+        <span class="p">[</span><span class="s1">&#39;gid&#39;</span><span class="p">,</span> <span class="s1">&#39;gname&#39;</span><span class="p">,</span> <span class="s1">&#39;aif&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;# image table&#39;</span><span class="p">)</span>
 
-    <span class="c"># Build Name Table</span>
+    <span class="c1"># Build Name Table</span>
     <span class="n">nid_list</span>       <span class="o">=</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()</span>
     <span class="n">name_list</span>      <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
     <span class="n">name_table_csv</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_csv_table</span><span class="p">(</span>
         <span class="p">[</span><span class="n">nid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">],</span>
-        <span class="p">[</span><span class="s">&#39;nid&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">],</span>
-        <span class="s">&#39;# name table&#39;</span><span class="p">)</span>
+        <span class="p">[</span><span class="s1">&#39;nid&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;# name table&#39;</span><span class="p">)</span>
 
-    <span class="c"># Build Chip Table</span>
+    <span class="c1"># Build Chip Table</span>
     <span class="n">aid_list</span>        <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">annotationgid_list</span>     <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">annotationnid_list</span>     <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -273,12 +273,12 @@
     <span class="n">notes_list</span>      <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 
     <span class="n">chip_column_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">annotationgid_list</span><span class="p">,</span> <span class="n">annotationnid_list</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">notes_list</span><span class="p">]</span>
-    <span class="n">chip_column_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;cid&#39;</span><span class="p">,</span> <span class="s">&#39;gid&#39;</span><span class="p">,</span> <span class="s">&#39;nid&#39;</span><span class="p">,</span> <span class="s">&#39;[tlx tly w h]&#39;</span><span class="p">,</span> <span class="s">&#39;theta&#39;</span><span class="p">,</span> <span class="s">&#39;notes&#39;</span><span class="p">]</span>
+    <span class="n">chip_column_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;cid&#39;</span><span class="p">,</span> <span class="s1">&#39;gid&#39;</span><span class="p">,</span> <span class="s1">&#39;nid&#39;</span><span class="p">,</span> <span class="s1">&#39;[tlx tly w h]&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;notes&#39;</span><span class="p">]</span>
     <span class="n">chip_column_types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
     <span class="n">chip_table_csv</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_csv_table</span><span class="p">(</span>
         <span class="n">chip_column_list</span><span class="p">,</span>
         <span class="n">chip_column_lbls</span><span class="p">,</span>
-        <span class="s">&#39;# chip table&#39;</span><span class="p">,</span> <span class="n">chip_column_types</span><span class="p">)</span>
+        <span class="s1">&#39;# chip table&#39;</span><span class="p">,</span> <span class="n">chip_column_types</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">87</span><span class="p">:</span>
@@ -291,34 +291,34 @@
 
 </div>
 <div class="viewcode-block" id="export_ibeis_to_hotspotter"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_hsdb.export_ibeis_to_hotspotter">[docs]</a><span class="k">def</span> <span class="nf">export_ibeis_to_hotspotter</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="c"># Dumps the files</span>
+    <span class="c1"># Dumps the files</span>
     <span class="n">hsdb_dir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">()</span>
-    <span class="n">internal_hsdb</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,</span> <span class="s">&#39;_hsdb&#39;</span><span class="p">)</span>
+    <span class="n">internal_hsdb</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,</span> <span class="s1">&#39;_hsdb&#39;</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">internal_hsdb</span><span class="p">)</span>
     <span class="n">image_table_csv</span><span class="p">,</span> <span class="n">name_table_csv</span><span class="p">,</span> <span class="n">chip_table_csv</span> <span class="o">=</span> <span class="n">get_hots_table_strings</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-    <span class="c"># Write Tables</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">internal_hsdb</span><span class="p">,</span> <span class="s">&#39;HSDB_image_table.csv&#39;</span><span class="p">),</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">imgtbl_file</span><span class="p">:</span>
+    <span class="c1"># Write Tables</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">internal_hsdb</span><span class="p">,</span> <span class="s1">&#39;HSDB_image_table.csv&#39;</span><span class="p">),</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">imgtbl_file</span><span class="p">:</span>
         <span class="n">imgtbl_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">image_table_csv</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">internal_hsdb</span><span class="p">,</span> <span class="s">&#39;HSDB_name_table.csv&#39;</span><span class="p">),</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">nametbl_file</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">internal_hsdb</span><span class="p">,</span> <span class="s1">&#39;HSDB_name_table.csv&#39;</span><span class="p">),</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">nametbl_file</span><span class="p">:</span>
         <span class="n">nametbl_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">name_table_csv</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">internal_hsdb</span><span class="p">,</span> <span class="s">&#39;HSDB_chip_table.csv&#39;</span><span class="p">),</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">chiptbl_file</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">internal_hsdb</span><span class="p">,</span> <span class="s1">&#39;HSDB_chip_table.csv&#39;</span><span class="p">),</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">chiptbl_file</span><span class="p">:</span>
         <span class="n">chiptbl_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chip_table_csv</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="dump_hots_tables"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_hsdb.dump_hots_tables">[docs]</a><span class="k">def</span> <span class="nf">dump_hots_tables</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Dumps hotspotter like tables to disk &quot;&quot;&quot;</span>
     <span class="n">ibsdir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">()</span>
-    <span class="n">gtbl_name</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibsdir</span><span class="p">,</span> <span class="s">&#39;IBEIS_DUMP_images_table.csv&#39;</span><span class="p">)</span>
-    <span class="n">ntbl_name</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibsdir</span><span class="p">,</span> <span class="s">&#39;IBEIS_DUMP_names_table.csv&#39;</span><span class="p">)</span>
-    <span class="n">rtbl_name</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibsdir</span><span class="p">,</span> <span class="s">&#39;IBEIS_DUMP_annotations_table.csv&#39;</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">gtbl_name</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
-        <span class="n">gtbl_str</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="s">&#39;images&#39;</span><span class="p">,</span> <span class="n">exclude_columns</span><span class="o">=</span><span class="p">[])</span>
+    <span class="n">gtbl_name</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibsdir</span><span class="p">,</span> <span class="s1">&#39;IBEIS_DUMP_images_table.csv&#39;</span><span class="p">)</span>
+    <span class="n">ntbl_name</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibsdir</span><span class="p">,</span> <span class="s1">&#39;IBEIS_DUMP_names_table.csv&#39;</span><span class="p">)</span>
+    <span class="n">rtbl_name</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibsdir</span><span class="p">,</span> <span class="s1">&#39;IBEIS_DUMP_annotations_table.csv&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">gtbl_name</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">gtbl_str</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="s1">&#39;images&#39;</span><span class="p">,</span> <span class="n">exclude_columns</span><span class="o">=</span><span class="p">[])</span>
         <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">gtbl_str</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">ntbl_name</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
-        <span class="n">ntbl_str</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="s">&#39;names&#39;</span><span class="p">,</span>  <span class="n">exclude_columns</span><span class="o">=</span><span class="p">[])</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">ntbl_name</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">ntbl_str</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span>  <span class="n">exclude_columns</span><span class="o">=</span><span class="p">[])</span>
         <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ntbl_str</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">rtbl_name</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
-        <span class="n">rtbl_str</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="s">&#39;annotations&#39;</span><span class="p">,</span>   <span class="n">exclude_columns</span><span class="o">=</span><span class="p">[])</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">rtbl_name</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">rtbl_str</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="s1">&#39;annotations&#39;</span><span class="p">,</span>   <span class="n">exclude_columns</span><span class="o">=</span><span class="p">[])</span>
         <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">rtbl_str</span><span class="p">)</span>
 
 </div>
@@ -345,26 +345,26 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">column_tups</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="nb">int</span><span class="p">,</span>   <span class="s">&#39;aids&#39;</span><span class="p">,</span>   <span class="n">aid_list</span><span class="p">,),</span>
-        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>   <span class="s">&#39;names&#39;</span><span class="p">,</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
-        <span class="p">(</span><span class="nb">list</span><span class="p">,</span>  <span class="s">&#39;bbox&#39;</span><span class="p">,</span>   <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))),</span>
-        <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="s">&#39;theta&#39;</span><span class="p">,</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
-        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>   <span class="s">&#39;gpaths&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_paths</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
-        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>   <span class="s">&#39;notes&#39;</span><span class="p">,</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
-        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>   <span class="s">&#39;uuids&#39;</span><span class="p">,</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
+        <span class="p">(</span><span class="nb">int</span><span class="p">,</span>   <span class="s1">&#39;aids&#39;</span><span class="p">,</span>   <span class="n">aid_list</span><span class="p">,),</span>
+        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>   <span class="s1">&#39;names&#39;</span><span class="p">,</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
+        <span class="p">(</span><span class="nb">list</span><span class="p">,</span>  <span class="s1">&#39;bbox&#39;</span><span class="p">,</span>   <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))),</span>
+        <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">,</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
+        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>   <span class="s1">&#39;gpaths&#39;</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_paths</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
+        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>   <span class="s1">&#39;notes&#39;</span><span class="p">,</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_notes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
+        <span class="p">(</span><span class="nb">str</span><span class="p">,</span>   <span class="s1">&#39;uuids&#39;</span><span class="p">,</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),),</span>
     <span class="p">]</span>
     <span class="n">column_type</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">column_tups</span><span class="p">]</span>
     <span class="n">column_lbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">column_tups</span><span class="p">]</span>
     <span class="n">column_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">column_tups</span><span class="p">]</span>
-    <span class="n">header</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
-        <span class="s">&#39;# Roi Flat Table&#39;</span><span class="p">,</span>
-        <span class="s">&#39;# aid   - internal annotation index (not gaurenteed unique)&#39;</span><span class="p">,</span>
-        <span class="s">&#39;# name  - animal identity&#39;</span><span class="p">,</span>
-        <span class="s">&#39;# bbox  - bounding box [tlx tly w h] in image&#39;</span><span class="p">,</span>
-        <span class="s">&#39;# theta - bounding box orientation&#39;</span><span class="p">,</span>
-        <span class="s">&#39;# gpath - image filepath&#39;</span><span class="p">,</span>
-        <span class="s">&#39;# notes - user defined notes&#39;</span><span class="p">,</span>
-        <span class="s">&#39;# uuids - unique universal ids (gaurenteed unique)&#39;</span><span class="p">,</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+        <span class="s1">&#39;# Roi Flat Table&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;# aid   - internal annotation index (not gaurenteed unique)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;# name  - animal identity&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;# bbox  - bounding box [tlx tly w h] in image&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;# theta - bounding box orientation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;# gpath - image filepath&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;# notes - user defined notes&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;# uuids - unique universal ids (gaurenteed unique)&#39;</span><span class="p">,</span>
     <span class="p">])</span>
     <span class="n">flat_table_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_csv_table</span><span class="p">(</span><span class="n">column_list</span><span class="p">,</span> <span class="n">column_lbls</span><span class="p">,</span> <span class="n">header</span><span class="p">,</span>
                                           <span class="n">column_type</span><span class="p">)</span>
@@ -372,17 +372,17 @@
 
 </div>
 <div class="viewcode-block" id="dump_hots_flat_table"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.export_hsdb.dump_hots_flat_table">[docs]</a><span class="k">def</span> <span class="nf">dump_hots_flat_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="n">flat_table_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="s">&#39;IBEIS_DUMP_flat_table.csv&#39;</span><span class="p">)</span>
+    <span class="n">flat_table_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;IBEIS_DUMP_flat_table.csv&#39;</span><span class="p">)</span>
     <span class="n">flat_table_str</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_flat_table</span><span class="p">()</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] dumping flat table to: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">flat_table_fpath</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">flat_table_fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs] dumping flat table to: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">flat_table_fpath</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">flat_table_fpath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
         <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">flat_table_str</span><span class="p">)</span>
 
 </div>
-<span class="n">SUCCESS_FLAG_FNAME</span> <span class="o">=</span> <span class="s">&#39;_hsdb_to_ibeis_convert_success&#39;</span>
+<span class="n">SUCCESS_FLAG_FNAME</span> <span class="o">=</span> <span class="s1">&#39;_hsdb_to_ibeis_convert_success&#39;</span>
 
 
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.dbio.export_hsdb</span>
@@ -390,8 +390,8 @@
 <span class="sd">        python -m ibeis.dbio.export_hsdb --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -426,7 +426,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

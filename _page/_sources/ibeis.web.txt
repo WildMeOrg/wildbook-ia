@@ -60,6 +60,14 @@ ibeis.web.appfuncs module
     :undoc-members:
     :show-inheritance:
 
+ibeis.web.job_engine module
+---------------------------
+
+.. automodule:: ibeis.web.job_engine
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.web.routes module
 -----------------------
 

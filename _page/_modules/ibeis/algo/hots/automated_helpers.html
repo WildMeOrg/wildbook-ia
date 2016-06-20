@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.automated_helpers &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.hots.automated_helpers &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.hots.automated_helpers</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Idea:</span>
 <span class="sd">    what about the probability of a descriptor match being a score like in SIFT.</span>
@@ -281,7 +281,7 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">input</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[autohelp]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[autohelp]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="assert_testdb_annot_consistency"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.automated_helpers.assert_testdb_annot_consistency">[docs]</a><span class="k">def</span> <span class="nf">assert_testdb_annot_consistency</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">):</span>
@@ -289,7 +289,7 @@
 <span class="sd">    just tests uuids</span>
 
 <span class="sd">    if anything goes wrong this should fix it:</span>
-<span class="sd">        from ibeis import ibsfuncs</span>
+<span class="sd">        from ibeis.other import ibsfuncs</span>
 <span class="sd">        aid_list1 = ibs_gt.get_valid_aids()</span>
 <span class="sd">        ibs_gt.update_annot_visual_uuids(aid_list1)</span>
 <span class="sd">        ibs2.update_annot_visual_uuids(aid_list2)</span>
@@ -306,13 +306,13 @@
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">visualtup1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">visualtup2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">visualtup1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">visualtup2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">visualtup1</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">visualtup2</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-    <span class="c">#semantic_uuid_list1 = ibs_gt.get_annot_semantic_uuids(aid_list1)</span>
-    <span class="c">#semantic_uuid_list2 = ibs2.get_annot_semantic_uuids(aid_list2)</span>
+    <span class="c1">#semantic_uuid_list1 = ibs_gt.get_annot_semantic_uuids(aid_list1)</span>
+    <span class="c1">#semantic_uuid_list2 = ibs2.get_annot_semantic_uuids(aid_list2)</span>
 
     <span class="n">visual_uuid_list1</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
     <span class="n">visual_uuid_list2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">)</span>
 
-    <span class="c"># make sure visual uuids are still determenistic</span>
+    <span class="c1"># make sure visual uuids are still determenistic</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">visual_uuid_list1</span><span class="p">,</span> <span class="n">visual_uuid_list2</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">_visual_uuid_list1</span><span class="p">,</span> <span class="n">visual_uuid_list1</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_lists_eq</span><span class="p">(</span><span class="n">_visual_uuid_list2</span><span class="p">,</span> <span class="n">visual_uuid_list2</span><span class="p">)</span>
@@ -324,7 +324,7 @@
         <span class="n">ibs1_dup_annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_duplicate_items</span><span class="p">(</span><span class="n">visual_uuid_list1</span><span class="p">)</span>
         <span class="n">ibs2_dup_annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_duplicate_items</span><span class="p">(</span><span class="n">visual_uuid_list2</span><span class="p">)</span>
 
-    <span class="c"># if these fail try ibsfuncs.fix_remove_visual_dupliate_annotations</span>
+    <span class="c1"># if these fail try ibsfuncs.fix_remove_visual_dupliate_annotations</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs1_dup_annots</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs2_dup_annots</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
 
@@ -334,20 +334,20 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    removes previously set names and exemplars</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Make sure that there are not any names in this database</span>
+    <span class="c1"># Make sure that there are not any names in this database</span>
     <span class="n">nid_list2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Removing names from the incremental test database&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Removing names from the incremental test database&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_all_eq_to</span><span class="p">(</span><span class="n">nid_list2</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
         <span class="n">ibs2</span><span class="o">.</span><span class="n">set_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">,</span> <span class="p">[</span><span class="n">ibs2</span><span class="o">.</span><span class="n">UNKNOWN_NAME_ROWID</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">))</span>
     <span class="n">ibs2</span><span class="o">.</span><span class="n">delete_names</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">_get_all_known_name_rowids</span><span class="p">())</span>
 
-    <span class="c">#exemplarflag_list2 = ibs2.get_annot_exemplar_flags(aid_list2)</span>
-    <span class="c">#if not ut.list_all_eq_to(exemplarflag_list2, 0):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Unsetting all exemplars from database&#39;</span><span class="p">)</span>
+    <span class="c1">#exemplarflag_list2 = ibs2.get_annot_exemplar_flags(aid_list2)</span>
+    <span class="c1">#if not ut.list_all_eq_to(exemplarflag_list2, 0):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Unsetting all exemplars from database&#39;</span><span class="p">)</span>
     <span class="n">ibs2</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">,</span> <span class="p">[</span><span class="bp">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">))</span>
 
-    <span class="c"># this test is for plains</span>
-    <span class="c">#assert  ut.list_all_eq_to(ibs2.get_annot_species_texts(aid_list2), &#39;zebra_plains&#39;)</span>
+    <span class="c1"># this test is for plains</span>
+    <span class="c1">#assert  ut.list_all_eq_to(ibs2.get_annot_species_texts(aid_list2), &#39;zebra_plains&#39;)</span>
     <span class="n">ibs2</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
 
 </div>
@@ -355,9 +355,9 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="n">assert_testdb_annot_consistency</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="c"># update and try again on failure</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;warning: consistency check failed.&#39;</span>
-                        <span class="s">&#39;updating and trying once more&#39;</span><span class="p">),</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="c1"># update and try again on failure</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;warning: consistency check failed.&#39;</span>
+                        <span class="s1">&#39;updating and trying once more&#39;</span><span class="p">),</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">ibs_gt</span><span class="o">.</span><span class="n">update_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
         <span class="n">ibs2</span><span class="o">.</span><span class="n">update_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">)</span>
         <span class="n">assert_testdb_annot_consistency</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">)</span>
@@ -379,22 +379,22 @@
 <span class="sd">        * (input is case insensitive)</span>
 <span class="sd">        &#39;&#39;&#39;</span>
     <span class="p">)</span>
-    <span class="n">ans_list_embed</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;cmd&#39;</span><span class="p">,</span> <span class="s">&#39;ipy&#39;</span><span class="p">,</span> <span class="s">&#39;embed&#39;</span><span class="p">]</span>
-    <span class="n">ans_list_no</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;no&#39;</span><span class="p">,</span> <span class="s">&#39;n&#39;</span><span class="p">]</span>
-    <span class="c">#ans_list_yes = [&#39;yes&#39;, &#39;y&#39;]</span>
+    <span class="n">ans_list_embed</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;cmd&#39;</span><span class="p">,</span> <span class="s1">&#39;ipy&#39;</span><span class="p">,</span> <span class="s1">&#39;embed&#39;</span><span class="p">]</span>
+    <span class="n">ans_list_no</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;no&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">]</span>
+    <span class="c1">#ans_list_yes = [&#39;yes&#39;, &#39;y&#39;]</span>
     <span class="n">prompt_str</span> <span class="o">=</span> <span class="n">prompt_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
         <span class="n">no_phrase</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">conj_phrase</span><span class="p">(</span><span class="n">ans_list_no</span><span class="p">),</span>
         <span class="n">embed_phrase</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">conj_phrase</span><span class="p">(</span><span class="n">ans_list_embed</span><span class="p">),</span>
         <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span>
         <span class="n">decisiontype</span><span class="o">=</span><span class="n">decisiontype</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">prompt_block</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="s">&#39;USER_INPUT&#39;</span><span class="p">,</span> <span class="n">prompt_str</span><span class="p">)</span>
+    <span class="n">prompt_block</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">msgblock</span><span class="p">(</span><span class="s1">&#39;USER_INPUT&#39;</span><span class="p">,</span> <span class="n">prompt_str</span><span class="p">)</span>
     <span class="n">ans</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">prompt_block</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">ans</span> <span class="ow">in</span> <span class="n">ans_list_embed</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
-        <span class="c">#print(ibs2.get_dbinfo_str())</span>
-        <span class="c">#qreq_ = ut.search_stack_for_localvar(&#39;qreq_&#39;)</span>
-        <span class="c">#qreq_.normalizer</span>
+        <span class="c1">#print(ibs2.get_dbinfo_str())</span>
+        <span class="c1">#qreq_ = ut.search_stack_for_localvar(&#39;qreq_&#39;)</span>
+        <span class="c1">#qreq_.normalizer</span>
     <span class="k">elif</span> <span class="n">ans</span> <span class="ow">in</span> <span class="n">ans_list_no</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">False</span>
     <span class="k">else</span><span class="p">:</span>
@@ -416,22 +416,22 @@
 <span class="sd">        IBEISController: ibs2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;make_incremental_test_database. reset=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reset</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;make_incremental_test_database. reset=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reset</span><span class="p">,))</span>
     <span class="n">aids1_hashid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
-    <span class="n">prefix</span> <span class="o">=</span> <span class="s">&#39;_INCTEST_&#39;</span> <span class="o">+</span> <span class="n">aids1_hashid</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;_INCTEST_&#39;</span> <span class="o">+</span> <span class="n">aids1_hashid</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span>
     <span class="n">dbname2</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
     <span class="n">ibs2</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbname2</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="n">reset</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="c"># reset if flag specified or no data in ibs2</span>
+    <span class="c1"># reset if flag specified or no data in ibs2</span>
     <span class="k">if</span> <span class="n">reset</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>  <span class="o">==</span> <span class="mi">0</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">())</span>  <span class="o">==</span> <span class="mi">0</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ibs2</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">())</span>  <span class="o">==</span> <span class="mi">0</span>
-        <span class="c"># Get annotations and their images from database 1</span>
+        <span class="c1"># Get annotations and their images from database 1</span>
         <span class="n">gid_list1</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
         <span class="n">gpath_list1</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list1</span><span class="p">)</span>
-        <span class="c"># Add all images from database 1 to database 2</span>
+        <span class="c1"># Add all images from database 1 to database 2</span>
         <span class="n">gid_list2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list1</span><span class="p">,</span> <span class="n">auto_localize</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-        <span class="c"># Image UUIDS should be consistent between databases</span>
+        <span class="c1"># Image UUIDS should be consistent between databases</span>
         <span class="n">image_uuid_list1</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list1</span><span class="p">)</span>
         <span class="n">image_uuid_list2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list2</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">image_uuid_list1</span> <span class="o">==</span> <span class="n">image_uuid_list2</span>
@@ -440,7 +440,7 @@
 
 </div>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="setup_incremental_test"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.automated_helpers.setup_incremental_test">[docs]</a><span class="k">def</span> <span class="nf">setup_incremental_test</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">clear_names</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">aid_order</span><span class="o">=</span><span class="s">&#39;shuffle&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="setup_incremental_test"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.automated_helpers.setup_incremental_test">[docs]</a><span class="k">def</span> <span class="nf">setup_incremental_test</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">clear_names</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">aid_order</span><span class="o">=</span><span class="s1">&#39;shuffle&#39;</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.algo.hots.automated_helpers --test-setup_incremental_test:0</span>
@@ -462,24 +462,24 @@
 <span class="sd">        &gt;&gt;&gt; ibs_gt = ibeis.opendb(&#39;GZ_ALL&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ibs2, aid_list1, aid1_to_aid2 = setup_incremental_test(ibs_gt)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">---- SETUP INCREMENTAL TEST ---</span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">)</span>
-    <span class="c"># Take a known dataase</span>
-    <span class="c"># Create an empty database to test in</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">---- SETUP INCREMENTAL TEST ---</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="c1"># Take a known dataase</span>
+    <span class="c1"># Create an empty database to test in</span>
 
     <span class="n">ONLY_GT</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="k">if</span> <span class="n">ONLY_GT</span><span class="p">:</span>
-        <span class="c"># use only annotations that will have matches in test</span>
+        <span class="c1"># use only annotations that will have matches in test</span>
         <span class="n">aid_list1_</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_aids_with_groundtruth</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c"># use every annotation in test</span>
+        <span class="c1"># use every annotation in test</span>
         <span class="n">aid_list1_</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
 
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--gzdev&#39;</span><span class="p">):</span>
-        <span class="c"># Use a custom selection of gzall</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--gzdev&#39;</span><span class="p">):</span>
+        <span class="c1"># Use a custom selection of gzall</span>
         <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">devcases</span>
-        <span class="k">assert</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;GZ_ALL&#39;</span><span class="p">,</span> <span class="s">&#39;not gzall&#39;</span>
+        <span class="k">assert</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;GZ_ALL&#39;</span><span class="p">,</span> <span class="s1">&#39;not gzall&#39;</span>
         <span class="n">vuuid_list</span><span class="p">,</span> <span class="n">ignore_vuuids</span> <span class="o">=</span> <span class="n">devcases</span><span class="o">.</span><span class="n">get_gzall_small_test</span><span class="p">()</span>
-        <span class="c"># TODO; include all names of these annots too</span>
+        <span class="c1"># TODO; include all names of these annots too</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_aids_from_visual_uuid</span><span class="p">(</span><span class="n">vuuid_list</span><span class="p">)</span>
         <span class="n">ignore_aid_list</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_aids_from_visual_uuid</span><span class="p">(</span><span class="n">ignore_vuuids</span><span class="p">)</span>
         <span class="n">ignore_nid_list</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">ignore_aid_list</span><span class="p">)</span>
@@ -489,21 +489,21 @@
         <span class="n">aid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
         <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">isinvalid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">nid</span> <span class="ow">in</span> <span class="n">ignore_nid_list</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Filtering </span><span class="si">%r</span><span class="s"> annots specified to ignore&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">isinvalid_list</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Filtering </span><span class="si">%r</span><span class="s1"> annots specified to ignore&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">isinvalid_list</span><span class="p">),))</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filterfalse_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">isinvalid_list</span><span class="p">)</span>
-        <span class="c">#ut.embed()</span>
+        <span class="c1">#ut.embed()</span>
         <span class="n">aid_list1_</span> <span class="o">=</span> <span class="n">aid_list</span>
-        <span class="c">#ut.embed()</span>
+        <span class="c1">#ut.embed()</span>
 
-    <span class="c"># Add aids in a random order</span>
-    <span class="n">VALID_ORDERS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;shuffle&#39;</span><span class="p">,</span> <span class="s">&#39;stagger&#39;</span><span class="p">,</span> <span class="s">&#39;same&#39;</span><span class="p">]</span>
-    <span class="c">#AID_ORDER = &#39;shuffle&#39;</span>
-    <span class="n">aid_order</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--aid-order&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">aid_order</span><span class="p">)</span>
+    <span class="c1"># Add aids in a random order</span>
+    <span class="n">VALID_ORDERS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;shuffle&#39;</span><span class="p">,</span> <span class="s1">&#39;stagger&#39;</span><span class="p">,</span> <span class="s1">&#39;same&#39;</span><span class="p">]</span>
+    <span class="c1">#AID_ORDER = &#39;shuffle&#39;</span>
+    <span class="n">aid_order</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--aid-order&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">aid_order</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">VALID_ORDERS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">aid_order</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span>
 
-    <span class="k">if</span> <span class="n">aid_order</span> <span class="o">==</span> <span class="s">&#39;shuffle&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">aid_order</span> <span class="o">==</span> <span class="s1">&#39;shuffle&#39;</span><span class="p">:</span>
         <span class="n">aid_list1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">deterministic_shuffle</span><span class="p">(</span><span class="n">aid_list1_</span><span class="p">[:])</span>
-    <span class="k">elif</span> <span class="n">aid_order</span> <span class="o">==</span> <span class="s">&#39;stagger&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">aid_order</span> <span class="o">==</span> <span class="s1">&#39;stagger&#39;</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">zip_longest</span><span class="p">,</span> <span class="nb">filter</span>
         <span class="n">aid_groups</span><span class="p">,</span> <span class="n">unique_nid_list</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">group_annots_by_name</span><span class="p">(</span><span class="n">aid_list1_</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">stagger_group</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
@@ -511,30 +511,30 @@
         <span class="n">aid_multiton_group</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">aids</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="n">aid_groups</span><span class="p">))</span>
         <span class="n">aid_list1</span> <span class="o">=</span> <span class="n">stagger_group</span><span class="p">(</span><span class="n">aid_multiton_group</span><span class="p">)</span>
         <span class="k">pass</span>
-    <span class="k">elif</span> <span class="n">aid_order</span> <span class="o">==</span> <span class="s">&#39;same&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">aid_order</span> <span class="o">==</span> <span class="s1">&#39;same&#39;</span><span class="p">:</span>
         <span class="n">aid_list1</span> <span class="o">=</span> <span class="n">aid_list1_</span>
 
-    <span class="c"># If reset is true the test database is started completely from scratch</span>
-    <span class="n">reset</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--reset&#39;</span><span class="p">)</span>
+    <span class="c1"># If reset is true the test database is started completely from scratch</span>
+    <span class="n">reset</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--reset&#39;</span><span class="p">)</span>
 
-    <span class="n">aid1_to_aid2</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># annotation mapping</span>
+    <span class="n">aid1_to_aid2</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># annotation mapping</span>
 
     <span class="n">ibs2</span> <span class="o">=</span> <span class="n">make_incremental_test_database</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">reset</span><span class="p">)</span>
 
-    <span class="c"># Preadd all annotatinos to the test database</span>
+    <span class="c1"># Preadd all annotatinos to the test database</span>
     <span class="n">aids_chunk1</span> <span class="o">=</span> <span class="n">aid_list1</span>
     <span class="n">aid_list2</span> <span class="o">=</span> <span class="n">add_annot_chunk</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aids_chunk1</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">)</span>
 
-    <span class="c">#ut.embed()</span>
-    <span class="c"># Assert annotation visual uuids are in agreement</span>
+    <span class="c1">#ut.embed()</span>
+    <span class="c1"># Assert annotation visual uuids are in agreement</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
         <span class="n">annot_testdb_consistency_checks</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">)</span>
 
-    <span class="c"># Remove names and exemplar information from test database</span>
+    <span class="c1"># Remove names and exemplar information from test database</span>
     <span class="k">if</span> <span class="n">clear_names</span><span class="p">:</span>
         <span class="n">ensure_testdb_clean_data</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid_list2</span><span class="p">)</span>
 
-    <span class="c"># Preprocess features before testing</span>
+    <span class="c1"># Preprocess features before testing</span>
     <span class="n">ibs2</span><span class="o">.</span><span class="n">ensure_annotation_data</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">,</span> <span class="n">featweights</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">aid1_to_aid2</span>
@@ -545,74 +545,74 @@
 <span class="sd">    reports how well the incremental query ran when the oracle was calling the</span>
 <span class="sd">    shots.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;--------- CHECKING RESULTS ------------&#39;</span><span class="p">)</span>
-    <span class="n">testcases</span> <span class="o">=</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;testcases&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;--------- CHECKING RESULTS ------------&#39;</span><span class="p">)</span>
+    <span class="n">testcases</span> <span class="o">=</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;testcases&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">testcases</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">count_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">count_dict_vals</span><span class="p">(</span><span class="n">testcases</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;+--&#39;</span><span class="p">)</span>
-        <span class="c">#print(ut.dict_str(testcases))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;---&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;+--&#39;</span><span class="p">)</span>
+        <span class="c1">#print(ut.dict_str(testcases))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;---&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">count_dict</span><span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;L__&#39;</span><span class="p">)</span>
-    <span class="c"># TODO: dont include initially added aids in the result reporting</span>
-    <span class="n">aid_list1</span> <span class="o">=</span> <span class="n">aids_list1_</span>  <span class="c"># ibs_gt.get_valid_aids()</span>
-    <span class="c">#aid_list1 = ibs_gt.get_aids_with_groundtruth()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;L__&#39;</span><span class="p">)</span>
+    <span class="c1"># TODO: dont include initially added aids in the result reporting</span>
+    <span class="n">aid_list1</span> <span class="o">=</span> <span class="n">aids_list1_</span>  <span class="c1"># ibs_gt.get_valid_aids()</span>
+    <span class="c1">#aid_list1 = ibs_gt.get_aids_with_groundtruth()</span>
     <span class="n">aid_list2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
 
     <span class="n">nid_list1</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">)</span>
     <span class="n">nid_list2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">)</span>
 
-    <span class="c"># Group annotations from test and gt database by their respective names</span>
+    <span class="c1"># Group annotations from test and gt database by their respective names</span>
     <span class="n">grouped_dict1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">,</span> <span class="n">nid_list1</span><span class="p">)</span>
     <span class="n">grouped_dict2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">aid_list2</span><span class="p">,</span> <span class="n">nid_list2</span><span class="p">)</span>
     <span class="n">grouped_aids1</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">grouped_dict1</span><span class="p">))</span>
     <span class="n">grouped_aids2</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">grouped_dict2</span><span class="p">)))</span>
-    <span class="c">#group_nids1 = list(six.iterkeys(grouped_dict1))</span>
-    <span class="c">#group_nids2 = list(six.iterkeys(grouped_dict2))</span>
+    <span class="c1">#group_nids1 = list(six.iterkeys(grouped_dict1))</span>
+    <span class="c1">#group_nids2 = list(six.iterkeys(grouped_dict2))</span>
 
-    <span class="c"># Transform annotation ids from database1 space to database2 space</span>
+    <span class="c1"># Transform annotation ids from database1 space to database2 space</span>
     <span class="n">grouped_aids1_t</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">aid1_to_aid2</span><span class="p">,</span> <span class="n">aids1</span><span class="p">))</span> <span class="k">for</span> <span class="n">aids1</span> <span class="ow">in</span> <span class="n">grouped_aids1</span><span class="p">]</span>
 
     <span class="n">set_grouped_aids1_t</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">grouped_aids1_t</span><span class="p">)</span>
     <span class="n">set_grouped_aids2</span>   <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">grouped_aids2</span><span class="p">)</span>
 
-    <span class="c"># Find names we got right. (correct groupings of annotations)</span>
-    <span class="c"># these are the annotation groups that are intersecting between</span>
-    <span class="c"># the test database and groundtruth database</span>
+    <span class="c1"># Find names we got right. (correct groupings of annotations)</span>
+    <span class="c1"># these are the annotation groups that are intersecting between</span>
+    <span class="c1"># the test database and groundtruth database</span>
     <span class="n">perfect_groups</span> <span class="o">=</span> <span class="n">set_grouped_aids2</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">set_grouped_aids1_t</span><span class="p">)</span>
-    <span class="c"># Find names we got wrong. (incorrect groupings of annotations)</span>
-    <span class="c"># The test database sets that were not perfect</span>
+    <span class="c1"># Find names we got wrong. (incorrect groupings of annotations)</span>
+    <span class="c1"># The test database sets that were not perfect</span>
     <span class="n">nonperfect_groups</span> <span class="o">=</span> <span class="n">set_grouped_aids2</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">perfect_groups</span><span class="p">)</span>
-    <span class="c"># What we should have got</span>
-    <span class="c"># The ground truth database sets that were not fully identified</span>
+    <span class="c1"># What we should have got</span>
+    <span class="c1"># The ground truth database sets that were not fully identified</span>
     <span class="n">missed_groups</span> <span class="o">=</span> <span class="n">set_grouped_aids1_t</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">perfect_groups</span><span class="p">)</span>
 
-    <span class="c"># Mark non perfect groups by their error type</span>
-    <span class="n">false_negative_groups</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># failed to link enough</span>
-    <span class="n">false_positive_groups</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># linked too much</span>
+    <span class="c1"># Mark non perfect groups by their error type</span>
+    <span class="n">false_negative_groups</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># failed to link enough</span>
+    <span class="n">false_positive_groups</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># linked too much</span>
     <span class="k">for</span> <span class="n">nonperfect_group</span> <span class="ow">in</span> <span class="n">nonperfect_groups</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_subset_of_any</span><span class="p">(</span><span class="n">nonperfect_group</span><span class="p">,</span> <span class="n">missed_groups</span><span class="p">):</span>
             <span class="n">false_negative_groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nonperfect_group</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">false_positive_groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nonperfect_group</span><span class="p">)</span>
 
-    <span class="c"># Get some more info on the nonperfect groups</span>
-    <span class="c"># find which groups should have been linked</span>
+    <span class="c1"># Get some more info on the nonperfect groups</span>
+    <span class="c1"># find which groups should have been linked</span>
     <span class="n">aid2_to_aid1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">aid1_to_aid2</span><span class="p">)</span>
     <span class="n">false_negative_groups_t</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">aid2_to_aid1</span><span class="p">,</span> <span class="n">aids2</span><span class="p">))</span> <span class="k">for</span> <span class="n">aids2</span> <span class="ow">in</span> <span class="n">false_negative_groups</span><span class="p">]</span>
     <span class="n">false_negative_group_nids_t</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">,</span> <span class="n">false_negative_groups_t</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">,</span> <span class="n">false_negative_group_nids_t</span><span class="p">)),</span> <span class="s">&#39;inconsistent nids&#39;</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">allsame</span><span class="p">,</span> <span class="n">false_negative_group_nids_t</span><span class="p">)),</span> <span class="s1">&#39;inconsistent nids&#39;</span>
     <span class="n">false_negative_group_nid_t</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">false_negative_group_nids_t</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="c"># These are the links that should have been made</span>
+    <span class="c1"># These are the links that should have been made</span>
     <span class="n">missed_links</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">false_negative_groups</span><span class="p">,</span> <span class="n">false_negative_group_nid_t</span><span class="p">)</span>
 
     <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">missed_links</span><span class="p">))</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;# Name with failed links (FN) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">false_negative_groups</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;... should have reduced to </span><span class="si">%d</span><span class="s"> names.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">missed_links</span><span class="p">)))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;# Name with wrong links (FP)  = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">false_positive_groups</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;# Name correct names (TP)     = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">perfect_groups</span><span class="p">))</span>
-    <span class="c">#ut.embed()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;# Name with failed links (FN) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">false_negative_groups</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;... should have reduced to </span><span class="si">%d</span><span class="s1"> names.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">missed_links</span><span class="p">)))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;# Name with wrong links (FP)  = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">false_positive_groups</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;# Name correct names (TP)     = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">perfect_groups</span><span class="p">))</span>
+    <span class="c1">#ut.embed()</span>
 
 </div>
 <span class="nd">@profile</span>
@@ -632,24 +632,24 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        list: aids_chunk2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Visual info</span>
+    <span class="c1"># Visual info</span>
     <span class="n">guuids_chunk1</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_image_uuids</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">)</span>
     <span class="n">verts_chunk1</span>  <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_verts</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">)</span>
     <span class="n">thetas_chunk1</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">)</span>
-    <span class="c"># Non-name semantic info</span>
+    <span class="c1"># Non-name semantic info</span>
     <span class="n">species_chunk1</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">)</span>
     <span class="n">gids_chunk2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">guuids_chunk1</span><span class="p">)</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">,</span> <span class="s">&#39;aids_chunk1&#39;</span><span class="p">)</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">guuids_chunk1</span><span class="p">,</span> <span class="s">&#39;guuids_chunk1&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">,</span> <span class="s1">&#39;aids_chunk1&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">guuids_chunk1</span><span class="p">,</span> <span class="s1">&#39;guuids_chunk1&#39;</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">gids_chunk2</span><span class="p">,</span> <span class="s">&#39;gids_chunk2&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">gids_chunk2</span><span class="p">,</span> <span class="s1">&#39;gids_chunk2&#39;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="c">#index = ut.get_first_None_position(gids_chunk2)</span>
-        <span class="c">#set(ibs2.get_valid_gids()).difference(set(gids_chunk2))</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;gids_chunk2&#39;</span><span class="p">])</span>
-        <span class="c">#ut.embed()</span>
-        <span class="c">#raise</span>
-    <span class="c"># Add this new unseen test case to the database</span>
+        <span class="c1">#index = ut.get_first_None_position(gids_chunk2)</span>
+        <span class="c1">#set(ibs2.get_valid_gids()).difference(set(gids_chunk2))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;gids_chunk2&#39;</span><span class="p">])</span>
+        <span class="c1">#ut.embed()</span>
+        <span class="c1">#raise</span>
+    <span class="c1"># Add this new unseen test case to the database</span>
     <span class="n">aids_chunk2</span> <span class="o">=</span> <span class="n">ibs2</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span><span class="n">gids_chunk2</span><span class="p">,</span>
                                   <span class="n">species_list</span><span class="o">=</span><span class="n">species_chunk1</span><span class="p">,</span>
                                   <span class="n">vert_list</span><span class="o">=</span><span class="n">verts_chunk1</span><span class="p">,</span>
@@ -659,19 +659,19 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        called by add_annot_chunk</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># Should be 1 to 1</span>
+        <span class="c1"># Should be 1 to 1</span>
         <span class="k">for</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">,</span> <span class="n">aids_chunk2</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">aid1</span> <span class="ow">in</span> <span class="n">aid1_to_aid2</span><span class="p">:</span>
                 <span class="k">assert</span> <span class="n">aid1_to_aid2</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span> <span class="o">==</span> <span class="n">aid2</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">aid1_to_aid2</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span> <span class="o">=</span> <span class="n">aid2</span>
-    <span class="c"># Register the mapping from ibs_gt to ibs2</span>
+    <span class="c1"># Register the mapping from ibs_gt to ibs2</span>
     <span class="n">register_annot_mapping</span><span class="p">(</span><span class="n">aids_chunk1</span><span class="p">,</span> <span class="n">aids_chunk2</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Added: aids_chunk2=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">aids_chunk2</span><span class="p">),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">60</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Added: aids_chunk2=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">truncate_str</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">aids_chunk2</span><span class="p">),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">60</span><span class="p">),))</span>
     <span class="k">return</span> <span class="n">aids_chunk2</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.algo.hots.automated_helpers</span>
@@ -679,8 +679,8 @@
 <span class="sd">        python -m ibeis.algo.hots.automated_helpers --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -715,7 +715,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

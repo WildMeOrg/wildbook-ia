@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests.test_ibs_getters &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.tests.test_ibs_getters &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,22 +129,22 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.tests.test_ibs_getters</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python2.7</span>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="ch">#!/usr/bin/env python2.7</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">python ibeis/tests/test_ibs_getters.py</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="c"># TODO: ADD COPYRIGHT TAG</span>
+<span class="c1"># TODO: ADD COPYRIGHT TAG</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="c"># Python</span>
+<span class="c1"># Python</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
-<span class="c"># Tools</span>
+<span class="c1"># Tools</span>
 <span class="kn">import</span> <span class="nn">utool</span>
-<span class="c">#IBEIS</span>
+<span class="c1">#IBEIS</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
-    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_IBS_GETTERS]&#39;</span><span class="p">)</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[TEST_IBS_GETTERS]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="TEST_IBS_GETTERS"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_ibs_getters.TEST_IBS_GETTERS">[docs]</a><span class="k">def</span> <span class="nf">TEST_IBS_GETTERS</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -155,17 +155,17 @@
 <span class="sd">    &gt;&gt;&gt; test_locals = utool.run_test(TEST_IBS_GETTERS, ibs)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ibs is none&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;ibs is none&#39;</span><span class="p">)</span>
 
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
 
-    <span class="c"># Ensure we grab an even number of aids</span>
+    <span class="c1"># Ensure we grab an even number of aids</span>
     <span class="n">aid_list</span>   <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">]</span>
     <span class="n">aid_scalar</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">aid_numpy</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 
-    <span class="c"># tests that scalar, list, and numpy getters are working correctly</span>
+    <span class="c1"># tests that scalar, list, and numpy getters are working correctly</span>
     <span class="n">bboxes_list</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">bboxes_scalar</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_scalar</span><span class="p">)</span>
     <span class="n">bboxes_numpy</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_numpy</span><span class="p">)</span>
@@ -174,51 +174,51 @@
     <span class="n">kpts_scalar</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid_scalar</span><span class="p">)</span>
     <span class="n">kpts_numpy</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid_numpy</span><span class="p">)</span>
 
-    <span class="c"># Test lazy (noneager eval)</span>
+    <span class="c1"># Test lazy (noneager eval)</span>
     <span class="n">fid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_feat_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fid_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="s">&#39;should be a list&#39;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fid_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="s1">&#39;should be a list&#39;</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="n">fid_gen</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_feat_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">DEBUG2</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="kn">import</span> <span class="nn">types</span>
     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fid_gen</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">)</span>
     <span class="n">fid_list_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fid_gen</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">fid_gen</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;generator should be used up&#39;</span>
-    <span class="k">assert</span> <span class="n">fid_list</span> <span class="o">==</span> <span class="n">fid_list_</span><span class="p">,</span> <span class="s">&#39;sql generators not working&#39;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">fid_gen</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;generator should be used up&#39;</span>
+    <span class="k">assert</span> <span class="n">fid_list</span> <span class="o">==</span> <span class="n">fid_list_</span><span class="p">,</span> <span class="s1">&#39;sql generators not working&#39;</span>
 
-    <span class="c">#from ibeis.constants import FEATURE_TABLE</span>
-    <span class="c">#eager = False</span>
-    <span class="c">#colnames = (&#39;feature_sifts&#39;,)</span>
-    <span class="c">#tblname = FEATURE_TABLE</span>
-    <span class="c">#id_iter = fid_list</span>
-    <span class="c">#id_colname = &#39;rowid&#39;</span>
-    <span class="c">#desc_list = ibs.dbcache.get(FEATURE_TABLE, (&#39;feature_sifts&#39;,), fid_list, nInput=len(fid_list), eager=eager)</span>
-    <span class="c">#&quot;&quot;&quot;</span>
-    <span class="c">#%timeit list(ibs.dbcache.get(FEATURE_TABLE, (&#39;feature_sifts&#39;,), fid_list, nInput=len(fid_list), eager=False))</span>
-    <span class="c">#%timeit ibs.dbcache.get(FEATURE_TABLE, (&#39;feature_sifts&#39;,), fid_list, nInput=len(fid_list), eager=True)</span>
-    <span class="c">#&quot;&quot;&quot;</span>
-    <span class="c">#utool.embed()</span>
+    <span class="c1">#from ibeis.constants import FEATURE_TABLE</span>
+    <span class="c1">#eager = False</span>
+    <span class="c1">#colnames = (&#39;feature_sifts&#39;,)</span>
+    <span class="c1">#tblname = FEATURE_TABLE</span>
+    <span class="c1">#id_iter = fid_list</span>
+    <span class="c1">#id_colname = &#39;rowid&#39;</span>
+    <span class="c1">#desc_list = ibs.dbcache.get(FEATURE_TABLE, (&#39;feature_sifts&#39;,), fid_list, nInput=len(fid_list), eager=eager)</span>
+    <span class="c1">#&quot;&quot;&quot;</span>
+    <span class="c1">#%timeit list(ibs.dbcache.get(FEATURE_TABLE, (&#39;feature_sifts&#39;,), fid_list, nInput=len(fid_list), eager=False))</span>
+    <span class="c1">#%timeit ibs.dbcache.get(FEATURE_TABLE, (&#39;feature_sifts&#39;,), fid_list, nInput=len(fid_list), eager=True)</span>
+    <span class="c1">#&quot;&quot;&quot;</span>
+    <span class="c1">#utool.embed()</span>
 
-    <span class="k">def</span> <span class="nf">assert_getter_output</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">scalar</span><span class="p">,</span> <span class="n">numpy_</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">assert_getter_output</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">scalar</span><span class="p">,</span> <span class="n">numpy_</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="n">item1</span> <span class="o">=</span> <span class="n">list_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">item2</span> <span class="o">=</span> <span class="n">scalar</span>
         <span class="n">item3</span> <span class="o">=</span> <span class="n">numpy_</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">item1</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">item2</span><span class="p">)),</span> <span class="s">&#39;getters are broken&#39;</span>
-        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">item2</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">item3</span><span class="p">)),</span> <span class="s">&#39;getters are broken&#39;</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">lbl</span> <span class="o">+</span> <span class="s">&#39; passed&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">item1</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">item2</span><span class="p">)),</span> <span class="s1">&#39;getters are broken&#39;</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">item2</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">item3</span><span class="p">)),</span> <span class="s1">&#39;getters are broken&#39;</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">lbl</span> <span class="o">+</span> <span class="s1">&#39; passed&#39;</span><span class="p">)</span>
 
-    <span class="n">assert_getter_output</span><span class="p">(</span><span class="n">bboxes_list</span><span class="p">,</span> <span class="n">bboxes_scalar</span><span class="p">,</span> <span class="n">bboxes_numpy</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;bboxes&#39;</span><span class="p">)</span>
-    <span class="n">assert_getter_output</span><span class="p">(</span><span class="n">kpts_list</span><span class="p">,</span> <span class="n">kpts_scalar</span><span class="p">,</span> <span class="n">kpts_numpy</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;kpts&#39;</span><span class="p">)</span>
+    <span class="n">assert_getter_output</span><span class="p">(</span><span class="n">bboxes_list</span><span class="p">,</span> <span class="n">bboxes_scalar</span><span class="p">,</span> <span class="n">bboxes_numpy</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;bboxes&#39;</span><span class="p">)</span>
+    <span class="n">assert_getter_output</span><span class="p">(</span><span class="n">kpts_list</span><span class="p">,</span> <span class="n">kpts_scalar</span><span class="p">,</span> <span class="n">kpts_numpy</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;kpts&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For win32</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># For win32</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb0&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>    <span class="c"># IBEIS Control</span>
+    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb0&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">]</span>    <span class="c1"># IBEIS Control</span>
     <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_IBS_GETTERS</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
-    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s">&#39;test_locals&#39;</span><span class="p">)</span>
+    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s1">&#39;test_locals&#39;</span><span class="p">)</span>
     <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
 </pre></div>
 
@@ -253,7 +253,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

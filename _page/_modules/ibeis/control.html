@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.control &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,76 +129,73 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.control</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c">### __init__.py ###</span>
-<span class="c"># flake8: noqa</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">### __init__.py ###</span>
+<span class="c1"># flake8: noqa</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.control.__init__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[ibeis.control.__init__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
-<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">DBCACHE_SCHEMA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">DB_SCHEMA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">_sql_helpers</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
-    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.control]&#39;</span><span class="p">)</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[ibeis.control]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="reload_subs"><a class="viewcode-back" href="../../ibeis.control.html#ibeis.control.reload_subs">[docs]</a><span class="k">def</span> <span class="nf">reload_subs</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Reloads ibeis.control and submodules &quot;&quot;&quot;</span>
     <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">DBCACHE_SCHEMA</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">DB_SCHEMA</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">IBEISControl</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">SQLDatabaseControl</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">_sql_helpers</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">accessor_decors</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">DB_SCHEMA</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">IBEISControl</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">SQLDatabaseControl</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">_sql_helpers</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">accessor_decors</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span></div>
 <span class="n">rrrr</span> <span class="o">=</span> <span class="n">reload_subs</span>
 
 <span class="n">IMPORT_TUPLES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="s">&#39;DBCACHE_SCHEMA&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;DB_SCHEMA&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;IBEISControl&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;_sql_helpers&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;accessor_decors&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;DB_SCHEMA&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;IBEISControl&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;_sql_helpers&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;accessor_decors&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
 <span class="p">]</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Regen Command:</span>
 <span class="sd">    cd /home/joncrall/code/ibeis/ibeis/control</span>
 <span class="sd">    makeinit.py -x DBCACHE_SCHEMA_CURRENT DB_SCHEMA_CURRENT _grave_template manual_ibeiscontrol_funcs template_definitions templates _autogen_ibeiscontrol_funcs</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="c"># autogenerated __init__.py for: &#39;/home/joncrall/code/ibeis/ibeis/control&#39;</span>
-<span class="c">#from __future__ import absolute_import, division, print_function</span>
-<span class="c">##from ibeis.control import DB_SCHEMA</span>
-<span class="c">##from ibeis.control import IBEISControl</span>
-<span class="c">##from ibeis.control import SQLDatabaseControl</span>
-<span class="c">##from ibeis.control import _sql_helpers</span>
-<span class="c">##from ibeis.control import accessor_decors</span>
-<span class="c">#from . import DB_SCHEMA</span>
-<span class="c">#from . import IBEISControl</span>
-<span class="c">#from . import SQLDatabaseControl</span>
-<span class="c">#from . import _sql_helpers</span>
-<span class="c">#from . import accessor_decors</span>
-<span class="c">#import utool</span>
-<span class="c">#print, print_, printDBG, rrr, profile = utool.inject(</span>
-<span class="c">#    __name__, &#39;[control]&#39;)</span>
+<span class="c1"># autogenerated __init__.py for: &#39;/home/joncrall/code/ibeis/ibeis/control&#39;</span>
+<span class="c1">#from __future__ import absolute_import, division, print_function</span>
+<span class="c1">##from ibeis.control import DB_SCHEMA</span>
+<span class="c1">##from ibeis.control import IBEISControl</span>
+<span class="c1">##from ibeis.control import SQLDatabaseControl</span>
+<span class="c1">##from ibeis.control import _sql_helpers</span>
+<span class="c1">##from ibeis.control import accessor_decors</span>
+<span class="c1">#from . import DB_SCHEMA</span>
+<span class="c1">#from . import IBEISControl</span>
+<span class="c1">#from . import SQLDatabaseControl</span>
+<span class="c1">#from . import _sql_helpers</span>
+<span class="c1">#from . import accessor_decors</span>
+<span class="c1">#import utool</span>
+<span class="c1">#print, print_, printDBG, rrr, profile = utool.inject(</span>
+<span class="c1">#    __name__, &#39;[control]&#39;)</span>
 
 
-<span class="c">#def reload_subs():</span>
-<span class="c">#    &quot;&quot;&quot; Reloads control and submodules &quot;&quot;&quot;</span>
-<span class="c">#    rrr()</span>
-<span class="c">#    getattr(DB_SCHEMA, &#39;rrr&#39;, lambda: None)()</span>
-<span class="c">#    getattr(IBEISControl, &#39;rrr&#39;, lambda: None)()</span>
-<span class="c">#    getattr(SQLDatabaseControl, &#39;rrr&#39;, lambda: None)()</span>
-<span class="c">#    getattr(_sql_helpers, &#39;rrr&#39;, lambda: None)()</span>
-<span class="c">#    getattr(accessor_decors, &#39;rrr&#39;, lambda: None)()</span>
-<span class="c">#    rrr()</span>
-<span class="c">#rrrr = reload_subs</span>
+<span class="c1">#def reload_subs():</span>
+<span class="c1">#    &quot;&quot;&quot; Reloads control and submodules &quot;&quot;&quot;</span>
+<span class="c1">#    rrr()</span>
+<span class="c1">#    getattr(DB_SCHEMA, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c1">#    getattr(IBEISControl, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c1">#    getattr(SQLDatabaseControl, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c1">#    getattr(_sql_helpers, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c1">#    getattr(accessor_decors, &#39;rrr&#39;, lambda: None)()</span>
+<span class="c1">#    rrr()</span>
+<span class="c1">#rrrr = reload_subs</span>
 </pre></div>
 
            </div>
@@ -232,7 +229,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

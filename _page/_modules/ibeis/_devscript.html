@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis._devscript &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis._devscript &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,151 +129,151 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis._devscript</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
 
 <div class="viewcode-block" id="hack_argv"><a class="viewcode-back" href="../../ibeis.html#ibeis._devscript.hack_argv">[docs]</a><span class="k">def</span> <span class="nf">hack_argv</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
-    <span class="c"># HACK COMMON ARGV SYMBOLS</span>
-    <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;--hargv=&#39;</span><span class="p">):</span>
-        <span class="n">hack_argv_key</span> <span class="o">=</span> <span class="s">&#39;=&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="c1"># HACK COMMON ARGV SYMBOLS</span>
+    <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;--hargv=&#39;</span><span class="p">):</span>
+        <span class="n">hack_argv_key</span> <span class="o">=</span> <span class="s1">&#39;=&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
 
         <span class="n">common_args</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s">&#39;--dpath=~/latex/crall-candidacy-2015/&#39;</span><span class="p">,</span>
-            <span class="s">&#39;--clipwhite&#39;</span><span class="p">,</span>
-            <span class="s">&#39;--contextadjust&#39;</span><span class="p">,</span>
-            <span class="s">&#39;--dpi=256&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;--dpath=~/latex/cand/&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;--clipwhite&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;--contextadjust&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;--dpi=256&#39;</span><span class="p">,</span>
         <span class="p">]</span>
 
         <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">common_args</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s">&#39;--noshow&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;--diskshow&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s1">&#39;--noshow&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s1">&#39;--diskshow&#39;</span><span class="p">])</span>
 
-        <span class="c"># Figsize hacks</span>
+        <span class="c1"># Figsize hacks</span>
 
-        <span class="k">if</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;surf&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;surf&#39;</span><span class="p">]:</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                <span class="s">&#39;--figsize=14,3&#39;</span><span class="p">,</span>
-                <span class="s">&#39;--hspace=.3&#39;</span><span class="p">,</span>
-                <span class="c">#&#39;--top=.8&#39;,</span>
-                <span class="s">&#39;--top=.85&#39;</span><span class="p">,</span>
-                <span class="s">&#39;--bottom=0.18&#39;</span><span class="p">,</span>
-                <span class="s">&#39;--left=.05&#39;</span><span class="p">,</span>
-                <span class="s">&#39;--right=.95&#39;</span>
+                <span class="s1">&#39;--figsize=14,3&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--hspace=.3&#39;</span><span class="p">,</span>
+                <span class="c1">#&#39;--top=.8&#39;,</span>
+                <span class="s1">&#39;--top=.85&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--bottom=0.18&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--left=.05&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--right=.95&#39;</span>
             <span class="p">])</span>
-        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;scores&#39;</span><span class="p">]:</span>
+        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;scores&#39;</span><span class="p">]:</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                <span class="c">#&#39;--figsize=15,7&#39;,</span>
-                <span class="c">#&#39;--top=.8&#39;,</span>
-                <span class="s">&#39;--figsize=14,3&#39;</span><span class="p">,</span>
-                <span class="s">&#39;--top=.8&#39;</span><span class="p">,</span>
-                <span class="s">&#39;--hspace=.3&#39;</span><span class="p">,</span>
-                <span class="s">&#39;--bottom=0.08&#39;</span><span class="p">,</span>
-                <span class="s">&#39;--left=.05&#39;</span><span class="p">,</span>
-                <span class="s">&#39;--right=.95&#39;</span>
+                <span class="c1">#&#39;--figsize=15,7&#39;,</span>
+                <span class="c1">#&#39;--top=.8&#39;,</span>
+                <span class="s1">&#39;--figsize=14,3&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--top=.8&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--hspace=.3&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--bottom=0.08&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--left=.05&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--right=.95&#39;</span>
             <span class="p">])</span>
-        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;tags&#39;</span><span class="p">]:</span>
+        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]:</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                <span class="c">#&#39;--figsize=14,3&#39;,</span>
-                <span class="c">#&#39;--top=.8&#39;,</span>
-                <span class="c">#&#39;--hspace=.3&#39;,</span>
-                <span class="c">#&#39;--bottom=0.08&#39;,</span>
-                <span class="c">#&#39;--left=.05&#39;,</span>
-                <span class="c">#&#39;--right=.95&#39;</span>
+                <span class="c1">#&#39;--figsize=14,3&#39;,</span>
+                <span class="c1">#&#39;--top=.8&#39;,</span>
+                <span class="c1">#&#39;--hspace=.3&#39;,</span>
+                <span class="c1">#&#39;--bottom=0.08&#39;,</span>
+                <span class="c1">#&#39;--left=.05&#39;,</span>
+                <span class="c1">#&#39;--right=.95&#39;</span>
             <span class="p">])</span>
-        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;expt&#39;</span><span class="p">]:</span>
+        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;expt&#39;</span><span class="p">]:</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                <span class="c">#&#39;--figsize=15,3&#39;,</span>
-                <span class="s">&#39;--figsize=15,3.1&#39;</span><span class="p">,</span>
-                <span class="s">&#39;--top=.9&#39;</span><span class="p">,</span>
-                <span class="s">&#39;--bottom=.15&#39;</span><span class="p">,</span>
+                <span class="c1">#&#39;--figsize=15,3&#39;,</span>
+                <span class="s1">&#39;--figsize=15,3.1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--top=.9&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--bottom=.15&#39;</span><span class="p">,</span>
             <span class="p">])</span>
-        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;mech&#39;</span><span class="p">]:</span>
+        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;mech&#39;</span><span class="p">]:</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                <span class="c">#&#39;--figsize=14,5&#39;,</span>
-                <span class="s">&#39;--figsize=14,3&#39;</span><span class="p">,</span>
-                <span class="s">&#39;--top=.9&#39;</span><span class="p">,</span>
+                <span class="c1">#&#39;--figsize=14,5&#39;,</span>
+                <span class="s1">&#39;--figsize=14,3&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--top=.9&#39;</span><span class="p">,</span>
             <span class="p">])</span>
-        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;tags&#39;</span><span class="p">]:</span>
+        <span class="k">elif</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tags&#39;</span><span class="p">]:</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                <span class="s">&#39;--bottom=.3&#39;</span><span class="p">,</span>
-                <span class="s">&#39;--left=.2&#39;</span><span class="p">,</span>
-            <span class="p">])</span>
-
-        <span class="c"># Save location</span>
-        <span class="c">#fname_fmt = &#39;figuresX/expt_{e}_{db}_a_{a}_t_{t}&#39;</span>
-        <span class="n">fname_fmt</span> <span class="o">=</span> <span class="s">&#39;figuresX/expt_{label}&#39;</span>
-
-        <span class="c">#if hack_argv_key in [&#39;scores&#39;]:</span>
-        <span class="c">#    fname_fmt += &#39;_{filt}&#39;</span>
-
-        <span class="c">#if hack_argv_key in [&#39;time&#39;]:</span>
-        <span class="c">#    if not (&#39;--falsepos&#39; in sys.argv) or (&#39;--truepos&#39; in sys.argv):</span>
-        <span class="c">#        fname_fmt += &#39;_TP&#39;</span>
-        <span class="c">#    if (&#39;--falsepos&#39; in sys.argv):</span>
-        <span class="c">#        fname_fmt += &#39;_FP&#39;</span>
-
-        <span class="k">if</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;time&#39;</span><span class="p">,</span> <span class="s">&#39;expt&#39;</span><span class="p">,</span> <span class="s">&#39;mech&#39;</span><span class="p">,</span> <span class="s">&#39;scores&#39;</span><span class="p">,</span> <span class="s">&#39;surf&#39;</span><span class="p">,</span> <span class="s">&#39;tags&#39;</span><span class="p">]:</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                <span class="s">&#39;--save&#39;</span><span class="p">,</span>
-                <span class="n">fname_fmt</span> <span class="o">+</span> <span class="s">&#39;.png&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--bottom=.3&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--left=.2&#39;</span><span class="p">,</span>
             <span class="p">])</span>
 
-        <span class="k">if</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;time&#39;</span><span class="p">]:</span>
+        <span class="c1"># Save location</span>
+        <span class="c1">#fname_fmt = &#39;figuresX/expt_{e}_{db}_a_{a}_t_{t}&#39;</span>
+        <span class="n">fname_fmt</span> <span class="o">=</span> <span class="s1">&#39;figuresX/expt_{label}&#39;</span>
+
+        <span class="c1">#if hack_argv_key in [&#39;scores&#39;]:</span>
+        <span class="c1">#    fname_fmt += &#39;_{filt}&#39;</span>
+
+        <span class="c1">#if hack_argv_key in [&#39;time&#39;]:</span>
+        <span class="c1">#    if not (&#39;--falsepos&#39; in sys.argv) or (&#39;--truepos&#39; in sys.argv):</span>
+        <span class="c1">#        fname_fmt += &#39;_TP&#39;</span>
+        <span class="c1">#    if (&#39;--falsepos&#39; in sys.argv):</span>
+        <span class="c1">#        fname_fmt += &#39;_FP&#39;</span>
+
+        <span class="k">if</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;expt&#39;</span><span class="p">,</span> <span class="s1">&#39;mech&#39;</span><span class="p">,</span> <span class="s1">&#39;scores&#39;</span><span class="p">,</span> <span class="s1">&#39;surf&#39;</span><span class="p">,</span> <span class="s1">&#39;tags&#39;</span><span class="p">]:</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                <span class="s">&#39;--figsize=18,8&#39;</span><span class="p">,</span>
-                <span class="s">r&#39;--width=&quot;.8\textwidth&quot;&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;--save&#39;</span><span class="p">,</span>
+                <span class="n">fname_fmt</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">,</span>
             <span class="p">])</span>
 
-<span class="c">#import IPython</span>
-<span class="c">#IPython.embed()</span></div>
+        <span class="k">if</span> <span class="n">hack_argv_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="s1">&#39;--figsize=18,8&#39;</span><span class="p">,</span>
+                <span class="s1">r&#39;--width=&quot;.8\textwidth&quot;&#39;</span><span class="p">,</span>
+            <span class="p">])</span>
+
+<span class="c1">#import IPython</span>
+<span class="c1">#IPython.embed()</span></div>
 <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[:]:</span>
     <span class="n">hack_argv</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
 
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
-<span class="c">#ut.show_if_requested()</span>
-<span class="c">#sys.exit(1)</span>
-<span class="kn">from</span> <span class="nn">utool.util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>  <span class="c"># NOQA</span>
-<span class="c">#import functools</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+<span class="c1">#ut.show_if_requested()</span>
+<span class="c1">#sys.exit(1)</span>
+<span class="kn">from</span> <span class="nn">utool.util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>  <span class="c1"># NOQA</span>
+<span class="c1">#import functools</span>
 
-<span class="c"># A list of registered development test functions</span>
+<span class="c1"># A list of registered development test functions</span>
 <span class="n">DEVCMD_FUNCTIONS</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">DEVPRECMD_FUNCTIONS</span> <span class="o">=</span> <span class="p">[]</span>
 
-<span class="c">#DEVCMD_FUNCTIONS2 = []</span>
+<span class="c1">#DEVCMD_FUNCTIONS2 = []</span>
 
 
-<span class="c">#def devcmd2(*args):</span>
-<span class="c">#    &quot;&quot;&quot; Decorator which registers a function as a developer command &quot;&quot;&quot;</span>
-<span class="c">#    noargs = len(args) == 1 and not isinstance(args[0], str)</span>
-<span class="c">#    if noargs:</span>
-<span class="c">#        # Function is only argument</span>
-<span class="c">#        func = args[0]</span>
-<span class="c">#        func_aliases = []</span>
-<span class="c">#    else:</span>
-<span class="c">#        func_aliases = list(args)</span>
-<span class="c">#    def closure_devcmd2(func):</span>
-<span class="c">#        global DEVCMD_FUNCTIONS2</span>
-<span class="c">#        func_aliases.extend([get_funcname(func)])</span>
-<span class="c">#        DEVCMD_FUNCTIONS2.append((tuple(func_aliases), func))</span>
-<span class="c">#        def func_wrapper(*args_, **kwargs_):</span>
-<span class="c">#            #if ut.VERBOSE:</span>
-<span class="c">#            #if ut.QUIET:</span>
-<span class="c">#            print(&#39;[DEVCMD2] &#39; + ut.func_str(func, args_, kwargs_))</span>
-<span class="c">#            return func(*args_, **kwargs_)</span>
-<span class="c">#        return func_wrapper</span>
-<span class="c">#    if noargs:</span>
-<span class="c">#        return closure_devcmd2(func)</span>
-<span class="c">#    return closure_devcmd2</span>
+<span class="c1">#def devcmd2(*args):</span>
+<span class="c1">#    &quot;&quot;&quot; Decorator which registers a function as a developer command &quot;&quot;&quot;</span>
+<span class="c1">#    noargs = len(args) == 1 and not isinstance(args[0], str)</span>
+<span class="c1">#    if noargs:</span>
+<span class="c1">#        # Function is only argument</span>
+<span class="c1">#        func = args[0]</span>
+<span class="c1">#        func_aliases = []</span>
+<span class="c1">#    else:</span>
+<span class="c1">#        func_aliases = list(args)</span>
+<span class="c1">#    def closure_devcmd2(func):</span>
+<span class="c1">#        global DEVCMD_FUNCTIONS2</span>
+<span class="c1">#        func_aliases.extend([get_funcname(func)])</span>
+<span class="c1">#        DEVCMD_FUNCTIONS2.append((tuple(func_aliases), func))</span>
+<span class="c1">#        def func_wrapper(*args_, **kwargs_):</span>
+<span class="c1">#            #if ut.VERBOSE:</span>
+<span class="c1">#            #if ut.QUIET:</span>
+<span class="c1">#            print(&#39;[DEVCMD2] &#39; + ut.func_str(func, args_, kwargs_))</span>
+<span class="c1">#            return func(*args_, **kwargs_)</span>
+<span class="c1">#        return func_wrapper</span>
+<span class="c1">#    if noargs:</span>
+<span class="c1">#        return closure_devcmd2(func)</span>
+<span class="c1">#    return closure_devcmd2</span>
 
 
 <div class="viewcode-block" id="devcmd"><a class="viewcode-back" href="../../ibeis.html#ibeis._devscript.devcmd">[docs]</a><span class="k">def</span> <span class="nf">devcmd</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Decorator which registers a function as a developer command &quot;&quot;&quot;</span>
     <span class="n">noargs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">noargs</span><span class="p">:</span>
-        <span class="c"># Function is only argument</span>
+        <span class="c1"># Function is only argument</span>
         <span class="n">func</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">func_aliases</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">else</span><span class="p">:</span>
@@ -283,9 +283,9 @@
         <span class="n">func_aliases</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)])</span>
         <span class="n">DEVCMD_FUNCTIONS</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">tuple</span><span class="p">(</span><span class="n">func_aliases</span><span class="p">),</span> <span class="n">func</span><span class="p">))</span>
         <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">):</span>
-            <span class="c">#if ut.VERBOSE:</span>
-            <span class="c">#if ut.QUIET:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[DEVCMD] &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_</span><span class="p">,</span> <span class="n">kwargs_</span><span class="p">))</span>
+            <span class="c1">#if ut.VERBOSE:</span>
+            <span class="c1">#if ut.QUIET:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[DEVCMD] &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_</span><span class="p">,</span> <span class="n">kwargs_</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func_wrapper</span>
     <span class="k">if</span> <span class="n">noargs</span><span class="p">:</span>
@@ -297,7 +297,7 @@
     <span class="sd">&quot;&quot;&quot; Decorator which registers a function as a developer precommand &quot;&quot;&quot;</span>
     <span class="n">noargs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">noargs</span><span class="p">:</span>
-        <span class="c"># Function is only argument</span>
+        <span class="c1"># Function is only argument</span>
         <span class="n">func</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">func_aliases</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">else</span><span class="p">:</span>
@@ -307,9 +307,9 @@
         <span class="n">func_aliases</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)])</span>
         <span class="n">DEVPRECMD_FUNCTIONS</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">tuple</span><span class="p">(</span><span class="n">func_aliases</span><span class="p">),</span> <span class="n">func</span><span class="p">))</span>
         <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">):</span>
-            <span class="c">#if ut.VERBOSE:</span>
-            <span class="c">#if ut.QUIET:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[DEVPRECMD] &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_</span><span class="p">,</span> <span class="n">kwargs_</span><span class="p">))</span>
+            <span class="c1">#if ut.VERBOSE:</span>
+            <span class="c1">#if ut.QUIET:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[DEVPRECMD] &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">func_str</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">args_</span><span class="p">,</span> <span class="n">kwargs_</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func_wrapper</span>
     <span class="k">if</span> <span class="n">noargs</span><span class="p">:</span>
@@ -348,7 +348,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

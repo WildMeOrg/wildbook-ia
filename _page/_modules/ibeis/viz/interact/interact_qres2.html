@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact.interact_qres2 &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.viz.interact.interact_qres2 &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.viz.interact" href="../interact.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,9 +133,9 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.viz.interact.interact_qres2</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="c">#from ibeis.viz.interact.interact_matches import ishow_matches</span>
+<span class="c1">#from ibeis.viz.interact.interact_matches import ishow_matches</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">six</span>
@@ -146,74 +146,74 @@
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="kn">as</span> <span class="nn">mpl</span>
 <span class="kn">import</span> <span class="nn">plottool.draw_func2</span> <span class="kn">as</span> <span class="nn">df2</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">ibeis.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_matches</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_sver</span> <span class="kn">import</span> <span class="n">ishow_sver</span>
 
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[interact_qres2]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[interact_qres2]&#39;</span><span class="p">)</span>
 
 
-<span class="n">BREAK_MATCH_PREF</span> <span class="o">=</span> <span class="s">&#39;break match&#39;</span>
-<span class="n">NEW_MATCH_PREF</span>   <span class="o">=</span> <span class="s">&#39;new match&#39;</span>
-<span class="n">RENAME1_PREF</span>     <span class="o">=</span> <span class="s">&#39;rename query: &#39;</span>
-<span class="n">RENAME2_PREF</span>     <span class="o">=</span> <span class="s">&#39;rename result: &#39;</span>
+<span class="n">BREAK_MATCH_PREF</span> <span class="o">=</span> <span class="s1">&#39;break match&#39;</span>
+<span class="n">NEW_MATCH_PREF</span>   <span class="o">=</span> <span class="s1">&#39;new match&#39;</span>
+<span class="n">RENAME1_PREF</span>     <span class="o">=</span> <span class="s1">&#39;rename query: &#39;</span>
+<span class="n">RENAME2_PREF</span>     <span class="o">=</span> <span class="s1">&#39;rename result: &#39;</span>
 
 
 <div class="viewcode-block" id="default_interact_qres_params"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.default_interact_qres_params">[docs]</a><span class="k">def</span> <span class="nf">default_interact_qres_params</span><span class="p">():</span>
     <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;fnum&#39;</span>               <span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
-        <span class="s">&#39;nPerPage&#39;</span>           <span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
-        <span class="s">&#39;ranks_lt&#39;</span>           <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-        <span class="s">&#39;on_change_callback&#39;</span> <span class="p">:</span> <span class="bp">None</span>
+        <span class="s1">&#39;fnum&#39;</span>               <span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
+        <span class="s1">&#39;nPerPage&#39;</span>           <span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+        <span class="s1">&#39;ranks_lt&#39;</span>           <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;on_change_callback&#39;</span> <span class="p">:</span> <span class="bp">None</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">params</span>
 
 </div>
 <div class="viewcode-block" id="Interact_QueryResult"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult">[docs]</a><span class="k">class</span> <span class="nc">Interact_QueryResult</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c"># Initialize variables. No logic</span>
+        <span class="c1"># Initialize variables. No logic</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span>               <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nPerPage</span>           <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ranks_lt</span>           <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">on_change_callback</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nCands</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c"># number of candidate matches</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nCands</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># number of candidate matches</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cand_match_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_match_aids</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_qres</span>       <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">scope</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># for keeping those widgets alive!</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scope</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># for keeping those widgets alive!</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nPages</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stop_index</span>  <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">interactkw</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;draw_fmatches&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-            <span class="s">&#39;draw_ell&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-            <span class="s">&#39;draw_rect&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-            <span class="s">&#39;draw_lines&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-            <span class="s">&#39;in_image&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-            <span class="s">&#39;draw_lbl&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-            <span class="s">&#39;show_timedelta&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s1">&#39;draw_fmatches&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s1">&#39;draw_ell&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s1">&#39;draw_rect&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s1">&#39;draw_lines&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s1">&#39;in_image&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s1">&#39;draw_lbl&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s1">&#39;show_timedelta&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">toggleable_kws</span> <span class="o">=</span> <span class="n">odict</span><span class="p">([</span>
-            <span class="p">(</span><span class="s">&#39;TOG: fmatch&#39;</span><span class="p">,</span> <span class="s">&#39;draw_fmatches&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s">&#39;TOG: in_image&#39;</span><span class="p">,</span> <span class="s">&#39;in_image&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s">&#39;TOG: timedelta&#39;</span><span class="p">,</span> <span class="s">&#39;show_timedelta&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s">&#39;TOG: lbl&#39;</span><span class="p">,</span> <span class="s">&#39;draw_lbl&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;TOG: fmatch&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_fmatches&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;TOG: in_image&#39;</span><span class="p">,</span> <span class="s1">&#39;in_image&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;TOG: timedelta&#39;</span><span class="p">,</span> <span class="s1">&#39;show_timedelta&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;TOG: lbl&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_lbl&#39;</span><span class="p">),</span>
         <span class="p">])</span>
-        <span class="c"># Initialize Logic</span>
-        <span class="c"># main data</span>
+        <span class="c1"># Initialize Logic</span>
+        <span class="c1"># main data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span>
-        <span class="c"># update keyword args</span>
+        <span class="c1"># update keyword args</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">default_interact_qres_params</span><span class="p">()</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">updateif_haskey</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
-        <span class="c"># initialize matches</span>
+        <span class="c1"># initialize matches</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">init_candidates</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">)</span>
-        <span class="c"># show first page</span>
+        <span class="c1"># show first page</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Interact_QueryResult.get_default_params"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.get_default_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_default_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -230,69 +230,69 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">aids</span> <span class="o">=</span> <span class="n">aids</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nCands</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qaids</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nPages</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">iceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nCands</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">nPerPage</span><span class="p">)</span>
-        <span class="c">#if self.nCands &gt; 0:</span>
-        <span class="c">#    index = 0</span>
-        <span class="c">#    self.select_candidate_match(index)</span>
+        <span class="c1">#if self.nCands &gt; 0:</span>
+        <span class="c1">#    index = 0</span>
+        <span class="c1">#    self.select_candidate_match(index)</span>
 </div>
 <div class="viewcode-block" id="Interact_QueryResult.select_candidate_match"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.select_candidate_match">[docs]</a>    <span class="k">def</span> <span class="nf">select_candidate_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="c">#if not ut.isiterable(index_list):</span>
-        <span class="c">#    index = index_list</span>
-        <span class="c">#if index &lt; 0 or index &gt;= len(self.cand_match_list): raise AssertionError(&#39;no results&#39;)</span>
-            <span class="c">#return None</span>
+        <span class="c1">#if not ut.isiterable(index_list):</span>
+        <span class="c1">#    index = index_list</span>
+        <span class="c1">#if index &lt; 0 or index &gt;= len(self.cand_match_list): raise AssertionError(&#39;no results&#39;)</span>
+            <span class="c1">#return None</span>
         <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span> <span class="o">=</span> <span class="p">[</span><span class="n">list_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">list_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cand_match_list</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_match_aids</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qaids</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">aids</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_qres</span>       <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
 </div>
 <div class="viewcode-block" id="Interact_QueryResult.append_button"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.append_button">[docs]</a>    <span class="k">def</span> <span class="nf">append_button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">divider</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                      <span class="n">size</span><span class="o">=</span><span class="s">&#39;9%&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                      <span class="n">size</span><span class="o">=</span><span class="s1">&#39;9%&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Adds a button to the current page &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">divider</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">new_ax</span> <span class="o">=</span> <span class="n">divider</span><span class="o">.</span><span class="n">append_axes</span><span class="p">(</span><span class="s">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="s">&#39;9%&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=.</span><span class="mo">05</span><span class="p">)</span>
+            <span class="n">new_ax</span> <span class="o">=</span> <span class="n">divider</span><span class="o">.</span><span class="n">append_axes</span><span class="p">(</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="s1">&#39;9%&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=.</span><span class="mo">05</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">rect</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">new_ax</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
         <span class="n">new_but</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">widgets</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">new_ax</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">new_but</span><span class="o">.</span><span class="n">on_clicked</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
-        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">new_ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">,</span> <span class="s">&#39;button&#39;</span><span class="p">)</span>
-        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">new_ax</span><span class="p">,</span> <span class="s">&#39;text&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">new_ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="s1">&#39;button&#39;</span><span class="p">)</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">new_ax</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">new_ax</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
-        <span class="c"># Keep buttons from losing scrop</span>
+        <span class="c1"># Keep buttons from losing scrop</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scope</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">new_but</span><span class="p">,</span> <span class="n">new_ax</span><span class="p">))</span>
 </div>
 <div class="viewcode-block" id="Interact_QueryResult.clean_scope"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.clean_scope">[docs]</a>    <span class="k">def</span> <span class="nf">clean_scope</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Removes any widgets saved in the interaction scope &quot;&quot;&quot;</span>
-        <span class="c">#for (but, ax) in self.scope:</span>
-        <span class="c">#    but.disconnect_events()</span>
-        <span class="c">#    ax.set_visible(False)</span>
-        <span class="c">#    assert len(ax.callbacks.callbacks) == 0</span>
+        <span class="c1">#for (but, ax) in self.scope:</span>
+        <span class="c1">#    but.disconnect_events()</span>
+        <span class="c1">#    ax.set_visible(False)</span>
+        <span class="c1">#    assert len(ax.callbacks.callbacks) == 0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scope</span> <span class="o">=</span> <span class="p">[]</span>
 </div>
 <div class="viewcode-block" id="Interact_QueryResult.prepare_page"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.prepare_page">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pagenum</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Gets indexes for the pagenum ready to be displayed &quot;&quot;&quot;</span>
-        <span class="c"># Set the start index</span>
+        <span class="c1"># Set the start index</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span> <span class="o">=</span> <span class="n">pagenum</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nPerPage</span>
-        <span class="c"># Clip based on nCands</span>
+        <span class="c1"># Clip based on nCands</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nDisplay</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nCands</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nPerPage</span><span class="p">)</span>
         <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_square_row_cols</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nDisplay</span><span class="p">)</span>
-        <span class="c"># Create a grid to hold nPerPage</span>
+        <span class="c1"># Create a grid to hold nPerPage</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pnum_</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">get_pnum_func</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">)</span>
-        <span class="c"># Adjust stop index</span>
+        <span class="c1"># Adjust stop index</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stop_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">nDisplay</span>
-        <span class="c"># Clear current figure</span>
+        <span class="c1"># Clear current figure</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clean_scope</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pnum_</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">ih</span><span class="o">.</span><span class="n">disconnect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s">&#39;button_press_event&#39;</span><span class="p">)</span>
-        <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_figure_clicked</span><span class="p">)</span>
+        <span class="n">ih</span><span class="o">.</span><span class="n">disconnect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;button_press_event&#39;</span><span class="p">)</span>
+        <span class="n">ih</span><span class="o">.</span><span class="n">connect_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="s1">&#39;button_press_event&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_figure_clicked</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="Interact_QueryResult.show_page"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.show_page">[docs]</a>    <span class="k">def</span> <span class="nf">show_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pagenum</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Displays a page of matches &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">pagenum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">pagenum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[iqr2] show page: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">pagenum</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[iqr2] show page: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">pagenum</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span> <span class="o">=</span> <span class="n">pagenum</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prepare_page</span><span class="p">(</span><span class="n">pagenum</span><span class="p">)</span>
-        <span class="c"># Begin showing matches</span>
+        <span class="c1"># Begin showing matches</span>
         <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span>
         <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_index</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">plot_annotationmatch</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">draw</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -301,42 +301,42 @@
 </div>
 <div class="viewcode-block" id="Interact_QueryResult.plot_annotationmatch"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.plot_annotationmatch">[docs]</a>    <span class="k">def</span> <span class="nf">plot_annotationmatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">draw</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">make_buttons</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_candidate_match</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
-        <span class="c"># Get index relative to the page</span>
+        <span class="c1"># Get index relative to the page</span>
         <span class="n">px</span> <span class="o">=</span> <span class="n">index</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span>
         <span class="n">pnum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pnum_</span><span class="p">(</span><span class="n">px</span><span class="p">)</span>
-        <span class="c"># Setup figure</span>
+        <span class="c1"># Setup figure</span>
         <span class="n">fnum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="n">fig</span>
-        <span class="c">#self.ax = ax = df2.gca()</span>
-        <span class="c"># Get viz params</span>
+        <span class="c1">#self.ax = ax = df2.gca()</span>
+        <span class="c1"># Get viz params</span>
         <span class="n">qres</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_qres</span>
         <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_match_aids</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interactkw</span>
-        <span class="c"># Vizualize</span>
+        <span class="c1"># Vizualize</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">viz_matches</span><span class="o">.</span><span class="n">show_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">self_fm</span><span class="o">=</span><span class="p">[],</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span>
                                       <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="n">divider</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">ensure_divider</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
 
         <span class="n">name1</span><span class="p">,</span> <span class="n">name2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
-        <span class="c">#truth = self.ibs.get_match_truth(aid1, aid2)</span>
+        <span class="c1">#truth = self.ibs.get_match_truth(aid1, aid2)</span>
 
         <span class="k">if</span> <span class="n">make_buttons</span><span class="p">:</span>
             <span class="n">butkw</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s">&#39;divider&#39;</span><span class="p">:</span> <span class="n">divider</span><span class="p">,</span>
-                <span class="s">&#39;callback&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">match_reviewed</span><span class="p">,</span>
-                <span class="s">&#39;index&#39;</span><span class="p">:</span> <span class="n">index</span><span class="p">,</span>
+                <span class="s1">&#39;divider&#39;</span><span class="p">:</span> <span class="n">divider</span><span class="p">,</span>
+                <span class="s1">&#39;callback&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">match_reviewed</span><span class="p">,</span>
+                <span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="n">index</span><span class="p">,</span>
             <span class="p">}</span>
-            <span class="k">if</span> <span class="n">name1</span> <span class="o">==</span> <span class="n">name2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">name1</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;____&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">name1</span> <span class="o">==</span> <span class="n">name2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">name1</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;____&#39;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">BREAK_MATCH_PREF</span><span class="p">,</span> <span class="o">**</span><span class="n">butkw</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">name1</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;____&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">name1</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;____&#39;</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">RENAME2_PREF</span> <span class="o">+</span> <span class="n">name1</span><span class="p">,</span> <span class="o">**</span><span class="n">butkw</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">name2</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;____&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">name2</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;____&#39;</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">RENAME1_PREF</span> <span class="o">+</span> <span class="n">name2</span><span class="p">,</span> <span class="o">**</span><span class="n">butkw</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">name1</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;____&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">name2</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;____&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">name1</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;____&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">name2</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;____&#39;</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">NEW_MATCH_PREF</span><span class="p">,</span> <span class="o">**</span><span class="n">butkw</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">draw</span><span class="p">:</span>
@@ -344,40 +344,40 @@
 </div>
 <div class="viewcode-block" id="Interact_QueryResult.make_hud"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.make_hud">[docs]</a>    <span class="k">def</span> <span class="nf">make_hud</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Creates heads up display &quot;&quot;&quot;</span>
-        <span class="c"># Button positioning</span>
+        <span class="c1"># Button positioning</span>
         <span class="n">nToggle</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">toggleable_kws</span><span class="p">)</span>
 
-        <span class="c"># horizontal left, horizonal right</span>
+        <span class="c1"># horizontal left, horizonal right</span>
         <span class="n">hl_slot</span><span class="p">,</span> <span class="n">hr_slot</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">make_bbox_positioners</span><span class="p">(</span><span class="n">y</span><span class="o">=.</span><span class="mo">02</span><span class="p">,</span> <span class="n">w</span><span class="o">=.</span><span class="mi">08</span><span class="p">,</span> <span class="n">h</span><span class="o">=.</span><span class="mo">04</span><span class="p">,</span>
                                                      <span class="n">xpad</span><span class="o">=.</span><span class="mo">05</span><span class="p">,</span> <span class="n">startx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stopx</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">prev_rect</span> <span class="o">=</span> <span class="n">hl_slot</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c"># left button</span>
-        <span class="n">next_rect</span> <span class="o">=</span> <span class="n">hr_slot</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c"># right button</span>
+        <span class="n">prev_rect</span> <span class="o">=</span> <span class="n">hl_slot</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># left button</span>
+        <span class="n">next_rect</span> <span class="o">=</span> <span class="n">hr_slot</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># right button</span>
 
         <span class="n">tw</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">width_from</span><span class="p">(</span><span class="n">nToggle</span><span class="p">,</span> <span class="n">pad</span><span class="o">=.</span><span class="mo">05</span><span class="p">,</span> <span class="n">start</span><span class="o">=.</span><span class="mi">13</span><span class="p">,</span> <span class="n">stop</span><span class="o">=.</span><span class="mi">87</span><span class="p">)</span>
         <span class="n">hlt_slot</span><span class="p">,</span> <span class="n">hrt_slot</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">make_bbox_positioners</span><span class="p">(</span><span class="n">y</span><span class="o">=.</span><span class="mo">02</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">tw</span><span class="p">,</span> <span class="n">h</span><span class="o">=.</span><span class="mo">04</span><span class="p">,</span>
                                                        <span class="n">xpad</span><span class="o">=.</span><span class="mo">05</span><span class="p">,</span> <span class="n">startx</span><span class="o">=.</span><span class="mi">13</span><span class="p">,</span>
                                                        <span class="n">stopx</span><span class="o">=.</span><span class="mi">87</span><span class="p">)</span>
 
-        <span class="c"># Create buttons</span>
+        <span class="c1"># Create buttons</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;prev&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_page</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">prev_rect</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;prev&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prev_page</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">prev_rect</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nPages</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s">&#39;next&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">next_page</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;next&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">next_page</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">next_rect</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">keyword</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">toggleable_kws</span><span class="p">)):</span>
             <span class="n">callback</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">toggle_kw</span><span class="p">,</span> <span class="n">keyword</span><span class="o">=</span><span class="n">keyword</span><span class="p">)</span>
             <span class="n">rect</span> <span class="o">=</span> <span class="n">hlt_slot</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">rect</span><span class="p">)</span>
 
-        <span class="n">figtitle_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;</span>
-<span class="s">        Match Candidates ({start_index}-{stop_index}) / {nCands}</span>
-<span class="s">        page {current_pagenum} / {nPages}</span>
-<span class="s">        &#39;&#39;&#39;</span>
-        <span class="c"># sexy: using object dict as format keywords</span>
+        <span class="n">figtitle_fmt</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">        Match Candidates ({start_index}-{stop_index}) / {nCands}</span>
+<span class="s1">        page {current_pagenum} / {nPages}</span>
+<span class="s1">        &#39;&#39;&#39;</span>
+        <span class="c1"># sexy: using object dict as format keywords</span>
         <span class="n">figtitle</span> <span class="o">=</span> <span class="n">figtitle_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>
         <span class="n">df2</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="Interact_QueryResult.next_page"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.next_page">[docs]</a>    <span class="k">def</span> <span class="nf">next_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;next&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;next&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_pagenum</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">pass</span>
 </div>
@@ -386,24 +386,24 @@
         <span class="k">pass</span>
 </div>
 <div class="viewcode-block" id="Interact_QueryResult.toggle_kw"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.toggle_kw">[docs]</a>    <span class="k">def</span> <span class="nf">toggle_kw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">keyword</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;toggle </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">keyword</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;toggle </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">keyword</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">interactkw</span><span class="p">[</span><span class="n">keyword</span><span class="p">]</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">interactkw</span><span class="p">[</span><span class="n">keyword</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
 </div>
 <div class="viewcode-block" id="Interact_QueryResult.match_reviewed"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.match_reviewed">[docs]</a>    <span class="k">def</span> <span class="nf">match_reviewed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
-        <span class="n">viztype</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s">&#39;button&#39;</span><span class="p">,</span> <span class="s">&#39;bad mpl button slot&#39;</span>
-        <span class="c"># The change name button was clicked</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;index&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">text</span>  <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;text&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">viztype</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s1">&#39;button&#39;</span><span class="p">,</span> <span class="s1">&#39;bad mpl button slot&#39;</span>
+        <span class="c1"># The change name button was clicked</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">text</span>  <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select_candidate_match</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
         <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_match_aids</span>
         <span class="k">print</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
         <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">BREAK_MATCH_PREF</span><span class="p">):</span>
-            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;____&#39;</span><span class="p">,</span> <span class="s">&#39;____&#39;</span><span class="p">])</span>
+            <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;____&#39;</span><span class="p">,</span> <span class="s1">&#39;____&#39;</span><span class="p">])</span>
         <span class="k">elif</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">NEW_MATCH_PREF</span><span class="p">):</span>
             <span class="n">next_name</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">make_next_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">],</span> <span class="p">[</span><span class="n">next_name</span><span class="p">,</span> <span class="n">next_name</span><span class="p">])</span>
@@ -413,7 +413,7 @@
         <span class="k">elif</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">RENAME2_PREF</span><span class="p">):</span>
             <span class="n">name1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid1</span><span class="p">)</span>
             <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="p">[</span><span class="n">name1</span><span class="p">])</span>
-        <span class="c"># Emit that something has changed</span>
+        <span class="c1"># Emit that something has changed</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">on_change_callback</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
 </div>
@@ -422,26 +422,26 @@
 <span class="sd">            parses the type of click it was and execute the correct</span>
 <span class="sd">            visualiztion</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] clicked result&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[viz] clicked result&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ih</span><span class="o">.</span><span class="n">clicked_outside_axis</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
-            <span class="c">#self.toggle_fmatch()</span>
+            <span class="c1">#self.toggle_fmatch()</span>
             <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ax</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
-            <span class="n">viztype</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-            <span class="c"># Clicked a specific matches</span>
-            <span class="k">if</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s">&#39;matches&#39;</span><span class="p">:</span>
-                <span class="n">aid1</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid1&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-                <span class="n">aid2</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid2&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-                <span class="c"># Ctrl-Click</span>
-                <span class="n">key</span> <span class="o">=</span> <span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;key = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;control&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] result control clicked&#39;</span><span class="p">)</span>
+            <span class="n">viztype</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="c1"># Clicked a specific matches</span>
+            <span class="k">if</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s1">&#39;matches&#39;</span><span class="p">:</span>
+                <span class="n">aid1</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;aid1&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                <span class="n">aid2</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                <span class="c1"># Ctrl-Click</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;key = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;control&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[viz] result control clicked&#39;</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">on_ctrl_clicked_match</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
-                <span class="c"># Left-Click</span>
+                <span class="c1"># Left-Click</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] result clicked&#39;</span><span class="p">)</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[viz] result clicked&#39;</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">on_clicked_match</span><span class="p">(</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="Interact_QueryResult.on_ctrl_clicked_match"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.on_ctrl_clicked_match">[docs]</a>    <span class="k">def</span> <span class="nf">on_ctrl_clicked_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
@@ -460,8 +460,8 @@
         <span class="n">fig</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
         <span class="n">df2</span><span class="o">.</span><span class="n">bring_to_front</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
-        <span class="c">#self.draw()</span>
-        <span class="c">#self.bring_to_front()</span>
+        <span class="c1">#self.draw()</span>
+        <span class="c1">#self.bring_to_front()</span>
 </div>
 <div class="viewcode-block" id="Interact_QueryResult.bring_to_front"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres2.Interact_QueryResult.bring_to_front">[docs]</a>    <span class="k">def</span> <span class="nf">bring_to_front</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">df2</span><span class="o">.</span><span class="n">bring_to_front</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">)</span>
@@ -474,7 +474,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">bring_to_front</span><span class="p">()</span>
 
 </div></div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.viz.interact.interact_qres2</span>
@@ -482,8 +482,8 @@
 <span class="sd">        python -m ibeis.viz.interact.interact_qres2 --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -518,7 +518,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

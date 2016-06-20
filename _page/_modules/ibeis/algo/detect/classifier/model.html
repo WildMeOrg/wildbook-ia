@@ -1,0 +1,641 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.detect.classifier.model &mdash; ibeis 1.5.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../../index.html"/>
+        <link rel="up" title="ibeis.algo.detect.classifier" href="../classifier.html"/> 
+
+  
+  <script src="../../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../../algo.html">ibeis.algo</a> &raquo;</li>
+      
+          <li><a href="../../detect.html">ibeis.algo.detect</a> &raquo;</li>
+      
+          <li><a href="../classifier.html">ibeis.algo.detect.classifier</a> &raquo;</li>
+      
+    <li>ibeis.algo.detect.classifier.model</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.algo.detect.classifier.model</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python2.7</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">jpcnn.core.model</span> <span class="kn">import</span> <span class="n">JPCNN_Auto_Model</span>
+    <span class="kn">from</span> <span class="nn">jpcnn.tpl</span> <span class="kn">import</span> <span class="n">_lasagne</span><span class="p">,</span> <span class="n">_theano</span>
+    <span class="kn">from</span> <span class="nn">jpcnn.tpl._theano</span> <span class="kn">import</span> <span class="n">T</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">JPCNN_Auto_Model</span> <span class="o">=</span> <span class="nb">object</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="augmentation_parallel"><a class="viewcode-back" href="../../../../../ibeis.algo.detect.classifier.html#ibeis.algo.detect.classifier.model.augmentation_parallel">[docs]</a><span class="k">def</span> <span class="nf">augmentation_parallel</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">values</span>
+    <span class="k">return</span> <span class="n">augmentation_wrapper</span><span class="p">([</span><span class="n">X</span><span class="p">],</span> <span class="p">[</span><span class="n">y</span><span class="p">])</span>
+
+</div>
+<div class="viewcode-block" id="augmentation_wrapper"><a class="viewcode-back" href="../../../../../ibeis.algo.detect.classifier.html#ibeis.algo.detect.classifier.model.augmentation_wrapper">[docs]</a><span class="k">def</span> <span class="nf">augmentation_wrapper</span><span class="p">(</span><span class="n">X_list</span><span class="p">,</span> <span class="n">y_list</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">random</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">y_list</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">X_list</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+        <span class="c1"># Adjust the exposure</span>
+        <span class="n">X_Lab</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2LAB</span><span class="p">)</span>
+        <span class="n">X_L</span> <span class="o">=</span> <span class="n">X_Lab</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="c1"># margin = np.min([np.min(X_L), 255.0 - np.max(X_L), 64.0])</span>
+        <span class="n">margin</span> <span class="o">=</span> <span class="mf">64.0</span>
+        <span class="n">exposure</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">margin</span><span class="p">,</span> <span class="n">margin</span><span class="p">)</span>
+        <span class="n">X_L</span> <span class="o">+=</span> <span class="n">exposure</span>
+        <span class="n">X_L</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">X_L</span><span class="p">)</span>
+        <span class="n">X_L</span><span class="p">[</span><span class="n">X_L</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">X_L</span><span class="p">[</span><span class="n">X_L</span> <span class="o">&gt;</span> <span class="mf">255.0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">255.0</span>
+        <span class="n">X_Lab</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">X_L</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">X_Lab</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">X_Lab</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_LAB2BGR</span><span class="p">)</span>
+        <span class="c1"># Rotate and Scale</span>
+        <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">degree</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="o">-</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.90</span><span class="p">,</span> <span class="mf">1.11</span><span class="p">)</span>
+        <span class="n">padding</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">w</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="n">padding</span> <span class="o">/=</span> <span class="n">scale</span>
+        <span class="n">padding</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">padding</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+            <span class="n">X_</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">channel</span><span class="p">]</span>
+            <span class="n">X_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">X_</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="s1">&#39;reflect&#39;</span><span class="p">,</span> <span class="n">reflect_type</span><span class="o">=</span><span class="s1">&#39;even&#39;</span><span class="p">)</span>
+            <span class="n">h_</span><span class="p">,</span> <span class="n">w_</span> <span class="o">=</span> <span class="n">X_</span><span class="o">.</span><span class="n">shape</span>
+            <span class="c1"># Calulate Affine transform</span>
+            <span class="n">center</span> <span class="o">=</span> <span class="p">(</span><span class="n">w_</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">h_</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">getRotationMatrix2D</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+            <span class="n">X_</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpAffine</span><span class="p">(</span><span class="n">X_</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="p">(</span><span class="n">w_</span><span class="p">,</span> <span class="n">h_</span><span class="p">),</span> <span class="n">flags</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LANCZOS4</span><span class="p">,</span> <span class="n">borderValue</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">X_</span> <span class="o">=</span> <span class="n">X_</span><span class="p">[</span><span class="n">padding</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">padding</span><span class="p">,</span> <span class="n">padding</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">padding</span><span class="p">]</span>
+            <span class="n">X</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">X_</span>
+        <span class="c1"># Horizontal flip</span>
+        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.5</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Blur</span>
+        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">blur</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="c1"># Reshape</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">X_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="c1"># Show image</span>
+        <span class="c1"># canvas = np.hstack((X_list[index], X))</span>
+        <span class="c1"># cv2.imshow(&#39;&#39;, canvas)</span>
+        <span class="c1"># cv2.waitKey(0)</span>
+        <span class="c1"># Save</span>
+        <span class="n">X_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span>
+    <span class="k">return</span> <span class="n">X_list</span><span class="p">,</span> <span class="n">y_list</span>
+
+</div>
+<div class="viewcode-block" id="Classifier_Model"><a class="viewcode-back" href="../../../../../ibeis.algo.detect.classifier.html#ibeis.algo.detect.classifier.model.Classifier_Model">[docs]</a><span class="k">class</span> <span class="nc">Classifier_Model</span><span class="p">(</span><span class="n">JPCNN_Auto_Model</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Classifier_Model</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Classifier_Model.augmentation"><a class="viewcode-back" href="../../../../../ibeis.algo.detect.classifier.html#ibeis.algo.detect.classifier.model.Classifier_Model.augmentation">[docs]</a>    <span class="k">def</span> <span class="nf">augmentation</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">X_list</span><span class="p">,</span> <span class="n">y_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">parallel</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">augmentation_wrapper</span><span class="p">(</span><span class="n">X_list</span><span class="p">,</span> <span class="n">y_list</span><span class="p">)</span>
+        <span class="c1"># Run in paralell</span>
+        <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">X_list</span><span class="p">,</span> <span class="n">y_list</span><span class="p">))</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">augmentation_parallel</span><span class="p">,</span> <span class="n">arg_iter</span><span class="p">,</span>
+                                                <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                                <span class="n">quiet</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">result_list</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="p">[</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span> <span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">[</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span> <span class="p">]</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span>
+</div>
+    <span class="k">def</span> <span class="nf">_compute_accuracy</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">X_list</span><span class="p">,</span> <span class="n">y_list</span><span class="p">,</span> <span class="n">prediction_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">correct</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_list</span><span class="p">)</span>
+        <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">y_list</span><span class="p">,</span> <span class="n">prediction_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">prediction</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">zipped</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">prediction</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">y</span> <span class="o">==</span> <span class="n">prediction</span><span class="p">:</span>
+                <span class="n">correct</span> <span class="o">+=</span> <span class="mf">1.0</span>
+        <span class="k">return</span> <span class="n">correct</span> <span class="o">/</span> <span class="n">total</span>
+
+    <span class="k">def</span> <span class="nf">_loss_function</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">_theano</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">nnet</span><span class="o">.</span><span class="n">categorical_crossentropy</span><span class="p">(</span><span class="n">prediction</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">prediction</span><span class="p">)</span>
+        <span class="n">targ</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">and_</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">neq</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">targ</span><span class="p">),</span> <span class="n">T</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">targ</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+        <span class="n">loss_</span> <span class="o">=</span> <span class="n">loss</span> <span class="o">*</span> <span class="mf">5.0</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">loss_</span><span class="p">,</span> <span class="n">loss</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span>
+
+<div class="viewcode-block" id="Classifier_Model.get_loss_function"><a class="viewcode-back" href="../../../../../ibeis.algo.detect.classifier.html#ibeis.algo.detect.classifier.model.Classifier_Model.get_loss_function">[docs]</a>    <span class="k">def</span> <span class="nf">get_loss_function</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">_loss_function</span>
+</div>
+<div class="viewcode-block" id="Classifier_Model.architecture"><a class="viewcode-back" href="../../../../../ibeis.algo.detect.classifier.html#ibeis.algo.detect.classifier.model.Classifier_Model.architecture">[docs]</a>    <span class="k">def</span> <span class="nf">architecture</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">in_width</span><span class="p">,</span> <span class="n">in_height</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span>
+                     <span class="n">out_classes</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># _PretrainedNet = _lasagne.PretrainedNetwork(&#39;vggnet_full&#39;)</span>
+        <span class="n">_PretrainedNet</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">PretrainedNetwork</span><span class="p">(</span><span class="s1">&#39;overfeat_full&#39;</span><span class="p">)</span>
+
+        <span class="n">l_in</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">InputLayer</span><span class="p">(</span>
+            <span class="c1"># shape=(None, in_channels, in_width, in_height)</span>
+            <span class="c1"># shape=(None, 3, 128, 128)</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">192</span><span class="p">,</span> <span class="mi">192</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">l_conv0</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">Conv2DLayer</span><span class="p">(</span>
+            <span class="n">l_in</span><span class="p">,</span>
+            <span class="n">num_filters</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">filter_size</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">pad</span><span class="o">=</span><span class="mi">0</span> <span class="k">if</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">USING_GPU</span> <span class="k">else</span> <span class="mi">9</span><span class="p">,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="c1"># W=_lasagne.init.Orthogonal(&#39;relu&#39;),</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">_PretrainedNet</span><span class="o">.</span><span class="n">get_pretrained_layer</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+            <span class="c1"># b=_PretrainedNet.get_pretrained_layer(1),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_batchnorm0</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">BatchNormLayer</span><span class="p">(</span>
+            <span class="n">l_conv0</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_nonlinear0</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">NonlinearityLayer</span><span class="p">(</span>
+            <span class="n">l_batchnorm0</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">LeakyRectify</span><span class="p">(</span><span class="n">leakiness</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_conv1</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">Conv2DLayer</span><span class="p">(</span>
+            <span class="n">l_nonlinear0</span><span class="p">,</span>
+            <span class="n">num_filters</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+            <span class="n">filter_size</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="c1"># pad=2,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="c1"># W=_lasagne.init.Orthogonal(&#39;relu&#39;),</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">_PretrainedNet</span><span class="o">.</span><span class="n">get_pretrained_layer</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+            <span class="c1"># b=_PretrainedNet.get_pretrained_layer(3),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_batchnorm1</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">BatchNormLayer</span><span class="p">(</span>
+            <span class="n">l_conv1</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_nonlinear1</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">NonlinearityLayer</span><span class="p">(</span>
+            <span class="n">l_batchnorm1</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">LeakyRectify</span><span class="p">(</span><span class="n">leakiness</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_pool1</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">MaxPool2DLayer</span><span class="p">(</span>
+            <span class="n">l_nonlinear1</span><span class="p">,</span>
+            <span class="n">pool_size</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_dropout1</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">DropoutLayer</span><span class="p">(</span>
+            <span class="n">l_pool1</span><span class="p">,</span>
+            <span class="n">p</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_conv2</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">Conv2DLayer</span><span class="p">(</span>
+            <span class="n">l_dropout1</span><span class="p">,</span>
+            <span class="n">num_filters</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+            <span class="n">filter_size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="c1"># W=_lasagne.init.Orthogonal(&#39;relu&#39;),</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">_PretrainedNet</span><span class="o">.</span><span class="n">get_pretrained_layer</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span>
+            <span class="c1"># b=_PretrainedNet.get_pretrained_layer(5),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_batchnorm2</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">BatchNormLayer</span><span class="p">(</span>
+            <span class="n">l_conv2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_nonlinear2</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">NonlinearityLayer</span><span class="p">(</span>
+            <span class="n">l_batchnorm2</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">LeakyRectify</span><span class="p">(</span><span class="n">leakiness</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_conv3</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">Conv2DLayer</span><span class="p">(</span>
+            <span class="n">l_nonlinear2</span><span class="p">,</span>
+            <span class="n">num_filters</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">filter_size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="c1"># W=_lasagne.init.Orthogonal(&#39;relu&#39;),</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">_PretrainedNet</span><span class="o">.</span><span class="n">get_pretrained_layer</span><span class="p">(</span><span class="mi">6</span><span class="p">),</span>
+            <span class="c1"># b=_PretrainedNet.get_pretrained_layer(7),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_batchnorm3</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">BatchNormLayer</span><span class="p">(</span>
+            <span class="n">l_conv3</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_nonlinear3</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">NonlinearityLayer</span><span class="p">(</span>
+            <span class="n">l_batchnorm3</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">LeakyRectify</span><span class="p">(</span><span class="n">leakiness</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_pool3</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">MaxPool2DLayer</span><span class="p">(</span>
+            <span class="n">l_nonlinear3</span><span class="p">,</span>
+            <span class="n">pool_size</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_dropout3</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">DropoutLayer</span><span class="p">(</span>
+            <span class="n">l_pool3</span><span class="p">,</span>
+            <span class="n">p</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_conv6</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">Conv2DLayer</span><span class="p">(</span>
+            <span class="n">l_dropout3</span><span class="p">,</span>
+            <span class="n">num_filters</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+            <span class="n">filter_size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">Orthogonal</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_batchnorm6</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">BatchNormLayer</span><span class="p">(</span>
+            <span class="n">l_conv6</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_nonlinear6</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">NonlinearityLayer</span><span class="p">(</span>
+            <span class="n">l_batchnorm6</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">LeakyRectify</span><span class="p">(</span><span class="n">leakiness</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_conv7</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">Conv2DLayer</span><span class="p">(</span>
+            <span class="n">l_nonlinear6</span><span class="p">,</span>
+            <span class="n">num_filters</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+            <span class="n">filter_size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">Orthogonal</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_batchnorm7</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">BatchNormLayer</span><span class="p">(</span>
+            <span class="n">l_conv7</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_nonlinear7</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">NonlinearityLayer</span><span class="p">(</span>
+            <span class="n">l_batchnorm7</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">LeakyRectify</span><span class="p">(</span><span class="n">leakiness</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_pool7</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">MaxPool2DLayer</span><span class="p">(</span>
+            <span class="n">l_nonlinear7</span><span class="p">,</span>
+            <span class="n">pool_size</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_dropout7</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">DropoutLayer</span><span class="p">(</span>
+            <span class="n">l_pool7</span><span class="p">,</span>
+            <span class="n">p</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_conv12</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">Conv2DLayer</span><span class="p">(</span>
+            <span class="n">l_dropout7</span><span class="p">,</span>
+            <span class="n">num_filters</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+            <span class="n">filter_size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">Orthogonal</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_batchnorm12</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">BatchNormLayer</span><span class="p">(</span>
+            <span class="n">l_conv12</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_nonlinear12</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">NonlinearityLayer</span><span class="p">(</span>
+            <span class="n">l_batchnorm12</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">LeakyRectify</span><span class="p">(</span><span class="n">leakiness</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_conv13</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">Conv2DLayer</span><span class="p">(</span>
+            <span class="n">l_nonlinear12</span><span class="p">,</span>
+            <span class="n">num_filters</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+            <span class="n">filter_size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">Orthogonal</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_batchnorm13</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">BatchNormLayer</span><span class="p">(</span>
+            <span class="n">l_conv13</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_nonlinear13</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">NonlinearityLayer</span><span class="p">(</span>
+            <span class="n">l_batchnorm13</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">LeakyRectify</span><span class="p">(</span><span class="n">leakiness</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_conv14</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">Conv2DLayer</span><span class="p">(</span>
+            <span class="n">l_nonlinear13</span><span class="p">,</span>
+            <span class="n">num_filters</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+            <span class="n">filter_size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">Orthogonal</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_batchnorm14</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">BatchNormLayer</span><span class="p">(</span>
+            <span class="n">l_conv14</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_nonlinear14</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">NonlinearityLayer</span><span class="p">(</span>
+            <span class="n">l_batchnorm14</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">LeakyRectify</span><span class="p">(</span><span class="n">leakiness</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># l_conv15 = _lasagne.Conv2DLayer(</span>
+        <span class="c1">#     l_nonlinear14,</span>
+        <span class="c1">#     num_filters=256,</span>
+        <span class="c1">#     filter_size=(3, 3),</span>
+        <span class="c1">#     stride=(1, 1),</span>
+        <span class="c1">#     # pad=1,</span>
+        <span class="c1">#     nonlinearity=_lasagne.nonlinearities.linear,</span>
+        <span class="c1">#     W=_lasagne.init.Orthogonal(&#39;relu&#39;),</span>
+        <span class="c1"># )</span>
+
+        <span class="c1"># l_batchnorm15 = _lasagne.layers.BatchNormLayer(</span>
+        <span class="c1">#     l_conv15,</span>
+        <span class="c1"># )</span>
+
+        <span class="c1"># l_nonlinear15 = _lasagne.layers.NonlinearityLayer(</span>
+        <span class="c1">#     l_batchnorm15,</span>
+        <span class="c1">#     nonlinearity=_lasagne.nonlinearities.rectify,</span>
+        <span class="c1"># )</span>
+
+        <span class="n">l_pool15</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">MaxPool2DLayer</span><span class="p">(</span>
+            <span class="n">l_nonlinear14</span><span class="p">,</span>
+            <span class="n">pool_size</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_dropout15</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">DropoutLayer</span><span class="p">(</span>
+            <span class="n">l_pool15</span><span class="p">,</span>
+            <span class="n">p</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_hidden1</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">DenseLayer</span><span class="p">(</span>
+            <span class="n">l_dropout15</span><span class="p">,</span>
+            <span class="n">num_units</span><span class="o">=</span><span class="mi">768</span><span class="p">,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">Orthogonal</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_batchnorm12</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">BatchNormLayer</span><span class="p">(</span>
+            <span class="n">l_hidden1</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_nonlinear12</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">NonlinearityLayer</span><span class="p">(</span>
+            <span class="n">l_batchnorm12</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">LeakyRectify</span><span class="p">(</span><span class="n">leakiness</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_maxout1</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">FeaturePoolLayer</span><span class="p">(</span>
+            <span class="n">l_nonlinear12</span><span class="p">,</span>
+            <span class="n">pool_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_dropout</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">DropoutLayer</span><span class="p">(</span>
+            <span class="n">l_maxout1</span><span class="p">,</span>
+            <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_hidden2</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">DenseLayer</span><span class="p">(</span>
+            <span class="n">l_dropout</span><span class="p">,</span>
+            <span class="n">num_units</span><span class="o">=</span><span class="mi">768</span><span class="p">,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">linear</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">Orthogonal</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_batchnorm13</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">BatchNormLayer</span><span class="p">(</span>
+            <span class="n">l_hidden2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_nonlinear13</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">NonlinearityLayer</span><span class="p">(</span>
+            <span class="n">l_batchnorm13</span><span class="p">,</span>
+            <span class="c1"># nonlinearity=_lasagne.nonlinearities.rectify,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">LeakyRectify</span><span class="p">(</span><span class="n">leakiness</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">l_maxout2</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">FeaturePoolLayer</span><span class="p">(</span>
+            <span class="n">l_nonlinear13</span><span class="p">,</span>
+            <span class="n">pool_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_dropout2</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">DropoutLayer</span><span class="p">(</span>
+            <span class="n">l_maxout2</span><span class="p">,</span>
+            <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">l_out</span> <span class="o">=</span> <span class="n">_lasagne</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">DenseLayer</span><span class="p">(</span>
+            <span class="n">l_dropout2</span><span class="p">,</span>
+            <span class="n">num_units</span><span class="o">=</span><span class="n">out_classes</span><span class="p">,</span>
+            <span class="n">nonlinearity</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">nonlinearities</span><span class="o">.</span><span class="n">softmax</span><span class="p">,</span>
+            <span class="n">W</span><span class="o">=</span><span class="n">_lasagne</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">Orthogonal</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">l_out</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../../',
+            VERSION:'1.5.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

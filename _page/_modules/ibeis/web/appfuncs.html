@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.web.appfuncs &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.web.appfuncs &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,158 +129,94 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.web.appfuncs</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">cStringIO</span> <span class="kn">as</span> <span class="nn">StringIO</span>
 <span class="kn">import</span> <span class="nn">flask</span>
 <span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">import</span> <span class="nn">cv2</span>
 <span class="kn">from</span> <span class="nn">ibeis.constants</span> <span class="kn">import</span> <span class="n">TAU</span>
 <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">current_app</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>  <span class="c1"># NOQA</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
 <span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">import</span> <span class="nn">jinja2</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">pynmea2</span>
+<span class="kn">import</span> <span class="nn">simplejson</span> <span class="kn">as</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
 
-<span class="n">DEFAULT_WEB_API_PORT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--port&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+<span class="n">DEFAULT_WEB_API_PORT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--port&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
 <span class="n">TARGET_WIDTH</span> <span class="o">=</span> <span class="mf">1200.0</span>
 <span class="n">PAGE_SIZE</span> <span class="o">=</span> <span class="mi">500</span>
 <span class="n">VALID_TURK_MODES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="s">&#39;turk_viewpoint&#39;</span><span class="p">,</span> <span class="s">&#39;Viewpoint&#39;</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;turk_quality&#39;</span><span class="p">,</span> <span class="s">&#39;Quality&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;turk_viewpoint&#39;</span><span class="p">,</span> <span class="s1">&#39;Viewpoint&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;turk_quality&#39;</span><span class="p">,</span> <span class="s1">&#39;Quality&#39;</span><span class="p">),</span>
 <span class="p">]</span>
 
 
 <div class="viewcode-block" id="NavbarClass"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.NavbarClass">[docs]</a><span class="k">class</span> <span class="nc">NavbarClass</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">nav</span><span class="p">):</span>
         <span class="n">nav</span><span class="o">.</span><span class="n">item_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s">&#39;root&#39;</span><span class="p">,</span> <span class="s">&#39;Home&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s">&#39;view&#39;</span><span class="p">,</span> <span class="s">&#39;View&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s">&#39;turk&#39;</span><span class="p">,</span> <span class="s">&#39;Turk&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s">&#39;api_root&#39;</span><span class="p">,</span>  <span class="s">&#39;API&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s">&#39;group_review&#39;</span><span class="p">,</span>  <span class="s">&#39;Group Review&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;root&#39;</span><span class="p">,</span> <span class="s1">&#39;Home&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;view&#39;</span><span class="p">,</span> <span class="s1">&#39;View&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;turk&#39;</span><span class="p">,</span> <span class="s1">&#39;Turk&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;api_root&#39;</span><span class="p">,</span>  <span class="s1">&#39;API&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;group_review&#39;</span><span class="p">,</span>  <span class="s1">&#39;Group Review&#39;</span><span class="p">),</span>
         <span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="n">nav</span><span class="p">):</span>
-        <span class="n">_link</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">_link</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">link</span><span class="p">,</span> <span class="n">nice</span> <span class="ow">in</span> <span class="n">nav</span><span class="o">.</span><span class="n">item_list</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">link</span> <span class="o">==</span> <span class="n">_link</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">link</span><span class="p">,</span> <span class="n">nice</span>
 
 </div>
-<span class="n">ORIENTATIONS</span> <span class="o">=</span> <span class="p">{</span>   <span class="c"># used in apply_orientation</span>
-    <span class="mi">2</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_LEFT_RIGHT</span><span class="p">,),</span>
-    <span class="mi">3</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_180</span><span class="p">,),</span>
-    <span class="mi">4</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_TOP_BOTTOM</span><span class="p">,),</span>
-    <span class="mi">5</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_LEFT_RIGHT</span><span class="p">,</span> <span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_90</span><span class="p">),</span>
-    <span class="mi">6</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_270</span><span class="p">,),</span>
-    <span class="mi">7</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_LEFT_RIGHT</span><span class="p">,</span> <span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_270</span><span class="p">),</span>
-    <span class="mi">8</span><span class="p">:</span> <span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_90</span><span class="p">,)</span>
-<span class="p">}</span>
-
-
 <div class="viewcode-block" id="resize_via_web_parameters"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.resize_via_web_parameters">[docs]</a><span class="k">def</span> <span class="nf">resize_via_web_parameters</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">_resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">t_height</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;RESIZING WITH t_width = </span><span class="si">%r</span><span class="s"> and t_height = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span><span class="p">,</span> <span class="p">))</span>
-        <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">t_width</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">image</span>
-        <span class="k">elif</span> <span class="n">t_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">elif</span> <span class="n">t_width</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">t_width</span> <span class="o">=</span> <span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="n">height</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_height</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">t_height</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">t_height</span> <span class="o">=</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_width</span><span class="p">)</span>
-        <span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_width</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_height</span><span class="p">)</span>
-        <span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">t_width</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">t_height</span><span class="p">))</span>
-        <span class="k">assert</span> <span class="n">t_width</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;target size too small&#39;</span>
-        <span class="k">assert</span> <span class="n">t_width</span> <span class="o">&lt;=</span> <span class="n">width</span> <span class="o">*</span> <span class="mi">10</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="o">&lt;=</span> <span class="n">height</span> <span class="o">*</span> <span class="mi">10</span><span class="p">,</span> <span class="s">&#39;target size too large (capped at 1000%)&#39;</span>
-        <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LANCZOS4</span><span class="p">)</span>
-
-    <span class="n">w_pix</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;resize_pix_w&#39;</span><span class="p">,</span>      <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;resize_pix_w&#39;</span><span class="p">,</span>      <span class="bp">None</span> <span class="p">))</span>
-    <span class="n">h_pix</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;resize_pix_h&#39;</span><span class="p">,</span>      <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;resize_pix_h&#39;</span><span class="p">,</span>      <span class="bp">None</span> <span class="p">))</span>
-    <span class="n">w_per</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;resize_per_w&#39;</span><span class="p">,</span>      <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;resize_per_w&#39;</span><span class="p">,</span>      <span class="bp">None</span> <span class="p">))</span>
-    <span class="n">h_per</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;resize_per_h&#39;</span><span class="p">,</span>      <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;resize_per_h&#39;</span><span class="p">,</span>      <span class="bp">None</span> <span class="p">))</span>
-    <span class="n">_pix</span>  <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;resize_prefer_pix&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;resize_prefer_pix&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">))</span>
-    <span class="n">_per</span>  <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;resize_prefer_per&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;resize_prefer_per&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">))</span>
+    <span class="n">w_pix</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_w&#39;</span><span class="p">,</span>      <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_w&#39;</span><span class="p">,</span>      <span class="bp">None</span> <span class="p">))</span>
+    <span class="n">h_pix</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_h&#39;</span><span class="p">,</span>      <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_pix_h&#39;</span><span class="p">,</span>      <span class="bp">None</span> <span class="p">))</span>
+    <span class="n">w_per</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_w&#39;</span><span class="p">,</span>      <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_w&#39;</span><span class="p">,</span>      <span class="bp">None</span> <span class="p">))</span>
+    <span class="n">h_per</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_h&#39;</span><span class="p">,</span>      <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_per_h&#39;</span><span class="p">,</span>      <span class="bp">None</span> <span class="p">))</span>
+    <span class="n">_pix</span>  <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_prefer_pix&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_prefer_pix&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">))</span>
+    <span class="n">_per</span>  <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_prefer_per&#39;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resize_prefer_per&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">))</span>
     <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">w_pix</span><span class="p">,</span> <span class="n">h_pix</span><span class="p">,</span> <span class="n">w_per</span><span class="p">,</span> <span class="n">h_per</span><span class="p">,</span> <span class="n">_pix</span><span class="p">,</span> <span class="n">_per</span><span class="p">,</span> <span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;CHECKING RESIZING WITH </span><span class="si">%r</span><span class="s"> pix, </span><span class="si">%r</span><span class="s"> pix, </span><span class="si">%r</span><span class="s"> </span><span class="si">%%</span><span class="s">, </span><span class="si">%r</span><span class="s"> </span><span class="si">%%</span><span class="s"> [</span><span class="si">%r</span><span class="s">, </span><span class="si">%r</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
-    <span class="c"># Check for nothing</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;CHECKING RESIZING WITH </span><span class="si">%r</span><span class="s1"> pix, </span><span class="si">%r</span><span class="s1"> pix, </span><span class="si">%r</span><span class="s1"> </span><span class="si">%%</span><span class="s1">, </span><span class="si">%r</span><span class="s1"> </span><span class="si">%%</span><span class="s1"> [</span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="c1"># Check for nothing</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">w_pix</span> <span class="ow">or</span> <span class="n">h_pix</span> <span class="ow">or</span> <span class="n">w_per</span> <span class="ow">or</span> <span class="n">h_per</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">image</span>
-    <span class="c"># Check for both pixels and images</span>
+    <span class="c1"># Check for both pixels and images</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">w_pix</span> <span class="ow">or</span> <span class="n">h_pix</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">w_per</span> <span class="ow">or</span> <span class="n">h_per</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">_pix</span><span class="p">:</span>
             <span class="n">w_per</span><span class="p">,</span> <span class="n">h_per</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">elif</span> <span class="n">_per</span><span class="p">:</span>
             <span class="n">w_pix</span><span class="p">,</span> <span class="n">h_pix</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Cannot resize using pixels and percentages, pick one&#39;</span><span class="p">)</span>
-    <span class="c"># Resize using percentages, transform to pixels</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cannot resize using pixels and percentages, pick one&#39;</span><span class="p">)</span>
+    <span class="c1"># Resize using percentages, transform to pixels</span>
     <span class="k">if</span> <span class="n">w_per</span><span class="p">:</span>
         <span class="n">w_pix</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">w_per</span><span class="p">)</span> <span class="o">*</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">h_per</span><span class="p">:</span>
         <span class="n">h_pix</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">h_per</span><span class="p">)</span> <span class="o">*</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="c"># Perform resize</span>
+    <span class="c1"># Perform resize</span>
     <span class="k">return</span> <span class="n">_resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="n">w_pix</span><span class="p">,</span> <span class="n">t_height</span><span class="o">=</span><span class="n">h_pix</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="open_oriented_image"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.open_oriented_image">[docs]</a><span class="k">def</span> <span class="nf">open_oriented_image</span><span class="p">(</span><span class="n">im_path</span><span class="p">):</span>
-    <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">im_path</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="s">&#39;_getexif&#39;</span><span class="p">):</span>
-        <span class="n">exif</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">_getexif</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">exif</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="mi">274</span> <span class="ow">in</span> <span class="n">exif</span><span class="p">:</span>
-            <span class="n">orientation</span> <span class="o">=</span> <span class="n">exif</span><span class="p">[</span><span class="mi">274</span><span class="p">]</span>
-            <span class="n">im</span> <span class="o">=</span> <span class="n">apply_orientation</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">orientation</span><span class="p">)</span>
-    <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">im</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-    <span class="k">elif</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
-    <span class="c"># Check for passed in resize parameters</span>
-    <span class="n">img</span> <span class="o">=</span> <span class="n">resize_via_web_parameters</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">img</span>
-
-</div>
-<div class="viewcode-block" id="apply_orientation"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.apply_orientation">[docs]</a><span class="k">def</span> <span class="nf">apply_orientation</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">orientation</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This script handles the skimage exif problem.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">orientation</span> <span class="ow">in</span> <span class="n">ORIENTATIONS</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">ORIENTATIONS</span><span class="p">[</span><span class="n">orientation</span><span class="p">]:</span>
-            <span class="n">im</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">im</span>
-
-</div>
-<div class="viewcode-block" id="embed_image_html"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.embed_image_html">[docs]</a><span class="k">def</span> <span class="nf">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">filter_width</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="embed_image_html"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.embed_image_html">[docs]</a><span class="k">def</span> <span class="nf">embed_image_html</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">target_width</span><span class="o">=</span><span class="n">TARGET_WIDTH</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Creates an image embedded in HTML base64 format. &quot;&quot;&quot;</span>
-    <span class="n">image_pil</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-    <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">image_pil</span><span class="o">.</span><span class="n">size</span>
-    <span class="k">if</span> <span class="n">filter_width</span><span class="p">:</span>
-        <span class="n">_height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">TARGET_WIDTH</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="n">_width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">_height</span><span class="p">)</span> <span class="o">/</span> <span class="n">height</span><span class="p">)</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">_width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">TARGET_WIDTH</span><span class="p">)</span>
-        <span class="n">_height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">_width</span><span class="p">)</span> <span class="o">/</span> <span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="n">height</span><span class="p">)</span>
-    <span class="n">image_pil</span> <span class="o">=</span> <span class="n">image_pil</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">_width</span><span class="p">,</span> <span class="n">_height</span><span class="p">))</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+    <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+    <span class="k">if</span> <span class="n">target_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">imgBGR</span> <span class="o">=</span> <span class="n">_resize</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">target_width</span><span class="p">)</span>
+    <span class="n">imgRGB</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2RGB</span><span class="p">)</span>
+    <span class="n">pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">imgRGB</span><span class="p">)</span>
     <span class="n">string_buf</span> <span class="o">=</span> <span class="n">StringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
-    <span class="n">image_pil</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">string_buf</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;jpeg&#39;</span><span class="p">)</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">string_buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;base64&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="s">&#39;data:image/jpeg;base64,&#39;</span> <span class="o">+</span> <span class="n">data</span>
-
-</div>
-<div class="viewcode-block" id="return_src"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.return_src">[docs]</a><span class="k">def</span> <span class="nf">return_src</span><span class="p">(</span><span class="n">gpath</span><span class="p">):</span>
-    <span class="n">image</span> <span class="o">=</span> <span class="n">open_oriented_image</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
-    <span class="n">image_src</span> <span class="o">=</span> <span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">filter_width</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">image_src</span>
+    <span class="n">pil_img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">string_buf</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s1">&#39;jpeg&#39;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">string_buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;base64&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;data:image/jpeg;base64,&#39;</span> <span class="o">+</span> <span class="n">data</span>
 
 </div>
 <div class="viewcode-block" id="check_valid_function_name"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.check_valid_function_name">[docs]</a><span class="k">def</span> <span class="nf">check_valid_function_name</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
-    <span class="k">return</span> <span class="nb">all</span><span class="p">([</span> <span class="n">char</span><span class="o">.</span><span class="n">isalpha</span><span class="p">()</span> <span class="ow">or</span> <span class="n">char</span> <span class="o">==</span> <span class="s">&#39;_&#39;</span> <span class="ow">or</span> <span class="n">char</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">string</span><span class="p">])</span>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">([</span> <span class="n">char</span><span class="o">.</span><span class="n">isalpha</span><span class="p">()</span> <span class="ow">or</span> <span class="n">char</span> <span class="o">==</span> <span class="s1">&#39;_&#39;</span> <span class="ow">or</span> <span class="n">char</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">string</span><span class="p">])</span>
 
 </div>
 <div class="viewcode-block" id="encode_refer_url"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.encode_refer_url">[docs]</a><span class="k">def</span> <span class="nf">encode_refer_url</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
@@ -293,60 +229,60 @@
 </div>
 <div class="viewcode-block" id="template"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.template">[docs]</a><span class="k">def</span> <span class="nf">template</span><span class="p">(</span><span class="n">template_directory</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">template_filename</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">global_args</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;NAVBAR&#39;</span><span class="p">:</span> <span class="n">NavbarClass</span><span class="p">(),</span>
-        <span class="s">&#39;YEAR&#39;</span><span class="p">:</span>   <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
-        <span class="s">&#39;URL&#39;</span><span class="p">:</span>    <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
-        <span class="s">&#39;REFER_SRC_STR&#39;</span><span class="p">:</span>  <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url_root</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span>
-        <span class="s">&#39;__wrapper__&#39;</span> <span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s1">&#39;NAVBAR&#39;</span><span class="p">:</span> <span class="n">NavbarClass</span><span class="p">(),</span>
+        <span class="s1">&#39;YEAR&#39;</span><span class="p">:</span>   <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
+        <span class="s1">&#39;URL&#39;</span><span class="p">:</span>    <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
+        <span class="s1">&#39;REFER_SRC_STR&#39;</span><span class="p">:</span>  <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url_root</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;__wrapper__&#39;</span> <span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
     <span class="p">}</span>
-    <span class="n">global_args</span><span class="p">[</span><span class="s">&#39;REFER_SRC_ENCODED&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">encode_refer_url</span><span class="p">(</span><span class="n">global_args</span><span class="p">[</span><span class="s">&#39;REFER_SRC_STR&#39;</span><span class="p">])</span>
-    <span class="k">if</span> <span class="s">&#39;refer&#39;</span> <span class="ow">in</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-        <span class="n">refer</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;refer&#39;</span><span class="p">]</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] REFER: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">refer</span><span class="p">,</span> <span class="p">))</span>
-        <span class="n">global_args</span><span class="p">[</span><span class="s">&#39;REFER_DST_ENCODED&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">refer</span>
-        <span class="n">global_args</span><span class="p">[</span><span class="s">&#39;REFER_DST_STR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">decode_refer_url</span><span class="p">(</span><span class="n">refer</span><span class="p">)</span>
+    <span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_SRC_ENCODED&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">encode_refer_url</span><span class="p">(</span><span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_SRC_STR&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s1">&#39;refer&#39;</span> <span class="ow">in</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">refer</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;refer&#39;</span><span class="p">]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[web] REFER: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">refer</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_DST_ENCODED&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">refer</span>
+        <span class="n">global_args</span><span class="p">[</span><span class="s1">&#39;REFER_DST_STR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">decode_refer_url</span><span class="p">(</span><span class="n">refer</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">template_directory</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">template_directory</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-        <span class="c">#template_directory = abspath(join(dirname(__file__), &#39;templates&#39;))</span>
-        <span class="c">#template_directory = join(dirname(dirname(__file__)))</span>
+        <span class="n">template_directory</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="c1">#template_directory = abspath(join(dirname(__file__), &#39;templates&#39;))</span>
+        <span class="c1">#template_directory = join(dirname(dirname(__file__)))</span>
     <span class="k">if</span> <span class="n">template_filename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">template_filename</span> <span class="o">=</span> <span class="s">&#39;index&#39;</span>
-    <span class="n">template_</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">template_directory</span><span class="p">,</span> <span class="n">template_filename</span> <span class="o">+</span> <span class="s">&#39;.html&#39;</span><span class="p">)</span>
-    <span class="c"># Update global args with the template&#39;s args</span>
+        <span class="n">template_filename</span> <span class="o">=</span> <span class="s1">&#39;index&#39;</span>
+    <span class="n">template_</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">template_directory</span><span class="p">,</span> <span class="n">template_filename</span> <span class="o">+</span> <span class="s1">&#39;.html&#39;</span><span class="p">)</span>
+    <span class="c1"># Update global args with the template&#39;s args</span>
     <span class="n">_global_args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">global_args</span><span class="p">)</span>
     <span class="n">_global_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[appfuncs] template()&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[appfuncs] template()&#39;</span><span class="p">)</span>
     <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
     <span class="n">app</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_flask_app</span><span class="p">()</span>
-    <span class="c"># flask hates windows apparently</span>
-    <span class="n">template_</span> <span class="o">=</span> <span class="n">template_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;/&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[appfuncs.template] * app.template_folder = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">template_folder</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[appfuncs.template] * template_directory = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_directory</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[appfuncs.template] * template_filename = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_filename</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[appfuncs.template] * template_ = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_</span><span class="p">,))</span>
+    <span class="c1"># flask hates windows apparently</span>
+    <span class="n">template_</span> <span class="o">=</span> <span class="n">template_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * app.template_folder = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">template_folder</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * template_directory = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_directory</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * template_filename = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_filename</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * template_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_</span><span class="p">,))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">render_template</span><span class="p">(</span><span class="n">template_</span><span class="p">,</span> <span class="o">**</span><span class="n">_global_args</span><span class="p">)</span>
-        <span class="c">#ret = flask.render_template(full_template_fpath, **_global_args)</span>
+        <span class="c1">#ret = flask.render_template(full_template_fpath, **_global_args)</span>
     <span class="k">except</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">TemplateNotFound</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Error template not found&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Error template not found&#39;</span><span class="p">)</span>
         <span class="n">full_template_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">template_folder</span><span class="p">,</span> <span class="n">template_</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[appfuncs.template] * full_template_fpath = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">full_template_fpath</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[appfuncs.template] * full_template_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">full_template_fpath</span><span class="p">,))</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">full_template_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Template error in appfuncs&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Template error in appfuncs&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="k">raise</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Error in appfuncs&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Error in appfuncs&#39;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="k">raise</span>
     <span class="k">return</span> <span class="n">ret</span>
 
 </div>
 <div class="viewcode-block" id="send_csv_file"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.send_csv_file">[docs]</a><span class="k">def</span> <span class="nf">send_csv_file</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">make_response</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">string</span><span class="p">))</span>
-    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;Content-Description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;File Transfer&#39;</span>
-    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;Cache-Control&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;no-cache&#39;</span>
-    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;Content-Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;text/csv&#39;</span>
-    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;Content-Disposition&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;attachment; filename=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">filename</span>
-    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s">&#39;Content-Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;File Transfer&#39;</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Cache-Control&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;no-cache&#39;</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;text/csv&#39;</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Disposition&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;attachment; filename=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">response</span>
 
 </div>
@@ -356,11 +292,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
     <span class="k">def</span> <span class="nf">_ensureid</span><span class="p">(</span><span class="n">_id</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">_id</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">_id</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">_id</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">_id</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">_id</span><span class="p">)</span>
 
-    <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;imgsetid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-    <span class="n">src_ag</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;src_ag&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-    <span class="n">dst_ag</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dst_ag&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;imgsetid&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">src_ag</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;src_ag&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">dst_ag</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dst_ag&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
 
     <span class="n">imgsetid</span> <span class="o">=</span> <span class="n">_ensureid</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
     <span class="n">src_ag</span> <span class="o">=</span> <span class="n">_ensureid</span><span class="p">(</span><span class="n">src_ag</span><span class="p">)</span>
@@ -380,10 +316,10 @@
         <span class="n">reviewed_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">src_aid</span> <span class="ow">in</span> <span class="n">dst_aid_list</span> <span class="k">for</span> <span class="n">src_aid</span> <span class="ow">in</span> <span class="n">src_aid_list</span> <span class="p">]</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">progress</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%0.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">)</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%0.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">*</span> <span class="n">reviewed_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="p">)</span>
     <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
-        <span class="n">progress</span> <span class="o">=</span> <span class="s">&#39;0.00&#39;</span>
-    <span class="n">aid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;aid&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="s1">&#39;0.00&#39;</span>
+    <span class="n">aid</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;aid&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">aid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -396,10 +332,10 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">aid</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span>
 
-    <span class="n">previous</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;previous&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">previous</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;previous&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;aid = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
-    <span class="c">#print(ut.dict_str(ibs.get_annot_info(aid)))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;aid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
+    <span class="c1">#print(ut.dict_str(ibs.get_annot_info(aid)))</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">obj_str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_info</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">True</span><span class="p">)))</span>
     <span class="k">return</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">reviewed_list</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">,</span> <span class="n">src_ag</span><span class="p">,</span> <span class="n">dst_ag</span><span class="p">,</span> <span class="n">progress</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">previous</span>
 
@@ -410,37 +346,37 @@
     <span class="n">src_index</span> <span class="o">=</span> <span class="n">annotgroup_rowid_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">src_ag</span><span class="p">)</span>
     <span class="n">src_gar_rowid</span> <span class="o">=</span> <span class="n">gar_rowid_list</span><span class="p">[</span><span class="n">src_index</span><span class="p">]</span>
     <span class="n">vals</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">src_ag</span><span class="p">,</span> <span class="n">src_gar_rowid</span><span class="p">,</span> <span class="n">dst_ag</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Moving aid: </span><span class="si">%s</span><span class="s"> from src_ag: </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">) to dst_ag: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">vals</span><span class="p">)</span>
-    <span class="c"># ibs.delete_gar([src_gar_rowid])</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Moving aid: </span><span class="si">%s</span><span class="s1"> from src_ag: </span><span class="si">%s</span><span class="s1"> (</span><span class="si">%s</span><span class="s1">) to dst_ag: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">vals</span><span class="p">)</span>
+    <span class="c1"># ibs.delete_gar([src_gar_rowid])</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">add_gar</span><span class="p">([</span><span class="n">dst_ag</span><span class="p">],</span> <span class="p">[</span><span class="n">aid</span><span class="p">])</span>
 
 </div>
 <div class="viewcode-block" id="default_species"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.default_species">[docs]</a><span class="k">def</span> <span class="nf">default_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="c"># hack function</span>
+    <span class="c1"># hack function</span>
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;CHTA_Master&#39;</span><span class="p">:</span>
-        <span class="n">default_species</span> <span class="o">=</span> <span class="s">&#39;cheetah&#39;</span>
-    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;ELPH_Master&#39;</span><span class="p">:</span>
-        <span class="n">default_species</span> <span class="o">=</span> <span class="s">&#39;elephant_savanna&#39;</span>
-    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;GIR_Master&#39;</span><span class="p">:</span>
-        <span class="n">default_species</span> <span class="o">=</span> <span class="s">&#39;giraffe_reticulated&#39;</span>
-    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;GZ_Master&#39;</span><span class="p">:</span>
-        <span class="n">default_species</span> <span class="o">=</span> <span class="s">&#39;zebra_grevys&#39;</span>
-    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;LION_Master&#39;</span><span class="p">:</span>
-        <span class="n">default_species</span> <span class="o">=</span> <span class="s">&#39;lion&#39;</span>
-    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;PZ_Master&#39;</span><span class="p">:</span>
-        <span class="n">default_species</span> <span class="o">=</span> <span class="s">&#39;zebra_plains&#39;</span>
-    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;WD_Master&#39;</span><span class="p">:</span>
-        <span class="n">default_species</span> <span class="o">=</span> <span class="s">&#39;wild_dog&#39;</span>
-    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;NNP_MasterGIRM&#39;</span><span class="p">:</span>
-        <span class="n">default_species</span> <span class="o">=</span> <span class="s">&#39;giraffe_masai&#39;</span>
-    <span class="k">elif</span> <span class="s">&#39;NNP_&#39;</span> <span class="ow">in</span> <span class="n">dbname</span><span class="p">:</span>
-        <span class="n">default_species</span> <span class="o">=</span> <span class="s">&#39;zebra_plains&#39;</span>
-    <span class="k">elif</span> <span class="s">&#39;GZC&#39;</span> <span class="ow">in</span> <span class="n">dbname</span><span class="p">:</span>
-        <span class="n">default_species</span> <span class="o">=</span> <span class="s">&#39;zebra_plains&#39;</span>
+    <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;CHTA_Master&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;cheetah&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;ELPH_Master&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;elephant_savanna&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;GIR_Master&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;giraffe_reticulated&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;GZ_Master&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;zebra_grevys&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;LION_Master&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;lion&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;PZ_Master&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;zebra_plains&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;WD_Master&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;wild_dog&#39;</span>
+    <span class="k">elif</span> <span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;NNP_MasterGIRM&#39;</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;giraffe_masai&#39;</span>
+    <span class="k">elif</span> <span class="s1">&#39;NNP_&#39;</span> <span class="ow">in</span> <span class="n">dbname</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;zebra_plains&#39;</span>
+    <span class="k">elif</span> <span class="s1">&#39;GZC&#39;</span> <span class="ow">in</span> <span class="n">dbname</span><span class="p">:</span>
+        <span class="n">default_species</span> <span class="o">=</span> <span class="s1">&#39;zebra_plains&#39;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">default_species</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] DEFAULT SPECIES: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">default_species</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[web] DEFAULT SPECIES: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">default_species</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">default_species</span>
 
 </div>
@@ -469,7 +405,7 @@
     <span class="k">return</span> <span class="n">annots_reviewed</span>
 
 </div>
-<div class="viewcode-block" id="convert_old_viewpoint_to_yaw"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.convert_old_viewpoint_to_yaw">[docs]</a><span class="k">def</span> <span class="nf">convert_old_viewpoint_to_yaw</span><span class="p">(</span><span class="n">view_angle</span><span class="p">):</span>
+<div class="viewcode-block" id="convert_old_viewpoint_to_yaw"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.convert_old_viewpoint_to_yaw">[docs]</a><span class="k">def</span> <span class="nf">convert_old_viewpoint_to_yaw</span><span class="p">(</span><span class="n">view_theta</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; we initially had viewpoint coordinates inverted</span>
 
 <span class="sd">    Example:</span>
@@ -486,13 +422,13 @@
 <span class="sd">        &gt;&gt;&gt;     (&#39;backleft&#39;   , 315, 0.875 * TAU,),</span>
 <span class="sd">        &gt;&gt;&gt; ]</span>
 <span class="sd">        &gt;&gt;&gt; fmtstr = &#39;old %15r %.2f -&gt; new %15r %.2f&#39;</span>
-<span class="sd">        &gt;&gt;&gt; for lbl, angle, radians in old_viewpoint_labels:</span>
-<span class="sd">        &gt;&gt;&gt;     print(fmtstr % (lbl, angle, lbl, convert_old_viewpoint_to_yaw(angle)))</span>
+<span class="sd">        &gt;&gt;&gt; for lbl, theta, radians in old_viewpoint_labels:</span>
+<span class="sd">        &gt;&gt;&gt;     print(fmtstr % (lbl, theta, lbl, convert_old_viewpoint_to_yaw(theta)))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">view_angle</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">view_theta</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
-    <span class="n">view_angle</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">deg_to_rad</span><span class="p">(</span><span class="n">view_angle</span><span class="p">)</span>
-    <span class="n">yaw</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">view_angle</span> <span class="o">+</span> <span class="p">(</span><span class="n">TAU</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span> <span class="o">%</span> <span class="n">TAU</span>
+    <span class="n">view_theta</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">deg_to_rad</span><span class="p">(</span><span class="n">view_theta</span><span class="p">)</span>
+    <span class="n">yaw</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">view_theta</span> <span class="o">+</span> <span class="p">(</span><span class="n">TAU</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span> <span class="o">%</span> <span class="n">TAU</span>
     <span class="k">return</span> <span class="n">yaw</span>
 
 </div>
@@ -512,17 +448,65 @@
 <span class="sd">        &gt;&gt;&gt;     (&#39;back&#39;       , 270, 0.750 * TAU,),</span>
 <span class="sd">        &gt;&gt;&gt;     (&#39;backleft&#39;   , 315, 0.875 * TAU,),</span>
 <span class="sd">        &gt;&gt;&gt; ]</span>
-<span class="sd">        &gt;&gt;&gt; fmtstr = &#39;original_angle %15r %.2f -&gt; yaw %15r %.2f -&gt; reconstructed_angle %15r %.2f&#39;</span>
-<span class="sd">        &gt;&gt;&gt; for lbl, angle, radians in old_viewpoint_labels:</span>
-<span class="sd">        &gt;&gt;&gt;     yaw = convert_old_viewpoint_to_yaw(angle)</span>
-<span class="sd">        &gt;&gt;&gt;     reconstructed_angle = convert_yaw_to_old_viewpoint(yaw)</span>
-<span class="sd">        &gt;&gt;&gt;     print(fmtstr % (lbl, angle, lbl, yaw, lbl, reconstructed_angle))</span>
+<span class="sd">        &gt;&gt;&gt; fmtstr = &#39;original_theta %15r %.2f -&gt; yaw %15r %.2f -&gt; reconstructed_theta %15r %.2f&#39;</span>
+<span class="sd">        &gt;&gt;&gt; for lbl, theta, radians in old_viewpoint_labels:</span>
+<span class="sd">        &gt;&gt;&gt;     yaw = convert_old_viewpoint_to_yaw(theta)</span>
+<span class="sd">        &gt;&gt;&gt;     reconstructed_theta = convert_yaw_to_old_viewpoint(yaw)</span>
+<span class="sd">        &gt;&gt;&gt;     print(fmtstr % (lbl, theta, lbl, yaw, lbl, reconstructed_theta))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">yaw</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
-    <span class="n">view_angle</span> <span class="o">=</span> <span class="p">((</span><span class="n">TAU</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">yaw</span><span class="p">)</span> <span class="o">%</span> <span class="n">TAU</span>
-    <span class="n">view_angle</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">rad_to_deg</span><span class="p">(</span><span class="n">view_angle</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">view_angle</span></div>
+    <span class="n">view_theta</span> <span class="o">=</span> <span class="p">((</span><span class="n">TAU</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">yaw</span><span class="p">)</span> <span class="o">%</span> <span class="n">TAU</span>
+    <span class="n">view_theta</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">rad_to_deg</span><span class="p">(</span><span class="n">view_theta</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">view_theta</span>
+
+</div>
+<div class="viewcode-block" id="convert_nmea_to_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.appfuncs.convert_nmea_to_json">[docs]</a><span class="k">def</span> <span class="nf">convert_nmea_to_json</span><span class="p">(</span><span class="n">nmea_str</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">GMT_OFFSET</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">json_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;.LOG&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="mi">2000</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">filename</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">filename</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span>
+    <span class="n">day</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">filename</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">])</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">nmea_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s1">&#39;@&#39;</span> <span class="ow">in</span> <span class="n">line</span> <span class="ow">or</span> <span class="s1">&#39;GPRMC&#39;</span> <span class="ow">in</span> <span class="n">line</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="n">pynmea2</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">timestamp</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">second</span><span class="p">)</span>
+        <span class="c1"># Gather values</span>
+        <span class="n">posix</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">))</span>
+        <span class="n">posix</span> <span class="o">+=</span> <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="n">GMT_OFFSET</span><span class="p">)</span>
+        <span class="n">lat</span>   <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">latitude</span><span class="p">)</span>
+        <span class="n">lon</span>   <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">longitude</span><span class="p">)</span>
+        <span class="n">json_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">posix</span><span class="p">,</span>
+            <span class="s1">&#39;lat&#39;</span><span class="p">:</span>  <span class="n">lat</span><span class="p">,</span>
+            <span class="s1">&#39;lon&#39;</span><span class="p">:</span>  <span class="n">lon</span><span class="p">,</span>
+        <span class="p">})</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span> <span class="s2">&quot;track&quot;</span><span class="p">:</span> <span class="n">json_list</span> <span class="p">})</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">t_width</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">t_height</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;RESIZING WITH t_width = </span><span class="si">%r</span><span class="s1"> and t_height = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span><span class="p">,</span> <span class="p">))</span>
+    <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">t_width</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">image</span>
+    <span class="k">elif</span> <span class="n">t_width</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="n">t_width</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">t_width</span> <span class="o">=</span> <span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="n">height</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_height</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">t_height</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">t_height</span> <span class="o">=</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_width</span><span class="p">)</span>
+    <span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_width</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t_height</span><span class="p">)</span>
+    <span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">t_width</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">t_height</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">t_width</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;target size too small&#39;</span>
+    <span class="k">assert</span> <span class="n">t_width</span> <span class="o">&lt;=</span> <span class="n">width</span> <span class="o">*</span> <span class="mi">100</span> <span class="ow">and</span> <span class="n">t_height</span> <span class="o">&lt;=</span> <span class="n">height</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="s1">&#39;target size too large (capped at 10,000%)&#39;</span>
+    <span class="c1"># interpolation = cv2.INTER_LANCZOS4</span>
+    <span class="n">interpolation</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LINEAR</span>
+    <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">t_width</span><span class="p">,</span> <span class="n">t_height</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">interpolation</span><span class="p">)</span>
 </pre></div>
 
            </div>
@@ -556,7 +540,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

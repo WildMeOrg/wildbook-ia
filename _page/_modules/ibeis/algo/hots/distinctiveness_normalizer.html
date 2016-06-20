@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.distinctiveness_normalizer &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.hots.distinctiveness_normalizer &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.hots.distinctiveness_normalizer</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">External mechanism for computing feature distinctiveness</span>
 
@@ -145,28 +145,28 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span>
-<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">sysres</span>
+<span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[distinctnorm]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[distinctnorm]&#39;</span><span class="p">)</span>
 
 
-<span class="n">DCVS_DEFAULT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoList</span><span class="p">(</span><span class="s">&#39;distinctivness&#39;</span><span class="p">,</span> <span class="p">[</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;dcvs_power&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;p&#39;</span><span class="p">,</span>    <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]),</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;dcvs_min_clip&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="s">&#39;mn&#39;</span><span class="p">,</span> <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mo">02</span><span class="p">,</span> <span class="o">.</span><span class="mo">03</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]),</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;dcvs_max_clip&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;mx&#39;</span><span class="p">,</span> <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mo">05</span><span class="p">,</span> <span class="o">.</span><span class="mi">3</span><span class="p">,</span> <span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="o">.</span><span class="mi">45</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]),</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;dcvs_K&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s">&#39;dcvsK&#39;</span><span class="p">,</span>      <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">15</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]),</span>
+<span class="n">DCVS_DEFAULT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfoList</span><span class="p">(</span><span class="s1">&#39;distinctivness&#39;</span><span class="p">,</span> <span class="p">[</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;dcvs_power&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;p&#39;</span><span class="p">,</span>    <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;dcvs_min_clip&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;mn&#39;</span><span class="p">,</span> <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mo">02</span><span class="p">,</span> <span class="o">.</span><span class="mo">03</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;dcvs_max_clip&#39;</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;mx&#39;</span><span class="p">,</span> <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mo">05</span><span class="p">,</span> <span class="o">.</span><span class="mi">3</span><span class="p">,</span> <span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="o">.</span><span class="mi">45</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]),</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;dcvs_K&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;dcvsK&#39;</span><span class="p">,</span>      <span class="n">varyvals</span><span class="o">=</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">15</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]),</span>
 <span class="p">])</span>
 
 
 <span class="n">DISTINCTIVENESS_NORMALIZER_CACHE</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">BASELINE_DISTINCTIVNESS_URLS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="c"># TODO: Populate</span>
-    <span class="s">&#39;zebra_grevys&#39;</span><span class="p">:</span> <span class="n">const</span><span class="o">.</span><span class="n">ZIPPED_URLS</span><span class="o">.</span><span class="n">GZ_DISTINCTIVE</span><span class="p">,</span>
-    <span class="s">&#39;zebra_plains&#39;</span><span class="p">:</span> <span class="n">const</span><span class="o">.</span><span class="n">ZIPPED_URLS</span><span class="o">.</span><span class="n">PZ_DISTINCTIVE</span><span class="p">,</span>
+    <span class="c1"># TODO: Populate</span>
+    <span class="s1">&#39;zebra_grevys&#39;</span><span class="p">:</span> <span class="n">const</span><span class="o">.</span><span class="n">ZIPPED_URLS</span><span class="o">.</span><span class="n">GZ_DISTINCTIVE</span><span class="p">,</span>
+    <span class="s1">&#39;zebra_plains&#39;</span><span class="p">:</span> <span class="n">const</span><span class="o">.</span><span class="n">ZIPPED_URLS</span><span class="o">.</span><span class="n">PZ_DISTINCTIVE</span><span class="p">,</span>
 <span class="p">}</span>
-<span class="n">PUBLISH_DIR</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixpath</span><span class="p">(</span><span class="s">&#39;~/Dropbox/IBEIS&#39;</span><span class="p">)</span>
+<span class="n">PUBLISH_DIR</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixpath</span><span class="p">(</span><span class="s1">&#39;~/Dropbox/IBEIS&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="testdata_distinctiveness"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.distinctiveness_normalizer.testdata_distinctiveness">[docs]</a><span class="k">def</span> <span class="nf">testdata_distinctiveness</span><span class="p">():</span>
@@ -177,15 +177,15 @@
 <span class="sd">        &gt;&gt;&gt; dstcnvs_normer, qreq_ = testdata_distinctiveness()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="c"># build test data</span>
-    <span class="n">db</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-    <span class="n">species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--species&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="n">aid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--aid&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="c1"># build test data</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--species&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">aid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--aid&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">aid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">db</span> <span class="o">==</span> <span class="s">&#39;testdb1&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">db</span> <span class="o">==</span> <span class="s1">&#39;testdb1&#39;</span><span class="p">:</span>
             <span class="n">species</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
     <span class="n">daids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
     <span class="n">qaids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="k">if</span> <span class="n">aid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">daids</span>
@@ -194,10 +194,10 @@
     <span class="k">return</span> <span class="n">dstcnvs_normer</span><span class="p">,</span> <span class="n">qreq_</span>
 
 
-<span class="c">#@six.add_metaclass(ut.ReloadingMetaclass)</span></div>
+<span class="c1">#@six.add_metaclass(ut.ReloadingMetaclass)</span></div>
 <div class="viewcode-block" id="DistinctivnessNormalizer"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.distinctiveness_normalizer.DistinctivnessNormalizer">[docs]</a><span class="k">class</span> <span class="nc">DistinctivnessNormalizer</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">Cachable</span><span class="p">):</span>
-    <span class="n">ext</span>    <span class="o">=</span> <span class="s">&#39;.cPkl&#39;</span>
-    <span class="n">prefix</span> <span class="o">=</span> <span class="s">&#39;distinctivness&#39;</span>
+    <span class="n">ext</span>    <span class="o">=</span> <span class="s1">&#39;.cPkl&#39;</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;distinctivness&#39;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; cfgstring should be the species trained on &quot;&quot;&quot;</span>
@@ -207,14 +207,14 @@
         <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">cachedir</span> <span class="o">=</span> <span class="n">cachedir</span>
         <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span>
         <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann_params</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;algorithm&#39;</span><span class="p">:</span> <span class="s">&#39;kdtree&#39;</span><span class="p">,</span>
-            <span class="s">&#39;trees&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
-            <span class="s">&#39;checks&#39;</span><span class="p">:</span> <span class="mi">800</span><span class="p">}</span>
-        <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">checks</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;checks&#39;</span><span class="p">)</span>
-        <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">cores</span>  <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cores&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="s1">&#39;algorithm&#39;</span><span class="p">:</span> <span class="s1">&#39;kdtree&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;trees&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s1">&#39;checks&#39;</span><span class="p">:</span> <span class="mi">800</span><span class="p">}</span>
+        <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">checks</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;checks&#39;</span><span class="p">)</span>
+        <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">cores</span>  <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cores&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DistinctivnessNormalizer.get_prefix"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.distinctiveness_normalizer.DistinctivnessNormalizer.get_prefix">[docs]</a>    <span class="k">def</span> <span class="nf">get_prefix</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">DistinctivnessNormalizer</span><span class="o">.</span><span class="n">prefix</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span>
+        <span class="k">return</span> <span class="n">DistinctivnessNormalizer</span><span class="o">.</span><span class="n">prefix</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span>
 </div>
 <div class="viewcode-block" id="DistinctivnessNormalizer.get_cfgstr"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.distinctiveness_normalizer.DistinctivnessNormalizer.get_cfgstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_cfgstr</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="p">):</span>
         <span class="k">assert</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
@@ -230,11 +230,11 @@
 <div class="viewcode-block" id="DistinctivnessNormalizer.archive"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.distinctiveness_normalizer.DistinctivnessNormalizer.archive">[docs]</a>    <span class="k">def</span> <span class="nf">archive</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="n">cachedir</span>      <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">cachedir</span> <span class="k">if</span> <span class="n">cachedir</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">cachedir</span>
         <span class="n">data_fpath</span>    <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
-        <span class="c">#flann_fpath   = dstcnvs_normer.get_flann_fpath(cachedir)</span>
-        <span class="n">archive_fpath</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s">&#39;.zip&#39;</span><span class="p">)</span>
+        <span class="c1">#flann_fpath   = dstcnvs_normer.get_flann_fpath(cachedir)</span>
+        <span class="n">archive_fpath</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s1">&#39;.zip&#39;</span><span class="p">)</span>
         <span class="n">fpath_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">data_fpath</span><span class="p">,</span>
-            <span class="c">#flann_fpath</span>
+            <span class="c1">#flann_fpath</span>
         <span class="p">]</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">archive_files</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="n">fpath_list</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">archive_fpath</span>
@@ -261,25 +261,25 @@
 <span class="sd">            &gt;&gt;&gt; print(result)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">join</span>
-        <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">(),</span> <span class="s">&#39;ONLY DEVELOPERS CAN PERFORM THIS OPERATION&#39;</span>
+        <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">(),</span> <span class="s1">&#39;ONLY DEVELOPERS CAN PERFORM THIS OPERATION&#39;</span>
         <span class="n">cachedir</span>      <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">cachedir</span> <span class="k">if</span> <span class="n">cachedir</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">cachedir</span>
         <span class="n">archive_fpath</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">archive</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">archive_fname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">)</span>
         <span class="n">publish_dpath</span> <span class="o">=</span> <span class="n">PUBLISH_DIR</span>
         <span class="n">publish_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">publish_dpath</span><span class="p">,</span> <span class="n">archive_fname</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">publish_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Overwriting model&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;old nBytes(publish_fpath) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Overwriting model&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;old nBytes(publish_fpath) = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
                   <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_file_nBytes_str</span><span class="p">(</span><span class="n">publish_fpath</span><span class="p">),))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;new nBytes(archive_fpath) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;new nBytes(archive_fpath) = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
                   <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_file_nBytes_str</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">),))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Publishing model&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;publish_fpath = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">publish_fpath</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Publishing model&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;publish_fpath = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">publish_fpath</span><span class="p">,))</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">archive_fpath</span><span class="p">,</span> <span class="n">publish_fpath</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="DistinctivnessNormalizer.get_flann_fpath"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.distinctiveness_normalizer.DistinctivnessNormalizer.get_flann_fpath">[docs]</a>    <span class="k">def</span> <span class="nf">get_flann_fpath</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="p">,</span> <span class="n">cachedir</span><span class="p">):</span>
-        <span class="n">flann_fpath</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s">&#39;.flann&#39;</span><span class="p">)</span>
+        <span class="n">flann_fpath</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">get_fpath</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s1">&#39;.flann&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">flann_fpath</span>
 </div>
 <div class="viewcode-block" id="DistinctivnessNormalizer.exists"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.distinctiveness_normalizer.DistinctivnessNormalizer.exists">[docs]</a>    <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">need_flann</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
@@ -313,15 +313,15 @@
         <span class="k">return</span> <span class="n">flag</span>
 </div>
 <div class="viewcode-block" id="DistinctivnessNormalizer.load"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.distinctiveness_normalizer.DistinctivnessNormalizer.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c"># Inherited method</span>
+        <span class="c1"># Inherited method</span>
         <span class="n">cachedir</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">cachedir</span> <span class="k">if</span> <span class="n">cachedir</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">cachedir</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;ignore_keys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;flann&#39;</span><span class="p">]</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;ignore_keys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;flann&#39;</span><span class="p">]</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DistinctivnessNormalizer</span><span class="p">,</span> <span class="n">dstcnvs_normer</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span>
                                                              <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">load_or_build_flann</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="c">## Load Flann</span>
-        <span class="c">#if ut.VERBOSE:</span>
-        <span class="c">#    print(&#39;[nnindex] load_success = %r&#39; % (load_success,))</span>
+        <span class="c1">## Load Flann</span>
+        <span class="c1">#if ut.VERBOSE:</span>
+        <span class="c1">#    print(&#39;[nnindex] load_success = %r&#39; % (load_success,))</span>
 </div>
 <div class="viewcode-block" id="DistinctivnessNormalizer.load_or_build_flann"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.distinctiveness_normalizer.DistinctivnessNormalizer.load_or_build_flann">[docs]</a>    <span class="k">def</span> <span class="nf">load_or_build_flann</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span>
                             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -332,15 +332,15 @@
                 <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann</span> <span class="o">=</span> <span class="n">pyflann</span><span class="o">.</span><span class="n">FLANN</span><span class="p">()</span>
                 <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann</span><span class="o">.</span><span class="n">load_index</span><span class="p">(</span><span class="n">flann_fpath</span><span class="p">,</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">vecs</span><span class="p">)</span>
                 <span class="k">assert</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann</span><span class="o">.</span><span class="n">_FLANN__curindex</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
-                <span class="c">#load_success = True</span>
+                <span class="c1">#load_success = True</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;... cannot load distinctiveness flann&#39;</span><span class="p">,</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;... cannot load distinctiveness flann&#39;</span><span class="p">,</span>
                            <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
                 <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">rebuild</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">ensure_flann</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
-            <span class="c">#raise IOError(&#39;cannot load distinctiveness flann&#39;)</span>
-        <span class="c">#return load_success</span>
+            <span class="c1">#raise IOError(&#39;cannot load distinctiveness flann&#39;)</span>
+        <span class="c1">#return load_success</span>
 </div>
 <div class="viewcode-block" id="DistinctivnessNormalizer.save"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.distinctiveness_normalizer.DistinctivnessNormalizer.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -348,12 +348,12 @@
 <span class="sd">        kwargs = {}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cachedir</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">cachedir</span> <span class="k">if</span> <span class="n">cachedir</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">cachedir</span>
-        <span class="c"># Inherited method</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;ignore_keys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;flann&#39;</span><span class="p">]</span>
-        <span class="c"># Save everything but flann</span>
+        <span class="c1"># Inherited method</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;ignore_keys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;flann&#39;</span><span class="p">]</span>
+        <span class="c1"># Save everything but flann</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DistinctivnessNormalizer</span><span class="p">,</span> <span class="n">dstcnvs_normer</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span>
                                                              <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="c"># Save flann</span>
+        <span class="c1"># Save flann</span>
         <span class="k">if</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">save_flann</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 </div>
@@ -361,7 +361,7 @@
         <span class="n">cachedir</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">cachedir</span> <span class="k">if</span> <span class="n">cachedir</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">cachedir</span>
         <span class="n">flann_fpath</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">get_flann_fpath</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;flann.save_index(</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">path_ndir_split</span><span class="p">(</span><span class="n">flann_fpath</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;flann.save_index(</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">path_ndir_split</span><span class="p">(</span><span class="n">flann_fpath</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
         <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann</span><span class="o">.</span><span class="n">save_index</span><span class="p">(</span><span class="n">flann_fpath</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="DistinctivnessNormalizer.init_support"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.distinctiveness_normalizer.DistinctivnessNormalizer.init_support">[docs]</a>    <span class="k">def</span> <span class="nf">init_support</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
@@ -422,25 +422,25 @@
 <span class="sd">            %s/\(^ *\)\(.*\)/\1&gt;&gt;&gt; \2/c</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c">#ut.embed()</span>
+        <span class="c1">#ut.embed()</span>
         <span class="k">assert</span> <span class="n">dcvs_K</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">dcvs_K</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">vecs</span><span class="p">),</span> <span class="p">(</span>
-            <span class="s">&#39;dcvs_K=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dcvs_K</span><span class="p">,))</span>
+            <span class="s1">&#39;dcvs_K=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dcvs_K</span><span class="p">,))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c">#(qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)</span>
+            <span class="c1">#(qfx2_idx, qfx2_dist_sqrd) = dstcnvs_normer.empty_neighbors(0, dcvs_K)</span>
             <span class="n">qfx2_idx</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">dcvs_K</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
             <span class="n">qfx2_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">dcvs_K</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c"># perform nearest neighbors</span>
+            <span class="c1"># perform nearest neighbors</span>
             <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist_sqrd</span><span class="p">)</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">flann</span><span class="o">.</span><span class="n">nn_index</span><span class="p">(</span>
                 <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">dcvs_K</span><span class="p">,</span> <span class="n">checks</span><span class="o">=</span><span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">checks</span><span class="p">,</span>
                 <span class="n">cores</span><span class="o">=</span><span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">cores</span><span class="p">)</span>
-            <span class="c"># Ensure that distance returned are between 0 and 1</span>
-            <span class="c">#qfx2_dist = qfx2_dist / (dstcnvs_normer.max_distance ** 2)</span>
+            <span class="c1"># Ensure that distance returned are between 0 and 1</span>
+            <span class="c1">#qfx2_dist = qfx2_dist / (dstcnvs_normer.max_distance ** 2)</span>
             <span class="n">qfx2_dist</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">qfx2_dist_sqrd</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span> <span class="o">/</span>
                          <span class="n">hstypes</span><span class="o">.</span><span class="n">VEC_PSEUDO_MAX_DISTANCE</span><span class="p">)</span>
-            <span class="c">#qfx2_dist32 = np.sqrt(np.divide(qfx2_dist_sqrd, dstcnvs_normer.max_distance_sqrd))</span>
-            <span class="c">#qfx2_dist =</span>
-            <span class="c">#qfx2_dist = np.sqrt(qfx2_dist) / dstcnvs_normer.max_distance</span>
+            <span class="c1">#qfx2_dist32 = np.sqrt(np.divide(qfx2_dist_sqrd, dstcnvs_normer.max_distance_sqrd))</span>
+            <span class="c1">#qfx2_dist =</span>
+            <span class="c1">#qfx2_dist = np.sqrt(qfx2_dist) / dstcnvs_normer.max_distance</span>
         <span class="k">if</span> <span class="n">dcvs_K</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">qfx2_dist</span> <span class="o">=</span> <span class="n">qfx2_dist</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">]</span>
         <span class="n">norm_dist</span> <span class="o">=</span> <span class="n">qfx2_dist</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">dcvs_K</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
@@ -471,10 +471,10 @@
 
 <span class="sd">        %timeit</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># expondent to augment distinctiveness scores.</span>
-    <span class="c"># clip the distinctiveness at this fraction</span>
+    <span class="c1"># expondent to augment distinctiveness scores.</span>
+    <span class="c1"># clip the distinctiveness at this fraction</span>
     <span class="n">clip_range</span> <span class="o">=</span> <span class="n">dcvs_max_clip</span> <span class="o">-</span> <span class="n">dcvs_min_clip</span>
-    <span class="c"># apply distinctivness normalization</span>
+    <span class="c1"># apply distinctivness normalization</span>
     <span class="n">_tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">norm_dist</span><span class="p">,</span> <span class="n">dcvs_min_clip</span><span class="p">,</span> <span class="n">dcvs_max_clip</span><span class="p">)</span>
     <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">_tmp</span><span class="p">,</span> <span class="n">dcvs_min_clip</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">_tmp</span><span class="p">)</span>
     <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">_tmp</span><span class="p">,</span> <span class="n">clip_range</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">_tmp</span><span class="p">)</span>
@@ -488,14 +488,14 @@
     <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
     <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
     <span class="n">divider</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_divider</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
-    <span class="c">#ax1 = divider.append_axes(&quot;left&quot;, size=&quot;50%&quot;, pad=0)</span>
+    <span class="c1">#ax1 = divider.append_axes(&quot;left&quot;, size=&quot;50%&quot;, pad=0)</span>
     <span class="n">ax1</span> <span class="o">=</span> <span class="n">ax</span>
-    <span class="n">ax2</span> <span class="o">=</span> <span class="n">divider</span><span class="o">.</span><span class="n">append_axes</span><span class="p">(</span><span class="s">&quot;bottom&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="s">&quot;100%&quot;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
-    <span class="c">#f, (ax1, ax2) = pt.plt.subplots(1, 2, sharex=True)</span>
-    <span class="n">cmapstr</span> <span class="o">=</span> <span class="s">&#39;rainbow&#39;</span>  <span class="c"># &#39;hot&#39;</span>
+    <span class="n">ax2</span> <span class="o">=</span> <span class="n">divider</span><span class="o">.</span><span class="n">append_axes</span><span class="p">(</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="s2">&quot;100%&quot;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+    <span class="c1">#f, (ax1, ax2) = pt.plt.subplots(1, 2, sharex=True)</span>
+    <span class="n">cmapstr</span> <span class="o">=</span> <span class="s1">&#39;rainbow&#39;</span>  <span class="c1"># &#39;hot&#39;</span>
     <span class="n">color_list</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">df2</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">cmapstr</span><span class="p">)(</span><span class="n">ut</span><span class="o">.</span><span class="n">norm_zero_one</span><span class="p">(</span><span class="n">dstncvs</span><span class="p">))</span>
     <span class="n">sortx</span> <span class="o">=</span> <span class="n">dstncvs</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
-    <span class="c">#pt.df2.plt.plot(qfx2_dstncvs[sortx], c=color_list[sortx])</span>
+    <span class="c1">#pt.df2.plt.plot(qfx2_dstncvs[sortx], c=color_list[sortx])</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">sca</span><span class="p">(</span><span class="n">ax1</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">colorline</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sortx</span><span class="p">)),</span> <span class="n">dstncvs</span><span class="p">[</span><span class="n">sortx</span><span class="p">],</span>
                  <span class="n">cmap</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">cmapstr</span><span class="p">))</span>
@@ -503,21 +503,21 @@
     <span class="n">pt</span><span class="o">.</span><span class="n">dark_background</span><span class="p">()</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">sca</span><span class="p">(</span><span class="n">ax2</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">darken</span><span class="o">=.</span><span class="mi">2</span><span class="p">)</span>
-    <span class="c"># MATPLOTLIB BUG CANNOT SHOW DIFFERENT ALPHA FOR POINTS AND KEYPOINTS AT ONCE</span>
-    <span class="c">#pt.draw_kpts2(kpts, pts_color=color_list, ell_color=color_list, ell_alpha=.1, ell=True, pts=True)</span>
-    <span class="c">#pt.draw_kpts2(kpts, color_list=color_list, pts_alpha=1.0, pts_size=1.5,</span>
-    <span class="c">#              ell=True, ell_alpha=.1, pts=False)</span>
-    <span class="n">ell</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--ell&#39;</span><span class="p">)</span>
+    <span class="c1"># MATPLOTLIB BUG CANNOT SHOW DIFFERENT ALPHA FOR POINTS AND KEYPOINTS AT ONCE</span>
+    <span class="c1">#pt.draw_kpts2(kpts, pts_color=color_list, ell_color=color_list, ell_alpha=.1, ell=True, pts=True)</span>
+    <span class="c1">#pt.draw_kpts2(kpts, color_list=color_list, pts_alpha=1.0, pts_size=1.5,</span>
+    <span class="c1">#              ell=True, ell_alpha=.1, pts=False)</span>
+    <span class="n">ell</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--ell&#39;</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">draw_kpts2</span><span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="n">color_list</span><span class="o">=</span><span class="n">color_list</span><span class="p">,</span> <span class="n">pts_alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">pts_size</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
                   <span class="n">ell</span><span class="o">=</span><span class="n">ell</span><span class="p">,</span> <span class="n">ell_alpha</span><span class="o">=.</span><span class="mi">3</span><span class="p">,</span> <span class="n">pts</span><span class="o">=</span><span class="ow">not</span> <span class="n">ell</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">sca</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
-    <span class="c">#pt.figure(fnum, pnum=pnum)</span>
+    <span class="c1">#pt.figure(fnum, pnum=pnum)</span>
 
 </div>
 <div class="viewcode-block" id="download_baseline_distinctiveness_normalizer"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.distinctiveness_normalizer.download_baseline_distinctiveness_normalizer">[docs]</a><span class="k">def</span> <span class="nf">download_baseline_distinctiveness_normalizer</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
     <span class="n">zipped_url</span> <span class="o">=</span> <span class="n">BASELINE_DISTINCTIVNESS_URLS</span><span class="p">[</span><span class="n">species</span><span class="p">]</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">grab_zipped_url</span><span class="p">(</span><span class="n">zipped_url</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">download_dir</span><span class="o">=</span><span class="n">cachedir</span><span class="p">)</span>
-    <span class="c">#ut.assert_eq(ut.unixpath(cachedir), dir_)</span>
+    <span class="c1">#ut.assert_eq(ut.unixpath(cachedir), dir_)</span>
 
 </div>
 <div class="viewcode-block" id="request_ibeis_distinctiveness_normalizer"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.distinctiveness_normalizer.request_ibeis_distinctiveness_normalizer">[docs]</a><span class="k">def</span> <span class="nf">request_ibeis_distinctiveness_normalizer</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
@@ -565,14 +565,14 @@
             <span class="n">cachedir</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_global_distinctiveness_modeldir</span><span class="p">(</span><span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">dstcnvs_normer</span> <span class="o">=</span> <span class="n">DistinctivnessNormalizer</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="n">cachedir</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cachedir</span><span class="p">):</span>
-            <span class="c"># download normalizer if it doesn&#39;t exist</span>
+            <span class="c1"># download normalizer if it doesn&#39;t exist</span>
             <span class="n">download_baseline_distinctiveness_normalizer</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
         <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="p">,</span> <span class="s">&#39;dstcnvs_normer = &#39;</span><span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Loaded distinctivness normalizer&#39;</span><span class="p">)</span>
-        <span class="c">#dstcnvs_normer.ensure_flann(cachedir)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">dstcnvs_normer</span><span class="p">,</span> <span class="s1">&#39;dstcnvs_normer = &#39;</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Loaded distinctivness normalizer&#39;</span><span class="p">)</span>
+        <span class="c1">#dstcnvs_normer.ensure_flann(cachedir)</span>
         <span class="k">assert</span> <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">need_flann</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="p">(</span>
-            <span class="s">&#39;normalizer should have been downloaded, but it doesnt exist&#39;</span><span class="p">)</span>
+            <span class="s1">&#39;normalizer should have been downloaded, but it doesnt exist&#39;</span><span class="p">)</span>
         <span class="n">DISTINCTIVENESS_NORMALIZER_CACHE</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">dstcnvs_normer</span>
     <span class="k">return</span> <span class="n">dstcnvs_normer</span>
 
@@ -648,49 +648,49 @@
 <span class="sd">        &gt;&gt;&gt; test_single_annot_distinctiveness_params(ibs, aid)</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">####</span>
-    <span class="c"># TODO: Also paramatarize the downweighting based on the keypoint size</span>
-    <span class="c">####</span>
-    <span class="c"># HACK IN ABILITY TO SET CONFIG</span>
+    <span class="c1">####</span>
+    <span class="c1"># TODO: Also paramatarize the downweighting based on the keypoint size</span>
+    <span class="c1">####</span>
+    <span class="c1"># HACK IN ABILITY TO SET CONFIG</span>
     <span class="kn">from</span> <span class="nn">ibeis.init.main_commands</span> <span class="kn">import</span> <span class="n">postload_commands</span>
     <span class="kn">from</span> <span class="nn">ibeis.algo</span> <span class="kn">import</span> <span class="n">Config</span>
     <span class="n">postload_commands</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 
     <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
 
-    <span class="c">#cfglbl_list = cfgdict_list</span>
-    <span class="c">#ut.all_dict_combinations_lbls(varied_dict)</span>
+    <span class="c1">#cfglbl_list = cfgdict_list</span>
+    <span class="c1">#ut.all_dict_combinations_lbls(varied_dict)</span>
 
-    <span class="c"># Get info to find distinctivness of</span>
+    <span class="c1"># Get info to find distinctivness of</span>
     <span class="n">species_text</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-    <span class="c"># FIXME; qreq_ params for config rowid</span>
+    <span class="c1"># FIXME; qreq_ params for config rowid</span>
     <span class="n">vecs</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
     <span class="n">kpts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
     <span class="n">chip</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
 
-    <span class="c"># Paramater space to search</span>
-    <span class="c"># TODO: use slicing to control the params being varied</span>
-    <span class="c"># Use GridSearch class to modify paramaters as you go.</span>
+    <span class="c1"># Paramater space to search</span>
+    <span class="c1"># TODO: use slicing to control the params being varied</span>
+    <span class="c1"># Use GridSearch class to modify paramaters as you go.</span>
 
     <span class="n">varied_dict</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">DCVS_DEFAULT</span><span class="o">.</span><span class="n">get_varydict</span><span class="p">()</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Varied Dict: &#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Varied Dict: &#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">))</span>
 
     <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfglbl_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_constrained_cfg_and_lbl_list</span><span class="p">(</span><span class="n">varied_dict</span><span class="p">)</span>
 
-    <span class="c"># Get groundtruthish distinctivness map</span>
-    <span class="c"># for objective function</span>
-    <span class="c"># Load distinctivness normalizer</span>
-    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;Loading Distinctivness Normalizer for </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_text</span><span class="p">)):</span>
+    <span class="c1"># Get groundtruthish distinctivness map</span>
+    <span class="c1"># for objective function</span>
+    <span class="c1"># Load distinctivness normalizer</span>
+    <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s1">&#39;Loading Distinctivness Normalizer for </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_text</span><span class="p">)):</span>
         <span class="n">dstcvnss_normer</span> <span class="o">=</span> <span class="n">request_species_distinctiveness_normalizer</span><span class="p">(</span><span class="n">species_text</span><span class="p">)</span>
 
-    <span class="c"># Get distinctivness over all params</span>
+    <span class="c1"># Get distinctivness over all params</span>
     <span class="n">dstncvs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">dstcvnss_normer</span><span class="o">.</span><span class="n">get_distinctiveness</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
-                    <span class="k">for</span> <span class="n">cfgdict</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;get dstcvns&#39;</span><span class="p">)]</span>
+                    <span class="k">for</span> <span class="n">cfgdict</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;get dstcvns&#39;</span><span class="p">)]</span>
 
-    <span class="c">#fgweights = ibs.get_annot_fgweights([aid])[0]</span>
-    <span class="c">#dstncvs_list = [x * fgweights for x in dstncvs_list]</span>
+    <span class="c1">#fgweights = ibs.get_annot_fgweights([aid])[0]</span>
+    <span class="c1">#dstncvs_list = [x * fgweights for x in dstncvs_list]</span>
     <span class="n">fnum</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="kn">import</span> <span class="nn">functools</span>
@@ -698,7 +698,7 @@
 
     <span class="n">ut</span><span class="o">.</span><span class="n">interact_gridsearch_result_images</span><span class="p">(</span>
         <span class="n">show_func</span><span class="p">,</span> <span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfglbl_list</span><span class="p">,</span> <span class="n">dstncvs_list</span><span class="p">,</span>
-        <span class="n">score_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;dstncvs gridsearch&#39;</span><span class="p">)</span>
+        <span class="n">score_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="s1">&#39;dstncvs gridsearch&#39;</span><span class="p">)</span>
 
     <span class="n">pt</span><span class="o">.</span><span class="n">present</span><span class="p">()</span>
 
@@ -726,64 +726,64 @@
 <span class="sd">        &gt;&gt;&gt; dev_train_distinctiveness(species)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="c">#if &#39;species&#39; not in vars() or species is None:</span>
-    <span class="c">#    species = &#39;zebra_grevys&#39;</span>
-    <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="s">&#39;zebra_grevys&#39;</span><span class="p">:</span>
-        <span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;GZ_ALL&#39;</span>
-    <span class="k">elif</span> <span class="n">species</span> <span class="o">==</span> <span class="s">&#39;zebra_plains&#39;</span><span class="p">:</span>
-        <span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;PZ_Master0&#39;</span>
+    <span class="c1">#if &#39;species&#39; not in vars() or species is None:</span>
+    <span class="c1">#    species = &#39;zebra_grevys&#39;</span>
+    <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="s1">&#39;zebra_grevys&#39;</span><span class="p">:</span>
+        <span class="n">dbname</span> <span class="o">=</span> <span class="s1">&#39;GZ_ALL&#39;</span>
+    <span class="k">elif</span> <span class="n">species</span> <span class="o">==</span> <span class="s1">&#39;zebra_plains&#39;</span><span class="p">:</span>
+        <span class="n">dbname</span> <span class="o">=</span> <span class="s1">&#39;PZ_Master0&#39;</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
     <span class="n">global_distinctdir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_global_distinctiveness_modeldir</span><span class="p">()</span>
     <span class="n">cachedir</span> <span class="o">=</span> <span class="n">global_distinctdir</span>
     <span class="n">dstcnvs_normer</span> <span class="o">=</span> <span class="n">DistinctivnessNormalizer</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">cachedir</span><span class="o">=</span><span class="n">cachedir</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--retrain&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;force cache miss&#39;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;loading distinctiveness&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--retrain&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;force cache miss&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s1">&#39;loading distinctiveness&#39;</span><span class="p">):</span>
             <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
-        <span class="c"># Cache hit</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;distinctivness model cache hit&#39;</span><span class="p">)</span>
+        <span class="c1"># Cache hit</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;distinctivness model cache hit&#39;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;distinctivness model cache miss&#39;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;training distinctiveness&#39;</span><span class="p">):</span>
-            <span class="c"># Need to train</span>
-            <span class="c"># Add one example from each name</span>
-            <span class="c"># TODO: add one exemplar per viewpoint for each name</span>
-            <span class="c">#max_vecs = 1E6</span>
-            <span class="c">#max_annots = 975</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;distinctivness model cache miss&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s1">&#39;training distinctiveness&#39;</span><span class="p">):</span>
+            <span class="c1"># Need to train</span>
+            <span class="c1"># Add one example from each name</span>
+            <span class="c1"># TODO: add one exemplar per viewpoint for each name</span>
+            <span class="c1">#max_vecs = 1E6</span>
+            <span class="c1">#max_annots = 975</span>
             <span class="n">max_annots</span> <span class="o">=</span> <span class="mi">975</span>
-            <span class="c">#ibs.fix_and_clean_database()</span>
+            <span class="c1">#ibs.fix_and_clean_database()</span>
             <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()</span>
             <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
-            <span class="c"># remove junk</span>
+            <span class="c1"># remove junk</span>
             <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">filter_junk_annotations</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
-            <span class="c"># remove empty</span>
+            <span class="c1"># remove empty</span>
             <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">aids</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
             <span class="n">num_annots_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">))</span>
             <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="n">num_annots_list</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-            <span class="c"># take only one annot per name</span>
+            <span class="c1"># take only one annot per name</span>
             <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">aids_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="c"># Keep only a certain number of annots for distinctiveness mapping</span>
+            <span class="c1"># Keep only a certain number of annots for distinctiveness mapping</span>
             <span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listclip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">max_annots</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;total num named annots = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">num_annots_list</span><span class="p">)))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;training distinctiveness using </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> singleton annots&#39;</span> <span class="o">%</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;total num named annots = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">num_annots_list</span><span class="p">)))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;training distinctiveness using </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> singleton annots&#39;</span> <span class="o">%</span>
                   <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)))</span>
-            <span class="c"># vec</span>
-            <span class="c"># FIXME: qreq_ params for config rowid</span>
+            <span class="c1"># vec</span>
+            <span class="c1"># FIXME: qreq_ params for config rowid</span>
             <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">aid_list_</span><span class="p">)</span>
             <span class="n">num_vecs</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">vecs_list</span><span class="p">)))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;num_vecs = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_vecs</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;num_vecs = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_vecs</span><span class="p">,))</span>
             <span class="n">vecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;vecs size = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">vecs</span><span class="p">),))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;vecs size = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_object_size_str</span><span class="p">(</span><span class="n">vecs</span><span class="p">),))</span>
             <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">init_support</span><span class="p">(</span><span class="n">vecs</span><span class="p">)</span>
             <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">global_distinctdir</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--publish&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--publish&#39;</span><span class="p">):</span>
         <span class="n">dstcnvs_normer</span><span class="o">.</span><span class="n">publish</span><span class="p">()</span>
-    <span class="c">#vsone_</span>
-    <span class="c">#inct</span>
+    <span class="c1">#vsone_</span>
+    <span class="c1">#inct</span>
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.algo.hots.distinctiveness_normalizer</span>
@@ -791,8 +791,8 @@
 <span class="sd">        python -m ibeis.algo.hots.distinctiveness_normalizer --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -827,7 +827,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

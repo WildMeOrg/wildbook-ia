@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots._grave_bayes &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.hots._grave_bayes &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.hots._grave_bayes</h1><div class="highlight"><pre>
-<span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">Arc reversal</span>
 <span class="sd">http://www.cs.toronto.edu/~cebly/Papers/simulation.pdf</span>
@@ -231,44 +231,44 @@
 <span class="sd">        map_assignment = infr.map_query(query_vars, evidence)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">infr</span> <span class="o">=</span> <span class="n">pgmpy</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">VariableElimination</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
-    <span class="c">#infr = pgmpy.inference.BeliefPropagation(model)</span>
+    <span class="c1">#infr = pgmpy.inference.BeliefPropagation(model)</span>
     <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">bruteforce</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">query_vars</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">evidence</span><span class="o">=</span><span class="n">evidence</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
         <span class="n">query_vars</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">nodes</span><span class="p">(),</span> <span class="nb">list</span><span class="p">(</span><span class="n">evidence</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-        <span class="c"># hack</span>
-        <span class="n">query_vars</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">query_vars</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_getattr</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">ttype2_cpds</span><span class="p">[</span><span class="s">&#39;score&#39;</span><span class="p">],</span> <span class="s">&#39;variable&#39;</span><span class="p">))</span>
+        <span class="c1"># hack</span>
+        <span class="n">query_vars</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">query_vars</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_getattr</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">ttype2_cpds</span><span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">],</span> <span class="s1">&#39;variable&#39;</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="n">evidence_str</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pretty_evidence</span><span class="p">(</span><span class="n">evidence</span><span class="p">))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;P(&#39;</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">query_vars</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; | &#39;</span> <span class="o">+</span> <span class="n">evidence_str</span> <span class="o">+</span> <span class="s">&#39;) = &#39;</span><span class="p">)</span>
-        <span class="c"># Compute MAP joints</span>
-        <span class="c"># There is a bug here.</span>
-        <span class="c">#map_assign = infr.map_query(query_vars, evidence)</span>
-        <span class="c"># (probably an invalid thing to do)</span>
-        <span class="c">#joint_factor = pgmpy.factors.factor_product(*factor_list)</span>
-        <span class="c"># Brute force MAP</span>
+            <span class="n">evidence_str</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pretty_evidence</span><span class="p">(</span><span class="n">evidence</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;P(&#39;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">query_vars</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; | &#39;</span> <span class="o">+</span> <span class="n">evidence_str</span> <span class="o">+</span> <span class="s1">&#39;) = &#39;</span><span class="p">)</span>
+        <span class="c1"># Compute MAP joints</span>
+        <span class="c1"># There is a bug here.</span>
+        <span class="c1">#map_assign = infr.map_query(query_vars, evidence)</span>
+        <span class="c1"># (probably an invalid thing to do)</span>
+        <span class="c1">#joint_factor = pgmpy.factors.factor_product(*factor_list)</span>
+        <span class="c1"># Brute force MAP</span>
 
-        <span class="n">name_vars</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_getattr</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">ttype2_cpds</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span> <span class="s">&#39;variable&#39;</span><span class="p">)</span>
+        <span class="n">name_vars</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_getattr</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">ttype2_cpds</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="s1">&#39;variable&#39;</span><span class="p">)</span>
         <span class="n">query_name_vars</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">name_vars</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">evidence</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-        <span class="c"># TODO: incorporate case where Na is assigned to Fred</span>
-        <span class="c">#evidence_h = ut.delete_keys(evidence.copy(), [&#39;Na&#39;])</span>
+        <span class="c1"># TODO: incorporate case where Na is assigned to Fred</span>
+        <span class="c1">#evidence_h = ut.delete_keys(evidence.copy(), [&#39;Na&#39;])</span>
 
         <span class="n">joint</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">joint_distribution</span><span class="p">()</span>
         <span class="n">joint</span><span class="o">.</span><span class="n">evidence_based_reduction</span><span class="p">(</span>
             <span class="n">query_name_vars</span><span class="p">,</span> <span class="n">evidence</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-        <span class="c"># Find static row labels in the evidence</span>
+        <span class="c1"># Find static row labels in the evidence</span>
         <span class="n">given_name_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">var</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">name_vars</span> <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">evidence</span><span class="p">]</span>
         <span class="n">given_name_idx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">evidence</span><span class="p">,</span> <span class="n">given_name_vars</span><span class="p">)</span>
         <span class="n">given_name_val</span> <span class="o">=</span> <span class="p">[</span><span class="n">joint</span><span class="o">.</span><span class="n">statename_dict</span><span class="p">[</span><span class="n">var</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
                           <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">given_name_vars</span><span class="p">,</span> <span class="n">given_name_idx</span><span class="p">)]</span>
         <span class="n">new_vals</span> <span class="o">=</span> <span class="n">joint</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-        <span class="c"># Add static evidence variables to the relabeled name states</span>
+        <span class="c1"># Add static evidence variables to the relabeled name states</span>
         <span class="n">new_vars</span> <span class="o">=</span> <span class="n">given_name_vars</span> <span class="o">+</span> <span class="n">joint</span><span class="o">.</span><span class="n">variables</span>
         <span class="n">new_rows</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">given_name_val</span><span class="p">)</span> <span class="o">+</span> <span class="n">row</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">joint</span><span class="o">.</span><span class="n">_row_labels</span><span class="p">()]</span>
-        <span class="c"># Relabel rows based on the knowledge that</span>
-        <span class="c"># everything is the same, only the names have changed.</span>
+        <span class="c1"># Relabel rows based on the knowledge that</span>
+        <span class="c1"># everything is the same, only the names have changed.</span>
         <span class="n">temp_basis</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">num_names</span><span class="p">)]</span>
         <span class="k">def</span> <span class="nf">relabel_names</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">temp_basis</span><span class="o">=</span><span class="n">temp_basis</span><span class="p">):</span>
             <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span> <span class="n">names</span><span class="p">))</span>
@@ -279,7 +279,7 @@
             <span class="n">new_names</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">temp_basis</span><span class="p">[</span><span class="n">mapping</span><span class="p">[</span><span class="n">n</span><span class="p">]]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">])</span>
             <span class="k">return</span> <span class="n">new_names</span>
         <span class="n">relabeled_rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">relabel_names</span><span class="p">,</span> <span class="n">new_rows</span><span class="p">))</span>
-        <span class="c"># Combine probability of rows with the same (new) label</span>
+        <span class="c1"># Combine probability of rows with the same (new) label</span>
         <span class="n">data_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">compute_unique_data_ids_</span><span class="p">(</span><span class="n">relabeled_rows</span><span class="p">))</span>
         <span class="n">unique_ids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">data_ids</span><span class="p">)</span>
         <span class="n">reduced_row_lbls</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">relabeled_rows</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
@@ -287,33 +287,33 @@
         <span class="n">reduced_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
             <span class="n">g</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">new_vals</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
         <span class="p">])</span>
-        <span class="c"># Relabel the rows one more time to agree with initial constraints</span>
+        <span class="c1"># Relabel the rows one more time to agree with initial constraints</span>
         <span class="n">used_</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">replaced</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">colx</span><span class="p">,</span> <span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">given_name_vars</span><span class="p">,</span> <span class="n">given_name_val</span><span class="p">)):</span>
-            <span class="c"># All columns must be the same for this labeling</span>
+            <span class="c1"># All columns must be the same for this labeling</span>
             <span class="n">alias</span> <span class="o">=</span> <span class="n">reduced_row_lbls</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">colx</span><span class="p">]</span>
             <span class="n">reduced_row_lbls</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_replace</span><span class="p">(</span><span class="n">reduced_row_lbls</span><span class="p">,</span> <span class="n">alias</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
             <span class="n">replaced</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">alias</span><span class="p">)</span>
             <span class="n">used_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-        <span class="n">basis</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">ttype2_cpds</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_template_</span><span class="o">.</span><span class="n">basis</span>
+        <span class="n">basis</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">ttype2_cpds</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_template_</span><span class="o">.</span><span class="n">basis</span>
         <span class="n">find_remain_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">temp_basis</span><span class="p">,</span> <span class="n">replaced</span><span class="p">)</span>
         <span class="n">repl_remain_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff_ordered</span><span class="p">(</span><span class="n">basis</span><span class="p">,</span> <span class="n">used_</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">find</span><span class="p">,</span> <span class="n">repl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">find_remain_</span><span class="p">,</span> <span class="n">repl_remain_</span><span class="p">):</span>
             <span class="n">reduced_row_lbls</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_replace</span><span class="p">(</span><span class="n">reduced_row_lbls</span><span class="p">,</span> <span class="n">find</span><span class="p">,</span> <span class="n">repl</span><span class="p">)</span>
 
-        <span class="c"># Now find the most likely state</span>
+        <span class="c1"># Now find the most likely state</span>
         <span class="n">sortx</span> <span class="o">=</span> <span class="n">reduced_values</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">sort_reduced_row_lbls</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">reduced_row_lbls</span><span class="p">,</span> <span class="n">sortx</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
         <span class="n">sort_reduced_values</span> <span class="o">=</span> <span class="n">reduced_values</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
 
-        <span class="c"># Remove evidence based labels</span>
+        <span class="c1"># Remove evidence based labels</span>
         <span class="n">new_vars_</span> <span class="o">=</span> <span class="n">new_vars</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">given_name_vars</span><span class="p">):]</span>
         <span class="n">sort_reduced_row_lbls_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">sort_reduced_row_lbls</span><span class="p">,</span> <span class="nb">slice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">given_name_vars</span><span class="p">),</span> <span class="bp">None</span><span class="p">))</span>
 
         <span class="n">sort_reduced_row_lbls_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="c"># hack into a new joint factor</span>
+        <span class="c1"># hack into a new joint factor</span>
         <span class="n">var_states</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">sort_reduced_row_lbls_</span><span class="p">))</span>
         <span class="n">statename_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">new_vars</span><span class="p">,</span> <span class="n">var_states</span><span class="p">))</span>
         <span class="n">cardinality</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">var_states</span><span class="p">)</span>
@@ -328,11 +328,11 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">query_name_vars</span><span class="p">):</span>
             <span class="n">one_out</span> <span class="o">=</span> <span class="n">query_name_vars</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">query_name_vars</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
             <span class="n">max_marginals</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">joint2</span><span class="o">.</span><span class="n">marginalize</span><span class="p">(</span><span class="n">one_out</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-            <span class="c"># max_marginals[var] = joint2.maximize(one_out, inplace=False)</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">joint2</span><span class="o">.</span><span class="n">marginalize</span><span class="p">([</span><span class="s">&#39;Nb&#39;</span><span class="p">,</span> <span class="s">&#39;Nc&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+            <span class="c1"># max_marginals[var] = joint2.maximize(one_out, inplace=False)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">joint2</span><span class="o">.</span><span class="n">marginalize</span><span class="p">([</span><span class="s1">&#39;Nb&#39;</span><span class="p">,</span> <span class="s1">&#39;Nc&#39;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
         <span class="n">factor_list</span> <span class="o">=</span> <span class="n">max_marginals</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
 
-        <span class="c"># Better map assignment based on knowledge of labels</span>
+        <span class="c1"># Better map assignment based on knowledge of labels</span>
         <span class="n">map_assign</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">new_vars_</span><span class="p">,</span> <span class="n">sort_reduced_row_lbls_</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
 
         <span class="n">sort_reduced_rowstr_lbls</span> <span class="o">=</span> <span class="p">[</span>
@@ -343,81 +343,81 @@
 
         <span class="n">top_assignments</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">sort_reduced_rowstr_lbls</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">sort_reduced_values</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sort_reduced_values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="n">top_assignments</span> <span class="o">+=</span> <span class="p">[(</span><span class="s">&#39;other&#39;</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">sort_reduced_values</span><span class="p">[:</span><span class="mi">3</span><span class="p">]))]</span>
+            <span class="n">top_assignments</span> <span class="o">+=</span> <span class="p">[(</span><span class="s1">&#39;other&#39;</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">sort_reduced_values</span><span class="p">[:</span><span class="mi">3</span><span class="p">]))]</span>
 
-        <span class="c"># import utool</span>
-        <span class="c"># utool.embed()</span>
+        <span class="c1"># import utool</span>
+        <span class="c1"># utool.embed()</span>
 
-        <span class="c"># Compute all marginals</span>
-        <span class="c"># probs = infr.query(query_vars, evidence)</span>
-        <span class="c">#probs = infr.query(query_vars, evidence)</span>
-        <span class="c"># factor_list = probs.values()</span>
+        <span class="c1"># Compute all marginals</span>
+        <span class="c1"># probs = infr.query(query_vars, evidence)</span>
+        <span class="c1">#probs = infr.query(query_vars, evidence)</span>
+        <span class="c1"># factor_list = probs.values()</span>
 
-        <span class="c">## Marginalize over non-query, non-evidence</span>
-        <span class="c">#irrelevant_vars = ut.setdiff_ordered(joint.variables, list(evidence.keys()) + query_vars)</span>
-        <span class="c">#joint.marginalize(irrelevant_vars)</span>
-        <span class="c">#joint.normalize()</span>
-        <span class="c">#new_rows = joint._row_labels()</span>
-        <span class="c">#new_vals = joint.values.ravel()</span>
-        <span class="c">#map_vals = new_rows[new_vals.argmax()]</span>
-        <span class="c">#map_assign = dict(zip(joint.variables, map_vals))</span>
-        <span class="c"># Compute Marginalized MAP joints</span>
-        <span class="c">#marginalized_joints = {}</span>
-        <span class="c">#for ttype in interest_ttypes:</span>
-        <span class="c">#    other_vars = [v for v in joint_factor.scope()</span>
-        <span class="c">#                  if model.var2_cpd[v].ttype != ttype]</span>
-        <span class="c">#    marginal = joint_factor.marginalize(other_vars, inplace=False)</span>
-        <span class="c">#    marginalized_joints[ttype] = marginal</span>
+        <span class="c1">## Marginalize over non-query, non-evidence</span>
+        <span class="c1">#irrelevant_vars = ut.setdiff_ordered(joint.variables, list(evidence.keys()) + query_vars)</span>
+        <span class="c1">#joint.marginalize(irrelevant_vars)</span>
+        <span class="c1">#joint.normalize()</span>
+        <span class="c1">#new_rows = joint._row_labels()</span>
+        <span class="c1">#new_vals = joint.values.ravel()</span>
+        <span class="c1">#map_vals = new_rows[new_vals.argmax()]</span>
+        <span class="c1">#map_assign = dict(zip(joint.variables, map_vals))</span>
+        <span class="c1"># Compute Marginalized MAP joints</span>
+        <span class="c1">#marginalized_joints = {}</span>
+        <span class="c1">#for ttype in interest_ttypes:</span>
+        <span class="c1">#    other_vars = [v for v in joint_factor.scope()</span>
+        <span class="c1">#                  if model.var2_cpd[v].ttype != ttype]</span>
+        <span class="c1">#    marginal = joint_factor.marginalize(other_vars, inplace=False)</span>
+        <span class="c1">#    marginalized_joints[ttype] = marginal</span>
         <span class="n">query_results</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;factor_list&#39;</span><span class="p">:</span> <span class="n">factor_list</span><span class="p">,</span>
-            <span class="s">&#39;top_assignments&#39;</span><span class="p">:</span> <span class="n">top_assignments</span><span class="p">,</span>
-            <span class="s">&#39;map_assign&#39;</span><span class="p">:</span> <span class="n">map_assign</span><span class="p">,</span>
-            <span class="s">&#39;marginalized_joints&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s1">&#39;factor_list&#39;</span><span class="p">:</span> <span class="n">factor_list</span><span class="p">,</span>
+            <span class="s1">&#39;top_assignments&#39;</span><span class="p">:</span> <span class="n">top_assignments</span><span class="p">,</span>
+            <span class="s1">&#39;map_assign&#39;</span><span class="p">:</span> <span class="n">map_assign</span><span class="p">,</span>
+            <span class="s1">&#39;marginalized_joints&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">query_results</span>
 
 
 <span class="k">def</span> <span class="nf">name_model_mode5</span><span class="p">(</span><span class="n">num_annots</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span></div>
-<div class="viewcode-block" id="name_model_mode5"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots._grave_bayes.name_model_mode5">[docs]</a>    <span class="n">mode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--mode&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
-    <span class="n">annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">chr_range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--base&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;a&#39;</span><span class="p">))</span>
-    <span class="c"># The indexes of match CPDs will not change if another annotation is added</span>
+<div class="viewcode-block" id="name_model_mode5"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots._grave_bayes.name_model_mode5">[docs]</a>    <span class="n">mode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--mode&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+    <span class="n">annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">chr_range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--base&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">))</span>
+    <span class="c1"># The indexes of match CPDs will not change if another annotation is added</span>
     <span class="n">upper_diag_idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">colwise_diag_idxs</span><span class="p">(</span><span class="n">num_annots</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_names</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">num_names</span> <span class="o">=</span> <span class="n">num_annots</span>
 
-    <span class="c"># -- Define CPD Templates</span>
+    <span class="c1"># -- Define CPD Templates</span>
 
     <span class="n">name_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-        <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;n&#39;</span><span class="p">,</span> <span class="n">num_names</span><span class="p">),</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="n">num_names</span><span class="p">),</span> <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="n">special_basis_pool</span><span class="o">=</span><span class="n">SPECIAL_BASIS_POOL</span><span class="p">)</span>
     <span class="n">name_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">name_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">annots</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">match_pmf</span><span class="p">(</span><span class="n">match_type</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
-            <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
+            <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
+            <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
         <span class="p">}[</span><span class="n">n1</span> <span class="o">==</span> <span class="n">n2</span><span class="p">][</span><span class="n">match_type</span><span class="p">]</span>
     <span class="n">match_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-        <span class="s">&#39;match&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;diff&#39;</span><span class="p">,</span> <span class="s">&#39;same&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;M&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;match&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;diff&#39;</span><span class="p">,</span> <span class="s1">&#39;same&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;M&#39;</span><span class="p">,</span>
         <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">name_cpd_t</span><span class="p">,</span> <span class="n">name_cpd_t</span><span class="p">],</span> <span class="n">pmf_func</span><span class="o">=</span><span class="n">match_pmf</span><span class="p">)</span>
     <span class="n">namepair_cpds</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_unflat_take</span><span class="p">(</span><span class="n">name_cpds</span><span class="p">,</span> <span class="n">upper_diag_idxs</span><span class="p">)</span>
     <span class="n">match_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">match_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="n">cpds</span><span class="p">)</span>
                   <span class="k">for</span> <span class="n">cpds</span> <span class="ow">in</span> <span class="n">namepair_cpds</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">trimatch_pmf</span><span class="p">(</span><span class="n">match_ab</span><span class="p">,</span> <span class="n">match_bc</span><span class="p">,</span> <span class="n">match_ca</span><span class="p">):</span>
-        <span class="n">lookup</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="p">},</span>
-                           <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="p">},</span> <span class="p">},</span>
-                  <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="p">},</span>
-                           <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="p">},</span> <span class="p">}</span> <span class="p">}</span>
+        <span class="n">lookup</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="p">},</span>
+                           <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="p">},</span> <span class="p">},</span>
+                  <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="p">},</span>
+                           <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="p">},</span> <span class="p">}</span> <span class="p">}</span>
         <span class="k">return</span> <span class="n">lookup</span><span class="p">[</span><span class="n">match_ca</span><span class="p">][</span><span class="n">match_bc</span><span class="p">][</span><span class="n">match_ab</span><span class="p">]</span>
     <span class="n">trimatch_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-        <span class="s">&#39;tri_match&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;diff&#39;</span><span class="p">,</span> <span class="s">&#39;same&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;T&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;tri_match&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;diff&#39;</span><span class="p">,</span> <span class="s1">&#39;same&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;T&#39;</span><span class="p">,</span>
         <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">match_cpd_t</span><span class="p">,</span> <span class="n">match_cpd_t</span><span class="p">],</span>
         <span class="n">pmf_func</span><span class="o">=</span><span class="n">trimatch_pmf</span><span class="p">)</span>
-    <span class="c">#triple_idxs = ut.colwise_diag_idxs(num_annots, 3)</span>
+    <span class="c1">#triple_idxs = ut.colwise_diag_idxs(num_annots, 3)</span>
     <span class="n">tid2_match</span> <span class="o">=</span> <span class="p">{</span><span class="n">cpd</span><span class="o">.</span><span class="n">_template_id</span><span class="p">:</span> <span class="n">cpd</span> <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">match_cpds</span><span class="p">}</span>
     <span class="n">trimatch_cpds</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c"># such hack</span>
+    <span class="c1"># such hack</span>
     <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">match_cpds</span><span class="p">:</span>
         <span class="n">parents</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">this_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cpd</span><span class="o">.</span><span class="n">_template_id</span><span class="p">)</span>
@@ -433,25 +433,25 @@
 
     <span class="k">def</span> <span class="nf">score_pmf</span><span class="p">(</span><span class="n">score_type</span><span class="p">,</span> <span class="n">match_type</span><span class="p">):</span>
         <span class="n">score_lookup</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">},</span>
-            <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">09</span><span class="p">,</span> <span class="s">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">01</span><span class="p">}</span>
+            <span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s1">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">},</span>
+            <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">09</span><span class="p">,</span> <span class="s1">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">01</span><span class="p">}</span>
         <span class="p">}</span>
         <span class="n">val</span> <span class="o">=</span> <span class="n">score_lookup</span><span class="p">[</span><span class="n">match_type</span><span class="p">][</span><span class="n">score_type</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">val</span>
     <span class="n">score_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-        <span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;low&#39;</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">],</span>
-        <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;S&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">],</span>
+        <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;S&#39;</span><span class="p">,</span>
         <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">match_cpd_t</span><span class="p">],</span> <span class="n">pmf_func</span><span class="o">=</span><span class="n">score_pmf</span><span class="p">)</span>
     <span class="n">score_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">score_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="n">cpds</span><span class="p">)</span>
                   <span class="k">for</span> <span class="n">cpds</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">match_cpds</span><span class="p">)]</span>
 
-    <span class="c">#score_cpds = [score_cpd_t.new_cpd(parents=cpds)</span>
-    <span class="c">#              for cpds in zip(trimatch_cpds)]</span>
+    <span class="c1">#score_cpds = [score_cpd_t.new_cpd(parents=cpds)</span>
+    <span class="c1">#              for cpds in zip(trimatch_cpds)]</span>
 
     <span class="n">cpd_list</span> <span class="o">=</span> <span class="n">name_cpds</span> <span class="o">+</span> <span class="n">score_cpds</span> <span class="o">+</span> <span class="n">match_cpds</span> <span class="o">+</span> <span class="n">trimatch_cpds</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;score_cpds = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_getattr</span><span class="p">(</span><span class="n">score_cpds</span><span class="p">,</span> <span class="s">&#39;variable&#39;</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;score_cpds = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_getattr</span><span class="p">(</span><span class="n">score_cpds</span><span class="p">,</span> <span class="s1">&#39;variable&#39;</span><span class="p">),))</span>
 
-    <span class="c"># Make Model</span>
+    <span class="c1"># Make Model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">define_model</span><span class="p">(</span><span class="n">cpd_list</span><span class="p">)</span>
     <span class="n">model</span><span class="o">.</span><span class="n">num_names</span> <span class="o">=</span> <span class="n">num_names</span>
 
@@ -483,54 +483,54 @@
 <span class="sd">        import nx2tikz</span>
 <span class="sd">        print(nx2tikz.dumps_tikz(model, layout=&#39;layered&#39;, use_label=True))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">chr_range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--base&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;a&#39;</span><span class="p">))</span>
-    <span class="c"># The indexes of match CPDs will not change if another annotation is added</span>
+    <span class="n">annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">chr_range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--base&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">))</span>
+    <span class="c1"># The indexes of match CPDs will not change if another annotation is added</span>
     <span class="n">upper_diag_idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">colwise_diag_idxs</span><span class="p">(</span><span class="n">num_annots</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_names</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">num_names</span> <span class="o">=</span> <span class="n">num_annots</span>
 
-    <span class="c"># +--- Define CPD Templates ---</span>
+    <span class="c1"># +--- Define CPD Templates ---</span>
 
-    <span class="c"># +-- Name Factor ---</span>
+    <span class="c1"># +-- Name Factor ---</span>
     <span class="n">name_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-        <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;n&#39;</span><span class="p">,</span> <span class="n">num_names</span><span class="p">),</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="n">num_names</span><span class="p">),</span> <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="n">special_basis_pool</span><span class="o">=</span><span class="n">SPECIAL_BASIS_POOL</span><span class="p">)</span>
     <span class="n">name_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">name_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">annots</span><span class="p">]</span>
 
-    <span class="c"># +-- Match Factor ---</span>
+    <span class="c1"># +-- Match Factor ---</span>
     <span class="k">def</span> <span class="nf">match_pmf</span><span class="p">(</span><span class="n">match_type</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
-            <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
+            <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
+            <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
         <span class="p">}[</span><span class="n">n1</span> <span class="o">==</span> <span class="n">n2</span><span class="p">][</span><span class="n">match_type</span><span class="p">]</span>
     <span class="n">match_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-        <span class="s">&#39;match&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;diff&#39;</span><span class="p">,</span> <span class="s">&#39;same&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;M&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;match&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;diff&#39;</span><span class="p">,</span> <span class="s1">&#39;same&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;M&#39;</span><span class="p">,</span>
         <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">name_cpd_t</span><span class="p">,</span> <span class="n">name_cpd_t</span><span class="p">],</span> <span class="n">pmf_func</span><span class="o">=</span><span class="n">match_pmf</span><span class="p">)</span>
     <span class="n">namepair_cpds</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_unflat_take</span><span class="p">(</span><span class="n">name_cpds</span><span class="p">,</span> <span class="n">upper_diag_idxs</span><span class="p">)</span>
     <span class="n">match_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">match_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="n">cpds</span><span class="p">)</span>
                   <span class="k">for</span> <span class="n">cpds</span> <span class="ow">in</span> <span class="n">namepair_cpds</span><span class="p">]</span>
 
-    <span class="c"># +-- Score Factor ---</span>
+    <span class="c1"># +-- Score Factor ---</span>
     <span class="k">def</span> <span class="nf">score_pmf</span><span class="p">(</span><span class="n">score_type</span><span class="p">,</span> <span class="n">match_type</span><span class="p">):</span>
         <span class="n">score_lookup</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">},</span>
-            <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">09</span><span class="p">,</span> <span class="s">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">01</span><span class="p">}</span>
+            <span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s1">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">},</span>
+            <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">09</span><span class="p">,</span> <span class="s1">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">01</span><span class="p">}</span>
         <span class="p">}</span>
         <span class="n">val</span> <span class="o">=</span> <span class="n">score_lookup</span><span class="p">[</span><span class="n">match_type</span><span class="p">][</span><span class="n">score_type</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">val</span>
     <span class="n">score_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-        <span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;low&#39;</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">],</span>
-        <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;S&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">],</span>
+        <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;S&#39;</span><span class="p">,</span>
         <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">match_cpd_t</span><span class="p">],</span> <span class="n">pmf_func</span><span class="o">=</span><span class="n">score_pmf</span><span class="p">)</span>
     <span class="n">score_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">score_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="n">cpds</span><span class="p">)</span>
                   <span class="k">for</span> <span class="n">cpds</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">match_cpds</span><span class="p">)]</span>
 
-    <span class="c"># L___ End CPD Definitions ___</span>
+    <span class="c1"># L___ End CPD Definitions ___</span>
 
     <span class="n">cpd_list</span> <span class="o">=</span> <span class="n">name_cpds</span> <span class="o">+</span> <span class="n">score_cpds</span> <span class="o">+</span> <span class="n">match_cpds</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;score_cpds = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_getattr</span><span class="p">(</span><span class="n">score_cpds</span><span class="p">,</span> <span class="s">&#39;variable&#39;</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;score_cpds = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_getattr</span><span class="p">(</span><span class="n">score_cpds</span><span class="p">,</span> <span class="s1">&#39;variable&#39;</span><span class="p">),))</span>
 
-    <span class="c"># Make Model</span>
+    <span class="c1"># Make Model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">define_model</span><span class="p">(</span><span class="n">cpd_list</span><span class="p">)</span>
     <span class="n">model</span><span class="o">.</span><span class="n">num_names</span> <span class="o">=</span> <span class="n">num_names</span>
 
@@ -556,43 +556,43 @@
 <span class="sd">        &gt;&gt;&gt; show_model(model, show_prior=True)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#annots = ut.chr_range(num_annots, base=&#39;a&#39;)</span>
-    <span class="n">mode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--mode&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
-    <span class="n">annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">chr_range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--base&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;a&#39;</span><span class="p">))</span>
-    <span class="c"># The indexes of match CPDs will not change if another annotation is added</span>
+    <span class="c1">#annots = ut.chr_range(num_annots, base=&#39;a&#39;)</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--mode&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+    <span class="n">annots</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">chr_range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--base&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">))</span>
+    <span class="c1"># The indexes of match CPDs will not change if another annotation is added</span>
     <span class="n">upper_diag_idxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">colwise_diag_idxs</span><span class="p">(</span><span class="n">num_annots</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_names</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">num_names</span> <span class="o">=</span> <span class="n">num_annots</span>
 
-    <span class="c"># -- Define CPD Templates</span>
+    <span class="c1"># -- Define CPD Templates</span>
     <span class="k">def</span> <span class="nf">match_pmf</span><span class="p">(</span><span class="n">match_type</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">n1</span> <span class="o">==</span> <span class="n">n2</span><span class="p">:</span>
-            <span class="n">val</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">match_type</span> <span class="o">==</span> <span class="s">&#39;same&#39;</span> <span class="k">else</span> <span class="mf">0.0</span>
-            <span class="c">#val = .999 if match_type == &#39;same&#39; else 0.001</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">match_type</span> <span class="o">==</span> <span class="s1">&#39;same&#39;</span> <span class="k">else</span> <span class="mf">0.0</span>
+            <span class="c1">#val = .999 if match_type == &#39;same&#39; else 0.001</span>
         <span class="k">elif</span> <span class="n">n1</span> <span class="o">!=</span> <span class="n">n2</span><span class="p">:</span>
-            <span class="c">#val = 0.01 if match_type == &#39;same&#39; else .99</span>
-            <span class="n">val</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">match_type</span> <span class="o">==</span> <span class="s">&#39;same&#39;</span> <span class="k">else</span> <span class="mf">1.0</span>
+            <span class="c1">#val = 0.01 if match_type == &#39;same&#39; else .99</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">match_type</span> <span class="o">==</span> <span class="s1">&#39;same&#39;</span> <span class="k">else</span> <span class="mf">1.0</span>
         <span class="k">return</span> <span class="n">val</span>
 
     <span class="k">def</span> <span class="nf">score_pmf</span><span class="p">(</span><span class="n">score_type</span><span class="p">,</span> <span class="n">match_type</span><span class="p">):</span>
         <span class="n">score_lookup</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">},</span>
-            <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">09</span><span class="p">,</span> <span class="s">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">01</span><span class="p">}</span>
-            <span class="c">#&#39;same&#39;: {&#39;low&#39;: .1, &#39;high&#39;: .9},</span>
-            <span class="c">#&#39;diff&#39;: {&#39;low&#39;: .9, &#39;high&#39;: .1}</span>
+            <span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s1">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">},</span>
+            <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">09</span><span class="p">,</span> <span class="s1">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">01</span><span class="p">}</span>
+            <span class="c1">#&#39;same&#39;: {&#39;low&#39;: .1, &#39;high&#39;: .9},</span>
+            <span class="c1">#&#39;diff&#39;: {&#39;low&#39;: .9, &#39;high&#39;: .1}</span>
         <span class="p">}</span>
         <span class="n">val</span> <span class="o">=</span> <span class="n">score_lookup</span><span class="p">[</span><span class="n">match_type</span><span class="p">][</span><span class="n">score_type</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">val</span>
 
-    <span class="k">def</span> <span class="nf">score_pmf3</span><span class="p">(</span><span class="n">score_type</span><span class="p">,</span> <span class="n">match_type</span><span class="p">,</span> <span class="n">isdup</span><span class="o">=</span><span class="s">&#39;False&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">score_pmf3</span><span class="p">(</span><span class="n">score_type</span><span class="p">,</span> <span class="n">match_type</span><span class="p">,</span> <span class="n">isdup</span><span class="o">=</span><span class="s1">&#39;False&#39;</span><span class="p">):</span>
         <span class="n">score_lookup</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;False&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">4</span><span class="p">},</span>
-                <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">09</span><span class="p">,</span> <span class="s">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">01</span><span class="p">}</span>
+            <span class="s1">&#39;False&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">4</span><span class="p">},</span>
+                <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">09</span><span class="p">,</span> <span class="s1">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">01</span><span class="p">}</span>
             <span class="p">},</span>
-            <span class="s">&#39;True&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="s">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">79</span><span class="p">},</span>
-                <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="s">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">2</span><span class="p">}</span>
+            <span class="s1">&#39;True&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">79</span><span class="p">},</span>
+                <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">2</span><span class="p">}</span>
             <span class="p">}</span>
         <span class="p">}</span>
         <span class="n">val</span> <span class="o">=</span> <span class="n">score_lookup</span><span class="p">[</span><span class="n">isdup</span><span class="p">][</span><span class="n">match_type</span><span class="p">][</span><span class="n">score_type</span><span class="p">]</span>
@@ -600,16 +600,16 @@
 
     <span class="k">def</span> <span class="nf">score_pmf2</span><span class="p">(</span><span class="n">score_type</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">):</span>
         <span class="n">score_lookup</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="s">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">},</span>
-            <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">09</span><span class="p">,</span> <span class="s">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">01</span><span class="p">}</span>
+            <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">},</span>
+            <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">09</span><span class="p">,</span> <span class="s1">&#39;veryhigh&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mo">01</span><span class="p">}</span>
         <span class="p">}</span>
         <span class="n">val</span> <span class="o">=</span> <span class="n">score_lookup</span><span class="p">[</span><span class="n">n1</span> <span class="o">==</span> <span class="n">n2</span><span class="p">][</span><span class="n">score_type</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">val</span>
 
     <span class="k">def</span> <span class="nf">dup_pmf</span><span class="p">(</span><span class="n">dupstate</span><span class="p">,</span> <span class="n">match_type</span><span class="p">):</span>
         <span class="n">lookup</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;True&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s">&#39;False&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span>
-            <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;True&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s">&#39;False&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span>
+            <span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;True&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;False&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span>
+            <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;True&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;False&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">}</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">lookup</span><span class="p">[</span><span class="n">match_type</span><span class="p">][</span><span class="n">dupstate</span><span class="p">]</span>
 
@@ -618,73 +618,73 @@
 
     <span class="k">def</span> <span class="nf">trimatch_pmf</span><span class="p">(</span><span class="n">match_ab</span><span class="p">,</span> <span class="n">match_bc</span><span class="p">,</span> <span class="n">match_ca</span><span class="p">):</span>
         <span class="n">lookup</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="p">},</span>
-                <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="p">}</span>
+            <span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="p">},</span>
+                <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="p">}</span>
             <span class="p">},</span>
-            <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="p">},</span>
-                <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;same&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="s">&#39;diff&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="p">}</span>
+            <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="p">},</span>
+                <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;same&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="p">}</span>
             <span class="p">}</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">lookup</span><span class="p">[</span><span class="n">match_ca</span><span class="p">][</span><span class="n">match_bc</span><span class="p">][</span><span class="n">match_ab</span><span class="p">]</span>
 
     <span class="n">name_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-        <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;n&#39;</span><span class="p">,</span> <span class="n">num_names</span><span class="p">),</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;N&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="n">num_names</span><span class="p">),</span> <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">,</span>
         <span class="n">special_basis_pool</span><span class="o">=</span><span class="n">SPECIAL_BASIS_POOL</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
         <span class="n">match_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-            <span class="s">&#39;match&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;diff&#39;</span><span class="p">,</span> <span class="s">&#39;same&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;M&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;match&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;diff&#39;</span><span class="p">,</span> <span class="s1">&#39;same&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;M&#39;</span><span class="p">,</span>
             <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">name_cpd_t</span><span class="p">,</span> <span class="n">name_cpd_t</span><span class="p">],</span> <span class="n">pmf_func</span><span class="o">=</span><span class="n">match_pmf</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
             <span class="n">trimatch_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-                <span class="s">&#39;tri_match&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;diff&#39;</span><span class="p">,</span> <span class="s">&#39;same&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;T&#39;</span><span class="p">,</span>
-                <span class="c">#evidence_ttypes=[match_cpd_t, match_cpd_t, match_cpd_t],</span>
+                <span class="s1">&#39;tri_match&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;diff&#39;</span><span class="p">,</span> <span class="s1">&#39;same&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;T&#39;</span><span class="p">,</span>
+                <span class="c1">#evidence_ttypes=[match_cpd_t, match_cpd_t, match_cpd_t],</span>
                 <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">match_cpd_t</span><span class="p">,</span> <span class="n">match_cpd_t</span><span class="p">],</span>
                 <span class="n">pmf_func</span><span class="o">=</span><span class="n">trimatch_pmf</span><span class="p">)</span>
 
             <span class="n">score_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-                <span class="c">#&#39;score&#39;, [&#39;low&#39;, &#39;high&#39;, &#39;veryhigh&#39;],</span>
-                <span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;low&#39;</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">],</span>
-                <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;S&#39;</span><span class="p">,</span>
+                <span class="c1">#&#39;score&#39;, [&#39;low&#39;, &#39;high&#39;, &#39;veryhigh&#39;],</span>
+                <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">],</span>
+                <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;S&#39;</span><span class="p">,</span>
                 <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">match_cpd_t</span><span class="p">],</span> <span class="n">pmf_func</span><span class="o">=</span><span class="n">score_pmf</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">score_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-                <span class="c">#&#39;score&#39;, [&#39;low&#39;, &#39;high&#39;, &#39;veryhigh&#39;],</span>
-                <span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;low&#39;</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">],</span>
-                <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;S&#39;</span><span class="p">,</span>
+                <span class="c1">#&#39;score&#39;, [&#39;low&#39;, &#39;high&#39;, &#39;veryhigh&#39;],</span>
+                <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">],</span>
+                <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;S&#39;</span><span class="p">,</span>
                 <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">match_cpd_t</span><span class="p">],</span> <span class="n">pmf_func</span><span class="o">=</span><span class="n">score_pmf</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">name_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-            <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;n&#39;</span><span class="p">,</span> <span class="n">num_names</span><span class="p">),</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;N&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="n">num_names</span><span class="p">),</span> <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">,</span>
             <span class="n">special_basis_pool</span><span class="o">=</span><span class="n">SPECIAL_BASIS_POOL</span><span class="p">)</span>
         <span class="n">score_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-            <span class="c">#&#39;score&#39;, [&#39;low&#39;, &#39;high&#39;, &#39;veryhigh&#39;],</span>
-            <span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;low&#39;</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">],</span>
-            <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;S&#39;</span><span class="p">,</span>
+            <span class="c1">#&#39;score&#39;, [&#39;low&#39;, &#39;high&#39;, &#39;veryhigh&#39;],</span>
+            <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">],</span>
+            <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;S&#39;</span><span class="p">,</span>
             <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">name_cpd_t</span><span class="p">,</span> <span class="n">name_cpd_t</span><span class="p">],</span>
             <span class="n">pmf_func</span><span class="o">=</span><span class="n">score_pmf2</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
         <span class="n">match_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-            <span class="s">&#39;match&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;diff&#39;</span><span class="p">,</span> <span class="s">&#39;same&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;M&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;match&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;diff&#39;</span><span class="p">,</span> <span class="s1">&#39;same&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;M&#39;</span><span class="p">,</span>
             <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">name_cpd_t</span><span class="p">,</span> <span class="n">name_cpd_t</span><span class="p">],</span> <span class="n">pmf_func</span><span class="o">=</span><span class="n">match_pmf</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">dup_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-                <span class="s">&#39;dup&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;False&#39;</span><span class="p">,</span> <span class="s">&#39;True&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;D&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;dup&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;False&#39;</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dup_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-                <span class="s">&#39;dup&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;False&#39;</span><span class="p">,</span> <span class="s">&#39;True&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;D&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;dup&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;False&#39;</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">,</span>
                 <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">match_cpd_t</span><span class="p">],</span> <span class="n">pmf_func</span><span class="o">=</span><span class="n">dup_pmf</span>
             <span class="p">)</span>
         <span class="n">score_cpd_t</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">TemplateCPD</span><span class="p">(</span>
-            <span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;low&#39;</span><span class="p">,</span> <span class="s">&#39;high&#39;</span><span class="p">,</span> <span class="s">&#39;veryhigh&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s">&#39;S&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;low&#39;</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">,</span> <span class="s1">&#39;veryhigh&#39;</span><span class="p">],</span> <span class="n">varpref</span><span class="o">=</span><span class="s1">&#39;S&#39;</span><span class="p">,</span>
             <span class="n">evidence_ttypes</span><span class="o">=</span><span class="p">[</span><span class="n">match_cpd_t</span><span class="p">,</span> <span class="n">dup_cpd_t</span><span class="p">],</span> <span class="n">pmf_func</span><span class="o">=</span><span class="n">score_pmf3</span><span class="p">)</span>
 
-    <span class="c"># Instanciate templates</span>
+    <span class="c1"># Instanciate templates</span>
 
     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
         <span class="n">name_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">name_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="n">aid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">annots</span><span class="p">]</span>
@@ -694,10 +694,10 @@
         <span class="n">score_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">score_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="n">cpds</span><span class="p">)</span>
                       <span class="k">for</span> <span class="n">cpds</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">match_cpds</span><span class="p">)]</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
-            <span class="c">#triple_idxs = ut.colwise_diag_idxs(num_annots, 3)</span>
+            <span class="c1">#triple_idxs = ut.colwise_diag_idxs(num_annots, 3)</span>
             <span class="n">tid2_match</span> <span class="o">=</span> <span class="p">{</span><span class="n">cpd</span><span class="o">.</span><span class="n">_template_id</span><span class="p">:</span> <span class="n">cpd</span> <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">match_cpds</span><span class="p">}</span>
             <span class="n">trimatch_cpds</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="c"># such hack</span>
+            <span class="c1"># such hack</span>
             <span class="k">for</span> <span class="n">cpd</span> <span class="ow">in</span> <span class="n">match_cpds</span><span class="p">:</span>
                 <span class="n">parents</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="n">this_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cpd</span><span class="o">.</span><span class="n">_template_id</span><span class="p">)</span>
@@ -711,8 +711,8 @@
                         <span class="n">parents</span> <span class="o">+=</span> <span class="p">[</span><span class="n">tid2_match</span><span class="p">[</span><span class="n">key</span><span class="p">]]</span>
                 <span class="n">trimatch_cpds</span> <span class="o">+=</span> <span class="p">[</span><span class="n">trimatch_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="n">parents</span><span class="p">)]</span>
 
-            <span class="c">#score_cpds = [score_cpd_t.new_cpd(parents=cpds)</span>
-            <span class="c">#              for cpds in zip(trimatch_cpds)]</span>
+            <span class="c1">#score_cpds = [score_cpd_t.new_cpd(parents=cpds)</span>
+            <span class="c1">#              for cpds in zip(trimatch_cpds)]</span>
 
             <span class="n">cpd_list</span> <span class="o">=</span> <span class="n">name_cpds</span> <span class="o">+</span> <span class="n">score_cpds</span> <span class="o">+</span> <span class="n">match_cpds</span> <span class="o">+</span> <span class="n">trimatch_cpds</span>
         <span class="k">else</span><span class="p">:</span>
@@ -729,7 +729,7 @@
         <span class="n">match_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">match_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="n">cpds</span><span class="p">)</span>
                       <span class="k">for</span> <span class="n">cpds</span> <span class="ow">in</span> <span class="n">namepair_cpds</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="n">dup_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">dup_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">aids</span><span class="p">)))</span> <span class="k">for</span> <span class="n">aids</span>
+            <span class="n">dup_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">dup_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">aids</span><span class="p">)))</span> <span class="k">for</span> <span class="n">aids</span>
                         <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_unflat_take</span><span class="p">(</span><span class="n">annots</span><span class="p">,</span> <span class="n">upper_diag_idxs</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dup_cpds</span> <span class="o">=</span> <span class="p">[</span><span class="n">dup_cpd_t</span><span class="o">.</span><span class="n">new_cpd</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="n">mcpds</span><span class="p">])</span> <span class="k">for</span> <span class="n">mcpds</span>
@@ -738,21 +738,21 @@
                       <span class="k">for</span> <span class="n">mcpds</span><span class="p">,</span> <span class="n">dcpd</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">match_cpds</span><span class="p">,</span> <span class="n">dup_cpds</span><span class="p">)]</span>
         <span class="n">cpd_list</span> <span class="o">=</span> <span class="n">name_cpds</span> <span class="o">+</span> <span class="n">score_cpds</span> <span class="o">+</span> <span class="n">match_cpds</span> <span class="o">+</span> <span class="n">dup_cpds</span>
 
-    <span class="c">#print(&#39;upper_diag_idxs = %r&#39; % (upper_diag_idxs,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;score_cpds = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_getattr</span><span class="p">(</span><span class="n">score_cpds</span><span class="p">,</span> <span class="s">&#39;variable&#39;</span><span class="p">),))</span>
-    <span class="c"># import sys</span>
-    <span class="c"># sys.exit(1)</span>
+    <span class="c1">#print(&#39;upper_diag_idxs = %r&#39; % (upper_diag_idxs,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;score_cpds = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_getattr</span><span class="p">(</span><span class="n">score_cpds</span><span class="p">,</span> <span class="s1">&#39;variable&#39;</span><span class="p">),))</span>
+    <span class="c1"># import sys</span>
+    <span class="c1"># sys.exit(1)</span>
 
-    <span class="c"># Make Model</span>
+    <span class="c1"># Make Model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">define_model</span><span class="p">(</span><span class="n">cpd_list</span><span class="p">)</span>
     <span class="n">model</span><span class="o">.</span><span class="n">num_names</span> <span class="o">=</span> <span class="n">num_names</span>
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">model</span><span class="o">.</span><span class="n">print_templates</span><span class="p">()</span>
-        <span class="c">#ut.colorprint(&#39;\n --- CPD Templates ---&#39;, &#39;blue&#39;)</span>
-        <span class="c">#for temp_cpd in templates:</span>
-        <span class="c">#    ut.colorprint(temp_cpd._cpdstr(&#39;psql&#39;), &#39;turquoise&#39;)</span>
-    <span class="c">#print_ascii_graph(model)</span>
+        <span class="c1">#ut.colorprint(&#39;\n --- CPD Templates ---&#39;, &#39;blue&#39;)</span>
+        <span class="c1">#for temp_cpd in templates:</span>
+        <span class="c1">#    ut.colorprint(temp_cpd._cpdstr(&#39;psql&#39;), &#39;turquoise&#39;)</span>
+    <span class="c1">#print_ascii_graph(model)</span>
     <span class="k">return</span> <span class="n">model</span>
 
 
@@ -775,7 +775,7 @@
 <span class="sd">        sudo pip3 install pygraphviz --install-option=&quot;--include-path=/usr/include/graphviz&quot; --install-option=&quot;--library-path=/usr/lib/graphviz/&quot;</span>
 <span class="sd">        python3 -c &quot;import pygraphviz; print(pygraphviz.__file__)&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--hackmarkov&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--hackjunc&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--hackmarkov&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--hackjunc&#39;</span><span class="p">):</span>
         <span class="n">draw_tree_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span>
 
@@ -783,24 +783,24 @@
     <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">netx</span>
     <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="kn">as</span> <span class="nn">mpl</span>
     <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
-    <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">0</span><span class="p">)),</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c"># NOQA</span>
-    <span class="c">#fig = pt.figure(fnum=fnum, pnum=(3, 2, (1, slice(1, 2))), doclf=True)  # NOQA</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">0</span><span class="p">)),</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+    <span class="c1">#fig = pt.figure(fnum=fnum, pnum=(3, 2, (1, slice(1, 2))), doclf=True)  # NOQA</span>
     <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
-    <span class="n">var2_post</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;factor_list&#39;</span><span class="p">,</span> <span class="p">[])}</span>
+    <span class="n">var2_post</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;factor_list&#39;</span><span class="p">,</span> <span class="p">[])}</span>
 
     <span class="n">netx_graph</span> <span class="o">=</span> <span class="p">(</span><span class="n">model</span><span class="p">)</span>
-    <span class="c">#netx_graph.graph.setdefault(&#39;graph&#39;, {})[&#39;size&#39;] = &#39;&quot;10,5&quot;&#39;</span>
-    <span class="c">#netx_graph.graph.setdefault(&#39;graph&#39;, {})[&#39;rankdir&#39;] = &#39;LR&#39;</span>
+    <span class="c1">#netx_graph.graph.setdefault(&#39;graph&#39;, {})[&#39;size&#39;] = &#39;&quot;10,5&quot;&#39;</span>
+    <span class="c1">#netx_graph.graph.setdefault(&#39;graph&#39;, {})[&#39;rankdir&#39;] = &#39;LR&#39;</span>
 
     <span class="n">pos</span> <span class="o">=</span> <span class="n">get_hacked_pos</span><span class="p">(</span><span class="n">netx_graph</span><span class="p">)</span>
-    <span class="c">#netx.nx_agraph.pygraphviz_layout(netx_graph)</span>
-    <span class="c">#pos = netx.nx_agraph.pydot_layout(netx_graph, prog=&#39;dot&#39;)</span>
-    <span class="c">#pos = netx.nx_agraph.graphviz_layout(netx_graph)</span>
+    <span class="c1">#netx.nx_agraph.pygraphviz_layout(netx_graph)</span>
+    <span class="c1">#pos = netx.nx_agraph.pydot_layout(netx_graph, prog=&#39;dot&#39;)</span>
+    <span class="c1">#pos = netx.nx_agraph.graphviz_layout(netx_graph)</span>
 
     <span class="n">drawkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">with_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="mi">1500</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">evidence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">node_colors</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="c"># (pt.TRUE_BLUE</span>
+            <span class="c1"># (pt.TRUE_BLUE</span>
             <span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">WHITE</span>
              <span class="k">if</span> <span class="n">node</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">soft_evidence</span> <span class="k">else</span>
              <span class="n">pt</span><span class="o">.</span><span class="n">LIGHT_PINK</span><span class="p">)</span>
@@ -810,26 +810,26 @@
 
         <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">netx_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
             <span class="n">cpd</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">var2_cpd</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">ttype</span> <span class="o">==</span> <span class="s">&#39;score&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cpd</span><span class="o">.</span><span class="n">ttype</span> <span class="o">==</span> <span class="s1">&#39;score&#39;</span><span class="p">:</span>
                 <span class="k">pass</span>
-        <span class="n">drawkw</span><span class="p">[</span><span class="s">&#39;node_color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node_colors</span>
+        <span class="n">drawkw</span><span class="p">[</span><span class="s1">&#39;node_color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node_colors</span>
 
     <span class="n">netx</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">netx_graph</span><span class="p">,</span> <span class="o">**</span><span class="n">drawkw</span><span class="p">)</span>
 
     <span class="n">show_probs</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="k">if</span> <span class="n">show_probs</span><span class="p">:</span>
         <span class="n">textprops</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;family&#39;</span><span class="p">:</span> <span class="s">&#39;monospace&#39;</span><span class="p">,</span>
-            <span class="s">&#39;horizontalalignment&#39;</span><span class="p">:</span> <span class="s">&#39;left&#39;</span><span class="p">,</span>
-            <span class="c">#&#39;horizontalalignment&#39;: &#39;center&#39;,</span>
-            <span class="c">#&#39;size&#39;: 12,</span>
-            <span class="s">&#39;size&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s1">&#39;family&#39;</span><span class="p">:</span> <span class="s1">&#39;monospace&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;horizontalalignment&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span>
+            <span class="c1">#&#39;horizontalalignment&#39;: &#39;center&#39;,</span>
+            <span class="c1">#&#39;size&#39;: 12,</span>
+            <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
         <span class="p">}</span>
 
         <span class="n">textkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">xycoords</span><span class="o">=</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="n">boxcoords</span><span class="o">=</span><span class="s">&#39;offset points&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
-            <span class="n">frameon</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">arrowprops</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">arrowstyle</span><span class="o">=</span><span class="s">&#39;-&gt;&#39;</span><span class="p">),</span>
-            <span class="c">#bboxprops=dict(fc=node_attr[&#39;fillcolor&#39;]),</span>
+            <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">boxcoords</span><span class="o">=</span><span class="s1">&#39;offset points&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+            <span class="n">framewidth</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">arrowprops</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">arrowstyle</span><span class="o">=</span><span class="s1">&#39;-&gt;&#39;</span><span class="p">),</span>
+            <span class="c1">#bboxprops=dict(fc=node_attr[&#39;fillcolor&#39;]),</span>
         <span class="p">)</span>
 
         <span class="n">netx_nodes</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">nodes</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -854,14 +854,14 @@
                 <span class="n">text</span> <span class="o">=</span> <span class="n">cpd</span><span class="o">.</span><span class="n">variable_statenames</span><span class="p">[</span><span class="n">evidence</span><span class="p">[</span><span class="n">variable</span><span class="p">]]</span>
             <span class="k">elif</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">var2_post</span><span class="p">:</span>
                 <span class="n">post_marg</span> <span class="o">=</span> <span class="n">var2_post</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span>
-                <span class="n">text</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">make_factor_text</span><span class="p">(</span><span class="n">post_marg</span><span class="p">,</span> <span class="s">&#39;post&#39;</span><span class="p">)</span>
-                <span class="n">prior_text</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">make_factor_text</span><span class="p">(</span><span class="n">prior_marg</span><span class="p">,</span> <span class="s">&#39;prior&#39;</span><span class="p">)</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">make_factor_text</span><span class="p">(</span><span class="n">post_marg</span><span class="p">,</span> <span class="s1">&#39;post&#39;</span><span class="p">)</span>
+                <span class="n">prior_text</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">make_factor_text</span><span class="p">(</span><span class="n">prior_marg</span><span class="p">,</span> <span class="s1">&#39;prior&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">evidence</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">soft_evidence</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">prior_text</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">make_factor_text</span><span class="p">(</span><span class="n">prior_marg</span><span class="p">,</span> <span class="s">&#39;prior&#39;</span><span class="p">)</span>
+                    <span class="n">prior_text</span> <span class="o">=</span> <span class="n">pgm_ext</span><span class="o">.</span><span class="n">make_factor_text</span><span class="p">(</span><span class="n">prior_marg</span><span class="p">,</span> <span class="s1">&#39;prior&#39;</span><span class="p">)</span>
 
-            <span class="n">show_post</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_post&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-            <span class="n">show_prior</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_prior&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="n">show_post</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_post&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+            <span class="n">show_prior</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_prior&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
             <span class="n">show_prior</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="n">show_post</span> <span class="o">=</span> <span class="bp">True</span>
 
@@ -869,9 +869,9 @@
             <span class="k">if</span> <span class="p">(</span><span class="n">show_post</span> <span class="ow">or</span> <span class="n">show_ev</span><span class="p">)</span> <span class="ow">and</span> <span class="n">text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">offset_box</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">offsetbox</span><span class="o">.</span><span class="n">TextArea</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">textprops</span><span class="p">)</span>
                 <span class="n">artist</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">offsetbox</span><span class="o">.</span><span class="n">AnnotationBbox</span><span class="p">(</span>
-                    <span class="c"># offset_box, (x + 5, y), xybox=(20., 5.),</span>
+                    <span class="c1"># offset_box, (x + 5, y), xybox=(20., 5.),</span>
                     <span class="n">offset_box</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">5</span><span class="p">),</span> <span class="n">xybox</span><span class="o">=</span><span class="p">(</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">20.</span><span class="p">),</span>
-                    <span class="c">#box_alignment=(0, 0),</span>
+                    <span class="c1">#box_alignment=(0, 0),</span>
                     <span class="n">box_alignment</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
                     <span class="o">**</span><span class="n">textkw</span><span class="p">)</span>
                 <span class="n">offset_box_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">offset_box</span><span class="p">)</span>
@@ -880,10 +880,10 @@
             <span class="k">if</span> <span class="n">show_prior</span> <span class="ow">and</span> <span class="n">prior_text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">offset_box2</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">offsetbox</span><span class="o">.</span><span class="n">TextArea</span><span class="p">(</span><span class="n">prior_text</span><span class="p">,</span> <span class="n">textprops</span><span class="p">)</span>
                 <span class="n">artist2</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">offsetbox</span><span class="o">.</span><span class="n">AnnotationBbox</span><span class="p">(</span>
-                    <span class="c"># offset_box2, (x - 5, y), xybox=(-20., -15.),</span>
-                    <span class="c"># offset_box2, (x, y - 5), xybox=(-15., -20.),</span>
+                    <span class="c1"># offset_box2, (x - 5, y), xybox=(-20., -15.),</span>
+                    <span class="c1"># offset_box2, (x, y - 5), xybox=(-15., -20.),</span>
                     <span class="n">offset_box2</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">-</span> <span class="mi">5</span><span class="p">),</span> <span class="n">xybox</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mf">20.</span><span class="p">),</span>
-                    <span class="c">#box_alignment=(1, 1),</span>
+                    <span class="c1">#box_alignment=(1, 1),</span>
                     <span class="n">box_alignment</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                     <span class="o">**</span><span class="n">textkw</span><span class="p">)</span>
                 <span class="n">offset_box_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">offset_box2</span><span class="p">)</span>
@@ -894,7 +894,7 @@
 
         <span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pos_list</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pos_list</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">num_annots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">ttype2_cpds</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
+        <span class="n">num_annots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">ttype2_cpds</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">num_annots</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="n">xmin</span> <span class="o">-</span> <span class="mi">40</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">+</span> <span class="mi">40</span><span class="p">))</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="n">ymin</span> <span class="o">-</span> <span class="mi">50</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">+</span> <span class="mi">50</span><span class="p">))</span>
@@ -905,34 +905,34 @@
             <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">23</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
 
-        <span class="n">title</span> <span class="o">=</span> <span class="s">&#39;num_names=</span><span class="si">%r</span><span class="s">, num_annots=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">num_names</span><span class="p">,</span> <span class="n">num_annots</span><span class="p">,)</span>
-        <span class="n">map_assign</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;map_assign&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-        <span class="c">#max_marginal_list = []</span>
-        <span class="c">#for name, marginal in marginalized_joints.items():</span>
-        <span class="c">#    states = list(ut.iprod(*marginal.statenames))</span>
-        <span class="c">#    vals = marginal.values.ravel()</span>
-        <span class="c">#    x = vals.argmax()</span>
-        <span class="c">#    max_marginal_list += [&#39;P(&#39; + &#39;, &#39;.join(states[x]) + &#39;) = &#39; + str(vals[x])]</span>
-        <span class="c"># title += str(marginal)</span>
-        <span class="n">top_assignments</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;top_assignments&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;num_names=</span><span class="si">%r</span><span class="s1">, num_annots=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">num_names</span><span class="p">,</span> <span class="n">num_annots</span><span class="p">,)</span>
+        <span class="n">map_assign</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;map_assign&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="c1">#max_marginal_list = []</span>
+        <span class="c1">#for name, marginal in marginalized_joints.items():</span>
+        <span class="c1">#    states = list(ut.iprod(*marginal.statenames))</span>
+        <span class="c1">#    vals = marginal.values.ravel()</span>
+        <span class="c1">#    x = vals.argmax()</span>
+        <span class="c1">#    max_marginal_list += [&#39;P(&#39; + &#39;, &#39;.join(states[x]) + &#39;) = &#39; + str(vals[x])]</span>
+        <span class="c1"># title += str(marginal)</span>
+        <span class="n">top_assignments</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;top_assignments&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">top_assignments</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">map_assign</span><span class="p">,</span> <span class="n">map_prob</span> <span class="o">=</span> <span class="n">top_assignments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">map_assign</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="c"># title += &#39;\nMAP=&#39; + ut.repr2(map_assign, strvals=True)</span>
-                <span class="n">title</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">MAP: &#39;</span> <span class="o">+</span> <span class="n">map_assign</span> <span class="o">+</span> <span class="s">&#39; @&#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="si">%.2f%%</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">map_prob</span><span class="p">,)</span>
-        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_title&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+                <span class="c1"># title += &#39;\nMAP=&#39; + ut.repr2(map_assign, strvals=True)</span>
+                <span class="n">title</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">MAP: &#39;</span> <span class="o">+</span> <span class="n">map_assign</span> <span class="o">+</span> <span class="s1">&#39; @&#39;</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">%.2f%%</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">map_prob</span><span class="p">,)</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_title&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
             <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
-        <span class="c">#pt.set_xlabel()</span>
+        <span class="c1">#pt.set_xlabel()</span>
 
         <span class="k">def</span> <span class="nf">hack_fix_centeralign</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">textprops</span><span class="p">[</span><span class="s">&#39;horizontalalignment&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;center&#39;</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Fixing centeralign&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">textprops</span><span class="p">[</span><span class="s1">&#39;horizontalalignment&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;center&#39;</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Fixing centeralign&#39;</span><span class="p">)</span>
                 <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
                 <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 
-                <span class="c"># Superhack for centered text. Fix bug in</span>
-                <span class="c"># /usr/local/lib/python2.7/dist-packages/matplotlib/offsetbox.py</span>
-                <span class="c"># /usr/local/lib/python2.7/dist-packages/matplotlib/text.py</span>
+                <span class="c1"># Superhack for centered text. Fix bug in</span>
+                <span class="c1"># /usr/local/lib/python2.7/dist-packages/matplotlib/offsetbox.py</span>
+                <span class="c1"># /usr/local/lib/python2.7/dist-packages/matplotlib/text.py</span>
                 <span class="k">for</span> <span class="n">offset_box</span> <span class="ow">in</span> <span class="n">offset_box_list</span><span class="p">:</span>
                     <span class="n">offset_box</span><span class="o">.</span><span class="n">set_offset</span>
                     <span class="n">z</span> <span class="o">=</span> <span class="n">offset_box</span><span class="o">.</span><span class="n">_text</span><span class="o">.</span><span class="n">get_window_extent</span><span class="p">()</span>
@@ -944,23 +944,23 @@
                     <span class="n">A</span><span class="o">.</span><span class="n">translate</span><span class="p">((</span><span class="n">z</span><span class="o">.</span><span class="n">x1</span> <span class="o">-</span> <span class="n">z</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
                     <span class="n">offset_box</span><span class="o">.</span><span class="n">_text</span><span class="o">.</span><span class="n">set_transform</span><span class="p">(</span><span class="n">T</span> <span class="o">+</span> <span class="n">A</span><span class="p">)</span>
         <span class="n">hack_fix_centeralign</span><span class="p">()</span>
-    <span class="n">top_assignments</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;top_assignments&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">top_assignments</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;top_assignments&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">top_assignments</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">bin_labels</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">top_assignments</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">bin_vals</span> <span class="o">=</span>  <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">top_assignments</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-        <span class="c"># bin_labels = [&#39;\n&#39;.join(ut.textwrap.wrap(_lbl, width=30)) for _lbl in bin_labels]</span>
+        <span class="c1"># bin_labels = [&#39;\n&#39;.join(ut.textwrap.wrap(_lbl, width=30)) for _lbl in bin_labels]</span>
 
         <span class="n">pt</span><span class="o">.</span><span class="n">draw_histogram</span><span class="p">(</span><span class="n">bin_labels</span><span class="p">,</span> <span class="n">bin_vals</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="bp">None</span><span class="p">))),</span>
                           <span class="n">transpose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                           <span class="n">use_darkbackground</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                          <span class="c">#xtick_rotation=-10,</span>
-                          <span class="n">ylabel</span><span class="o">=</span><span class="s">&#39;Prob&#39;</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s">&#39;assignment&#39;</span><span class="p">)</span>
-        <span class="n">pt</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">&#39;Assignment probabilities&#39;</span><span class="p">)</span>
+                          <span class="c1">#xtick_rotation=-10,</span>
+                          <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Prob&#39;</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;assignment&#39;</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Assignment probabilities&#39;</span><span class="p">)</span>
 
-    <span class="c">#fpath = (&#39;name_model_&#39; + suff + &#39;.png&#39;)</span>
-    <span class="c">#pt.plt.savefig(fpath)</span>
-    <span class="c">#return fpath</span>
+    <span class="c1">#fpath = (&#39;name_model_&#39; + suff + &#39;.png&#39;)</span>
+    <span class="c1">#pt.plt.savefig(fpath)</span>
+    <span class="c1">#return fpath</span>
 
 
 <span class="k">def</span> <span class="nf">flow</span><span class="p">():</span></div>
@@ -971,12 +971,12 @@
 <span class="sd">    pip install pystruct</span>
 <span class="sd">    pip install hdbscan</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Toy problem representing attempting to discover names via annotation</span>
-    <span class="c"># scores</span>
+    <span class="c1"># Toy problem representing attempting to discover names via annotation</span>
+    <span class="c1"># scores</span>
 
-    <span class="kn">import</span> <span class="nn">pystruct</span>  <span class="c"># NOQA</span>
-    <span class="kn">import</span> <span class="nn">pystruct.models</span>  <span class="c"># NOQA</span>
-    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">netx</span>  <span class="c"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">pystruct</span>  <span class="c1"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">pystruct.models</span>  <span class="c1"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">netx</span>  <span class="c1"># NOQA</span>
 
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
     <span class="n">num_annots</span> <span class="o">=</span> <span class="mi">10</span>
@@ -985,8 +985,8 @@
     <span class="n">unique_nids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">hidden_nids</span><span class="p">)</span>
 
     <span class="n">toy_params</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">:</span> <span class="mf">2.2</span><span class="p">},</span>
-        <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">7.0</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}</span>
+        <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="mf">2.2</span><span class="p">},</span>
+        <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">7.0</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}</span>
     <span class="p">}</span>
 
     <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
@@ -995,14 +995,14 @@
         <span class="n">xdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
         <span class="n">tp_pdf</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">gauss_func1d</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="o">**</span><span class="n">toy_params</span><span class="p">[</span><span class="bp">True</span><span class="p">])</span>
         <span class="n">fp_pdf</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">gauss_func1d</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="o">**</span><span class="n">toy_params</span><span class="p">[</span><span class="bp">False</span><span class="p">])</span>
-        <span class="n">pt</span><span class="o">.</span><span class="n">plot_probabilities</span><span class="p">([</span><span class="n">tp_pdf</span><span class="p">,</span> <span class="n">fp_pdf</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;TP&#39;</span><span class="p">,</span> <span class="s">&#39;TF&#39;</span><span class="p">],</span> <span class="n">xdata</span><span class="o">=</span><span class="n">xdata</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">plot_probabilities</span><span class="p">([</span><span class="n">tp_pdf</span><span class="p">,</span> <span class="n">fp_pdf</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;TP&#39;</span><span class="p">,</span> <span class="s1">&#39;TF&#39;</span><span class="p">],</span> <span class="n">xdata</span><span class="o">=</span><span class="n">xdata</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">metric</span><span class="p">(</span><span class="n">aidx1</span><span class="p">,</span> <span class="n">aidx2</span><span class="p">,</span> <span class="n">hidden_nids</span><span class="o">=</span><span class="n">hidden_nids</span><span class="p">,</span> <span class="n">toy_params</span><span class="o">=</span><span class="n">toy_params</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">aidx1</span> <span class="o">==</span> <span class="n">aidx2</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">0</span>
         <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">aidx1</span> <span class="o">+</span> <span class="n">aidx2</span><span class="p">))</span>
         <span class="n">same</span> <span class="o">=</span> <span class="n">hidden_nids</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">aidx1</span><span class="p">)]</span> <span class="o">==</span> <span class="n">hidden_nids</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">aidx2</span><span class="p">)]</span>
-        <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">toy_params</span><span class="p">[</span><span class="n">same</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;mu&#39;</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">])</span>
+        <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">toy_params</span><span class="p">[</span><span class="n">same</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
 
     <span class="n">pairwise_aidxs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">iprod</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">)))</span>
@@ -1012,12 +1012,12 @@
     <span class="k">if</span> <span class="n">num_annots</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">pairwise_scores_mat</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
-    <span class="c">#aids = list(range(num_annots))</span>
-    <span class="c">#g = netx.DiGraph()</span>
-    <span class="c">#g.add_nodes_from(aids)</span>
-    <span class="c">#g.add_edges_from([(tup[0], tup[1], {&#39;weight&#39;: score}) for tup, score in zip(pairwise_aidxs, pairwise_scores) if tup[0] != tup[1]])</span>
-    <span class="c">#netx.draw_graphviz(g)</span>
-    <span class="c">#pr = netx.pagerank(g)</span>
+    <span class="c1">#aids = list(range(num_annots))</span>
+    <span class="c1">#g = netx.DiGraph()</span>
+    <span class="c1">#g.add_nodes_from(aids)</span>
+    <span class="c1">#g.add_edges_from([(tup[0], tup[1], {&#39;weight&#39;: score}) for tup, score in zip(pairwise_aidxs, pairwise_scores) if tup[0] != tup[1]])</span>
+    <span class="c1">#netx.draw_graphviz(g)</span>
+    <span class="c1">#pr = netx.pagerank(g)</span>
 
     <span class="n">X</span> <span class="o">=</span> <span class="n">pairwise_scores</span>
     <span class="n">Y</span> <span class="o">=</span> <span class="n">pairwise_labels</span>
@@ -1026,12 +1026,12 @@
     <span class="n">encoder</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
     <span class="n">encoder</span><span class="o">.</span><span class="n">visualize</span><span class="p">()</span>
 
-    <span class="c"># meanshift clustering</span>
+    <span class="c1"># meanshift clustering</span>
     <span class="kn">import</span> <span class="nn">sklearn</span>
-    <span class="n">bandwidth</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">estimate_bandwidth</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">])</span>  <span class="c"># , quantile=quantile, n_samples=500)</span>
-    <span class="k">assert</span> <span class="n">bandwidth</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;[] bandwidth is 0. Cannot cluster&#39;</span><span class="p">)</span>
-    <span class="c"># bandwidth is with respect to the RBF used in clustering</span>
-    <span class="c">#ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)</span>
+    <span class="n">bandwidth</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">estimate_bandwidth</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">])</span>  <span class="c1"># , quantile=quantile, n_samples=500)</span>
+    <span class="k">assert</span> <span class="n">bandwidth</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;[] bandwidth is 0. Cannot cluster&#39;</span><span class="p">)</span>
+    <span class="c1"># bandwidth is with respect to the RBF used in clustering</span>
+    <span class="c1">#ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)</span>
     <span class="n">ms</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">MeanShift</span><span class="p">(</span><span class="n">bandwidth</span><span class="o">=</span><span class="n">bandwidth</span><span class="p">,</span> <span class="n">bin_seeding</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cluster_all</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">ms</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">])</span>
     <span class="n">label_arr</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">labels_</span>
@@ -1042,13 +1042,13 @@
 
     <span class="n">X_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_annots</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
 
-    <span class="c">#graph = pystruct.models.GraphCRF(</span>
-    <span class="c">#    n_states=None,</span>
-    <span class="c">#    n_features=None,</span>
-    <span class="c">#    inference_method=&#39;lp&#39;,</span>
-    <span class="c">#    class_weight=None,</span>
-    <span class="c">#    directed=False,</span>
-    <span class="c">#)</span>
+    <span class="c1">#graph = pystruct.models.GraphCRF(</span>
+    <span class="c1">#    n_states=None,</span>
+    <span class="c1">#    n_features=None,</span>
+    <span class="c1">#    inference_method=&#39;lp&#39;,</span>
+    <span class="c1">#    class_weight=None,</span>
+    <span class="c1">#    directed=False,</span>
+    <span class="c1">#)</span>
 
     <span class="kn">import</span> <span class="nn">scipy</span>
     <span class="kn">import</span> <span class="nn">scipy.cluster</span>
@@ -1059,11 +1059,11 @@
     <span class="n">unique_lbls</span><span class="p">,</span> <span class="n">lblgroupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">groupxs</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">lblgroupxs</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;groupdiff = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">compare_groupings</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;common groups = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">find_grouping_consistencies</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
-    <span class="c">#X_data, seconds_thresh, criterion=&#39;distance&#39;)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;groupdiff = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">compare_groupings</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;common groups = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">find_grouping_consistencies</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
+    <span class="c1">#X_data, seconds_thresh, criterion=&#39;distance&#39;)</span>
 
-    <span class="c">#help(hdbscan.HDBSCAN)</span>
+    <span class="c1">#help(hdbscan.HDBSCAN)</span>
 
     <span class="kn">import</span> <span class="nn">hdbscan</span>
     <span class="n">alg</span> <span class="o">=</span> <span class="n">hdbscan</span><span class="o">.</span><span class="n">HDBSCAN</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span> <span class="n">min_cluster_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">gen_min_span_tree</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_samples</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -1072,33 +1072,33 @@
     <span class="n">unique_lbls</span><span class="p">,</span> <span class="n">lblgroupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">groupxs</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">lblgroupxs</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;groupdiff = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">compare_groupings</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;common groups = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">find_grouping_consistencies</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;groupdiff = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">compare_groupings</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;common groups = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">find_grouping_consistencies</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
 
-    <span class="c">#import ddbscan</span>
-    <span class="c">#help(ddbscan.DDBSCAN)</span>
-    <span class="c">#alg = ddbscan.DDBSCAN(2, 2)</span>
+    <span class="c1">#import ddbscan</span>
+    <span class="c1">#help(ddbscan.DDBSCAN)</span>
+    <span class="c1">#alg = ddbscan.DDBSCAN(2, 2)</span>
 
-    <span class="c">#D = np.zeros((len(aids), len(aids) + 1))</span>
-    <span class="c">#D.T[-1] = np.arange(len(aids))</span>
+    <span class="c1">#D = np.zeros((len(aids), len(aids) + 1))</span>
+    <span class="c1">#D.T[-1] = np.arange(len(aids))</span>
 
-    <span class="c">## Can alpha-expansion be used when the pairwise potentials are not in a grid?</span>
+    <span class="c1">## Can alpha-expansion be used when the pairwise potentials are not in a grid?</span>
 
-    <span class="c">#hidden_ut.group_items(aids, hidden_nids)</span>
+    <span class="c1">#hidden_ut.group_items(aids, hidden_nids)</span>
     <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">maxflow</span>
-        <span class="c">#from maxflow import fastmin</span>
-        <span class="c"># Create a graph with integer capacities.</span>
+        <span class="c1">#from maxflow import fastmin</span>
+        <span class="c1"># Create a graph with integer capacities.</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">maxflow</span><span class="o">.</span><span class="n">Graph</span><span class="p">[</span><span class="nb">int</span><span class="p">](</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="c"># Add two (non-terminal) nodes. Get the index to the first one.</span>
+        <span class="c1"># Add two (non-terminal) nodes. Get the index to the first one.</span>
         <span class="n">nodes</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-        <span class="c"># Create two edges (forwards and backwards) with the given capacities.</span>
-        <span class="c"># The indices of the nodes are always consecutive.</span>
+        <span class="c1"># Create two edges (forwards and backwards) with the given capacities.</span>
+        <span class="c1"># The indices of the nodes are always consecutive.</span>
         <span class="n">g</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="c"># Set the capacities of the terminal edges...</span>
-        <span class="c"># ...for the first node.</span>
+        <span class="c1"># Set the capacities of the terminal edges...</span>
+        <span class="c1"># ...for the first node.</span>
         <span class="n">g</span><span class="o">.</span><span class="n">add_tedge</span><span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
-        <span class="c"># ...for the second node.</span>
+        <span class="c1"># ...for the second node.</span>
         <span class="n">g</span><span class="o">.</span><span class="n">add_tedge</span><span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">maxflow</span><span class="o">.</span><span class="n">Graph</span><span class="p">[</span><span class="nb">float</span><span class="p">](</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">g</span><span class="o">.</span><span class="n">maxflow</span><span class="p">()</span>
@@ -1106,33 +1106,33 @@
         <span class="n">g</span><span class="o">.</span><span class="n">get_segment</span><span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
 
-<span class="c">#seed = (start * 11)</span>
-<span class="c">#np.random.RandomState(seed)</span>
-<span class="c">#if initial_nids is None:</span>
-<span class="c">#else:</span>
-<span class="c">#    # HACK</span>
-<span class="c">#    #import utool</span>
-<span class="c">#    #utool.embed()</span>
-<span class="c">#    nid_is_avail = vt.index_to_boolmask(initial_nids, initial_nids.max() + 1)</span>
-<span class="c">#    next_ = np.where(~nid_is_avail)[0]</span>
-<span class="c">#    if len(next_) == 0:</span>
-<span class="c">#        nid_is_avail = np.append(nid_is_avail, [True])</span>
-<span class="c">#        idx = len(nid_is_avail) - 1</span>
-<span class="c">#    else:</span>
-<span class="c">#        idx = next_[0]</span>
-<span class="c">#        nid_is_avail[idx] = True</span>
-<span class="c">#    avail_nids = np.where(nid_is_avail)[0]</span>
-<span class="c">#    p = np.ones(len(avail_nids))</span>
-<span class="c">#    # chance to see a new annotation</span>
-<span class="c">#    chance = .4</span>
-<span class="c">#    # more or less</span>
-<span class="c">#    p[:] = (1 - chance) / (len(p) - 1)</span>
-<span class="c">#    p[idx] = chance</span>
-<span class="c">#    #print(&#39;p = %r&#39; % (p,))</span>
-<span class="c">#    #nids = rng.randint(0, num_names, num_annots)</span>
-<span class="c">#    #print(&#39;avail_nids = %r&#39; % (avail_nids,))</span>
-<span class="c">#    nids = rng.choice(avail_nids, num_annots, p=p)</span>
-<span class="c">#    #print(&#39;nids = %r&#39; % (nids,))</span>
+<span class="c1">#seed = (start * 11)</span>
+<span class="c1">#np.random.RandomState(seed)</span>
+<span class="c1">#if initial_nids is None:</span>
+<span class="c1">#else:</span>
+<span class="c1">#    # HACK</span>
+<span class="c1">#    #import utool</span>
+<span class="c1">#    #utool.embed()</span>
+<span class="c1">#    nid_is_avail = vt.index_to_boolmask(initial_nids, initial_nids.max() + 1)</span>
+<span class="c1">#    next_ = np.where(~nid_is_avail)[0]</span>
+<span class="c1">#    if len(next_) == 0:</span>
+<span class="c1">#        nid_is_avail = np.append(nid_is_avail, [True])</span>
+<span class="c1">#        idx = len(nid_is_avail) - 1</span>
+<span class="c1">#    else:</span>
+<span class="c1">#        idx = next_[0]</span>
+<span class="c1">#        nid_is_avail[idx] = True</span>
+<span class="c1">#    avail_nids = np.where(nid_is_avail)[0]</span>
+<span class="c1">#    p = np.ones(len(avail_nids))</span>
+<span class="c1">#    # chance to see a new annotation</span>
+<span class="c1">#    chance = .4</span>
+<span class="c1">#    # more or less</span>
+<span class="c1">#    p[:] = (1 - chance) / (len(p) - 1)</span>
+<span class="c1">#    p[idx] = chance</span>
+<span class="c1">#    #print(&#39;p = %r&#39; % (p,))</span>
+<span class="c1">#    #nids = rng.randint(0, num_names, num_annots)</span>
+<span class="c1">#    #print(&#39;avail_nids = %r&#39; % (avail_nids,))</span>
+<span class="c1">#    nids = rng.choice(avail_nids, num_annots, p=p)</span>
+<span class="c1">#    #print(&#39;nids = %r&#39; % (nids,))</span>
 </pre></div></div>
 
            </div>
@@ -1166,7 +1166,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

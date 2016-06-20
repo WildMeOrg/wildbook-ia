@@ -1,0 +1,331 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.detect.classifier package &mdash; ibeis 1.5.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.2 documentation" href="index.html"/>
+        <link rel="up" title="ibeis.algo.detect package" href="ibeis.algo.detect.html"/>
+        <link rel="next" title="ibeis.algo.detect.labeler package" href="ibeis.algo.detect.labeler.html"/>
+        <link rel="prev" title="ibeis.algo.detect.background package" href="ibeis.algo.detect.background.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="ibeis.html">ibeis package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ibeis.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="ibeis.algo.html">ibeis.algo package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="ibeis.algo.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.algo.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.algo.html#module-ibeis.algo.Config">ibeis.algo.Config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ibeis.algo.html#module-ibeis.algo">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.control.html">ibeis.control package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.dbio.html">ibeis.dbio package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.expt.html">ibeis.expt package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.gui.html">ibeis.gui package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.init.html">ibeis.init package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.other.html">ibeis.other package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.scripts.html">ibeis.scripts package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.templates.html">ibeis.templates package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.tests.html">ibeis.tests package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.viz.html">ibeis.viz package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ibeis.web.html">ibeis.web package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.__main__">ibeis.__main__ module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devcmds_ibeis">ibeis._devcmds_ibeis module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis._devscript">ibeis._devscript module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.all_imports">ibeis.all_imports module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_annots">ibeis.core_annots module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_images">ibeis.core_images module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.new_annots">ibeis.new_annots module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workspace">ibeis.workspace module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="ibeis.html">ibeis package</a> &raquo;</li>
+      
+          <li><a href="ibeis.algo.html">ibeis.algo package</a> &raquo;</li>
+      
+          <li><a href="ibeis.algo.detect.html">ibeis.algo.detect package</a> &raquo;</li>
+      
+    <li>ibeis.algo.detect.classifier package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/ibeis.algo.detect.classifier.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ibeis-algo-detect-classifier-package">
+<h1>ibeis.algo.detect.classifier package<a class="headerlink" href="#ibeis-algo-detect-classifier-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-ibeis.algo.detect.classifier.classifier">
+<span id="ibeis-algo-detect-classifier-classifier-module"></span><h2>ibeis.algo.detect.classifier.classifier module<a class="headerlink" href="#module-ibeis.algo.detect.classifier.classifier" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.algo.detect.classifier.classifier.classify_thumbnail_list">
+<code class="descclassname">ibeis.algo.detect.classifier.classifier.</code><code class="descname">classify_thumbnail_list</code><span class="sig-paren">(</span><em>thumbnail_list</em>, <em>model='v1'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/classifier/classifier.html#classify_thumbnail_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.classifier.classifier.classify_thumbnail_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.classifier.classifier.load_classifier">
+<code class="descclassname">ibeis.algo.detect.classifier.classifier.</code><code class="descname">load_classifier</code><span class="sig-paren">(</span><em>source_path=None</em>, <em>source_name='classifier'</em>, <em>cache_data_filename='data.npy'</em>, <em>cache_labels_filename='labels.npy'</em>, <em>cache=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/classifier/classifier.html#load_classifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.classifier.classifier.load_classifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.classifier.classifier.load_images">
+<code class="descclassname">ibeis.algo.detect.classifier.classifier.</code><code class="descname">load_images</code><span class="sig-paren">(</span><em>cache_data_filename='test_data.npy'</em>, <em>cache_labels_filename='test_labels.npy'</em>, <em>cache=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/classifier/classifier.html#load_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.classifier.classifier.load_images" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.classifier.classifier.train_classifier">
+<code class="descclassname">ibeis.algo.detect.classifier.classifier.</code><code class="descname">train_classifier</code><span class="sig-paren">(</span><em>output_path</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/classifier/classifier.html#train_classifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.classifier.classifier.train_classifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.algo.detect.classifier.model">
+<span id="ibeis-algo-detect-classifier-model-module"></span><h2>ibeis.algo.detect.classifier.model module<a class="headerlink" href="#module-ibeis.algo.detect.classifier.model" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="ibeis.algo.detect.classifier.model.Classifier_Model">
+<em class="property">class </em><code class="descclassname">ibeis.algo.detect.classifier.model.</code><code class="descname">Classifier_Model</code><span class="sig-paren">(</span><em>model</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/classifier/model.html#Classifier_Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.classifier.model.Classifier_Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ibeis.algo.detect.classifier.model.Classifier_Model.architecture">
+<code class="descname">architecture</code><span class="sig-paren">(</span><em>model</em>, <em>batch_size</em>, <em>in_width</em>, <em>in_height</em>, <em>in_channels</em>, <em>out_classes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/classifier/model.html#Classifier_Model.architecture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.classifier.model.Classifier_Model.architecture" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.algo.detect.classifier.model.Classifier_Model.augmentation">
+<code class="descname">augmentation</code><span class="sig-paren">(</span><em>model</em>, <em>X_list</em>, <em>y_list=None</em>, <em>train=True</em>, <em>parallel=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/classifier/model.html#Classifier_Model.augmentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.classifier.model.Classifier_Model.augmentation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.algo.detect.classifier.model.Classifier_Model.get_loss_function">
+<code class="descname">get_loss_function</code><span class="sig-paren">(</span><em>model</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/classifier/model.html#Classifier_Model.get_loss_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.classifier.model.Classifier_Model.get_loss_function" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.classifier.model.augmentation_parallel">
+<code class="descclassname">ibeis.algo.detect.classifier.model.</code><code class="descname">augmentation_parallel</code><span class="sig-paren">(</span><em>values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/classifier/model.html#augmentation_parallel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.classifier.model.augmentation_parallel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.classifier.model.augmentation_wrapper">
+<code class="descclassname">ibeis.algo.detect.classifier.model.</code><code class="descname">augmentation_wrapper</code><span class="sig-paren">(</span><em>X_list</em>, <em>y_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/classifier/model.html#augmentation_wrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.classifier.model.augmentation_wrapper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.algo.detect.classifier">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.algo.detect.classifier" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.algo.detect.classifier.reassign_submodule_attributes">
+<code class="descclassname">ibeis.algo.detect.classifier.</code><code class="descname">reassign_submodule_attributes</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/classifier.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.classifier.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>why reloading all the modules doesnt do this I don&#8217;t know</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.classifier.reload_subs">
+<code class="descclassname">ibeis.algo.detect.classifier.</code><code class="descname">reload_subs</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/classifier.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.classifier.reload_subs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.algo.detect.classifier and submodules</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.algo.detect.classifier.rrrr">
+<code class="descclassname">ibeis.algo.detect.classifier.</code><code class="descname">rrrr</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#ibeis.algo.detect.classifier.rrrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reloads ibeis.algo.detect.classifier and submodules</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ibeis.algo.detect.labeler.html" class="btn btn-neutral float-right" title="ibeis.algo.detect.labeler package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ibeis.algo.detect.background.html" class="btn btn-neutral" title="ibeis.algo.detect.background package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.5.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

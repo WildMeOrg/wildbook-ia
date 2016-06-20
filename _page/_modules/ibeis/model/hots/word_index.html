@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.word_index &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.model.hots.word_index &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.model.hots.word_index</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">TODO: DEPRICATE OR REFACTOR INTO SMK</span>
 
@@ -142,23 +142,23 @@
 <span class="sd">python -m doctest ibeis/model/hots/word_index.py</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="c"># Standard</span>
+<span class="c1"># Standard</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="c">#from itertools import chain</span>
-<span class="c"># Science</span>
+<span class="c1">#from itertools import chain</span>
+<span class="c1"># Science</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="c"># UTool</span>
+<span class="c1"># UTool</span>
 <span class="kn">import</span> <span class="nn">vtool</span>
 <span class="kn">import</span> <span class="nn">utool</span>
-<span class="c"># VTool</span>
+<span class="c1"># VTool</span>
 <span class="kn">import</span> <span class="nn">vtool.nearest_neighbors</span> <span class="kn">as</span> <span class="nn">nntool</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr_</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[entroid_index]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr_</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[entroid_index]&#39;</span><span class="p">)</span>
 
 
-<span class="n">NOCACHE_WORD</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-word&#39;</span><span class="p">)</span>
+<span class="n">NOCACHE_WORD</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nocache-word&#39;</span><span class="p">)</span>
 
 
-<span class="c"># TODO:</span>
+<span class="c1"># TODO:</span>
 <div class="viewcode-block" id="NeighborAssignment"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.word_index.NeighborAssignment">[docs]</a><span class="k">class</span> <span class="nc">NeighborAssignment</span><span class="p">():</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">asgn</span><span class="p">):</span>
         <span class="k">pass</span>
@@ -168,34 +168,34 @@
     <span class="kn">from</span> <span class="nn">ibeis.model.hots.query_request</span> <span class="kn">import</span> <span class="n">new_ibeis_query_request</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="n">daid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">new_ibeis_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
     <span class="n">windex</span> <span class="o">=</span> <span class="n">new_ibeis_windex</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">())</span>
     <span class="k">return</span> <span class="n">windex</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">ibs</span>
 
 </div>
 <div class="viewcode-block" id="new_word_index"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.word_index.new_word_index">[docs]</a><span class="k">def</span> <span class="nf">new_word_index</span><span class="p">(</span><span class="n">aid_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">vecs_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">flann_params</span><span class="o">=</span><span class="p">{},</span>
-                       <span class="n">flann_cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">indexer_cfgstr</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">hash_rowids</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                       <span class="n">flann_cachedir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">indexer_cfgstr</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">hash_rowids</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                        <span class="n">use_cache</span><span class="o">=</span><span class="ow">not</span> <span class="n">NOCACHE_WORD</span><span class="p">,</span> <span class="n">use_params_hash</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[windex] building WordIndex object&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[windex] building WordIndex object&#39;</span><span class="p">)</span>
     <span class="n">_check_input</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">vecs_list</span><span class="p">)</span>
-    <span class="c"># Create indexes into the input aids</span>
+    <span class="c1"># Create indexes into the input aids</span>
     <span class="n">ax_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
     <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_ax</span><span class="p">,</span> <span class="n">idx2_fx</span> <span class="o">=</span> <span class="n">invert_index</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">,</span> <span class="n">ax_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">hash_rowids</span><span class="p">:</span>
-        <span class="c"># Fingerprint</span>
-        <span class="n">aids_hashstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">hashstr_arr</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;_AIDS&#39;</span><span class="p">)</span>
+        <span class="c1"># Fingerprint</span>
+        <span class="n">aids_hashstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">hashstr_arr</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;_AIDS&#39;</span><span class="p">)</span>
         <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">aids_hashstr</span> <span class="o">+</span> <span class="n">indexer_cfgstr</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c"># Dont hash rowids when given enough info in indexer_cfgstr</span>
+        <span class="c1"># Dont hash rowids when given enough info in indexer_cfgstr</span>
         <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">indexer_cfgstr</span>
-    <span class="c"># Build/Load the flann index</span>
+    <span class="c1"># Build/Load the flann index</span>
     <span class="n">flann</span> <span class="o">=</span> <span class="n">nntool</span><span class="o">.</span><span class="n">flann_cache</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span>
-        <span class="s">&#39;cache_dir&#39;</span><span class="p">:</span> <span class="n">flann_cachedir</span><span class="p">,</span>
-        <span class="s">&#39;cfgstr&#39;</span><span class="p">:</span> <span class="n">cfgstr</span><span class="p">,</span>
-        <span class="s">&#39;flann_params&#39;</span><span class="p">:</span> <span class="n">flann_params</span><span class="p">,</span>
-        <span class="s">&#39;use_cache&#39;</span><span class="p">:</span> <span class="n">use_cache</span><span class="p">,</span>
-        <span class="s">&#39;use_params_hash&#39;</span><span class="p">:</span> <span class="n">use_params_hash</span><span class="p">})</span>
+        <span class="s1">&#39;cache_dir&#39;</span><span class="p">:</span> <span class="n">flann_cachedir</span><span class="p">,</span>
+        <span class="s1">&#39;cfgstr&#39;</span><span class="p">:</span> <span class="n">cfgstr</span><span class="p">,</span>
+        <span class="s1">&#39;flann_params&#39;</span><span class="p">:</span> <span class="n">flann_params</span><span class="p">,</span>
+        <span class="s1">&#39;use_cache&#39;</span><span class="p">:</span> <span class="n">use_cache</span><span class="p">,</span>
+        <span class="s1">&#39;use_params_hash&#39;</span><span class="p">:</span> <span class="n">use_params_hash</span><span class="p">})</span>
     <span class="n">ax2_aid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">windex</span> <span class="o">=</span> <span class="n">WordIndex</span><span class="p">(</span><span class="n">ax2_aid</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_ax</span><span class="p">,</span> <span class="n">idx2_fx</span><span class="p">,</span> <span class="n">flann</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">windex</span>
@@ -209,15 +209,15 @@
 <span class="sd">    &gt;&gt;&gt; windex, qreq_, ibs = test_windex()</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">)</span>
+    <span class="n">daids_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">)</span>
     <span class="n">flann_cfgstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
     <span class="n">feat_cfgstr</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">_feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
     <span class="n">indexer_cfgstr</span> <span class="o">=</span> <span class="n">daids_hashid</span> <span class="o">+</span> <span class="n">flann_cfgstr</span> <span class="o">+</span> <span class="n">feat_cfgstr</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="c"># Grab the keypoints names and image ids before query time</span>
+        <span class="c1"># Grab the keypoints names and image ids before query time</span>
         <span class="n">flann_params</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">flann_cfg</span><span class="o">.</span><span class="n">get_flann_params</span><span class="p">()</span>
-        <span class="c"># Get annotation descriptors that will be searched</span>
-        <span class="c"># FIXME; qreq_</span>
+        <span class="c1"># Get annotation descriptors that will be searched</span>
+        <span class="c1"># FIXME; qreq_</span>
         <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)</span>
         <span class="n">flann_cachedir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_flann_cachedir</span><span class="p">()</span>
         <span class="n">windex</span> <span class="o">=</span> <span class="n">new_word_index</span><span class="p">(</span>
@@ -225,14 +225,14 @@
             <span class="n">indexer_cfgstr</span><span class="p">,</span> <span class="n">hash_rowids</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_params_hash</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">windex</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="n">msg_</span><span class="o">=</span><span class="s">&#39;cannot build inverted index&#39;</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;ibs.get_infostr()&#39;</span><span class="p">])</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="n">msg_</span><span class="o">=</span><span class="s1">&#39;cannot build inverted index&#39;</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ibs.get_infostr()&#39;</span><span class="p">])</span>
         <span class="k">raise</span>
 
 </div>
 <span class="k">def</span> <span class="nf">_check_input</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">vecs_list</span><span class="p">):</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">),</span> <span class="s">&#39;invalid input&#39;</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;len(aid_list) == 0.&#39;</span>
-                                    <span class="s">&#39;Cannot invert index without features!&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">),</span> <span class="s1">&#39;invalid input&#39;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;len(aid_list) == 0.&#39;</span>
+                                    <span class="s1">&#39;Cannot invert index without features!&#39;</span><span class="p">)</span>
 
 
 <span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
@@ -246,11 +246,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">windex</span><span class="p">,</span> <span class="n">ax2_aid</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_ax</span><span class="p">,</span> <span class="n">idx2_fx</span><span class="p">,</span> <span class="n">flann</span><span class="p">):</span>
-        <span class="n">windex</span><span class="o">.</span><span class="n">ax2_aid</span>  <span class="o">=</span> <span class="n">ax2_aid</span>   <span class="c"># (A x 1) Mapping to original annot ids</span>
-        <span class="n">windex</span><span class="o">.</span><span class="n">idx2_vec</span> <span class="o">=</span> <span class="n">idx2_vec</span>  <span class="c"># (M x D) Descriptors to index</span>
-        <span class="n">windex</span><span class="o">.</span><span class="n">idx2_ax</span>  <span class="o">=</span> <span class="n">idx2_ax</span>   <span class="c"># (M x 1) Index into the aid_list</span>
-        <span class="n">windex</span><span class="o">.</span><span class="n">idx2_fx</span>  <span class="o">=</span> <span class="n">idx2_fx</span>   <span class="c"># (M x 1) Index into the annot&#39;s features</span>
-        <span class="n">windex</span><span class="o">.</span><span class="n">flann</span>    <span class="o">=</span> <span class="n">flann</span>     <span class="c"># Approximate search structure</span>
+        <span class="n">windex</span><span class="o">.</span><span class="n">ax2_aid</span>  <span class="o">=</span> <span class="n">ax2_aid</span>   <span class="c1"># (A x 1) Mapping to original annot ids</span>
+        <span class="n">windex</span><span class="o">.</span><span class="n">idx2_vec</span> <span class="o">=</span> <span class="n">idx2_vec</span>  <span class="c1"># (M x D) Descriptors to index</span>
+        <span class="n">windex</span><span class="o">.</span><span class="n">idx2_ax</span>  <span class="o">=</span> <span class="n">idx2_ax</span>   <span class="c1"># (M x 1) Index into the aid_list</span>
+        <span class="n">windex</span><span class="o">.</span><span class="n">idx2_fx</span>  <span class="o">=</span> <span class="n">idx2_fx</span>   <span class="c1"># (M x 1) Index into the annot&#39;s features</span>
+        <span class="n">windex</span><span class="o">.</span><span class="n">flann</span>    <span class="o">=</span> <span class="n">flann</span>     <span class="c1"># Approximate search structure</span>
 
 <div class="viewcode-block" id="WordIndex.knn"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.word_index.WordIndex.knn">[docs]</a>    <span class="k">def</span> <span class="nf">knn</span><span class="p">(</span><span class="n">windex</span><span class="p">,</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">checks</span><span class="o">=</span><span class="mi">1028</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -305,7 +305,7 @@
         <span class="n">new_ax_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nAnnots</span><span class="p">,</span> <span class="n">nAnnots</span> <span class="o">+</span> <span class="n">nNew</span><span class="p">)</span>
         <span class="n">new_idx2_vec</span><span class="p">,</span> <span class="n">new_idx2_ax</span><span class="p">,</span> <span class="n">new_idx2_fx</span> <span class="o">=</span> \
                 <span class="n">invert_index</span><span class="p">(</span><span class="n">new_vecs_list</span><span class="p">,</span> <span class="n">new_ax_list</span><span class="p">)</span>
-        <span class="c"># Stack inverted information</span>
+        <span class="c1"># Stack inverted information</span>
         <span class="n">_ax2_aid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">windex</span><span class="o">.</span><span class="n">ax2_aid</span><span class="p">,</span> <span class="n">new_aid_list</span><span class="p">))</span>
         <span class="n">_idx2_ax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">windex</span><span class="o">.</span><span class="n">idx2_ax</span><span class="p">,</span> <span class="n">new_idx2_ax</span><span class="p">))</span>
         <span class="n">_idx2_fx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">windex</span><span class="o">.</span><span class="n">idx2_fx</span><span class="p">,</span> <span class="n">new_idx2_fx</span><span class="p">))</span>
@@ -314,9 +314,9 @@
         <span class="n">windex</span><span class="o">.</span><span class="n">idx2_ax</span>  <span class="o">=</span> <span class="n">_idx2_ax</span>
         <span class="n">windex</span><span class="o">.</span><span class="n">idx2_vec</span> <span class="o">=</span> <span class="n">_idx2_vec</span>
         <span class="n">windex</span><span class="o">.</span><span class="n">idx2_fx</span>  <span class="o">=</span> <span class="n">_idx2_fx</span>
-        <span class="c">#windex.idx2_kpts   = None</span>
-        <span class="c">#windex.idx2_oris   = None</span>
-        <span class="c"># Add new points to flann structure</span>
+        <span class="c1">#windex.idx2_kpts   = None</span>
+        <span class="c1">#windex.idx2_oris   = None</span>
+        <span class="c1"># Add new points to flann structure</span>
         <span class="n">windex</span><span class="o">.</span><span class="n">flann</span><span class="o">.</span><span class="n">add_points</span><span class="p">(</span><span class="n">new_idx2_vec</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="WordIndex.num_indexed_vecs"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.word_index.WordIndex.num_indexed_vecs">[docs]</a>    <span class="k">def</span> <span class="nf">num_indexed_vecs</span><span class="p">(</span><span class="n">windex</span><span class="p">):</span>
@@ -326,7 +326,7 @@
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">windex</span><span class="o">.</span><span class="n">ax2_aid</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="WordIndex.get_nn_axs"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.word_index.WordIndex.get_nn_axs">[docs]</a>    <span class="k">def</span> <span class="nf">get_nn_axs</span><span class="p">(</span><span class="n">windex</span><span class="p">,</span> <span class="n">qfx2_nnidx</span><span class="p">):</span>
-        <span class="c">#return windex.idx2_ax[qfx2_nnidx]</span>
+        <span class="c1">#return windex.idx2_ax[qfx2_nnidx]</span>
         <span class="k">return</span> <span class="n">windex</span><span class="o">.</span><span class="n">idx2_ax</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="WordIndex.get_nn_aids"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.word_index.WordIndex.get_nn_aids">[docs]</a>    <span class="k">def</span> <span class="nf">get_nn_aids</span><span class="p">(</span><span class="n">windex</span><span class="p">,</span> <span class="n">qfx2_nnidx</span><span class="p">):</span>
@@ -339,8 +339,8 @@
 <span class="sd">            ndarray: qfx2_aid - (N x K) qfx2_fx[n][k] is the annotation id index</span>
 <span class="sd">                of the kth approximate nearest data vector</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c">#qfx2_ax = windex.idx2_ax[qfx2_nnidx]</span>
-        <span class="c">#qfx2_aid = windex.ax2_aid[qfx2_ax]</span>
+        <span class="c1">#qfx2_ax = windex.idx2_ax[qfx2_nnidx]</span>
+        <span class="c1">#qfx2_aid = windex.ax2_aid[qfx2_ax]</span>
         <span class="n">qfx2_ax</span> <span class="o">=</span> <span class="n">windex</span><span class="o">.</span><span class="n">idx2_ax</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">)</span>
         <span class="n">qfx2_aid</span> <span class="o">=</span> <span class="n">windex</span><span class="o">.</span><span class="n">ax2_aid</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qfx2_ax</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">qfx2_aid</span>
@@ -355,7 +355,7 @@
 <span class="sd">            ndarray: qfx2_fx - (N x K) qfx2_fx[n][k] is the feature index (w.r.t</span>
 <span class="sd">                the source annotation) of the kth approximate nearest data vector</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c">#return windex.idx2_fx[qfx2_nnidx]</span>
+        <span class="c1">#return windex.idx2_fx[qfx2_nnidx]</span>
         <span class="k">return</span> <span class="n">windex</span><span class="o">.</span><span class="n">idx2_fx</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">)</span>
 
 </div></div>
@@ -364,17 +364,17 @@
 <span class="sd">    Aggregates descriptors of input annotations and returns inverted information</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hsnbrx] stacking descriptors from </span><span class="si">%d</span><span class="s"> annotations&#39;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[hsnbrx] stacking descriptors from </span><span class="si">%d</span><span class="s1"> annotations&#39;</span>
                 <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">ax_list</span><span class="p">))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_ax</span><span class="p">,</span> <span class="n">idx2_fx</span> <span class="o">=</span> <span class="n">nntool</span><span class="o">.</span><span class="n">invertible_stack</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">,</span> <span class="n">ax_list</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">idx2_vec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">idx2_ax</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">assert</span> <span class="n">idx2_vec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">idx2_fx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">except</span> <span class="ne">MemoryError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;cannot build inverted index&#39;</span><span class="p">,</span> <span class="s">&#39;[!memerror]&#39;</span><span class="p">)</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;cannot build inverted index&#39;</span><span class="p">,</span> <span class="s1">&#39;[!memerror]&#39;</span><span class="p">)</span>
         <span class="k">raise</span>
     <span class="k">if</span> <span class="n">utool</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;stacked nVecs={nVecs} from nAnnots={nAnnots}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;stacked nVecs={nVecs} from nAnnots={nAnnots}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">nVecs</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">),</span> <span class="n">nAnnots</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">ax_list</span><span class="p">)))</span>
     <span class="k">return</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">idx2_ax</span><span class="p">,</span> <span class="n">idx2_fx</span>
 
@@ -386,10 +386,10 @@
     <span class="k">return</span> <span class="n">aggvlad_norm</span>
 
 
-<span class="c">#if __name__ == &#39;__main__&#39;:</span>
-<span class="c">#    #python -m doctest -v ibeis/model/hots/word_index.py</span>
-<span class="c">#    import doctest</span>
-<span class="c">#    doctest.testmod()</span></div>
+<span class="c1">#if __name__ == &#39;__main__&#39;:</span>
+<span class="c1">#    #python -m doctest -v ibeis/model/hots/word_index.py</span>
+<span class="c1">#    import doctest</span>
+<span class="c1">#    doctest.testmod()</span></div>
 </pre></div>
 
            </div>
@@ -423,7 +423,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

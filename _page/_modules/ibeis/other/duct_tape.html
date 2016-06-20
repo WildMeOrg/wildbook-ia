@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.other.duct_tape &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.other.duct_tape &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.other" href="../other.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,32 +131,32 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.other.duct_tape</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c"># developer convenience functions for ibs</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># developer convenience functions for ibs</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[duct_tape]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[duct_tape]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="fix_compname_configs"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.duct_tape.fix_compname_configs">[docs]</a><span class="k">def</span> <span class="nf">fix_compname_configs</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; duct tape to keep version in check &quot;&quot;&quot;</span>
-    <span class="c">#ibs.MANUAL_CONFIG_SUFFIX = &#39;_MANUAL_&#39;  #+ ut.get_computer_name()</span>
-    <span class="c">#ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)</span>
-    <span class="c"># We need to fix the manual config suffix to not use computer names anymore</span>
+    <span class="c1">#ibs.MANUAL_CONFIG_SUFFIX = &#39;_MANUAL_&#39;  #+ ut.get_computer_name()</span>
+    <span class="c1">#ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)</span>
+    <span class="c1"># We need to fix the manual config suffix to not use computer names anymore</span>
 
     <span class="n">configid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_configids</span><span class="p">()</span>
     <span class="n">cfgsuffix_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_config_suffixes</span><span class="p">(</span><span class="n">configid_list</span><span class="p">)</span>
 
-    <span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIG_SUFFIX</span> <span class="o">=</span> <span class="s">&#39;MANUAL_CONFIG&#39;</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIG_SUFFIX</span> <span class="o">=</span> <span class="s1">&#39;MANUAL_CONFIG&#39;</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIGID</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_config</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIG_SUFFIX</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tup</span><span class="p">:</span>
-                                <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;_MANUAL_&#39;</span><span class="p">),</span>
+                                <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_MANUAL_&#39;</span><span class="p">),</span>
                                 <span class="nb">zip</span><span class="p">(</span><span class="n">configid_list</span><span class="p">,</span> <span class="n">cfgsuffix_list</span><span class="p">)):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&quot;EVALUATING: </span><span class="si">%r</span><span class="s">, </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
-        <span class="c"># Fix the tables with bad config_rowids</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;EVALUATING: </span><span class="si">%r</span><span class="s2">, </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rowid</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
+        <span class="c1"># Fix the tables with bad config_rowids</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
             <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            UPDATE {AL_RELATION_TABLE}</span>
@@ -165,7 +165,7 @@
 <span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">const</span><span class="o">.</span><span class="n">__dict__</span><span class="p">),</span>
             <span class="n">params</span><span class="o">=</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIGID</span><span class="p">,</span> <span class="n">rowid</span><span class="p">))</span>
 
-        <span class="c"># Delete the bad config_suffixes</span>
+        <span class="c1"># Delete the bad config_suffixes</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
             <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">            DELETE</span>
@@ -186,14 +186,14 @@
                          <span class="n">delete_invalid_eg_relations</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                          <span class="n">delete_invalid_gl_relations</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                          <span class="n">delete_invalid_al_relations</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="c"># ZERO ORDER</span>
+    <span class="c1"># ZERO ORDER</span>
     <span class="k">if</span> <span class="n">delete_empty_names</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">delete_empty_imagesets</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_imgsetids</span><span class="p">()</span>
 
-    <span class="c"># FIRST ORDER</span>
+    <span class="c1"># FIRST ORDER</span>
     <span class="k">if</span> <span class="n">delete_annotations_for_missing_images</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
             <span class="sd">&#39;&#39;&#39;</span>
@@ -221,7 +221,7 @@
 <span class="sd">                lbltype_rowid NOT IN (SELECT rowid FROM {LBLTYPE_TABLE})</span>
 <span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">const</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
 
-    <span class="c"># SECOND ORDER</span>
+    <span class="c1"># SECOND ORDER</span>
     <span class="k">if</span> <span class="n">delete_chips_for_missing_annotations</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
             <span class="sd">&#39;&#39;&#39;</span>
@@ -230,7 +230,7 @@
 <span class="sd">            WHERE</span>
 <span class="sd">                annot_rowid NOT IN (SELECT rowid FROM {ANNOTATION_TABLE})</span>
 <span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">const</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
-        <span class="c"># OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})</span>
+        <span class="c1"># OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})</span>
 
     <span class="k">if</span> <span class="n">delete_features_for_missing_annotations</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
@@ -240,7 +240,7 @@
 <span class="sd">            WHERE</span>
 <span class="sd">                chip_rowid NOT IN (SELECT rowid FROM {CHIP_TABLE})</span>
 <span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">const</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
-        <span class="c"># OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})</span>
+        <span class="c1"># OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})</span>
 
     <span class="k">if</span> <span class="n">delete_invalid_eg_relations</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
@@ -252,7 +252,7 @@
 <span class="sd">                imageset_rowid NOT IN (SELECT rowid FROM {IMAGESET_TABLE})</span>
 <span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">const</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
 
-    <span class="c"># THIRD ORDER</span>
+    <span class="c1"># THIRD ORDER</span>
     <span class="k">if</span> <span class="n">delete_invalid_gl_relations</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
             <span class="sd">&#39;&#39;&#39;</span>
@@ -262,7 +262,7 @@
 <span class="sd">                image_rowid NOT IN (SELECT rowid FROM {IMAGE_TABLE}) OR</span>
 <span class="sd">                lblimage_rowid NOT IN (SELECT rowid FROM {LBLIMAGE_TABLE})</span>
 <span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">const</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
-        <span class="c"># OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})</span>
+        <span class="c1"># OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})</span>
 
     <span class="k">if</span> <span class="n">delete_invalid_al_relations</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">executeone</span><span class="p">(</span>
@@ -273,7 +273,7 @@
 <span class="sd">                annot_rowid NOT IN (SELECT rowid FROM {ANNOTATION_TABLE}) OR</span>
 <span class="sd">                lblannot_rowid NOT IN (SELECT rowid FROM {LBLANNOT_TABLE})</span>
 <span class="sd">            &#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">const</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
-        <span class="c"># OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})</span>
+        <span class="c1"># OR config_rowid NOT IN (SELECT rowid FROM {CONFIG_TABLE})</span>
 
 </div>
 <div class="viewcode-block" id="enforce_unkonwn_name_is_explicit"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.duct_tape.enforce_unkonwn_name_is_explicit">[docs]</a><span class="k">def</span> <span class="nf">enforce_unkonwn_name_is_explicit</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -282,8 +282,8 @@
     <span class="n">problem_nids</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span> <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">nid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">text_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span> <span class="k">if</span> <span class="n">text</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span><span class="p">]</span>
     <span class="n">unknown_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">problem_nids</span><span class="p">)</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">unknown_aids</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
-    <span class="c"># TODO Take unknown_aids and remove any name relationships to make unknown</span>
-    <span class="c"># implicit</span>
+    <span class="c1"># TODO Take unknown_aids and remove any name relationships to make unknown</span>
+    <span class="c1"># implicit</span>
 
 </div>
 <div class="viewcode-block" id="fix_nulled_yaws"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.duct_tape.fix_nulled_yaws">[docs]</a><span class="k">def</span> <span class="nf">fix_nulled_yaws</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -291,8 +291,36 @@
     <span class="n">yaw_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_yaws</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">valid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">yaw</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">yaw</span> <span class="ow">in</span> <span class="n">yaw_list</span><span class="p">]</span>
     <span class="n">dirty_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;[duct_tape] Nulling </span><span class="si">%d</span><span class="s"> annotation yaws&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_aid_list</span><span class="p">))</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_yaws</span><span class="p">(</span><span class="n">dirty_aid_list</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_aid_list</span><span class="p">))</span></div>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;[duct_tape] Nulling </span><span class="si">%d</span><span class="s2"> annotation yaws&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_aid_list</span><span class="p">))</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_yaws</span><span class="p">(</span><span class="n">dirty_aid_list</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirty_aid_list</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="parse_and_update_image_exif_orientations"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.duct_tape.parse_and_update_image_exif_orientations">[docs]</a><span class="k">def</span> <span class="nf">parse_and_update_image_exif_orientations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>  <span class="c1"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_image</span> <span class="kn">import</span> <span class="n">parse_exif</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span>
+
+    <span class="k">def</span> <span class="nf">_parse_orient</span><span class="p">(</span><span class="n">gpath</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[db_update (1.5.2)]     Parsing: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+        <span class="n">time</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">orient</span> <span class="o">=</span> <span class="n">parse_exif</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>  <span class="c1"># Read exif tags</span>
+        <span class="k">return</span> <span class="n">orient</span>
+
+    <span class="c1"># Get images without orientations and add to the database</span>
+    <span class="n">gid_list_all</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list_all</span><span class="p">)</span>
+    <span class="n">valid_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">exists</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list</span> <span class="p">]</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_items</span><span class="p">(</span><span class="n">gid_list_all</span><span class="p">,</span> <span class="n">valid_list</span><span class="p">)</span>
+
+    <span class="n">orient_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_orientation</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">orient_list</span><span class="p">)</span>
+    <span class="n">gid_list_</span> <span class="o">=</span> <span class="p">[</span> <span class="n">gid</span> <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">orient</span> <span class="ow">in</span> <span class="n">zipped</span> <span class="k">if</span> <span class="n">orient</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="bp">None</span><span class="p">]</span> <span class="p">]</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_all</span><span class="p">),</span> <span class="n">valid_list</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">False</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[db_update (1.5.2)] Parsing Exif orientations for </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> images (skipping </span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="n">gpath_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+    <span class="n">orient_list_</span> <span class="o">=</span> <span class="p">[</span> <span class="n">_parse_orient</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">gpath</span> <span class="ow">in</span> <span class="n">gpath_list_</span> <span class="p">]</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_orientation</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">orient_list_</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -326,7 +354,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

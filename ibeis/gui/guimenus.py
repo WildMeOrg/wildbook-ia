@@ -153,7 +153,7 @@ def setup_actions_menu(mainwin, back):
         name='actionCompute_Occurrences',
         text='Group Occurrences',
         #shortcut='Ctrl+2',
-        slot_fn=back.compute_occurrences)
+        slot_fn=back.do_group_occurrence_step)
     menu.addSeparator()  # ---------
     menu.newAction(
         name='actionDetect',

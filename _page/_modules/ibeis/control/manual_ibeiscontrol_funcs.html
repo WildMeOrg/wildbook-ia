@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_ibeiscontrol_funcs &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.control.manual_ibeiscontrol_funcs &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,16 +131,16 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.control.manual_ibeiscontrol_funcs</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
-<span class="c">#from ibeis import constants as const</span>
-<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span>  <span class="c"># NOQA</span>
+<span class="c1">#from ibeis import constants as const</span>
+<span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_newfuncs]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[manual_newfuncs]&#39;</span><span class="p">)</span>
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 
@@ -225,7 +225,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="get_vocab_cfgstr"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.get_vocab_cfgstr">[docs]</a><span class="k">def</span> <span class="nf">get_vocab_cfgstr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">taids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="c"># TODO: change into config_rowid</span>
+    <span class="c1"># TODO: change into config_rowid</span>
     <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">cfg</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
         <span class="n">vocab_cfgstr_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vocabtrain_cfgstr</span>
@@ -236,14 +236,14 @@
         <span class="n">feat_cfgstr_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">taids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_taids</span> <span class="o">==</span> <span class="s">&#39;all&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_taids</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
             <span class="n">taids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c"># FIXME Preferences cannot currently handle lists</span>
-            <span class="c"># TODO: Incorporated taids (vocab training ids) into qreq</span>
+            <span class="c1"># FIXME Preferences cannot currently handle lists</span>
+            <span class="c1"># TODO: Incorporated taids (vocab training ids) into qreq</span>
             <span class="n">taids</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_taids</span>
 
-    <span class="n">tannot_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">taids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;T&#39;</span><span class="p">)</span>
+    <span class="n">tannot_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">taids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;T&#39;</span><span class="p">)</span>
     <span class="n">vocab_cfgstr</span> <span class="o">=</span> <span class="n">vocab_cfgstr_</span> <span class="o">+</span> <span class="n">tannot_hashid</span> <span class="o">+</span> <span class="n">feat_cfgstr_</span>
     <span class="k">return</span> <span class="n">vocab_cfgstr</span>
 
@@ -261,53 +261,53 @@
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid_list = ibs.get_valid_aids()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;no temp state!&#39;</span><span class="p">)</span>
-    <span class="c">#from vtool import clustering2 as clustertool</span>
-    <span class="c">#import numpy as np</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;no temp state!&#39;</span><span class="p">)</span>
+    <span class="c1">#from vtool import clustering2 as clustertool</span>
+    <span class="c1">#import numpy as np</span>
     <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">cfg</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">smk_cfg</span><span class="o">.</span><span class="n">vocabtrain_cfg</span>
 
     <span class="k">if</span> <span class="n">taids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_taids</span> <span class="o">==</span> <span class="s">&#39;all&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_taids</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
             <span class="n">taids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c"># FIXME Preferences cannot currently handle lists</span>
-            <span class="c"># TODO: Incorporated taids (vocab training ids) into qreq</span>
+            <span class="c1"># FIXME Preferences cannot currently handle lists</span>
+            <span class="c1"># TODO: Incorporated taids (vocab training ids) into qreq</span>
             <span class="n">taids</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">vocab_taids</span>
 
     <span class="n">vocab_cfgstr</span> <span class="o">=</span> <span class="n">get_vocab_cfgstr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">taids</span><span class="o">=</span><span class="n">taids</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
     <span class="n">vocab_cfgstr</span>
 
-    <span class="c">#if vocab_cfgstr not in ibs.temporary_state:</span>
-    <span class="c">#    nWords = cfg.nWords</span>
-    <span class="c">#    initmethod   = cfg.vocab_init_method</span>
-    <span class="c">#    max_iters    = cfg.vocab_nIters</span>
-    <span class="c">#    flann_params = cfg.vocab_flann_params</span>
+    <span class="c1">#if vocab_cfgstr not in ibs.temporary_state:</span>
+    <span class="c1">#    nWords = cfg.nWords</span>
+    <span class="c1">#    initmethod   = cfg.vocab_init_method</span>
+    <span class="c1">#    max_iters    = cfg.vocab_nIters</span>
+    <span class="c1">#    flann_params = cfg.vocab_flann_params</span>
 
-    <span class="c">#    train_vecs_list = ibs.get_annot_vecs(taids, eager=True)</span>
-    <span class="c">#    # Stack vectors</span>
-    <span class="c">#    train_vecs = np.vstack(train_vecs_list)</span>
-    <span class="c">#    del train_vecs_list</span>
-    <span class="c">#    print(&#39;[get_vocab_words] Train Vocab(nWords=%d) using %d annots and %d descriptors&#39; %</span>
-    <span class="c">#          (nWords, len(taids), len(train_vecs)))</span>
-    <span class="c">#    kwds = dict(max_iters=max_iters, initmethod=initmethod,</span>
-    <span class="c">#                appname=&#39;smk&#39;, flann_params=flann_params)</span>
-    <span class="c">#    words = clustertool.cached_akmeans(train_vecs, nWords, **kwds)</span>
-    <span class="c">#    # Cache words in temporary state</span>
-    <span class="c">#    ibs.temporary_state[vocab_cfgstr] = words</span>
-    <span class="c">#    del train_vecs</span>
-    <span class="c">#else:</span>
-    <span class="c">#    words = ibs.temporary_state[vocab_cfgstr]</span>
-    <span class="c">#return words</span>
+    <span class="c1">#    train_vecs_list = ibs.get_annot_vecs(taids, eager=True)</span>
+    <span class="c1">#    # Stack vectors</span>
+    <span class="c1">#    train_vecs = np.vstack(train_vecs_list)</span>
+    <span class="c1">#    del train_vecs_list</span>
+    <span class="c1">#    print(&#39;[get_vocab_words] Train Vocab(nWords=%d) using %d annots and %d descriptors&#39; %</span>
+    <span class="c1">#          (nWords, len(taids), len(train_vecs)))</span>
+    <span class="c1">#    kwds = dict(max_iters=max_iters, initmethod=initmethod,</span>
+    <span class="c1">#                appname=&#39;smk&#39;, flann_params=flann_params)</span>
+    <span class="c1">#    words = clustertool.cached_akmeans(train_vecs, nWords, **kwds)</span>
+    <span class="c1">#    # Cache words in temporary state</span>
+    <span class="c1">#    ibs.temporary_state[vocab_cfgstr] = words</span>
+    <span class="c1">#    del train_vecs</span>
+    <span class="c1">#else:</span>
+    <span class="c1">#    words = ibs.temporary_state[vocab_cfgstr]</span>
+    <span class="c1">#return words</span>
 
-<span class="c">#@register_ibs_method</span>
-<span class="c">#def get_vocab_assignments(ibs, qreq_=None):</span>
-<span class="c">#    pass</span>
+<span class="c1">#@register_ibs_method</span>
+<span class="c1">#def get_vocab_assignments(ibs, qreq_=None):</span>
+<span class="c1">#    pass</span>
 
 
-<span class="c">#@ut.time_func</span></div>
+<span class="c1">#@ut.time_func</span></div>
 <span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="get_annot_kpts_distinctiveness"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.get_annot_kpts_distinctiveness">[docs]</a><span class="k">def</span> <span class="nf">get_annot_kpts_distinctiveness</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -348,21 +348,21 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">distinctiveness_normalizer</span> <span class="k">as</span> <span class="n">dcvs_normer</span>
 
-    <span class="c"># per-species disinctivness wrapper around ibeis cached function</span>
-    <span class="c"># get feature rowids</span>
+    <span class="c1"># per-species disinctivness wrapper around ibeis cached function</span>
+    <span class="c1"># get feature rowids</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">fid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_feat_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                                                   <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                                                   <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">))</span>
     <span class="n">species_rowid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
-    <span class="c"># Compute distinctivness separately for each species</span>
+    <span class="c1"># Compute distinctivness separately for each species</span>
     <span class="n">unique_sids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">species_rowid_list</span><span class="p">)</span>
     <span class="n">fids_groups</span>          <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">fid_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
     <span class="n">species_text_list</span>    <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_species_texts</span><span class="p">(</span><span class="n">unique_sids</span><span class="p">)</span>
-    <span class="c"># Map distinctivness computation</span>
+    <span class="c1"># Map distinctivness computation</span>
     <span class="n">normer_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">dcvs_normer</span><span class="o">.</span><span class="n">request_species_distinctiveness_normalizer</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
                    <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">species_text_list</span><span class="p">]</span>
-    <span class="c"># Reduce to get results</span>
+    <span class="c1"># Reduce to get results</span>
     <span class="n">dstncvs_groups</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">get_feat_kpts_distinctiveness</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fids</span><span class="p">,</span> <span class="n">dstncvs_normer</span><span class="o">=</span><span class="n">dstncvs_normer</span><span class="p">,</span>
                                       <span class="n">species_rowid</span><span class="o">=</span><span class="n">sid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -372,12 +372,12 @@
     <span class="k">return</span> <span class="n">dstncvs_list</span>
 
 
-<span class="c">#dcvs_cfgkeys = dcvs_normer.DCVS_DEFAULT.get_varnames() + [&#39;species_rowid&#39;]</span>
-<span class="c">#dcvs_colname = dcvs_normer.DCVS_DEFAULT.name</span>
+<span class="c1">#dcvs_cfgkeys = dcvs_normer.DCVS_DEFAULT.get_varnames() + [&#39;species_rowid&#39;]</span>
+<span class="c1">#dcvs_colname = dcvs_normer.DCVS_DEFAULT.name</span>
 
-<span class="c">#@accessor_decors.cache_getter(const.FEATURE_TABLE, dcvs_colname, cfgkeys=dcvs_cfgkeys, debug=None)</span></div>
+<span class="c1">#@accessor_decors.cache_getter(const.FEATURE_TABLE, dcvs_colname, cfgkeys=dcvs_cfgkeys, debug=None)</span></div>
 <div class="viewcode-block" id="get_feat_kpts_distinctiveness"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_ibeiscontrol_funcs.get_feat_kpts_distinctiveness">[docs]</a><span class="k">def</span> <span class="nf">get_feat_kpts_distinctiveness</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">dstncvs_normer</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">species_rowid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="c">#print(&#39;[ibs] get_feat_kpts_distinctiveness fid_list=%r&#39; % (fid_list,))</span>
+    <span class="c1">#print(&#39;[ibs] get_feat_kpts_distinctiveness fid_list=%r&#39; % (fid_list,))</span>
     <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_feat_vecs</span><span class="p">(</span><span class="n">fid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
     <span class="n">dstncvs_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span> <span class="k">if</span> <span class="n">vecs</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span>
                     <span class="n">dstncvs_normer</span><span class="o">.</span><span class="n">get_distinctiveness</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">vecs</span>
@@ -400,7 +400,7 @@
     <span class="k">return</span> <span class="n">viz_image</span><span class="o">.</span><span class="n">show_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.manual_ibeiscontrol_funcs</span>
@@ -408,8 +408,8 @@
 <span class="sd">        python -m ibeis.control.manual_ibeiscontrol_funcs --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -444,7 +444,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

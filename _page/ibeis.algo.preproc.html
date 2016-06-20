@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.preproc package &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.preproc package &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="index.html"/>
         <link rel="up" title="ibeis.algo package" href="ibeis.algo.html"/>
         <link rel="next" title="ibeis.control package" href="ibeis.control.html"/>
         <link rel="prev" title="ibeis.algo.hots.smk package" href="ibeis.algo.hots.smk.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -113,14 +113,15 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_annots">ibeis.core_annots module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_images">ibeis.core_images module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.new_annots">ibeis.new_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workflow">ibeis.workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workspace">ibeis.workspace module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -177,312 +178,139 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ibeis.algo.preproc.old_chip_preproc">
-<span id="ibeis-algo-preproc-old-chip-preproc-module"></span><h2>ibeis.algo.preproc.old_chip_preproc module<a class="headerlink" href="#module-ibeis.algo.preproc.old_chip_preproc" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ibeis.algo.preproc.occurrence_blackbox">
+<span id="ibeis-algo-preproc-occurrence-blackbox-module"></span><h2>ibeis.algo.preproc.occurrence_blackbox module<a class="headerlink" href="#module-ibeis.algo.preproc.occurrence_blackbox" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
-<dt id="ibeis.algo.preproc.old_chip_preproc.compute_and_write_chips">
-<code class="descclassname">ibeis.algo.preproc.old_chip_preproc.</code><code class="descname">compute_and_write_chips</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/old_chip_preproc.html#compute_and_write_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.old_chip_preproc.compute_and_write_chips" title="Permalink to this definition">¶</a></dt>
-<dd><p>Starts the compute chip process</p>
+<dt id="ibeis.algo.preproc.occurrence_blackbox.cluster_timespace">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">cluster_timespace</code><span class="sig-paren">(</span><em>X_data</em>, <em>thresh</em>, <em>km_per_sec=0.02</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#cluster_timespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.cluster_timespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Agglometerative clustering of time/space data</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; ibeis controller object</li>
-<li><strong>aid_list</strong> (<em>list</em>) &#8211; list of annotation rowids</li>
-<li><strong>config2</strong> (<em>dict</em>) &#8211; (default = None)</li>
+<li><strong>X_data</strong> (<em>ndarray</em>) &#8211; Nx3 array where columns are (seconds, lat, lon)</li>
+<li><strong>thresh</strong> (<em>float</em>) &#8211; threshold in kilometers</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_chip --test-compute_and_write_chips
-</pre></div>
-</div>
+<p class="rubric">References</p>
 <dl class="docutils">
-<dt>FIXME: THERE IS A FREEZE THAT HAPPENS HERE</dt>
-<dd>./reset_dbs.py
-python -m ibeis.expt.harness &#8211;exec-precompute_test_configuration_features -t custom &#8211;expt-preload</dd>
+<dt><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/</a></dt>
+<dd>scipy.cluster.hierarchy.linkage.html
+scipy.cluster.hierarchy.fcluster.html</dd>
 </dl>
+<p class="rubric">Notes</p>
+<p># Visualize spots
+<a class="reference external" href="http://www.darrinward.com/lat-long/?id=2009879">http://www.darrinward.com/lat-long/?id=2009879</a></p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">testdata_ibeis</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># delete chips</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_chips</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># ensure they were deleted</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">cid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">cid_list</span><span class="p">]),</span> <span class="s">&#39;should be gone&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chip_result_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">compute_and_write_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cfpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">chip_result_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cfname_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">lmap</span><span class="p">(</span><span class="n">basename</span><span class="p">,</span> <span class="n">cfpath_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">cfname_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># cids should still be None. IBEIS does not know we computed chips</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">cid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">cid_list</span><span class="p">]),</span> <span class="s">&#39;should be gone&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Now this function should have been executed again implictly</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_fpath</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">cfpath_list</span><span class="p">,</span> <span class="s">&#39;should be what we had before&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx1 matrix denoting groundtruth locations (for testing)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_name</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Nx3 matrix where each columns are (time, lat, lon)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.727985</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.683994</span><span class="p">),</span>  <span class="c1"># MRC</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.657414</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.774448</span><span class="p">),</span>  <span class="c1"># Park1</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.658333</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.770993</span><span class="p">),</span>  <span class="c1"># Park2</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.654384</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.768919</span><span class="p">),</span>  <span class="c1"># Park3</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.655039</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.769048</span><span class="p">),</span>  <span class="c1"># Park4</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.657872</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.764148</span><span class="p">),</span>  <span class="c1"># Park5</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.876974</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.819311</span><span class="p">),</span>  <span class="c1"># CP1</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.862946</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.804977</span><span class="p">),</span>  <span class="c1"># CP2</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">42.849809</span><span class="p">,</span> <span class="o">-</span><span class="mf">73.758486</span><span class="p">),</span>  <span class="c1"># CP3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh</span> <span class="o">=</span> <span class="mf">5.0</span>  <span class="c1"># kilometers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_labels</span> <span class="o">=</span> <span class="n">cluster_timespace</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;X_labels = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">X_labels</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">X_labels = array([3, 2, 2, 2, 2, 2, 1, 1, 1], dtype=int32)</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.algo.preproc.old_chip_preproc.compute_and_write_chips_lazy">
-<code class="descclassname">ibeis.algo.preproc.old_chip_preproc.</code><code class="descname">compute_and_write_chips_lazy</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/old_chip_preproc.html#compute_and_write_chips_lazy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.old_chip_preproc.compute_and_write_chips_lazy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Spanws compute chip procesess if a chip does not exist on disk</p>
-<p>DEPRICATE</p>
-<p>This is regardless of if it exists in the SQL database</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; </li>
-<li><strong>aid_list</strong> (<em>list</em>) &#8211; </li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.old_chip_preproc.compute_or_read_annotation_chips">
-<code class="descclassname">ibeis.algo.preproc.old_chip_preproc.</code><code class="descname">compute_or_read_annotation_chips</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>ensure=True</em>, <em>config2_=None</em>, <em>verbose=False</em>, <em>eager=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/old_chip_preproc.html#compute_or_read_annotation_chips"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.old_chip_preproc.compute_or_read_annotation_chips" title="Permalink to this definition">¶</a></dt>
-<dd><p>SUPER HACY FUNCTION. NEED TO DEPRICATE</p>
-<p>Found 1 line(s) in &#8216;ibeis/algo/preproc/preproc_chip.py&#8217;:
-preproc_chip.py :  25 <a href="#id1"><span class="problematic" id="id2">|</span></a>def compute_or_read_annotation_chips(ibs, aid_list,
-ensure=True):
-&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;&#8212;-
-Found 1 line(s) in &#8216;ibeis/control/manual_chip_funcs.py&#8217;:
-manual_chip_funcs.py : 313 |    chip_list =
-preproc_chip.compute_or_read_annotation_chips(ibs, aid_list, ensure=ensure)</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.old_chip_preproc.compute_or_read_chip_images">
-<code class="descclassname">ibeis.algo.preproc.old_chip_preproc.</code><code class="descname">compute_or_read_chip_images</code><span class="sig-paren">(</span><em>ibs</em>, <em>cid_list</em>, <em>ensure=True</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/old_chip_preproc.html#compute_or_read_chip_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.old_chip_preproc.compute_or_read_chip_images" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads chips and tries to compute them if they do not exist</p>
+<dt id="ibeis.algo.preproc.occurrence_blackbox.haversine">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">haversine</code><span class="sig-paren">(</span><em>latlon1</em>, <em>latlon2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#haversine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.haversine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the great circle distance between two points
+on the earth (specified in decimal degrees)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; </li>
-<li><strong>cid_list</strong> (<em>list</em>) &#8211; </li>
-<li><strong>ensure</strong> (<em>bool</em>) &#8211; </li>
+<li><strong>latlon1</strong> (<em>tuple</em>) &#8211; (lat, lon)</li>
+<li><strong>latlon2</strong> (<em>tuple</em>) &#8211; (lat, lon)</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">chip_list</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">distance in kilometers</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_chip --test-compute_or_read_chip_images
-</pre></div>
-</div>
+<p class="rubric">References</p>
+<p>en.wikipedia.org/wiki/Haversine_formula
+gis.stackexchange.com/questions/81551/matching-gps-tracks
+stackoverflow.com/questions/4913349/haversine-distance-gps-points</p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">testdata_ibeis</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chip_list</span> <span class="o">=</span> <span class="n">compute_or_read_chip_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">chip_list</span><span class="p">)))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">as</span> <span class="nn">spdist</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">functools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlon1</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">80.21895315</span><span class="p">,</span> <span class="o">-</span><span class="mf">158.81099213</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlon2</span> <span class="o">=</span> <span class="p">[</span>  <span class="mf">9.77816711</span><span class="p">,</span>  <span class="o">-</span><span class="mf">17.27471498</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kilometers</span> <span class="o">=</span> <span class="n">haversine</span><span class="p">(</span><span class="n">latlon1</span><span class="p">,</span> <span class="n">latlon2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;kilometers = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kilometers</span><span class="p">,))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">[1434, 2274, 12]</span>
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">testdata_ibeis</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Do a bad thing. Remove from disk without removing from sql</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Now compute_or_read_chip_images should catch the bad thing</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># we did and correct for it.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chip_list</span> <span class="o">=</span> <span class="n">compute_or_read_chip_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">chip_list</span><span class="p">)))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">[1434, 2274, 12]</span>
+<span class="go">kilometers = 11930.9093642</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
-<dt id="ibeis.algo.preproc.old_chip_preproc.gen_chip">
-<code class="descclassname">ibeis.algo.preproc.old_chip_preproc.</code><code class="descname">gen_chip</code><span class="sig-paren">(</span><em>tup</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/old_chip_preproc.html#gen_chip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.old_chip_preproc.gen_chip" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parallel worker. Crops chip out of an image, applies filters, etc</p>
-<p>THERE MAY BE AN ERROR IN HERE DUE TO IMWITE BEING INSIDE A PARALLEL FUNCTION
-BUT IT MAY BE SOMETHING ELSE?</p>
-<p>Either way we probably shouldn&#8217;t call imwrite inside here</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.old_chip_preproc.gen_chip2">
-<code class="descclassname">ibeis.algo.preproc.old_chip_preproc.</code><code class="descname">gen_chip2</code><span class="sig-paren">(</span><em>tup</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/old_chip_preproc.html#gen_chip2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.old_chip_preproc.gen_chip2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parallel worker. Crops chip out of an image, applies filters, etc</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.old_chip_preproc.generate_chip_properties">
-<code class="descclassname">ibeis.algo.preproc.old_chip_preproc.</code><code class="descname">generate_chip_properties</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/old_chip_preproc.html#generate_chip_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.old_chip_preproc.generate_chip_properties" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes parameters for SQLController adding</p>
-<p>computes chips if they do not exist.
-generates values for add_annot_chips sqlcommands</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; </li>
-<li><strong>aid_list</strong> (<em>list</em>) &#8211; </li>
-<li><strong>config2</strong> (<a class="reference internal" href="ibeis.algo.hots.html#ibeis.algo.hots.query_params.QueryParams" title="ibeis.algo.hots.query_params.QueryParams"><em>QueryParams</em></a>) &#8211; </li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_chip --test-generate_chip_properties
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">params_iter</span> <span class="o">=</span> <span class="n">generate_chip_properties</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">params_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">params_iter</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">chip_uri</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,)</span> <span class="o">=</span> <span class="n">params_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fname_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">regex_replace</span><span class="p">(</span><span class="s">&#39;auuid=.*_CHIP&#39;</span><span class="p">,</span> <span class="s">&#39;auuid={uuid}_CHIP&#39;</span><span class="p">,</span> <span class="n">chip_uri</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">fname_</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">(&#39;chip_avuuid=8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_CHIP(sz450).png&#39;, 545, 372)</span>
-</pre></div>
-</div>
-<p>(&#8216;chip_aid=1_auuid={uuid}_CHIP(sz450).png&#8217;, 545, 372)</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.old_chip_preproc.get_chip_fname_fmt">
-<code class="descclassname">ibeis.algo.preproc.old_chip_preproc.</code><code class="descname">get_chip_fname_fmt</code><span class="sig-paren">(</span><em>ibs</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/old_chip_preproc.html#get_chip_fname_fmt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.old_chip_preproc.get_chip_fname_fmt" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns format of chip file names</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; </td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">cfname_fmt</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">testdata_ibeis</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cfname_fmt</span> <span class="o">=</span> <span class="n">get_chip_fname_fmt</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">cfname_fmt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">chip_avuuid={avuuid}_CHIP(sz450).png</span>
-</pre></div>
-</div>
-<p>chip_aid=%d_bbox=%s_theta=%s_gid=%d_CHIP(sz450).png</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.old_chip_preproc.get_filter_list">
-<code class="descclassname">ibeis.algo.preproc.old_chip_preproc.</code><code class="descname">get_filter_list</code><span class="sig-paren">(</span><em>chipcfg_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/old_chip_preproc.html#get_filter_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.old_chip_preproc.get_filter_list" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.old_chip_preproc.make_annot_chip_fpath_list">
-<code class="descclassname">ibeis.algo.preproc.old_chip_preproc.</code><code class="descname">make_annot_chip_fpath_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/old_chip_preproc.html#make_annot_chip_fpath_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.old_chip_preproc.make_annot_chip_fpath_list" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.old_chip_preproc.make_annot_chip_uri_list">
-<code class="descclassname">ibeis.algo.preproc.old_chip_preproc.</code><code class="descname">make_annot_chip_uri_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/old_chip_preproc.html#make_annot_chip_uri_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.old_chip_preproc.make_annot_chip_uri_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build chip file paths based on the current IBEIS configuration</p>
-<p>A chip depends on the chip config and the parent annotation&#8217;s bounding box.
-(and technically the parent image (should we put that in the file path?)</p>
+<dt id="ibeis.algo.preproc.occurrence_blackbox.timespace_distance">
+<code class="descclassname">ibeis.algo.preproc.occurrence_blackbox.</code><code class="descname">timespace_distance</code><span class="sig-paren">(</span><em>pt1</em>, <em>pt2</em>, <em>km_per_sec=0.02</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/occurrence_blackbox.html#timespace_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.occurrence_blackbox.timespace_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes distance between two points in space and time.
+Time is converted into spatial units using km_per_sec</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; </li>
-<li><strong>aid_list</strong> (<em>list</em>) &#8211; </li>
-<li><strong>suffix</strong> (<em>None</em>) &#8211; </li>
+<li><strong>pt1</strong> (<em>tuple</em>) &#8211; (seconds, lat, lon)</li>
+<li><strong>pt2</strong> (<em>tuple</em>) &#8211; (seconds, lat, lon)</li>
+<li><strong>km_per_sec</strong> (<em>float</em>) &#8211; reasonable animal walking speed</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">cfpath_list</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">distance in kilometers</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">testdata_ibeis</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chip_uri_list</span> <span class="o">=</span> <span class="n">make_annot_chip_uri_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#fname = &#39;\n&#39;.join(map(basename, cfpath_list))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fname</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chip_uri_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">fname</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">occurrence_blackbox</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">as</span> <span class="nn">spdist</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">functools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">km_per_sec</span> <span class="o">=</span> <span class="o">.</span><span class="mo">02</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlon1</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">80.21895315</span><span class="p">,</span> <span class="o">-</span><span class="mf">158.81099213</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latlon2</span> <span class="o">=</span> <span class="p">[</span>  <span class="mf">9.77816711</span><span class="p">,</span>  <span class="o">-</span><span class="mf">17.27471498</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt1</span> <span class="o">=</span> <span class="p">[</span><span class="mf">360.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">latlon1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pt2</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">latlon2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kilometers</span> <span class="o">=</span> <span class="n">timespace_distance</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;kilometers = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kilometers</span><span class="p">,))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">chip_avuuid=8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_CHIP(sz450).png</span>
+<span class="go">kilometers = 2058.6323187</span>
 </pre></div>
 </div>
-<p>chip_aid=1_bbox=(0,0,1047,715)_theta=0.0tau_gid=1_CHIP(sz450).png</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.old_chip_preproc.on_delete">
-<code class="descclassname">ibeis.algo.preproc.old_chip_preproc.</code><code class="descname">on_delete</code><span class="sig-paren">(</span><em>ibs</em>, <em>cid_list</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/old_chip_preproc.html#on_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.old_chip_preproc.on_delete" title="Permalink to this definition">¶</a></dt>
-<dd><p>Cleans up chips on disk.  Called on delete from sql controller.</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_chip --test-on_delete
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_chip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">testdata_ibeis</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_eq</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)),</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">),</span> <span class="n">var1_name</span><span class="o">=</span><span class="s">&#39;nchips&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Run test function</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nRemoved1</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_eq</span><span class="p">(</span><span class="n">nRemoved1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">),</span> <span class="n">var1_name</span><span class="o">=</span><span class="s">&#39;nRemoved1&#39;</span><span class="p">,</span> <span class="n">var2_name</span><span class="o">=</span><span class="s">&#39;target&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nRemoved2</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_eq</span><span class="p">(</span><span class="n">nRemoved2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">var1_name</span><span class="o">=</span><span class="s">&#39;nRemoved2&#39;</span><span class="p">,</span> <span class="n">var2_name</span><span class="o">=</span><span class="s">&#39;target&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># We have done a bad thing at this point. SQL still thinks chips exist</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cid_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_chips</span><span class="p">(</span><span class="n">cid_list2</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.old_chip_preproc.testdata_ibeis">
-<code class="descclassname">ibeis.algo.preproc.old_chip_preproc.</code><code class="descname">testdata_ibeis</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/old_chip_preproc.html#testdata_ibeis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.old_chip_preproc.testdata_ibeis" title="Permalink to this definition">¶</a></dt>
-<dd><p>testdata function</p>
 </dd></dl>
 
 </div>
@@ -518,12 +346,12 @@ Tgen.sh &#8211;tbls annotations &#8211;Tcfg with_getters:True strip_docstr:False
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_annot --test-make_annot_semantic_uuid
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.preproc.preproc_annot --test-make_annot_semantic_uuid
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_annot</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_annot</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">testdata_preproc_annot</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">semantic_infotup</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_semantic_uuid_info</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">annot_semantic_uuid_list</span> <span class="o">=</span> <span class="n">make_annot_semantic_uuid</span><span class="p">(</span><span class="n">semantic_infotup</span><span class="p">)</span>
@@ -551,8 +379,8 @@ Tgen.sh &#8211;tbls annotations &#8211;Tcfg with_getters:True strip_docstr:False
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_annot</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_annot</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">testdata_preproc_annot</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">visual_infotup</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuid_info</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">annot_visual_uuid_list</span> <span class="o">=</span> <span class="n">make_annot_visual_uuid</span><span class="p">(</span><span class="n">visual_infotup</span><span class="p">)</span>
@@ -566,11 +394,6 @@ Tgen.sh &#8211;tbls annotations &#8211;Tcfg with_getters:True strip_docstr:False
 <dl class="function">
 <dt id="ibeis.algo.preproc.preproc_annot.make_annotation_uuids">
 <code class="descclassname">ibeis.algo.preproc.preproc_annot.</code><code class="descname">make_annotation_uuids</code><span class="sig-paren">(</span><em>image_uuid_list</em>, <em>bbox_list</em>, <em>theta_list</em>, <em>deterministic=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_annot.html#make_annotation_uuids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_annot.make_annotation_uuids" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_annot.on_delete">
-<code class="descclassname">ibeis.algo.preproc.preproc_annot.</code><code class="descname">on_delete</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_annot.html#on_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_annot.on_delete" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -588,450 +411,6 @@ Tgen.sh &#8211;tbls annotations &#8211;Tcfg with_getters:True strip_docstr:False
 <dt id="ibeis.algo.preproc.preproc_annot.testdata_preproc_annot">
 <code class="descclassname">ibeis.algo.preproc.preproc_annot.</code><code class="descname">testdata_preproc_annot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_annot.html#testdata_preproc_annot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_annot.testdata_preproc_annot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.algo.preproc.preproc_chip">
-<span id="ibeis-algo-preproc-preproc-chip-module"></span><h2>ibeis.algo.preproc.preproc_chip module<a class="headerlink" href="#module-ibeis.algo.preproc.preproc_chip" title="Permalink to this headline">¶</a></h2>
-<p>Preprocess Chips</p>
-<p>Extracts annotation chips from imaages and applies optional image
-normalizations.</p>
-<dl class="docutils">
-<dt>TODO:</dt>
-<dd><ul class="first last simple">
-<li>Dependency Cache from flukes</li>
-</ul>
-</dd>
-</dl>
-</div>
-<div class="section" id="module-ibeis.algo.preproc.preproc_detectimg">
-<span id="ibeis-algo-preproc-preproc-detectimg-module"></span><h2>ibeis.algo.preproc.preproc_detectimg module<a class="headerlink" href="#module-ibeis.algo.preproc.preproc_detectimg" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_detectimg.compute_and_write_detectimg">
-<code class="descclassname">ibeis.algo.preproc.preproc_detectimg.</code><code class="descname">compute_and_write_detectimg</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_detectimg.html#compute_and_write_detectimg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_detectimg.compute_and_write_detectimg" title="Permalink to this definition">¶</a></dt>
-<dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_detectimg --test-compute_and_write_detectimg --show
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_detectimg</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">valid_gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">valid_gids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">new_gfpath_list</span> <span class="o">=</span> <span class="n">compute_and_write_detectimg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">new_gfpath_list</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#pt.imshow(new_gfpath_list[0])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">iteract_obj</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">interact_multi_image</span><span class="o">.</span><span class="n">MultiImageInteraction</span><span class="p">(</span><span class="n">new_gfpath_list</span><span class="p">,</span> <span class="n">nPerPage</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_detectimg.compute_and_write_detectimg_lazy">
-<code class="descclassname">ibeis.algo.preproc.preproc_detectimg.</code><code class="descname">compute_and_write_detectimg_lazy</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_detectimg.html#compute_and_write_detectimg_lazy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_detectimg.compute_and_write_detectimg_lazy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Will write a img if it does not exist on disk, regardless of if it exists
-in the SQL database</p>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_detectimg</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">valid_gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">valid_gids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">compute_and_write_detectimg_lazy</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_detectimg.gen_detectimg_and_write">
-<code class="descclassname">ibeis.algo.preproc.preproc_detectimg.</code><code class="descname">gen_detectimg_and_write</code><span class="sig-paren">(</span><em>tup</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_detectimg.html#gen_detectimg_and_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_detectimg.gen_detectimg_and_write" title="Permalink to this definition">¶</a></dt>
-<dd><p>worker function for parallel generator</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_detectimg.gen_detectimg_async">
-<code class="descclassname">ibeis.algo.preproc.preproc_detectimg.</code><code class="descname">gen_detectimg_async</code><span class="sig-paren">(</span><em>gid_list</em>, <em>gfpath_list</em>, <em>new_gfpath_list</em>, <em>newsize_list</em>, <em>nImgs=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_detectimg.html#gen_detectimg_async"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_detectimg.gen_detectimg_async" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resizes images and yeilds results asynchronously</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_detectimg.get_image_detectimg_fpath_list">
-<code class="descclassname">ibeis.algo.preproc.preproc_detectimg.</code><code class="descname">get_image_detectimg_fpath_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_detectimg.html#get_image_detectimg_fpath_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_detectimg.get_image_detectimg_fpath_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns detectimg path list</p>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_detectimg</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">valid_gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">valid_gids</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">new_gfpath_list</span> <span class="o">=</span> <span class="n">get_image_detectimg_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">basename</span><span class="p">,</span> <span class="n">new_gfpath_list</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">target</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span>
-<span class="gp">... </span>   <span class="s">&#39;reszd_sqrtArea=800_66ec193a-1619-b3b6-216d-1784b4833b61.jpg&#39;</span><span class="p">,</span>
-<span class="gp">... </span>   <span class="s">&#39;reszd_sqrtArea=800_d8903434-942f-e0f5-d6c2-0dcbe3137bf7.jpg&#39;</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="n">target</span><span class="p">,</span> <span class="s">&#39;got result=</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">result</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.algo.preproc.preproc_feat">
-<span id="ibeis-algo-preproc-preproc-feat-module"></span><h2>ibeis.algo.preproc.preproc_feat module<a class="headerlink" href="#module-ibeis.algo.preproc.preproc_feat" title="Permalink to this headline">¶</a></h2>
-<p>Computes patch based features based on Hesaff, SIFT, or convnets.</p>
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_feat.extract_hesaff_sift_feats">
-<code class="descclassname">ibeis.algo.preproc.preproc_feat.</code><code class="descname">extract_hesaff_sift_feats</code><span class="sig-paren">(</span><em>chip_fpath_list</em>, <em>probchip_fpath_list</em>, <em>hesaff_params={}</em>, <em>nInput=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_feat.html#extract_hesaff_sift_feats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_feat.extract_hesaff_sift_feats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function to be parallelized by multiprocessing / joblib / whatever.
-Must take in one argument to be used by multiprocessing.map_async</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>chip_fpath_list</strong> (<em>list</em>) &#8211; </li>
-<li><strong>hesaff_params</strong> (<em>dict</em>) &#8211; </li>
-<li><strong>nInput</strong> (<em>None</em>) &#8211; </li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>Kwargs:</dt>
-<dd>passed to utool.generate</dd>
-</dl>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">featgen</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_feat.gen_feat_openmp">
-<code class="descclassname">ibeis.algo.preproc.preproc_feat.</code><code class="descname">gen_feat_openmp</code><span class="sig-paren">(</span><em>cid_list</em>, <em>chip_fpath_list</em>, <em>hesaff_params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_feat.html#gen_feat_openmp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_feat.gen_feat_openmp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute features in parallel on the C++ side, return generator here</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_feat.gen_feat_worker">
-<code class="descclassname">ibeis.algo.preproc.preproc_feat.</code><code class="descname">gen_feat_worker</code><span class="sig-paren">(</span><em>tup</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_feat.html#gen_feat_worker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_feat.gen_feat_worker" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function to be parallelized by multiprocessing / joblib / whatever.
-Must take in one argument to be used by multiprocessing.map_async</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tup</strong> (<em>tuple</em>) &#8211; </td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(None, kpts, vecs)</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_feat --exec-gen_feat_worker --show
-python -m ibeis.algo.preproc.preproc_feat --exec-gen_feat_worker --show --aid 2
-python -m ibeis.algo.preproc.preproc_feat --exec-gen_feat_worker --show --aid <span class="m">1988</span> --db GZ_Master1
-python -m ibeis.algo.preproc.preproc_feat --exec-gen_feat_worker --show --aid <span class="m">1988</span> --db GZ_Master1 --affine-invariance<span class="o">=</span>False --scale_max<span class="o">=</span>30
-python -m ibeis.algo.preproc.preproc_feat --exec-gen_feat_worker --show --aid <span class="m">1988</span> --db GZ_Master1 --affine-invariance<span class="o">=</span>False --scale_max<span class="o">=</span>30
-python -m ibeis.algo.preproc.preproc_feat --exec-gen_feat_worker --show --aid <span class="m">1988</span> --db GZ_Master1 --affine-invariance<span class="o">=</span>False --bgmethod<span class="o">=</span>None  --scale_max<span class="o">=</span>30
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_feat</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chip_fpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bgmethod</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--bgmethod&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;cnn&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">probchip_fpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_probchip_fpath</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span> <span class="k">if</span> <span class="s">&#39;cnn&#39;</span> <span class="o">==</span> <span class="n">bgmethod</span> <span class="k">else</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hesaff_params</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># {&#39;affine_invariance&#39;: False}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hesaff_params</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span><span class="n">pyhesaff</span><span class="o">.</span><span class="n">get_hesaff_default_params</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">chip_fpath</span><span class="p">,</span> <span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">hesaff_params</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">num_kpts</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">)</span> <span class="o">=</span> <span class="n">gen_feat_worker</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;(num_kpts, kpts, vecs) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">((</span><span class="n">num_kpts</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">)),))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">masked_chip</span><span class="p">,</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">exec_func_src</span><span class="p">(</span><span class="n">gen_feat_worker</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;masked_chip&#39;</span><span class="p">],</span> <span class="n">sentinal</span><span class="o">=</span><span class="s">&#39;kpts, vecs = pyhesaff&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">interact_keypoints</span><span class="o">.</span><span class="n">ishow_keypoints</span><span class="p">(</span><span class="n">masked_chip</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#pt.plot_score_histograms([vt.get_scales(kpts)])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_feat.gen_feat_worker_old">
-<code class="descclassname">ibeis.algo.preproc.preproc_feat.</code><code class="descname">gen_feat_worker_old</code><span class="sig-paren">(</span><em>tup</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_feat.html#gen_feat_worker_old"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_feat.gen_feat_worker_old" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function to be parallelized by multiprocessing / joblib / whatever.
-Must take in one argument to be used by multiprocessing.map_async</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_feat.generate_feat_properties">
-<code class="descclassname">ibeis.algo.preproc.preproc_feat.</code><code class="descname">generate_feat_properties</code><span class="sig-paren">(</span><em>ibs</em>, <em>cid_list</em>, <em>config2_=None</em>, <em>nInput=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_feat.html#generate_feat_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_feat.generate_feat_properties" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes features and yields results asynchronously: TODO: Remove IBEIS from
-this equation. Move the firewall towards the controller</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; </li>
-<li><strong>cid_list</strong> (<em>list</em>) &#8211; </li>
-<li><strong>nInput</strong> (<em>None</em>) &#8211; </li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">generates param tups</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">generator</p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>SeeAlso:</dt>
-<dd>~/code/ibeis_cnn/ibeis_cnn/_plugin.py</dd>
-</dl>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_feat --test-generate_feat_properties:0 --show
-python -m ibeis.algo.preproc.preproc_feat --test-generate_feat_properties:1
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_feat</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_params</span><span class="p">({})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nInput</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[::</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="s">&#39;cid_list&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">featgen</span> <span class="o">=</span> <span class="n">generate_feat_properties</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="p">,</span> <span class="n">nInput</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">feat_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">featgen</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">feat_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">)</span> <span class="o">=</span> <span class="n">feat_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">nFeat</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span> <span class="ow">and</span> <span class="n">nFeat</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vecs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">kpts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">6</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">128</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chip_fpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">interact_keypoints</span><span class="o">.</span><span class="n">ishow_keypoints</span><span class="p">(</span><span class="n">chip_fpath</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_feat</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span><span class="p">[</span><span class="s">&#39;feat_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;hesaff+siam128&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">cfgdict</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">query_config2</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data_config2</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_data_config2</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="n">query_config2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nInput</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">featgen</span> <span class="o">=</span> <span class="n">generate_feat_properties</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="p">,</span> <span class="n">nInput</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">featgen</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_feat</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_params</span><span class="p">({</span><span class="s">&#39;affine_invariance&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;bgmethod&#39;</span><span class="p">:</span> <span class="s">&#39;cnn&#39;</span><span class="p">})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nInput</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;aid_list&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="s">&#39;cid_list&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">featgen</span> <span class="o">=</span> <span class="n">generate_feat_properties</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="p">,</span> <span class="n">nInput</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">feat_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">featgen</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">feat_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">)</span> <span class="o">=</span> <span class="n">feat_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">nFeat</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span> <span class="ow">and</span> <span class="n">nFeat</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">vecs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">kpts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">6</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">128</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chip_fpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">interact_keypoints</span><span class="o">.</span><span class="n">ishow_keypoints</span><span class="p">(</span><span class="n">chip_fpath</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_feat.on_delete">
-<code class="descclassname">ibeis.algo.preproc.preproc_feat.</code><code class="descname">on_delete</code><span class="sig-paren">(</span><em>ibs</em>, <em>fid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_feat.html#on_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_feat.on_delete" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.algo.preproc.preproc_featweight">
-<span id="ibeis-algo-preproc-preproc-featweight-module"></span><h2>ibeis.algo.preproc.preproc_featweight module<a class="headerlink" href="#module-ibeis.algo.preproc.preproc_featweight" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_featweight.compute_fgweights">
-<code class="descclassname">ibeis.algo.preproc.preproc_featweight.</code><code class="descname">compute_fgweights</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_featweight.html#compute_fgweights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_featweight.compute_fgweights" title="Permalink to this definition">¶</a></dt>
-<dd><p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_featweight</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">featweight_list</span> <span class="o">=</span> <span class="n">compute_fgweights</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array_str</span><span class="p">(</span><span class="n">featweight_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">[ 0.125  0.061  0.053]</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_featweight.gen_featweight_worker">
-<code class="descclassname">ibeis.algo.preproc.preproc_featweight.</code><code class="descname">gen_featweight_worker</code><span class="sig-paren">(</span><em>tup</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_featweight.html#gen_featweight_worker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_featweight.gen_featweight_worker" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function to be parallelized by multiprocessing / joblib / whatever.
-Must take in one argument to be used by multiprocessing.map_async</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tup</strong> (<em>aid, tuple(kpts(ndarray</em>) &#8211; keypoints and probability chip file path
-aid, kpts, probchip_fpath</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_featweight --test-gen_featweight_worker --show
-python -m ibeis.algo.preproc.preproc_featweight --test-gen_featweight_worker --show --dpath figures --save ~/latex/crall-candidacy-2015/figures/gen_featweight.jpg
-python -m ibeis.algo.preproc.preproc_featweight --test-gen_featweight_worker --show --db PZ_MTEST --qaid_list<span class="o">=</span>1,2,3,4,5,6,7,8,9
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_featweight</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">test_featweight_worker</span><span class="p">()</span>
-</pre></div>
-</div>
-<dl class="docutils">
-<dt>Ignore::</dt>
-<dd><p class="first">import plottool as pt
-pt.imshow(probchip_list[0])
-patch_list = [vtpatch.get_warped_patch(probchip, kp)[0].astype(np.float32) / 255.0 for kp in kpts[0:1]]
-<a href="#id3"><span class="problematic" id="id4">patch_</span></a> = patch_list[0].copy()
-patch = <a href="#id5"><span class="problematic" id="id6">patch_</span></a>
-patch = patch_[-20:, :20, 0]</p>
-<p>import vtool as vt
-gaussian_patch = vt.gaussian_patch(patch.shape[1], patch.shape[0], shape=patch.shape[0:2], norm_01=False)</p>
-<p>import cv2
-sigma = 1/10
-xkernel = (cv2.getGaussianKernel(patch.shape[1], sigma))
-ykernel = (cv2.getGaussianKernel(patch.shape[0], sigma))</p>
-<p>#ykernel = ykernel / ykernel.max()
-#xkernel = ykernel / xkernel.max()</p>
-<p>gaussian_kern2 = ykernel.dot(xkernel.T)
-print(gaussian_kern2.sum())</p>
-<p>patch2 = patch.copy()
-patch2 = np.multiply(patch2,   ykernel)
-patch2 = np.multiply(patch2.T, xkernel).T</p>
-<dl class="docutils">
-<dt>if len(patch3.shape) == 2:</dt>
-<dd>patch3 = patch.copy() * gaussian_patch[:,:]</dd>
-<dt>else:</dt>
-<dd>patch3 = patch.copy() * gaussian_patch[:,:, None]</dd>
-</dl>
-<p>sum2 = patch2.sum() / (patch2.size)
-sum3 = patch3.sum() / (patch3.size)</p>
-<p>print(sum2)
-print(sum3)</p>
-<p class="last">fig = pt.figure(fnum=1, pnum=(1, 3, 1), doclf=True, docla=True)
-pt.imshow(patch * 255)
-fig = pt.figure(fnum=1, pnum=(1, 3, 2))
-pt.imshow(gaussian_kern2 * 255.0)
-fig = pt.figure(fnum=1, pnum=(1, 3, 3))
-pt.imshow(patch2 * 255.0)
-pt.update()</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_featweight.generate_featweight_properties">
-<code class="descclassname">ibeis.algo.preproc.preproc_featweight.</code><code class="descname">generate_featweight_properties</code><span class="sig-paren">(</span><em>ibs</em>, <em>feat_rowid_list</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_featweight.html#generate_featweight_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_featweight.generate_featweight_properties" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; </li>
-<li><strong>fid_list</strong> (<em>list</em>) &#8211; </li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">featweight_list</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_featweight --test-generate_featweight_properties
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_featweight</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_params</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">fg_on</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">featweight_detector</span><span class="o">=</span><span class="s">&#39;rf&#39;</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_feat_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#fid_list = ibs.get_valid_fids()[1:2]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">featweighttup_gen</span> <span class="o">=</span> <span class="n">generate_featweight_properties</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">featweighttup_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">featweighttup_gen</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">featweight_list</span> <span class="o">=</span> <span class="n">featweighttup_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">featweight_test</span> <span class="o">=</span> <span class="n">featweight_list</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">featweight_target</span> <span class="o">=</span> <span class="p">[</span> <span class="mf">0.349</span><span class="p">,</span> <span class="mf">0.218</span><span class="p">,</span> <span class="mf">0.242</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">assert_almost_eq</span><span class="p">(</span><span class="n">featweight_test</span><span class="p">,</span> <span class="n">featweight_target</span><span class="p">,</span> <span class="o">.</span><span class="mi">3</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_featweight.on_delete">
-<code class="descclassname">ibeis.algo.preproc.preproc_featweight.</code><code class="descname">on_delete</code><span class="sig-paren">(</span><em>ibs</em>, <em>featweight_rowid_list</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_featweight.html#on_delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_featweight.on_delete" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_featweight.test_featweight_worker">
-<code class="descclassname">ibeis.algo.preproc.preproc_featweight.</code><code class="descname">test_featweight_worker</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_featweight.html#test_featweight_worker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_featweight.test_featweight_worker" title="Permalink to this definition">¶</a></dt>
-<dd><p>test function</p>
-<p>python -m ibeis.algo.preproc.preproc_featweight &#8211;test-gen_featweight_worker &#8211;show &#8211;cnn</p>
-</dd></dl>
 
 </div>
 <div class="section" id="module-ibeis.algo.preproc.preproc_image">
@@ -1064,18 +443,18 @@ adjust</dd>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_image --exec-add_images_params_gen
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.preproc.preproc_image --exec-add_images_params_gen
 </pre></div>
 </div>
 <dl class="docutils">
 <dt>Example0:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_image</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c"># NOQA</span>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_image</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">vtool.tests</span> <span class="kn">import</span> <span class="n">grabdata</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath_list</span> <span class="o">=</span> <span class="n">grabdata</span><span class="o">.</span><span class="n">get_test_gpaths</span><span class="p">(</span><span class="n">ndata</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;doesnotexist.jpg&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath_list</span> <span class="o">=</span> <span class="n">grabdata</span><span class="o">.</span><span class="n">get_test_gpaths</span><span class="p">(</span><span class="n">ndata</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;doesnotexist.jpg&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">params_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">add_images_params_gen</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">params_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="s">&#39;66ec193a-1619-b3b6-216d-1784b4833b61&#39;</span><span class="p">,</span> <span class="s">&#39;UUID gen method changed&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">params_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span> <span class="o">==</span> <span class="s">&#39;easy1.JPG&#39;</span><span class="p">,</span> <span class="s">&#39;orig name is different&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">params_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="s1">&#39;66ec193a-1619-b3b6-216d-1784b4833b61&#39;</span><span class="p">,</span> <span class="s1">&#39;UUID gen method changed&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">params_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span> <span class="o">==</span> <span class="s1">&#39;easy1.JPG&#39;</span><span class="p">,</span> <span class="s1">&#39;orig name is different&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">params_list</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span>
 </pre></div>
 </div>
@@ -1142,15 +521,15 @@ for SQL columns on else returns None</td>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_image --exec-parse_imageinfo
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.preproc.preproc_image --exec-parse_imageinfo
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_image</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;/media/raid/work/lynx/_ibsdb/images/f6c84c6d-55ca-fd02-d0b4-1c7c9c27c894.jpg&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_image</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;/media/raid/work/lynx/_ibsdb/images/f6c84c6d-55ca-fd02-d0b4-1c7c9c27c894.jpg&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">param_tup</span> <span class="o">=</span> <span class="n">parse_imageinfo</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;param_tup = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">param_tup</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;param_tup = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">param_tup</span><span class="p">),))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1182,19 +561,19 @@ for SQL columns on else returns None</td>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_occurrence --exec-agglomerative_cluster_occurrences
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.preproc.preproc_occurrence --exec-agglomerative_cluster_occurrences
 </pre></div>
 </div>
 <p class="rubric">References</p>
 <p><a class="reference external" href="https://docs.scipy.org/doc/scipy-0.9.0/reference/generated/scipy.cluster.hierarchy.fclusterdata.html#scipy.cluster.hierarchy.fclusterdata">https://docs.scipy.org/doc/scipy-0.9.0/reference/generated/scipy.cluster.hierarchy.fclusterdata.html#scipy.cluster.hierarchy.fclusterdata</a>
 <a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.fcluster.html">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.fcluster.html</a></p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">seconds_thresh</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seconds_thresh</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">occur_ids</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span> <span class="o">=</span> <span class="n">agglomerative_cluster_occurrences</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">seconds_thresh</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;(occur_ids, occur_gids) = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">((</span><span class="n">occur_ids</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;(occur_ids, occur_gids) = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">((</span><span class="n">occur_ids</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)),))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1203,12 +582,33 @@ for SQL columns on else returns None</td>
 <dl class="function">
 <dt id="ibeis.algo.preproc.preproc_occurrence.cluster_timespace">
 <code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">cluster_timespace</code><span class="sig-paren">(</span><em>X_data</em>, <em>thresh</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#cluster_timespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.cluster_timespace" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.linkage.html">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.linkage.html</a></p>
+<dd><p class="rubric">References</p>
+<dl class="docutils">
+<dt><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/">http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/</a></dt>
+<dd>scipy.cluster.hierarchy.linkage.html</dd>
+</dl>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.preproc.preproc_occurrence cluster_timespace --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="n">testdata_gps</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thresh</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_labels</span> <span class="o">=</span> <span class="n">cluster_timespace</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hier</span><span class="o">.</span><span class="n">dendrogram</span><span class="p">(</span><span class="n">linkage_mat</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_annotaiton_gps</span><span class="p">(</span><span class="n">X_data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.algo.preproc.preproc_occurrence.compute_occurrence_groups">
-<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">compute_occurrence_groups</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>cluster_algo</em>, <em>cfgdict={}</em>, <em>use_gps=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#compute_occurrence_groups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.compute_occurrence_groups" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">compute_occurrence_groups</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>cluster_algo</em>, <em>cfgdict={}</em>, <em>use_gps=False</em>, <em>verbose=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#compute_occurrence_groups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.compute_occurrence_groups" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1228,20 +628,20 @@ for SQL columns on else returns None</td>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis --tf compute_occurrence_groups
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --tf compute_occurrence_groups
 python -m ibeis --tf compute_occurrence_groups --show --zoom<span class="o">=</span>.3
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_Master1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_Master1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">(</span><span class="n">require_unixtime</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">require_gps</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">use_gps</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cluster_algo</span> <span class="o">=</span> <span class="s">&#39;meanshift&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cluster_algo</span> <span class="o">=</span> <span class="s1">&#39;meanshift&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">quantile</span><span class="o">=.</span><span class="mo">005</span><span class="p">,</span> <span class="n">min_imgs_per_occurence</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">occur_labels</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span> <span class="o">=</span> <span class="n">compute_occurrence_groups</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">cluster_algo</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">,</span> <span class="n">use_gps</span><span class="o">=</span><span class="n">use_gps</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aidsgroups_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">,</span> <span class="n">occur_gids</span><span class="p">)</span>
@@ -1249,20 +649,23 @@ python -m ibeis --tf compute_occurrence_groups --show --zoom<span class="o">=</s
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">nids</span><span class="p">[</span><span class="n">nids</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">nids</span> <span class="ow">in</span> <span class="n">nids_list</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">safe_max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">nids</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span> <span class="k">for</span> <span class="n">nids</span> <span class="ow">in</span> <span class="n">nids_list</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#metric = list(map(len, aids_list))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#metric = list(map(len, aids_list))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">metric</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="n">sortx</span><span class="p">[</span><span class="mi">20</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#gids = occur_gids[index]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#gids = occur_gids[index]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">aids_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">min_qual</span><span class="o">=</span><span class="s">&#39;ok&#39;</span><span class="p">,</span> <span class="n">is_known</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">min_qual</span><span class="o">=</span><span class="s1">&#39;ok&#39;</span><span class="p">,</span> <span class="n">is_known</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aids</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;len(aids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;len(aids) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">img_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gids</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_graph</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#pt.imshow(bigimg)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">viz_graph</span><span class="o">.</span><span class="n">make_name_graph_interaction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">aids</span><span class="p">,</span> <span class="n">with_all</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#pt.imshow(bigimg)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#aids = ibs.group_annots_by_name(aids)[0][0]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">viz_graph</span><span class="o">.</span><span class="n">make_name_graph_interaction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">aids</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                             <span class="n">with_all</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                             <span class="n">prog</span><span class="o">=</span><span class="s1">&#39;neato&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1300,7 +703,7 @@ Output: Length M list of unique labels, and lenth M list of lists of ids</p>
 
 <dl class="function">
 <dt id="ibeis.algo.preproc.preproc_occurrence.ibeis_compute_occurrences">
-<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">ibeis_compute_occurrences</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#ibeis_compute_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.ibeis_compute_occurrences" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">ibeis_compute_occurrences</code><span class="sig-paren">(</span><em>ibs</em>, <em>gid_list</em>, <em>seconds_thresh=None</em>, <em>verbose=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#ibeis_compute_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.ibeis_compute_occurrences" title="Permalink to this definition">¶</a></dt>
 <dd><p>clusters occurrences togethers (by time, not yet space) An occurrence is a
 meeting, localized in time and space between a camera and a group of
 animals.  Animals are identified within each occurrence.</p>
@@ -1324,16 +727,41 @@ animals.  Animals are identified within each occurrence.</p>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis --tf ibeis_compute_occurrences:0 --show
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --tf ibeis_compute_occurrences:0 --show
 
 TODO: FIXME: good example of autogen doctest <span class="k">return</span> failure
 </pre></div>
 </div>
+<p>#Ignore:
+#    &gt;&gt;&gt; import ibeis
+#    &gt;&gt;&gt; from ibeis.algo.preproc.preproc_occurrence import *  # NOQA
+#    &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#8217;lynx&#8217;)
+#    &gt;&gt;&gt; aid_list = ibs.get_valid_aids()
+#    &gt;&gt;&gt; filter_kw = {}
+#    &gt;&gt;&gt; filter_kw[&#8216;been_adjusted&#8217;] = True
+#    &gt;&gt;&gt; <a href="#id1"><span class="problematic" id="id2">aid_list_</span></a> = ibs.filter_annots_general(aid_list, filter_kw)
+#    &gt;&gt;&gt; gid_list = ibs.get_annot_gids(<a href="#id3"><span class="problematic" id="id4">aid_list_</span></a>)
+#    &gt;&gt;&gt; flat_imgsetids, flat_gids = ibeis_compute_occurrences(ibs, gid_list)
+#    &gt;&gt;&gt; aids_list = list(ut.group_items(<a href="#id5"><span class="problematic" id="id6">aid_list_</span></a>, flat_imgsetids).values())
+#    &gt;&gt;&gt; metric = list(map(len, aids_list))
+#    &gt;&gt;&gt; sortx = ut.list_argsort(metric)[::-1]
+#    &gt;&gt;&gt; index = sortx[1]
+#    &gt;&gt;&gt; #gids = occur_gids[index]
+#    &gt;&gt;&gt; aids = aids_list[index]
+#    &gt;&gt;&gt; gids = list(set(ibs.get_annot_gids(aids)))
+#    &gt;&gt;&gt; print(&#8216;len(aids) = %r&#8217; % (len(aids),))
+#    &gt;&gt;&gt; ut.quit_if_noshow()
+#    &gt;&gt;&gt; from ibeis.viz import viz_graph
+#    &gt;&gt;&gt; import plottool as pt
+#    &gt;&gt;&gt; #pt.imshow(bigimg)
+#    &gt;&gt;&gt; #bigimg = vt.stack_image_recurse(img_list)
+#    &gt;&gt;&gt; self = viz_graph.make_name_graph_interaction(ibs, aids=aids, with_all=False)
+#    &gt;&gt;&gt; ut.show_if_requested()</p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">filter_kw</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">flat_imgsetids</span><span class="p">,</span> <span class="n">flat_gids</span><span class="p">)</span> <span class="o">=</span> <span class="n">ibeis_compute_occurrences</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
@@ -1341,17 +769,19 @@ TODO: FIXME: good example of autogen doctest <span class="k">return</span> failu
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argsort</span><span class="p">(</span><span class="n">metric</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">index</span> <span class="o">=</span> <span class="n">sortx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#gids = occur_gids[index]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#gids = occur_gids[index]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aids</span> <span class="o">=</span> <span class="n">aids_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aids</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;len(aids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;len(aids) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_graph</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#pt.imshow(bigimg)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#bigimg = vt.stack_image_recurse(img_list)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">viz_graph</span><span class="o">.</span><span class="n">make_name_graph_interaction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">aids</span><span class="p">,</span> <span class="n">with_all</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#pt.imshow(bigimg)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#bigimg = vt.stack_image_recurse(img_list)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">viz_graph</span><span class="o">.</span><span class="n">make_name_graph_interaction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="n">aids</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                             <span class="n">with_all</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                                             <span class="n">prog</span><span class="o">=</span><span class="s1">&#39;neato&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1381,14 +811,14 @@ eg: quantile=.5 represents the median of all pairwise distances</li>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_occurrence --exec-meanshift_cluster_occurrences
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.preproc.preproc_occurrence --exec-meanshift_cluster_occurrences
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">quantile</span> <span class="o">=</span> <span class="s">&#39;?&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">quantile</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">meanshift_cluster_occurrences</span><span class="p">(</span><span class="n">X_data</span><span class="p">,</span> <span class="n">quantile</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
@@ -1416,25 +846,18 @@ fix weighting between seconds and gps</p>
 <dl class="function">
 <dt id="ibeis.algo.preproc.preproc_occurrence.testdata_gps">
 <code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">testdata_gps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#testdata_gps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.testdata_gps" title="Permalink to this definition">¶</a></dt>
-<dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_occurrence --exec-testdata_gps --show
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_occurrence</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">X_data</span><span class="p">,</span> <span class="n">linkage_mat</span> <span class="o">=</span> <span class="n">testdata_gps</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># plot</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hier</span><span class="o">.</span><span class="n">dendrogram</span><span class="p">(</span><span class="n">linkage_mat</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s">&#39;top&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#fig.show()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot_annotaiton_gps</span><span class="p">(</span><span class="n">X_data</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
-</pre></div>
-</div>
+<dd><p>Simple data to test GPS algorithm.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>X_name</strong> &#8211; Nx1 matrix denoting groundtruth locations
+X_data (ndarray): Nx3 matrix where each columns are (time, lat, lon)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">ndarray</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -1445,312 +868,6 @@ fix weighting between seconds and gps</p>
 <dl class="function">
 <dt id="ibeis.algo.preproc.preproc_occurrence.timespace_pdist">
 <code class="descclassname">ibeis.algo.preproc.preproc_occurrence.</code><code class="descname">timespace_pdist</code><span class="sig-paren">(</span><em>X_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_occurrence.html#timespace_pdist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_occurrence.timespace_pdist" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-ibeis.algo.preproc.preproc_probchip">
-<span id="ibeis-algo-preproc-preproc-probchip-module"></span><h2>ibeis.algo.preproc.preproc_probchip module<a class="headerlink" href="#module-ibeis.algo.preproc.preproc_probchip" title="Permalink to this headline">¶</a></h2>
-<p>Preprocess Probability Chips</p>
-<p>Uses random forests code to detect the probability that pixel belongs to the
-forground.</p>
-<dl class="docutils">
-<dt>TODO:</dt>
-<dd><ul class="first last">
-<li><p class="first">Create a probchip controller table.</p>
-</li>
-<li><dl class="first docutils">
-<dt>Integrate into the the controller using autogen functions.</dt>
-<dd><ul class="first last simple">
-<li>get_probchip_fpaths, get_annot_probchip_fpath, add_annot_probchip</li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><p class="first">User should be able to manually paint on a chip to denote the foreground
-when the randomforest algorithm messes up.</p>
-</li>
-</ul>
-</dd>
-</dl>
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_probchip.compute_and_write_probchip">
-<code class="descclassname">ibeis.algo.preproc.preproc_probchip.</code><code class="descname">compute_and_write_probchip</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>config2_=None</em>, <em>lazy=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_probchip.html#compute_and_write_probchip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_probchip.compute_and_write_probchip" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes probability chips using pyrf</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_probchip --test-compute_and_write_probchip:0 --show
-python -m ibeis.algo.preproc.preproc_probchip --test-compute_and_write_probchip:1
-python -m ibeis.algo.preproc.preproc_probchip --test-compute_and_write_probchip:2 --show --cnn
-</pre></div>
-</div>
-<dl class="docutils">
-<dt>Example0:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_probchip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">lazy</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">probchip_fpath_list_</span> <span class="o">=</span> <span class="n">compute_and_write_probchip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="n">lazy</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">probchip_fpath_list_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">iteract_obj</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">interact_multi_image</span><span class="o">.</span><span class="n">MultiImageInteraction</span><span class="p">(</span><span class="n">probchip_fpath_list_</span><span class="p">,</span> <span class="n">nPerPage</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
-</pre></div>
-</div>
-</dd>
-<dt>Example1:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_probchip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">lazy</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">probchip_fpath_list_</span> <span class="o">=</span> <span class="n">compute_and_write_probchip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="n">lazy</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">probchip_fpath_list_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-<dt>Example2:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_probchip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_params</span><span class="p">({</span><span class="s">&#39;featweight_detector&#39;</span><span class="p">:</span> <span class="s">&#39;cnn&#39;</span><span class="p">})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">lazy</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">probchip_fpath_list_</span> <span class="o">=</span> <span class="n">compute_and_write_probchip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="n">lazy</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">probchip_fpath_list_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">iteract_obj</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">interact_multi_image</span><span class="o">.</span><span class="n">MultiImageInteraction</span><span class="p">(</span><span class="n">probchip_fpath_list_</span><span class="p">,</span> <span class="n">nPerPage</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
-</pre></div>
-</div>
-</dd>
-<dt>Dev::</dt>
-<dd>#ibs.delete_annot_chips(aid_list)
-#probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_probchip.compute_extramargin_detectchip">
-<code class="descclassname">ibeis.algo.preproc.preproc_probchip.</code><code class="descname">compute_extramargin_detectchip</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>config2_=None</em>, <em>species=None</em>, <em>FACTOR=4</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_probchip.html#compute_extramargin_detectchip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_probchip.compute_extramargin_detectchip" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_probchip.gen_detectchip">
-<code class="descclassname">ibeis.algo.preproc.preproc_probchip.</code><code class="descname">gen_detectchip</code><span class="sig-paren">(</span><em>tup</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_probchip.html#gen_detectchip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_probchip.gen_detectchip" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parallel worker. Crops chip out of an image, applies filters, etc</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_probchip.get_annot_probchip_fpath_list">
-<code class="descclassname">ibeis.algo.preproc.preproc_probchip.</code><code class="descname">get_annot_probchip_fpath_list</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>config2_=None</em>, <em>species=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_probchip.html#get_annot_probchip_fpath_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_probchip.get_annot_probchip_fpath_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build probability chip file paths based on the current IBEIS configuration</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; </li>
-<li><strong>aid_list</strong> (<em>list</em>) &#8211; </li>
-<li><strong>suffix</strong> (<em>None</em>) &#8211; </li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">probchip_fpath_list</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_probchip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">testdata_ibeis</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_params</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">fg_on</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">get_annot_probchip_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">relpath_unix</span><span class="p">(</span><span class="n">probchip_fpath_list</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">_ibsdb/_ibeis_cache/prob_chips/probchip_avuuid=5a1a53ba-fd44-b113-7f8c-fcf248d7047f_CHIP(sz450)_FEATWEIGHT(OFF).png</span>
-</pre></div>
-</div>
-<p>_ibsdb/_ibeis_cache/prob_chips/probchip_avuuid=5a1a53ba-fd44-b113-7f8c-fcf248d7047f_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf).png</p>
-<p>probchip_aid=5_bbox=(0,0,1072,804)_theta=0.0tau_gid=5_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP().png</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_probchip.get_extramargin_detectchip_info">
-<code class="descclassname">ibeis.algo.preproc.preproc_probchip.</code><code class="descname">get_extramargin_detectchip_info</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>config2_=None</em>, <em>species=None</em>, <em>FACTOR=4</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_probchip.html#get_extramargin_detectchip_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_probchip.get_extramargin_detectchip_info" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes a detection chip with a bit of spatial context so the detection algorithm doesn&#8217;t clip boundaries</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_probchip --test-get_extramargin_detectchip_info --show
-python -m ibeis.algo.preproc.preproc_probchip --test-get_extramargin_detectchip_info --show --qaid 27
-python -m ibeis.algo.preproc.preproc_probchip --test-get_extramargin_detectchip_info --show --qaid 2
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_probchip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">main_helpers</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">arg_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">,</span> <span class="n">halfoffset_cs_list</span> <span class="o">=</span> <span class="n">get_extramargin_detectchip_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">testshow_extramargin_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">,</span> <span class="n">halfoffset_cs_list</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_probchip.get_probchip_fname_fmt">
-<code class="descclassname">ibeis.algo.preproc.preproc_probchip.</code><code class="descname">get_probchip_fname_fmt</code><span class="sig-paren">(</span><em>ibs</em>, <em>config2_=None</em>, <em>species=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_probchip.html#get_probchip_fname_fmt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_probchip.get_probchip_fname_fmt" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns format of probability chip file names</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ibs</strong> (<a class="reference internal" href="ibeis.control.html#ibeis.control.IBEISControl.IBEISController" title="ibeis.control.IBEISControl.IBEISController"><em>IBEISController</em></a>) &#8211; </li>
-<li><strong>suffix</strong> (<em>None</em>) &#8211; </li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">probchip_fname_fmt</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_probchip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">testdata_ibeis</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_params</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">fg_on</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">probchip_fname_fmt</span> <span class="o">=</span> <span class="n">get_probchip_fname_fmt</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">probchip_fname_fmt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">probchip_avuuid={avuuid}_CHIP(sz450)_FEATWEIGHT(OFF).png</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_probchip.group_aids_by_featweight_species">
-<code class="descclassname">ibeis.algo.preproc.preproc_probchip.</code><code class="descname">group_aids_by_featweight_species</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>config2_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_probchip.html#group_aids_by_featweight_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_probchip.group_aids_by_featweight_species" title="Permalink to this definition">¶</a></dt>
-<dd><p>helper</p>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_probchip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">grouped_aids</span><span class="p">,</span> <span class="n">unique_species</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">group_aids_by_featweight_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_probchip.postprocess_dev">
-<code class="descclassname">ibeis.algo.preproc.preproc_probchip.</code><code class="descname">postprocess_dev</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_probchip.html#postprocess_dev"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_probchip.postprocess_dev" title="Permalink to this definition">¶</a></dt>
-<dd><p class="rubric">References</p>
-<p><a class="reference external" href="http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html">http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html</a></p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_probchip --test-postprocess_dev
-python -m ibeis.algo.preproc.preproc_probchip --test-postprocess_dev --aids<span class="o">=</span>2,3 --show
-python -m ibeis.algo.preproc.preproc_probchip --test-postprocess_dev --db Elephants_drop1_ears
-</pre></div>
-</div>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_probchip --test-postprocess_dev
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_probchip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">postprocess_dev</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_probchip.postprocess_mask">
-<code class="descclassname">ibeis.algo.preproc.preproc_probchip.</code><code class="descname">postprocess_mask</code><span class="sig-paren">(</span><em>mask</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_probchip.html#postprocess_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_probchip.postprocess_mask" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mask</strong> (<em>ndarray</em>) &#8211; </td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">mask2</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">ndarray</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.preproc.preproc_probchip --exec-postprocess_mask --cnn --show --aid<span class="o">=</span><span class="m">1</span> --db PZ_MTEST
-python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid 9970
-python -m ibeis --tf postprocess_mask --cnn --show --db PZ_Master1 --aid <span class="m">9970</span> --adapteq<span class="o">=</span>True
-python -m ibeis --tf postprocess_mask --cnn --show --db GIRM_Master1 --aid <span class="m">9970</span> --adapteq<span class="o">=</span>True
-python -m ibeis --tf postprocess_mask --cnn --show --db GIRM_Master1
-</pre></div>
-</div>
-<dl class="docutils">
-<dt>SeeAlso:</dt>
-<dd>python -m ibeis_cnn &#8211;tf generate_species_background_mask &#8211;show &#8211;db PZ_Master1 &#8211;aid 9970</dd>
-</dl>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis_cnn</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.preproc.preproc_probchip</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aids&#39;</span><span class="p">,</span> <span class="s">&#39;--aid&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">default_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">chip_cfg</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cfgdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argparse_dict</span><span class="p">(</span><span class="n">default_config</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config2_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_params</span><span class="p">(</span><span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chip_fpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chip</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">chip_fpath</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#species = ibs.const.TEST_SPECIES.ZEB_PLAIN</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_primary_database_species</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;species = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">,))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mask_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">generate_species_background_mask</span><span class="p">([</span><span class="n">chip_fpath</span><span class="p">],</span> <span class="n">species</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">mask_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mask2</span> <span class="o">=</span> <span class="n">postprocess_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fnum</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;before&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">mask2</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;after&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_probchip.testshow_extramargin_info">
-<code class="descclassname">ibeis.algo.preproc.preproc_probchip.</code><code class="descname">testshow_extramargin_info</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list</em>, <em>arg_list</em>, <em>newsize_list</em>, <em>halfoffset_cs_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_probchip.html#testshow_extramargin_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_probchip.testshow_extramargin_info" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.algo.preproc.preproc_probchip.write_dirty_aids">
-<code class="descclassname">ibeis.algo.preproc.preproc_probchip.</code><code class="descname">write_dirty_aids</code><span class="sig-paren">(</span><em>ibs</em>, <em>dirty_probchip_fpath_list</em>, <em>dirty_aids</em>, <em>config2_</em>, <em>species</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/preproc/preproc_probchip.html#write_dirty_aids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.preproc.preproc_probchip.write_dirty_aids" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -1844,7 +961,7 @@ python -m ibeis --tf postprocess_mask --cnn --show --db GIRM_Master1
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

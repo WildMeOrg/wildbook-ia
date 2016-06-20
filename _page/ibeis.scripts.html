@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.scripts package &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.scripts package &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.templates package" href="ibeis.templates.html"/>
         <link rel="prev" title="ibeis.other package" href="ibeis.other.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -94,9 +94,12 @@
 <li class="toctree-l3"><a class="reference internal" href="ibeis.other.html">ibeis.other package</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="">ibeis.scripts package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.scripts._grave">ibeis.scripts._grave module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.scripts.gen_cand_expts">ibeis.scripts.gen_cand_expts module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.scripts.getshark">ibeis.scripts.getshark module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.scripts.name_recitifer">ibeis.scripts.name_recitifer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.scripts.rsync_ibeisdb">ibeis.scripts.rsync_ibeisdb module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ibeis.scripts.specialdraw">ibeis.scripts.specialdraw module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ibeis.scripts">Module contents</a></li>
 </ul>
 </li>
@@ -114,14 +117,15 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_annots">ibeis.core_annots module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_images">ibeis.core_images module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.new_annots">ibeis.new_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workflow">ibeis.workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workspace">ibeis.workspace module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -176,28 +180,51 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
+<div class="section" id="module-ibeis.scripts._grave">
+<span id="ibeis-scripts-grave-module"></span><h2>ibeis.scripts._grave module<a class="headerlink" href="#module-ibeis.scripts._grave" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.scripts._grave.intraoccurrence_connected">
+<code class="descclassname">ibeis.scripts._grave.</code><code class="descname">intraoccurrence_connected</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/_grave.html#intraoccurrence_connected"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts._grave.intraoccurrence_connected" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.specialdraw intraoccurrence_connected --show
+python -m ibeis.scripts.specialdraw intraoccurrence_connected --show --postcut
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.specialdraw</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">intraoccurrence_connected</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
 <div class="section" id="module-ibeis.scripts.gen_cand_expts">
 <span id="ibeis-scripts-gen-cand-expts-module"></span><h2>ibeis.scripts.gen_cand_expts module<a class="headerlink" href="#module-ibeis.scripts.gen_cand_expts" title="Permalink to this headline">¶</a></h2>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="c"># Run many experiments</span>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="c1"># Run many experiments</span>
 python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full
 ./experiments_overnight.sh
 
-<span class="c"># Database information</span>
+<span class="c1"># Database information</span>
 python -m ibeis --db PZ_MTEST --dbinfo --postload-exit
 python -m ibeis --db PZ_Master0 --dbinfo --postload-exit
 
-<span class="c"># Info about configs for a test</span>
+<span class="c1"># Info about configs for a test</span>
 python -m ibeis --tf run_test_configurations2 -t default -a ctrl --db PZ_MTEST --acfginfo
-python -m ibeis --tf run_test_configurations2 -t default:sample_size<span class="o">=</span>None -a ctrl --db PZ_Master0 --acfginfo  <span class="c"># NOQA</span>
+python -m ibeis --tf run_test_configurations2 -t default:sample_size<span class="o">=</span>None -a ctrl --db PZ_Master0 --acfginfo  <span class="c1"># NOQA</span>
 python -m ibeis --tf run_test_configurations2 -t default -a ctrl --db NNP_Master3 --acfginfo
 
-<span class="c"># Regen Figures</span>
+<span class="c1"># Regen Figures</span>
 python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
 ./regen_figdef_expt.sh
 
 
-<span class="c"># Print all annotation configs that will be used</span>
+<span class="c1"># Print all annotation configs that will be used</span>
 python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full
 sh experiment_inspect_acfg.sh
 </pre></div>
@@ -207,12 +234,12 @@ sh experiment_inspect_acfg.sh
 <code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">experiments_baseline</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#experiments_baseline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.experiments_baseline" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates the experiments we are doing on invariance</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.scripts.gen_cand_expts --exec-experiments_baseline
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.gen_cand_expts --exec-experiments_baseline
 ./experiment_baseline.sh
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">experiments_baseline</span><span class="p">())</span>
 </pre></div>
 </div>
@@ -223,12 +250,12 @@ sh experiment_inspect_acfg.sh
 <code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">experiments_invariance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#experiments_invariance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.experiments_invariance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates the experiments we are doing on invariance</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.scripts.gen_cand_expts --exec-experiments_invariance
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.gen_cand_expts --exec-experiments_invariance
 python -m ibeis.scripts.gen_cand_expts --exec-experiments_invariance --full
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">experiments_invariance</span><span class="p">())</span>
 </pre></div>
 </div>
@@ -238,13 +265,13 @@ python -m ibeis.scripts.gen_cand_expts --exec-experiments_invariance --full
 <dt id="ibeis.scripts.gen_cand_expts.experiments_k">
 <code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">experiments_k</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#experiments_k"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.experiments_k" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.scripts.gen_cand_expts --exec-experiments_k
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.gen_cand_expts --exec-experiments_k
 python -m ibeis.scripts.gen_cand_expts --exec-experiments_k --full
 ./experiment_k.sh
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">experiments_k</span><span class="p">())</span>
 </pre></div>
 </div>
@@ -255,15 +282,15 @@ python -m ibeis.scripts.gen_cand_expts --exec-experiments_k --full
 <code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">experiments_namescore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#experiments_namescore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.experiments_namescore" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates the experiments we are doing on invariance</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.scripts.gen_cand_expts --exec-experiments_namescore --full
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.gen_cand_expts --exec-experiments_namescore --full
 ./experiment_namescore.sh
 
 python -m ibeis.scripts.gen_cand_expts --exec-experiments_namescore --full
-python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1  <span class="c"># NOQA</span>
+python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_namescore --db PZ_Master1  <span class="c1"># NOQA</span>
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">experiments_namescore</span><span class="p">())</span>
 </pre></div>
 </div>
@@ -274,12 +301,12 @@ python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_
 <code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">experiments_viewpoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#experiments_viewpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.experiments_viewpoint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates the experiments we are doing on invariance</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.scripts.gen_cand_expts --exec-experiments_viewpoint --full
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.gen_cand_expts --exec-experiments_viewpoint --full
 ./experiment_view.sh
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">experiments_viewpoint</span><span class="p">())</span>
 </pre></div>
 </div>
@@ -289,12 +316,12 @@ python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_
 <dt id="ibeis.scripts.gen_cand_expts.gen_dbranks_tables">
 <code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">gen_dbranks_tables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#gen_dbranks_tables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.gen_dbranks_tables" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.scripts.gen_cand_expts --exec-gen_dbranks_tables
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.gen_cand_expts --exec-gen_dbranks_tables
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">gen_dbranks_tables</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
@@ -305,14 +332,14 @@ python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 -a candidacy_
 <dt id="ibeis.scripts.gen_cand_expts.generate_all">
 <code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">generate_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#generate_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.generate_all" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.scripts.gen_cand_expts --exec-generate_all --vim
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.gen_cand_expts --exec-generate_all --vim
 python -m ibeis.scripts.gen_cand_expts --exec-generate_all
 python -m ibeis.scripts.gen_cand_expts --exec-generate_all --full
 ./experiments_overnight.sh
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">generate_all</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -347,13 +374,13 @@ python -m ibeis.other.dbinfo &#8211;test-latex_dbstats &#8211;dblist JAG_Kieryn 
 <dt id="ibeis.scripts.gen_cand_expts.inspect_annotation_configs">
 <code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">inspect_annotation_configs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#inspect_annotation_configs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.inspect_annotation_configs" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs
 python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">inspect_annotation_configs</span><span class="p">())</span>
 </pre></div>
 </div>
@@ -368,12 +395,12 @@ python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full
 <dt id="ibeis.scripts.gen_cand_expts.parse_latex_comments_for_commmands">
 <code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">parse_latex_comments_for_commmands</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#parse_latex_comments_for_commmands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.parse_latex_comments_for_commmands" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parse_latex_comments_for_commmands</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -384,11 +411,11 @@ python -m ibeis.scripts.gen_cand_expts --exec-inspect_annotation_configs --full
 <code class="descclassname">ibeis.scripts.gen_cand_expts.</code><code class="descname">precompute_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/gen_cand_expts.html#precompute_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.gen_cand_expts.precompute_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ensure features and such are computed
 .. rubric:: CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.scripts.gen_cand_expts --exec-precompute_data
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.gen_cand_expts --exec-precompute_data
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.gen_cand_expts</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">make_standard_test_scripts</span><span class="p">(</span><span class="n">precompute_data</span><span class="p">())</span>
 </pre></div>
 </div>
@@ -429,8 +456,8 @@ python -m ibeis.dbio.export_subset &#8211;exec-check_database_overlap &#8211;db1
 <code class="descclassname">ibeis.scripts.getshark.</code><code class="descname">download_sharks</code><span class="sig-paren">(</span><em>XMLdata</em>, <em>number</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/getshark.html#download_sharks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.getshark.download_sharks" title="Permalink to this definition">¶</a></dt>
 <dd><p>cd ~/work/WS_ALL
 python -m ibeis.scripts.getshark</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.getshark</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">url</span> <span class="o">=</span> <span class="s">&#39;www.whaleshark.org/listImages.jsp&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.getshark</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;www.whaleshark.org/listImages.jsp&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">XMLdata</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">url_read</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">number</span> <span class="o">=</span> <span class="bp">None</span>
 </pre></div>
@@ -458,10 +485,87 @@ python -m ibeis.scripts.getshark</p>
 <dd></dd></dl>
 
 </div>
+<div class="section" id="module-ibeis.scripts.name_recitifer">
+<span id="ibeis-scripts-name-recitifer-module"></span><h2>ibeis.scripts.name_recitifer module<a class="headerlink" href="#module-ibeis.scripts.name_recitifer" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.scripts.name_recitifer.find_consistent_labeling">
+<code class="descclassname">ibeis.scripts.name_recitifer.</code><code class="descname">find_consistent_labeling</code><span class="sig-paren">(</span><em>grouped_oldnames</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/name_recitifer.html#find_consistent_labeling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.name_recitifer.find_consistent_labeling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves a a maximum bipirtite matching problem to find a consistent
+name assignment.</p>
+<p class="rubric">Notes</p>
+<p># Install module containing the Hungarian algorithm for matching
+pip install munkres</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.name_recitifer</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grouped_oldnames</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_names</span> <span class="o">=</span> <span class="n">find_consistent_labeling</span><span class="p">(</span><span class="n">grouped_oldnames</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">new_names</span><span class="p">)</span>
+<span class="go">[u&#39;b&#39;, u&#39;c&#39;, u&#39;a&#39;]</span>
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.name_recitifer</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grouped_oldnames</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_names</span> <span class="o">=</span> <span class="n">find_consistent_labeling</span><span class="p">(</span><span class="n">grouped_oldnames</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">new_names</span><span class="p">)</span>
+<span class="go">[u&#39;a&#39;, u&#39;b&#39;, u&#39;e&#39;]</span>
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.name_recitifer</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grouped_oldnames</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_names</span> <span class="o">=</span> <span class="n">find_consistent_labeling</span><span class="p">(</span><span class="n">grouped_oldnames</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">new_names</span><span class="p">)</span>
+<span class="go">[u&#39;a&#39;, u&#39;b&#39;, u&#39;e&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.name_recitifer.rectify_names">
+<code class="descclassname">ibeis.scripts.name_recitifer.</code><code class="descname">rectify_names</code><span class="sig-paren">(</span><em>ibs</em>, <em>aid_list=None</em>, <em>old_img2_names=None</em>, <em>hack_prefix=u''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/name_recitifer.html#rectify_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.name_recitifer.rectify_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Changes the names in the IA-database to correspond to an older naming
+convention.  If splits and merges were preformed tries to find the
+maximally consistent renaming scheme.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ibs</strong> (<em>ibeis.IBEISController</em>) &#8211; image analysis api</li>
+<li><strong>aid_list</strong> (<em>list</em>) &#8211; list of annotation rowids</li>
+<li><strong>img_list</strong> (<em>list</em>) &#8211; </li>
+<li><strong>name_list</strong> (<em>list</em>) &#8211; (default = None)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.name_recitifer rectify_names --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.name_recitifer</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hack_prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">old_img2_names</span> <span class="o">=</span> <span class="bp">None</span> <span class="c1">#[&#39;img_fred.png&#39;, &#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">rectify_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">img_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
 <div class="section" id="module-ibeis.scripts.rsync_ibeisdb">
 <span id="ibeis-scripts-rsync-ibeisdb-module"></span><h2>ibeis.scripts.rsync_ibeisdb module<a class="headerlink" href="#module-ibeis.scripts.rsync_ibeisdb" title="Permalink to this headline">¶</a></h2>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.scripts.rsync_ibeisdb
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.rsync_ibeisdb
 python -m ibeis.scripts.rsync_ibeisdb --dryrun
 </pre></div>
 </div>
@@ -476,6 +580,197 @@ python -m ibeis.scripts.rsync_ibeisdb --dryrun
 <dd><p>syncs an ibeisdb without syncing the cache or the chip directory
 (or the top level image directory because it shouldnt exist unless it is an
 old hots database)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ibeis.scripts.specialdraw">
+<span id="ibeis-scripts-specialdraw-module"></span><h2>ibeis.scripts.specialdraw module<a class="headerlink" href="#module-ibeis.scripts.specialdraw" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ibeis.scripts.specialdraw.double_depcache_graph">
+<code class="descclassname">ibeis.scripts.specialdraw.</code><code class="descname">double_depcache_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/specialdraw.html#double_depcache_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.specialdraw.double_depcache_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.specialdraw double_depcache_graph --show --testmode
+
+python -m ibeis.scripts.specialdraw double_depcache_graph --save<span class="o">=</span>figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize<span class="o">=</span>8,20 --dpi<span class="o">=</span><span class="m">220</span> --testmode --show --clipwhite
+python -m ibeis.scripts.specialdraw double_depcache_graph --save<span class="o">=</span>figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize<span class="o">=</span>8,20 --dpi<span class="o">=</span><span class="m">220</span> --testmode --show --clipwhite --arrow-width<span class="o">=</span>.5
+
+python -m ibeis.scripts.specialdraw double_depcache_graph --save<span class="o">=</span>figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize<span class="o">=</span>8,20 --dpi<span class="o">=</span><span class="m">220</span> --testmode --show --clipwhite --arrow-width<span class="o">=</span>5
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.specialdraw</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">double_depcache_graph</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.specialdraw.event_space">
+<code class="descclassname">ibeis.scripts.specialdraw.</code><code class="descname">event_space</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/specialdraw.html#event_space"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.specialdraw.event_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>pip install matplotlib-venn</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.specialdraw.general_identify_flow">
+<code class="descclassname">ibeis.scripts.specialdraw.</code><code class="descname">general_identify_flow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/specialdraw.html#general_identify_flow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.specialdraw.general_identify_flow" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.specialdraw general_identify_flow --show --save pairsim.png --dpi<span class="o">=</span><span class="m">100</span> --diskshow --clipwhite
+
+python -m ibeis.scripts.specialdraw general_identify_flow --dpi<span class="o">=</span><span class="m">200</span> --diskshow --clipwhite --dpath ~/latex/cand/ --figsize<span class="o">=</span>20,10  --save figures4/pairprob.png --arrow-width<span class="o">=</span>2.0
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.specialdraw</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">general_identify_flow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.specialdraw.graphcut_flow">
+<code class="descclassname">ibeis.scripts.specialdraw.</code><code class="descname">graphcut_flow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/specialdraw.html#graphcut_flow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.specialdraw.graphcut_flow" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">name</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">?</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.specialdraw graphcut_flow --show --save cutflow.png --diskshow --clipwhite
+python -m ibeis.scripts.specialdraw graphcut_flow --save figures4/cutiden.png --diskshow --clipwhite --dpath ~/latex/crall-candidacy-2015/ --figsize<span class="o">=</span>24,10 --arrow-width<span class="o">=</span>2.0
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.specialdraw</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">graphcut_flow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.specialdraw.intraoccurrence_connected">
+<code class="descclassname">ibeis.scripts.specialdraw.</code><code class="descname">intraoccurrence_connected</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/specialdraw.html#intraoccurrence_connected"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.specialdraw.intraoccurrence_connected" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.specialdraw intraoccurrence_connected --show
+python -m ibeis.scripts.specialdraw intraoccurrence_connected --show --postcut
+python -m ibeis.scripts.specialdraw intraoccurrence_connected --show --smaller
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.specialdraw</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">intraoccurrence_connected</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.specialdraw.lighten_hex">
+<code class="descclassname">ibeis.scripts.specialdraw.</code><code class="descname">lighten_hex</code><span class="sig-paren">(</span><em>hexcolor</em>, <em>amount</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/specialdraw.html#lighten_hex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.specialdraw.lighten_hex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.specialdraw.merge_viewpoint_graph">
+<code class="descclassname">ibeis.scripts.specialdraw.</code><code class="descname">merge_viewpoint_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/specialdraw.html#merge_viewpoint_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.specialdraw.merge_viewpoint_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.specialdraw merge_viewpoint_graph --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.specialdraw</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">merge_viewpoint_graph</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.specialdraw.multidb_montage">
+<code class="descclassname">ibeis.scripts.specialdraw.</code><code class="descname">multidb_montage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/specialdraw.html#multidb_montage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.specialdraw.multidb_montage" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.specialdraw multidb_montage --save montage.jpg --dpath ~/slides --diskshow --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.specialdraw</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">multidb_montage</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.specialdraw.scalespace">
+<code class="descclassname">ibeis.scripts.specialdraw.</code><code class="descname">scalespace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/specialdraw.html#scalespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.specialdraw.scalespace" title="Permalink to this definition">¶</a></dt>
+<dd><p>THIS DOES NOT SHOW A REAL SCALE SPACE PYRAMID YET. FIXME.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">imgBGRA_warped</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">?</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.specialdraw scalespace --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.specialdraw</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">imgBGRA_warped</span> <span class="o">=</span> <span class="n">scalespace</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;imgBGRA_warped = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">imgBGRA_warped</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ibeis.scripts.specialdraw.setcover_example">
+<code class="descclassname">ibeis.scripts.specialdraw.</code><code class="descname">setcover_example</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/scripts/specialdraw.html#setcover_example"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.scripts.specialdraw.setcover_example" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.scripts.specialdraw setcover_example --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.scripts.specialdraw</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">setcover_example</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -525,7 +820,7 @@ old hots database)</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

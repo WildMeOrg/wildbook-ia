@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.gui package &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.gui package &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.init package" href="ibeis.init.html"/>
         <link rel="prev" title="ibeis.expt package" href="ibeis.expt.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -120,14 +120,15 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_annots">ibeis.core_annots module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_images">ibeis.core_images module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.new_annots">ibeis.new_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workflow">ibeis.workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workspace">ibeis.workspace module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -281,16 +282,16 @@ scale_max=150, augment_queryside_hack=True)</dd>
 <dt id="ibeis.gui.clock_offset_gui.test_clock_offset">
 <code class="descclassname">ibeis.gui.clock_offset_gui.</code><code class="descname">test_clock_offset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/clock_offset_gui.html#test_clock_offset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.clock_offset_gui.test_clock_offset" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.clock_offset_gui --test-test_clock_offset
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.clock_offset_gui --test-test_clock_offset
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.clock_offset_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.clock_offset_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">test_clock_offset</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -304,13 +305,41 @@ scale_max=150, augment_queryside_hack=True)</dd>
 gui components is written or called from here</p>
 <dl class="docutils">
 <dt>TODO:</dt>
-<dd>open_database should not allow you to open subfolders</dd>
+<dd><p class="first">open_database should not allow you to open subfolders</p>
+<p class="last">python -m utool.util_inspect check_module_usage &#8211;pat=&#8221;guiback.py&#8221;</p>
+</dd>
 </dl>
 <dl class="class">
 <dt id="ibeis.gui.guiback.MainWindowBackend">
 <em class="property">class </em><code class="descclassname">ibeis.gui.guiback.</code><code class="descname">MainWindowBackend</code><span class="sig-paren">(</span><em>back</em>, <em>ibs=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">PyQt4.QtCore.QObject</span></code></p>
 <p>Sends and recieves signals to and from the frontend</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>back</strong> &#8211; </li>
+<li><strong>ibs</strong> (<em>ibeis.IBEISController</em>) &#8211; image analysis api(default = None)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.guiback MainWindowBackend --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">testdata_guiback</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">qwin</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.add_annotation_from_image">
 <code class="descname">add_annotation_from_image</code><span class="sig-paren">(</span><em>back</em>, <em>gid_list</em>, <em>refresh=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.add_annotation_from_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.add_annotation_from_image" title="Permalink to this definition">¶</a></dt>
@@ -319,7 +348,7 @@ gui components is written or called from here</p>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.are_you_sure">
-<code class="descname">are_you_sure</code><span class="sig-paren">(</span><em>back</em>, <em>use_msg=None</em>, <em>title='Confirmation'</em>, <em>default=None</em>, <em>action=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.are_you_sure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.are_you_sure" title="Permalink to this definition">¶</a></dt>
+<code class="descname">are_you_sure</code><span class="sig-paren">(</span><em>back</em>, <em>use_msg=None</em>, <em>title=u'Confirmation'</em>, <em>default=None</em>, <em>action=None</em>, <em>detailed_msg=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.are_you_sure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.are_you_sure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prompt user for conformation before changing something</p>
 </dd></dl>
 
@@ -361,12 +390,6 @@ gui components is written or called from here</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.compute_feats">
-<code class="descname">compute_feats</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_feats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_feats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Batch -&gt; Precompute Feats</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.compute_occurrences">
 <code class="descname">compute_occurrences</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_occurrences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_occurrences" title="Permalink to this definition">¶</a></dt>
 <dd><p>Batch -&gt; Compute ImageSets</p>
@@ -374,7 +397,7 @@ gui components is written or called from here</p>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.compute_queries">
-<code class="descname">compute_queries</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em>, <em>daids_mode=None</em>, <em>query_is_known=None</em>, <em>qaid_list=None</em>, <em>use_prioritized_name_subset=False</em>, <em>use_visual_selection=False</em>, <em>cfgdict={}</em>, <em>query_msg=None</em>, <em>custom_qaid_list_title=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_queries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_queries" title="Permalink to this definition">¶</a></dt>
+<code class="descname">compute_queries</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em>, <em>daids_mode=None</em>, <em>query_is_known=None</em>, <em>qaid_list=None</em>, <em>use_prioritized_name_subset=False</em>, <em>use_visual_selection=False</em>, <em>cfgdict={}</em>, <em>query_msg=None</em>, <em>custom_qaid_list_title=None</em>, <em>daid_list=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_queries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_queries" title="Permalink to this definition">¶</a></dt>
 <dd><p>MAIN QUERY FUNCTION</p>
 <p>execute_query</p>
 <p>Batch -&gt; Compute OldStyle Queries
@@ -382,7 +405,7 @@ and Actions -&gt; Query</p>
 <p>Computes query results for all annotations in an imageset.
 Results are either vs-exemplar or intra-imageset</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>./main.py --query <span class="m">1</span> -y
+<div class="highlight-bash"><div class="highlight"><pre><span></span>./main.py --query <span class="m">1</span> -y
 python -m ibeis --query <span class="m">1</span> -y
 python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y
 python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y --force-all-progress
@@ -392,34 +415,34 @@ python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --ho
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb2&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;back&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;testdb2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;back&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">query_is_known</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">refresh</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daids_mode</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">imgsetid</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.compute_thumbs">
-<code class="descname">compute_thumbs</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.compute_thumbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.compute_thumbs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Batch -&gt; Precompute Thumbs</p>
+<dt id="ibeis.gui.guiback.MainWindowBackend.confirm_query_dialog">
+<code class="descname">confirm_query_dialog</code><span class="sig-paren">(</span><em>back</em>, <em>daid_list=None</em>, <em>qaid_list=None</em>, <em>cfgdict=None</em>, <em>query_msg=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.confirm_query_dialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.confirm_query_dialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asks the user to confirm starting the identification query</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.confirm_query_dialog">
-<code class="descname">confirm_query_dialog</code><span class="sig-paren">(</span><em>back</em>, <em>daid_list=None</em>, <em>qaid_list=None</em>, <em>cfgdict=None</em>, <em>query_msg=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.confirm_query_dialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.confirm_query_dialog" title="Permalink to this definition">¶</a></dt>
+<dt id="ibeis.gui.guiback.MainWindowBackend.confirm_query_dialog2">
+<code class="descname">confirm_query_dialog2</code><span class="sig-paren">(</span><em>back</em>, <em>species2_expanded_aids=None</em>, <em>cfgdict=None</em>, <em>query_msg=None</em>, <em>query_title=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.confirm_query_dialog2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.confirm_query_dialog2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asks the user to confirm starting the identification query</p>
 </dd></dl>
 
@@ -454,7 +477,7 @@ python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --ho
 <code class="descname">delete_annot</code><span class="sig-paren">(</span><em>back</em>, <em>aid_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.delete_annot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.delete_annot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Action -&gt; Delete Annotation</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.guiback --test-delete_annot --show
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.guiback --test-delete_annot --show
 python -m ibeis.gui.guiback --test-delete_annot --show --no-api-cache
 python -m ibeis.gui.guiback --test-delete_annot --show --assert-api-cache
 python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
@@ -465,21 +488,21 @@ python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
 <dd>manual_annot_funcs.delete_annots</dd>
 </dl>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># GUI_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># GUI_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">testdata_guiback</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">imgsetid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_argmax</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)))))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">select_imageset_tab</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_gids</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># add a test annotation to delete</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># add a test annotation to delete</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">add_annotation_from_image</span><span class="p">([</span><span class="n">gid</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># delte annotations</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># delte annotations</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aids1</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">back</span><span class="o">.</span><span class="n">delete_annot</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aids2</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#assert len(aids2) == len(aids1) - 1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#assert len(aids2) == len(aids1) - 1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
@@ -567,17 +590,17 @@ python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
 <dt id="ibeis.gui.guiback.MainWindowBackend.display_dbinfo">
 <code class="descname">display_dbinfo</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.display_dbinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.display_dbinfo" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.guiback --test-display_dbinfo
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.guiback --test-display_dbinfo
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">testdata_guiback</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">display_dbinfo</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -624,7 +647,7 @@ python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.get_selected_daids">
-<code class="descname">get_selected_daids</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid=None</em>, <em>daids_mode=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_daids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_daids" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_selected_daids</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid=None</em>, <em>daids_mode=None</em>, <em>qaid_list=None</em>, <em>species=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_daids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_daids" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -641,15 +664,8 @@ python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.get_selected_qaids">
-<code class="descname">get_selected_qaids</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid=None</em>, <em>minqual='poor'</em>, <em>is_known=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_qaids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_qaids" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_selected_qaids</code><span class="sig-paren">(</span><em>back</em>, <em>imgsetid=None</em>, <em>minqual=u'poor'</em>, <em>is_known=None</em>, <em>species=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_qaids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_qaids" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.get_selected_qres">
-<code class="descname">get_selected_qres</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.get_selected_qres"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.get_selected_qres" title="Permalink to this definition">¶</a></dt>
-<dd><p>UNUSED DEPRICATE</p>
-<p>selected query result</p>
-</dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.get_selected_species">
@@ -663,8 +679,10 @@ python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.imageset_reviewed_all_images">
-<code class="descname">imageset_reviewed_all_images</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em>, <em>all_image_bypass=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.imageset_reviewed_all_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.imageset_reviewed_all_images" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets all imagesets as reviwed and ships them to wildbook</p>
+<code class="descname">imageset_reviewed_all_images</code><span class="sig-paren">(</span><em>back</em>, <em>refresh=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.imageset_reviewed_all_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.imageset_reviewed_all_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Step 6) Commit</p>
+<p>Sets all imagesets as reviwed and ships them to wildbook</p>
+<p>commit step</p>
 </dd></dl>
 
 <dl class="method">
@@ -673,6 +691,11 @@ python -m ibeis.gui.guiback --test-delete_annot --show --debug-api-cache --yes
 <dd><p>HACK: sets the species columns of all annotations in the imageset
 to be whatever is currently in the detect config</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.import_button_click">
+<code class="descname">import_button_click</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.import_button_click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.import_button_click" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.import_images_as_annots_from_file">
@@ -709,22 +732,22 @@ to be whatever is currently in the detect config</p>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.guiback --test-import_images_from_dir_with_smart --show
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.guiback --test-import_images_from_dir_with_smart --show
 python -m ibeis.gui.guiback --test-import_images_from_dir_with_smart --show --auto
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DEV_GUI_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">testdata_guiback</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;freshsmart_test&#39;</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DEV_GUI_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">testdata_guiback</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;freshsmart_test&#39;</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">defaultdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s">&#39;~/lewa-desktop/Desktop/GZ_Foal_Patrol_22_06_2015&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dir_</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--auto&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">join</span><span class="p">(</span><span class="n">defaultdir</span><span class="p">,</span> <span class="s">&#39;Photos&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">smart_xml_fpath</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--auto&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">join</span><span class="p">(</span><span class="n">defaultdir</span><span class="p">,</span> <span class="s">&#39;Patrols&#39;</span><span class="p">,</span> <span class="s">&#39;LWC_000526LEWA_GZ_FOAL_PATROL.xml&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">defaultdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;~/lewa-desktop/Desktop/GZ_Foal_Patrol_22_06_2015&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dir_</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--auto&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">join</span><span class="p">(</span><span class="n">defaultdir</span><span class="p">,</span> <span class="s1">&#39;Photos&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">smart_xml_fpath</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--auto&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">join</span><span class="p">(</span><span class="n">defaultdir</span><span class="p">,</span> <span class="s1">&#39;Patrols&#39;</span><span class="p">,</span> <span class="s1">&#39;LWC_000526LEWA_GZ_FOAL_PATROL.xml&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">size_filter</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">refresh</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">import_images_from_dir_with_smart</span><span class="p">(</span><span class="n">dir_</span><span class="p">,</span> <span class="n">size_filter</span><span class="p">,</span> <span class="n">refresh</span><span class="p">,</span> <span class="n">defaultdir</span><span class="o">=</span><span class="n">defaultdir</span><span class="p">,</span> <span class="n">smart_xml_fpath</span><span class="o">=</span><span class="n">smart_xml_fpath</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;gid_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;gid_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">gid_list</span><span class="p">),))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
@@ -764,32 +787,6 @@ python -m ibeis.gui.guiback --test-import_images_from_dir_with_smart --show --au
 &gt;&gt;&gt; #
 &gt;&gt;&gt; print(&#8216;[TEST] * len(gid_list)=%r&#8217; % len(gid_list))</dd>
 </dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.incremental_query">
-<code class="descname">incremental_query</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.incremental_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.incremental_query" title="Permalink to this definition">¶</a></dt>
-<dd><p>Runs each query against the current database and allows for user
-interaction to add exemplars one at a time.</p>
-<p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.guiback --test-incremental_query
-</pre></div>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;back&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">refresh</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span><span class="o">.</span><span class="n">incremental_query</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="method">
@@ -835,22 +832,49 @@ interaction to add exemplars one at a time.</p>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.guiback --test-MainWindowBackend.make_confirm_query_msg
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.guiback --test-MainWindowBackend.make_confirm_query_msg
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># GUI_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># GUI_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">main_locals</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">,</span> <span class="s">&#39;back&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">main_locals</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">,</span> <span class="s1">&#39;back&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annotconfig_stats</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">make_confirm_query_msg</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.make_confirm_query_msg2">
+<code class="descname">make_confirm_query_msg2</code><span class="sig-paren">(</span><em>back</em>, <em>species2_expanded_aids</em>, <em>cfgdict=None</em>, <em>query_msg=None</em>, <em>query_title=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.make_confirm_query_msg2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.make_confirm_query_msg2" title="Permalink to this definition">¶</a></dt>
+<dd><p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.guiback --test-MainWindowBackend.make_confirm_query_msg2 --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># GUI_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">main_locals</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">,</span> <span class="s1">&#39;back&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">exec_funckw</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">make_confirm_query_msg2</span><span class="p">,</span> <span class="nb">globals</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">imgsetid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_imgsetids_from_text</span><span class="p">(</span><span class="s1">&#39;*All Images&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species2_expanded_aids</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">_get_expanded_aids_groups</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs.get_annotconfig_stats(qaid_list, daid_list)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">short_msg</span><span class="p">,</span> <span class="n">detailed_msg</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">make_confirm_query_msg2</span><span class="p">(</span><span class="n">species2_expanded_aids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">short_msg</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">detailed_msg</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span><span class="o">.</span><span class="n">confirm_query_dialog2</span><span class="p">(</span><span class="n">species2_expanded_aids</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -864,6 +888,30 @@ interaction to add exemplars one at a time.</p>
 <dt id="ibeis.gui.guiback.MainWindowBackend.new_database">
 <code class="descname">new_database</code><span class="sig-paren">(</span><em>back</em>, <em>new_dbdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.new_database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.new_database" title="Permalink to this definition">¶</a></dt>
 <dd><p>File -&gt; New Database</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>new_dbdir</strong> (<em>None</em>) &#8211; (default = None)</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.guiback new_database --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#back = testdata_guiback(defaultdb=&#39;testdb1&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">testdata_guiback</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">new_database</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">qwin</span><span class="o">=</span><span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -891,21 +939,21 @@ interaction to add exemplars one at a time.</p>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.guiback --test-open_database
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.guiback --test-open_database
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># GUI_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">testdata_guiback</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">testdb0</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="s">&#39;testdb0&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">testdb1</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] TEST_OPEN_DATABASE testdb1=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testdb1</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># GUI_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">testdata_guiback</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">testdb0</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="s1">&#39;testdb0&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">testdb1</span> <span class="o">=</span> <span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;[TEST] TEST_OPEN_DATABASE testdb1=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">testdb1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">back</span><span class="o">.</span><span class="n">open_database</span><span class="p">(</span><span class="n">testdb1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] TEST_OPEN_DATABASE testdb0=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">testdb0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;[TEST] TEST_OPEN_DATABASE testdb0=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">testdb0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">back</span><span class="o">.</span><span class="n">open_database</span><span class="p">(</span><span class="n">testdb0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#dbdir = join(ibeis.sysres.get_workdir(), &#39;PZ_MTEST&#39;, &#39;_ibsdb&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#dbdir = join(ibeis.sysres.get_workdir(), &#39;PZ_MTEST&#39;, &#39;_ibsdb&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">open_database</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -916,11 +964,6 @@ interaction to add exemplars one at a time.</p>
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.override_all_annotation_species">
 <code class="descname">override_all_annotation_species</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.override_all_annotation_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.override_all_annotation_species" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.popup_annot_info">
-<code class="descname">popup_annot_info</code><span class="sig-paren">(</span><em>back</em>, <em>aid_list</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.popup_annot_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.popup_annot_info" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -956,11 +999,6 @@ interaction to add exemplars one at a time.</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.review_detections">
-<code class="descname">review_detections</code><span class="sig-paren">(</span><em>back</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.review_detections"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.review_detections" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.review_queries">
 <code class="descname">review_queries</code><span class="sig-paren">(</span><em>back</em>, <em>cm_list</em>, <em>qreq_=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.review_queries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.review_queries" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -978,12 +1016,12 @@ interaction to add exemplars one at a time.</p>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.guiback --test-MainWindowBackend.run_annot_splits --show
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.guiback --test-MainWindowBackend.run_annot_splits --show
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># GUI_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># GUI_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">testdata_guiback</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aids_list</span><span class="p">,</span> <span class="n">nids</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">group_annots_by_name</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">())</span>
@@ -1020,12 +1058,12 @@ interaction to add exemplars one at a time.</p>
 <code class="descname">run_merge_checks</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.run_merge_checks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.run_merge_checks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks for missed matches within a group of annotations</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.guiback --test-run_merge_checks --show
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.guiback --test-run_merge_checks --show
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># GUI_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># GUI_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">testdata_guiback</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">run_merge_checks</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -1033,6 +1071,13 @@ interaction to add exemplars one at a time.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">mainwin</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.run_merge_checks_multitons">
+<code class="descname">run_merge_checks_multitons</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.run_merge_checks_multitons"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.run_merge_checks_multitons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks for missed matches within a group of annotations.
+Only uses annotations with more 2 annots per id.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1057,31 +1102,26 @@ interaction to add exemplars one at a time.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.select_bbox">
-<code class="descname">select_bbox</code><span class="sig-paren">(</span><em>back</em>, <em>gid</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_bbox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_bbox" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_gid">
 <code class="descname">select_gid</code><span class="sig-paren">(</span><em>back</em>, <em>gid</em>, <em>imgsetid=None</em>, <em>show=True</em>, <em>sel_aids=None</em>, <em>fnum=None</em>, <em>web=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_gid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_gid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Table Click -&gt; Image Table</p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># GUI_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s">          get_valid_gids</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s">          &#39;&#39;&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># GUI_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s1">          get_valid_gids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s1">          &#39;&#39;&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">valid_gids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s">          get_valid_aids</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s">          &#39;&#39;&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s1">          get_valid_aids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s1">          &#39;&#39;&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">valid_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s">* len(valid_aids) = </span><span class="si">%r</span><span class="s"></span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s">* len(valid_gids) = </span><span class="si">%r</span><span class="s"></span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;database images cannot be empty for test&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s1">* len(valid_aids) = </span><span class="si">%r</span><span class="s1"></span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s1">* len(valid_gids) = </span><span class="si">%r</span><span class="s1"></span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s1">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_gids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;database images cannot be empty for test&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid</span> <span class="o">=</span> <span class="n">valid_gids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -1102,27 +1142,9 @@ interaction to add exemplars one at a time.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.select_next">
-<code class="descname">select_next</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_next" title="Permalink to this definition">¶</a></dt>
-<dd><p>Action -&gt; Next</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.select_nid">
 <code class="descname">select_nid</code><span class="sig-paren">(</span><em>back</em>, <em>nid</em>, <em>imgsetid=None</em>, <em>show=True</em>, <em>show_name=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_nid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_nid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Table Click -&gt; Name Table</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.select_prev">
-<code class="descname">select_prev</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_prev"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_prev" title="Permalink to this definition">¶</a></dt>
-<dd><p>Action -&gt; Prev</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.select_qres_aid">
-<code class="descname">select_qres_aid</code><span class="sig-paren">(</span><em>back</em>, <em>aid</em>, <em>imgsetid=None</em>, <em>show=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.select_qres_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.select_qres_aid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Table Click -&gt; Result Table</p>
 </dd></dl>
 
 <dl class="method">
@@ -1252,6 +1274,11 @@ interaction to add exemplars one at a time.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="ibeis.gui.guiback.MainWindowBackend.update_source_install">
+<code class="descname">update_source_install</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.update_source_install"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.update_source_install" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.update_special_imagesets">
 <code class="descname">update_special_imagesets</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.update_special_imagesets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.update_special_imagesets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1262,28 +1289,18 @@ interaction to add exemplars one at a time.</p>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.update_window_title">
-<code class="descname">update_window_title</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.update_window_title"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.update_window_title" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.user_info">
 <code class="descname">user_info</code><span class="sig-paren">(</span><em>back</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.user_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.user_info" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.user_input">
-<code class="descname">user_input</code><span class="sig-paren">(</span><em>back</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.user_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.user_input" title="Permalink to this definition">¶</a></dt>
+<code class="descname">user_input</code><span class="sig-paren">(</span><em>back</em>, <em>msg=u'user input'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.user_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.user_input" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ibeis.gui.guiback.MainWindowBackend.user_option">
 <code class="descname">user_option</code><span class="sig-paren">(</span><em>back</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.user_option"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.user_option" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ibeis.gui.guiback.MainWindowBackend.user_select_new_dbdir">
-<code class="descname">user_select_new_dbdir</code><span class="sig-paren">(</span><em>back</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#MainWindowBackend.user_select_new_dbdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.MainWindowBackend.user_select_new_dbdir" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1315,6 +1332,76 @@ interaction to add exemplars one at a time.</p>
 
 </dd></dl>
 
+<dl class="class">
+<dt id="ibeis.gui.guiback.NewDatabaseWidget">
+<em class="property">class </em><code class="descclassname">ibeis.gui.guiback.</code><code class="descname">NewDatabaseWidget</code><span class="sig-paren">(</span><em>parent=None</em>, <em>orientation=2</em>, <em>verticalSizePolicy=7</em>, <em>horizontalSizePolicy=7</em>, <em>verticalStretch=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#NewDatabaseWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.NewDatabaseWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">guitool.guitool_components.GuitoolWidget</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>parent</strong> (<em>None</em>) &#8211; (default = None)</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.guiback NewDatabaseWidget --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guiback</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">guitool</span> <span class="kn">as</span> <span class="nn">gt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qtapp</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span> <span class="o">=</span> <span class="n">NewDatabaseWidget</span><span class="p">(</span><span class="n">back</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gt</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">qwin</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="ibeis.gui.guiback.NewDatabaseWidget.cancel">
+<code class="descname">cancel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#NewDatabaseWidget.cancel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.NewDatabaseWidget.cancel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.NewDatabaseWidget.change_workdir">
+<code class="descname">change_workdir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#NewDatabaseWidget.change_workdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.NewDatabaseWidget.change_workdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.NewDatabaseWidget.choose_new_dbdir">
+<code class="descname">choose_new_dbdir</code><span class="sig-paren">(</span><em>dbdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#NewDatabaseWidget.choose_new_dbdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.NewDatabaseWidget.choose_new_dbdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.NewDatabaseWidget.create_in_customdir">
+<code class="descname">create_in_customdir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#NewDatabaseWidget.create_in_customdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.NewDatabaseWidget.create_in_customdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.NewDatabaseWidget.create_in_workdir">
+<code class="descname">create_in_workdir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#NewDatabaseWidget.create_in_workdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.NewDatabaseWidget.create_in_workdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.NewDatabaseWidget.initialize">
+<code class="descname">initialize</code><span class="sig-paren">(</span><em>back=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#NewDatabaseWidget.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.NewDatabaseWidget.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.NewDatabaseWidget.update_state">
+<code class="descname">update_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#NewDatabaseWidget.update_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.NewDatabaseWidget.update_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ibeis.gui.guiback.NewDatabaseWidget.view_workdir">
+<code class="descname">view_workdir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#NewDatabaseWidget.view_workdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.NewDatabaseWidget.view_workdir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="function">
 <dt id="ibeis.gui.guiback.backblock">
 <code class="descclassname">ibeis.gui.guiback.</code><code class="descname">backblock</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#backblock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.backblock" title="Permalink to this definition">¶</a></dt>
@@ -1340,7 +1427,7 @@ the decorated function is processing.</p>
 
 <dl class="function">
 <dt id="ibeis.gui.guiback.testdata_guiback">
-<code class="descclassname">ibeis.gui.guiback.</code><code class="descname">testdata_guiback</code><span class="sig-paren">(</span><em>defaultdb='testdb2'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#testdata_guiback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.testdata_guiback" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.gui.guiback.</code><code class="descname">testdata_guiback</code><span class="sig-paren">(</span><em>defaultdb=u'testdb2'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guiback.html#testdata_guiback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guiback.testdata_guiback" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -1428,12 +1515,12 @@ as well as their callbacks in guiback</p>
 <dt id="ibeis.gui.guimenus.setup_dummy_menus">
 <code class="descclassname">ibeis.gui.guimenus.</code><code class="descname">setup_dummy_menus</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/guimenus.html#setup_dummy_menus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.guimenus.setup_dummy_menus" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.guimenus --test-setup_dummy_menus
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.guimenus --test-setup_dummy_menus
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guimenus</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.guimenus</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">setup_dummy_menus</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
@@ -1500,7 +1587,7 @@ some work if its to be re-integrated.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">guitool.api_item_widget.APIItemWidget</span></code></p>
 <p>Window for gui inspection</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
 </pre></div>
 </div>
 <dl class="method">
@@ -1555,20 +1642,20 @@ some work if its to be re-integrated.</p>
 <dt id="ibeis.gui.inspect_gui.ensure_match_img">
 <code class="descclassname">ibeis.gui.inspect_gui.</code><code class="descname">ensure_match_img</code><span class="sig-paren">(</span><em>ibs</em>, <em>cm</em>, <em>daid</em>, <em>qreq_=None</em>, <em>match_thumbtup_cache={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#ensure_match_img"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.ensure_match_img" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.inspect_gui --test-ensure_match_img --show
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.inspect_gui --test-ensure_match_img --show
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_cm</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">match_thumbtup_cache</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">match_thumb_fpath_</span> <span class="o">=</span> <span class="n">ensure_match_img</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">match_thumbtup_cache</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">match_thumb_fpath_</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
@@ -1604,29 +1691,29 @@ some work if its to be re-integrated.</p>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options
 python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose
 python -m ibeis.gui.inspect_gui --exec-get_aidpair_context_menu_options --verbose -a timecontrolled -t invarbest --db PZ_Master1  --qaid 574
 
-<span class="c"># Other scripts that call this one;w</span>
+<span class="c1"># Other scripts that call this one;w</span>
 python -m ibeis.dev -e cases --db PZ_Master1  -a timectrl -t best --filt :sortdsc<span class="o">=</span>gfscore,fail<span class="o">=</span>True,min_gtscore<span class="o">=</span>.0001 --show
 python -m ibeis.dev -e cases --db PZ_MTEST  -a timectrl -t best --filt :sortdsc<span class="o">=</span>gfscore,fail<span class="o">=</span>True,min_gtscore<span class="o">=</span>.0001 --show
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default:fg_on=False&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cm_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default:fg_on=False&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span> <span class="o">=</span> <span class="n">cm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid1</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid2</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">options</span> <span class="o">=</span> <span class="n">get_aidpair_context_menu_options</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;options = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">options</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;options = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">options</span><span class="p">),))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1670,18 +1757,18 @@ Used in inspect_gui and interact_qres2</p>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.expt.results_organizer --test-get_automatch_candidates:2
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.expt.results_organizer --test-get_automatch_candidates:2
 python -m ibeis.expt.results_organizer --test-get_automatch_candidates:0
 </pre></div>
 </div>
 <dl class="docutils">
 <dt>Example0:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_qreq_</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cm_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">directed</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">name_scoring</span> <span class="o">=</span> <span class="bp">False</span>
@@ -1691,13 +1778,13 @@ python -m ibeis.expt.results_organizer --test-get_automatch_candidates:0
 </div>
 </dd>
 <dt>Example1:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># UNSTABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cm_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cm_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">directed</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">name_scoring</span> <span class="o">=</span> <span class="bp">False</span>
@@ -1713,13 +1800,13 @@ python -m ibeis.expt.results_organizer --test-get_automatch_candidates:0
 </div>
 </dd>
 <dt>Example3:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># UNSTABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">10</span><span class="p">:</span><span class="mi">100</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_cm</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">return_cm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qaid2_cm</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">directed</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">name_scoring</span> <span class="o">=</span> <span class="bp">False</span>
@@ -1735,10 +1822,10 @@ python -m ibeis.expt.results_organizer --test-get_automatch_candidates:0
 </div>
 </dd>
 <dt>Example4:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># UNSTABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qres_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
@@ -1778,14 +1865,14 @@ should follow the same paradigm, but CustomAPI will have to change.</p>
 <dt id="ibeis.gui.inspect_gui.get_match_thumb_fname">
 <code class="descclassname">ibeis.gui.inspect_gui.</code><code class="descname">get_match_thumb_fname</code><span class="sig-paren">(</span><em>cm</em>, <em>daid</em>, <em>qreq_</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#get_match_thumb_fname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.get_match_thumb_fname" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.inspect_gui --exec-get_match_thumb_fname
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.inspect_gui --exec-get_match_thumb_fname
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_cm</span><span class="p">(</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_cm</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">thumbsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">match_thumb_fname</span> <span class="o">=</span> <span class="n">get_match_thumb_fname</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
@@ -1824,25 +1911,25 @@ should follow the same paradigm, but CustomAPI will have to change.</p>
 
 <dl class="function">
 <dt id="ibeis.gui.inspect_gui.make_qres_api">
-<code class="descclassname">ibeis.gui.inspect_gui.</code><code class="descname">make_qres_api</code><span class="sig-paren">(</span><em>ibs</em>, <em>cm_list</em>, <em>ranks_lt=None</em>, <em>name_scoring=False</em>, <em>filter_reviewed=None</em>, <em>filter_duplicate_namepair_matches=False</em>, <em>qreq_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#make_qres_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.make_qres_api" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.gui.inspect_gui.</code><code class="descname">make_qres_api</code><span class="sig-paren">(</span><em>ibs</em>, <em>cm_list</em>, <em>ranks_lt=None</em>, <em>name_scoring=False</em>, <em>filter_reviewed=False</em>, <em>filter_duplicate_namepair_matches=False</em>, <em>qreq_=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/inspect_gui.html#make_qres_api"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.inspect_gui.make_qres_api" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builds columns which are displayable in a ColumnListTableWidget</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
 python -m ibeis.gui.inspect_gui --test-make_qres_api
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">guitool</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main_helpers</span><span class="o">.</span><span class="n">testdata_cmlist</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tblname</span> <span class="o">=</span> <span class="s">&#39;chipmatch&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tblname</span> <span class="o">=</span> <span class="s1">&#39;chipmatch&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">name_scoring</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qres_api</span> <span class="o">=</span> <span class="n">make_qres_api</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="p">,</span> <span class="n">name_scoring</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;qres_api = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qres_api</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;qres_api = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qres_api</span><span class="p">,))</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1901,27 +1988,27 @@ python -m ibeis.gui.inspect_gui --test-make_qres_api
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
 python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show --nodelete
 python -m ibeis.gui.inspect_gui --test-test_inspect_matches --cmd
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.inspect_gui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">guitool</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span> <span class="o">==</span> <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="s">&#39;do not use on a real database&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs</span><span class="o">.</span><span class="n">dbname</span> <span class="o">==</span> <span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="s1">&#39;do not use on a real database&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nodelete&#39;</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nodelete&#39;</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annotmatch</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_annotmatch_rowids</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">main_locals</span> <span class="o">=</span> <span class="n">test_inspect_matches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">main_execstr</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main_loop</span><span class="p">(</span><span class="n">main_locals</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># TODO: add in qwin to main loop</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">qwin</span><span class="o">=</span><span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;qres_wgt&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># TODO: add in qwin to main loop</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">guitool</span><span class="o">.</span><span class="n">qtapp_loop</span><span class="p">(</span><span class="n">qwin</span><span class="o">=</span><span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;qres_wgt&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">main_execstr</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">exec</span><span class="p">(</span><span class="n">main_execstr</span><span class="p">)</span>
 </pre></div>
@@ -2018,7 +2105,7 @@ logic.</p>
 <em class="property">class </em><code class="descclassname">ibeis.gui.newgui.</code><code class="descname">IBEISGuiWidget</code><span class="sig-paren">(</span><em>ibswgt</em>, <em>back=None</em>, <em>ibs=None</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">PyQt4.QtGui.QWidget</span></code></p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="c"># Testing</span>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="c1"># Testing</span>
 python -m ibeis --db NNP_Master3 --onlyimgtbl
 python -m ibeis --db PZ_Master1 --onlyimgtbl
 </pre></div>
@@ -2039,14 +2126,14 @@ python -m ibeis --db PZ_Master1 --onlyimgtbl
 <dt id="ibeis.gui.newgui.IBEISGuiWidget.edit_image_time">
 <code class="descname">edit_image_time</code><span class="sig-paren">(</span><em>ibswgt</em>, <em>gid_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.edit_image_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.edit_image_time" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.newgui --exec-edit_image_time --show
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.newgui --exec-edit_image_time --show
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs, back, ibswgt, testdata_main_loop = testdata_guifront(&#39;testdb3&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">,</span> <span class="n">ibswgt</span><span class="p">,</span> <span class="n">testdata_main_loop</span> <span class="o">=</span> <span class="n">testdata_guifront</span><span class="p">(</span><span class="s">&#39;lynx&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">,</span> <span class="n">ibswgt</span><span class="p">,</span> <span class="n">testdata_main_loop</span> <span class="o">=</span> <span class="n">testdata_guifront</span><span class="p">(</span><span class="s1">&#39;testdb3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs, back, ibswgt, testdata_main_loop = testdata_guifront(&#39;lynx&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibswgt</span><span class="o">.</span><span class="n">edit_image_time</span><span class="p">([</span><span class="mi">277</span><span class="p">,</span> <span class="mi">630</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">testdata_main_loop</span><span class="p">(</span><span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
 </pre></div>
@@ -2058,14 +2145,14 @@ python -m ibeis --db PZ_Master1 --onlyimgtbl
 <code class="descname">filter_annotation_table</code><span class="sig-paren">(</span><em>ibswgt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.filter_annotation_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.filter_annotation_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>TODO:  Finish implementation</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.newgui --test-filter_annotation_table --show --db lynx --imgsetid 2
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.newgui --test-filter_annotation_table --show --db lynx --imgsetid 2
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs, back, ibswgt, testdata_main_loop = testdata_guifront(&#39;testdb3&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">,</span> <span class="n">ibswgt</span><span class="p">,</span> <span class="n">testdata_main_loop</span> <span class="o">=</span> <span class="n">testdata_guifront</span><span class="p">(</span><span class="s">&#39;PZ_Master1&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">,</span> <span class="n">ibswgt</span><span class="p">,</span> <span class="n">testdata_main_loop</span> <span class="o">=</span> <span class="n">testdata_guifront</span><span class="p">(</span><span class="s1">&#39;testdb3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs, back, ibswgt, testdata_main_loop = testdata_guifront(&#39;PZ_Master1&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">filter_annotation_table</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">testdata_main_loop</span><span class="p">(</span><span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
@@ -2085,8 +2172,24 @@ python -m ibeis --db PZ_Master1 --onlyimgtbl
 
 <dl class="method">
 <dt id="ibeis.gui.newgui.IBEISGuiWidget.imagesDropped">
-<code class="descname">imagesDropped</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.imagesDropped"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.imagesDropped" title="Permalink to this definition">¶</a></dt>
+<code class="descname">imagesDropped</code><span class="sig-paren">(</span><em>ibswgt</em>, <em>url_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.imagesDropped"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.imagesDropped" title="Permalink to this definition">¶</a></dt>
 <dd><p>image drag and drop event</p>
+<p class="rubric">CommandLine:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.newgui imagesDropped --show
+</pre></div>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># GUI_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">,</span> <span class="n">ibswgt</span><span class="p">,</span> <span class="n">testdata_main_loop</span> <span class="o">=</span> <span class="n">testdata_guifront</span><span class="p">(</span><span class="s1">&#39;hstest&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">url_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;images.foo&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">url_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;~/Downloads/hs-images.zip&#39;</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">url</span> <span class="o">=</span> <span class="n">url_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibswgt</span><span class="o">.</span><span class="n">imagesDropped</span><span class="p">(</span><span class="n">url_list</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">testdata_main_loop</span><span class="p">(</span><span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -2103,35 +2206,27 @@ python -m ibeis --db PZ_Master1 --onlyimgtbl
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.newgui --test-make_adjacent_qtindex_callbacks
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.newgui --test-make_adjacent_qtindex_callbacks
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">,</span> <span class="n">ibswgt</span><span class="p">,</span> <span class="n">testdata_main_loop</span> <span class="o">=</span> <span class="n">testdata_guifront</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">gh</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">qtindex</span><span class="p">,</span> <span class="n">row</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_row_and_qtindex_from_id</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">current_rowid</span><span class="p">,</span> <span class="n">next_callback</span><span class="p">,</span> <span class="n">prev_callback</span><span class="p">)</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">make_adjacent_qtindex_callbacks</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">qtindex</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">prev_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;should not be a previous image id&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">prev_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;should not be a previous image id&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">current_rowid1</span><span class="p">,</span> <span class="n">next_callback1</span><span class="p">,</span> <span class="n">prev_callback1</span> <span class="o">=</span> <span class="n">next_callback</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">next_callback</span><span class="p">()</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;race condition not prevented&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">next_callback</span><span class="p">()</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;race condition not prevented&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">current_rowid2</span><span class="p">,</span> <span class="n">next_callback2</span><span class="p">,</span> <span class="n">prev_callback2</span> <span class="o">=</span> <span class="n">next_callback1</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># testdata main loop func</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># testdata main loop func</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">testdata_main_loop</span><span class="p">(</span><span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="method">
-<dt id="ibeis.gui.newgui.IBEISGuiWidget.on_click">
-<code class="descname">on_click</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.on_click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.on_click" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clicking anywhere in the GUI</p>
-<p>DOENT DO ANYTHING ANYMORE SELECTION MODEL USED INSTEAD</p>
-<p>DEPRICATE</p>
 </dd></dl>
 
 <dl class="method">
@@ -2140,7 +2235,7 @@ python -m ibeis --db PZ_Master1 --onlyimgtbl
 <dd><p>Right click anywhere in the GUI
 Context menus on right click of a table</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis --db WS_ALL --imgsetid <span class="m">2</span> --select-name<span class="o">=</span>A-003
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --db WS_ALL --imgsetid <span class="m">2</span> --select-name<span class="o">=</span>A-003
 </pre></div>
 </div>
 </dd></dl>
@@ -2150,7 +2245,7 @@ Context menus on right click of a table</p>
 <code class="descname">on_doubleclick</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.on_doubleclick"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.on_doubleclick" title="Permalink to this definition">¶</a></dt>
 <dd><p>Double clicking anywhere in the GUI</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis --db lynx --imgsetid <span class="m">2</span> --select-name<span class="o">=</span>goku
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --db lynx --imgsetid <span class="m">2</span> --select-name<span class="o">=</span>goku
 </pre></div>
 </div>
 </dd></dl>
@@ -2203,13 +2298,13 @@ Context menus on right click of a table</p>
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># GUI_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># GUI_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">,</span> <span class="n">ibswgt</span><span class="p">,</span> <span class="n">testdata_main_loop</span> <span class="o">=</span> <span class="n">testdata_guifront</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibswgt</span><span class="o">.</span><span class="n">set_table_tab</span><span class="p">(</span><span class="n">gh</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tblname</span> <span class="o">=</span> <span class="n">gh</span><span class="o">.</span><span class="n">NAMES_TREE</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">text</span> <span class="o">=</span> <span class="s">&#39;lena&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;lena&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibswgt</span><span class="o">.</span><span class="n">select_table_indicies_from_text</span><span class="p">(</span><span class="n">tblname</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2231,9 +2326,9 @@ Context menus on right click of a table</p>
 <dd><p>Programmatically change to the table-tab to either:
 Image, ImageGrid, Annotation, or Names table/tree</p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># GUI_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># GUI_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">,</span> <span class="n">ibswgt</span><span class="p">,</span> <span class="n">testdata_main_loop</span> <span class="o">=</span> <span class="n">testdata_guifront</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibswgt</span><span class="o">.</span><span class="n">set_table_tab</span><span class="p">(</span><span class="n">gh</span><span class="o">.</span><span class="n">ANNOTATION_TABLE</span><span class="p">)</span>
 </pre></div>
@@ -2251,16 +2346,16 @@ Image, ImageGrid, Annotation, or Names table/tree</p>
 <code class="descname">spawn_edit_image_annotation_interaction_from_aid</code><span class="sig-paren">(</span><em>ibswgt</em>, <em>aid</em>, <em>imgsetid</em>, <em>model=None</em>, <em>qtindex=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#IBEISGuiWidget.spawn_edit_image_annotation_interaction_from_aid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.IBEISGuiWidget.spawn_edit_image_annotation_interaction_from_aid" title="Permalink to this definition">¶</a></dt>
 <dd><p>hack for letting annots spawn image editing</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.newgui --test-spawn_edit_image_annotation_interaction_from_aid --show
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.newgui --test-spawn_edit_image_annotation_interaction_from_aid --show
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">main_locals</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">,</span> <span class="s">&#39;back&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibswgt</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibswgt</span>  <span class="c"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">main_locals</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">,</span> <span class="s1">&#39;back&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibswgt</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibswgt</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid</span> <span class="o">=</span> <span class="mi">4</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">imgsetid</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibswgt</span><span class="o">.</span><span class="n">spawn_edit_image_annotation_interaction_from_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">imgsetid</span><span class="p">)</span>
@@ -2277,8 +2372,8 @@ Image, ImageGrid, Annotation, or Names table/tree</p>
 only one, the whole row is unselected, because this function only deals
 with deltas.</p>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">,</span> <span class="n">ibswgt</span><span class="p">,</span> <span class="n">testdata_main_loop</span> <span class="o">=</span> <span class="n">testdata_guifront</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibswgt</span><span class="o">.</span><span class="n">set_table_tab</span><span class="p">(</span><span class="n">gh</span><span class="o">.</span><span class="n">NAMES_TREE</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">view</span> <span class="o">=</span> <span class="n">ibswgt</span><span class="o">.</span><span class="n">views</span><span class="p">[</span><span class="n">gh</span><span class="o">.</span><span class="n">NAMES_TREE</span><span class="p">]</span>
@@ -2289,7 +2384,7 @@ with deltas.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">selmodel</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">selectionModel</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">selected</span> <span class="o">=</span> <span class="n">selmodel</span><span class="o">.</span><span class="n">selection</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">deselected</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QItemSelection</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2360,15 +2455,14 @@ with deltas.</p>
 <dt id="ibeis.gui.newgui.testfunc">
 <code class="descclassname">ibeis.gui.newgui.</code><code class="descname">testfunc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/gui/newgui.html#testfunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.gui.newgui.testfunc" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.gui.newgui --test-testfunc --show
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.gui.newgui --test-testfunc --show
 python -m ibeis.gui.newgui --test-testfunc --cmd
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.gui.newgui</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">testfunc</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2421,7 +2515,7 @@ python -m ibeis.gui.newgui --test-testfunc --cmd
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

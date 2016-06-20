@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.automated_matcher &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.model.hots.automated_matcher &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.model.hots.automated_matcher</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">CommandLine:</span>
 <span class="sd">    python -c &quot;import utool as ut; ut.write_modscript_alias(&#39;Tinc.sh&#39;, &#39;ibeis.model.hots.qt_inc_automatch&#39;)&quot;</span>
@@ -158,23 +158,23 @@
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">automatch_suggestor</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">user_dialogs</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
-<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[inc]&#39;</span><span class="p">)</span>
-<span class="c">#profile = ut.profile</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[inc]&#39;</span><span class="p">)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[inc]&#39;</span><span class="p">)</span>
+<span class="c1">#profile = ut.profile</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[inc]&#39;</span><span class="p">)</span>
 
-<span class="n">Metatup</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;Metatup&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;ibs_gt&#39;</span><span class="p">,</span> <span class="s">&#39;aid1_to_aid2&#39;</span><span class="p">))</span>
+<span class="n">Metatup</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Metatup&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;ibs_gt&#39;</span><span class="p">,</span> <span class="s1">&#39;aid1_to_aid2&#39;</span><span class="p">))</span>
 
 
 <div class="viewcode-block" id="testdata_automatch"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_matcher.testdata_automatch">[docs]</a><span class="k">def</span> <span class="nf">testdata_automatch</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">dbname</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;testdb1&#39;</span>
+        <span class="n">dbname</span> <span class="o">=</span> <span class="s1">&#39;testdb1&#39;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
     <span class="n">qaid_chunk</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_chunk</span>
 
 
-<span class="c"># ---- ENTRY POINT ----</span>
+<span class="c1"># ---- ENTRY POINT ----</span>
 
 </div>
 <span class="nd">@profile</span>
@@ -187,59 +187,59 @@
 <span class="sd">    Adds and queries new annotations one at a time with oracle guidance</span>
 <span class="sd">    ibs1 is ibs_gt, ibs2 is ibs</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;begin test interactive iter&#39;</span><span class="p">)</span>
-    <span class="c"># Transfer some amount of initial data</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Transfer </span><span class="si">%d</span><span class="s"> initial test annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_initial</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;begin test interactive iter&#39;</span><span class="p">)</span>
+    <span class="c1"># Transfer some amount of initial data</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Transfer </span><span class="si">%d</span><span class="s1"> initial test annotations&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_initial</span><span class="p">,))</span>
     <span class="k">if</span> <span class="n">num_initial</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">aid_sublist1</span> <span class="o">=</span> <span class="n">aid_list1</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">num_initial</span><span class="p">]</span>
         <span class="n">aid_sublist2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">aid1_to_aid2</span><span class="p">,</span> <span class="n">aid_sublist1</span><span class="p">)</span>
-        <span class="c">#aid_sublist2 = ah.add_annot_chunk(ibs_gt, ibs, aid_sublist1, aid1_to_aid2)</span>
-        <span class="c"># Add names from old databse. add all initial as exemplars</span>
+        <span class="c1">#aid_sublist2 = ah.add_annot_chunk(ibs_gt, ibs, aid_sublist1, aid1_to_aid2)</span>
+        <span class="c1"># Add names from old databse. add all initial as exemplars</span>
         <span class="n">name_list</span> <span class="o">=</span> <span class="n">ibs_gt</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid_sublist1</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names</span><span class="p">(</span><span class="n">aid_sublist2</span><span class="p">,</span> <span class="n">name_list</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_sublist2</span><span class="p">,</span> <span class="p">[</span><span class="bp">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_sublist2</span><span class="p">))</span>
         <span class="n">aid_list1</span> <span class="o">=</span> <span class="n">aid_list1</span><span class="p">[</span><span class="n">num_initial</span><span class="p">:]</span>
-    <span class="c"># Print info</span>
-    <span class="n">WITHINFO</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--withinfo&#39;</span><span class="p">)</span>
+    <span class="c1"># Print info</span>
+    <span class="n">WITHINFO</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--withinfo&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">WITHINFO</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;+-------&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Printing ibs_gt and ibs info before start&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--------&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">ibs info:&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;+-------&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Printing ibs_gt and ibs info before start&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;--------&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">ibs info:&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbinfo_str</span><span class="p">())</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;--------&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">ibs_gt info&#39;</span><span class="p">)</span>
-        <span class="c">#print(ibs_gt.get_dbinfo_str())</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;L________&#39;</span><span class="p">)</span>
-    <span class="c"># Setup metadata tuple (in the presence of groundtruth, keeps records of</span>
-    <span class="c"># accuracy and give information to the oracle decision maker)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;--------&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">ibs_gt info&#39;</span><span class="p">)</span>
+        <span class="c1">#print(ibs_gt.get_dbinfo_str())</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;L________&#39;</span><span class="p">)</span>
+    <span class="c1"># Setup metadata tuple (in the presence of groundtruth, keeps records of</span>
+    <span class="c1"># accuracy and give information to the oracle decision maker)</span>
     <span class="n">metatup</span> <span class="o">=</span> <span class="n">Metatup</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">incinfo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
-    <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;metatup&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metatup</span>
-    <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;interactive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="c"># Begin incremental iteration</span>
+    <span class="n">incinfo</span><span class="p">[</span><span class="s1">&#39;metatup&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metatup</span>
+    <span class="n">incinfo</span><span class="p">[</span><span class="s1">&#39;interactive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="c1"># Begin incremental iteration</span>
     <span class="n">chunksize</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">aids_chunk1_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">progress_chunks</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;TEST QUERY&#39;</span><span class="p">)</span>
+    <span class="n">aids_chunk1_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">progress_chunks</span><span class="p">(</span><span class="n">aid_list1</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;TEST QUERY&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">aids_chunk1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">aids_chunk1_iter</span><span class="p">):</span>
-        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;teststep&#39;</span><span class="p">):</span>
-            <span class="c">#sys.stdout.write(&#39;\n&#39;)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">==== EXECUTING TESTSTEP </span><span class="si">%d</span><span class="s"> ====&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;generator_stack_depth = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_current_stack_depth</span><span class="p">())</span>
-            <span class="c">#incinfo[&#39;interactive&#39;] = (interact_after is not None and count &gt;= interact_after)</span>
-            <span class="c">#---</span>
-            <span class="c"># ensure new annot is added (most likely it will have been preadded)</span>
-            <span class="c">#qaid_chunk = ah.add_annot_chunk(ibs_gt, ibs, aids_chunk1, aid1_to_aid2)</span>
-            <span class="c">#---</span>
-            <span class="c"># Assume annot has alredy been added</span>
-            <span class="c"># Get mapping</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s1">&#39;teststep&#39;</span><span class="p">):</span>
+            <span class="c1">#sys.stdout.write(&#39;\n&#39;)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">==== EXECUTING TESTSTEP </span><span class="si">%d</span><span class="s1"> ====&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;generator_stack_depth = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_current_stack_depth</span><span class="p">())</span>
+            <span class="c1">#incinfo[&#39;interactive&#39;] = (interact_after is not None and count &gt;= interact_after)</span>
+            <span class="c1">#---</span>
+            <span class="c1"># ensure new annot is added (most likely it will have been preadded)</span>
+            <span class="c1">#qaid_chunk = ah.add_annot_chunk(ibs_gt, ibs, aids_chunk1, aid1_to_aid2)</span>
+            <span class="c1">#---</span>
+            <span class="c1"># Assume annot has alredy been added</span>
+            <span class="c1"># Get mapping</span>
             <span class="n">qaid_chunk</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_list</span><span class="p">(</span><span class="n">aid1_to_aid2</span><span class="p">,</span> <span class="n">aids_chunk1</span><span class="p">)</span>
-            <span class="c">#---</span>
+            <span class="c1">#---</span>
             <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">generate_subquery_steps</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_chunk</span><span class="p">,</span> <span class="n">incinfo</span><span class="o">=</span><span class="n">incinfo</span><span class="p">):</span>
                 <span class="k">yield</span> <span class="n">item</span>
-                <span class="c">#(ibs, cm, qreq_, incinfo) = item</span>
-                <span class="c"># Yeild results for qt interface to call down into user or</span>
-                <span class="c"># oracle code and make a decision</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;ending interactive iter&#39;</span><span class="p">)</span>
+                <span class="c1">#(ibs, cm, qreq_, incinfo) = item</span>
+                <span class="c1"># Yeild results for qt interface to call down into user or</span>
+                <span class="c1"># oracle code and make a decision</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;ending interactive iter&#39;</span><span class="p">)</span>
     <span class="n">ah</span><span class="o">.</span><span class="n">check_results</span><span class="p">(</span><span class="n">ibs_gt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1_to_aid2</span><span class="p">,</span> <span class="n">aid_list1</span><span class="p">,</span> <span class="n">incinfo</span><span class="p">)</span>
 
 </div>
@@ -261,43 +261,43 @@
 <span class="sd">        &gt;&gt;&gt; ibs, qaid_chunk = testdata_automatch()</span>
 <span class="sd">        &gt;&gt;&gt; generate_incremental_queries(ibs, qaid_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Execute each query as a test</span>
+    <span class="c1"># Execute each query as a test</span>
     <span class="n">chunksize</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="c">#aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)</span>
-    <span class="n">qaid_chunk_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">progress_chunks</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;TEST QUERY&#39;</span><span class="p">)</span>
+    <span class="c1">#aids_chunk1_iter = ut.ichunks(aid_list1, chunksize)</span>
+    <span class="n">qaid_chunk_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">progress_chunks</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;TEST QUERY&#39;</span><span class="p">)</span>
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
     <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">qaid_chunk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qaid_chunk_iter</span><span class="p">):</span>
-        <span class="c">#sys.stdout.write(&#39;\n&#39;)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">==== EXECUTING QUERY </span><span class="si">%d</span><span class="s"> ====&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;generator_stack_depth = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_current_stack_depth</span><span class="p">())</span>
+        <span class="c1">#sys.stdout.write(&#39;\n&#39;)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">==== EXECUTING QUERY </span><span class="si">%d</span><span class="s1"> ====&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;generator_stack_depth = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_current_stack_depth</span><span class="p">())</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">generate_subquery_steps</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_chunk</span><span class="p">,</span> <span class="n">incinfo</span><span class="o">=</span><span class="n">incinfo</span><span class="p">):</span>
             <span class="k">yield</span> <span class="n">item</span>
 
-<span class="c"># ---- INIT ----</span>
+<span class="c1"># ---- INIT ----</span>
 
 </div>
 <div class="viewcode-block" id="initialize_persistant_query_request"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_matcher.initialize_persistant_query_request">[docs]</a><span class="k">def</span> <span class="nf">initialize_persistant_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_chunk</span><span class="p">):</span>
-    <span class="c"># FIXME: allow for multiple species or make a nicer way of ensuring that</span>
-    <span class="c"># there is only one species here</span>
+    <span class="c1"># FIXME: allow for multiple species or make a nicer way of ensuring that</span>
+    <span class="c1"># there is only one species here</span>
     <span class="n">species_text_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">qaid_chunk</span><span class="p">))</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_text_set</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;query chunk has more than one species&#39;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_text_set</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;query chunk has more than one species&#39;</span>
     <span class="n">species_text</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">species_text_set</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="c"># controller based exemplars</span>
-    <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_exemplar</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species_text</span><span class="p">,</span> <span class="n">is_known</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">minqual</span><span class="o">=</span><span class="s">&#39;poor&#39;</span><span class="p">)</span>
+    <span class="c1"># controller based exemplars</span>
+    <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_exemplar</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species_text</span><span class="p">,</span> <span class="n">is_known</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;poor&#39;</span><span class="p">)</span>
     <span class="n">num_names</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">daid_list</span><span class="p">)))</span>
-    <span class="c"># TODO: choose vsmany K every time</span>
-    <span class="c"># need to be able to update qreq_.qparams</span>
+    <span class="c1"># TODO: choose vsmany K every time</span>
+    <span class="c1"># need to be able to update qreq_.qparams</span>
     <span class="n">vsmany_K</span> <span class="o">=</span> <span class="n">automated_params</span><span class="o">.</span><span class="n">choose_vsmany_K</span><span class="p">(</span><span class="n">num_names</span><span class="p">,</span> <span class="n">qaid_chunk</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">)</span>
     <span class="n">vsmany_cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">K</span><span class="o">=</span><span class="n">vsmany_K</span><span class="p">,</span>
         <span class="n">Knorm</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-        <span class="c">#index_method=&#39;single&#39;,</span>
-        <span class="n">pipeline_root</span><span class="o">=</span><span class="s">&#39;vsmany&#39;</span><span class="p">,</span>
-        <span class="c">#return_expanded_nns=False,</span>
-        <span class="c">#return_expanded_nns=True,</span>
+        <span class="c1">#index_method=&#39;single&#39;,</span>
+        <span class="n">pipeline_root</span><span class="o">=</span><span class="s1">&#39;vsmany&#39;</span><span class="p">,</span>
+        <span class="c1">#return_expanded_nns=False,</span>
+        <span class="c1">#return_expanded_nns=True,</span>
     <span class="p">)</span>
-    <span class="c"># Create New qreq</span>
+    <span class="c1"># Create New qreq</span>
     <span class="n">qreq_vsmany_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaid_chunk</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">vsmany_cfgdict</span><span class="p">,</span> <span class="n">use_memcache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qreq_vsmany_</span>
 
@@ -306,19 +306,19 @@
     <span class="k">if</span> <span class="n">qreq_vsmany_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">qreq_vsmany_</span> <span class="o">=</span> <span class="n">initialize_persistant_query_request</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_chunk</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c"># set new query aids</span>
+        <span class="c1"># set new query aids</span>
         <span class="n">qreq_vsmany_</span><span class="o">.</span><span class="n">set_internal_qaids</span><span class="p">(</span><span class="n">qaid_chunk</span><span class="p">)</span>
-        <span class="c"># state based exemplars</span>
-        <span class="c"># daid_list = qreq_vsmany_.get_external_daids()</span>
-        <span class="c">#</span>
-        <span class="c"># VALID FOR MULTI_INDEXER ONLY</span>
-        <span class="c"># Force indexer reloading if background process is completed.</span>
-        <span class="c"># we might get a shiny new indexer.</span>
+        <span class="c1"># state based exemplars</span>
+        <span class="c1"># daid_list = qreq_vsmany_.get_external_daids()</span>
+        <span class="c1">#</span>
+        <span class="c1"># VALID FOR MULTI_INDEXER ONLY</span>
+        <span class="c1"># Force indexer reloading if background process is completed.</span>
+        <span class="c1"># we might get a shiny new indexer.</span>
         <span class="n">force</span> <span class="o">=</span> <span class="n">neighbor_index</span><span class="o">.</span><span class="n">check_background_process</span><span class="p">()</span>
         <span class="n">qreq_vsmany_</span><span class="o">.</span><span class="n">load_indexer</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qreq_vsmany_</span>
 
-<span class="c"># ---- QUERY ----</span>
+<span class="c1"># ---- QUERY ----</span>
 
 </div>
 <div class="viewcode-block" id="execute_query_batch"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_matcher.execute_query_batch">[docs]</a><span class="k">def</span> <span class="nf">execute_query_batch</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_chunk</span><span class="p">,</span> <span class="n">qreq_vsmany_</span><span class="p">,</span> <span class="n">incinfo</span><span class="p">):</span>
@@ -333,10 +333,10 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">qreq_</span> <span class="o">=</span> <span class="n">qreq_vsmany_</span>
         <span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">mc4</span><span class="o">.</span><span class="n">submit_query_request_nocache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span>  <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qreq_vsmany_&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;qreq_vsmany_&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qreq_vsmany_</span>
+    <span class="k">if</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;qreq_vsmany_&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">incinfo</span><span class="p">[</span><span class="s1">&#39;qreq_vsmany_&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qreq_vsmany_</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qreq_vsmany_&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">qreq_vsmany_</span><span class="p">,</span> <span class="s">&#39;bad statefulness&#39;</span>
+        <span class="k">assert</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;qreq_vsmany_&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">qreq_vsmany_</span><span class="p">,</span> <span class="s1">&#39;bad statefulness&#39;</span>
     <span class="k">return</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span>
 
 </div>
@@ -360,30 +360,30 @@
 <span class="sd">        &gt;&gt;&gt; ibs, qaid_chunk = testdata_automatch()</span>
 <span class="sd">        &gt;&gt;&gt; generate_subquery_steps(ibs, qaid_chunk)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Use either state-based exemplars or controller based exemplars</span>
-    <span class="n">qreq_vsmany_</span> <span class="o">=</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qreq_vsmany_&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="c"># Execute actual queries</span>
+    <span class="c1"># Use either state-based exemplars or controller based exemplars</span>
+    <span class="n">qreq_vsmany_</span> <span class="o">=</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;qreq_vsmany_&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="c1"># Execute actual queries</span>
     <span class="n">qreq_vsmany_</span> <span class="o">=</span> <span class="n">load_or_make_qreq</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_vsmany_</span><span class="p">,</span> <span class="n">qaid_chunk</span><span class="p">)</span>
     <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">execute_query_batch</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_chunk</span><span class="p">,</span> <span class="n">qreq_vsmany_</span><span class="p">,</span> <span class="n">incinfo</span><span class="p">)</span>
 
-    <span class="c">#try_decision_callback = incinfo.get(&#39;try_decision_callback&#39;, None)</span>
+    <span class="c1">#try_decision_callback = incinfo.get(&#39;try_decision_callback&#39;, None)</span>
     <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qaid2_qres</span><span class="p">):</span>
         <span class="k">yield</span> <span class="p">[</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">incinfo</span><span class="p">]</span>
 
-<span class="c"># ---- DECISION ---</span>
+<span class="c1"># ---- DECISION ---</span>
 
 </div>
 <div class="viewcode-block" id="get_name_suggestion"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.automated_matcher.get_name_suggestion">[docs]</a><span class="k">def</span> <span class="nf">get_name_suggestion</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">,</span> <span class="n">incinfo</span><span class="p">):</span>
-    <span class="c"># ---------------------------------------------</span>
-    <span class="c"># Get oracle suggestion if we have the metadata</span>
-    <span class="c"># override the system suggestion</span>
-    <span class="n">metatup</span> <span class="o">=</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;metatup&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;use_oracle&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="ow">and</span> <span class="n">metatup</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="c1"># ---------------------------------------------</span>
+    <span class="c1"># Get oracle suggestion if we have the metadata</span>
+    <span class="c1"># override the system suggestion</span>
+    <span class="n">metatup</span> <span class="o">=</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;metatup&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_oracle&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="ow">and</span> <span class="n">metatup</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">oracle_name_suggest_tup</span> <span class="o">=</span> <span class="n">ao</span><span class="o">.</span><span class="n">get_oracle_name_suggestion</span><span class="p">(</span>
             <span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">,</span> <span class="n">metatup</span><span class="p">)</span>
         <span class="n">name_suggest_tup</span> <span class="o">=</span> <span class="n">oracle_name_suggest_tup</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c"># Get system suggested name</span>
+        <span class="c1"># Get system suggested name</span>
         <span class="n">system_name_suggest_tup</span> <span class="o">=</span> <span class="n">automatch_suggestor</span><span class="o">.</span><span class="n">get_system_name_suggestion</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">)</span>
         <span class="n">name_suggest_tup</span> <span class="o">=</span> <span class="n">system_name_suggest_tup</span>
     <span class="k">return</span> <span class="n">name_suggest_tup</span>
@@ -415,22 +415,22 @@
 <span class="sd">    Ignore::</span>
 <span class="sd">        cm.ishow_top(ibs, sidebyside=False, show_query=True)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- Identifying Query Animal ---&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;--- Identifying Query Animal ---&#39;</span><span class="p">)</span>
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
     <span class="n">choicetup</span> <span class="o">=</span> <span class="n">automatch_suggestor</span><span class="o">.</span><span class="n">get_qres_name_choices</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">)</span>
     <span class="n">name_suggest_tup</span> <span class="o">=</span> <span class="n">get_name_suggestion</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">,</span> <span class="n">incinfo</span><span class="p">)</span>
-    <span class="c"># Have the system ask the user if it is not confident in its decision</span>
+    <span class="c1"># Have the system ask the user if it is not confident in its decision</span>
     <span class="n">autoname_msg</span><span class="p">,</span> <span class="n">chosen_names</span><span class="p">,</span> <span class="n">name_confidence</span> <span class="o">=</span> <span class="n">name_suggest_tup</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;autoname_msg=&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;autoname_msg=&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">autoname_msg</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;... checking confidence=</span><span class="si">%r</span><span class="s"> in name decision.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_confidence</span><span class="p">,))</span>
-    <span class="k">if</span> <span class="n">name_confidence</span> <span class="o">&lt;</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_confidence_thresh&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;... confidence is too low. need user input&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;interactive&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... asking user for input&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;... checking confidence=</span><span class="si">%r</span><span class="s1"> in name decision.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_confidence</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">name_confidence</span> <span class="o">&lt;</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name_confidence_thresh&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;... confidence is too low. need user input&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interactive&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;... asking user for input&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">normalizer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">VIZ_SCORE_NORM</span> <span class="o">=</span> <span class="bp">False</span>
-                <span class="c">#VIZ_SCORE_NORM = ut.is_developer()</span>
+                <span class="c1">#VIZ_SCORE_NORM = ut.is_developer()</span>
                 <span class="k">if</span> <span class="n">VIZ_SCORE_NORM</span><span class="p">:</span>
                     <span class="n">qreq_</span><span class="o">.</span><span class="n">normalizer</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="mi">511</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
             <span class="n">user_dialogs</span><span class="o">.</span><span class="n">wait_for_user_name_decision</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">choicetup</span><span class="p">,</span>
@@ -438,13 +438,13 @@
                                                      <span class="n">incinfo</span><span class="o">=</span><span class="n">incinfo</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">run_until_finish</span><span class="p">(</span><span class="n">incinfo</span><span class="o">=</span><span class="n">incinfo</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;... cannot ask user for input. doing nothing&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;... cannot ask user for input. doing nothing&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;... confidence is above threshold. Making decision&#39;</span><span class="p">)</span>
-        <span class="c">#return (&#39;CALLBACK&#39;, chosen_names)</span>
-        <span class="n">name_decision_callback</span> <span class="o">=</span> <span class="n">incinfo</span><span class="p">[</span><span class="s">&#39;name_decision_callback&#39;</span><span class="p">]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;... confidence is above threshold. Making decision&#39;</span><span class="p">)</span>
+        <span class="c1">#return (&#39;CALLBACK&#39;, chosen_names)</span>
+        <span class="n">name_decision_callback</span> <span class="o">=</span> <span class="n">incinfo</span><span class="p">[</span><span class="s1">&#39;name_decision_callback&#39;</span><span class="p">]</span>
         <span class="n">name_decision_callback</span><span class="p">(</span><span class="n">chosen_names</span><span class="p">)</span>
-        <span class="c">#exec_name_decision_and_continue(chosen_names, ibs, cm, qreq_, incinfo=incinfo)</span>
+        <span class="c1">#exec_name_decision_and_continue(chosen_names, ibs, cm, qreq_, incinfo=incinfo)</span>
 
 </div>
 <span class="nd">@profile</span>
@@ -457,39 +457,39 @@
 <span class="sd">    normalizer is updated. Then execution continues to the exemplar decision</span>
 <span class="sd">    step.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;--- Updating Exemplars ---&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;--- Updating Exemplars ---&#39;</span><span class="p">)</span>
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
-    <span class="c">#assert ibs.is_aid_unknown(qaid), &#39;animal is already known&#39;</span>
+    <span class="c1">#assert ibs.is_aid_unknown(qaid), &#39;animal is already known&#39;</span>
     <span class="n">try_update_normalizer</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="n">was_junk</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="k">if</span> <span class="n">chosen_names</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">chosen_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">chosen_names</span> <span class="o">==</span> <span class="s">&#39;newname&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">chosen_names</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">chosen_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">chosen_names</span> <span class="o">==</span> <span class="s1">&#39;newname&#39;</span><span class="p">:</span>
         <span class="n">newname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">make_next_name</span><span class="p">()</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;identifying qaid=</span><span class="si">%r</span><span class="s"> as a new animal. newname=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">newname</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;identifying qaid=</span><span class="si">%r</span><span class="s1"> as a new animal. newname=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">newname</span><span class="p">))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names</span><span class="p">((</span><span class="n">qaid</span><span class="p">,),</span> <span class="p">(</span><span class="n">newname</span><span class="p">,))</span>
-    <span class="k">elif</span>  <span class="n">chosen_names</span> <span class="o">==</span> <span class="s">&#39;junk&#39;</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;setting query qaid=</span><span class="si">%r</span><span class="s"> as a junk annotations&#39;</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_qualities</span><span class="p">((</span><span class="n">qaid</span><span class="p">,),</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">QUALITY_TEXT_TO_INT</span><span class="p">[</span><span class="s">&#39;junk&#39;</span><span class="p">],))</span>
+    <span class="k">elif</span>  <span class="n">chosen_names</span> <span class="o">==</span> <span class="s1">&#39;junk&#39;</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;setting query qaid=</span><span class="si">%r</span><span class="s1"> as a junk annotations&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_qualities</span><span class="p">((</span><span class="n">qaid</span><span class="p">,),</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">QUALITY_TEXT_TO_INT</span><span class="p">[</span><span class="s1">&#39;junk&#39;</span><span class="p">],))</span>
         <span class="n">was_junk</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">chosen_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;identifying qaid=</span><span class="si">%r</span><span class="s"> as name=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chosen_names</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;identifying qaid=</span><span class="si">%r</span><span class="s1"> as name=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">chosen_names</span><span class="p">,))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names</span><span class="p">((</span><span class="n">qaid</span><span class="p">,),</span> <span class="n">chosen_names</span><span class="p">)</span>
         <span class="n">try_update_normalizer</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">chosen_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">merge_name</span> <span class="o">=</span> <span class="n">chosen_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">other_names</span> <span class="o">=</span> <span class="n">chosen_names</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;identifying qaid=</span><span class="si">%r</span><span class="s"> as name=</span><span class="si">%r</span><span class="s"> and merging with </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;identifying qaid=</span><span class="si">%r</span><span class="s1"> as name=</span><span class="si">%r</span><span class="s1"> and merging with </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span>
                 <span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">merge_name</span><span class="p">,</span> <span class="n">other_names</span><span class="p">))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">merge_names</span><span class="p">(</span><span class="n">merge_name</span><span class="p">,</span> <span class="n">other_names</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_names</span><span class="p">((</span><span class="n">qaid</span><span class="p">,),</span> <span class="p">(</span><span class="n">merge_name</span><span class="p">,))</span>
-    <span class="c"># STATE MAINTENANCE</span>
-    <span class="c"># TODO make sure update normalizer works</span>
+    <span class="c1"># STATE MAINTENANCE</span>
+    <span class="c1"># TODO make sure update normalizer works</span>
     <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">normalizer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">try_update_normalizer</span><span class="p">:</span>
         <span class="n">update_normalizer</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">chosen_names</span><span class="p">)</span>
-    <span class="c"># Do update callback so the name updates in the main GUI</span>
-    <span class="n">interactive</span> <span class="o">=</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;interactive&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-    <span class="n">update_callback</span> <span class="o">=</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;update_callback&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="c1"># Do update callback so the name updates in the main GUI</span>
+    <span class="n">interactive</span> <span class="o">=</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interactive&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">update_callback</span> <span class="o">=</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;update_callback&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">interactive</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">was_junk</span> <span class="ow">and</span> <span class="n">update_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># Update callback repopulates the names tree</span>
+        <span class="c1"># Update callback repopulates the names tree</span>
         <span class="n">update_callback</span><span class="p">()</span>
     <span class="n">run_until_exemplar_decision_signal</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">incinfo</span><span class="o">=</span><span class="n">incinfo</span><span class="p">)</span>
 
@@ -506,16 +506,16 @@
     <span class="n">exemplar_confidence_thresh</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_sys_maxfloat</span><span class="p">()</span>
     <span class="n">exmplr_suggestion</span> <span class="o">=</span> <span class="n">automatch_suggestor</span><span class="o">.</span><span class="n">get_system_exemplar_suggestion</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">)</span>
     <span class="p">(</span><span class="n">autoexemplar_msg</span><span class="p">,</span> <span class="n">exemplar_decision</span><span class="p">,</span> <span class="n">exemplar_condience</span><span class="p">)</span> <span class="o">=</span> <span class="n">exmplr_suggestion</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;autoexemplar_msg=&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;autoexemplar_msg=&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">autoexemplar_msg</span><span class="p">)</span>
-    <span class="c"># HACK: Disable asking users a about exemplars</span>
-    <span class="n">need_user_input</span> <span class="o">=</span> <span class="bp">False</span> <span class="ow">and</span> <span class="p">(</span><span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;interactive&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="ow">and</span> <span class="n">exemplar_condience</span> <span class="o">&lt;</span> <span class="n">exemplar_confidence_thresh</span><span class="p">)</span>
+    <span class="c1"># HACK: Disable asking users a about exemplars</span>
+    <span class="n">need_user_input</span> <span class="o">=</span> <span class="bp">False</span> <span class="ow">and</span> <span class="p">(</span><span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interactive&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="ow">and</span> <span class="n">exemplar_condience</span> <span class="o">&lt;</span> <span class="n">exemplar_confidence_thresh</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">need_user_input</span><span class="p">:</span>
         <span class="n">user_dialogs</span><span class="o">.</span><span class="n">wait_for_user_exemplar_decision</span><span class="p">(</span>
             <span class="n">autoexemplar_msg</span><span class="p">,</span> <span class="n">exemplar_decision</span><span class="p">,</span> <span class="n">exemplar_condience</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c"># May need to execute callback whereas whatever the interaction was</span>
-        <span class="c"># would issue it otherwise</span>
+        <span class="c1"># May need to execute callback whereas whatever the interaction was</span>
+        <span class="c1"># would issue it otherwise</span>
         <span class="n">exec_exemplar_decision_and_continue</span><span class="p">(</span><span class="n">exemplar_decision</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">incinfo</span><span class="o">=</span><span class="n">incinfo</span><span class="p">)</span>
 
 </div>
@@ -530,15 +530,15 @@
 <span class="sd">    (currently to the end of this iteration)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">new_aids</span><span class="p">,</span> <span class="n">remove_aids</span> <span class="o">=</span> <span class="n">exemplar_decision</span>
-    <span class="c">#if exemplar_decision:</span>
+    <span class="c1">#if exemplar_decision:</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">new_aids</span><span class="p">,</span> <span class="p">[</span><span class="bp">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_aids</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">remove_aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">remove_aids</span><span class="p">,</span> <span class="p">[</span><span class="bp">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">remove_aids</span><span class="p">))</span>
-    <span class="k">if</span> <span class="s">&#39;qreq_vsmany_&#39;</span> <span class="ow">in</span> <span class="n">incinfo</span><span class="p">:</span>
-        <span class="n">qreq_vsmany_</span> <span class="o">=</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qreq_vsmany_&#39;</span><span class="p">)</span>
-        <span class="c"># STATE_MAINTENANCE</span>
-        <span class="c"># Add new query as a database annotation</span>
+    <span class="k">if</span> <span class="s1">&#39;qreq_vsmany_&#39;</span> <span class="ow">in</span> <span class="n">incinfo</span><span class="p">:</span>
+        <span class="n">qreq_vsmany_</span> <span class="o">=</span> <span class="n">incinfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;qreq_vsmany_&#39;</span><span class="p">)</span>
+        <span class="c1"># STATE_MAINTENANCE</span>
+        <span class="c1"># Add new query as a database annotation</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">qreq_vsmany_</span><span class="o">.</span><span class="n">add_internal_daids</span><span class="p">(</span><span class="n">new_aids</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">remove_aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -553,15 +553,15 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">incinfo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># This query run as eneded</span>
-        <span class="n">next_query_key</span> <span class="o">=</span> <span class="s">&#39;next_query_callback&#39;</span>
+        <span class="c1"># This query run as eneded</span>
+        <span class="n">next_query_key</span> <span class="o">=</span> <span class="s1">&#39;next_query_callback&#39;</span>
         <span class="k">if</span> <span class="n">next_query_key</span> <span class="ow">in</span> <span class="n">incinfo</span><span class="p">:</span>
             <span class="n">incinfo</span><span class="p">[</span><span class="n">next_query_key</span><span class="p">]()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warning: no next_query_key=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">next_query_key</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Warning: no next_query_key=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">next_query_key</span><span class="p">,))</span>
 
 
-<span class="c"># ---- POST DECISION ---</span>
+<span class="c1"># ---- POST DECISION ---</span>
 
 </div>
 <span class="nd">@profile</span>
@@ -599,17 +599,17 @@
 <span class="sd">        &gt;&gt;&gt; chosen_names = [&#39;easy&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; update_normalizer(ibs, cm, qreq_, chosen_names)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Fixme: duplicate call to get_qres_name_choices</span>
+    <span class="c1"># Fixme: duplicate call to get_qres_name_choices</span>
     <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">normalizer</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[update_normalizer] NOT UPDATING. qreq_ has not loaded a score normalizer&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[update_normalizer] NOT UPDATING. qreq_ has not loaded a score normalizer&#39;</span><span class="p">)</span>
         <span class="k">return</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chosen_names</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[update_normalizer] NOT UPDATING. only updates using simple matches&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[update_normalizer] NOT UPDATING. only updates using simple matches&#39;</span><span class="p">)</span>
         <span class="k">return</span>
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
     <span class="n">choicetup</span> <span class="o">=</span> <span class="n">automatch_suggestor</span><span class="o">.</span><span class="n">get_qres_name_choices</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">)</span>
     <span class="p">(</span><span class="n">sorted_nids</span><span class="p">,</span> <span class="n">sorted_nscore</span><span class="p">,</span> <span class="n">sorted_rawscore</span><span class="p">,</span> <span class="n">sorted_aids</span><span class="p">,</span> <span class="n">sorted_ascores</span><span class="p">)</span> <span class="o">=</span> <span class="n">choicetup</span>
-    <span class="c"># Get new True Negative support data for score normalization</span>
+    <span class="c1"># Get new True Negative support data for score normalization</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">chosen_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">rank</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listfind</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">(</span><span class="n">sorted_nids</span><span class="p">),</span> <span class="n">name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">rank</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -622,30 +622,30 @@
         <span class="n">tn_rawscore</span> <span class="o">=</span> <span class="n">sorted_rawscore</span><span class="p">[</span><span class="n">tn_rank</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">tn_rawscore</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="c">#return tp_rawscore, tn_rawscore</span>
+    <span class="c1">#return tp_rawscore, tn_rawscore</span>
     <span class="n">canupdate</span> <span class="o">=</span> <span class="n">tp_rawscore</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">tn_rawscore</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="n">canupdate</span><span class="p">:</span>
-        <span class="c"># TODO: UPDATE SCORE NORMALIZER HERE</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;UPDATING! NORMALIZER&#39;</span><span class="p">)</span>
+        <span class="c1"># TODO: UPDATE SCORE NORMALIZER HERE</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;UPDATING! NORMALIZER&#39;</span><span class="p">)</span>
         <span class="n">tp_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">deterministic_uuid</span><span class="p">((</span><span class="n">qaid</span><span class="p">,</span> <span class="n">nid</span><span class="p">))]</span>
         <span class="n">tn_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">deterministic_uuid</span><span class="p">((</span><span class="n">qaid</span><span class="p">,</span> <span class="n">nid</span><span class="p">))]</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;new normalization example: tp_rawscore={}, tn_rawscore={}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tp_rawscore</span><span class="p">,</span> <span class="n">tn_rawscore</span><span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;new normalization example: tp_labels={}, tn_labels={}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tp_labels</span><span class="p">,</span> <span class="n">tn_labels</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;new normalization example: tp_rawscore={}, tn_rawscore={}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tp_rawscore</span><span class="p">,</span> <span class="n">tn_rawscore</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;new normalization example: tp_labels={}, tn_labels={}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tp_labels</span><span class="p">,</span> <span class="n">tn_labels</span><span class="p">))</span>
         <span class="n">tp_scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">tp_rawscore</span><span class="p">]</span>
         <span class="n">tn_scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">tn_rawscore</span><span class="p">]</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">normalizer</span><span class="o">.</span><span class="n">add_support</span><span class="p">(</span><span class="n">tp_scores</span><span class="p">,</span> <span class="n">tn_scores</span><span class="p">,</span> <span class="n">tp_labels</span><span class="p">,</span> <span class="n">tn_labels</span><span class="p">)</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">normalizer</span><span class="o">.</span><span class="n">retrain</span><span class="p">()</span>
-        <span class="n">species_text</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_unique_species</span><span class="p">())</span>  <span class="c"># HACK</span>
-        <span class="c"># TODO: figure out where to save and load the normalizer from</span>
+        <span class="n">species_text</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_unique_species</span><span class="p">())</span>  <span class="c1"># HACK</span>
+        <span class="c1"># TODO: figure out where to save and load the normalizer from</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">normalizer</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_local_species_scorenorm_cachedir</span><span class="p">(</span><span class="n">species_text</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;NOUPDATE! cannot update score normalization&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;NOUPDATE! cannot update score normalization&#39;</span><span class="p">)</span>
 
 
-<span class="c"># --- TESTING ---</span>
+<span class="c1"># --- TESTING ---</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.automated_matcher</span>
@@ -653,8 +653,8 @@
 <span class="sd">        python -m ibeis.model.hots.automated_matcher --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="c">#import utool as ut</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="c1">#import utool as ut</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -689,7 +689,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

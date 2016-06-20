@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.expt.experiment_helpers &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.expt.experiment_helpers &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.expt" href="../expt.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,20 +131,20 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.expt.experiment_helpers</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Helper module that helps expand parameters for grid search</span>
 <span class="sd">TODO: move into custom pipe_cfg and annot_cfg modules</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_configs</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">cfghelpers</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo</span> <span class="kn">import</span> <span class="n">Config</span>
 <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">filter_annots</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_helpers]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[expt_helpers]&#39;</span><span class="p">)</span>
 
 <span class="n">QUIET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span>
 
@@ -152,11 +152,11 @@
 <div class="viewcode-block" id="get_varied_pipecfg_lbls"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_helpers.get_varied_pipecfg_lbls">[docs]</a><span class="k">def</span> <span class="nf">get_varied_pipecfg_lbls</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">pipecfg_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">pipecfg_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis.algo</span> <span class="kn">import</span> <span class="n">Config</span>
-        <span class="c">#cls_list = [Config] * len(cfgdict_list)</span>
+        <span class="c1">#cls_list = [Config] * len(cfgdict_list)</span>
         <span class="n">cfg_default_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">()</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
         <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_varied_cfg_lbls</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfg_default_dict</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c"># TODO: group cfgdict by config type and then get varied labels</span>
+        <span class="c1"># TODO: group cfgdict by config type and then get varied labels</span>
         <span class="n">cfg_default_dict</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">cfgx2_lbl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_varied_cfg_lbls</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">cfg_default_dict</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cfgx2_lbl</span>
@@ -209,7 +209,7 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.expt.experiment_helpers import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;humpbacks&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; test_cfg_name_list = [&#39;default:pipeline_root=BC_DTW,decision=average&#39;, &#39;default:K=[1,4]&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; test_cfg_name_list = [&#39;default:pipeline_root=BC_DTW,decision=average,crop_dim_size=[960,500]&#39;, &#39;default:K=[1,4]&#39;]</span>
 <span class="sd">        &gt;&gt;&gt; (pcfgdict_list, pipecfg_list) = get_pipecfg_list(test_cfg_name_list, ibs)</span>
 <span class="sd">        &gt;&gt;&gt; pipecfg_lbls = get_varied_pipecfg_lbls(pcfgdict_list)</span>
 <span class="sd">        &gt;&gt;&gt; result = (&#39;pipecfg_lbls = &#39;+ ut.list_str(pipecfg_lbls))</span>
@@ -217,105 +217,108 @@
 <span class="sd">        &gt;&gt;&gt; print_pipe_configs(pcfgdict_list, pipecfg_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[expt_help.get_pipecfg_list] building pipecfg_list using: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[expt_help.get_pipecfg_list] building pipecfg_list using: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
               <span class="n">test_cfg_name_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">test_cfg_name_list</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
         <span class="n">test_cfg_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">test_cfg_name_list</span><span class="p">]</span>
     <span class="n">_standard_cfg_names</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">_pcfgdict_list</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="c"># HACK: Parse out custom configs first</span>
+    <span class="c1"># HACK: Parse out custom configs first</span>
     <span class="k">for</span> <span class="n">test_cfg_name</span> <span class="ow">in</span> <span class="n">test_cfg_name_list</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">test_cfg_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;custom:&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">test_cfg_name</span> <span class="o">==</span> <span class="s">&#39;custom&#39;</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[expthelpers] Parsing nonstandard custom config&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">test_cfg_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;custom:&#39;</span><span class="p">):</span>
-                <span class="c"># parse out modifications to custom</span>
-                <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="s">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">test_cfg_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">test_cfg_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;custom:&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">test_cfg_name</span> <span class="o">==</span> <span class="s1">&#39;custom&#39;</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[expthelpers] Parsing nonstandard custom config&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">test_cfg_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;custom:&#39;</span><span class="p">):</span>
+                <span class="c1"># parse out modifications to custom</span>
+                <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">test_cfg_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
                 <span class="n">augcfgdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_cfgstr_list</span><span class="p">(</span><span class="n">cfgstr_list</span><span class="p">,</span> <span class="n">smartcast</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">augcfgdict</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="c"># Take the configuration from the ibeis object</span>
+            <span class="c1"># Take the configuration from the ibeis object</span>
             <span class="n">pipe_cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">()</span>
-            <span class="c"># Update with augmented params</span>
+            <span class="c1"># Update with augmented params</span>
             <span class="n">pipe_cfg</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">augcfgdict</span><span class="p">)</span>
-            <span class="c"># Parse out a standard cfgdict</span>
+            <span class="c1"># Parse out a standard cfgdict</span>
             <span class="n">cfgdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">pipe_cfg</span><span class="o">.</span><span class="n">parse_items</span><span class="p">())</span>
-            <span class="n">cfgdict</span><span class="p">[</span><span class="s">&#39;_cfgname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;custom&#39;</span>
-            <span class="n">cfgdict</span><span class="p">[</span><span class="s">&#39;_cfgstr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">test_cfg_name</span>
+            <span class="n">cfgdict</span><span class="p">[</span><span class="s1">&#39;_cfgname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;custom&#39;</span>
+            <span class="n">cfgdict</span><span class="p">[</span><span class="s1">&#39;_cfgstr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">test_cfg_name</span>
             <span class="n">_pcfgdict_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">_standard_cfg_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_cfg_name</span><span class="p">)</span>
-    <span class="c"># Handle stanndard configs next</span>
+    <span class="c1"># Handle stanndard configs next</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_standard_cfg_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="c"># Get parsing information</span>
-        <span class="c">#cfg_default_dict = dict(Config.QueryConfig().parse_items())</span>
-        <span class="c">#valid_keys = list(cfg_default_dict.keys())</span>
+        <span class="c1"># Get parsing information</span>
+        <span class="c1">#cfg_default_dict = dict(Config.QueryConfig().parse_items())</span>
+        <span class="c1">#valid_keys = list(cfg_default_dict.keys())</span>
         <span class="n">cfgstr_list</span> <span class="o">=</span> <span class="n">_standard_cfg_names</span>
         <span class="n">named_defaults_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_subset</span><span class="p">(</span>
             <span class="n">experiment_configs</span><span class="o">.</span><span class="n">__dict__</span><span class="p">,</span> <span class="n">experiment_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span><span class="p">)</span>
         <span class="n">alias_keys</span> <span class="o">=</span> <span class="n">experiment_configs</span><span class="o">.</span><span class="n">ALIAS_KEYS</span>
-        <span class="c"># Parse standard pipeline cfgstrings</span>
-        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;ibs&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="p">}</span>
+        <span class="c1"># Parse standard pipeline cfgstrings</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ibs&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="p">}</span>
         <span class="n">dict_comb_list</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">parse_cfgstr_list2</span><span class="p">(</span>
             <span class="n">cfgstr_list</span><span class="p">,</span>
             <span class="n">named_defaults_dict</span><span class="p">,</span>
             <span class="n">cfgtype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
             <span class="n">alias_keys</span><span class="o">=</span><span class="n">alias_keys</span><span class="p">,</span>
-            <span class="c"># Hack out valid keys for humpbacks</span>
-            <span class="c">#valid_keys=valid_keys,</span>
+            <span class="c1"># Hack out valid keys for humpbacks</span>
+            <span class="c1">#valid_keys=valid_keys,</span>
             <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
             <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span>
         <span class="p">)</span>
-        <span class="c"># Get varied params (there may be duplicates)</span>
+        <span class="c1"># Get varied params (there may be duplicates)</span>
         <span class="n">_pcfgdict_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">dict_comb_list</span><span class="p">))</span>
 
-    <span class="c"># Expand cfgdicts into PipelineConfig config objects</span>
-    <span class="c"># TODO: respsect different algorithm parameters like flukes</span>
+    <span class="c1"># Expand cfgdicts into PipelineConfig config objects</span>
+    <span class="c1"># TODO: respsect different algorithm parameters like flukes</span>
     <span class="k">if</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">configclass_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">_pcfgdict_list</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">root_to_config</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">configclass_dict</span>
+        <span class="n">root_to_config</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">configclass_dict</span>
         <span class="n">configclass_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">root_to_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_cfgdict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;pipeline_root&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">),</span>
+            <span class="n">root_to_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_cfgdict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pipeline_root&#39;</span><span class="p">,</span> <span class="s1">&#39;vsmany&#39;</span><span class="p">),</span>
                                <span class="n">Config</span><span class="o">.</span><span class="n">QueryConfig</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">_cfgdict</span> <span class="ow">in</span> <span class="n">_pcfgdict_list</span><span class="p">]</span>
     <span class="n">_pipecfg_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cls</span><span class="p">(</span><span class="o">**</span><span class="n">_cfgdict</span><span class="p">)</span>
                      <span class="k">for</span> <span class="n">cls</span><span class="p">,</span> <span class="n">_cfgdict</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">configclass_list</span><span class="p">,</span> <span class="n">_pcfgdict_list</span><span class="p">)]</span>
 
-    <span class="c"># Enforce rule that removes duplicate configs</span>
-    <span class="c"># by using feasiblity from ibeis.algo.Config</span>
-    <span class="c"># TODO: Move this unique finding code to its own function</span>
-    <span class="c"># and then move it up one function level so even the custom</span>
-    <span class="c"># configs can be uniquified</span>
+    <span class="c1"># Enforce rule that removes duplicate configs</span>
+    <span class="c1"># by using feasiblity from ibeis.algo.Config</span>
+    <span class="c1"># TODO: Move this unique finding code to its own function</span>
+    <span class="c1"># and then move it up one function level so even the custom</span>
+    <span class="c1"># configs can be uniquified</span>
     <span class="n">_flag_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_unique_items</span><span class="p">(</span><span class="n">_pipecfg_list</span><span class="p">)</span>
     <span class="n">cfgdict_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">_pcfgdict_list</span><span class="p">,</span> <span class="n">_flag_list</span><span class="p">)</span>
     <span class="n">pipecfg_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">_pipecfg_list</span><span class="p">,</span> <span class="n">_flag_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn.help] return </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> unique pipeline configs from: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+        <span class="c1">#for cfg in _pipecfg_list:</span>
+        <span class="c1">#    print(cfg.get_cfgstr())</span>
+        <span class="c1">#    print(cfg)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[harn.help] return </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> unique pipeline configs from: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
               <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">_pcfgdict_list</span><span class="p">),</span> <span class="n">test_cfg_name_list</span><span class="p">))</span>
 
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--pcfginfo&#39;</span><span class="p">,</span> <span class="s">&#39;--pinfo&#39;</span><span class="p">,</span> <span class="s">&#39;--pipecfginfo&#39;</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--pcfginfo&#39;</span><span class="p">,</span> <span class="s1">&#39;--pinfo&#39;</span><span class="p">,</span> <span class="s1">&#39;--pipecfginfo&#39;</span><span class="p">)):</span>
         <span class="kn">import</span> <span class="nn">sys</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;Requested PcfgInfo for tests... &#39;</span><span class="p">,</span> <span class="s">&#39;red&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s1">&#39;Requested PcfgInfo for tests... &#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">)</span>
         <span class="n">print_pipe_configs</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">pipecfg_list</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;Finished Reporting PcfgInfo. Exiting&#39;</span><span class="p">,</span> <span class="s">&#39;red&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s1">&#39;Finished Reporting PcfgInfo. Exiting&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">pipecfg_list</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="print_pipe_configs"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_helpers.print_pipe_configs">[docs]</a><span class="k">def</span> <span class="nf">print_pipe_configs</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">pipecfg_list</span><span class="p">):</span>
     <span class="n">pipecfg_lbls</span> <span class="o">=</span> <span class="n">get_varied_pipecfg_lbls</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">pipecfg_list</span><span class="p">)</span>
-    <span class="c">#pipecfg_lbls = pipecfg_list</span>
-    <span class="c">#assert len(pipecfg_lbls) == len(pipecfg_lbls), &#39;unequal lens&#39;</span>
+    <span class="c1">#pipecfg_lbls = pipecfg_list</span>
+    <span class="c1">#assert len(pipecfg_lbls) == len(pipecfg_lbls), &#39;unequal lens&#39;</span>
     <span class="k">for</span> <span class="n">pcfgx</span><span class="p">,</span> <span class="p">(</span><span class="n">pipecfg</span><span class="p">,</span> <span class="n">lbl</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">,</span> <span class="n">pipecfg_lbls</span><span class="p">)):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;+--- </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> ===&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pcfgx</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">))))</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="s">&#39;white&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;+--- </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> ===&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pcfgx</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pipecfg_list</span><span class="p">))))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="s1">&#39;white&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="n">pipecfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">())</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;L___&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;L___&#39;</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="testdata_acfg_names"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_helpers.testdata_acfg_names">[docs]</a><span class="k">def</span> <span class="nf">testdata_acfg_names</span><span class="p">(</span><span class="n">default_acfg_name_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]):</span>
-    <span class="n">flags</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s">&#39;-a&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="testdata_acfg_names"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.experiment_helpers.testdata_acfg_names">[docs]</a><span class="k">def</span> <span class="nf">testdata_acfg_names</span><span class="p">(</span><span class="n">default_acfg_name_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]):</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s1">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s1">&#39;-a&#39;</span><span class="p">)</span>
     <span class="n">acfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="n">flags</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
                                    <span class="n">default</span><span class="o">=</span><span class="n">default_acfg_name_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">acfg_name_list</span>
@@ -367,63 +370,63 @@
     <span class="n">named_defaults_dict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">__dict__</span><span class="p">,</span>
                                        <span class="n">annotation_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span><span class="p">)</span>
     <span class="n">named_qcfg_defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span><span class="p">,</span>
-                                   <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">named_defaults_dict</span><span class="p">,</span> <span class="s">&#39;qcfg&#39;</span><span class="p">)))</span>
+                                   <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">named_defaults_dict</span><span class="p">,</span> <span class="s1">&#39;qcfg&#39;</span><span class="p">)))</span>
     <span class="n">named_dcfg_defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">annotation_configs</span><span class="o">.</span><span class="n">TEST_NAMES</span><span class="p">,</span>
-                                   <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">named_defaults_dict</span><span class="p">,</span> <span class="s">&#39;dcfg&#39;</span><span class="p">)))</span>
+                                   <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">named_defaults_dict</span><span class="p">,</span> <span class="s1">&#39;dcfg&#39;</span><span class="p">)))</span>
     <span class="n">alias_keys</span> <span class="o">=</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">ALIAS_KEYS</span>
-    <span class="c"># need to have the cfgstr_lists be the same for query and database so they</span>
-    <span class="c"># can be combined properly for now</span>
+    <span class="c1"># need to have the cfgstr_lists be the same for query and database so they</span>
+    <span class="c1"># can be combined properly for now</span>
 
-    <span class="c"># Apply this flag to any case joined with ::</span>
-    <span class="n">special_join_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;force_const_size&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+    <span class="c1"># Apply this flag to any case joined with ::</span>
+    <span class="n">special_join_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;force_const_size&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
 
-    <span class="c"># Parse Query Annot Config</span>
+    <span class="c1"># Parse Query Annot Config</span>
     <span class="n">nested_qcfg_combo_list</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">parse_cfgstr_list2</span><span class="p">(</span>
         <span class="n">cfgstr_list</span><span class="o">=</span><span class="n">acfg_name_list</span><span class="p">,</span>
         <span class="n">named_defaults_dict</span><span class="o">=</span><span class="n">named_qcfg_defaults</span><span class="p">,</span>
-        <span class="n">cfgtype</span><span class="o">=</span><span class="s">&#39;qcfg&#39;</span><span class="p">,</span>
+        <span class="n">cfgtype</span><span class="o">=</span><span class="s1">&#39;qcfg&#39;</span><span class="p">,</span>
         <span class="n">alias_keys</span><span class="o">=</span><span class="n">alias_keys</span><span class="p">,</span>
         <span class="n">expand_nested</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
         <span class="n">special_join_dict</span><span class="o">=</span><span class="n">special_join_dict</span><span class="p">,</span>
         <span class="n">is_nestedcfgtype</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="c">#print(&#39;acfg_name_list = %r&#39; % (acfg_name_list,))</span>
-    <span class="c">#print(len(acfg_name_list))</span>
-    <span class="c">#print(ut.depth_profile(nested_qcfg_combo_list))</span>
+    <span class="c1">#print(&#39;acfg_name_list = %r&#39; % (acfg_name_list,))</span>
+    <span class="c1">#print(len(acfg_name_list))</span>
+    <span class="c1">#print(ut.depth_profile(nested_qcfg_combo_list))</span>
 
-    <span class="c"># Parse Data Annot Config</span>
+    <span class="c1"># Parse Data Annot Config</span>
     <span class="n">nested_dcfg_combo_list</span> <span class="o">=</span> <span class="n">cfghelpers</span><span class="o">.</span><span class="n">parse_cfgstr_list2</span><span class="p">(</span>
         <span class="n">cfgstr_list</span><span class="o">=</span><span class="n">acfg_name_list</span><span class="p">,</span>
         <span class="n">named_defaults_dict</span><span class="o">=</span><span class="n">named_dcfg_defaults</span><span class="p">,</span>
-        <span class="n">cfgtype</span><span class="o">=</span><span class="s">&#39;dcfg&#39;</span><span class="p">,</span>
+        <span class="n">cfgtype</span><span class="o">=</span><span class="s1">&#39;dcfg&#39;</span><span class="p">,</span>
         <span class="n">alias_keys</span><span class="o">=</span><span class="n">alias_keys</span><span class="p">,</span>
         <span class="n">expand_nested</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
         <span class="n">special_join_dict</span><span class="o">=</span><span class="n">special_join_dict</span><span class="p">,</span>
         <span class="n">is_nestedcfgtype</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-    <span class="c">#print(ut.depth_profile(nested_dcfg_combo_list))</span>
+    <span class="c1">#print(ut.depth_profile(nested_dcfg_combo_list))</span>
 
     <span class="n">acfg_combo_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c">#print(&#39;--&#39;)</span>
+    <span class="c1">#print(&#39;--&#39;)</span>
     <span class="k">for</span> <span class="n">nested_qcfg_combo</span><span class="p">,</span> <span class="n">nested_dcfg_combo</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nested_qcfg_combo_list</span><span class="p">,</span> <span class="n">nested_dcfg_combo_list</span><span class="p">):</span>
-        <span class="c">#print(&#39;\n\n++++&#39;)</span>
-        <span class="c">#print(len(nested_dcfg_combo))</span>
-        <span class="c">#print(len(nested_qcfg_combo))</span>
+        <span class="c1">#print(&#39;\n\n++++&#39;)</span>
+        <span class="c1">#print(len(nested_dcfg_combo))</span>
+        <span class="c1">#print(len(nested_qcfg_combo))</span>
         <span class="n">acfg_combo</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="c"># Only the inner nested combos are combinatorial</span>
+        <span class="c1"># Only the inner nested combos are combinatorial</span>
         <span class="k">for</span> <span class="n">qcfg_combo</span><span class="p">,</span> <span class="n">dcfg_combo</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nested_qcfg_combo</span><span class="p">,</span> <span class="n">nested_dcfg_combo</span><span class="p">):</span>
-            <span class="c">#print(&#39;---++++&#39;)</span>
-            <span class="c">#print(&#39;---- &#39; + str(len(qcfg_combo)))</span>
-            <span class="c">#print(&#39;---- &#39; + str(len(dcfg_combo)))</span>
+            <span class="c1">#print(&#39;---++++&#39;)</span>
+            <span class="c1">#print(&#39;---- &#39; + str(len(qcfg_combo)))</span>
+            <span class="c1">#print(&#39;---- &#39; + str(len(dcfg_combo)))</span>
             <span class="n">_combo</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="nb">dict</span><span class="p">([(</span><span class="s">&#39;qcfg&#39;</span><span class="p">,</span> <span class="n">qcfg</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;dcfg&#39;</span><span class="p">,</span> <span class="n">dcfg</span><span class="p">)])</span>
+                <span class="nb">dict</span><span class="p">([(</span><span class="s1">&#39;qcfg&#39;</span><span class="p">,</span> <span class="n">qcfg</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;dcfg&#39;</span><span class="p">,</span> <span class="n">dcfg</span><span class="p">)])</span>
                 <span class="k">for</span> <span class="n">qcfg</span><span class="p">,</span> <span class="n">dcfg</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">qcfg_combo</span><span class="p">,</span> <span class="n">dcfg_combo</span><span class="p">))</span>
             <span class="p">]</span>
-            <span class="c">#print(&#39;----  len(_combo) = %r&#39; % (len(_combo),))</span>
+            <span class="c1">#print(&#39;----  len(_combo) = %r&#39; % (len(_combo),))</span>
 
             <span class="n">acfg_combo</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_combo</span><span class="p">)</span>
         <span class="n">acfg_combo_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">acfg_combo</span><span class="p">)</span>
-    <span class="c">#print(&#39;LLL--&#39;)</span>
-    <span class="c">#print(ut.depth_profile(acfg_combo_list))</span>
+    <span class="c1">#print(&#39;LLL--&#39;)</span>
+    <span class="c1">#print(ut.depth_profile(acfg_combo_list))</span>
     <span class="k">return</span> <span class="n">acfg_combo_list</span>
 
 </div>
@@ -441,7 +444,7 @@
     <span class="n">expanded_aids_list_</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">seen_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ddict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">acfg</span><span class="p">,</span> <span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span><span class="p">):</span>
-        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr27</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="s">&#39;qaids&#39;</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr27</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="s">&#39;daids&#39;</span><span class="p">))</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr27</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="s1">&#39;qaids&#39;</span><span class="p">),</span> <span class="n">ut</span><span class="o">.</span><span class="n">hashstr_arr27</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="s1">&#39;daids&#39;</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
             <span class="n">seen_</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">acfg</span><span class="p">)</span>
             <span class="k">continue</span>
@@ -453,20 +456,20 @@
         <span class="n">duplicate_configs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="p">[(</span><span class="n">key_</span><span class="p">,</span> <span class="n">val_</span><span class="p">)</span> <span class="k">for</span> <span class="n">key_</span><span class="p">,</span> <span class="n">val_</span> <span class="ow">in</span> <span class="n">seen_</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">])</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">duplicate_configs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;The following configs produced duplicate annnotation configs&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;The following configs produced duplicate annnotation configs&#39;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">duplicate_configs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="c"># Print the semantic difference between the duplicate configs</span>
+                <span class="c1"># Print the semantic difference between the duplicate configs</span>
                 <span class="n">_tup</span> <span class="o">=</span> <span class="n">annotation_configs</span><span class="o">.</span><span class="n">compress_acfg_list_for_printing</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
                 <span class="n">nonvaried_compressed_dict</span><span class="p">,</span> <span class="n">varied_compressed_dict_list</span> <span class="o">=</span> <span class="n">_tup</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;+--&#39;</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;key = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;duplicate_varied_cfgs = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;+--&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;key = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;duplicate_varied_cfgs = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">varied_compressed_dict_list</span><span class="p">),))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;duplicate_nonvaried_cfgs = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;duplicate_nonvaried_cfgs = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">nonvaried_compressed_dict</span><span class="p">),))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;L__&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;L__&#39;</span><span class="p">)</span>
 
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn.help] parsed </span><span class="si">%d</span><span class="s"> / </span><span class="si">%d</span><span class="s"> unique annot configs from: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[harn.help] parsed </span><span class="si">%d</span><span class="s1"> / </span><span class="si">%d</span><span class="s1"> unique annot configs from: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list_</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">),</span> <span class="n">acfg_name_list</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">expanded_aids_list_</span><span class="p">,</span> <span class="n">acfg_list_</span>
 
@@ -515,21 +518,21 @@
 <span class="sd">        &gt;&gt;&gt;     acfg_list, expanded_aids_list, ibs, **printkw)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[harn.help] building acfg_list using </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">acfg_name_list</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[harn.help] building acfg_list using </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">acfg_name_list</span><span class="p">,))</span>
     <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">annotation_configs</span>
     <span class="n">acfg_combo_list</span> <span class="o">=</span> <span class="n">parse_acfg_combo_list</span><span class="p">(</span><span class="n">acfg_name_list</span><span class="p">)</span>
 
-    <span class="c">#acfg_slice = ut.get_argval(&#39;--acfg_slice&#39;, type_=slice, default=None)</span>
-    <span class="c"># HACK: Sliceing happens before expansion (dependenceis get)</span>
-    <span class="n">combo_slice</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--combo_slice&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s">&#39;fuzzy_subset&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">))</span>
+    <span class="c1">#acfg_slice = ut.get_argval(&#39;--acfg_slice&#39;, type_=slice, default=None)</span>
+    <span class="c1"># HACK: Sliceing happens before expansion (dependenceis get)</span>
+    <span class="n">combo_slice</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--combo_slice&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;fuzzy_subset&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">))</span>
     <span class="n">acfg_combo_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">acfg_combo_</span><span class="p">,</span> <span class="n">combo_slice</span><span class="p">)</span>
                        <span class="k">for</span> <span class="n">acfg_combo_</span> <span class="ow">in</span> <span class="n">acfg_combo_list</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--consistent&#39;</span><span class="p">):</span>
-        <span class="c"># Expand everything as one consistent annot list</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--consistent&#39;</span><span class="p">):</span>
+        <span class="c1"># Expand everything as one consistent annot list</span>
         <span class="n">acfg_combo_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">acfg_combo_list</span><span class="p">)]</span>
 
-    <span class="c"># + --- Do Parsing ---</span>
+    <span class="c1"># + --- Do Parsing ---</span>
     <span class="n">expanded_aids_combo_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">filter_annots</span><span class="o">.</span><span class="n">expand_acfgs_consistently</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_combo_</span><span class="p">,</span>
                                                 <span class="n">initial_aids</span><span class="o">=</span><span class="n">initial_aids</span><span class="p">,</span>
@@ -540,41 +543,41 @@
     <span class="n">expanded_aids_combo_flag_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">expanded_aids_combo_list</span><span class="p">)</span>
     <span class="n">acfg_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">expanded_aids_combo_flag_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">expanded_aids_combo_flag_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="c"># L___</span>
+    <span class="c1"># L___</span>
 
-    <span class="c"># Slicing happens after expansion (but the labels get screwed up)</span>
-    <span class="n">acfg_slice</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--acfg_slice&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s">&#39;fuzzy_subset&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="c1"># Slicing happens after expansion (but the labels get screwed up)</span>
+    <span class="n">acfg_slice</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--acfg_slice&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="s1">&#39;fuzzy_subset&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">acfg_slice</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">acfg_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">,</span> <span class="n">acfg_slice</span><span class="p">)</span>
         <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">acfg_slice</span><span class="p">)</span>
 
-    <span class="c"># + --- Hack: Override qaids ---</span>
-    <span class="n">_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--qaid&#39;</span><span class="p">,</span> <span class="s">&#39;--qaid-override&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">)</span>
+    <span class="c1"># + --- Hack: Override qaids ---</span>
+    <span class="n">_qaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s1">&#39;--qaid&#39;</span><span class="p">,</span> <span class="s1">&#39;--qaid-override&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">qaid_override</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">_qaids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">_qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">)</span> <span class="k">for</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="n">expanded_aids_list</span><span class="p">]</span>
-    <span class="c"># more hack for daids</span>
-    <span class="n">_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--daids-override&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">daid_override</span><span class="p">)</span>
+    <span class="c1"># more hack for daids</span>
+    <span class="n">_daids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s1">&#39;--daids-override&#39;</span><span class="p">,</span> <span class="s1">&#39;--daid-override&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">daid_override</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">_daids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">_daids</span><span class="p">)</span> <span class="k">for</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="n">expanded_aids_list</span><span class="p">]</span>
-    <span class="c"># L___</span>
+    <span class="c1"># L___</span>
 
     <span class="k">if</span> <span class="n">filter_dups</span><span class="p">:</span>
         <span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">acfg_list</span> <span class="o">=</span> <span class="n">filter_duplicate_acfgs</span><span class="p">(</span>
             <span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">acfg_list</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--acfginfo&#39;</span><span class="p">,</span> <span class="s">&#39;--ainfo&#39;</span><span class="p">,</span> <span class="s">&#39;--aidcfginfo&#39;</span><span class="p">,</span> <span class="s">&#39;--print-acfg&#39;</span><span class="p">,</span> <span class="s">&#39;--printacfg&#39;</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--acfginfo&#39;</span><span class="p">,</span> <span class="s1">&#39;--ainfo&#39;</span><span class="p">,</span> <span class="s1">&#39;--aidcfginfo&#39;</span><span class="p">,</span> <span class="s1">&#39;--print-acfg&#39;</span><span class="p">,</span> <span class="s1">&#39;--printacfg&#39;</span><span class="p">)):</span>
         <span class="kn">import</span> <span class="nn">sys</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;[experiment_helpers] Requested AcfgInfo ... &#39;</span><span class="p">,</span> <span class="s">&#39;red&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;combo_slice = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">combo_slice</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;acfg_slice = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">acfg_slice</span><span class="p">,))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s1">&#39;[experiment_helpers] Requested AcfgInfo ... &#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;combo_slice = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">combo_slice</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;acfg_slice = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">acfg_slice</span><span class="p">,))</span>
         <span class="n">annotation_configs</span><span class="o">.</span><span class="n">print_acfg_list</span><span class="p">(</span><span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s">&#39;[experiment_helpers] exiting due to AcfgInfo info request&#39;</span><span class="p">,</span> <span class="s">&#39;red&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">colorprint</span><span class="p">(</span><span class="s1">&#39;[experiment_helpers] exiting due to AcfgInfo info request&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.expt.experiment_helpers</span>
@@ -582,8 +585,8 @@
 <span class="sd">        python -m ibeis.expt.experiment_helpers --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -618,7 +621,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

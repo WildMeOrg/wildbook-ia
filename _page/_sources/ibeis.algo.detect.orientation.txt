@@ -1,0 +1,46 @@
+ibeis.algo.detect.orientation package
+=====================================
+
+Submodules
+----------
+
+ibeis.algo.detect.orientation.model module
+------------------------------------------
+
+.. automodule:: ibeis.algo.detect.orientation.model
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.detect.orientation.orientation module
+------------------------------------------------
+
+.. automodule:: ibeis.algo.detect.orientation.orientation
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.detect.orientation.tester module
+-------------------------------------------
+
+.. automodule:: ibeis.algo.detect.orientation.tester
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.detect.orientation.utils module
+------------------------------------------
+
+.. automodule:: ibeis.algo.detect.orientation.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.algo.detect.orientation
+    :members:
+    :undoc-members:
+    :show-inheritance:

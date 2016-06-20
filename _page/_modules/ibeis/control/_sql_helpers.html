@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control._sql_helpers &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.control._sql_helpers &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,22 +131,20 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.control._sql_helpers</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">distutils</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[sql-helpers]&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[sql-helpers]&#39;</span><span class="p">)</span>
 
-<span class="c"># =======================</span>
-<span class="c"># Helper Functions</span>
-<span class="c"># =======================</span>
-<span class="n">VERBOSE_SQL</span>    <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--print-sql&#39;</span><span class="p">,</span> <span class="s">&#39;--verbose-sql&#39;</span><span class="p">,</span> <span class="s">&#39;--verb-sql&#39;</span><span class="p">,</span> <span class="s">&#39;--verbsql&#39;</span><span class="p">))</span>
-<span class="c">#AUTODUMP = ut.get_argflag(&#39;--auto-dump&#39;)</span>
-<span class="n">NOT_QUIET</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quiet-sql&#39;</span><span class="p">))</span>
+<span class="c1"># =======================</span>
+<span class="c1"># Helper Functions</span>
+<span class="c1"># =======================</span>
+<span class="n">VERBOSE_SQL</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--print-sql&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbose-sql&#39;</span><span class="p">,</span> <span class="s1">&#39;--verb-sql&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbsql&#39;</span><span class="p">))</span>
+<span class="c1">#AUTODUMP = ut.get_argflag(&#39;--auto-dump&#39;)</span>
+<span class="n">NOT_QUIET</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--quiet-sql&#39;</span><span class="p">))</span>
 
 
 <div class="viewcode-block" id="compare_string_versions"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.compare_string_versions">[docs]</a><span class="k">def</span> <span class="nf">compare_string_versions</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
@@ -171,30 +169,30 @@
         <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
     <span class="k">elif</span> <span class="n">va</span> <span class="o">==</span> <span class="n">vb</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">0</span>
-    <span class="c">#a = map(int, a.strip().split(&#39;.&#39;))</span>
-    <span class="c">#b = map(int, b.strip().split(&#39;.&#39;))</span>
-    <span class="c">#while len(a) &lt; 3:</span>
-    <span class="c">#    a.append(0)</span>
-    <span class="c">#while len(b) &lt; 3:</span>
-    <span class="c">#    b.append(0)</span>
-    <span class="c">#if a[0] &lt; b[0]:</span>
-    <span class="c">#    return -1</span>
-    <span class="c">#elif a[0] &gt; b[0]:</span>
-    <span class="c">#    return 1</span>
-    <span class="c">#else:</span>
-    <span class="c">#    if a[1] &lt; b[1]:</span>
-    <span class="c">#        return -1</span>
-    <span class="c">#    elif a[1] &gt; b[1]:</span>
-    <span class="c">#        return 1</span>
-    <span class="c">#    else:</span>
-    <span class="c">#        if a[2] &lt; b[2]:</span>
-    <span class="c">#            return -1</span>
-    <span class="c">#        elif a[2] &gt; b[2]:</span>
-    <span class="c">#            return 1</span>
-    <span class="c">#        elif a[2] == b[2]:</span>
-    <span class="c">#            return 0</span>
-    <span class="c">## return 0 - identical</span>
-    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;[!update_schema_version] Two version numbers are the same along the update path&#39;</span><span class="p">)</span>
+    <span class="c1">#a = map(int, a.strip().split(&#39;.&#39;))</span>
+    <span class="c1">#b = map(int, b.strip().split(&#39;.&#39;))</span>
+    <span class="c1">#while len(a) &lt; 3:</span>
+    <span class="c1">#    a.append(0)</span>
+    <span class="c1">#while len(b) &lt; 3:</span>
+    <span class="c1">#    b.append(0)</span>
+    <span class="c1">#if a[0] &lt; b[0]:</span>
+    <span class="c1">#    return -1</span>
+    <span class="c1">#elif a[0] &gt; b[0]:</span>
+    <span class="c1">#    return 1</span>
+    <span class="c1">#else:</span>
+    <span class="c1">#    if a[1] &lt; b[1]:</span>
+    <span class="c1">#        return -1</span>
+    <span class="c1">#    elif a[1] &gt; b[1]:</span>
+    <span class="c1">#        return 1</span>
+    <span class="c1">#    else:</span>
+    <span class="c1">#        if a[2] &lt; b[2]:</span>
+    <span class="c1">#            return -1</span>
+    <span class="c1">#        elif a[2] &gt; b[2]:</span>
+    <span class="c1">#            return 1</span>
+    <span class="c1">#        elif a[2] == b[2]:</span>
+    <span class="c1">#            return 0</span>
+    <span class="c1">## return 0 - identical</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;[!update_schema_version] Two version numbers are the same along the update path&#39;</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="fix_metadata_consistency"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.fix_metadata_consistency">[docs]</a><span class="k">def</span> <span class="nf">fix_metadata_consistency</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
@@ -203,33 +201,33 @@
 
 <span class="sd">    db.print_table_csv(&#39;metadata&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">print_table_csv</span><span class="p">(</span><span class="s">&#39;metadata&#39;</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">print_table_csv</span><span class="p">(</span><span class="s1">&#39;metadata&#39;</span><span class="p">)</span>
     <span class="n">metadata_items</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_metadata_items</span><span class="p">()</span>
     <span class="n">new_metadata_items</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">metadata_items</span><span class="p">:</span>
-        <span class="c"># FIX OLDSTYLE SUPERKEYS</span>
-        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;_constraint&#39;</span><span class="p">):</span>
-            <span class="c"># the constraint metadata keys were all depricated</span>
+        <span class="c1"># FIX OLDSTYLE SUPERKEYS</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_constraint&#39;</span><span class="p">):</span>
+            <span class="c1"># the constraint metadata keys were all depricated</span>
             <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;_superkeys&#39;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-                <span class="n">newval</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">))])</span>
-            <span class="k">elif</span> <span class="ow">not</span> <span class="n">val</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;[&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;_superkeys&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">newval</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">))])</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">val</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>
                 <span class="n">newval</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">([(</span><span class="n">val</span><span class="p">,)])</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">new_metadata_items</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="n">newval</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;--&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">new_metadata_items</span><span class="p">:</span>
         <span class="n">db</span><span class="o">.</span><span class="n">set_metadata_val</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
 
 
-<span class="c"># =========================</span>
-<span class="c"># Database Backup Functions</span>
-<span class="c"># =========================</span>
+<span class="c1"># =========================</span>
+<span class="c1"># Database Backup Functions</span>
+<span class="c1"># =========================</span>
 
 </div>
 <span class="n">MAX_KEEP</span> <span class="o">=</span> <span class="mi">2048</span>
@@ -254,10 +252,11 @@
     <span class="n">db_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_core_path</span><span class="p">()</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">disconnect_sqldatabase</span><span class="p">()</span>
     <span class="n">backup_dir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">db_path</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_nonconflicting_path</span><span class="p">(</span><span class="n">db_path</span> <span class="o">+</span> <span class="s">&#39;revertfrom.</span><span class="si">%d</span><span class="s">.orig&#39;</span><span class="p">))</span>
-    <span class="c"># Carefull may invalidate the cache</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">db_path</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_nonconflicting_path</span><span class="p">(</span><span class="n">db_path</span> <span class="o">+</span> <span class="s1">&#39;revertfrom.</span><span class="si">%d</span><span class="s1">.orig&#39;</span><span class="p">))</span>
+    <span class="c1"># Carefull may invalidate the cache</span>
     <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">db_path</span><span class="p">)</span>
-    <span class="n">path_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="s">&#39;*</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ext</span><span class="p">))</span>
+    <span class="n">path_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="s1">&#39;*</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ext</span><span class="p">))</span>
     <span class="n">previous_backup</span> <span class="o">=</span> <span class="n">path_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">previous_backup</span><span class="p">,</span> <span class="n">db_path</span><span class="p">)</span>
 
@@ -266,33 +265,68 @@
     <span class="n">database_backup</span><span class="p">(</span><span class="n">db_dir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">,</span> <span class="n">backup_dir</span><span class="p">,</span> <span class="n">max_keep</span><span class="o">=</span><span class="n">max_keep</span><span class="p">,</span> <span class="n">manual</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 </div>
+<div class="viewcode-block" id="get_backupdir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.get_backupdir">[docs]</a><span class="k">def</span> <span class="nf">get_backupdir</span><span class="p">(</span><span class="n">db_dir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m _sql_helpers get_backupdir --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.control._sql_helpers import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; db_dir = ibs.get_ibsdir()</span>
+<span class="sd">        &gt;&gt;&gt; db_fname = ibs.sqldb_fname</span>
+<span class="sd">        &gt;&gt;&gt; backup_dir = ibs.backupdir</span>
+<span class="sd">        &gt;&gt;&gt; result = get_backupdir(db_dir, db_fname)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="get_backup_fpaths"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.get_backup_fpaths">[docs]</a><span class="k">def</span> <span class="nf">get_backup_fpaths</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
+    <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">sqldb_fname</span><span class="p">)</span>
+    <span class="n">backups</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">backupdir</span><span class="p">,</span> <span class="s1">&#39;*</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ext</span><span class="p">))</span>
+    <span class="c1">#backup_info = [ut.get_file_info(fpath) for fpath in backups]</span>
+    <span class="n">modified</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">get_file_info</span><span class="p">(</span><span class="n">fpath</span><span class="p">)[</span><span class="s1">&#39;last_modified&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">backups</span><span class="p">]</span>
+    <span class="n">unixtimes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">util_time</span><span class="o">.</span><span class="n">exiftime_to_unixtime</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">modified</span><span class="p">]</span>
+    <span class="n">backups</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">backups</span><span class="p">,</span> <span class="n">unixtimes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">backups</span>
+    <span class="c1">#backup_uuids = [ut.get_file_uuid(fpath) for fpath in backups]</span>
+    <span class="c1">#backup_hashes = [ut.get_file_hash(fpath) for fpath in backups]</span>
+    <span class="c1">#backup_bytes = [ut.get_file_nBytes(fpath) for fpath in backups]</span>
+    <span class="k">pass</span>
+
+</div>
 <div class="viewcode-block" id="database_backup"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.database_backup">[docs]</a><span class="k">def</span> <span class="nf">database_backup</span><span class="p">(</span><span class="n">db_dir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">,</span> <span class="n">backup_dir</span><span class="p">,</span> <span class="n">max_keep</span><span class="o">=</span><span class="n">MAX_KEEP</span><span class="p">,</span> <span class="n">manual</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="n">fname</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">db_fname</span><span class="p">)</span>
     <span class="n">src_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">db_dir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">)</span>
-    <span class="c">#now = datetime.datetime.now()</span>
+    <span class="c1">#now = datetime.datetime.now()</span>
     <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">manual</span><span class="p">:</span>
-        <span class="n">now_str</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y_%m_</span><span class="si">%d</span><span class="s">_%H_%M_%S&#39;</span><span class="p">)</span>
+        <span class="n">now_str</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y_%m_</span><span class="si">%d</span><span class="s1">_%H_%M_%S&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">now_str</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y_%m_</span><span class="si">%d</span><span class="s">_00_00_00&#39;</span><span class="p">)</span>
-    <span class="c">#dst_fpath = join(backup_dir, &#39;%s_backup_%s%s&#39; % (fname, now_str, ext))</span>
-    <span class="n">dst_fname</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">fname</span><span class="p">,</span> <span class="s">&#39;_backup_&#39;</span><span class="p">,</span> <span class="n">now_str</span><span class="p">,</span> <span class="n">ext</span><span class="p">))</span>
+        <span class="n">now_str</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y_%m_</span><span class="si">%d</span><span class="s1">_00_00_00&#39;</span><span class="p">)</span>
+    <span class="c1">#dst_fpath = join(backup_dir, &#39;%s_backup_%s%s&#39; % (fname, now_str, ext))</span>
+    <span class="n">dst_fname</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;_backup_&#39;</span><span class="p">,</span> <span class="n">now_str</span><span class="p">,</span> <span class="n">ext</span><span class="p">))</span>
     <span class="n">dst_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="n">dst_fname</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">src_fpath</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">dst_fpath</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ensure_daily_database_backup] Daily backup of database: </span><span class="si">%r</span><span class="s"> -&gt; </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">src_fpath</span><span class="p">,</span> <span class="n">dst_fpath</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ensure_daily_database_backup] Daily backup of database: </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">src_fpath</span><span class="p">,</span> <span class="n">dst_fpath</span><span class="p">,</span> <span class="p">))</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">src_fpath</span><span class="p">,</span> <span class="n">dst_fpath</span><span class="p">)</span>
-        <span class="c"># Clean-up old database backups</span>
-        <span class="n">path_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="s">&#39;*</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ext</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_keep</span><span class="p">:</span>
-            <span class="n">path_delete_list</span> <span class="o">=</span> <span class="n">path_list</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">max_keep</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">path_delete</span> <span class="ow">in</span> <span class="n">path_delete_list</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ensure_daily_database_backup] Deleting old backup </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">path_delete</span><span class="p">)</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">path_delete</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="c1"># Clean-up old database backups</span>
+        <span class="n">remove_old_backups</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">max_keep</span><span class="p">)</span>
 
+</div>
+<div class="viewcode-block" id="remove_old_backups"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control._sql_helpers.remove_old_backups">[docs]</a><span class="k">def</span> <span class="nf">remove_old_backups</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">max_keep</span><span class="p">):</span>
+    <span class="n">path_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">backup_dir</span><span class="p">,</span> <span class="s1">&#39;*</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ext</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_keep</span><span class="p">:</span>
+        <span class="n">path_delete_list</span> <span class="o">=</span> <span class="n">path_list</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">max_keep</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">path_delete</span> <span class="ow">in</span> <span class="n">path_delete_list</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ensure_daily_database_backup] Deleting old backup </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">path_delete</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">path_delete</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
-<span class="c"># ========================</span>
-<span class="c"># Schema Updater Functions</span>
-<span class="c"># ========================</span>
+<span class="c1"># ========================</span>
+<span class="c1"># Schema Updater Functions</span>
+<span class="c1"># ========================</span>
 
 </div>
 <span class="nd">@profile</span>
@@ -324,68 +358,70 @@
 <span class="sd">    Args:</span>
 <span class="sd">        schema_spec (module): module of schema specifications</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#print(&#39;[SQL_] ensure_correct_version&#39;)</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
+    <span class="c1">#print(&#39;[SQL_] ensure_correct_version&#39;)</span>
     <span class="n">force_incremental</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">force_incremental_db_update</span>
     <span class="n">want_base_version</span> <span class="o">=</span> <span class="n">version_expected</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span>
     <span class="k">if</span> <span class="n">want_base_version</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[SQL_] base version expected... returning&#39;</span><span class="p">)</span>
-        <span class="c"># Nothing to do. autogenerated file is pointless</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[SQL_] base version expected... returning&#39;</span><span class="p">)</span>
+        <span class="c1"># Nothing to do. autogenerated file is pointless</span>
         <span class="k">return</span>
     <span class="n">version</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_db_version</span><span class="p">()</span>
-    <span class="c"># NEW DATABASE CONDITION</span>
+    <span class="c1"># NEW DATABASE CONDITION</span>
     <span class="n">is_base_version</span> <span class="o">=</span> <span class="p">(</span><span class="n">version</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">BASE_DATABASE_VERSION</span><span class="p">)</span>
-    <span class="c"># &lt;DEBUG&gt;</span>
-    <span class="c">#if ut.get_flag(&#39;--verbsql&#39;) or ut.VERBOSE or True:</span>
-    <span class="c">#    key_list = locals().keys()</span>
-    <span class="c">#    keystr_list = sorted(ut.parse_locals_keylist(locals(), key_list))</span>
-    <span class="c">#    print(&#39;KEYLIST:&#39; + ut.indentjoin(keystr_list, &#39;\n * &#39;))</span>
-    <span class="c"># &lt;/DEBUG&gt;</span>
-    <span class="c">#+-----------------------------------</span>
-    <span class="c"># SKIP TO CURRENT VERSION IF POSSIBLE</span>
-    <span class="c">#+-----------------------------------</span>
+    <span class="c1"># &lt;DEBUG&gt;</span>
+    <span class="c1">#if ut.get_flag(&#39;--verbsql&#39;) or ut.VERBOSE or True:</span>
+    <span class="c1">#    key_list = locals().keys()</span>
+    <span class="c1">#    keystr_list = sorted(ut.parse_locals_keylist(locals(), key_list))</span>
+    <span class="c1">#    print(&#39;KEYLIST:&#39; + ut.indentjoin(keystr_list, &#39;\n * &#39;))</span>
+    <span class="c1"># &lt;/DEBUG&gt;</span>
+    <span class="c1">#+-----------------------------------</span>
+    <span class="c1"># SKIP TO CURRENT VERSION IF POSSIBLE</span>
+    <span class="c1">#+-----------------------------------</span>
     <span class="n">can_skip</span> <span class="o">=</span> <span class="n">is_base_version</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force_incremental</span>
     <span class="k">if</span> <span class="n">can_skip</span><span class="p">:</span>
-        <span class="c">#print(&#39;[SQL_] we can skip&#39;)</span>
-        <span class="c"># Check to see if a prebuilt current schema_spec module exists</span>
+        <span class="c1">#print(&#39;[SQL_] we can skip&#39;)</span>
+        <span class="c1"># Check to see if a prebuilt current schema_spec module exists</span>
         <span class="n">current_schema_exists</span> <span class="o">=</span> <span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">UPDATE_CURRENT</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span>
                                  <span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">current_schema_exists</span><span class="p">:</span>
-            <span class="c"># check to see if more than the metadata table exists</span>
+            <span class="c1"># check to see if more than the metadata table exists</span>
             <span class="n">is_newdb</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_names</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">]</span>
             <span class="n">current_schema_compatible</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">is_newdb</span> <span class="ow">and</span> <span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span> <span class="o">&lt;=</span> <span class="n">version_expected</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">current_schema_compatible</span><span class="p">:</span>
-                <span class="c"># Since this is a new database, we do not have to worry about backinng up the</span>
-                <span class="c"># current database.  The subsequent update functions (if needed) will handle</span>
-                <span class="c"># this for us.</span>
+                <span class="c1"># Since this is a new database, we do not have to worry about backinng up the</span>
+                <span class="c1"># current database.  The subsequent update functions (if needed) will handle</span>
+                <span class="c1"># this for us.</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] New database and a current schema found&#39;</span><span class="p">)</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_SQL] New database and a current schema found&#39;</span><span class="p">)</span>
                 <span class="n">schema_spec</span><span class="o">.</span><span class="n">UPDATE_CURRENT</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
                 <span class="n">db</span><span class="o">.</span><span class="n">set_db_version</span><span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version updated (skipped) to </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span><span class="p">))</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_SQL] Database version updated (skipped) to </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">VERSION_CURRENT</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] Current database is not compatible, updating incrementally...&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_SQL] Current database is not compatible, updating incrementally...&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] New database but current version not exported, updating incrementally...&#39;</span><span class="p">)</span>
-    <span class="c">#+--------------------------------------</span>
-    <span class="c"># INCREMENTAL UPDATE TO EXPECTED VERSION</span>
-    <span class="c">#+--------------------------------------</span>
-    <span class="c"># Check version again for sanity&#39;s sake, update if exported current is behind expected</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_SQL] New database but current version not exported, updating incrementally...&#39;</span><span class="p">)</span>
+    <span class="c1">#+--------------------------------------</span>
+    <span class="c1"># INCREMENTAL UPDATE TO EXPECTED VERSION</span>
+    <span class="c1">#+--------------------------------------</span>
+    <span class="c1"># Check version again for sanity&#39;s sake, update if exported current is behind expected</span>
     <span class="n">version</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_db_version</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL.</span><span class="si">%s</span><span class="s">] Database version: </span><span class="si">%r</span><span class="s"> | Expected version: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_SQL.</span><span class="si">%s</span><span class="s1">] Database version: </span><span class="si">%r</span><span class="s1"> | Expected version: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span>
                 <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_caller_name</span><span class="p">(),</span> <span class="n">version</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">version</span> <span class="o">&lt;</span> <span class="n">version_expected</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version behind, updating...&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_SQL] Database version behind, updating...&#39;</span><span class="p">)</span>
         <span class="n">update_schema_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">schema_spec</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">,</span>
                               <span class="n">dobackup</span><span class="o">=</span><span class="n">dobackup</span><span class="p">)</span>
         <span class="n">db</span><span class="o">.</span><span class="n">set_db_version</span><span class="p">(</span><span class="n">version_expected</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] Database version updated (incrementally) to </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_SQL] Database version updated (incrementally) to </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
                    <span class="p">(</span><span class="n">version_expected</span><span class="p">))</span>
     <span class="k">elif</span> <span class="n">version</span> <span class="o">&gt;</span> <span class="n">version_expected</span><span class="p">:</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="p">((</span><span class="s">&#39;[_SQL] ERROR: &#39;</span>
-                <span class="s">&#39;Expected database version behind. expected: </span><span class="si">%r</span><span class="s">. got: </span><span class="si">%r</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;[_SQL] ERROR: &#39;</span>
+                <span class="s1">&#39;Expected database version behind. expected: </span><span class="si">%r</span><span class="s1">. got: </span><span class="si">%r</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">%</span>
                <span class="p">(</span><span class="n">version_expected</span><span class="p">,</span> <span class="n">version</span><span class="p">))</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
@@ -400,30 +436,30 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">_check_superkeys</span><span class="p">():</span>
         <span class="n">all_tablename_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_names</span><span class="p">()</span>
-        <span class="c"># always ignore the metadata table.</span>
-        <span class="n">ignore_tables_</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">]</span>
+        <span class="c1"># always ignore the metadata table.</span>
+        <span class="n">ignore_tables_</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span>
         <span class="n">tablename_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tablename</span> <span class="k">for</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">all_tablename_list</span>
                           <span class="k">if</span> <span class="n">tablename</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_tables_</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">tablename</span> <span class="ow">in</span> <span class="n">tablename_list</span><span class="p">:</span>
             <span class="n">superkey_colnames_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_superkey_colnames</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
-            <span class="c"># some tables seem to only have old constraints and aren&#39;t</span>
-            <span class="c"># properly updated to superkeys... weird.</span>
+            <span class="c1"># some tables seem to only have old constraints and aren&#39;t</span>
+            <span class="c1"># properly updated to superkeys... weird.</span>
             <span class="n">old_constraints</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_constraints</span><span class="p">(</span><span class="n">tablename</span><span class="p">)</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">superkey_colnames_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">old_constraints</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
-                <span class="s">&#39;ERROR UPDATING DATABASE, SUPERKEYS of </span><span class="si">%s</span><span class="s"> DROPPED!&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">,))</span>
+                <span class="s1">&#39;ERROR UPDATING DATABASE, SUPERKEYS of </span><span class="si">%s</span><span class="s1"> DROPPED!&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tablename</span><span class="p">,))</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] update_schema_version&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_SQL] update_schema_version&#39;</span><span class="p">)</span>
     <span class="n">db_fpath</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">fpath</span>
     <span class="k">if</span> <span class="n">dobackup</span><span class="p">:</span>
         <span class="n">db_dpath</span><span class="p">,</span> <span class="n">db_fname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">db_fpath</span><span class="p">)</span>
         <span class="n">db_fname_noext</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">db_fname</span><span class="p">)</span>
-        <span class="n">db_backup_fname</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">db_fname_noext</span><span class="p">,</span> <span class="s">&#39;_backup&#39;</span><span class="p">,</span> <span class="s">&#39;_v&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">ext</span><span class="p">))</span>
+        <span class="n">db_backup_fname</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">db_fname_noext</span><span class="p">,</span> <span class="s1">&#39;_backup&#39;</span><span class="p">,</span> <span class="s1">&#39;_v&#39;</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">ext</span><span class="p">))</span>
         <span class="n">db_backup_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">db_dpath</span><span class="p">,</span> <span class="n">db_backup_fname</span><span class="p">)</span>
         <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="c"># TODO MAKE UTOOL THAT DOES THIS (there might be one in util_logging)</span>
+        <span class="c1"># TODO MAKE UTOOL THAT DOES THIS (there might be one in util_logging)</span>
         <span class="k">while</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-            <span class="n">db_backup_fname</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">db_fname_noext</span><span class="p">,</span> <span class="s">&#39;_backup&#39;</span><span class="p">,</span> <span class="s">&#39;_v&#39;</span><span class="p">,</span>
-                                       <span class="n">version</span><span class="p">,</span> <span class="s">&#39;_copy&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">),</span> <span class="n">ext</span><span class="p">))</span>
+            <span class="n">db_backup_fname</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">db_fname_noext</span><span class="p">,</span> <span class="s1">&#39;_backup&#39;</span><span class="p">,</span> <span class="s1">&#39;_v&#39;</span><span class="p">,</span>
+                                       <span class="n">version</span><span class="p">,</span> <span class="s1">&#39;_copy&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">),</span> <span class="n">ext</span><span class="p">))</span>
             <span class="n">db_backup_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">db_dpath</span><span class="p">,</span> <span class="n">db_backup_fname</span><span class="p">)</span>
             <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">db_fpath</span><span class="p">,</span> <span class="n">db_backup_fpath</span><span class="p">)</span>
@@ -437,19 +473,19 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="n">start_index</span> <span class="o">=</span> <span class="n">valid_versions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">version</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;[!update_schema_version]&#39;</span>
-                             <span class="s">&#39; The current database version is unknown&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;[!update_schema_version]&#39;</span>
+                             <span class="s1">&#39; The current database version is unknown&#39;</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">end_index</span> <span class="o">=</span> <span class="n">valid_versions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">version_target</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;[!update_schema_version]&#39;</span>
-                             <span class="s">&#39; The target database version is unknown&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;[!update_schema_version]&#39;</span>
+                             <span class="s1">&#39; The target database version is unknown&#39;</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Update path: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">valid_versions</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">end_index</span><span class="p">]))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Update path: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">valid_versions</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">end_index</span><span class="p">]))</span>
         <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_index</span><span class="p">,</span> <span class="n">end_index</span><span class="p">):</span>
             <span class="n">next_version</span> <span class="o">=</span> <span class="n">valid_versions</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Updating database to version: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">next_version</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Updating database to version: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">next_version</span><span class="p">))</span>
             <span class="n">pre</span><span class="p">,</span> <span class="n">update</span><span class="p">,</span> <span class="n">post</span> <span class="o">=</span> <span class="n">db_versions</span><span class="p">[</span><span class="n">next_version</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">pre</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">pre</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
@@ -460,7 +496,7 @@
             <span class="n">_check_superkeys</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">dobackup</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;The database update failed, rolled back to the original version.&#39;</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;The database update failed, rolled back to the original version.&#39;</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">db_fpath</span><span class="p">)</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">db_backup_fpath</span><span class="p">,</span> <span class="n">db_fpath</span><span class="p">)</span>
@@ -469,7 +505,7 @@
             <span class="k">raise</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">(</span>
-                <span class="s">&#39;The database update failed, and no backup was made.&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;The database update failed, and no backup was made.&#39;</span><span class="p">),</span>
                 <span class="n">iswarning</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
             <span class="k">raise</span>
     <span class="k">if</span> <span class="n">dobackup</span> <span class="ow">and</span> <span class="n">clearbackup</span><span class="p">:</span>
@@ -500,14 +536,14 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] AUTOGENERATING CURRENT SCHEMA&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_SQL] AUTOGENERATING CURRENT SCHEMA&#39;</span><span class="p">)</span>
     <span class="n">db</span> <span class="o">=</span> <span class="n">get_nth_test_schema_version</span><span class="p">(</span><span class="n">schema_spec</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
-    <span class="c"># Auto-generate the version skip schema file</span>
+    <span class="c1"># Auto-generate the version skip schema file</span>
     <span class="n">schema_spec_dir</span><span class="p">,</span> <span class="n">schema_spec_fname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
     <span class="n">schema_spec_fname</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">schema_spec_fname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="c"># HACK TO GET AUTOGEN COMMAND</span>
-    <span class="c"># FIXME: Make this autogen command a bit more sane and not completely</span>
-    <span class="c"># coupled with ibeis</span>
+    <span class="c1"># HACK TO GET AUTOGEN COMMAND</span>
+    <span class="c1"># FIXME: Make this autogen command a bit more sane and not completely</span>
+    <span class="c1"># coupled with ibeis</span>
     <span class="n">autogen_cmd</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        python -m ibeis.control.{schema_spec_fname} --test-autogen_{funcname} --force-incremental-db-update --write</span>
@@ -517,12 +553,12 @@
     <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">schema_spec_fname</span><span class="o">=</span><span class="n">schema_spec_fname</span><span class="p">,</span> <span class="n">funcname</span><span class="o">=</span><span class="n">schema_spec_fname</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
     <span class="n">autogen_text</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_schema_current_autogeneration_str</span><span class="p">(</span><span class="n">autogen_cmd</span><span class="p">)</span>
 
-    <span class="n">autogen_fname</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_CURRENT.py&#39;</span> <span class="o">%</span> <span class="n">schema_spec_fname</span>
+    <span class="n">autogen_fname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_CURRENT.py&#39;</span> <span class="o">%</span> <span class="n">schema_spec_fname</span>
     <span class="n">autogen_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">schema_spec_dir</span><span class="p">,</span> <span class="n">autogen_fname</span><span class="p">)</span>
 
-    <span class="n">dowrite</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;-w&#39;</span><span class="p">,</span> <span class="s">&#39;--write&#39;</span><span class="p">,</span> <span class="s">&#39;--dump-autogen-schema&#39;</span><span class="p">))</span>
-    <span class="n">show_diff</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--diff&#39;</span><span class="p">)</span>
-    <span class="n">num_context_lines</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--diff&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">dowrite</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;-w&#39;</span><span class="p">,</span> <span class="s1">&#39;--write&#39;</span><span class="p">,</span> <span class="s1">&#39;--dump-autogen-schema&#39;</span><span class="p">))</span>
+    <span class="n">show_diff</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--diff&#39;</span><span class="p">)</span>
+    <span class="n">num_context_lines</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--diff&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
     <span class="n">show_diff</span> <span class="o">=</span> <span class="n">show_diff</span> <span class="ow">or</span> <span class="n">num_context_lines</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
     <span class="n">dowrite</span> <span class="o">=</span> <span class="n">dowrite</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">show_diff</span>
 
@@ -536,11 +572,11 @@
                 <span class="n">ut</span><span class="o">.</span><span class="n">print_difftext</span><span class="p">(</span><span class="n">textdiff</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">util_print</span><span class="o">.</span><span class="n">print_python_code</span><span class="p">(</span><span class="n">autogen_text</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">L___</span><span class="se">\n</span><span class="s">...would write to: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">autogen_fpath</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">L___</span><span class="se">\n</span><span class="s1">...would write to: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">autogen_fpath</span><span class="p">)</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39; Run with -n=</span><span class="si">%r</span><span class="s"> to get a specific schema version by index. -1 == latest&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39; Run with --write to autogenerate latest schema version&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39; Run with --diff or --diff=&lt;numcontextlines&gt; to see the difference between current and requested&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39; Run with -n=</span><span class="si">%r</span><span class="s1"> to get a specific schema version by index. -1 == latest&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39; Run with --write to autogenerate latest schema version&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39; Run with --diff or --diff=&lt;numcontextlines&gt; to see the difference between current and requested&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">db</span>
 
 </div>
@@ -554,17 +590,17 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">dtool.sql_control</span> <span class="kn">import</span> <span class="n">SQLDatabaseController</span>
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">schema_spec</span><span class="o">.</span><span class="n">__name__</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_SQL] getting n=</span><span class="si">%r</span><span class="s">-th version of </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dbname</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_SQL] getting n=</span><span class="si">%r</span><span class="s1">-th version of </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dbname</span><span class="p">))</span>
     <span class="n">version_expected</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">schema_spec</span><span class="o">.</span><span class="n">VALID_VERSIONS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">n</span><span class="p">]</span>
-    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis_test&#39;</span><span class="p">)</span>
-    <span class="n">db_fname</span> <span class="o">=</span> <span class="s">&#39;test_</span><span class="si">%s</span><span class="s">.sqlite3&#39;</span> <span class="o">%</span> <span class="n">dbname</span>
+    <span class="n">cachedir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_app_resource_dir</span><span class="p">(</span><span class="s1">&#39;ibeis_test&#39;</span><span class="p">)</span>
+    <span class="n">db_fname</span> <span class="o">=</span> <span class="s1">&#39;test_</span><span class="si">%s</span><span class="s1">.sqlite3&#39;</span> <span class="o">%</span> <span class="n">dbname</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">))</span>
     <span class="n">db</span> <span class="o">=</span> <span class="n">SQLDatabaseController</span><span class="p">(</span><span class="n">cachedir</span><span class="p">,</span> <span class="n">db_fname</span><span class="p">,</span> <span class="n">text_factory</span><span class="o">=</span><span class="nb">unicode</span><span class="p">)</span>
     <span class="n">ensure_correct_version</span><span class="p">(</span>
         <span class="bp">None</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">version_expected</span><span class="p">,</span> <span class="n">schema_spec</span><span class="p">,</span> <span class="n">dobackup</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">db</span>
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control._sql_helpers</span>
@@ -572,8 +608,8 @@
 <span class="sd">        python -m ibeis.control._sql_helpers --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -608,7 +644,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

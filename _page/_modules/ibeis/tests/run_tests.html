@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests.run_tests &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.tests.run_tests &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,25 +129,25 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.tests.run_tests</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c">#!/usr/bin/env python2.7</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#!/usr/bin/env python2.7</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 
 
 <div class="viewcode-block" id="ensure_testing_data"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.run_tests.ensure_testing_data">[docs]</a><span class="k">def</span> <span class="nf">ensure_testing_data</span><span class="p">():</span>
     <span class="kn">from</span> <span class="nn">ibeis.tests</span> <span class="kn">import</span> <span class="n">reset_testdbs</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Making sure test data exists&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Making sure test data exists&#39;</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">change_term_title</span><span class="p">(</span><span class="s">&#39;ENSURE IBEIS TETSDATA&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">change_term_title</span><span class="p">(</span><span class="s1">&#39;ENSURE IBEIS TETSDATA&#39;</span><span class="p">)</span>
     <span class="n">reset_testdbs</span><span class="o">.</span><span class="n">reset_testdbs</span><span class="p">()</span>
     <span class="n">workdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)):</span>
         <span class="n">ibeis</span><span class="o">.</span><span class="n">ensure_pz_mtest</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;NAUT_test&#39;</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;NAUT_test&#39;</span><span class="p">)):</span>
         <span class="n">ibeis</span><span class="o">.</span><span class="n">ensure_nauts</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s">&#39;wd_peter2&#39;</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s1">&#39;wd_peter2&#39;</span><span class="p">)):</span>
         <span class="n">ibeis</span><span class="o">.</span><span class="n">ensure_wilddogs</span><span class="p">()</span>
 
 </div>
@@ -157,118 +157,113 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c"># DONT USE THESE FLAGS</span>
-    <span class="c">#print(&#39;--testall and --testslow give you more tests&#39;)</span>
-    <span class="c"># starts logging for tests</span>
+    <span class="c1"># DONT USE THESE FLAGS</span>
+    <span class="c1">#print(&#39;--testall and --testslow give you more tests&#39;)</span>
+    <span class="c1"># starts logging for tests</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
 
     <span class="n">ibeis</span><span class="o">.</span><span class="n">_preload</span><span class="p">()</span>
-    <span class="c"># Build module list and run tests</span>
+    <span class="c1"># Build module list and run tests</span>
     <span class="kn">import</span> <span class="nn">sys</span>
     <span class="n">ensure_testing_data</span><span class="p">()</span>
     <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">change_term_title</span><span class="p">(</span><span class="s">&#39;RUN IBEIS TESTS&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">change_term_title</span><span class="p">(</span><span class="s1">&#39;RUN IBEIS TESTS&#39;</span><span class="p">)</span>
     <span class="n">exclude_doctests_fnames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span>
-        <span class="s">&#39;_autogen_explicit_controller&#39;</span><span class="p">,</span>
-        <span class="s">&#39;template_definitions.py&#39;</span><span class="p">,</span>
-        <span class="s">&#39;autogen_test_script.py&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_autogen_explicit_controller&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;template_definitions.py&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;autogen_test_script.py&#39;</span><span class="p">,</span>
     <span class="p">])</span>
     <span class="n">exclude_dirs</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s">&#39;_broken&#39;</span><span class="p">,</span>
-        <span class="s">&#39;old&#39;</span><span class="p">,</span>
-        <span class="s">&#39;tests&#39;</span><span class="p">,</span>
-        <span class="s">&#39;timeits&#39;</span><span class="p">,</span>
-        <span class="s">&#39;_scripts&#39;</span><span class="p">,</span>
-        <span class="s">&#39;_timeits&#39;</span><span class="p">,</span>
-        <span class="s">&#39;_doc&#39;</span><span class="p">,</span>
-        <span class="s">&#39;notebook&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_broken&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;old&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;tests&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;timeits&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_scripts&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_timeits&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;_doc&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;notebook&#39;</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_pyinstaller_package</span><span class="p">():</span>
         <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span>
         <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">dirname</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">__file__</span><span class="p">)]</span>
-        <span class="c"># Run tests for installer</span>
+        <span class="c1"># Run tests for installer</span>
         <span class="n">doctest_modname_list_</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s">&#39;ibeis.ibsfuncs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.viz.interact.interact_qres2&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.viz.interact.interact_matches&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.viz.interact.interact_annotations2&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.viz.interact.interact_name&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.viz.interact.interact_query_decision&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.viz.interact.interact_chip&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.viz.interact.interact_qres&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.Config&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots._pipeline_helpers&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.name_scoring&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.devcases&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.neighbor_index&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.automated_helpers&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.hots_query_result&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.automated_oracle&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.nn_weights&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.pipeline&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.automated_params&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.vsone_pipeline&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.automatch_suggestor&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.score_normalization&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.query_request&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.chip_match&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.multi_index&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.qt_inc_automatch&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.query_params&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.precision_recall&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.hstypes&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.match_chips4&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.distinctiveness_normalizer&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.automated_matcher&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.special_query&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.hots.scoring&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.preproc.preproc_annot&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.preproc.preproc_imageset&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.preproc.preproc_detectimg&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.preproc.preproc_featweight&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.preproc.preproc_image&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.preproc.preproc_feat&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.preproc.preproc_residual&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.preproc.preproc_chip&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.preproc.preproc_probchip&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.algo.detect.grabmodels&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_annot_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_chip_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_species_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_ibeiscontrol_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control._autogen_party_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_garelate_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_name_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control._sql_helpers&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_wildbook_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.controller_inject&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_lblimage_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.IBEISControl&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control._autogen_featweight_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_imageset_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_feat_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_gsgrelate_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control._autogen_annotmatch_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_meta_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_lblannot_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.DB_SCHEMA&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_lbltype_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.SQLDatabaseControl&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_image_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.manual_annotgroup_funcs&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.control.DBCACHE_SCHEMA&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.init.main_helpers&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.init.sysres&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.gui.clock_offset_gui&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.dbio.export_subset&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.dbio.export_hsdb&#39;</span><span class="p">,</span>
-            <span class="s">&#39;ibeis.dbio.ingest_database&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.ibsfuncs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.viz.interact.interact_qres2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.viz.interact.interact_matches&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.viz.interact.interact_annotations2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.viz.interact.interact_name&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.viz.interact.interact_query_decision&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.viz.interact.interact_chip&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.viz.interact.interact_qres&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.Config&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots._pipeline_helpers&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.name_scoring&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.devcases&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.neighbor_index&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.automated_helpers&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.hots_query_result&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.automated_oracle&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.nn_weights&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.pipeline&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.automated_params&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.vsone_pipeline&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.automatch_suggestor&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.score_normalization&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.query_request&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.chip_match&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.multi_index&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.qt_inc_automatch&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.query_params&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.precision_recall&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.hstypes&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.match_chips4&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.distinctiveness_normalizer&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.automated_matcher&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.special_query&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.hots.scoring&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.preproc.preproc_annot&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.preproc.preproc_imageset&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.preproc.preproc_image&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.preproc.preproc_residual&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.algo.detect.grabmodels&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_annot_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_chip_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_species_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_ibeiscontrol_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control._autogen_party_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_garelate_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_name_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control._sql_helpers&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_wildbook_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.controller_inject&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_lblimage_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.IBEISControl&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control._autogen_featweight_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_imageset_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_feat_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_gsgrelate_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control._autogen_annotmatch_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_meta_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_lblannot_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.DB_SCHEMA&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_lbltype_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.SQLDatabaseControl&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_image_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.manual_annotgroup_funcs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.control.DBCACHE_SCHEMA&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.init.main_helpers&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.init.sysres&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.gui.clock_offset_gui&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.dbio.export_subset&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.dbio.export_hsdb&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;ibeis.dbio.ingest_database&#39;</span><span class="p">,</span>
         <span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;ibeis&#39;</span><span class="p">]</span>
+        <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ibeis&#39;</span><span class="p">]</span>
         <span class="n">doctest_modname_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">find_doctestable_modnames</span><span class="p">(</span><span class="n">dpath_list</span><span class="p">,</span> <span class="n">exclude_doctests_fnames</span><span class="p">,</span> <span class="n">exclude_dirs</span><span class="p">)</span>
 
-    <span class="n">exclude_doctest_pattern</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--exclude-doctest-patterns&#39;</span><span class="p">,</span> <span class="s">&#39;--x&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span>
+    <span class="n">exclude_doctest_pattern</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s1">&#39;--exclude-doctest-patterns&#39;</span><span class="p">,</span> <span class="s1">&#39;--x&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[])</span>
     <span class="k">if</span> <span class="n">exclude_doctest_pattern</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">re</span>
         <span class="n">is_ok</span> <span class="o">=</span> <span class="p">[</span><span class="nb">all</span><span class="p">([</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">exclude_doctest_pattern</span><span class="p">])</span>
@@ -280,7 +275,7 @@
     <span class="n">doctest_modname_list2</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">doctest_modname_list</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">exec</span><span class="p">(</span><span class="s">&#39;import &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">,</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
+            <span class="k">exec</span><span class="p">(</span><span class="s1">&#39;import &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">,</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">iswarning</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">in_pyinstaller_package</span><span class="p">():</span>
@@ -296,7 +291,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">0</span>
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    python -m ibeis --run-tests</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -336,7 +331,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

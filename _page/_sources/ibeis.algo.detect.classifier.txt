@@ -1,0 +1,30 @@
+ibeis.algo.detect.classifier package
+====================================
+
+Submodules
+----------
+
+ibeis.algo.detect.classifier.classifier module
+----------------------------------------------
+
+.. automodule:: ibeis.algo.detect.classifier.classifier
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.detect.classifier.model module
+-----------------------------------------
+
+.. automodule:: ibeis.algo.detect.classifier.model
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.algo.detect.classifier
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.web.app &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.web.app &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,7 +129,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.web.app</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Dependencies: flask, tornado</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -140,6 +140,7 @@
 <span class="kn">import</span> <span class="nn">socket</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
 <span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">apis_engine</span>
+<span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">job_engine</span>
 <span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 
@@ -165,42 +166,42 @@
 <span class="sd">        Initialize the web server</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">browser</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">browser</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--browser&#39;</span><span class="p">)</span>
+        <span class="n">browser</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--browser&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">url_suffix</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">url_suffix</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="n">url_suffix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
     <span class="k">def</span> <span class="nf">_start_tornado</span><span class="p">(</span><span class="n">ibs_</span><span class="p">,</span> <span class="n">port_</span><span class="p">):</span>
-        <span class="c"># Get Flask app</span>
+        <span class="c1"># Get Flask app</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_flask_app</span><span class="p">()</span>
         <span class="n">app</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs_</span>
-        <span class="c"># Try to ascertain the socket&#39;s domain name</span>
+        <span class="c1"># Try to ascertain the socket&#39;s domain name</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">app</span><span class="o">.</span><span class="n">server_domain</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostbyname</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">())</span>
         <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">gaierror</span><span class="p">:</span>
-            <span class="n">app</span><span class="o">.</span><span class="n">server_domain</span> <span class="o">=</span> <span class="s">&#39;127.0.0.1&#39;</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">server_domain</span> <span class="o">=</span> <span class="s1">&#39;127.0.0.1&#39;</span>
         <span class="n">app</span><span class="o">.</span><span class="n">server_port</span> <span class="o">=</span> <span class="n">port_</span>
-        <span class="c"># URL for the web instance</span>
-        <span class="n">app</span><span class="o">.</span><span class="n">server_url</span> <span class="o">=</span> <span class="s">&#39;http://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_domain</span><span class="p">,</span> <span class="n">app</span><span class="o">.</span><span class="n">server_port</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Tornado server starting at </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_url</span><span class="p">,))</span>
-        <span class="c"># Launch the web browser to view the web interface and API</span>
+        <span class="c1"># URL for the web instance</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">server_url</span> <span class="o">=</span> <span class="s1">&#39;http://</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_domain</span><span class="p">,</span> <span class="n">app</span><span class="o">.</span><span class="n">server_port</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[web] Tornado server starting at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_url</span><span class="p">,))</span>
+        <span class="c1"># Launch the web browser to view the web interface and API</span>
         <span class="k">if</span> <span class="n">browser</span><span class="p">:</span>
             <span class="n">url</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">server_url</span> <span class="o">+</span> <span class="n">url_suffix</span>
             <span class="kn">import</span> <span class="nn">webbrowser</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] opening browser with url = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[web] opening browser with url = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,))</span>
             <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-        <span class="c"># Start the tornado web handler</span>
-        <span class="c"># WSGI = Web Server Gateway Interface</span>
-        <span class="c"># WSGI is Python standard described in detail in PEP 3333</span>
+        <span class="c1"># Start the tornado web handler</span>
+        <span class="c1"># WSGI = Web Server Gateway Interface</span>
+        <span class="c1"># WSGI is Python standard described in detail in PEP 3333</span>
         <span class="n">http_server</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpserver</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">(</span>
             <span class="n">tornado</span><span class="o">.</span><span class="n">wsgi</span><span class="o">.</span><span class="n">WSGIContainer</span><span class="p">(</span><span class="n">app</span><span class="p">))</span>
         <span class="n">http_server</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">server_port</span><span class="p">)</span>
         <span class="n">tornado</span><span class="o">.</span><span class="n">ioloop</span><span class="o">.</span><span class="n">IOLoop</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
-    <span class="c"># Set logging level</span>
+    <span class="c1"># Set logging level</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-    <span class="c"># Get the port if unspecified</span>
+    <span class="c1"># Get the port if unspecified</span>
     <span class="k">if</span> <span class="n">port</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">port</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">DEFAULT_WEB_API_PORT</span>
-    <span class="c"># Launch the web handler</span>
+    <span class="c1"># Launch the web handler</span>
     <span class="n">_start_tornado</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
 
 </div>
@@ -213,34 +214,75 @@
 <span class="sd">        python -m ibeis --db PZ_MTEST --web</span>
 <span class="sd">        python -m ibeis --db PZ_MTEST --web --browser</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] start_from_ibeis()&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[web] start_from_ibeis()&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">precache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">precache</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--precache&#39;</span><span class="p">)</span>
+        <span class="n">precache</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--precache&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">precache</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Pre-computing all image thumbnails (with annots)...&#39;</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">preprocess_image_thumbs</span><span class="p">()</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Pre-computing all image thumbnails (without annots)...&#39;</span><span class="p">)</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">preprocess_image_thumbs</span><span class="p">(</span><span class="n">draw_annots</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Pre-computing all annotation chips...&#39;</span><span class="p">)</span>
+        <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[web] Pre-computing all image thumbnails (with annots)...&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">draw_annots</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[web] Pre-computing all image thumbnails (without annots)...&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">draw_annots</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[web] Pre-computing all annotation chips...&#39;</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">check_chip_existence</span><span class="p">()</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">compute_all_chips</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">start_job_queue</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] opening job manager&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[web] opening job manager&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">load_plugin_module</span><span class="p">(</span><span class="n">job_engine</span><span class="p">)</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">load_plugin_module</span><span class="p">(</span><span class="n">apis_engine</span><span class="p">)</span>
-        <span class="c">#import time</span>
-        <span class="c">#time.sleep(1)</span>
+        <span class="c1">#import time</span>
+        <span class="c1">#time.sleep(1)</span>
+        <span class="c1"># No need to sleep, this call should block until engine is live.</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">initialize_job_manager</span><span class="p">()</span>
-        <span class="c">#time.sleep(10)</span>
+        <span class="c1">#time.sleep(10)</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] starting tornado&#39;</span><span class="p">)</span>
-    <span class="n">start_tornado</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">browser</span><span class="p">,</span> <span class="n">url_suffix</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] closing job manager&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[web] starting tornado&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">start_tornado</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">browser</span><span class="p">,</span> <span class="n">url_suffix</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Caught ctrl+c in webserver. Gracefully exiting&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[web] closing job manager&#39;</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">close_job_manager</span><span class="p">()</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<div class="viewcode-block" id="start_web_annot_groupreview"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.app.start_web_annot_groupreview">[docs]</a><span class="k">def</span> <span class="nf">start_web_annot_groupreview</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        ibs (IBEISController):  ibeis controller object</span>
+<span class="sd">        aid_list (list):  list of annotation rowids</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db PZ_Master1</span>
+<span class="sd">        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db GZ_Master1</span>
+<span class="sd">        python -m ibeis.tag_funcs --exec-start_web_annot_groupreview --db GIRM_Master1</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.tag_funcs import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; #ibs = ibeis.opendb(defaultdb=&#39;PZ_Master1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;GZ_Master1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #aid_list = ibs.get_valid_aids()</span>
+<span class="sd">        &gt;&gt;&gt; # -----</span>
+<span class="sd">        &gt;&gt;&gt; any_tags = ut.get_argval(&#39;--tags&#39;, type_=list, default=[&#39;Viewpoint&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; min_num = ut.get_argval(&#39;--min_num&#39;, type_=int, default=1)</span>
+<span class="sd">        &gt;&gt;&gt; prop = any_tags[0]</span>
+<span class="sd">        &gt;&gt;&gt; filtered_annotmatch_rowids = filter_annotmatch_by_tags(ibs, None, any_tags=any_tags, min_num=min_num)</span>
+<span class="sd">        &gt;&gt;&gt; aid1_list = (ibs.get_annotmatch_aid1(filtered_annotmatch_rowids))</span>
+<span class="sd">        &gt;&gt;&gt; aid2_list = (ibs.get_annotmatch_aid2(filtered_annotmatch_rowids))</span>
+<span class="sd">        &gt;&gt;&gt; aid_list = list(set(ut.flatten([aid2_list, aid1_list])))</span>
+<span class="sd">        &gt;&gt;&gt; result = start_web_annot_groupreview(ibs, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis.web</span>
+    <span class="n">aid_strs</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)))</span>
+    <span class="n">url_suffix</span> <span class="o">=</span> <span class="s1">&#39;/group_review/?aid_list=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_strs</span><span class="p">)</span>
+    <span class="n">ibeis</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">start_from_ibeis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">url_suffix</span><span class="o">=</span><span class="n">url_suffix</span><span class="p">,</span> <span class="n">browser</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.web.app</span>
@@ -248,8 +290,8 @@
 <span class="sd">        python -m ibeis.web.app --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -284,7 +326,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

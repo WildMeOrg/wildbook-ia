@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests.test_uuid_consistency &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.tests.test_uuid_consistency &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,9 +129,9 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.tests.test_uuid_consistency</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python2.7</span>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c"># TODO: ADD COPYRIGHT TAG</span>
+<span></span><span class="ch">#!/usr/bin/env python2.7</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># TODO: ADD COPYRIGHT TAG</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.preproc</span> <span class="kn">import</span> <span class="n">preproc_image</span>
@@ -145,14 +145,14 @@
 
     <span class="k">def</span> <span class="nf">_uuid_from_gpath</span><span class="p">(</span><span class="n">gpath</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>      <span class="c"># Open PIL Image</span>
+            <span class="n">pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>      <span class="c1"># Open PIL Image</span>
         <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">None</span>
         <span class="n">uuid</span> <span class="o">=</span> <span class="n">preproc_image</span><span class="o">.</span><span class="n">get_image_uuid</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">uuid</span>
 
     <span class="n">uuid_list_test</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">_uuid_from_gpath</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">))</span>
-    <span class="k">assert</span> <span class="n">uuid_list</span> <span class="o">==</span> <span class="n">uuid_list_test</span><span class="p">,</span> <span class="s">&#39;uuids are inconsistent!&#39;</span></div>
+    <span class="k">assert</span> <span class="n">uuid_list</span> <span class="o">==</span> <span class="n">uuid_list_test</span><span class="p">,</span> <span class="s1">&#39;uuids are inconsistent!&#39;</span></div>
 </pre></div>
 
            </div>
@@ -186,7 +186,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

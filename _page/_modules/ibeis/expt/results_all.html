@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.expt.results_all &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.expt.results_all &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.expt" href="../expt.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,7 +131,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.expt.results_all</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">DEPRICATE:</span>
 <span class="sd">    use TestResult instead</span>
@@ -144,7 +144,7 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">results_organizer</span>
 <span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">results_analyzer</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[results_all]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[results_all]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="AllResults"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.AllResults">[docs]</a><span class="k">class</span> <span class="nc">AllResults</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">DynStruct</span><span class="p">):</span>
@@ -152,7 +152,7 @@
 <span class="sd">    Data container for all compiled results</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">allres</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">AllResults</span><span class="p">,</span> <span class="n">allres</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">child_exclude_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;qaid2_qres&#39;</span><span class="p">])</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AllResults</span><span class="p">,</span> <span class="n">allres</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">child_exclude_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qaid2_qres&#39;</span><span class="p">])</span>
         <span class="n">allres</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">allres</span><span class="o">.</span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">allres</span><span class="o">.</span><span class="n">allorg</span> <span class="o">=</span> <span class="bp">None</span>
@@ -168,7 +168,7 @@
         <span class="k">return</span> <span class="n">allres</span><span class="o">.</span><span class="n">cfgstr</span>
 </div>
 <div class="viewcode-block" id="AllResults.make_title"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.AllResults.make_title">[docs]</a>    <span class="k">def</span> <span class="nf">make_title</span><span class="p">(</span><span class="n">allres</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">allres</span><span class="o">.</span><span class="n">dbname</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">packstr</span><span class="p">(</span><span class="n">allres</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(),</span> <span class="n">textwidth</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">break_words</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">breakchars</span><span class="o">=</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="n">wordsep</span><span class="o">=</span><span class="s">&#39;_&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">allres</span><span class="o">.</span><span class="n">dbname</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">packstr</span><span class="p">(</span><span class="n">allres</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(),</span> <span class="n">textwidth</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">break_words</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">breakchars</span><span class="o">=</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">wordsep</span><span class="o">=</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="AllResults.get_qres"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.AllResults.get_qres">[docs]</a>    <span class="k">def</span> <span class="nf">get_qres</span><span class="p">(</span><span class="n">allres</span><span class="p">,</span> <span class="n">qaid</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">allres</span><span class="o">.</span><span class="n">qaid2_qres</span><span class="p">[</span><span class="n">qaid</span><span class="p">]</span>
@@ -184,8 +184,8 @@
     <span class="k">if</span> <span class="n">qreq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">allres_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">allres_cfgstr</span> <span class="o">=</span> <span class="s">&#39;???&#39;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Building allres&#39;</span><span class="p">)</span>
+        <span class="n">allres_cfgstr</span> <span class="o">=</span> <span class="s1">&#39;???&#39;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Building allres&#39;</span><span class="p">)</span>
     <span class="n">allres</span> <span class="o">=</span> <span class="n">AllResults</span><span class="p">()</span>
     <span class="n">allres</span><span class="o">.</span><span class="n">qaid2_qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span>
     <span class="n">allres</span><span class="o">.</span><span class="n">allorg</span> <span class="o">=</span> <span class="n">results_organizer</span><span class="o">.</span><span class="n">organize_results</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">)</span>
@@ -196,7 +196,7 @@
     <span class="k">return</span> <span class="n">allres</span>
 
 
-<span class="c"># ALL RESULTS CACHE</span>
+<span class="c1"># ALL RESULTS CACHE</span>
 
 </div>
 <span class="n">__ALLRES_CACHE__</span> <span class="o">=</span> <span class="p">{}</span>
@@ -204,10 +204,10 @@
 
 
 <div class="viewcode-block" id="build_cache_key"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.results_all.build_cache_key">[docs]</a><span class="k">def</span> <span class="nf">build_cache_key</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">):</span>
-    <span class="c"># a little overconstrained</span>
+    <span class="c1"># a little overconstrained</span>
     <span class="n">cfgstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">query_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
-    <span class="n">query_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;Q&#39;</span><span class="p">)</span>
-    <span class="n">data_hashid</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;D&#39;</span><span class="p">)</span>
+    <span class="n">query_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;Q&#39;</span><span class="p">)</span>
+    <span class="n">data_hashid</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_semantic_uuid</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">)</span>
     <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">query_hashid</span><span class="p">,</span> <span class="n">data_hashid</span><span class="p">,</span> <span class="n">cfgstr</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">key</span>
 
@@ -224,7 +224,7 @@
         <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_query_chips4</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span>
                                               <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                                               <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
-        <span class="c"># Cache save</span>
+        <span class="c1"># Cache save</span>
         <span class="n">__QRESREQ_CACHE__</span><span class="p">[</span><span class="n">qres_cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
 
@@ -250,7 +250,7 @@
 <span class="sd">        &gt;&gt;&gt; print(allres)</span>
 <span class="sd">        &gt;&gt;&gt; allres.allorg[&#39;top_true&#39;].printme3()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[dev] get_allres&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[dev] get_allres&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">daid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">daid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">allres_key</span> <span class="o">=</span> <span class="n">build_cache_key</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
@@ -259,66 +259,66 @@
     <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
         <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">get_qres_and_qreq_</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="p">)</span>
         <span class="n">allres</span> <span class="o">=</span> <span class="n">init_allres</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
-        <span class="c"># Cache save</span>
+        <span class="c1"># Cache save</span>
         <span class="n">__ALLRES_CACHE__</span><span class="p">[</span><span class="n">allres_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">allres</span>
     <span class="k">return</span> <span class="n">allres</span>
 
 
-<span class="c"># OLD Stuff</span>
-<span class="c">#    #allres = results_all.get_allres(ibs, qaid_list, daid_list)</span>
-<span class="c">#    #ut.embed()</span>
-<span class="c">#    #orgres = allres.allorg[&#39;rank0_true&#39;]</span>
-<span class="c">#    #qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list)</span>
-<span class="c">#    #qres_list = ut.dict_take(qaid2_qres, qaid_list)</span>
+<span class="c1"># OLD Stuff</span>
+<span class="c1">#    #allres = results_all.get_allres(ibs, qaid_list, daid_list)</span>
+<span class="c1">#    #ut.embed()</span>
+<span class="c1">#    #orgres = allres.allorg[&#39;rank0_true&#39;]</span>
+<span class="c1">#    #qaid2_qres, qreq_ = results_all.get_qres_and_qreq_(ibs, qaid_list, daid_list)</span>
+<span class="c1">#    #qres_list = ut.dict_take(qaid2_qres, qaid_list)</span>
 
-<span class="c">#    #def get_labeled_name_scores(ibs, qres_list):</span>
-<span class="c">#    #    &quot;&quot;&quot;</span>
-<span class="c">#    #    TODO: rectify with score_normalization.get_ibeis_score_training_data</span>
-<span class="c">#    #    This function does not return only the &quot;good values&quot;.</span>
-<span class="c">#    #    It is more for testing and validation than training.</span>
-<span class="c">#    #    &quot;&quot;&quot;</span>
-<span class="c">#    #    tp_nscores = []</span>
-<span class="c">#    #    tn_nscores = []</span>
-<span class="c">#    #    for qx, qres in enumerate(qres_list):</span>
-<span class="c">#    #        qaid = qres.get_qaid()</span>
-<span class="c">#    #        if not qres.is_nsum():</span>
-<span class="c">#    #            raise AssertionError(&#39;must be nsum&#39;)</span>
-<span class="c">#    #        if not ibs.get_annot_has_groundtruth(qaid):</span>
-<span class="c">#    #            continue</span>
-<span class="c">#    #        qnid = ibs.get_annot_name_rowids(qres.get_qaid())</span>
-<span class="c">#    #        # Get name scores for this query</span>
-<span class="c">#    #        nscoretup = qres.get_nscoretup(ibs)</span>
-<span class="c">#    #        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup</span>
-<span class="c">#    #        # TODO: take into account viewpoint / quality difference</span>
-<span class="c">#    #        sorted_nids = np.array(sorted_nids)</span>
-<span class="c">#    #        is_positive  = sorted_nids == qnid</span>
-<span class="c">#    #        is_negative = np.logical_and(~is_positive, sorted_nids &gt; 0)</span>
-<span class="c">#    #        if np.any(is_positive):</span>
-<span class="c">#    #            # Take only the top true name score</span>
-<span class="c">#    #            num_true = min(sum(is_positive), 1)</span>
-<span class="c">#    #            gt_rank = np.nonzero(is_positive)[0][0:num_true]</span>
-<span class="c">#    #            tp_nscores.extend(sorted_nscores[gt_rank])</span>
-<span class="c">#    #        if np.any(is_negative):</span>
-<span class="c">#    #            # Take the top few false name scores</span>
-<span class="c">#    #            num_false = min(sum(is_negative), 3)</span>
-<span class="c">#    #            #num_false = min(sum(is_negative), 100000)</span>
-<span class="c">#    #            gf_rank = np.nonzero(is_negative)[0][0:num_false]</span>
-<span class="c">#    #            tn_nscores.extend(sorted_nscores[gf_rank])</span>
-<span class="c">#    #    tp_nscores = np.array(tp_nscores).astype(np.float64)</span>
-<span class="c">#    #    tn_nscores = np.array(tn_nscores).astype(np.float64)</span>
-<span class="c">#    #    return tp_nscores, tn_nscores</span>
-<span class="c">#    #tp_nscores, tn_nscores = get_labeled_name_scores(ibs, qres_list)</span>
-<span class="c">#from ibeis.model.hots import score_normalization</span>
-<span class="c">#tp_support, tn_support, tp_support_labels, tn_support_labels = score_normalization.get_ibeis_score_training_data(ibs, qaid_list, qres_list)</span>
-<span class="c">#ut.embed()</span>
-<span class="c">#x_data, y_data = results_all.get_stem_data(ibs, qaid2_qres)</span>
-<span class="c">#pt.plots.plot_stems(x_data, y_data)</span>
-<span class="c">#pt.present()</span>
-<span class="c">#pt.show()</span>
-<span class="c">#locals_ = viz_allres_annotation_scores(allres)</span>
+<span class="c1">#    #def get_labeled_name_scores(ibs, qres_list):</span>
+<span class="c1">#    #    &quot;&quot;&quot;</span>
+<span class="c1">#    #    TODO: rectify with score_normalization.get_ibeis_score_training_data</span>
+<span class="c1">#    #    This function does not return only the &quot;good values&quot;.</span>
+<span class="c1">#    #    It is more for testing and validation than training.</span>
+<span class="c1">#    #    &quot;&quot;&quot;</span>
+<span class="c1">#    #    tp_nscores = []</span>
+<span class="c1">#    #    tn_nscores = []</span>
+<span class="c1">#    #    for qx, qres in enumerate(qres_list):</span>
+<span class="c1">#    #        qaid = qres.get_qaid()</span>
+<span class="c1">#    #        if not qres.is_nsum():</span>
+<span class="c1">#    #            raise AssertionError(&#39;must be nsum&#39;)</span>
+<span class="c1">#    #        if not ibs.get_annot_has_groundtruth(qaid):</span>
+<span class="c1">#    #            continue</span>
+<span class="c1">#    #        qnid = ibs.get_annot_name_rowids(qres.get_qaid())</span>
+<span class="c1">#    #        # Get name scores for this query</span>
+<span class="c1">#    #        nscoretup = qres.get_nscoretup(ibs)</span>
+<span class="c1">#    #        (sorted_nids, sorted_nscores, sorted_aids, sorted_scores) = nscoretup</span>
+<span class="c1">#    #        # TODO: take into account viewpoint / quality difference</span>
+<span class="c1">#    #        sorted_nids = np.array(sorted_nids)</span>
+<span class="c1">#    #        is_positive  = sorted_nids == qnid</span>
+<span class="c1">#    #        is_negative = np.logical_and(~is_positive, sorted_nids &gt; 0)</span>
+<span class="c1">#    #        if np.any(is_positive):</span>
+<span class="c1">#    #            # Take only the top true name score</span>
+<span class="c1">#    #            num_true = min(sum(is_positive), 1)</span>
+<span class="c1">#    #            gt_rank = np.nonzero(is_positive)[0][0:num_true]</span>
+<span class="c1">#    #            tp_nscores.extend(sorted_nscores[gt_rank])</span>
+<span class="c1">#    #        if np.any(is_negative):</span>
+<span class="c1">#    #            # Take the top few false name scores</span>
+<span class="c1">#    #            num_false = min(sum(is_negative), 3)</span>
+<span class="c1">#    #            #num_false = min(sum(is_negative), 100000)</span>
+<span class="c1">#    #            gf_rank = np.nonzero(is_negative)[0][0:num_false]</span>
+<span class="c1">#    #            tn_nscores.extend(sorted_nscores[gf_rank])</span>
+<span class="c1">#    #    tp_nscores = np.array(tp_nscores).astype(np.float64)</span>
+<span class="c1">#    #    tn_nscores = np.array(tn_nscores).astype(np.float64)</span>
+<span class="c1">#    #    return tp_nscores, tn_nscores</span>
+<span class="c1">#    #tp_nscores, tn_nscores = get_labeled_name_scores(ibs, qres_list)</span>
+<span class="c1">#from ibeis.model.hots import score_normalization</span>
+<span class="c1">#tp_support, tn_support, tp_support_labels, tn_support_labels = score_normalization.get_ibeis_score_training_data(ibs, qaid_list, qres_list)</span>
+<span class="c1">#ut.embed()</span>
+<span class="c1">#x_data, y_data = results_all.get_stem_data(ibs, qaid2_qres)</span>
+<span class="c1">#pt.plots.plot_stems(x_data, y_data)</span>
+<span class="c1">#pt.present()</span>
+<span class="c1">#pt.show()</span>
+<span class="c1">#locals_ = viz_allres_annotation_scores(allres)</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -c &quot;import utool, ibeis.expt.results_all; utool.doctest_funcs(ibeis.expt.results_all, allexamples=True)&quot;</span>
@@ -327,10 +327,10 @@
 <span class="sd">        python -m ibeis.expt.results_all --test-learn_score_normalization --enableall</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
-    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>  <span class="c"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>  <span class="c1"># NOQA</span>
     <span class="k">exec</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">present</span><span class="p">())</span>
 </pre></div>
 
@@ -365,7 +365,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

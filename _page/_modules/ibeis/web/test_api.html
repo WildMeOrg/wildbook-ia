@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.web.test_api &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.web.test_api &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,8 +129,8 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.web.test_api</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python</span>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is a proof of concept for connecting to an authenticated Qubica Server</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -139,51 +139,51 @@
 <span class="kn">import</span> <span class="nn">hmac</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 
-<span class="c"># System variables</span>
-<span class="n">APPLICATION_PROTOCOL</span>   <span class="o">=</span> <span class="s">&#39;http&#39;</span>
-<span class="n">APPLICATION_DOMAIN</span>     <span class="o">=</span> <span class="s">&#39;127.0.0.1&#39;</span>
-<span class="n">APPLICATION_PORT</span>       <span class="o">=</span> <span class="s">&#39;5000&#39;</span>
-<span class="n">APPLICATION_NAME</span>       <span class="o">=</span> <span class="s">&#39;IBEIS&#39;</span>
-<span class="n">APPLICATION_SECRET_KEY</span> <span class="o">=</span> <span class="s">&#39;CB73808F-A6F6-094B-5FCD-385EBAFF8FC0&#39;</span>
+<span class="c1"># System variables</span>
+<span class="n">APPLICATION_PROTOCOL</span>   <span class="o">=</span> <span class="s1">&#39;http&#39;</span>
+<span class="n">APPLICATION_DOMAIN</span>     <span class="o">=</span> <span class="s1">&#39;127.0.0.1&#39;</span>
+<span class="n">APPLICATION_PORT</span>       <span class="o">=</span> <span class="s1">&#39;5000&#39;</span>
+<span class="n">APPLICATION_NAME</span>       <span class="o">=</span> <span class="s1">&#39;IBEIS&#39;</span>
+<span class="n">APPLICATION_SECRET_KEY</span> <span class="o">=</span> <span class="s1">&#39;CB73808F-A6F6-094B-5FCD-385EBAFF8FC0&#39;</span>
 
 
 <span class="k">def</span> <span class="nf">_raise</span><span class="p">(</span><span class="n">exception</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-    <span class="k">raise</span> <span class="n">exception</span><span class="p">(</span><span class="s">&#39;[</span><span class="si">%s</span><span class="s">] ERROR: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">__file__</span><span class="p">,</span> <span class="n">message</span><span class="p">))</span>
+    <span class="k">raise</span> <span class="n">exception</span><span class="p">(</span><span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">] ERROR: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">__file__</span><span class="p">,</span> <span class="n">message</span><span class="p">))</span>
 
 
 <div class="viewcode-block" id="get_signature"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.test_api.get_signature">[docs]</a><span class="k">def</span> <span class="nf">get_signature</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">sha1</span><span class="p">)</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&quot;base64&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">sha1</span><span class="p">)</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;base64&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
 
 </div>
 <div class="viewcode-block" id="get_authorization_header"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.test_api.get_authorization_header">[docs]</a><span class="k">def</span> <span class="nf">get_authorization_header</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="c"># Get signature</span>
+    <span class="c1"># Get signature</span>
     <span class="n">secret_key_signature</span> <span class="o">=</span> <span class="n">get_signature</span><span class="p">(</span><span class="n">APPLICATION_SECRET_KEY</span><span class="p">,</span> <span class="n">uri</span><span class="p">)</span>
-    <span class="n">application_authentication</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">APPLICATION_NAME</span><span class="p">,</span> <span class="n">secret_key_signature</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">application_authentication</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">APPLICATION_NAME</span><span class="p">,</span> <span class="n">secret_key_signature</span><span class="p">,</span> <span class="p">)</span>
     <span class="k">if</span> <span class="n">user_email</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">user_enc_pass</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">application_authentication</span><span class="p">,</span> <span class="p">)</span>
-    <span class="k">return</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">application_authentication</span><span class="p">,</span> <span class="n">user_email</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">application_authentication</span><span class="p">,</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">application_authentication</span><span class="p">,</span> <span class="n">user_email</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="p">)</span>
 
 </div>
 <span class="k">def</span> <span class="nf">_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make a general (method) API request to the server</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Make GET request to server</span>
+    <span class="c1"># Make GET request to server</span>
     <span class="n">method</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-    <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">://</span><span class="si">%s</span><span class="s">:</span><span class="si">%s%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">APPLICATION_PROTOCOL</span><span class="p">,</span> <span class="n">APPLICATION_DOMAIN</span><span class="p">,</span> <span class="n">APPLICATION_PORT</span><span class="p">,</span> <span class="n">uri</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">://</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">APPLICATION_PROTOCOL</span><span class="p">,</span> <span class="n">APPLICATION_DOMAIN</span><span class="p">,</span> <span class="n">APPLICATION_PORT</span><span class="p">,</span> <span class="n">uri</span><span class="p">)</span>
     <span class="n">header</span> <span class="o">=</span> <span class="n">get_authorization_header</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">user_email</span><span class="p">,</span> <span class="n">user_enc_pass</span><span class="p">)</span>
-    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;Authorization&#39;</span><span class="p">:</span> <span class="n">header</span><span class="p">}</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="n">header</span><span class="p">}</span>
     <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Server request (</span><span class="si">%r</span><span class="s">): </span><span class="si">%r</span><span class="se">\n\t</span><span class="s">Headers: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s">Args: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Server request (</span><span class="si">%r</span><span class="s1">): </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">Headers: </span><span class="si">%r</span><span class="se">\n\t</span><span class="s1">Args: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;GET&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;GET&#39;</span><span class="p">:</span>
             <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
             <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">_raise</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="s">&#39;_api_result got unsupported method=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="p">))</span>
+            <span class="n">_raise</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="s1">&#39;_api_result got unsupported method=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="p">))</span>
     <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">_raise</span><span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="s">&#39;_api_result could not connect to server </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">_raise</span><span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="s1">&#39;_api_result could not connect to server </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">))</span>
     <span class="k">return</span> <span class="n">req</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">json</span>
 
 
@@ -191,7 +191,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make a GET API request to the server</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="s">&#39;get&#39;</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="n">user_email</span><span class="p">,</span>
+    <span class="k">return</span> <span class="n">_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="n">user_email</span><span class="p">,</span>
                        <span class="n">user_enc_pass</span><span class="o">=</span><span class="n">user_enc_pass</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 </div>
@@ -199,7 +199,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make a GET API request to the server</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="s">&#39;post&#39;</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="n">user_email</span><span class="p">,</span>
+    <span class="k">return</span> <span class="n">_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="s1">&#39;post&#39;</span><span class="p">,</span> <span class="n">user_email</span><span class="o">=</span><span class="n">user_email</span><span class="p">,</span>
                        <span class="n">user_enc_pass</span><span class="o">=</span><span class="n">user_enc_pass</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 </div>
@@ -218,18 +218,18 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="kn">import</span> <span class="nn">time</span>
-    <span class="n">web_instance</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb_in_background</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">precache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="c"># let the webapi startup in the background</span>
+    <span class="n">web_instance</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb_in_background</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">web</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">precache</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="c1"># let the webapi startup in the background</span>
     <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">uri</span> <span class="o">=</span> <span class="s">&#39;/api/core/dbname/&#39;</span>
-    <span class="c"># Make GET request to the server as a test</span>
+    <span class="n">uri</span> <span class="o">=</span> <span class="s1">&#39;/api/core/dbname/&#39;</span>
+    <span class="c1"># Make GET request to the server as a test</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">get_api_result</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
     <span class="n">status_code</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">json</span> <span class="o">=</span> <span class="n">response</span>
     <span class="n">web_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">response</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.web.test_api</span>
@@ -237,8 +237,8 @@
 <span class="sd">        python -m ibeis.web.test_api --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -273,7 +273,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.gui.clock_offset_gui &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.gui.clock_offset_gui &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,38 +129,38 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.gui.clock_offset_gui</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Small GUI for asking the user to enter the clock time shown, and moving along a gid list if the first image isn&#39;t a clock</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="c">#from guitool import qtype, APIItemWidget, APIItemModel, FilterProxyModel, ChangeLayoutContext</span>
-<span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtGui</span>  <span class="c"># , QtCore</span>
+<span class="c1">#from guitool import qtype, APIItemWidget, APIItemModel, FilterProxyModel, ChangeLayoutContext</span>
+<span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtGui</span>  <span class="c1"># , QtCore</span>
 <span class="kn">from</span> <span class="nn">guitool.__PYQT__.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
-<span class="c">#from ibeis import ibsfuncs</span>
-<span class="c">#from ibeis.expt import results_organizer</span>
-<span class="c">#from ibeis.viz import interact</span>
-<span class="c">#from ibeis.viz import viz_helpers as vh</span>
-<span class="c">#from plottool import fig_presenter</span>
-<span class="c">#from plottool import interact_helpers as ih</span>
+<span class="c1">#from ibeis.other import ibsfuncs</span>
+<span class="c1">#from ibeis.expt import results_organizer</span>
+<span class="c1">#from ibeis.viz import interact</span>
+<span class="c1">#from ibeis.viz import viz_helpers as vh</span>
+<span class="c1">#from plottool import fig_presenter</span>
+<span class="c1">#from plottool import interact_helpers as ih</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">imshow</span><span class="p">,</span> <span class="n">close_figure</span><span class="p">,</span> <span class="n">next_fnum</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
 <span class="kn">import</span> <span class="nn">guitool</span>
-<span class="c">#import numpy as np</span>
-<span class="c">#import six</span>
+<span class="c1">#import numpy as np</span>
+<span class="c1">#import six</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">mktime</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[co_gui]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[co_gui]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="ClockOffsetWidget"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.clock_offset_gui.ClockOffsetWidget">[docs]</a><span class="k">class</span> <span class="nc">ClockOffsetWidget</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">hack</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[co_gui] Initializing&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[co_gui] gid_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid_list</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[co_gui] Initializing&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[co_gui] gid_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid_list</span><span class="p">,))</span>
 
         <span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
 
@@ -180,7 +180,7 @@
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_layout</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">newWidget</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="n">Qt</span><span class="o">.</span><span class="n">Horizontal</span><span class="p">)</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">control_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_layout</span><span class="p">)</span>
 
-        <span class="n">co_wgt</span><span class="o">.</span><span class="n">hack</span> <span class="o">=</span> <span class="n">hack</span>  <span class="c"># hack for edting the time of a single image</span>
+        <span class="n">co_wgt</span><span class="o">.</span><span class="n">hack</span> <span class="o">=</span> <span class="n">hack</span>  <span class="c1"># hack for edting the time of a single image</span>
 
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">imfig</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">imax</span> <span class="o">=</span> <span class="bp">None</span>
@@ -191,7 +191,7 @@
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">gid_list</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">current_gindex</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="c"># Set image datetime with first image</span>
+        <span class="c1"># Set image datetime with first image</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">get_image_datetime</span><span class="p">()</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">add_label</span><span class="p">()</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">add_combo_boxes</span><span class="p">()</span>
@@ -201,13 +201,13 @@
 <div class="viewcode-block" id="ClockOffsetWidget.resizeEvent"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.clock_offset_gui.ClockOffsetWidget.resizeEvent">[docs]</a>    <span class="k">def</span> <span class="nf">resizeEvent</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ClockOffsetWidget</span><span class="p">,</span> <span class="n">co_wgt</span><span class="p">)</span><span class="o">.</span><span class="n">resizeEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">image_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="c"># Hack use signals and slots</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">image_label</span><span class="p">,</span> <span class="s">&#39;_on_resize_slot&#39;</span><span class="p">):</span>
+            <span class="c1"># Hack use signals and slots</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">image_label</span><span class="p">,</span> <span class="s1">&#39;_on_resize_slot&#39;</span><span class="p">):</span>
                 <span class="n">co_wgt</span><span class="o">.</span><span class="n">image_label</span><span class="o">.</span><span class="n">_on_resize_slot</span><span class="p">()</span>
-        <span class="c">#print(&#39;resizeEvent&#39;)</span>
+        <span class="c1">#print(&#39;resizeEvent&#39;)</span>
 </div>
 <div class="viewcode-block" id="ClockOffsetWidget.get_image_datetime"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.clock_offset_gui.ClockOffsetWidget.get_image_datetime">[docs]</a>    <span class="k">def</span> <span class="nf">get_image_datetime</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">):</span>
-        <span class="c"># Function that extracts the unixtime from an image and stores it</span>
+        <span class="c1"># Function that extracts the unixtime from an image and stores it</span>
         <span class="n">utime</span> <span class="o">=</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">gid_list</span><span class="p">[</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">current_gindex</span><span class="p">])</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">utime</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">))</span> <span class="ow">or</span> <span class="n">utime</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">utime</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -225,23 +225,23 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">co_wgt</span><span class="o">.</span><span class="n">button_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
 
-        <span class="c">#TODO Either integrate this into utool or check if it&#39;s already there</span>
+        <span class="c1">#TODO Either integrate this into utool or check if it&#39;s already there</span>
         <span class="k">def</span> <span class="nf">extract_tuple</span><span class="p">(</span><span class="n">li</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">li</span><span class="p">)[</span><span class="n">idx</span><span class="p">])</span>
-        <span class="c"># Update option setting, assume datetime has been updated</span>
-        <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">extract_tuple</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s">&#39;year&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">year</span><span class="p">))</span>
-        <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">extract_tuple</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s">&#39;month&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">month</span><span class="p">))</span>
-        <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">extract_tuple</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s">&#39;day&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">day</span><span class="p">))</span>
-        <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">extract_tuple</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s">&#39;hour&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">hour</span><span class="p">))</span>
-        <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">extract_tuple</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s">&#39;minute&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">minute</span><span class="p">))</span>
-        <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">extract_tuple</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s">&#39;second&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">second</span><span class="p">))</span>
+        <span class="c1"># Update option setting, assume datetime has been updated</span>
+        <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">extract_tuple</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">year</span><span class="p">))</span>
+        <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">extract_tuple</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s1">&#39;month&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">month</span><span class="p">))</span>
+        <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">extract_tuple</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s1">&#39;day&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">day</span><span class="p">))</span>
+        <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">extract_tuple</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">hour</span><span class="p">))</span>
+        <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">extract_tuple</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s1">&#39;minute&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">minute</span><span class="p">))</span>
+        <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">extract_tuple</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s1">&#39;second&#39;</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">second</span><span class="p">))</span>
 
-        <span class="c"># Redraw image</span>
+        <span class="c1"># Redraw image</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">hack</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">imfig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">close_figure</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">imfig</span><span class="p">)</span>
             <span class="n">image</span> <span class="o">=</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">gid_list</span><span class="p">[</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">current_gindex</span><span class="p">])</span>
-            <span class="n">figtitle</span> <span class="o">=</span> <span class="s">&quot;Time Synchronization Picture&quot;</span>
+            <span class="n">figtitle</span> <span class="o">=</span> <span class="s2">&quot;Time Synchronization Picture&quot;</span>
             <span class="n">co_wgt</span><span class="o">.</span><span class="n">imfig</span><span class="p">,</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">imax</span> <span class="o">=</span> <span class="n">imshow</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">figtitle</span><span class="p">)</span>
             <span class="n">co_wgt</span><span class="o">.</span><span class="n">imfig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </div>
@@ -261,10 +261,10 @@
 <span class="sd">            being imported.  If you are sure the camera was synchronized, you</span>
 <span class="sd">            can skip this step by pressing &#39;Skip&#39;.</span>
 <span class="sd">            &quot;&quot;&quot;</span><span class="p">)</span>
-        <span class="n">guitool</span><span class="o">.</span><span class="n">user_info</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;Time Sync Help&#39;</span><span class="p">)</span>
+        <span class="n">guitool</span><span class="o">.</span><span class="n">user_info</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Time Sync Help&#39;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="ClockOffsetWidget.add_label"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.clock_offset_gui.ClockOffsetWidget.add_label">[docs]</a>    <span class="k">def</span> <span class="nf">add_label</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">):</span>
-        <span class="c"># Very simply adds the text</span>
+        <span class="c1"># Very simply adds the text</span>
         <span class="n">_LABEL</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">guitool</span><span class="o">.</span><span class="n">newLabel</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">co_wgt</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">hack</span><span class="p">:</span>
             <span class="n">text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
@@ -275,7 +275,7 @@
 <span class="sd">                * Skip if time synchonization is not relevant to you</span>
 <span class="sd">                &#39;&#39;&#39;</span>
             <span class="p">)</span>
-            <span class="n">main_label</span> <span class="o">=</span> <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s">&#39;left&#39;</span><span class="p">)</span>
+            <span class="n">main_label</span> <span class="o">=</span> <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
             <span class="n">co_wgt</span><span class="o">.</span><span class="n">text_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">main_label</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
@@ -284,75 +284,75 @@
 <span class="sd">                &#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">gid_list</span><span class="p">,)</span>
             <span class="p">)</span>
             <span class="n">gpath</span> <span class="o">=</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">gid_list</span><span class="p">[</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">current_gindex</span><span class="p">])</span>
-            <span class="n">image_label</span> <span class="o">=</span> <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">gpath</span><span class="o">=</span><span class="n">gpath</span><span class="p">)</span>  <span class="c"># align=&#39;left&#39;)</span>
+            <span class="n">image_label</span> <span class="o">=</span> <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">gpath</span><span class="o">=</span><span class="n">gpath</span><span class="p">)</span>  <span class="c1"># align=&#39;left&#39;)</span>
             <span class="n">co_wgt</span><span class="o">.</span><span class="n">image_label</span> <span class="o">=</span> <span class="n">image_label</span>
             <span class="n">co_wgt</span><span class="o">.</span><span class="n">text_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">image_label</span><span class="p">)</span>
-            <span class="c">#main_label = _LABEL(text=text, align=&#39;left&#39;)</span>
-            <span class="c">#co_wgt.text_layout.addWidget(main_label)</span>
+            <span class="c1">#main_label = _LABEL(text=text, align=&#39;left&#39;)</span>
+            <span class="c1">#co_wgt.text_layout.addWidget(main_label)</span>
 </div>
 <div class="viewcode-block" id="ClockOffsetWidget.add_buttons"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.clock_offset_gui.ClockOffsetWidget.add_buttons">[docs]</a>    <span class="k">def</span> <span class="nf">add_buttons</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">):</span>
         <span class="n">_BUTTON</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">guitool</span><span class="o">.</span><span class="n">newButton</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">co_wgt</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">hack</span><span class="p">:</span>
             <span class="n">co_wgt</span><span class="o">.</span><span class="n">button_list</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">_BUTTON</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&#39;Previous Image&#39;</span><span class="p">,</span>
+                <span class="n">_BUTTON</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Previous Image&#39;</span><span class="p">,</span>
                         <span class="n">clicked</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">go_prev</span><span class="p">),</span>
-                <span class="n">_BUTTON</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&#39;Next Image&#39;</span><span class="p">,</span>
+                <span class="n">_BUTTON</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Next Image&#39;</span><span class="p">,</span>
                         <span class="n">clicked</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">go_next</span><span class="p">),</span>
-                <span class="n">_BUTTON</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&#39;Skip&#39;</span><span class="p">,</span>
+                <span class="n">_BUTTON</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Skip&#39;</span><span class="p">,</span>
                         <span class="n">clicked</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">cancel</span><span class="p">),</span>
-                <span class="n">_BUTTON</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&#39;Set&#39;</span><span class="p">,</span>
+                <span class="n">_BUTTON</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Set&#39;</span><span class="p">,</span>
                         <span class="n">clicked</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">accept</span><span class="p">),</span>
-                <span class="n">_BUTTON</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&#39;Help&#39;</span><span class="p">,</span>
+                <span class="n">_BUTTON</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Help&#39;</span><span class="p">,</span>
                         <span class="n">clicked</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">show_helpmsg</span><span class="p">),</span>
             <span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">co_wgt</span><span class="o">.</span><span class="n">button_list</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">_BUTTON</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&#39;Accept&#39;</span><span class="p">,</span>
+                <span class="n">_BUTTON</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Accept&#39;</span><span class="p">,</span>
                         <span class="n">clicked</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">accept</span><span class="p">),</span>
             <span class="p">]</span>
-        <span class="c"># Copying from inspect_gui</span>
+        <span class="c1"># Copying from inspect_gui</span>
 
         <span class="k">for</span> <span class="n">button</span> <span class="ow">in</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">button_list</span><span class="p">:</span>
             <span class="n">co_wgt</span><span class="o">.</span><span class="n">button_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">button</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="ClockOffsetWidget.add_combo_boxes"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.clock_offset_gui.ClockOffsetWidget.add_combo_boxes">[docs]</a>    <span class="k">def</span> <span class="nf">add_combo_boxes</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">):</span>
         <span class="n">_CBOX</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">guitool</span><span class="o">.</span><span class="n">newComboBox</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">co_wgt</span><span class="p">)</span>
-        <span class="n">_LABEL</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">guitool</span><span class="o">.</span><span class="n">newLabel</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">co_wgt</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s">&#39;right&#39;</span><span class="p">)</span>
+        <span class="n">_LABEL</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">guitool</span><span class="o">.</span><span class="n">newLabel</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">co_wgt</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">to_opt_list</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-            <span class="k">return</span> <span class="p">[(</span><span class="s">&quot;</span><span class="si">%02d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+            <span class="k">return</span> <span class="p">[(</span><span class="s2">&quot;</span><span class="si">%02d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
         <span class="n">year_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">unixtime</span><span class="p">)</span><span class="o">.</span><span class="n">year</span>
                      <span class="k">for</span> <span class="n">unixtime</span> <span class="ow">in</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">gid_list</span><span class="p">)</span>
                      <span class="k">if</span> <span class="n">unixtime</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">]</span>
         <span class="n">max_year</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">year_list</span> <span class="o">+</span> <span class="p">[</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">year</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="n">min_year</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">year_list</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1970</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
-        <span class="c">#max_year = date.today().year + 1</span>
+        <span class="c1">#max_year = date.today().year + 1</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;year&#39;</span><span class="p">:</span> <span class="n">to_opt_list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">min_year</span><span class="p">,</span> <span class="n">max_year</span><span class="p">)),</span>
-            <span class="s">&#39;month&#39;</span><span class="p">:</span> <span class="n">to_opt_list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">13</span><span class="p">))</span> <span class="p">,</span>
-            <span class="s">&#39;day&#39;</span><span class="p">:</span> <span class="n">to_opt_list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">)),</span>  <span class="c"># yes this will allow invalid dates, but it&#39;s not a real issue</span>
-            <span class="s">&#39;hour&#39;</span><span class="p">:</span> <span class="n">to_opt_list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)),</span>
-            <span class="s">&#39;minute&#39;</span><span class="p">:</span> <span class="n">to_opt_list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">60</span><span class="p">)),</span>
-            <span class="s">&#39;second&#39;</span><span class="p">:</span> <span class="n">to_opt_list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">60</span><span class="p">)),</span>
+            <span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="n">to_opt_list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">min_year</span><span class="p">,</span> <span class="n">max_year</span><span class="p">)),</span>
+            <span class="s1">&#39;month&#39;</span><span class="p">:</span> <span class="n">to_opt_list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">13</span><span class="p">))</span> <span class="p">,</span>
+            <span class="s1">&#39;day&#39;</span><span class="p">:</span> <span class="n">to_opt_list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">)),</span>  <span class="c1"># yes this will allow invalid dates, but it&#39;s not a real issue</span>
+            <span class="s1">&#39;hour&#39;</span><span class="p">:</span> <span class="n">to_opt_list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)),</span>
+            <span class="s1">&#39;minute&#39;</span><span class="p">:</span> <span class="n">to_opt_list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">60</span><span class="p">)),</span>
+            <span class="s1">&#39;second&#39;</span><span class="p">:</span> <span class="n">to_opt_list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">60</span><span class="p">)),</span>
         <span class="p">}</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&quot;YYYY&quot;</span><span class="p">),</span>
-            <span class="n">_CBOX</span><span class="p">(</span><span class="n">changed</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">change_dt</span><span class="p">,</span> <span class="s">&#39;year&#39;</span><span class="p">),</span>
-                  <span class="n">options</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s">&#39;year&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">year</span><span class="p">),</span>
-            <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&quot;MM&quot;</span><span class="p">),</span>
-            <span class="n">_CBOX</span><span class="p">(</span><span class="n">changed</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">change_dt</span><span class="p">,</span> <span class="s">&#39;month&#39;</span><span class="p">),</span>
-                  <span class="n">options</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s">&#39;month&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">month</span><span class="p">),</span>
-            <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&quot;DD&quot;</span><span class="p">),</span>
-            <span class="n">_CBOX</span><span class="p">(</span><span class="n">changed</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">change_dt</span><span class="p">,</span> <span class="s">&#39;day&#39;</span><span class="p">),</span>
-                  <span class="n">options</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s">&#39;day&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">day</span><span class="p">),</span>
-            <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&quot;HH (24H)&quot;</span><span class="p">),</span>
-            <span class="n">_CBOX</span><span class="p">(</span><span class="n">changed</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">change_dt</span><span class="p">,</span> <span class="s">&#39;hour&#39;</span><span class="p">),</span>
-                  <span class="n">options</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s">&#39;hour&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">hour</span><span class="p">),</span>
-            <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&quot;mm&quot;</span><span class="p">),</span>
-            <span class="n">_CBOX</span><span class="p">(</span><span class="n">changed</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">change_dt</span><span class="p">,</span> <span class="s">&#39;minute&#39;</span><span class="p">),</span>
-                  <span class="n">options</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s">&#39;minute&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">minute</span><span class="p">),</span>
-            <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s">&quot;ss&quot;</span><span class="p">),</span>
-            <span class="n">_CBOX</span><span class="p">(</span><span class="n">changed</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">change_dt</span><span class="p">,</span> <span class="s">&#39;second&#39;</span><span class="p">),</span>
-                  <span class="n">options</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s">&#39;second&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">second</span><span class="p">),</span>
+            <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;YYYY&quot;</span><span class="p">),</span>
+            <span class="n">_CBOX</span><span class="p">(</span><span class="n">changed</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">change_dt</span><span class="p">,</span> <span class="s1">&#39;year&#39;</span><span class="p">),</span>
+                  <span class="n">options</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">year</span><span class="p">),</span>
+            <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;MM&quot;</span><span class="p">),</span>
+            <span class="n">_CBOX</span><span class="p">(</span><span class="n">changed</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">change_dt</span><span class="p">,</span> <span class="s1">&#39;month&#39;</span><span class="p">),</span>
+                  <span class="n">options</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s1">&#39;month&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">month</span><span class="p">),</span>
+            <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;DD&quot;</span><span class="p">),</span>
+            <span class="n">_CBOX</span><span class="p">(</span><span class="n">changed</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">change_dt</span><span class="p">,</span> <span class="s1">&#39;day&#39;</span><span class="p">),</span>
+                  <span class="n">options</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s1">&#39;day&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">day</span><span class="p">),</span>
+            <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;HH (24H)&quot;</span><span class="p">),</span>
+            <span class="n">_CBOX</span><span class="p">(</span><span class="n">changed</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">change_dt</span><span class="p">,</span> <span class="s1">&#39;hour&#39;</span><span class="p">),</span>
+                  <span class="n">options</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">hour</span><span class="p">),</span>
+            <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;mm&quot;</span><span class="p">),</span>
+            <span class="n">_CBOX</span><span class="p">(</span><span class="n">changed</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">change_dt</span><span class="p">,</span> <span class="s1">&#39;minute&#39;</span><span class="p">),</span>
+                  <span class="n">options</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s1">&#39;minute&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">minute</span><span class="p">),</span>
+            <span class="n">_LABEL</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;ss&quot;</span><span class="p">),</span>
+            <span class="n">_CBOX</span><span class="p">(</span><span class="n">changed</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">change_dt</span><span class="p">,</span> <span class="s1">&#39;second&#39;</span><span class="p">),</span>
+                  <span class="n">options</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="s1">&#39;second&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">second</span><span class="p">),</span>
         <span class="p">]</span>
 
         <span class="k">for</span> <span class="n">combo</span> <span class="ow">in</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">combo_list</span><span class="p">:</span>
@@ -360,41 +360,41 @@
 </div>
     <span class="nd">@guitool.slot_</span><span class="p">()</span>
 <div class="viewcode-block" id="ClockOffsetWidget.go_prev"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.clock_offset_gui.ClockOffsetWidget.go_prev">[docs]</a>    <span class="k">def</span> <span class="nf">go_prev</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">):</span>
-        <span class="c"># Decrement current gid index, then call update</span>
+        <span class="c1"># Decrement current gid index, then call update</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">current_gindex</span> <span class="o">-=</span> <span class="mi">1</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">get_image_datetime</span><span class="p">()</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">update_ui</span><span class="p">()</span>
 </div>
     <span class="nd">@guitool.slot_</span><span class="p">()</span>
 <div class="viewcode-block" id="ClockOffsetWidget.go_next"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.clock_offset_gui.ClockOffsetWidget.go_next">[docs]</a>    <span class="k">def</span> <span class="nf">go_next</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">):</span>
-        <span class="c"># Increment current gid index, then call update</span>
+        <span class="c1"># Increment current gid index, then call update</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">current_gindex</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">get_image_datetime</span><span class="p">()</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">update_ui</span><span class="p">()</span>
 </div>
     <span class="nd">@guitool.slot_</span><span class="p">()</span>
 <div class="viewcode-block" id="ClockOffsetWidget.cancel"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.clock_offset_gui.ClockOffsetWidget.cancel">[docs]</a>    <span class="k">def</span> <span class="nf">cancel</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">):</span>
-        <span class="c"># Just close</span>
+        <span class="c1"># Just close</span>
         <span class="n">close_figure</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">imfig</span><span class="p">)</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </div>
     <span class="nd">@guitool.slot_</span><span class="p">()</span>
 <div class="viewcode-block" id="ClockOffsetWidget.accept"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.clock_offset_gui.ClockOffsetWidget.accept">[docs]</a>    <span class="k">def</span> <span class="nf">accept</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">):</span>
-        <span class="c"># Calculate offset</span>
-        <span class="c"># Get current image&#39;s actual time</span>
+        <span class="c1"># Calculate offset</span>
+        <span class="c1"># Get current image&#39;s actual time</span>
         <span class="n">image_time</span> <span class="o">=</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">gid_list</span><span class="p">[</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">current_gindex</span><span class="p">])</span>
-        <span class="c"># Get unixtime from current dtime</span>
-        <span class="c">#TODO put into utool</span>
+        <span class="c1"># Get unixtime from current dtime</span>
+        <span class="c1">#TODO put into utool</span>
         <span class="n">input_time</span> <span class="o">=</span> <span class="n">mktime</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())</span>
-        <span class="c"># Go through gid list, and add that offset to every unixtime</span>
+        <span class="c1"># Go through gid list, and add that offset to every unixtime</span>
         <span class="n">offset</span> <span class="o">=</span> <span class="n">input_time</span> <span class="o">-</span> <span class="n">image_time</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&quot;[co_gui] Unixtime offset is </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">offset</span><span class="p">)</span>
-        <span class="c"># Set the unixtimes with the new ones</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;[co_gui] Unixtime offset is </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">offset</span><span class="p">)</span>
+        <span class="c1"># Set the unixtimes with the new ones</span>
         <span class="n">utimes</span> <span class="o">=</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">gid_list</span><span class="p">)</span>
         <span class="n">new_utimes</span> <span class="o">=</span> <span class="p">[</span><span class="n">time</span> <span class="o">+</span> <span class="n">offset</span> <span class="k">for</span> <span class="n">time</span> <span class="ow">in</span> <span class="n">utimes</span><span class="p">]</span>
-        <span class="c"># SHOULD WE BE USING image_timedelta_posix INSTEAD OF THIS?</span>
+        <span class="c1"># SHOULD WE BE USING image_timedelta_posix INSTEAD OF THIS?</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">set_image_unixtime</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">new_utimes</span><span class="p">)</span>
-        <span class="c"># Close</span>
+        <span class="c1"># Close</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">hack</span><span class="p">:</span>
             <span class="n">close_figure</span><span class="p">(</span><span class="n">co_wgt</span><span class="o">.</span><span class="n">imfig</span><span class="p">)</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -402,7 +402,7 @@
     <span class="nd">@guitool.slot_</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
 <div class="viewcode-block" id="ClockOffsetWidget.change_dt"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.clock_offset_gui.ClockOffsetWidget.change_dt">[docs]</a>    <span class="k">def</span> <span class="nf">change_dt</span><span class="p">(</span><span class="n">co_wgt</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val_ind</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
         <span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span> <span class="o">=</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">attr</span><span class="p">:</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">opt_list</span><span class="p">[</span><span class="n">attr</span><span class="p">][</span><span class="n">val_ind</span><span class="p">][</span><span class="mi">1</span><span class="p">]})</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&quot;[co_gui] Base datetime is </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;[co_gui] Base datetime is </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">co_wgt</span><span class="o">.</span><span class="n">dtime</span><span class="p">)</span>
 
 </div></div>
 <div class="viewcode-block" id="test_clock_offset"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.clock_offset_gui.test_clock_offset">[docs]</a><span class="k">def</span> <span class="nf">test_clock_offset</span><span class="p">():</span>
@@ -420,15 +420,15 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>
+    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">]</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
     <span class="n">co</span> <span class="o">=</span> <span class="n">ClockOffsetWidget</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">hack</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">co</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
     <span class="n">ibeis</span><span class="o">.</span><span class="n">main_loop</span><span class="p">(</span><span class="n">main_locals</span><span class="p">)</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.gui.clock_offset_gui</span>
@@ -436,8 +436,8 @@
 <span class="sd">        python -m ibeis.gui.clock_offset_gui --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -472,7 +472,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

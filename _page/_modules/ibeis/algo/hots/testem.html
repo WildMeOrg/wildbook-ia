@@ -1,0 +1,878 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.hots.testem &mdash; ibeis 1.5.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
+        <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../algo.html">ibeis.algo</a> &raquo;</li>
+      
+          <li><a href="../hots.html">ibeis.algo.hots</a> &raquo;</li>
+      
+    <li>ibeis.algo.hots.testem</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.algo.hots.testem</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">TODO: move to ibeis/scripts</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+
+
+<div class="viewcode-block" id="draw_em_graph"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.testem.draw_em_graph">[docs]</a><span class="k">def</span> <span class="nf">draw_em_graph</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">Pn</span><span class="p">,</span> <span class="n">PL</span><span class="p">,</span> <span class="n">gam</span><span class="p">,</span> <span class="n">num_labels</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        python -m ibeis.algo.hots.testem test_em --show --no-cnn</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_labels</span> <span class="o">=</span> <span class="n">PL</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">name_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;N</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_labels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))]</span>
+    <span class="c1">#annot_nodes = ut.chr_range(len(Pn), base=&#39;A&#39;)</span>
+    <span class="n">annot_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;X</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">Pn</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))]</span>
+
+    <span class="c1"># name_nodes = ut.chr_range(num_labels, base=&#39;A&#39;)</span>
+
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">name_nodes</span> <span class="o">+</span> <span class="n">annot_nodes</span>
+
+    <span class="n">PL2</span> <span class="o">=</span> <span class="n">gam</span><span class="p">[:,</span> <span class="n">num_labels</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">PL2</span> <span class="o">+=</span> <span class="o">.</span><span class="mo">01</span>
+    <span class="n">PL2</span> <span class="o">=</span> <span class="n">PL2</span> <span class="o">/</span> <span class="n">PL2</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span>
+    <span class="c1"># PL2 = PL2 / np.linalg.norm(PL2, axis=0)</span>
+    <span class="n">zero_part</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_labels</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">Pn</span><span class="p">)</span> <span class="o">+</span> <span class="n">num_labels</span><span class="p">))</span>
+    <span class="n">prob_part</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">PL2</span><span class="p">,</span> <span class="n">Pn</span><span class="p">])</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s1">&#39; PL2 = &#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">array_repr2</span><span class="p">(</span><span class="n">PL2</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">)))</span>
+    <span class="c1"># Redo p with posteriors</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--postem&#39;</span><span class="p">):</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">zero_part</span><span class="p">,</span> <span class="n">prob_part</span><span class="p">])</span>
+
+    <span class="n">weight_matrix</span> <span class="o">=</span> <span class="n">P</span>  <span class="c1"># NOQA</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_from_matrix</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">)</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">to_directed</span><span class="p">()</span>
+    <span class="c1"># delete graph</span>
+    <span class="n">dup_edges</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">v</span><span class="p">:</span>
+            <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="p">,</span> <span class="n">u</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
+            <span class="n">seen_</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dup_edges</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">remove_edges_from</span><span class="p">(</span><span class="n">dup_edges</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_nodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">annot_nodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">annot_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">20.</span><span class="p">,</span>  <span class="mf">200.</span><span class="p">)</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">annot_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">220.</span><span class="p">,</span> <span class="mf">200.</span><span class="p">)</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">annot_nodes</span><span class="p">[</span><span class="mi">2</span><span class="p">]][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">20.</span><span class="p">,</span>  <span class="mf">100.</span><span class="p">)</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">annot_nodes</span><span class="p">[</span><span class="mi">3</span><span class="p">]][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">220.</span><span class="p">,</span> <span class="mf">100.</span><span class="p">)</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">name_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">10.</span><span class="p">,</span> <span class="mf">300.</span><span class="p">)</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">name_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">120.</span><span class="p">,</span> <span class="mf">300.</span><span class="p">)</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">name_nodes</span><span class="p">[</span><span class="mi">2</span><span class="p">]][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">230.</span><span class="p">,</span> <span class="mf">300.</span><span class="p">)</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;pin&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">)</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;annot_nodes = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">annot_nodes</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;name_nodes = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_nodes</span><span class="p">,))</span>
+
+        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">annot_nodes</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">name_nodes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;1) u, v = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">),))</span>
+                    <span class="n">graph</span><span class="o">.</span><span class="n">edge</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="s1">&#39;taillabel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">edge</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+                    <span class="n">graph</span><span class="o">.</span><span class="n">edge</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ORANGE</span>
+                    <span class="n">graph</span><span class="o">.</span><span class="n">edge</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="s1">&#39;labelcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">BLUE</span>
+                    <span class="k">del</span> <span class="n">graph</span><span class="o">.</span><span class="n">edge</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">v</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">graph</span><span class="o">.</span><span class="n">has_edge</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;2) u, v = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">),))</span>
+                    <span class="n">graph</span><span class="o">.</span><span class="n">edge</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">u</span><span class="p">][</span><span class="s1">&#39;headlabel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">edge</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">u</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+                    <span class="n">graph</span><span class="o">.</span><span class="n">edge</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">u</span><span class="p">][</span><span class="s1">&#39;color&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ORANGE</span>
+                    <span class="n">graph</span><span class="o">.</span><span class="n">edge</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">u</span><span class="p">][</span><span class="s1">&#39;labelcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">BLUE</span>
+                    <span class="k">del</span> <span class="n">graph</span><span class="o">.</span><span class="n">edge</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">u</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">((</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;!!&#39;</span><span class="p">)</span>
+
+    <span class="c1"># import itertools</span>
+    <span class="c1"># name_const_edges = [(u, v, {&#39;style&#39;: &#39;invis&#39;}) for u, v in itertools.combinations(name_nodes, 2)]</span>
+    <span class="c1"># graph.add_edges_from(name_const_edges)</span>
+    <span class="c1"># nx.set_edge_attributes(graph, &#39;constraint&#39;, {edge: False for edge in graph.edges() if edge[0] == &#39;b&#39; or edge[1] == &#39;b&#39;})</span>
+    <span class="c1"># nx.set_edge_attributes(graph, &#39;constraint&#39;, {edge: False for edge in graph.edges() if edge[0] in annot_nodes and edge[1] in annot_nodes})</span>
+    <span class="c1"># nx.set_edge_attributes(graph, &#39;constraint&#39;, {edge: True for edge in graph.edges() if edge[0] in name_nodes or edge[1] in name_nodes})</span>
+    <span class="c1"># nx.set_edge_attributes(graph, &#39;constraint&#39;, {edge: True for edge in graph.edges() if (edge[0] in [&#39;a&#39;, &#39;b&#39;] and edge[1] in [&#39;a&#39;, &#39;b&#39;]) and edge[0] in annot_nodes and edge[1] in annot_nodes})</span>
+    <span class="c1"># nx.set_edge_attributes(graph, &#39;constraint&#39;, {edge: True for edge in graph.edges() if (edge[0] in [&#39;c&#39;] or edge[1] in [&#39;c&#39;]) and edge[0] in annot_nodes and edge[1] in annot_nodes})</span>
+    <span class="c1"># nx.set_edge_attributes(graph, &#39;constraint&#39;, {edge: True for edge in graph.edges() if (edge[0] in [&#39;a&#39;] or edge[1] in [&#39;a&#39;]) and edge[0] in annot_nodes and edge[1] in annot_nodes})</span>
+    <span class="c1"># nx.set_edge_attributes(graph, &#39;constraint&#39;, {edge: True for edge in graph.edges() if (edge[0] in [&#39;b&#39;] or edge[1] in [&#39;b&#39;]) and edge[0] in annot_nodes and edge[1] in annot_nodes})</span>
+    <span class="c1"># graph.add_edges_from([(&#39;root&#39;, n) for n in nodes])</span>
+    <span class="c1"># {node: &#39;names&#39; for node in name_nodes})</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="p">{</span><span class="n">node</span><span class="p">:</span> <span class="n">pt</span><span class="o">.</span><span class="n">RED</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">name_nodes</span><span class="p">})</span>
+    <span class="c1"># nx.set_node_attributes(graph, &#39;width&#39;, {node: 20 for node in nodes})</span>
+    <span class="c1"># nx.set_node_attributes(graph, &#39;height&#39;, {node: 20 for node in nodes})</span>
+    <span class="c1">#nx.set_node_attributes(graph, &#39;group&#39;, {node: &#39;names&#39; for node in name_nodes})</span>
+    <span class="c1">#nx.set_node_attributes(graph, &#39;group&#39;, {node: &#39;annots&#39; for node in annot_nodes})</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;groupid&#39;</span><span class="p">,</span> <span class="p">{</span><span class="n">node</span><span class="p">:</span> <span class="s1">&#39;names&#39;</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">name_nodes</span><span class="p">})</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;groupid&#39;</span><span class="p">,</span> <span class="p">{</span><span class="n">node</span><span class="p">:</span> <span class="s1">&#39;annots&#39;</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">annot_nodes</span><span class="p">})</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s1">&#39;clusterrank&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;local&#39;</span>
+    <span class="c1"># graph.graph[&#39;groupattrs&#39;] = {</span>
+    <span class="c1">#     &#39;names&#39;: {&#39;rankdir&#39;: &#39;LR&#39;, &#39;rank&#39;: &#39;source&#39;},</span>
+    <span class="c1">#     &#39;annots&#39;: {&#39;rankdir&#39;: &#39;TB&#39;, &#39;rank&#39;: &#39;source&#39;},</span>
+    <span class="c1"># }</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_delete_edge_attr</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">)</span>
+    <span class="c1"># pt.show_nx(graph, fontsize=10, layoutkw={&#39;splines&#39;: &#39;spline&#39;, &#39;prog&#39;: &#39;dot&#39;, &#39;sep&#39;: 2.0}, verbose=1)</span>
+    <span class="n">layoutkw</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># &#39;rankdir&#39;: &#39;LR&#39;,</span>
+        <span class="s1">&#39;splines&#39;</span><span class="p">:</span> <span class="s1">&#39;spline&#39;</span><span class="p">,</span>
+        <span class="c1"># &#39;splines&#39;: &#39;ortho&#39;,</span>
+        <span class="c1"># &#39;splines&#39;: &#39;curved&#39;,</span>
+        <span class="c1"># &#39;compound&#39;: &#39;True&#39;,</span>
+        <span class="c1"># &#39;prog&#39;: &#39;dot&#39;,</span>
+        <span class="s1">&#39;prog&#39;</span><span class="p">:</span> <span class="s1">&#39;neato&#39;</span><span class="p">,</span>
+        <span class="c1"># &#39;packMode&#39;: &#39;clust&#39;,</span>
+        <span class="c1"># &#39;sep&#39;: 4,</span>
+        <span class="c1"># &#39;nodesep&#39;: 1,</span>
+        <span class="c1"># &#39;ranksep&#39;: 1,</span>
+    <span class="p">}</span>
+    <span class="c1">#pt.show_nx(graph, fontsize=12, layoutkw=layoutkw, verbose=0, as_directed=False)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">fontname</span><span class="o">=</span><span class="s1">&#39;Ubuntu&#39;</span><span class="p">,</span> <span class="n">layoutkw</span><span class="o">=</span><span class="n">layoutkw</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">as_directed</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">interactions</span><span class="o">.</span><span class="n">zoom_factory</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="random_test_annot"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.testem.random_test_annot">[docs]</a><span class="k">def</span> <span class="nf">random_test_annot</span><span class="p">(</span><span class="n">num_names</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a single test annotation with random properties</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        num_names (int): (default = 5)</span>
+<span class="sd">        rng (module):  random number generator (default = numpy.random)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.hots.testem random_test_annot --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.testem import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; num_names = 5</span>
+<span class="sd">        &gt;&gt;&gt; rng = np.random.RandomState(0)</span>
+<span class="sd">        &gt;&gt;&gt; result = random_test_annot(num_names, rng)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        {u&#39;qual&#39;: 1, u&#39;yaw&#39;: 0.0, u&#39;nfeats&#39;: 1529, u&#39;name&#39;: 0, u&#39;view&#39;: u&#39;R&#39;}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+    <span class="c1"># num_names = 10</span>
+    <span class="n">valid_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_names</span><span class="p">))</span>
+    <span class="n">valid_views</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">YAWALIAS</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="c1"># valid_views.remove(&#39;</span>
+    <span class="n">valid_quals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">delete_list_items</span><span class="p">(</span><span class="n">valid_quals</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">None</span><span class="p">])</span>
+    <span class="k">def</span> <span class="nf">sampleone</span><span class="p">(</span><span class="n">list_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_sample</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">view_to_ori</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_keys</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">const</span><span class="o">.</span><span class="n">YAWALIAS</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">const</span><span class="o">.</span><span class="n">VIEWTEXT_TO_YAW_RADIANS</span><span class="p">)</span>
+    <span class="n">case</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;nfeats&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">sampleone</span><span class="p">(</span><span class="n">valid_names</span><span class="p">),</span>
+        <span class="s1">&#39;view&#39;</span><span class="p">:</span> <span class="n">sampleone</span><span class="p">(</span><span class="n">valid_views</span><span class="p">),</span>
+        <span class="s1">&#39;qual&#39;</span><span class="p">:</span> <span class="n">sampleone</span><span class="p">(</span><span class="n">valid_quals</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="n">case</span><span class="p">[</span><span class="s1">&#39;yaw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">view_to_ori</span><span class="p">[</span><span class="n">case</span><span class="p">[</span><span class="s1">&#39;view&#39;</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="n">case</span>
+
+</div>
+<div class="viewcode-block" id="random_case_set"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.testem.random_case_set">[docs]</a><span class="k">def</span> <span class="nf">random_case_set</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (labels, pairwise_feats)</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.hots.testem random_case_set --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.testem import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; (labels, pairwise_feats) = random_case_set()</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;(labels, pairwise_feats) = %s&#39; % (ut.repr2((labels, pairwise_feats)),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">case_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">num_names</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
+    <span class="n">num_annots</span> <span class="o">=</span> <span class="mi">600</span>
+    <span class="n">test_cases</span> <span class="o">=</span> <span class="p">[</span><span class="n">random_test_annot</span><span class="p">(</span><span class="o">**</span><span class="n">case_params</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">),</span> <span class="n">bs</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+    <span class="n">pairxs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">product_nonsame</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">)))</span>
+    <span class="kn">import</span> <span class="nn">utool</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+
+    <span class="n">test_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unflat_take</span><span class="p">(</span><span class="n">test_cases</span><span class="p">,</span> <span class="n">pairxs</span><span class="p">))</span>
+    <span class="n">cases1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_instancelist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">test_pairs</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">check</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">cases2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_instancelist</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">test_pairs</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">check</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="c1"># FIXME</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">labels1</span> <span class="o">=</span> <span class="n">make_test_pairwise_labels2</span><span class="p">(</span><span class="n">cases1</span><span class="p">,</span> <span class="n">cases2</span><span class="p">)</span>  <span class="c1"># NOQA</span>
+
+    <span class="c1">#labels = np.array([make_test_pairwise_labels(case1, case2)</span>
+    <span class="c1">#                   for case1, case2 in ut.ProgIter(test_pairs, bs=1)])</span>
+    <span class="n">pairwise_feats_</span> <span class="o">=</span> <span class="p">[</span><span class="n">make_test_pairwise_fetaures</span><span class="p">(</span><span class="n">case1</span><span class="p">,</span> <span class="n">case2</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">rng</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="p">(</span><span class="n">case1</span><span class="p">,</span> <span class="n">case2</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">test_pairs</span><span class="p">)),</span> <span class="n">bs</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+    <span class="n">pairwise_feats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">pairwise_feats_</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">labels</span><span class="p">,</span> <span class="n">pairwise_feats</span>
+
+</div>
+<div class="viewcode-block" id="test_rf_classifier"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.testem.test_rf_classifier">[docs]</a><span class="k">def</span> <span class="nf">test_rf_classifier</span><span class="p">():</span>
+    <span class="c1"># TODO: Evaluate TPOT</span>
+    <span class="c1"># http://www.randalolson.com/2016/05/08/tpot-a-python-tool-for-automating-data-science/</span>
+    <span class="c1"># https://www.reddit.com/r/MachineLearning/comments/4ij8dw/tpot_a_python_tool_for_automating_machine_learning/</span>
+    <span class="c1"># http://keras.io/ --- unifies tensorflow / theano</span>
+    <span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestClassifier</span>
+    <span class="kn">from</span> <span class="nn">sklearn.calibration</span> <span class="kn">import</span> <span class="n">CalibratedClassifierCV</span>
+    <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">log_loss</span>
+
+    <span class="c1"># http://scikit-learn.org/stable/auto_examples/calibration/plot_calibration_multiclass.html</span>
+    <span class="n">pairwise_feats</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">random_case_set</span><span class="p">()</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">pairwise_feats</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">labels</span>
+    <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:</span><span class="mi">600</span><span class="p">],</span> <span class="n">y</span><span class="p">[:</span><span class="mi">600</span><span class="p">]</span>
+    <span class="n">X_valid</span><span class="p">,</span> <span class="n">y_valid</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">600</span><span class="p">:</span><span class="mi">800</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">600</span><span class="p">:</span><span class="mi">800</span><span class="p">]</span>
+    <span class="n">X_train_valid</span><span class="p">,</span> <span class="n">y_train_valid</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:</span><span class="mi">800</span><span class="p">],</span> <span class="n">y</span><span class="p">[:</span><span class="mi">800</span><span class="p">]</span>
+    <span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="mi">800</span><span class="p">:],</span> <span class="n">y</span><span class="p">[</span><span class="mi">800</span><span class="p">:]</span>
+
+    <span class="c1"># Train uncalibrated random forest classifier on whole train and validation</span>
+    <span class="c1"># data and evaluate on test data</span>
+    <span class="n">clf</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+    <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train_valid</span><span class="p">,</span> <span class="n">y_train_valid</span><span class="p">)</span>
+    <span class="n">clf_probs</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">log_loss</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">clf_probs</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;score = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">score</span><span class="p">,))</span>
+
+    <span class="c1"># Train random forest classifier, calibrate on validation data and evaluate</span>
+    <span class="c1"># on test data</span>
+    <span class="n">clf</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+    <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+    <span class="n">clf_probs</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="n">sig_clf</span> <span class="o">=</span> <span class="n">CalibratedClassifierCV</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;sigmoid&quot;</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="s2">&quot;prefit&quot;</span><span class="p">)</span>
+    <span class="n">sig_clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_valid</span><span class="p">,</span> <span class="n">y_valid</span><span class="p">)</span>
+    <span class="n">sig_clf_probs</span> <span class="o">=</span> <span class="n">sig_clf</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="n">sig_score</span> <span class="o">=</span> <span class="n">log_loss</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">sig_clf_probs</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;sig_score = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sig_score</span><span class="p">,))</span>
+
+</div>
+<div class="viewcode-block" id="make_test_pairwise_fetaures"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.testem.make_test_pairwise_fetaures">[docs]</a><span class="k">def</span> <span class="nf">make_test_pairwise_fetaures</span><span class="p">(</span><span class="n">case1</span><span class="p">,</span> <span class="n">case2</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">rng</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="n">mu_fm</span> <span class="o">=</span> <span class="mi">50</span> <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">10</span>
+    <span class="n">sigma_fm</span> <span class="o">=</span> <span class="mi">10</span> <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">20</span>
+    <span class="n">mu_fs</span> <span class="o">=</span> <span class="o">.</span><span class="mi">2</span> <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="o">.</span><span class="mi">4</span>
+    <span class="n">sigma_fs</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span> <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="o">.</span><span class="mi">1</span>
+    <span class="n">num_top</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">max_feats</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">case1</span><span class="p">[</span><span class="s1">&#39;nfeats&#39;</span><span class="p">],</span> <span class="n">case2</span><span class="p">[</span><span class="s1">&#39;nfeats&#39;</span><span class="p">])</span>
+    <span class="n">num_matches</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">mu_fm</span><span class="p">,</span> <span class="n">sigma_fm</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">num_top</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">max_feats</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span>
+    <span class="n">perb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="o">.</span><span class="mo">001</span><span class="p">,</span> <span class="o">.</span><span class="mo">001</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">num_matches</span><span class="p">))</span>
+    <span class="n">sift_dists</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">mu_fs</span><span class="p">,</span> <span class="n">sigma_fs</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">num_matches</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">perb</span>
+    <span class="n">sortx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sift_dists</span><span class="p">)</span>
+    <span class="n">local_feat_simvecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">sift_dists</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">sortx</span><span class="p">]</span>
+    <span class="n">local_simvec</span> <span class="o">=</span> <span class="n">local_feat_simvecs</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">num_top</span><span class="p">]</span>
+    <span class="n">yaw1</span> <span class="o">=</span> <span class="n">case1</span><span class="p">[</span><span class="s1">&#39;yaw&#39;</span><span class="p">]</span>
+    <span class="n">yaw2</span> <span class="o">=</span> <span class="n">case2</span><span class="p">[</span><span class="s1">&#39;yaw&#39;</span><span class="p">]</span>
+    <span class="n">global_simvec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="n">case1</span><span class="p">[</span><span class="s1">&#39;qual&#39;</span><span class="p">],</span>
+        <span class="n">case2</span><span class="p">[</span><span class="s1">&#39;qual&#39;</span><span class="p">],</span>
+        <span class="n">yaw1</span> <span class="o">/</span> <span class="n">vt</span><span class="o">.</span><span class="n">TAU</span><span class="p">,</span>
+        <span class="n">yaw2</span> <span class="o">/</span> <span class="n">vt</span><span class="o">.</span><span class="n">TAU</span><span class="p">,</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">ori_distance</span><span class="p">(</span><span class="n">yaw1</span><span class="p">,</span> <span class="n">yaw2</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">case1</span><span class="p">[</span><span class="s1">&#39;qual&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">case1</span><span class="p">[</span><span class="s1">&#39;qual&#39;</span><span class="p">]),</span>
+    <span class="p">])</span>
+    <span class="n">simvec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">global_simvec</span><span class="p">,</span> <span class="n">local_simvec</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span>
+    <span class="k">return</span> <span class="n">simvec</span>
+
+</div>
+<div class="viewcode-block" id="make_test_pairwise_labels"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.testem.make_test_pairwise_labels">[docs]</a><span class="k">def</span> <span class="nf">make_test_pairwise_labels</span><span class="p">(</span><span class="n">case1</span><span class="p">,</span> <span class="n">case2</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="n">is_same</span> <span class="o">=</span> <span class="n">case1</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">case2</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+    <span class="n">yaw1</span> <span class="o">=</span> <span class="n">case1</span><span class="p">[</span><span class="s1">&#39;yaw&#39;</span><span class="p">]</span>
+    <span class="n">yaw2</span> <span class="o">=</span> <span class="n">case2</span><span class="p">[</span><span class="s1">&#39;yaw&#39;</span><span class="p">]</span>
+    <span class="n">yaw_dist</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ori_distance</span><span class="p">(</span><span class="n">yaw1</span><span class="p">,</span> <span class="n">yaw2</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="k">if</span> <span class="n">case1</span><span class="p">[</span><span class="s1">&#39;qual&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">case2</span><span class="p">[</span><span class="s1">&#39;qual&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c1"># Bad quality means not comparable</span>
+        <span class="n">is_comp</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">case1</span><span class="p">[</span><span class="s1">&#39;qual&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">case2</span><span class="p">[</span><span class="s1">&#39;qual&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="c1"># Better quality, better chance of being comparable</span>
+            <span class="n">is_comp</span> <span class="o">=</span> <span class="n">yaw_dist</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">is_comp</span> <span class="o">=</span> <span class="n">yaw_dist</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_comp</span><span class="p">:</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">is_same</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="n">label</span>
+
+</div>
+<div class="viewcode-block" id="make_test_pairwise_labels2"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.testem.make_test_pairwise_labels2">[docs]</a><span class="k">def</span> <span class="nf">make_test_pairwise_labels2</span><span class="p">(</span><span class="n">cases1</span><span class="p">,</span> <span class="n">cases2</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="n">is_same</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cases1</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cases2</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+    <span class="n">yaw1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cases1</span><span class="p">[</span><span class="s1">&#39;yaw&#39;</span><span class="p">])</span>
+    <span class="n">yaw2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cases2</span><span class="p">[</span><span class="s1">&#39;yaw&#39;</span><span class="p">])</span>
+    <span class="n">yaw_dist</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ori_distance</span><span class="p">(</span><span class="n">yaw1</span><span class="p">,</span> <span class="n">yaw2</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+    <span class="n">qual1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cases1</span><span class="p">[</span><span class="s1">&#39;qual&#39;</span><span class="p">])</span>
+    <span class="n">qual2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cases2</span><span class="p">[</span><span class="s1">&#39;qual&#39;</span><span class="p">])</span>
+
+    <span class="n">_and</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span>
+    <span class="n">_or</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span>
+    <span class="n">_not</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span>
+
+    <span class="n">poorqual</span> <span class="o">=</span> <span class="n">_or</span><span class="p">(</span><span class="n">qual1</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">,</span> <span class="n">qual2</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">bestqual</span> <span class="o">=</span> <span class="n">_and</span><span class="p">(</span><span class="n">_or</span><span class="p">(</span><span class="n">qual1</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">,</span> <span class="n">qual2</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">),</span> <span class="n">_not</span><span class="p">(</span><span class="n">poorqual</span><span class="p">))</span>
+    <span class="n">goodqual</span> <span class="o">=</span> <span class="n">_and</span><span class="p">(</span><span class="n">_not</span><span class="p">(</span><span class="n">bestqual</span><span class="p">),</span> <span class="n">_not</span><span class="p">(</span><span class="n">poorqual</span><span class="p">))</span>
+
+    <span class="n">is_comp</span> <span class="o">=</span> <span class="n">_or</span><span class="o">.</span><span class="n">reduce</span><span class="p">([</span><span class="n">_not</span><span class="p">(</span><span class="n">poorqual</span><span class="p">),</span> <span class="n">_and</span><span class="p">(</span><span class="n">bestqual</span><span class="p">,</span> <span class="n">yaw_dist</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)),</span> <span class="n">_and</span><span class="p">(</span><span class="n">goodqual</span><span class="p">,</span> <span class="n">yaw_dist</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">8</span><span class="p">))])</span>
+
+    <span class="n">label</span> <span class="o">=</span> <span class="n">is_same</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">label</span><span class="p">[</span><span class="n">_not</span><span class="p">(</span><span class="n">is_comp</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="n">label</span>
+
+</div>
+<div class="viewcode-block" id="test_em"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.testem.test_em">[docs]</a><span class="k">def</span> <span class="nf">test_em</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.hots.testem test_em --show</span>
+<span class="sd">        python -m ibeis.algo.hots.testem test_em --show --no-cnn</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.testem import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; P, Pn, PL, gam, num_labels = test_em()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.qt4ensure()</span>
+<span class="sd">        &gt;&gt;&gt; draw_em_graph(P, Pn, PL, gam, num_labels)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;EM&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Matrix if unary probabilites, The probability that each node takes on a</span>
+    <span class="c1"># given label, independent of its edges.</span>
+
+    <span class="n">test_case</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;view&#39;</span><span class="p">:</span> <span class="s1">&#39;L&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;view&#39;</span><span class="p">:</span> <span class="s1">&#39;L&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;view&#39;</span><span class="p">:</span> <span class="s1">&#39;L&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;view&#39;</span><span class="p">:</span> <span class="s1">&#39;R&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;view&#39;</span><span class="p">:</span> <span class="s1">&#39;B&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;view&#39;</span><span class="p">:</span> <span class="s1">&#39;L&#39;</span><span class="p">},</span>
+        <span class="c1">#{&#39;name&#39;: 3, &#39;view&#39;: &#39;L&#39;},</span>
+        <span class="c1">#{&#39;name&#39;: 4, &#39;view&#39;: &#39;L&#39;},</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">make_test_similarity</span><span class="p">(</span><span class="n">test_case</span><span class="p">):</span>
+        <span class="c1">#toy_params = {</span>
+        <span class="c1">#    True:  {&#39;mu&#39;: 0.9, &#39;sigma&#39;: .1},</span>
+        <span class="c1">#    False: {&#39;mu&#39;: 0.1, &#39;sigma&#39;: .4}</span>
+        <span class="c1">#}</span>
+        <span class="c1"># tau = np.pi * 2</span>
+        <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
+        <span class="c1"># view_to_ori = const.VIEWTEXT_TO_YAW_RADIANS</span>
+        <span class="n">view_to_ori</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_keys</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">const</span><span class="o">.</span><span class="n">YAWALIAS</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">const</span><span class="o">.</span><span class="n">VIEWTEXT_TO_YAW_RADIANS</span><span class="p">)</span>
+        <span class="c1"># view_to_ori = {</span>
+        <span class="c1">#     &#39;F&#39;: -1 * tau / 4,</span>
+        <span class="c1">#     &#39;L&#39;:  0 * tau / 4,</span>
+        <span class="c1">#     &#39;B&#39;:  1 * tau / 4,</span>
+        <span class="c1">#     &#39;R&#39;:  2 * tau / 4,</span>
+        <span class="c1"># }</span>
+        <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take_column</span><span class="p">(</span><span class="n">test_case</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">))</span>
+        <span class="n">yaw_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">view_to_ori</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take_column</span><span class="p">(</span><span class="n">test_case</span><span class="p">,</span> <span class="s1">&#39;view&#39;</span><span class="p">)))</span>
+
+        <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">pmat</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_case</span><span class="p">)):</span>
+            <span class="n">nid</span> <span class="o">=</span> <span class="n">nid_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="n">yaw</span> <span class="o">=</span> <span class="n">yaw_list</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="n">p_same</span> <span class="o">=</span> <span class="n">nid</span> <span class="o">==</span> <span class="n">nid_list</span>
+            <span class="n">p_comp</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">vt</span><span class="o">.</span><span class="n">ori_distance</span><span class="p">(</span><span class="n">yaw_list</span><span class="p">,</span> <span class="n">yaw</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+            <span class="c1"># estimate noisy measurements</span>
+            <span class="n">p_same_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">p_same</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">p_same</span><span class="p">)),</span> <span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">9</span><span class="p">)</span>
+            <span class="n">p_comp_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">p_comp</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">p_comp</span><span class="p">)),</span> <span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">9</span><span class="p">)</span>
+            <span class="c1">#</span>
+            <span class="n">p_same_and_comp</span> <span class="o">=</span> <span class="n">p_same_m</span> <span class="o">*</span> <span class="n">p_comp_m</span>
+            <span class="n">pmat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p_same_and_comp</span><span class="p">)</span>
+        <span class="c1">#</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pmat</span><span class="p">)</span>
+        <span class="n">P</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">diag_indices</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">P</span><span class="p">))]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">P</span> <span class="o">+</span> <span class="n">P</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="o">.</span><span class="mo">01</span><span class="p">,</span> <span class="o">.</span><span class="mi">99</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s1">&#39; P = &#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">array_repr2</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_line_width</span><span class="o">=</span><span class="mi">140</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">P</span>
+
+    <span class="n">Pn</span> <span class="o">=</span> <span class="n">make_test_similarity</span><span class="p">(</span><span class="n">test_case</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">Pn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span>
+            <span class="n">b</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            .0 .7 .3 .2 .4 .5;</span>
+<span class="s2">            .7 .0 .4 .4 .3 .5;</span>
+<span class="s2">            .3 .4 .0 .6 .1 .5;</span>
+<span class="s2">            .2 .4 .6 .0 .2 .3;</span>
+<span class="s2">            .4 .3 .1 .2 .0 .8;</span>
+<span class="s2">            .5 .5 .5 .3 .8 .0</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">))</span>
+
+        <span class="n">PL</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span>
+            <span class="n">b</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            .7 .5 .5;</span>
+<span class="s2">            .8 .4 .3;</span>
+<span class="s2">            .5 .7 .3;</span>
+<span class="s2">            .5 .8 .4;</span>
+<span class="s2">            .3 .2 .8;</span>
+<span class="s2">            .5 .5 .8</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">Pn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span>
+            <span class="n">b</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            1.0  0.7  0.4  0.2;</span>
+<span class="s2">            0.7  1.0  0.4  0.4;</span>
+<span class="s2">            0.4  0.4  1.0  0.6;</span>
+<span class="s2">            0.2  0.4  0.6  1.0</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">))</span>
+
+        <span class="n">PL</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span>
+            <span class="n">b</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            0.7  0.5  0.5;</span>
+<span class="s2">            0.8  0.4  0.3;</span>
+<span class="s2">            0.5  0.7  0.3;</span>
+<span class="s2">            0.5  0.8  0.4</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">))</span>
+    <span class="n">num_nodes</span> <span class="o">=</span> <span class="n">Pn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">num_labels</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="c1">#Pn = np.array(np.matrix(</span>
+        <span class="c1">#    b&quot;&quot;&quot;</span>
+        <span class="c1">#    .0 .7 .3 .2 .4 .5;</span>
+        <span class="c1">#    .7 .0 .4 .4 .3 .5;</span>
+        <span class="c1">#    .3 .4 .0 .6 .1 .5;</span>
+        <span class="c1">#    .2 .4 .6 .0 .2 .3;</span>
+        <span class="c1">#    .4 .3 .1 .2 .0 .8;</span>
+        <span class="c1">#    .5 .5 .5 .3 .8 .0</span>
+        <span class="c1">#    &quot;&quot;&quot;))</span>
+
+        <span class="c1"># Uniform distribution over labels</span>
+        <span class="k">if</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">PL</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">num_labels</span><span class="p">))</span> <span class="o">/</span> <span class="n">num_labels</span>
+            <span class="c1"># Give nodes preferences</span>
+            <span class="n">PL</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">diag_indices</span><span class="p">(</span><span class="n">num_labels</span><span class="p">)]</span> <span class="o">*=</span> <span class="mf">1.01</span>
+            <span class="n">PL</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">PL</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># PL[0, :] = .01 / (num_labels - 1)</span>
+            <span class="c1"># PL[0, 0] = .99</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">PL</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">PL</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Number of nodes</span>
+        <span class="n">num_nodes</span> <span class="o">=</span> <span class="n">Pn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># Number of classes</span>
+        <span class="n">num_labels</span> <span class="o">=</span> <span class="n">PL</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1">#num_labels = num_nodes</span>
+        <span class="c1">#if 0 or num_labels != 3:</span>
+        <span class="c1">#    PL = np.ones((num_nodes, num_labels)) / num_labels</span>
+        <span class="c1">#    # PL[0, :] = .01 / (num_labels - 1)</span>
+        <span class="c1">#    # PL[0, 0] = .99</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">num_labels</span> <span class="o">+</span> <span class="n">num_nodes</span>
+
+        <span class="c1"># Stack everything into a single matrix</span>
+        <span class="n">zero_part</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_labels</span><span class="p">,</span> <span class="n">num_nodes</span> <span class="o">+</span> <span class="n">num_labels</span><span class="p">))</span>
+        <span class="n">prob_part</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">PL</span><span class="p">,</span> <span class="n">Pn</span><span class="p">])</span>
+        <span class="c1">#print(ut.hz_str(&#39; prob_part = &#39;, ut.array_repr2(prob_part[:, :], precision=2)))</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">zero_part</span><span class="p">,</span> <span class="n">prob_part</span><span class="p">])</span>
+
+        <span class="c1"># Gamma will hold a probability distribution over the nodes</span>
+        <span class="c1"># The labeled nodes must match themselves.</span>
+        <span class="c1"># The unlabeld nodes are initialized with a uniform distribution.</span>
+        <span class="n">gam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">num_labels</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">num_labels</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">))</span> <span class="o">/</span> <span class="n">num_labels</span><span class="p">])</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Initialize&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;num_labels = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_labels</span><span class="p">,))</span>
+        <span class="c1"># print(ut.hz_str(&#39; gamma = &#39;, ut.array_repr2(gam[:, num_labels:], max_line_width=140, precision=2)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s1">&#39; gamma = &#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">array_repr2</span><span class="p">(</span><span class="n">gam</span><span class="p">,</span> <span class="n">max_line_width</span><span class="o">=</span><span class="mi">140</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">)))</span>
+
+        <span class="n">delta_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_labels</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">dErr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">gam</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">delta_i</span><span class="o">=</span><span class="n">delta_i</span><span class="p">):</span>
+            <span class="c1"># exepcted liklihood is cross entropy error</span>
+            <span class="n">delta_i</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1"># Compute the gradient of the cross entropy error</span>
+            <span class="c1"># This is over both names and annotations</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="p">:</span>
+                    <span class="n">delta_i</span> <span class="o">+=</span> <span class="n">gam</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]))</span>
+            <span class="c1"># compute the projected gradient</span>
+            <span class="n">delta_i_hat</span> <span class="o">=</span> <span class="n">delta_i</span> <span class="o">-</span> <span class="n">delta_i</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">num_labels</span>
+            <span class="k">return</span> <span class="n">delta_i_hat</span>
+
+        <span class="c1"># Maximies the expected liklihood of gamma</span>
+        <span class="n">learn_rate</span> <span class="o">=</span> <span class="mf">0.05</span>
+        <span class="n">num_iters</span> <span class="o">=</span> <span class="mi">1000</span>
+        <span class="n">dGam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">gam</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="c1"># for count in range(num_iters):</span>
+        <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_iters</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;EM&#39;</span><span class="p">,</span> <span class="n">bs</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+            <span class="c1"># Compute error gradient</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_labels</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+                <span class="n">dGam</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dErr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">gam</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
+            <span class="c1"># Make a step in the gradient direction</span>
+            <span class="c1"># print(ut.hz_str(&#39; dGam = &#39;, ut.array_repr2(dGam, max_line_width=140, precision=2)))</span>
+            <span class="n">gam</span> <span class="o">=</span> <span class="n">gam</span> <span class="o">+</span> <span class="n">learn_rate</span> <span class="o">*</span> <span class="n">dGam</span>
+            <span class="c1"># Normalize</span>
+            <span class="n">gam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">gam</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_labels</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+                <span class="n">gam</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gam</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">gam</span><span class="p">[:,</span> <span class="n">i</span><span class="p">])</span>
+        <span class="c1"># print(ut.hz_str(&#39; gamma = &#39;, ut.array_repr2(gam, max_line_width=140, precision=2)))</span>
+        <span class="c1"># print(ut.hz_str(&#39; gamma = &#39;, ut.array_repr2(gam[:, num_labels:], max_line_width=140, precision=2)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Finished&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">P</span><span class="p">,</span> <span class="n">Pn</span><span class="p">,</span> <span class="n">PL</span><span class="p">,</span> <span class="n">gam</span><span class="p">,</span> <span class="n">num_labels</span>
+
+</div>
+<div class="viewcode-block" id="test_em2"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.testem.test_em2">[docs]</a><span class="k">def</span> <span class="nf">test_em2</span><span class="p">(</span><span class="n">prob_names</span><span class="p">,</span> <span class="n">prob_annots</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    assert prob_names.shape == (nAnnots, nNames)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">learn_rate</span> <span class="o">=</span> <span class="mf">0.05</span>
+    <span class="n">num_iters</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># Matrix if unary probabilites, The probability that each node takes on a</span>
+    <span class="c1"># given label, independent of its edges.</span>
+    <span class="n">num_annots</span><span class="p">,</span> <span class="n">num_names</span> <span class="o">=</span> <span class="n">prob_names</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="c1"># prevent zero probabilities</span>
+    <span class="n">prob_names_</span> <span class="o">=</span> <span class="n">prob_names</span> <span class="o">+</span> <span class="mf">1E-9</span>
+    <span class="n">prob_names_</span> <span class="o">/=</span> <span class="n">prob_names_</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">prob_annots</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">prob_annots_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">num_annots</span><span class="p">,</span> <span class="n">num_annots</span><span class="p">),</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">num_annots</span><span class="p">)</span>
+        <span class="n">prob_annots_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">diag_indices</span><span class="p">(</span><span class="n">num_annots</span><span class="p">)]</span> <span class="o">*=</span> <span class="mf">1.01</span>
+        <span class="c1"># perterb</span>
+        <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">prob_annots_</span> <span class="o">+=</span> <span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="o">*</span><span class="n">prob_annots_</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span> <span class="o">/</span> <span class="mi">100</span>
+        <span class="n">prob_annots_</span> <span class="o">/=</span> <span class="n">prob_annots_</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span>
+        <span class="n">prob_annots_</span> <span class="o">=</span> <span class="p">(</span><span class="n">prob_annots_</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">prob_annots_</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">prob_annots_</span> <span class="o">=</span> <span class="n">prob_annots</span> <span class="o">+</span> <span class="mf">1E-9</span>
+        <span class="n">prob_annots_</span> <span class="o">/=</span> <span class="n">prob_annots_</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span>
+
+    <span class="c1"># Stack everything into a single matrix</span>
+    <span class="n">prob_part</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">prob_names_</span><span class="p">,</span> <span class="n">prob_annots_</span><span class="p">])</span>
+    <span class="n">zero_part</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_names</span><span class="p">,</span> <span class="n">num_annots</span> <span class="o">+</span> <span class="n">num_names</span><span class="p">))</span>
+    <span class="n">prior</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">zero_part</span><span class="p">,</span> <span class="n">prob_part</span><span class="p">])</span>
+
+    <span class="c1"># Gamma will hold a probability distribution over the nodes</span>
+    <span class="c1"># The labeled nodes must match themselves.</span>
+    <span class="c1"># The unlabeld nodes are initialized with a uniform distribution.</span>
+    <span class="n">gam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">num_names</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">num_names</span><span class="p">,</span> <span class="n">num_annots</span><span class="p">))</span> <span class="o">/</span> <span class="n">num_names</span><span class="p">])</span>
+
+    <span class="n">verbose</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Initialize&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;num_names = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_names</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s1">&#39;prior = &#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">array2string2</span><span class="p">(</span><span class="n">prob_part</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_line_width</span><span class="o">=</span><span class="mi">140</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s1">&#39;gamma = &#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">array2string2</span><span class="p">(</span><span class="n">gam</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">max_line_width</span><span class="o">=</span><span class="mi">140</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">)))</span>
+    <span class="c1">#print(ut.hz_str(&#39; gamma = &#39;, ut.array_repr2(gam, max_line_width=140, precision=2)))</span>
+
+    <span class="n">delta_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_names</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">dErr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">gam</span><span class="p">,</span> <span class="n">prior</span><span class="p">,</span> <span class="n">delta_i</span><span class="o">=</span><span class="n">delta_i</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="n">num_names</span><span class="p">):</span>
+        <span class="c1"># exepcted liklihood is cross entropy error</span>
+        <span class="n">delta_i</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Compute the gradient of the cross entropy error</span>
+        <span class="c1"># This is over both names and annotations</span>
+        <span class="n">jdxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">prior</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">j</span> <span class="o">!=</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">prior_ij</span> <span class="o">=</span> <span class="n">prior</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">jdxs</span><span class="p">]</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">prior_ij</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">prior_ij</span><span class="p">))</span>
+        <span class="n">gam</span><span class="p">[:,</span> <span class="n">jdxs</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">prior</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="p">:</span>
+                <span class="n">delta_i</span> <span class="o">+=</span> <span class="n">gam</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">prior</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">prior</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]))</span>
+        <span class="c1"># compute the projected gradient</span>
+        <span class="n">delta_i_hat</span> <span class="o">=</span> <span class="n">delta_i</span> <span class="o">-</span> <span class="n">delta_i</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">num_names</span>
+        <span class="k">return</span> <span class="n">delta_i_hat</span>
+
+    <span class="c1"># Build node for each annot and each name</span>
+    <span class="n">num_nodes</span> <span class="o">=</span> <span class="n">num_annots</span> <span class="o">+</span> <span class="n">num_names</span>
+
+    <span class="c1"># Maximies the expected liklihood of gamma</span>
+    <span class="n">dGam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">gam</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="c1"># for count in range(num_iters):</span>
+    <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_iters</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;EM&#39;</span><span class="p">,</span> <span class="n">bs</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="c1"># Compute error gradient</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_names</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">):</span>
+            <span class="n">dGam</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dErr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">gam</span><span class="p">,</span> <span class="n">prior</span><span class="p">)</span>
+        <span class="c1"># Make a step in the gradient direction</span>
+        <span class="c1"># print(ut.hz_str(&#39; dGam = &#39;, ut.array_repr2(dGam, max_line_width=140, precision=2)))</span>
+        <span class="n">gam</span> <span class="o">=</span> <span class="n">gam</span> <span class="o">+</span> <span class="n">learn_rate</span> <span class="o">*</span> <span class="n">dGam</span>
+        <span class="c1"># Normalize</span>
+        <span class="n">gam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">gam</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_names</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">):</span>
+            <span class="n">gam</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gam</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">gam</span><span class="p">[:,</span> <span class="n">i</span><span class="p">])</span>
+    <span class="c1"># print(ut.hz_str(&#39; gamma = &#39;, ut.array_repr2(gam, max_line_width=140, precision=2)))</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s1">&#39; gamma = &#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">array2string2</span><span class="p">(</span><span class="n">gam</span><span class="p">[:,</span> <span class="n">num_names</span><span class="p">:],</span> <span class="n">max_line_width</span><span class="o">=</span><span class="mi">140</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Finished&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">gam</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.algo.hots.testem</span>
+<span class="sd">        python -m ibeis.algo.hots.testem --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+
+<span class="sd">r&quot;&quot;&quot;</span>
+
+<span class="sd">I&#39;ve gone over both the pdf and the code and I would like to clarify a few things.</span>
+
+<span class="sd">In the pdf the measure of uncertainty u_{ij} seems to not be used anywhere</span>
+<span class="sd">else, is this true or am I missing it?</span>
+
+<span class="sd">In the code there is a matrix PL and Pn.</span>
+<span class="sd">I believe Pn is represented by the edge between the numbered nodes and the</span>
+<span class="sd">lettered nodes, while PL (corresponds to gamma and) represents the connections</span>
+<span class="sd">between the lettered nodes.  Is it correct that PL is proportional to the</span>
+<span class="sd">probability that node i takes label j, and Pn is the probability that node i</span>
+<span class="sd">matches node j?</span>
+
+<span class="sd">In the animal ID problem there is not always a notion of groundtruth likelihood.</span>
+<span class="sd">Nor, is the groundtruth fixed.  We need to find and correct errors in the</span>
+<span class="sd">groundtruth.</span>
+
+<span class="sd">For instance node 1 and node 2 might actually need to have the same label (node</span>
+<span class="sd">1 may be a right side zebra and node 2 may be a left side zebra. Identity</span>
+<span class="sd">equivalence is a transitive property. We need to be able to infer labeling</span>
+<span class="sd">through chains of high likelihood connections even though the end points might</span>
+<span class="sd">have a low probability edge between them.)</span>
+
+<span class="sd">Using the language of image segmentation, I believe that without the &quot;unary&quot;</span>
+<span class="sd">terms on each node (the probability of them taking on a given label) the</span>
+<span class="sd">solution converges to a uniform distribution regardless of the &quot;pairwise&quot; terms</span>
+<span class="sd">between the lettered nodes.</span>
+
+
+<span class="sd">In summary:</span>
+<span class="sd">    * How does this framework address uncertainty in the pairwise probabilities?</span>
+
+<span class="sd">    * Does this framework work in the scenario where there is no groundtruth</span>
+<span class="sd">      and the number of labels is unknown?</span>
+
+
+<span class="sd">I&#39;m having trouble understanding how this EM algorithm addresses uncertainty</span>
+<span class="sd">and the case where there is no label information.</span>
+
+<span class="sd">First, I do not see how uncertaint plays a role in the formulation. In the</span>
+<span class="sd">attached pdf it is defined, but never used.</span>
+
+<span class="sd">Second, I don&#39;t see how this works in the case where there are no &quot;groundtruth&quot;</span>
+<span class="sd">exemplars and the number of classes is unknown.  Consider the case where we have</span>
+<span class="sd">6 unlabeled annotations and we compute the pairwise similarity between each of</span>
+<span class="sd">them.  We do not know how many individuals (classes) there are in this set.</span>
+<span class="sd">There is a minimum of 1 and a maximum of 6.  We cannot compute the (unary)</span>
+<span class="sd">probability that a pariticular annotation takes on a particular class because</span>
+<span class="sd">the class is just an abstract notion used to define a partition of this graph.</span>
+
+
+
+
+
+
+
+
+<span class="sd">If we have a unlabeled set of annotations and we compute the pairwise similarity between each of them,</span>
+<span class="sd">how does this</span>
+
+<span class="sd">I don&#39;t see how the uncertainty measure plays a role in the</span>
+
+<span class="sd">I don&#39;t see how to get away from the &quot;unary&quot;</span>
+<span class="sd">terms in this formulation</span>
+
+<span class="sd">In fact in the example you gave, if you simply look at the probabilities on</span>
+<span class="sd">each edge from the labeled nodes to the unlabeled nodes, you can simply take</span>
+<span class="sd">the edge with the highest weight to a labeled node and arive at the same solution.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../',
+            VERSION:'1.5.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

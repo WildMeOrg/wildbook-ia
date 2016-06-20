@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests.test_sql_modify &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.tests.test_sql_modify &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,14 +129,14 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.tests.test_sql_modify</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python2.7</span>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="ch">#!/usr/bin/env python2.7</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">SQLDatabaseControl</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_SQL_CONTROL]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[TEST_SQL_CONTROL]&#39;</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">random</span>
 
@@ -145,93 +145,93 @@
 <span class="k">else</span><span class="p">:</span>
     <span class="n">__STR__</span> <span class="o">=</span> <span class="nb">str</span>
 
-<span class="c">###########################</span>
+<span class="c1">###########################</span>
 
 
 <div class="viewcode-block" id="converter"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.converter">[docs]</a><span class="k">def</span> <span class="nf">converter</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
-    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_str&#39;</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_str&#39;</span>
 
 </div>
 <div class="viewcode-block" id="get_rowid_from_text"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.get_rowid_from_text">[docs]</a><span class="k">def</span> <span class="nf">get_rowid_from_text</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">text_list</span><span class="p">):</span>
     <span class="n">param_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">text</span><span class="p">,)</span> <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">text_list</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get_rowid_from_superkey</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="n">param_iter</span><span class="p">,</span> <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;test_text&#39;</span><span class="p">,))</span>
+    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get_rowid_from_superkey</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">param_iter</span><span class="p">,</span> <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;test_text&#39;</span><span class="p">,))</span>
 
 </div>
 <div class="viewcode-block" id="add_text"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.add_text">[docs]</a><span class="k">def</span> <span class="nf">add_text</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">text_list</span><span class="p">):</span>
     <span class="n">param_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">text</span><span class="p">,)</span> <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">text_list</span><span class="p">)</span>
     <span class="n">func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">get_rowid_from_text</span><span class="p">,</span> <span class="n">db</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;test_text&#39;</span><span class="p">,),</span> <span class="n">param_iter</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;test_text&#39;</span><span class="p">,),</span> <span class="n">param_iter</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="get_text"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.get_text">[docs]</a><span class="k">def</span> <span class="nf">get_text</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;test_text&#39;</span><span class="p">,),</span> <span class="n">rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;test_text&#39;</span><span class="p">,),</span> <span class="n">rowid_list</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="set_integers"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.set_integers">[docs]</a><span class="k">def</span> <span class="nf">set_integers</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">integer_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">):</span>
     <span class="n">param_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">integer</span><span class="p">,)</span> <span class="k">for</span> <span class="n">integer</span> <span class="ow">in</span> <span class="n">integer_list</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;test_integer&#39;</span><span class="p">,),</span> <span class="n">param_iter</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;test_integer&#39;</span><span class="p">,),</span> <span class="n">param_iter</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="get_integers"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.get_integers">[docs]</a><span class="k">def</span> <span class="nf">get_integers</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;test_integer&#39;</span><span class="p">,),</span> <span class="n">rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;test_integer&#39;</span><span class="p">,),</span> <span class="n">rowid_list</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="get_integers2"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.get_integers2">[docs]</a><span class="k">def</span> <span class="nf">get_integers2</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tablename</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;test_integer2&#39;</span><span class="p">,),</span> <span class="n">rowid_list</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tablename</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;test_integer2&#39;</span><span class="p">,),</span> <span class="n">rowid_list</span><span class="p">)</span>
 
 
-<span class="c">###########################</span>
+<span class="c1">###########################</span>
 
 </div>
 <div class="viewcode-block" id="add_table"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.add_table">[docs]</a><span class="k">def</span> <span class="nf">add_table</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="p">(</span>
-        <span class="p">(</span><span class="s">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
-        <span class="p">(</span><span class="s">&#39;test_text&#39;</span><span class="p">,</span>  <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),),</span>
-        <span class="p">[</span><span class="s">&#39;CONSTRAINT superkey UNIQUE (test_text)&#39;</span><span class="p">]</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;test_text&#39;</span><span class="p">,</span>  <span class="s1">&#39;TEXT NOT NULL&#39;</span><span class="p">),),</span>
+        <span class="p">[</span><span class="s1">&#39;CONSTRAINT superkey UNIQUE (test_text)&#39;</span><span class="p">]</span>
     <span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="add_column"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.add_column">[docs]</a><span class="k">def</span> <span class="nf">add_column</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER&#39;</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER&#39;</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="modify_table"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.modify_table">[docs]</a><span class="k">def</span> <span class="nf">modify_table</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="p">(</span>
-        <span class="p">(</span><span class="s">&#39;test_integer&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT&#39;</span><span class="p">,</span> <span class="n">converter</span><span class="p">),</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">modify_table</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;test_integer&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">,</span> <span class="n">converter</span><span class="p">),</span>
     <span class="p">))</span>
 </div>
 <div class="viewcode-block" id="reorder_columns"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.reorder_columns">[docs]</a><span class="k">def</span> <span class="nf">reorder_columns</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">order_list</span><span class="p">):</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">reorder_columns</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="n">order_list</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">reorder_columns</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">order_list</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="duplicate_table"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.duplicate_table">[docs]</a><span class="k">def</span> <span class="nf">duplicate_table</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">duplicate_table</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="s">&#39;test2&#39;</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">duplicate_table</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;test2&#39;</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="duplicate_column"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.duplicate_column">[docs]</a><span class="k">def</span> <span class="nf">duplicate_column</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">duplicate_column</span><span class="p">(</span><span class="s">&#39;test2&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer2&#39;</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">duplicate_column</span><span class="p">(</span><span class="s1">&#39;test2&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer2&#39;</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="rename_table"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.rename_table">[docs]</a><span class="k">def</span> <span class="nf">rename_table</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">rename_table</span><span class="p">(</span><span class="s">&#39;test2&#39;</span><span class="p">,</span> <span class="s">&#39;test3&#39;</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">rename_table</span><span class="p">(</span><span class="s1">&#39;test2&#39;</span><span class="p">,</span> <span class="s1">&#39;test3&#39;</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="rename_column"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.rename_column">[docs]</a><span class="k">def</span> <span class="nf">rename_column</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">rename_column</span><span class="p">(</span><span class="s">&#39;test3&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer2&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer3&#39;</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">rename_column</span><span class="p">(</span><span class="s1">&#39;test3&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer2&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer3&#39;</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="drop_table"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.drop_table">[docs]</a><span class="k">def</span> <span class="nf">drop_table</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="s">&#39;test3&#39;</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">drop_table</span><span class="p">(</span><span class="s1">&#39;test3&#39;</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="drop_column"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.drop_column">[docs]</a><span class="k">def</span> <span class="nf">drop_column</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">drop_column</span><span class="p">(</span><span class="s">&#39;test3&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer3&#39;</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">drop_column</span><span class="p">(</span><span class="s1">&#39;test3&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer3&#39;</span><span class="p">)</span>
 
 </div>
 <span class="k">def</span> <span class="nf">_make_empty_controller</span><span class="p">():</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;make_empty_controller&#39;</span><span class="p">)</span>
-    <span class="n">sqldb_fname</span> <span class="o">=</span> <span class="s">&#39;temp_test_sql_control.sqlite3&#39;</span>
-    <span class="n">sqldb_dpath</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s">&#39;testfiles&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;make_empty_controller&#39;</span><span class="p">)</span>
+    <span class="n">sqldb_fname</span> <span class="o">=</span> <span class="s1">&#39;temp_test_sql_control.sqlite3&#39;</span>
+    <span class="n">sqldb_dpath</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s1">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s1">&#39;testfiles&#39;</span><span class="p">)</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">sqldb_dpath</span><span class="p">)</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">sqldb_dpath</span><span class="p">,</span> <span class="n">sqldb_fname</span><span class="p">),</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">db</span> <span class="o">=</span> <span class="n">SQLDatabaseControl</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span><span class="n">sqldb_dpath</span><span class="o">=</span><span class="n">sqldb_dpath</span><span class="p">,</span>
@@ -242,155 +242,155 @@
 <div class="viewcode-block" id="TEST_SQL_MODIFY"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_modify.TEST_SQL_MODIFY">[docs]</a><span class="k">def</span> <span class="nf">TEST_SQL_MODIFY</span><span class="p">():</span>
     <span class="n">db</span> <span class="o">=</span> <span class="n">_make_empty_controller</span><span class="p">()</span>
     
-    <span class="c">#####################</span>
-    <span class="c"># Add table</span>
-    <span class="c">#####################</span>
+    <span class="c1">#####################</span>
+    <span class="c1"># Add table</span>
+    <span class="c1">#####################</span>
     <span class="n">add_table</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 
-    <span class="c"># Verify table&#39;s schema</span>
-    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">)</span>
-    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">)</span>   
-    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;test_text&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
-    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
+    <span class="c1"># Verify table&#39;s schema</span>
+    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>   
+    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;test_text&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
+    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT NOT NULL&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
 
-    <span class="c">#####################</span>
-    <span class="c"># Add data to table</span>
-    <span class="c">#####################</span>
+    <span class="c1">#####################</span>
+    <span class="c1"># Add data to table</span>
+    <span class="c1">#####################</span>
     <span class="n">text_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">utool</span><span class="o">.</span><span class="n">random_nonce</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="p">]</span>
     <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">add_text</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">text_list</span><span class="p">)</span>
-    <span class="n">text_list_</span> <span class="o">=</span> <span class="n">get_text</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">text_list</span> <span class="o">==</span> <span class="n">text_list_</span><span class="p">,</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">text_list_</span>
+    <span class="n">text_list_</span> <span class="o">=</span> <span class="n">get_text</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">text_list</span> <span class="o">==</span> <span class="n">text_list_</span><span class="p">,</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">text_list_</span>
 
-    <span class="c">#####################</span>
-    <span class="c"># Add column</span>
-    <span class="c">#####################</span>
+    <span class="c1">#####################</span>
+    <span class="c1"># Add column</span>
+    <span class="c1">#####################</span>
     <span class="n">add_column</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 
-    <span class="c"># Verify table&#39;s schema</span>
-    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">)</span>
-    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">)</span>   
-    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;test_text&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
-    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">u&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s">u&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="s">u&#39;INTEGER&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
+    <span class="c1"># Verify table&#39;s schema</span>
+    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>   
+    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;test_text&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
+    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">u&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s1">u&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="s1">u&#39;INTEGER&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
 
     <span class="n">integer_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="p">]</span>
-    <span class="n">set_integers</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="n">integer_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
-    <span class="n">integer_list_</span> <span class="o">=</span> <span class="n">get_integers</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">integer_list</span> <span class="o">==</span> <span class="n">integer_list_</span><span class="p">,</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">integer_list_</span>
+    <span class="n">set_integers</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">integer_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
+    <span class="n">integer_list_</span> <span class="o">=</span> <span class="n">get_integers</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">integer_list</span> <span class="o">==</span> <span class="n">integer_list_</span><span class="p">,</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">integer_list_</span>
 
-    <span class="c">#####################</span>
-    <span class="c"># Modify table</span>
-    <span class="c">#####################</span>
+    <span class="c1">#####################</span>
+    <span class="c1"># Modify table</span>
+    <span class="c1">#####################</span>
     <span class="n">modify_table</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 
-    <span class="c"># Verify table&#39;s schema</span>
-    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">)</span>
-    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">)</span>   
-    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;test_text&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
-    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">u&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s">u&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="s">u&#39;TEXT&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
+    <span class="c1"># Verify table&#39;s schema</span>
+    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>   
+    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;test_text&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
+    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">u&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s1">u&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="s1">u&#39;TEXT&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
 
-    <span class="n">integer_list</span> <span class="o">=</span> <span class="n">get_integers</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span> 
-    <span class="k">assert</span> <span class="n">integer_list</span> <span class="o">==</span> <span class="p">[</span> <span class="n">converter</span><span class="p">(</span><span class="n">integer</span><span class="p">)</span> <span class="k">for</span> <span class="n">integer</span> <span class="ow">in</span> <span class="n">integer_list_</span> <span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">integer_list</span>
+    <span class="n">integer_list</span> <span class="o">=</span> <span class="n">get_integers</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span> 
+    <span class="k">assert</span> <span class="n">integer_list</span> <span class="o">==</span> <span class="p">[</span> <span class="n">converter</span><span class="p">(</span><span class="n">integer</span><span class="p">)</span> <span class="k">for</span> <span class="n">integer</span> <span class="ow">in</span> <span class="n">integer_list_</span> <span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">integer_list</span>
 
-    <span class="c">#####################</span>
-    <span class="c"># Duplicate table</span>
-    <span class="c">#####################</span>
+    <span class="c1">#####################</span>
+    <span class="c1"># Duplicate table</span>
+    <span class="c1">#####################</span>
     <span class="n">duplicate_table</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 
-    <span class="c"># Verify table&#39;s schema</span>
-    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s">&#39;test2&#39;</span><span class="p">)</span>
-    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s">&#39;test2&#39;</span><span class="p">)</span>   
-    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;test_text&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
-    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="s">&#39;TEXT&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
+    <span class="c1"># Verify table&#39;s schema</span>
+    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s1">&#39;test2&#39;</span><span class="p">)</span>
+    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s1">&#39;test2&#39;</span><span class="p">)</span>   
+    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;test_text&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
+    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
     
-    <span class="n">text_list_</span> <span class="o">=</span> <span class="n">get_text</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s">&#39;test2&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">text_list</span> <span class="o">==</span> <span class="n">text_list_</span><span class="p">,</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">text_list_</span>
-    <span class="n">integer_list_</span> <span class="o">=</span> <span class="n">get_integers</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s">&#39;test2&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">integer_list</span> <span class="o">==</span> <span class="n">integer_list_</span><span class="p">,</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">integer_list_</span>
+    <span class="n">text_list_</span> <span class="o">=</span> <span class="n">get_text</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s1">&#39;test2&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">text_list</span> <span class="o">==</span> <span class="n">text_list_</span><span class="p">,</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">text_list_</span>
+    <span class="n">integer_list_</span> <span class="o">=</span> <span class="n">get_integers</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s1">&#39;test2&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">integer_list</span> <span class="o">==</span> <span class="n">integer_list_</span><span class="p">,</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">integer_list_</span>
 
-    <span class="c">#####################</span>
-    <span class="c"># Duplicate column</span>
-    <span class="c">#####################</span>
+    <span class="c1">#####################</span>
+    <span class="c1"># Duplicate column</span>
+    <span class="c1">#####################</span>
     <span class="n">duplicate_column</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 
-    <span class="c"># Verify table&#39;s schema</span>
-    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s">&#39;test2&#39;</span><span class="p">)</span>
-    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s">&#39;test2&#39;</span><span class="p">)</span>   
-    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;test_text&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer2&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
-    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">u&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s">u&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="s">u&#39;TEXT&#39;</span><span class="p">,</span> <span class="s">u&#39;TEXT&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
+    <span class="c1"># Verify table&#39;s schema</span>
+    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s1">&#39;test2&#39;</span><span class="p">)</span>
+    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s1">&#39;test2&#39;</span><span class="p">)</span>   
+    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;test_text&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer2&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
+    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">u&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s1">u&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="s1">u&#39;TEXT&#39;</span><span class="p">,</span> <span class="s1">u&#39;TEXT&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
 
-    <span class="n">integer_list</span> <span class="o">=</span> <span class="n">get_integers</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s">&#39;test2&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
-    <span class="n">integer2_list</span> <span class="o">=</span> <span class="n">get_integers2</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s">&#39;test2&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
+    <span class="n">integer_list</span> <span class="o">=</span> <span class="n">get_integers</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s1">&#39;test2&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
+    <span class="n">integer2_list</span> <span class="o">=</span> <span class="n">get_integers2</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s1">&#39;test2&#39;</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">integer_list</span> <span class="o">==</span> <span class="n">integer2_list</span>
 
-    <span class="c">#####################</span>
-    <span class="c"># Rename table</span>
-    <span class="c">#####################</span>
+    <span class="c1">#####################</span>
+    <span class="c1"># Rename table</span>
+    <span class="c1">#####################</span>
     <span class="n">rename_table</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 
     <span class="n">tablename_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_names</span><span class="p">()</span>
-    <span class="k">assert</span> <span class="n">tablename_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="s">&#39;test3&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">tablename_list</span>
+    <span class="k">assert</span> <span class="n">tablename_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;test3&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">tablename_list</span>
 
-    <span class="c">#####################</span>
-    <span class="c"># Rename column</span>
-    <span class="c">#####################</span>
+    <span class="c1">#####################</span>
+    <span class="c1"># Rename column</span>
+    <span class="c1">#####################</span>
     <span class="n">rename_column</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 
-    <span class="c"># Verify table&#39;s schema</span>
-    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s">&#39;test3&#39;</span><span class="p">)</span>
-    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s">&#39;test3&#39;</span><span class="p">)</span>   
-    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;test_text&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer3&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
-    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">u&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s">u&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="s">u&#39;TEXT&#39;</span><span class="p">,</span> <span class="s">u&#39;TEXT&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
+    <span class="c1"># Verify table&#39;s schema</span>
+    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s1">&#39;test3&#39;</span><span class="p">)</span>
+    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s1">&#39;test3&#39;</span><span class="p">)</span>   
+    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;test_text&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer3&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
+    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">u&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s1">u&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="s1">u&#39;TEXT&#39;</span><span class="p">,</span> <span class="s1">u&#39;TEXT&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
 
-    <span class="c">#########################</span>
-    <span class="c"># Reorder table&#39;s columns</span>
-    <span class="c">#########################</span>
-    <span class="n">colname_original_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">)</span>
-    <span class="n">coltype_original_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">)</span>   
+    <span class="c1">#########################</span>
+    <span class="c1"># Reorder table&#39;s columns</span>
+    <span class="c1">#########################</span>
+    <span class="n">colname_original_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+    <span class="n">coltype_original_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>   
 
     <span class="n">order_list</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">colname_original_list</span><span class="p">))</span>
     <span class="k">while</span> <span class="n">order_list</span> <span class="o">==</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">order_list</span><span class="p">):</span>
         <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">order_list</span><span class="p">)</span>
     <span class="n">reorder_columns</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">order_list</span><span class="p">)</span>
 
-    <span class="c"># Verify table&#39;s schema</span>
-    <span class="n">colname_list_</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">)</span>
-    <span class="n">coltype_list_</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">)</span>   
+    <span class="c1"># Verify table&#39;s schema</span>
+    <span class="n">colname_list_</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+    <span class="n">coltype_list_</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>   
 
-    <span class="c"># Find correct new order</span>
+    <span class="c1"># Find correct new order</span>
     <span class="n">combined</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">order_list</span><span class="p">,</span> <span class="n">colname_original_list</span><span class="p">,</span> <span class="n">coltype_original_list</span><span class="p">)))</span>
     <span class="n">colname_list__</span> <span class="o">=</span> <span class="p">[</span> <span class="n">name</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">type_</span> <span class="ow">in</span> <span class="n">combined</span> <span class="p">]</span>
     <span class="n">coltype_list__</span> <span class="o">=</span> <span class="p">[</span> <span class="n">type_</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">type_</span> <span class="ow">in</span> <span class="n">combined</span> <span class="p">]</span>
 
-    <span class="k">assert</span> <span class="n">colname_list_</span> <span class="o">==</span> <span class="n">colname_list__</span><span class="p">,</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">colname_list_</span>
-    <span class="k">assert</span> <span class="n">coltype_list_</span> <span class="o">==</span> <span class="n">coltype_list__</span><span class="p">,</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list_</span>
+    <span class="k">assert</span> <span class="n">colname_list_</span> <span class="o">==</span> <span class="n">colname_list__</span><span class="p">,</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">colname_list_</span>
+    <span class="k">assert</span> <span class="n">coltype_list_</span> <span class="o">==</span> <span class="n">coltype_list__</span><span class="p">,</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list_</span>
     
-    <span class="c">#####################</span>
-    <span class="c"># Drop column</span>
-    <span class="c">#####################</span>
+    <span class="c1">#####################</span>
+    <span class="c1"># Drop column</span>
+    <span class="c1">#####################</span>
     <span class="n">drop_column</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 
-    <span class="c"># Verify table&#39;s schema</span>
-    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s">&#39;test3&#39;</span><span class="p">)</span>
-    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s">&#39;test3&#39;</span><span class="p">)</span>   
-    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;test_text&#39;</span><span class="p">,</span> <span class="s">&#39;test_integer&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
-    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">u&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s">u&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="s">u&#39;TEXT&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
+    <span class="c1"># Verify table&#39;s schema</span>
+    <span class="n">colname_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_names</span><span class="p">(</span><span class="s1">&#39;test3&#39;</span><span class="p">)</span>
+    <span class="n">coltype_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_column_types</span><span class="p">(</span><span class="s1">&#39;test3&#39;</span><span class="p">)</span>   
+    <span class="k">assert</span> <span class="n">colname_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;test_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;test_text&#39;</span><span class="p">,</span> <span class="s1">&#39;test_integer&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">colname_list</span>
+    <span class="k">assert</span> <span class="n">coltype_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">u&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">,</span> <span class="s1">u&#39;TEXT NOT NULL&#39;</span><span class="p">,</span> <span class="s1">u&#39;TEXT&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">coltype_list</span>
 
-    <span class="c">#####################</span>
-    <span class="c"># Drop table</span>
-    <span class="c">#####################</span>
+    <span class="c1">#####################</span>
+    <span class="c1"># Drop table</span>
+    <span class="c1">#####################</span>
     <span class="n">drop_table</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 
     <span class="n">tablename_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_names</span><span class="p">()</span>
-    <span class="k">assert</span> <span class="n">tablename_list</span> <span class="o">==</span> <span class="p">[</span><span class="s">&#39;metadata&#39;</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">],</span> <span class="s">&#39;Actual values: </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="n">tablename_list</span>
+    <span class="k">assert</span> <span class="n">tablename_list</span> <span class="o">==</span> <span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">],</span> <span class="s1">&#39;Actual values: </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">tablename_list</span>
 
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For windows</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># For windows</span>
     <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_SQL_MODIFY</span><span class="p">)</span>
-    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s">&#39;test_locals&#39;</span><span class="p">)</span>
+    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s1">&#39;test_locals&#39;</span><span class="p">)</span>
     <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
 </pre></div>
 
@@ -425,7 +425,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

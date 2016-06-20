@@ -5398,6 +5398,56 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
 
 
 @register_ibs_method
+def get_image_lazydict(ibs, gid, config=None):
+    r"""
+    Args:
+        ibs (ibeis.IBEISController):  image analysis api
+        aid (int):  annotation id
+        config (dict): (default = None)
+
+    Returns:
+        ut.LazyDict: metadata
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --exec-get_annot_lazy_dict2 --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> gid = 1
+    """
+    #from ibeis.viz.interact import interact_chip
+    metadata = ut.LazyDict({
+        'gid': gid,
+        'unixtime': lambda: ibs.get_image_unixtime(gid),
+        'aids': lambda: ibs.get_image_aids(gid),
+        'size': lambda: ibs.get_image_sizes(gid),
+        'uri': lambda: ibs.get_image_uris(gid),
+        'uuid': lambda: ibs.get_image_uuids(gid),
+        'gps': lambda: ibs.get_image_gps(gid),
+        'orientation': lambda: ibs.get_image_orientation(gid),
+        #'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
+    })
+    return metadata
+
+
+@register_ibs_method
+def get_image_instancelist(ibs, gid_list):
+    obj_list = [ibs.get_image_lazydict(gid) for gid in gid_list]
+    image_list = ut.make_instancelist(obj_list, check=False)
+    return image_list
+
+
+@register_ibs_method
+def get_annot_instancelist(ibs, aid_list):
+    obj_list = [ibs.get_annot_lazydict(aid) for aid in aid_list]
+    annot_list = ut.make_instancelist(obj_list, check=False)
+    return annot_list
+
+
+@register_ibs_method
 def get_annot_lazy_dict2(ibs, aid, config=None):
     r"""
     Args:
@@ -5808,7 +5858,7 @@ def temp_group_annot_occurrences(ibs, aid_list):
 
 
 @register_ibs_method
-def compute_occurrences(ibs):
+def compute_occurrences(ibs, seconds_thresh=None):
     """
     Clusters ungrouped images into imagesets representing occurrences
 
@@ -5819,11 +5869,10 @@ def compute_occurrences(ibs):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import ibeis  # NOQA
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs.compute_occurrences()
         >>> ibs.update_special_imagesets()
-        >>> # Now we want to remove some images from a non-special imageset
+        >>> # Remove some images from a non-special imageset
         >>> nonspecial_imgsetids = [i for i in ibs.get_valid_imgsetids() if i not in ibs.get_special_imgsetids()]
         >>> images_to_remove = ibs.get_imageset_gids(nonspecial_imgsetids[0:1])[0][0:1]
         >>> ibs.unrelate_images_and_imagesets(images_to_remove,nonspecial_imgsetids[0:1] * len(images_to_remove))
@@ -5848,26 +5897,20 @@ def compute_occurrences(ibs):
     #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
     with ut.Timer('computing imagesets'):
         flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
-            ibs, gid_list)
-        flat_imgsetids = np.array(flat_imgsetids)
-        flat_gids = np.array(flat_gids)
-        sortx = flat_imgsetids.argsort()
-        flat_imgsetids = flat_imgsetids[sortx]
-        flat_gids = flat_gids[sortx]
+            ibs, gid_list, seconds_thresh=seconds_thresh)
+        sortx = ut.argsort(flat_imgsetids)
+        flat_imgsetids = ut.take(flat_imgsetids, sortx)
+        flat_gids = ut.take(flat_gids, sortx)
+
     valid_imgsetids = ibs.get_valid_imgsetids()
     imgsetid_offset = 0 if len(valid_imgsetids) == 0 else max(valid_imgsetids)
 
-    #imgset_to_gids = ut.group_items(flat_gids, flat_imgsetids)
-    #unixtimes_list = ibs.unflat_map(ibs.get_image_unixtime, imgset_to_gids.values())
-    #imgset_keys = imgset_to_gids.keys()
-    #imageset_start_time_posix_list = [min(unixtimes) for unixtimes in unixtimes_list]
-    #import utool
-    #utool.embed()
-
     # This way we can make sure that manually separated imagesets
     # remain untouched, and ensure that new imagesets are created
-    flat_imgsetids_offset = [imgsetid + imgsetid_offset for imgsetid in flat_imgsetids]
-    imagesettext_list = ['Occurrence ' + str(imgsetid) for imgsetid in flat_imgsetids_offset]
+    flat_imgsetids_offset = [imgsetid + imgsetid_offset
+                             for imgsetid in flat_imgsetids]
+    imagesettext_list = ['Occurrence ' + str(imgsetid)
+                         for imgsetid in flat_imgsetids_offset]
     print('[ibs] Finished computing, about to add imageset.')
     ibs.set_image_imagesettext(flat_gids, imagesettext_list)
     # HACK TO UPDATE IMAGESET POSIX TIMES

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_meta_funcs &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.control.manual_meta_funcs &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,23 +131,23 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.control.manual_meta_funcs</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">controller functions for contributors, versions, configs, and other metadata</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="c">#import uuid</span>
-<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
-<span class="c">#from os.path import join</span>
+<span class="c1">#import uuid</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># NOQA</span>
+<span class="c1">#from os.path import join</span>
 <span class="kn">import</span> <span class="nn">functools</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">accessor_decors</span><span class="p">,</span> <span class="n">controller_inject</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo</span> <span class="kn">import</span> <span class="n">Config</span>
-<span class="c">#from ibeis import ibsfuncs</span>
+<span class="c1">#from ibeis.other import ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_meta]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[manual_meta]&#39;</span><span class="p">)</span>
 
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
@@ -159,7 +159,7 @@
 
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.adder</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="add_contributors"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.add_contributors">[docs]</a><span class="k">def</span> <span class="nf">add_contributors</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">tag_list</span><span class="p">,</span> <span class="n">uuid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">name_first_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">name_last_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                      <span class="n">loc_city_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">loc_state_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                      <span class="n">loc_country_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">loc_zip_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
@@ -175,51 +175,51 @@
 <span class="sd">        URL:    /api/contributor/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">datetime</span>
-    <span class="k">def</span> <span class="nf">_valid_zip</span><span class="p">(</span><span class="n">_zip</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;00000&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_valid_zip</span><span class="p">(</span><span class="n">_zip</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;00000&#39;</span><span class="p">):</span>
         <span class="n">_zip</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">_zip</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_zip</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span> <span class="ow">and</span> <span class="n">_zip</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
             <span class="k">return</span> <span class="n">_zip</span>
         <span class="k">return</span> <span class="n">default</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] adding </span><span class="si">%d</span><span class="s"> imagesets&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">))</span>
-    <span class="c"># Add contributors to database</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs] adding </span><span class="si">%d</span><span class="s1"> imagesets&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">))</span>
+    <span class="c1"># Add contributors to database</span>
     <span class="k">if</span> <span class="n">name_first_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">name_first_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
+        <span class="n">name_first_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">name_last_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">name_last_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
+        <span class="n">name_last_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">loc_city_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">loc_city_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
+        <span class="n">loc_city_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">loc_state_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">loc_state_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
+        <span class="n">loc_state_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">loc_country_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">loc_country_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
+        <span class="n">loc_country_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">loc_zip_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">loc_zip_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
+        <span class="n">loc_zip_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">notes_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">notes_list</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&quot;Created </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">))]</span>
+        <span class="n">notes_list</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;Created </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tag_list</span><span class="p">))]</span>
 
     <span class="n">loc_zip_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">_valid_zip</span><span class="p">(</span><span class="n">_zip</span><span class="p">)</span> <span class="k">for</span> <span class="n">_zip</span> <span class="ow">in</span> <span class="n">loc_zip_list</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">uuid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c">#contrib_rowid_list = ibs.get_contributor_rowid_from_tag(tag_list)</span>
-        <span class="c">#uuid_list = ibs.get_contributor_uuid(contrib_rowid_list)</span>
-        <span class="c">#uuid_list = ibs.get_contributor_uuid(contrib_rowid_list)</span>
-        <span class="c">#uuid_list = [ uuid.uuid4() if uuid_ is None else uuid_ for uuid_ in uuid_list ]</span>
-        <span class="c"># DETERMENISTIC UUIDS</span>
+        <span class="c1">#contrib_rowid_list = ibs.get_contributor_rowid_from_tag(tag_list)</span>
+        <span class="c1">#uuid_list = ibs.get_contributor_uuid(contrib_rowid_list)</span>
+        <span class="c1">#uuid_list = ibs.get_contributor_uuid(contrib_rowid_list)</span>
+        <span class="c1">#uuid_list = [ uuid.uuid4() if uuid_ is None else uuid_ for uuid_ in uuid_list ]</span>
+        <span class="c1"># DETERMENISTIC UUIDS</span>
         <span class="n">zero_uuid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_zero_uuid</span><span class="p">()</span>
         <span class="n">uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">augment_uuid</span><span class="p">(</span><span class="n">zero_uuid</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tag_list</span><span class="p">]</span>
 
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;contributor_tag&#39;</span><span class="p">,</span> <span class="s">&#39;contributor_name_first&#39;</span><span class="p">,</span>
-                <span class="s">&#39;contributor_name_last&#39;</span><span class="p">,</span> <span class="s">&#39;contributor_location_city&#39;</span><span class="p">,</span>
-                <span class="s">&#39;contributor_location_state&#39;</span><span class="p">,</span> <span class="s">&#39;contributor_location_country&#39;</span><span class="p">,</span>
-                <span class="s">&#39;contributor_location_zip&#39;</span><span class="p">,</span> <span class="s">&#39;contributor_note&#39;</span><span class="p">]</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;contributor_uuid&#39;</span><span class="p">,</span> <span class="s1">&#39;contributor_tag&#39;</span><span class="p">,</span> <span class="s1">&#39;contributor_name_first&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;contributor_name_last&#39;</span><span class="p">,</span> <span class="s1">&#39;contributor_location_city&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;contributor_location_state&#39;</span><span class="p">,</span> <span class="s1">&#39;contributor_location_country&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;contributor_location_zip&#39;</span><span class="p">,</span> <span class="s1">&#39;contributor_note&#39;</span><span class="p">]</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">uuid_list</span><span class="p">,</span> <span class="n">tag_list</span><span class="p">,</span> <span class="n">name_first_list</span><span class="p">,</span>
                       <span class="n">name_last_list</span><span class="p">,</span> <span class="n">loc_city_list</span><span class="p">,</span> <span class="n">loc_state_list</span><span class="p">,</span>
                       <span class="n">loc_country_list</span><span class="p">,</span> <span class="n">loc_zip_list</span><span class="p">,</span> <span class="n">notes_list</span><span class="p">)</span>
 
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_contributor_rowid_from_uuid</span>
-    <span class="c">#get_rowid_from_superkey = ibs.get_contributor_rowid_from_tag  # ?? is tag a superkey?</span>
+    <span class="c1">#get_rowid_from_superkey = ibs.get_contributor_rowid_from_tag  # ?? is tag a superkey?</span>
     <span class="n">contrib_id_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contrib_id_list</span>
 
@@ -230,17 +230,17 @@
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Adds an algorithm / actor configuration as a string</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># FIXME: Configs are still handled poorly</span>
+    <span class="c1"># FIXME: Configs are still handled poorly</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">versiontext</span><span class="p">,)</span> <span class="k">for</span> <span class="n">versiontext</span> <span class="ow">in</span> <span class="n">versiontext_list</span><span class="p">)</span>
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_version_rowid_from_superkey</span>
-    <span class="n">versionid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">VERSIONS_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;version_text&#39;</span><span class="p">,),</span>
+    <span class="n">versionid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">VERSIONS_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;version_text&#39;</span><span class="p">,),</span>
                                         <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">versionid_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.adder</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/config/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/config/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="add_config"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.add_config">[docs]</a><span class="k">def</span> <span class="nf">add_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfgsuffix_list</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Adds an algorithm / actor configuration as a string</span>
@@ -271,10 +271,10 @@
 <span class="sd">        &gt;&gt;&gt; result = (&#39;config_rowid_list = %s&#39; % (str(config_rowid_list),))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># FIXME: Configs are still handled poorly. This function is an ensure</span>
+    <span class="c1"># FIXME: Configs are still handled poorly. This function is an ensure</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">suffix</span><span class="p">,)</span> <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="n">cfgsuffix_list</span><span class="p">)</span>
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_config_rowid_from_suffix</span>
-    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;config_suffix&#39;</span><span class="p">,),</span>
+    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;config_suffix&#39;</span><span class="p">,),</span>
                                            <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">contrib_rowid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_config_contributor_rowid</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
@@ -287,33 +287,33 @@
     <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_config_rowid_from_suffix</span><span class="p">(</span><span class="n">cfgsuffix_list</span><span class="p">)</span>
     <span class="n">is_dirty_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_None_items</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">is_dirty_list</span><span class="p">):</span>
-        <span class="c"># Only call adder if needed, adders cause debug output to be large</span>
+        <span class="c1"># Only call adder if needed, adders cause debug output to be large</span>
         <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_config</span><span class="p">(</span><span class="n">cfgsuffix_list</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">config_rowid_list</span>
 
 
-<span class="c">#@register_ibs_method</span>
-<span class="c">#@accessor_decors.default_decorator</span>
-<span class="c">#@register_api(&#39;/api/query/config_rowid/&#39;, methods=[&#39;GET&#39;])</span>
-<span class="c">#def get_query_config_rowid(ibs):</span>
-<span class="c">#    r&quot;&quot;&quot;</span>
-<span class="c">#    # FIXME: Configs are still handled poorly</span>
+<span class="c1">#@register_ibs_method</span>
+<span class="c1">#@accessor_decors.default_decorator</span>
+<span class="c1">#@register_api(&#39;/api/query/config_rowid/&#39;, methods=[&#39;GET&#39;])</span>
+<span class="c1">#def get_query_config_rowid(ibs):</span>
+<span class="c1">#    r&quot;&quot;&quot;</span>
+<span class="c1">#    # FIXME: Configs are still handled poorly</span>
 
-<span class="c">#    RESTful:</span>
-<span class="c">#        Method: GET</span>
-<span class="c">#        URL:    /api/query/config_rowid/</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    query_cfg_suffix = ibs.cfg.query_cfg.get_cfgstr()</span>
-<span class="c">#    query_cfg_rowid = ibs.add_config(query_cfg_suffix)</span>
-<span class="c">#    return query_cfg_rowid</span>
+<span class="c1">#    RESTful:</span>
+<span class="c1">#        Method: GET</span>
+<span class="c1">#        URL:    /api/query/config_rowid/</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    query_cfg_suffix = ibs.cfg.query_cfg.get_cfgstr()</span>
+<span class="c1">#    query_cfg_rowid = ibs.add_config(query_cfg_suffix)</span>
+<span class="c1">#    return query_cfg_rowid</span>
 
-<span class="c"># SETTERS::METADATA</span>
+<span class="c1"># SETTERS::METADATA</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.setter</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/metadata/value/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/metadata/value/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="set_metadata_value"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.set_metadata_value">[docs]</a><span class="k">def</span> <span class="nf">set_metadata_value</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">metadata_key_list</span><span class="p">,</span> <span class="n">metadata_value_list</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Sets metadata key, value pairs</span>
@@ -322,11 +322,11 @@
 <span class="sd">        Method: PUT</span>
 <span class="sd">        URL:    /api/metadata/value/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">db</span> <span class="o">=</span> <span class="n">db</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># Unwrap tuple, required by @accessor_decors.setter decorator</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">db</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Unwrap tuple, required by @accessor_decors.setter decorator</span>
     <span class="n">metadata_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_metadata_rowid_from_metadata_key</span><span class="p">(</span><span class="n">metadata_key_list</span><span class="p">,</span> <span class="n">db</span><span class="p">)</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">metadata_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">metadata_rowid</span> <span class="ow">in</span> <span class="n">metadata_rowid_list</span><span class="p">)</span>
     <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">metadata_value</span><span class="p">,)</span> <span class="k">for</span> <span class="n">metadata_value</span> <span class="ow">in</span> <span class="n">metadata_value_list</span><span class="p">)</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;metadata_value&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;metadata_value&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -336,11 +336,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">db</span><span class="o">.</span><span class="n">set_db_version</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
 
-<span class="c"># SETTERS::CONTRIBUTORS</span>
+<span class="c1"># SETTERS::CONTRIBUTORS</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/config/contributor_rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/config/contributor_rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="set_config_contributor_rowid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.set_config_contributor_rowid">[docs]</a><span class="k">def</span> <span class="nf">set_config_contributor_rowid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Sets the config&#39;s contributor rowid</span>
@@ -351,26 +351,25 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">config_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">config_rowid</span> <span class="ow">in</span> <span class="n">config_rowid_list</span><span class="p">)</span>
     <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">contrib_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">contrib_rowid</span> <span class="ow">in</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;contributor_rowid&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/new_temp/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/new_temp/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="add_new_temp_contributor"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.add_new_temp_contributor">[docs]</a><span class="k">def</span> <span class="nf">add_new_temp_contributor</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">autolocate</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;add_new_temp_contributor&#39;</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: POST</span>
 <span class="sd">        URL:    /api/contributor/new_temp/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">name_first</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
-    <span class="n">name_last</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_user_name</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">()</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[collect_transfer_data] Contributor default first name: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_first</span><span class="p">,</span> <span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[collect_transfer_data] Contributor default last name:  </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_last</span><span class="p">,</span> <span class="p">))</span>
+    <span class="n">name_last</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_user_name</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Contributor default first name: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_first</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Contributor default last name:  </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name_last</span><span class="p">,</span> <span class="p">))</span>
     <span class="k">if</span> <span class="n">user_prompt</span><span class="p">:</span>
-        <span class="n">name_first</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[collect_transfer_data] Change first name (Enter to use default): &#39;</span><span class="p">)</span>
-        <span class="n">name_last</span>  <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[collect_transfer_data] Change last name (Enter to use default): &#39;</span><span class="p">)</span>
+        <span class="n">name_first</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[collect_transfer_data] Change first name (Enter to use default): &#39;</span><span class="p">)</span>
+        <span class="n">name_last</span>  <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[collect_transfer_data] Change last name (Enter to use default): &#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">autolocate</span><span class="p">:</span>
         <span class="n">success</span><span class="p">,</span> <span class="n">location_city</span><span class="p">,</span> <span class="n">location_state</span><span class="p">,</span> <span class="n">location_country</span><span class="p">,</span> <span class="n">location_zip</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">geo_locate</span><span class="p">()</span>
@@ -378,37 +377,37 @@
         <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
 
     <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[collect_transfer_data] Your location was be determined automatically.&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[collect_transfer_data] Contributor default city: </span><span class="si">%s</span><span class="s">&#39;</span>    <span class="o">%</span> <span class="p">(</span><span class="n">location_city</span><span class="p">,</span> <span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[collect_transfer_data] Contributor default state: </span><span class="si">%s</span><span class="s">&#39;</span>   <span class="o">%</span> <span class="p">(</span><span class="n">location_state</span><span class="p">,</span> <span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[collect_transfer_data] Contributor default zip: </span><span class="si">%s</span><span class="s">&#39;</span>     <span class="o">%</span> <span class="p">(</span><span class="n">location_country</span><span class="p">,</span> <span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[collect_transfer_data] Contributor default country: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location_zip</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[collect_transfer_data] Your location was be determined automatically.&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Contributor default city: </span><span class="si">%s</span><span class="s1">&#39;</span>    <span class="o">%</span> <span class="p">(</span><span class="n">location_city</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Contributor default state: </span><span class="si">%s</span><span class="s1">&#39;</span>   <span class="o">%</span> <span class="p">(</span><span class="n">location_state</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Contributor default zip: </span><span class="si">%s</span><span class="s1">&#39;</span>     <span class="o">%</span> <span class="p">(</span><span class="n">location_country</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Contributor default country: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location_zip</span><span class="p">,</span> <span class="p">))</span>
         <span class="k">if</span> <span class="n">user_prompt</span><span class="p">:</span>
-            <span class="n">location_city</span>    <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[collect_transfer_data] Change default location city (Enter to use default): &#39;</span><span class="p">)</span>
-            <span class="n">location_state</span>   <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[collect_transfer_data] Change default location state (Enter to use default): &#39;</span><span class="p">)</span>
-            <span class="n">location_zip</span>     <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[collect_transfer_data] Change default location zip (Enter to use default): &#39;</span><span class="p">)</span>
-            <span class="n">location_country</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[collect_transfer_data] Change default location country (Enter to use default): &#39;</span><span class="p">)</span>
+            <span class="n">location_city</span>    <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[collect_transfer_data] Change default location city (Enter to use default): &#39;</span><span class="p">)</span>
+            <span class="n">location_state</span>   <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[collect_transfer_data] Change default location state (Enter to use default): &#39;</span><span class="p">)</span>
+            <span class="n">location_zip</span>     <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[collect_transfer_data] Change default location zip (Enter to use default): &#39;</span><span class="p">)</span>
+            <span class="n">location_country</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[collect_transfer_data] Change default location country (Enter to use default): &#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">user_prompt</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[collect_transfer_data] Your location could not be determined automatically.&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Your location could not be determined automatically.&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">user_prompt</span><span class="p">:</span>
-            <span class="n">location_city</span>    <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;[collect_transfer_data] Enter your location city (Enter to skip): &#39;</span><span class="p">)</span>
-            <span class="n">location_state</span>   <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;[collect_transfer_data] Enter your location state (Enter to skip): &#39;</span><span class="p">)</span>
-            <span class="n">location_zip</span>     <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;[collect_transfer_data] Enter your location zip (Enter to skip): &#39;</span><span class="p">)</span>
-            <span class="n">location_country</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;[collect_transfer_data] Enter your location country (Enter to skip): &#39;</span><span class="p">)</span>
+            <span class="n">location_city</span>    <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Enter your location city (Enter to skip): &#39;</span><span class="p">)</span>
+            <span class="n">location_state</span>   <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Enter your location state (Enter to skip): &#39;</span><span class="p">)</span>
+            <span class="n">location_zip</span>     <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Enter your location zip (Enter to skip): &#39;</span><span class="p">)</span>
+            <span class="n">location_country</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;[collect_transfer_data] Enter your location country (Enter to skip): &#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">location_city</span>    <span class="o">=</span> <span class="s">&#39;&#39;</span>
-            <span class="n">location_state</span>   <span class="o">=</span> <span class="s">&#39;&#39;</span>
-            <span class="n">location_zip</span>     <span class="o">=</span> <span class="s">&#39;&#39;</span>
-            <span class="n">location_country</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+            <span class="n">location_city</span>    <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">location_state</span>   <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">location_zip</span>     <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">location_country</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
-    <span class="c">#tag = &#39;::&#39;.join([name_first, name_last, location_city, location_state, location_zip, location_country])</span>
+    <span class="c1">#tag = &#39;::&#39;.join([name_first, name_last, location_city, location_state, location_zip, location_country])</span>
     <span class="n">tag_components</span> <span class="o">=</span> <span class="p">[</span><span class="n">name_first</span><span class="p">,</span> <span class="n">name_last</span><span class="p">,</span> <span class="n">location_city</span><span class="p">,</span> <span class="n">location_state</span><span class="p">,</span> <span class="n">location_zip</span><span class="p">,</span> <span class="n">location_country</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">offset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">tag_components</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">offset</span><span class="p">)]</span>
-    <span class="n">tag_components_clean</span> <span class="o">=</span> <span class="p">[</span><span class="n">comp</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">,</span> <span class="s">&#39;&lt;semi&gt;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">tag_components</span><span class="p">]</span>
-    <span class="n">tag</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tag_components_clean</span><span class="p">)</span>
+    <span class="n">tag_components_clean</span> <span class="o">=</span> <span class="p">[</span><span class="n">comp</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;semi&gt;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">tag_components</span><span class="p">]</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tag_components_clean</span><span class="p">)</span>
     <span class="n">contrib_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_contributors</span><span class="p">(</span>
         <span class="p">[</span><span class="n">tag</span><span class="p">],</span> <span class="n">name_first_list</span><span class="o">=</span><span class="p">[</span><span class="n">name_first</span><span class="p">],</span>
         <span class="n">name_last_list</span><span class="o">=</span><span class="p">[</span><span class="n">name_last</span><span class="p">],</span> <span class="n">loc_city_list</span><span class="o">=</span><span class="p">[</span><span class="n">location_city</span><span class="p">],</span>
@@ -452,31 +451,30 @@
 <span class="sd">        &gt;&gt;&gt; assert ut.allsame(contrib_rowid_list2)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(contrib_rowid_list2[0], 1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># TODO: Alter this check to support merging databases with more than one contributor, but none assigned to the manual config</span>
+    <span class="c1"># TODO: Alter this check to support merging databases with more than one contributor, but none assigned to the manual config</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ensure_contributor_rowids] Ensuring all images have contributors for dbname=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ensure_contributor_rowids] Ensuring all images have contributors for dbname=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()))</span>
     <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_contrib_rowids</span><span class="p">()</span>
     <span class="n">unassigned_gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_all_uncontributed_images</span><span class="p">()</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ensure_contributor_rowids] </span><span class="si">%d</span><span class="s"> Contributors exist. </span><span class="si">%d</span><span class="s"> images are unassigned&#39;</span> <span class="o">%</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ensure_contributor_rowids] </span><span class="si">%d</span><span class="s1"> Contributors exist. </span><span class="si">%d</span><span class="s1"> images are unassigned&#39;</span> <span class="o">%</span>
               <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">unassigned_gid_list</span><span class="p">)))</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unassigned_gid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">new_contrib_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_new_temp_contributor</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">),</span> <span class="n">user_prompt</span><span class="o">=</span><span class="n">user_prompt</span><span class="p">,</span> <span class="n">autolocate</span><span class="o">=</span><span class="n">autolocate</span><span class="p">)</span>
-        <span class="c"># SET UNASSIGNED IMAGE CONTRIBUTORS</span>
+        <span class="c1"># SET UNASSIGNED IMAGE CONTRIBUTORS</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_contributor_rowid</span><span class="p">(</span><span class="n">unassigned_gid_list</span><span class="p">,</span> <span class="p">[</span><span class="n">new_contrib_rowid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unassigned_gid_list</span><span class="p">))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">ensure_imageset_configs_populated</span><span class="p">()</span>
-    <span class="c"># make sure that all images have assigned contributors</span>
-    <span class="c"># Get new non-conflicting contributor for unassigned images</span>
-    <span class="c">#contrib_rowid_list = list([new_contrib_rowid]) * len(unassigned_gid_list)</span>
-    <span class="c">#ibs.set_config_contributor_rowid(unassigned_gid_list, contrib_rowid_list)</span>
+    <span class="c1"># make sure that all images have assigned contributors</span>
+    <span class="c1"># Get new non-conflicting contributor for unassigned images</span>
+    <span class="c1">#contrib_rowid_list = list([new_contrib_rowid]) * len(unassigned_gid_list)</span>
+    <span class="c1">#ibs.set_config_contributor_rowid(unassigned_gid_list, contrib_rowid_list)</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_contrib_rowids</span><span class="p">()</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/all_uncontributed_images/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/all_uncontributed_images/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_all_uncontributed_images"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_all_uncontributed_images">[docs]</a><span class="k">def</span> <span class="nf">get_all_uncontributed_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;get_all_uncontributed_images&#39;</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
@@ -486,21 +484,20 @@
     <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_contributor_rowid</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">is_unassigned</span> <span class="o">=</span> <span class="p">[</span><span class="n">contrib_rowid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">contrib_rowid</span> <span class="ow">in</span> <span class="n">contrib_rowid_list</span><span class="p">]</span>
     <span class="n">unassigned_gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">is_unassigned</span><span class="p">)</span>
-    <span class="c">#sum(is_unassigned)</span>
-    <span class="c">#len(is_unassignd)</span>
-    <span class="c">#unassigned_gid_list = [</span>
-    <span class="c">#    gid</span>
-    <span class="c">#    for gid, _contrib_rowid in zip(gid_list, contrib_rowid_list)</span>
-    <span class="c">#    if _contrib_rowid is None</span>
-    <span class="c">#]</span>
+    <span class="c1">#sum(is_unassigned)</span>
+    <span class="c1">#len(is_unassignd)</span>
+    <span class="c1">#unassigned_gid_list = [</span>
+    <span class="c1">#    gid</span>
+    <span class="c1">#    for gid, _contrib_rowid in zip(gid_list, contrib_rowid_list)</span>
+    <span class="c1">#    if _contrib_rowid is None</span>
+    <span class="c1">#]</span>
     <span class="k">return</span> <span class="n">unassigned_gid_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/all_uncontributed_configs/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/all_uncontributed_configs/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_all_uncontributed_configs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_all_uncontributed_configs">[docs]</a><span class="k">def</span> <span class="nf">get_all_uncontributed_configs</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;get_all_uncontributed_configs&#39;</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
@@ -510,25 +507,24 @@
     <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_config_contributor_rowid</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">)</span>
     <span class="n">isunassigned_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_contrib_rowid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">_contrib_rowid</span> <span class="ow">in</span> <span class="n">contrib_rowid_list</span><span class="p">]</span>
     <span class="n">unassigned_config_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">,</span> <span class="n">isunassigned_list</span><span class="p">)</span>
-    <span class="c">#unassigned_config_rowid_list = [</span>
-    <span class="c">#    config_rowid</span>
-    <span class="c">#    for config_rowid, _contrib_rowid in zip(config_rowid_list, contrib_rowid_list)</span>
-    <span class="c">#    if _contrib_rowid is None</span>
-    <span class="c">#]</span>
+    <span class="c1">#unassigned_config_rowid_list = [</span>
+    <span class="c1">#    config_rowid</span>
+    <span class="c1">#    for config_rowid, _contrib_rowid in zip(config_rowid_list, contrib_rowid_list)</span>
+    <span class="c1">#    if _contrib_rowid is None</span>
+    <span class="c1">#]</span>
     <span class="k">return</span> <span class="n">unassigned_config_rowid_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/config/contributor_unassigned/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/config/contributor_unassigned/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="set_config_contributor_unassigned"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.set_config_contributor_unassigned">[docs]</a><span class="k">def</span> <span class="nf">set_config_contributor_unassigned</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;set_config_contributor_unassigned&#39;</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: PUT</span>
 <span class="sd">        URL:    /api/config/contributor_unassigned/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># IS THIS NECESSARY?</span>
+    <span class="c1"># IS THIS NECESSARY?</span>
     <span class="n">unassigned_config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_all_uncontributed_configs</span><span class="p">()</span>
     <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">contrib_rowid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unassigned_config_rowid_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_config_contributor_rowid</span><span class="p">(</span><span class="n">unassigned_config_rowid_list</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
@@ -537,30 +533,29 @@
 <span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="ensure_imageset_configs_populated"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.ensure_imageset_configs_populated">[docs]</a><span class="k">def</span> <span class="nf">ensure_imageset_configs_populated</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;ensure_imageset_configs_populated&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">()</span>
     <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_configid</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">)</span>
     <span class="n">isunassigned_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">config_rowid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">for</span> <span class="n">config_rowid</span> <span class="ow">in</span> <span class="n">config_rowid_list</span><span class="p">]</span>
     <span class="n">unassigned_imgsetid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">imgsetid_list</span><span class="p">,</span> <span class="n">isunassigned_list</span><span class="p">)</span>
-    <span class="c">#unassigned_imgsetid_list = [</span>
-    <span class="c">#    imgsetid</span>
-    <span class="c">#    for imgsetid, config_rowid in zip(imgsetid_list, config_rowid_list)</span>
-    <span class="c">#    if config_rowid is None</span>
-    <span class="c">#]</span>
+    <span class="c1">#unassigned_imgsetid_list = [</span>
+    <span class="c1">#    imgsetid</span>
+    <span class="c1">#    for imgsetid, config_rowid in zip(imgsetid_list, config_rowid_list)</span>
+    <span class="c1">#    if config_rowid is None</span>
+    <span class="c1">#]</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">imgsetid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">unassigned_imgsetid_list</span><span class="p">)</span>
     <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">([</span><span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIGID</span><span class="p">])</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unassigned_imgsetid_list</span><span class="p">)</span>
     <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">config_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">config_rowid</span> <span class="ow">in</span> <span class="n">config_rowid_list</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;config_rowid&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
 
 
-<span class="c">#</span>
-<span class="c"># GETTERS::.CONTRIBUTOR_TABLE</span>
+<span class="c1">#</span>
+<span class="c1"># GETTERS::.CONTRIBUTOR_TABLE</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/rowid_from_uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/rowid_from_uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_rowid_from_uuid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_rowid_from_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_rowid_from_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">uuid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -570,14 +565,14 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/rowid_from_uuid/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
-    <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,),</span> <span class="n">uuid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;contributor_uuid&#39;</span><span class="p">)</span>
+    <span class="c1"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+    <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;contributor_rowid&#39;</span><span class="p">,),</span> <span class="n">uuid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;contributor_uuid&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contrib_rowid_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/rowid_from_tag/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/rowid_from_tag/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_rowid_from_tag"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_rowid_from_tag">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_rowid_from_tag</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">tag_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -587,14 +582,14 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/rowid_from_tag/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
-    <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,),</span> <span class="n">tag_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;contributor_tag&#39;</span><span class="p">)</span>
+    <span class="c1"># FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+    <span class="n">contrib_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;contributor_rowid&#39;</span><span class="p">,),</span> <span class="n">tag_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;contributor_tag&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contrib_rowid_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/uuid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_uuid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_uuid">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_uuid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -604,37 +599,36 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/uuid/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">contrib_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;contributor_uuid&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
+    <span class="n">contrib_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;contributor_uuid&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contrib_uuid_list</span>
 
 
-<span class="c">#@register_ibs_method</span>
-<span class="c">#def get_contributor_tag(ibs, contrib_rowid_list):</span>
-<span class="c">#    Returns:</span>
-<span class="c">#        contrib_tag_list (list):  a contributor&#39;s tag</span>
-<span class="c">#    contrib_tag_list = ibs.db.get(const.CONTRIBUTOR_TABLE, (&#39;contributor_tag&#39;,), contrib_rowid_list)</span>
-<span class="c">#    return contrib_tag_list</span>
+<span class="c1">#@register_ibs_method</span>
+<span class="c1">#def get_contributor_tag(ibs, contrib_rowid_list):</span>
+<span class="c1">#    Returns:</span>
+<span class="c1">#        contrib_tag_list (list):  a contributor&#39;s tag</span>
+<span class="c1">#    contrib_tag_list = ibs.db.get(const.CONTRIBUTOR_TABLE, (&#39;contributor_tag&#39;,), contrib_rowid_list)</span>
+<span class="c1">#    return contrib_tag_list</span>
 </div>
-<span class="n">CONFIG_ROWID</span>                 <span class="o">=</span> <span class="s">&#39;config_rowid&#39;</span>
-<span class="n">CONTRIBUTOR_LOCATION_CITY</span>    <span class="o">=</span> <span class="s">&#39;contributor_location_city&#39;</span>
-<span class="n">CONTRIBUTOR_LOCATION_COUNTRY</span> <span class="o">=</span> <span class="s">&#39;contributor_location_country&#39;</span>
-<span class="n">CONTRIBUTOR_LOCATION_STATE</span>   <span class="o">=</span> <span class="s">&#39;contributor_location_state&#39;</span>
-<span class="n">CONTRIBUTOR_LOCATION_ZIP</span>     <span class="o">=</span> <span class="s">&#39;contributor_location_zip&#39;</span>
-<span class="n">CONTRIBUTOR_NAME_FIRST</span>       <span class="o">=</span> <span class="s">&#39;contributor_name_first&#39;</span>
-<span class="n">CONTRIBUTOR_NAME_LAST</span>        <span class="o">=</span> <span class="s">&#39;contributor_name_last&#39;</span>
-<span class="n">CONTRIBUTOR_NOTE</span>             <span class="o">=</span> <span class="s">&#39;contributor_note&#39;</span>
-<span class="n">CONTRIBUTOR_ROWID</span>            <span class="o">=</span> <span class="s">&#39;contributor_rowid&#39;</span>
-<span class="n">CONTRIBUTOR_TAG</span>              <span class="o">=</span> <span class="s">&#39;contributor_tag&#39;</span>
-<span class="n">CONTRIBUTOR_UUID</span>             <span class="o">=</span> <span class="s">&#39;contributor_uuid&#39;</span>
-<span class="n">FEATWEIGHT_ROWID</span>             <span class="o">=</span> <span class="s">&#39;featweight_rowid&#39;</span>
+<span class="n">CONFIG_ROWID</span>                 <span class="o">=</span> <span class="s1">&#39;config_rowid&#39;</span>
+<span class="n">CONTRIBUTOR_LOCATION_CITY</span>    <span class="o">=</span> <span class="s1">&#39;contributor_location_city&#39;</span>
+<span class="n">CONTRIBUTOR_LOCATION_COUNTRY</span> <span class="o">=</span> <span class="s1">&#39;contributor_location_country&#39;</span>
+<span class="n">CONTRIBUTOR_LOCATION_STATE</span>   <span class="o">=</span> <span class="s1">&#39;contributor_location_state&#39;</span>
+<span class="n">CONTRIBUTOR_LOCATION_ZIP</span>     <span class="o">=</span> <span class="s1">&#39;contributor_location_zip&#39;</span>
+<span class="n">CONTRIBUTOR_NAME_FIRST</span>       <span class="o">=</span> <span class="s1">&#39;contributor_name_first&#39;</span>
+<span class="n">CONTRIBUTOR_NAME_LAST</span>        <span class="o">=</span> <span class="s1">&#39;contributor_name_last&#39;</span>
+<span class="n">CONTRIBUTOR_NOTE</span>             <span class="o">=</span> <span class="s1">&#39;contributor_note&#39;</span>
+<span class="n">CONTRIBUTOR_ROWID</span>            <span class="o">=</span> <span class="s1">&#39;contributor_rowid&#39;</span>
+<span class="n">CONTRIBUTOR_TAG</span>              <span class="o">=</span> <span class="s1">&#39;contributor_tag&#39;</span>
+<span class="n">CONTRIBUTOR_UUID</span>             <span class="o">=</span> <span class="s1">&#39;contributor_uuid&#39;</span>
+<span class="n">FEATWEIGHT_ROWID</span>             <span class="o">=</span> <span class="s1">&#39;featweight_rowid&#39;</span>
 
 
 <div class="viewcode-block" id="testdata_ibs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.testdata_ibs">[docs]</a><span class="k">def</span> <span class="nf">testdata_ibs</span><span class="p">():</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;testdata_ibs&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">qreq_</span>
 
@@ -663,7 +657,7 @@
 
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/tag/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/tag/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_tag"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_tag">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_tag</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contributor_rowid_list</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    contributor_tag_list &lt;- contributor.contributor_tag[contributor_rowid_list]</span>
@@ -700,13 +694,13 @@
     <span class="n">id_iter</span> <span class="o">=</span> <span class="n">contributor_rowid_list</span>
     <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="n">CONTRIBUTOR_TAG</span><span class="p">,)</span>
     <span class="n">contributor_tag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-        <span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;rowid&#39;</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
+        <span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;rowid&#39;</span><span class="p">,</span> <span class="n">eager</span><span class="o">=</span><span class="n">eager</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contributor_tag_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/first_name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/first_name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_first_name"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_first_name">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_first_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -716,13 +710,13 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/first_name/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">contrib_name_first_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;contributor_name_first&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
+    <span class="n">contrib_name_first_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;contributor_name_first&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contrib_name_first_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/last_name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/last_name/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_last_name"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_last_name">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_last_name</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -732,13 +726,13 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/last_name/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">contrib_name_last_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;contributor_name_last&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
+    <span class="n">contrib_name_last_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;contributor_name_last&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contrib_name_last_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/name_string/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/name_string/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_name_string"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_name_string">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_name_string</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">,</span> <span class="n">include_tag</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -754,13 +748,13 @@
         <span class="n">tag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_contributor_tag</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">)</span>
         <span class="n">name_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">first_list</span><span class="p">,</span> <span class="n">last_list</span><span class="p">,</span> <span class="n">tag_list</span><span class="p">)</span>
         <span class="n">contrib_name_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">,</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">name_list</span>
         <span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">name_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">first_list</span><span class="p">,</span> <span class="n">last_list</span><span class="p">)</span>
         <span class="n">contrib_name_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">)</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">first</span><span class="p">,</span> <span class="n">last</span> <span class="ow">in</span> <span class="n">name_list</span>
         <span class="p">]</span>
 
@@ -769,7 +763,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/city/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/city/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_city"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_city">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_city</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -779,13 +773,13 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/city/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">contrib_city_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;contributor_location_city&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
+    <span class="n">contrib_city_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;contributor_location_city&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contrib_city_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/state/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/state/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_state"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_state">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_state</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -795,13 +789,13 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/state/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">contrib_state_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;contributor_location_state&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
+    <span class="n">contrib_state_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;contributor_location_state&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contrib_state_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/country/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/country/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_country"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_country">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_country</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -811,13 +805,13 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/country/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">contrib_country_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;contributor_location_country&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
+    <span class="n">contrib_country_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;contributor_location_country&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contrib_country_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/zip/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/zip/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_zip"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_zip">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_zip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -827,13 +821,13 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/zip/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">contrib_zip_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;contributor_location_zip&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
+    <span class="n">contrib_zip_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;contributor_location_zip&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contrib_zip_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/location_string/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/location_string/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_location_string"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_location_string">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_location_string</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -849,7 +843,7 @@
     <span class="n">country_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_contributor_country</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">)</span>
     <span class="n">location_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">city_list</span><span class="p">,</span> <span class="n">state_list</span><span class="p">,</span> <span class="n">zip_list</span><span class="p">,</span> <span class="n">country_list</span><span class="p">)</span>
     <span class="n">contrib_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s">&quot;</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">city</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">_zip</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>
+        <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">city</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">_zip</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">city</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">_zip</span><span class="p">,</span> <span class="n">country</span> <span class="ow">in</span> <span class="n">location_list</span>
     <span class="p">]</span>
     <span class="k">return</span> <span class="n">contrib_list</span>
@@ -857,7 +851,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/note/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/note/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_note"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_note">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_note</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -867,13 +861,13 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/note/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">contrib_note_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;contributor_note&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
+    <span class="n">contrib_note_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;contributor_note&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">contrib_note_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/config_rowids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/config_rowids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_config_rowids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_config_rowids">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_config_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -883,13 +877,13 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/config_rowids/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;config_rowid&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">config_rowid_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/imgsetids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/imgsetids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_imgsetids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_imgsetids">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_imgsetids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -899,13 +893,13 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/imgsetids/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;imageset_rowid&#39;</span><span class="p">,),</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGESET_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;imageset_rowid&#39;</span><span class="p">,),</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">imgsetid_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/gids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/gids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_contributor_gids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_contributor_gids">[docs]</a><span class="k">def</span> <span class="nf">get_contributor_gids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    TODO: Template 1_M reverse getter</span>
@@ -917,20 +911,22 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/gids/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;image_rowid&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">IMAGE_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;image_rowid&#39;</span><span class="p">,),</span> <span class="n">contrib_rowid_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;contributor_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">gid_list</span>
 
 
-<span class="c">#</span>
-<span class="c"># GETTERS::CONFIG_TABLE</span>
+<span class="c1">#</span>
+<span class="c1"># GETTERS::CONFIG_TABLE</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/config_rowid_from_suffix/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/config_rowid_from_suffix/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_config_rowid_from_suffix"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_config_rowid_from_suffix">[docs]</a><span class="k">def</span> <span class="nf">get_config_rowid_from_suffix</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfgsuffix_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Gets an algorithm configuration as a string</span>
+
+<span class="sd">    DEPRICATE</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
@@ -945,35 +941,22 @@
 
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.manual_meta_funcs --exec-get_config_rowid_from_suffix</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_meta_funcs import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=&#39;testdb1&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; ibs.print_config_table()</span>
-<span class="sd">        &gt;&gt;&gt; cfgsuffix_list = &#39;_CHIP(sz450)&#39;</span>
-<span class="sd">        &gt;&gt;&gt; config_rowid_list = get_config_rowid_from_suffix(ibs, cfgsuffix_list)</span>
-<span class="sd">        &gt;&gt;&gt; result = (&#39;config_rowid_list = %s&#39; % (str(config_rowid_list),))</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        &gt;&gt;&gt; assert config_rowid_list &gt; 0, &#39;bad config_rowid_list=%r&#39; % (config_rowid_list,)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># FIXME: This is causing a crash when converting old hotspotter databses.</span>
-    <span class="c"># probably because the superkey changed</span>
-    <span class="c"># SEE DBSchema.</span>
+    <span class="c1"># FIXME: This is causing a crash when converting old hotspotter databses.</span>
+    <span class="c1"># probably because the superkey changed</span>
+    <span class="c1"># SEE DBSchema.</span>
+    <span class="c1"># TODO: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
+    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;config_rowid&#39;</span><span class="p">,),</span> <span class="n">cfgsuffix_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;config_suffix&#39;</span><span class="p">)</span>
 
-    <span class="c"># TODO: MAKE SQL-METHOD FOR NON-ROWID GETTERS</span>
-    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,),</span> <span class="n">cfgsuffix_list</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;config_suffix&#39;</span><span class="p">)</span>
-
-    <span class="c"># executeone always returns a list</span>
-    <span class="c">#if config_rowid_list is not None and len(config_rowid_list) == 1:</span>
-    <span class="c">#    config_rowid_list = config_rowid_list[0]</span>
+    <span class="c1"># executeone always returns a list</span>
+    <span class="c1">#if config_rowid_list is not None and len(config_rowid_list) == 1:</span>
+    <span class="c1">#    config_rowid_list = config_rowid_list[0]</span>
     <span class="k">return</span> <span class="n">config_rowid_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/config_rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/config_rowid/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_config_contributor_rowid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_config_contributor_rowid">[docs]</a><span class="k">def</span> <span class="nf">get_config_contributor_rowid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -983,13 +966,13 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/config_rowid/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">cfgsuffix_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;contributor_rowid&#39;</span><span class="p">,),</span> <span class="n">config_rowid_list</span><span class="p">)</span>
+    <span class="n">cfgsuffix_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;contributor_rowid&#39;</span><span class="p">,),</span> <span class="n">config_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cfgsuffix_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/config_suffixes/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/config_suffixes/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_config_suffixes"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_config_suffixes">[docs]</a><span class="k">def</span> <span class="nf">get_config_suffixes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -999,13 +982,13 @@
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/contributor/config_suffixes/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">cfgsuffix_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;config_suffix&#39;</span><span class="p">,),</span> <span class="n">config_rowid_list</span><span class="p">)</span>
+    <span class="n">cfgsuffix_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;config_suffix&#39;</span><span class="p">,),</span> <span class="n">config_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cfgsuffix_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.deleter</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;DELETE&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="delete_contributors"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.delete_contributors">[docs]</a><span class="k">def</span> <span class="nf">delete_contributors</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    deletes contributors from the database and all information associated</span>
@@ -1014,25 +997,25 @@
 <span class="sd">        Method: DELETE</span>
 <span class="sd">        URL:    /api/contributor/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># TODO: FIXME TESTME</span>
+    <span class="c1"># TODO: FIXME TESTME</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s"> contributors&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> contributors&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">))</span>
 
     <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_contributor_config_rowids</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">))</span>
-    <span class="c"># Delete configs (UNSURE IF THIS IS CORRECT)</span>
+    <span class="c1"># Delete configs (UNSURE IF THIS IS CORRECT)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_configs</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">)</span>
-    <span class="c"># CONTRIBUTORS SHOULD NOT DELETE IMAGES</span>
-    <span class="c"># Delete imagesets</span>
-    <span class="c">#imgsetid_list = ibs.get_valid_imgsetids()</span>
-    <span class="c">#imgsetid_config_list = ibs.get_imageset_configid(imgsetid_list)</span>
-    <span class="c">#valid_list = [config in config_rowid_list for config in imgsetid_config_list ]</span>
-    <span class="c">#imgsetid_list = ut.compress(imgsetid_list, valid_list)</span>
-    <span class="c">#ibs.delete_imagesets(imgsetid_list)</span>
-    <span class="c"># Remote image contributors ~~~Delete images~~~~</span>
+    <span class="c1"># CONTRIBUTORS SHOULD NOT DELETE IMAGES</span>
+    <span class="c1"># Delete imagesets</span>
+    <span class="c1">#imgsetid_list = ibs.get_valid_imgsetids()</span>
+    <span class="c1">#imgsetid_config_list = ibs.get_imageset_configid(imgsetid_list)</span>
+    <span class="c1">#valid_list = [config in config_rowid_list for config in imgsetid_config_list ]</span>
+    <span class="c1">#imgsetid_list = ut.compress(imgsetid_list, valid_list)</span>
+    <span class="c1">#ibs.delete_imagesets(imgsetid_list)</span>
+    <span class="c1"># Remote image contributors ~~~Delete images~~~~</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_contributor_gids</span><span class="p">(</span><span class="n">contrib_rowid_list</span><span class="p">))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_image_contributor_rowid</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
-    <span class="c">#ibs.delete_images(gid_list)</span>
-    <span class="c"># Delete contributors</span>
+    <span class="c1">#ibs.delete_images(gid_list)</span>
+    <span class="c1"># Delete contributors</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONTRIBUTOR_TABLE</span><span class="p">,</span> <span class="n">contrib_rowid_list</span><span class="p">)</span>
 
 </div>
@@ -1049,7 +1032,7 @@
 
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.ider</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/contributor/valid_rowids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/contributor/valid_rowids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_valid_contrib_rowids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_valid_contrib_rowids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_contrib_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
@@ -1080,42 +1063,40 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/metadata/value/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/metadata/value/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_metadata_value"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_metadata_value">[docs]</a><span class="k">def</span> <span class="nf">get_metadata_value</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">metadata_key_list</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;get_metadata_value&#39;</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/metadata/value/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">metadata_key</span><span class="p">,)</span> <span class="k">for</span> <span class="n">metadata_key</span> <span class="ow">in</span> <span class="n">metadata_key_list</span><span class="p">)</span>
-    <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;metadata_key=?&#39;</span>
-    <span class="c"># list of relationships for each image</span>
-    <span class="n">metadata_value_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;metadata_value&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">where_clause</span> <span class="o">=</span> <span class="s1">&#39;metadata_key=?&#39;</span>
+    <span class="c1"># list of relationships for each image</span>
+    <span class="n">metadata_value_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;metadata_value&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">metadata_value_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.getter_1to1</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/metadata/rowid_from_metadata_key/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/metadata/rowid_from_metadata_key/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_metadata_rowid_from_metadata_key"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_metadata_rowid_from_metadata_key">[docs]</a><span class="k">def</span> <span class="nf">get_metadata_rowid_from_metadata_key</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">metadata_key_list</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;get_metadata_rowid_from_metadata_key&#39;</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/metadata/rowid_from_metadata_key/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">db</span> <span class="o">=</span> <span class="n">db</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># Unwrap tuple, required by @accessor_decors.getter_1to1 decorator</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">db</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Unwrap tuple, required by @accessor_decors.getter_1to1 decorator</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">metadata_key</span><span class="p">,)</span> <span class="k">for</span> <span class="n">metadata_key</span> <span class="ow">in</span> <span class="n">metadata_key_list</span><span class="p">)</span>
-    <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;metadata_key=?&#39;</span>
-    <span class="c"># list of relationships for each image</span>
-    <span class="n">metadata_rowid_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;metadata_rowid&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">where_clause</span> <span class="o">=</span> <span class="s1">&#39;metadata_key=?&#39;</span>
+    <span class="c1"># list of relationships for each image</span>
+    <span class="n">metadata_rowid_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;metadata_rowid&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">metadata_rowid_list</span>
 
 </div>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/version/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/core/version/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_database_version_alias"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_database_version_alias">[docs]</a><span class="k">def</span> <span class="nf">get_database_version_alias</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Alias: `func:get_database_version`</span>
@@ -1129,7 +1110,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.ider</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/core/dbversion/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/core/dbversion/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_database_version"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_database_version">[docs]</a><span class="k">def</span> <span class="nf">get_database_version</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Gets the specified database version from the controller</span>
@@ -1143,7 +1124,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.adder</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/metadata/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="add_metadata"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.add_metadata">[docs]</a><span class="k">def</span> <span class="nf">add_metadata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">metadata_key_list</span><span class="p">,</span> <span class="n">metadata_value_list</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Adds metadata</span>
@@ -1156,9 +1137,9 @@
 <span class="sd">        URL:    /api/metadata/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] adding </span><span class="si">%d</span><span class="s"> metadata&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata_key_list</span><span class="p">))</span>
-    <span class="c"># Add imageset text names to database</span>
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;metadata_key&#39;</span><span class="p">,</span> <span class="s">&#39;metadata_value&#39;</span><span class="p">]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs] adding </span><span class="si">%d</span><span class="s1"> metadata&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">metadata_key_list</span><span class="p">))</span>
+    <span class="c1"># Add imageset text names to database</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;metadata_key&#39;</span><span class="p">,</span> <span class="s1">&#39;metadata_value&#39;</span><span class="p">]</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">metadata_key_list</span><span class="p">,</span> <span class="n">metadata_value_list</span><span class="p">)</span>
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_metadata_rowid_from_metadata_key</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="p">(</span><span class="n">db</span><span class="p">,))</span>
     <span class="n">metadata_rowid_list</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">METADATA_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">get_rowid_from_superkey</span><span class="p">)</span>
@@ -1167,7 +1148,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.deleter</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/config/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;DELETE&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/config/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="delete_configs"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.delete_configs">[docs]</a><span class="k">def</span> <span class="nf">delete_configs</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    deletes images from the database that belong to fids</span>
@@ -1177,7 +1158,7 @@
 <span class="sd">        URL:    /api/config/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s"> configs&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> configs&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">config_rowid_list</span><span class="p">))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CONFIG_TABLE</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">)</span>
 
 </div>
@@ -1188,70 +1169,69 @@
 
 <span class="sd">    TODO: per-species config</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#####</span>
-    <span class="c"># &lt;GENERAL CONFIG&gt;</span>
-    <span class="n">config_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="s">&#39;general_config.cPkl&#39;</span><span class="p">)</span>
+    <span class="c1">#####</span>
+    <span class="c1"># &lt;GENERAL CONFIG&gt;</span>
+    <span class="n">config_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="s1">&#39;general_config.cPkl&#39;</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">general_config</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">config_fpath</span><span class="p">)</span>
+        <span class="n">general_config</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">config_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
         <span class="n">general_config</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">current_species</span> <span class="o">=</span> <span class="n">general_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;current_species&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">current_species</span> <span class="o">=</span> <span class="n">general_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;current_species&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_init_config] general_config.current_species = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_species</span><span class="p">,))</span>
-    <span class="c"># &lt;/GENERAL CONFIG&gt;</span>
-    <span class="c">#####</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_init_config] general_config.current_species = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_species</span><span class="p">,))</span>
+    <span class="c1"># &lt;/GENERAL CONFIG&gt;</span>
+    <span class="c1">#####</span>
     <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_database_species</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">current_species</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_database_species</span><span class="p">()</span>
         <span class="n">current_species</span> <span class="o">=</span> <span class="n">species_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="bp">None</span>
-    <span class="n">cfgname</span> <span class="o">=</span> <span class="s">&#39;cfg&#39;</span> <span class="k">if</span> <span class="n">current_species</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">current_species</span>
+    <span class="n">cfgname</span> <span class="o">=</span> <span class="s1">&#39;cfg&#39;</span> <span class="k">if</span> <span class="n">current_species</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">current_species</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_init_config] Loading database with species_list = </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_list</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_init_config] Using cfgname=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgname</span><span class="p">,))</span>
-    <span class="c"># try to be intelligent about the default speceis</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_init_config] Loading database with species_list = </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species_list</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_init_config] Using cfgname=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfgname</span><span class="p">,))</span>
+    <span class="c1"># try to be intelligent about the default speceis</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">_load_named_config</span><span class="p">(</span><span class="n">cfgname</span><span class="p">)</span>
 
 
 <span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">_init_burned_in_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="c"># Add missing &quot;required&quot; species</span>
+    <span class="c1"># Add missing &quot;required&quot; species</span>
     <span class="n">species_nice_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s">&#39;Giraffe (Masai)&#39;</span><span class="p">,</span>
-        <span class="s">&#39;Giraffe (Reticulated)&#39;</span><span class="p">,</span>
-        <span class="s">&#39;Other&#39;</span><span class="p">,</span>
-        <span class="s">&#39;Zebra (Grevy</span><span class="se">\&#39;</span><span class="s">s)&#39;</span><span class="p">,</span>
-        <span class="s">&#39;Zebra (Hybrid)&#39;</span><span class="p">,</span>
-        <span class="s">&#39;Zebra (Plains)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Giraffe (Masai)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Giraffe (Reticulated)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Other&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Zebra (Grevy</span><span class="se">\&#39;</span><span class="s1">s)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Zebra (Hybrid)&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Zebra (Plains)&#39;</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="n">species_text_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s">&#39;giraffe_masai&#39;</span><span class="p">,</span>
-        <span class="s">&#39;giraffe_reticulated&#39;</span><span class="p">,</span>
-        <span class="s">&#39;other&#39;</span><span class="p">,</span>
-        <span class="s">&#39;zebra_grevys&#39;</span><span class="p">,</span>
-        <span class="s">&#39;zebra_hybrid&#39;</span><span class="p">,</span>
-        <span class="s">&#39;zebra_plains&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;giraffe_masai&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;giraffe_reticulated&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;other&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;zebra_grevys&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;zebra_hybrid&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;zebra_plains&#39;</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="n">species_code_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s">&#39;GIRM&#39;</span><span class="p">,</span>
-        <span class="s">&#39;GIR&#39;</span><span class="p">,</span>
-        <span class="s">&#39;OTHER&#39;</span><span class="p">,</span>
-        <span class="s">&#39;GZ&#39;</span><span class="p">,</span>
-        <span class="s">&#39;HZ&#39;</span><span class="p">,</span>
-        <span class="s">&#39;PZ&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;GIRM&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;GIR&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;OTHER&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;GZ&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;HZ&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PZ&#39;</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">add_species</span><span class="p">(</span><span class="n">species_nice_list</span><span class="p">,</span> <span class="n">species_text_list</span><span class="p">,</span> <span class="n">species_code_list</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_init_burned_in_species] Burned in mising species...&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_init_burned_in_species] Burned in mising species...&#39;</span><span class="p">)</span>
 
 
 <span class="nd">@register_ibs_method</span>
 <span class="k">def</span> <span class="nf">_load_named_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cfgname</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;_load_named_config&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># TODO: update cfgs between versions</span>
-    <span class="c"># Try to load previous config otherwise default</span>
-    <span class="c">#use_config_cache = not (ut.is_developer() and not ut.get_argflag((&#39;--nocache-pref&#39;,)))</span>
-    <span class="n">use_config_cache</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--nocache-pref&#39;</span><span class="p">,))</span>
+    <span class="c1"># TODO: update cfgs between versions</span>
+    <span class="c1"># Try to load previous config otherwise default</span>
+    <span class="c1">#use_config_cache = not (ut.is_developer() and not ut.get_argflag((&#39;--nocache-pref&#39;,)))</span>
+    <span class="n">use_config_cache</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--nocache-pref&#39;</span><span class="p">,))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">load_named_config</span><span class="p">(</span><span class="n">cfgname</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">(),</span> <span class="n">use_config_cache</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">reset_table_cache</span><span class="p">()</span>
 
@@ -1291,35 +1271,34 @@
 
 <span class="sd">    cfg = ibs.cfg</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#species_list = ibs.get_database_species()</span>
-    <span class="c">#if len(species_list) == 1:</span>
-    <span class="c">#    # try to be intelligent about the default speceis</span>
-    <span class="c">#    cfgname = species_list[0]</span>
+    <span class="c1">#species_list = ibs.get_database_species()</span>
+    <span class="c1">#if len(species_list) == 1:</span>
+    <span class="c1">#    # try to be intelligent about the default speceis</span>
+    <span class="c1">#    cfgname = species_list[0]</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">_default_config</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="p">,</span> <span class="n">cfgname</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="n">new</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">reset_table_cache</span><span class="p">()</span>
 
 
-<span class="c">#@register_ibs_method</span>
-<span class="c">#@accessor_decors.default_decorator</span>
-<span class="c">#@register_api(&#39;/api/query/cfg/&#39;, methods=[&#39;PUT&#39;])</span>
-<span class="c">#def set_query_cfg(ibs, query_cfg):</span>
-<span class="c">#    r&quot;&quot;&quot;</span>
-<span class="c">#    DEPRICATE</span>
-<span class="c">#    Auto-docstr for &#39;set_query_cfg&#39;</span>
+<span class="c1">#@register_ibs_method</span>
+<span class="c1">#@accessor_decors.default_decorator</span>
+<span class="c1">#@register_api(&#39;/api/query/cfg/&#39;, methods=[&#39;PUT&#39;])</span>
+<span class="c1">#def set_query_cfg(ibs, query_cfg):</span>
+<span class="c1">#    r&quot;&quot;&quot;</span>
+<span class="c1">#    DEPRICATE</span>
 
-<span class="c">#    RESTful:</span>
-<span class="c">#        Method: PUT</span>
-<span class="c">#        URL:    /api/query/cfg/</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    Config.set_query_cfg(ibs.cfg, query_cfg)</span>
-<span class="c">#    ibs.reset_table_cache()</span>
-<span class="c">#    #if ibs.qreq is not None:</span>
-<span class="c">#    #    ibs.qreq.set_cfg(query_cfg)</span>
+<span class="c1">#    RESTful:</span>
+<span class="c1">#        Method: PUT</span>
+<span class="c1">#        URL:    /api/query/cfg/</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    Config.set_query_cfg(ibs.cfg, query_cfg)</span>
+<span class="c1">#    ibs.reset_table_cache()</span>
+<span class="c1">#    #if ibs.qreq is not None:</span>
+<span class="c1">#    #    ibs.qreq.set_cfg(query_cfg)</span>
 
 
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.default_decorator</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/query/cfg/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/query/cfg/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="update_query_cfg"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.update_query_cfg">[docs]</a><span class="k">def</span> <span class="nf">update_query_cfg</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Updates query config only. Configs needs a restructure very badly</span>
@@ -1335,10 +1314,9 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@accessor_decors.ider</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/config/valid_rowids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/config/valid_rowids/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="get_valid_configids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_meta_funcs.get_valid_configids">[docs]</a><span class="k">def</span> <span class="nf">get_valid_configids</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Auto-docstr for &#39;get_valid_configids&#39;</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
@@ -1348,7 +1326,7 @@
     <span class="k">return</span> <span class="n">config_rowid_list</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.manual_meta_funcs</span>
@@ -1360,8 +1338,8 @@
 <span class="sd">        URL:    /api/contributor/query_config_rowid/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -1396,7 +1374,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

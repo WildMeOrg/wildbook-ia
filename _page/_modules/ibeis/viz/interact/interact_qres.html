@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact.interact_qres &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.viz.interact.interact_qres &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.viz.interact" href="../interact.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.viz.interact.interact_qres</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
@@ -142,7 +142,7 @@
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_sver</span> <span class="kn">import</span> <span class="n">ishow_sver</span>
 
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[interact_qres]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[interact_qres]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="ishow_analysis"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres.ishow_analysis">[docs]</a><span class="k">def</span> <span class="nf">ishow_analysis</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -197,7 +197,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">InteractQres</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;self.fnum = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;self.fnum = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,))</span>
 
 <div class="viewcode-block" id="InteractQres.plot"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres.InteractQres.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">analysis</span><span class="p">:</span>
@@ -206,28 +206,28 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_top_matches_view</span><span class="p">(</span><span class="n">toggle</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </div>
     <span class="k">def</span> <span class="nf">_top_matches_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">toggle</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="c"># Toggle if the click is not in any axis</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;annot_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;annot_mode&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">toggle</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;fnum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span>
+        <span class="c1"># Toggle if the click is not in any axis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;annot_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;annot_mode&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">toggle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;fnum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">viz</span><span class="o">.</span><span class="n">show_qres</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span>
 
     <span class="k">def</span> <span class="nf">_analysis_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">toggle</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="c"># Toggle if the click is not in any axis</span>
+        <span class="c1"># Toggle if the click is not in any axis</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;clicked none&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;annot_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;annot_mode&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">toggle</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;fnum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span>
-        <span class="c">#if isinstance(self.cm, chip_match.ChipMatch):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;clicked none&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;annot_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;annot_mode&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">toggle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;fnum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnum</span>
+        <span class="c1">#if isinstance(self.cm, chip_match.ChipMatch):</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">show_analysis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="c">#else:</span>
-        <span class="c">#    fig = self.cm.show_analysis(self.ibs, qreq_=self.qreq_, **self.kwargs)</span>
+        <span class="c1">#else:</span>
+        <span class="c1">#    fig = self.cm.show_analysis(self.ibs, qreq_=self.qreq_, **self.kwargs)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">fig</span>
 
 <div class="viewcode-block" id="InteractQres.show_sver_process_to_aid"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres.InteractQres.show_sver_process_to_aid">[docs]</a>    <span class="k">def</span> <span class="nf">show_sver_process_to_aid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;ctrl+clicked aid2=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid2</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;ctrl+clicked aid2=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">aid2</span><span class="p">)</span>
         <span class="n">fnum_</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
         <span class="n">ishow_sver</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum_</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
@@ -235,64 +235,64 @@
 </div>
 <div class="viewcode-block" id="InteractQres.show_matches_to_aid"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres.InteractQres.show_matches_to_aid">[docs]</a>    <span class="k">def</span> <span class="nf">show_matches_to_aid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid2</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;clicked aid2=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">aid2</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;clicked aid2=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">aid2</span><span class="p">)</span>
         <span class="n">fnum_</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
-        <span class="c">#if isinstance(self.cm, chip_match.ChipMatch):</span>
+        <span class="c1">#if isinstance(self.cm, chip_match.ChipMatch):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ishow_match</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum_</span><span class="p">)</span>
-        <span class="c">#else:</span>
-        <span class="c">#    self.cm.ishow_matches(self.ibs, aid2, qreq_=self.qreq_, fnum=fnum_)</span>
+        <span class="c1">#else:</span>
+        <span class="c1">#    self.cm.ishow_matches(self.ibs, aid2, qreq_=self.qreq_, fnum=fnum_)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-        <span class="c">#self.bring_to_front()</span>
-        <span class="c">#fig = pt.gcf()</span>
-        <span class="c">#fig.canvas.draw()</span>
-        <span class="c">#pt.bring_to_front(fig)</span>
+        <span class="c1">#self.bring_to_front()</span>
+        <span class="c1">#fig = pt.gcf()</span>
+        <span class="c1">#fig.canvas.draw()</span>
+        <span class="c1">#pt.bring_to_front(fig)</span>
 </div>
 <div class="viewcode-block" id="InteractQres.on_click_outside"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres.InteractQres.on_click_outside">[docs]</a>    <span class="k">def</span> <span class="nf">on_click_outside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
 </div>
 <div class="viewcode-block" id="InteractQres.on_click_inside"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_qres.InteractQres.on_click_inside">[docs]</a>    <span class="k">def</span> <span class="nf">on_click_inside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">inaxes</span>
-        <span class="n">viztype</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-        <span class="c">#if verbose:</span>
-        <span class="c">#    print(str(event.__dict__))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;viztype=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
-        <span class="c"># Clicked a specific matches</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;plodat_dict = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat_dict</span><span class="p">(</span><span class="n">ax</span><span class="p">)))</span>
-        <span class="k">if</span> <span class="n">viztype</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;chip&#39;</span><span class="p">):</span>
+        <span class="n">viztype</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="c1">#if verbose:</span>
+        <span class="c1">#    print(str(event.__dict__))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;viztype=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viztype</span><span class="p">)</span>
+        <span class="c1"># Clicked a specific matches</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;plodat_dict = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat_dict</span><span class="p">(</span><span class="n">ax</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">viztype</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;chip&#39;</span><span class="p">):</span>
             <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_chip</span>
             <span class="n">options</span> <span class="o">=</span> <span class="n">interact_chip</span><span class="o">.</span><span class="n">build_annot_context_options</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">refresh_func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_analysis_view</span><span class="p">,</span>
                 <span class="n">with_interact_chip</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">show_popup_menu</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">viztype</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;matches&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s">&#39;multi_match&#39;</span><span class="p">:</span>  <span class="c"># why startswith?</span>
-            <span class="n">aid2</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid2&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-            <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid_list&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>   <span class="c"># right-click</span>
-                <span class="c"># TODO; this functionality should be in viz.interact</span>
+        <span class="k">if</span> <span class="n">viztype</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;matches&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">viztype</span> <span class="o">==</span> <span class="s1">&#39;multi_match&#39;</span><span class="p">:</span>  <span class="c1"># why startswith?</span>
+            <span class="n">aid2</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;aid2&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;aid_list&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>   <span class="c1"># right-click</span>
+                <span class="c1"># TODO; this functionality should be in viz.interact</span>
                 <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;right click&#39;</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;qreq_ = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;right click&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;qreq_ = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,))</span>
                 <span class="n">options</span> <span class="o">=</span> <span class="n">inspect_gui</span><span class="o">.</span><span class="n">get_aidpair_context_menu_options</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm</span><span class="p">,</span>
                     <span class="n">qreq_</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">update_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">,</span>
                     <span class="n">backend_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="n">aid_list</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">show_popup_menu</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c"># Ctrl-Click</span>
-                <span class="n">key</span> <span class="o">=</span> <span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;key = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;control&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] result control clicked&#39;</span><span class="p">)</span>
+                <span class="c1"># Ctrl-Click</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;key = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;control&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[viz] result control clicked&#39;</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">show_sver_process_to_aid</span><span class="p">(</span><span class="n">aid2</span><span class="p">)</span>
-                <span class="c"># Left-Click</span>
+                <span class="c1"># Left-Click</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[viz] result clicked&#39;</span><span class="p">)</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[viz] result clicked&#39;</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">show_matches_to_aid</span><span class="p">(</span><span class="n">aid2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
 
 </div></div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.viz.interact.interact_qres</span>
@@ -300,8 +300,8 @@
 <span class="sd">        python -m ibeis.viz.interact.interact_qres --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -336,7 +336,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
