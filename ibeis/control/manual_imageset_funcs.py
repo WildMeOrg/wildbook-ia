@@ -1258,6 +1258,24 @@ def get_imageset_smart_xml_fnames(ibs, imageset_rowid_list):
 
 
 @register_ibs_method
+#@accessor_decors.cache_getter(const.IMAGESET_TABLE, IMAGESET_SMART_XML_FNAME)
+@register_api('/api/imageset/smart_xml_contents/', methods=['GET'])
+def get_imageset_smart_xml_contents(ibs, imageset_rowid_list):
+    from os.path import join, exists
+    imageset_smart_xml_fname_list = ibs.get_imageset_smart_xml_fnames(imageset_rowid_list)
+    content_list = []
+    for imageset_smart_xml_fname in imageset_smart_xml_fname_list:
+        imageset_smart_xml_fpath = join(ibs.get_smart_patrol_dir(), imageset_smart_xml_fname)
+        if exists(imageset_smart_xml_fpath):
+            with open(imageset_smart_xml_fpath, 'r') as imageset_smart_xml:
+                content = imageset_smart_xml.read()
+                content_list.append(content)
+        else:
+            content_list.append(None)
+    return content_list
+
+
+@register_ibs_method
 @register_api('/api/imageset/smart_waypoint_ids/', methods=['PUT'])
 def set_imageset_smart_waypoint_ids(ibs, imageset_rowid_list, imageset_smart_waypoint_id_list):
     r"""

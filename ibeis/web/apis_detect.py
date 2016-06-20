@@ -13,6 +13,15 @@ from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
 from ibeis.web import appfuncs as appf
 
 
+try:
+    import jpcnn  # NOQA
+    USE_LOCALIZATIONS = False
+    print('[apis_detect] USING DETECTIONS FOR DETECTIONS')
+except ImportError:
+    USE_LOCALIZATIONS = True
+    print('[apis_detect] USING LOCALIZATIONS FOR DETECTIONS')
+
+
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
@@ -23,7 +32,7 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
 @register_api('/api/detect/random_forest/', methods=['PUT', 'GET'])
-def detect_random_forest(ibs, gid_list, species, **kwargs):
+def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
     """
     Runs animal detection in each image. Adds annotations to the database
     as they are found.
@@ -65,12 +74,26 @@ def detect_random_forest(ibs, gid_list, species, **kwargs):
     """
     # TODO: Return confidence here as well
     depc = ibs.depc_image
-    config = {'algo': 'pyrf', 'species': species, 'sensitivity' : 0.2}
-    # results_list = depc.get_property('detections', gid_list, None, config=config)
-    results_list = depc.get_property('localizations', gid_list, None, config=config)
-    # aids_list = ibs.commit_detection_results(gid_list, results_list, note='pyrfdetect')
-    aids_list = ibs.commit_localization_results(gid_list, results_list, note='pyrfdetect')
-    return aids_list
+    config = {
+        'algo'                   : 'pyrf',
+        'species'                : species,
+        'sensitivity'            : 0.2,
+        # 'classifier_sensitivity' : 0.64,
+        # 'localizer_grid'         : False,
+        # 'localizer_sensitivity'  : 0.16,
+        # 'labeler_sensitivity'    : 0.42,
+        # 'detector_sensitivity'   : 0.08,
+    }
+    if USE_LOCALIZATIONS:
+        results_list = depc.get_property('localizations', gid_list, None, config=config)
+        if commit:
+            aids_list = ibs.commit_localization_results(gid_list, results_list, note='pyrfdetect')
+            return aids_list
+    else:
+        results_list = depc.get_property('detections', gid_list, None, config=config)
+        if commit:
+            aids_list = ibs.commit_detection_results(gid_list, results_list, note='pyrfdetect')
+            return aids_list
 
 
 @register_route('/test/review/detect/cnn/yolo/', methods=['GET'])
@@ -266,30 +289,24 @@ def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
     # TODO: Return confidence here as well
     image_uuid_list = ibs.get_image_uuids(gid_list)
     ibs.assert_valid_gids(gid_list)
-    depc = ibs.depc_image
     # Get detections from depc
-    config = {'algo': 'yolo', 'sensitivity' : 0.2}
-    # results_list = depc.get_property('detections', gid_list, None, config=config)
-    results_list = depc.get_property('localizations', gid_list, None, config=config)
-    score_list = [ results[0] for results in results_list ]
-    zipped_list = zip(results_list)
-    # Reformat results for json
+    aids_list = ibs.detect_cnn_yolo(gid_list, **kwargs)
     results_list = [
         [
             {
-                'xtl'        : bbox[0],
-                'ytl'        : bbox[1],
-                'width'      : bbox[2],
-                'height'     : bbox[3],
-                'theta'      : round(theta, 4),
-                'confidence' : round(conf, 4),
-                'class'      : class_,
+                'xtl'        : ibs.get_annot_bboxes(aid)[0],
+                'ytl'        : ibs.get_annot_bboxes(aid)[1],
+                'width'      : ibs.get_annot_bboxes(aid)[2],
+                'height'     : ibs.get_annot_bboxes(aid)[3],
+                'theta'      : round(ibs.get_annot_thetas(aid), 4),
+                'confidence' : round(ibs.get_annot_detect_confidence(aid), 4),
+                'class'      : ibs.get_annot_species_texts(aid),
             }
-            # for bbox, theta, class_, viewpoint, conf in zip(*zipped[0][1:])
-            for bbox, theta, conf, class_ in zip(*zipped[0][1:])
+            for aid in aid_list
         ]
-        for zipped in zipped_list
+        for aid_list in aids_list
     ]
+    score_list = [0.0] * len(gid_list)
     # Wrap up results with other information
     results_dict = {
         'image_uuid_list' : image_uuid_list,
@@ -343,13 +360,25 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, **kwargs):
     """
     # TODO: Return confidence here as well
     depc = ibs.depc_image
-    config = {'algo': 'yolo', 'sensitivity' : 0.2}
-    # results_list = depc.get_property('detections', gid_list, None, config=config)
-    results_list = depc.get_property('localizations', gid_list, None, config=config)
-    if commit:
-        # aids_list = ibs.commit_detection_results(gid_list, results_list, note='cnnyolodetect')
-        aids_list = ibs.commit_localization_results(gid_list, results_list, note='cnnyolodetect')
-        return aids_list
+    config = {
+        'algo'                   : 'yolo',
+        'sensitivity'            : 0.2,
+        # 'classifier_sensitivity' : 0.64,
+        # 'localizer_grid'         : False,
+        # 'localizer_sensitivity'  : 0.16,
+        # 'labeler_sensitivity'    : 0.42,
+        # 'detector_sensitivity'   : 0.08,
+    }
+    if USE_LOCALIZATIONS:
+        results_list = depc.get_property('localizations', gid_list, None, config=config)
+        if commit:
+            aids_list = ibs.commit_localization_results(gid_list, results_list, note='cnnyolodetect')
+            return aids_list
+    else:
+        results_list = depc.get_property('detections', gid_list, None, config=config)
+        if commit:
+            aids_list = ibs.commit_detection_results(gid_list, results_list, note='cnnyolodetect')
+            return aids_list
 
 
 @register_ibs_method
