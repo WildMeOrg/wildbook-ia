@@ -293,7 +293,7 @@ class VocabConfig(dtool.Config):
     colnames=['words'], coltypes=[VisualVocab],
     configclass=VocabConfig,
     chunksize=1, fname='visual_vocab',
-    func_is_single=True,
+    # func_is_single=True,
     # _internal_parent_ids=False,  # Give the function nicer ids to work with
     _internal_parent_ids=True,  # Give the function nicer ids to work with
 )
