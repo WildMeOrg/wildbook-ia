@@ -450,6 +450,8 @@ def get_training_featscores(qreq_, cm_list, disttype=None, namemode=True,
         >>>     qreq_, cm_list, disttype, namemode, fsvx, threshx, thresh)
         >>> result = scorecfg
         >>> print(result)
+        (lnbnn*fg)[fg > 0.5]
+
         lnbnn*fg[fg > 0.5]
     """
     if fsvx is None:
