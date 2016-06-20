@@ -160,6 +160,8 @@ class ConfigValueDelegate(QtGui.QItemDelegate):
         elif leafNode is not None and leafNode.type_ is int:
             # TODO: Find a way for the user to enter a None into int boxes
             editor = QtGui.QSpinBox(parent)
+            editor.setMinimum(-int(2 ** 29))
+            editor.setMaximum(int(2 ** 29))
             if False:
                 editor.setMinimum(0)
                 editor.setMaximum(1)
@@ -552,8 +554,9 @@ class EditConfigWidget(QWidget):
     """
     Widget to edit a dtool.Config object
     """
-    def __init__(self, rootNode):
+    def __init__(self, rootNode, user_mode=False):
         super(EditConfigWidget, self).__init__()
+        self.user_mode = user_mode
         self.init_layout()
         self.rootNode = rootNode
         self.config_model = QConfigModel(self, rootNode=rootNode)
@@ -561,7 +564,9 @@ class EditConfigWidget(QWidget):
 
     def init_layout(self):
         import guitool
-        self.resize(668, 530)
+        #self.resize(668, 530)
+        #horizontalSizePolicy=QSizePolicy.Preferred,
+        #verticalSizePolicy=QSizePolicy.MinimumExpanding)
         self.vbox = QtGui.QVBoxLayout(self)
         self.tree_view = QtGui.QTreeView(self)
         self.delegate = ConfigValueDelegate(self.tree_view)
@@ -569,9 +574,10 @@ class EditConfigWidget(QWidget):
         self.vbox.addWidget(self.tree_view)
         self.hbox = QtGui.QHBoxLayout()
         self.default_but = guitool.newButton(self, 'Defaults', clicked=self.default_config)
-        self.print_internals = guitool.newButton(self, 'Print Internals', clicked=self.print_internals)
         self.hbox.addWidget(self.default_but)
-        self.hbox.addWidget(self.print_internals)
+        if not self.user_mode:
+            self.print_internals = guitool.newButton(self, 'Print Internals', clicked=self.print_internals)
+            self.hbox.addWidget(self.print_internals)
         self.vbox.addLayout(self.hbox)
         self.setWindowTitle(_translate('self', 'Edit Config Widget', None))
 
@@ -614,7 +620,7 @@ class EditConfigWidget(QWidget):
         self.config_model.layoutChanged.emit()
 
 
-def newConfigWidget(config):
+def newConfigWidget(config, user_mode=False):
     r"""
     Args:
         config (dtool.Config):
@@ -649,7 +655,7 @@ def newConfigWidget(config):
         >>> guitool.qtapp_loop(qwin=widget, freq=10)
     """
     rootNode = ConfigNodeWrapper('root', config)
-    widget = EditConfigWidget(rootNode)
+    widget = EditConfigWidget(rootNode, user_mode=user_mode)
     return widget
 
 

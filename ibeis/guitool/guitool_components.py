@@ -461,28 +461,6 @@ def newWidget(parent=None, orientation=Qt.Vertical,
 
     Returns:
         QWidget: widget
-
-    CommandLine:
-        python -m guitool.guitool_components newWidget --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from guitool.guitool_components import *  # NOQA
-        >>> import guitool
-        >>> import guitool as gt
-        >>> guitool.ensure_qtapp()
-        >>> ut.exec_funckw(newWidget, globals())
-        >>> widget = newWidget(parent)
-        >>> widget.addWidget(gt.newButton(
-        >>>     widget, 'Print Hi', lambda: print('hi')))
-        >>> widget.addWidget(gt.newButton(
-        >>>     widget, 'Popup Hi', lambda: gt.user_info(widget, 'hi')))
-        >>> #widget.addRow('input 1', gt.newLineEdit(widget))
-        >>> #widget.addRow('input 2', gt.newComboBox(widget, ['one', 'two']))
-        >>> widget.show()
-        >>> widget.resize(int(ut.PHI * 500), 500)
-        >>> ut.quit_if_noshow()
-        >>> gt.qtapp_loop(qwin=widget, freq=10)
     """
     #widget = QtGui.QWidget(parent)
     #if special_layout is None:
@@ -516,13 +494,55 @@ def newWidget(parent=None, orientation=Qt.Vertical,
 
 
 class GuitoolWidget(QtGui.QWidget):
+    """
+    CommandLine:
+        python -m guitool.guitool_components GuitoolWidget --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> import guitool
+        >>> import guitool as gt
+        >>> guitool.ensure_qtapp()
+        >>> ut.exec_funckw(newWidget, globals())
+        >>> widget = GuitoolWidget(parent)
+        >>> widget.addWidget(gt.newButton(
+        >>>     widget, 'Print Hi', lambda: print('hi')))
+        >>> widget.addWidget(gt.newButton(
+        >>>     widget, 'Popup Hi', lambda: gt.user_info(widget, 'hi')))
+        >>> #widget.addRow('input 1', gt.newLineEdit(widget))
+        >>> #widget.addRow('input 2', gt.newComboBox(widget, ['one', 'two']))
+        >>> widget.show()
+        >>> widget.resize(int(ut.PHI * 500), 500)
+        >>> ut.quit_if_noshow()
+        >>> gt.qtapp_loop(qwin=widget, freq=10)
+    """
     closed = QtCore.pyqtSignal()
+
+    def _inject_new_widget_methods(self):
+        import guitool as gt
+        # Black magic
+        guitype_list = ['Widget', 'Button', 'LineEdit', 'ComboBox', 'Label', 'Spoiler']
+        # Creates addNewWidget and newWidget
+        for guitype in guitype_list:
+            if hasattr(gt, 'new' + guitype):
+                newfunc = getattr(gt, 'new' + guitype)
+                ut.inject_func_as_method(self, newfunc, 'new' + guitype)
+            else:
+                newfunc = getattr(gt, guitype)
+            addnew_func = self._addnew_factory(newfunc)
+            ut.inject_func_as_method(self, addnew_func, 'addNew' + guitype)
+        # Above code is the same as saying
+        #     self.newButton = ut.partial(newButton, self)
+        #     self.newWidget = ut.partial(newWidget, self)
+        #     ... etc
 
     def __init__(self, parent=None, orientation=Qt.Vertical,
                  verticalSizePolicy=QSizePolicy.Expanding,
                  horizontalSizePolicy=QSizePolicy.Expanding,
                  verticalStretch=0, **kwargs):
         super(GuitoolWidget, self).__init__(parent)
+
         sizePolicy = newSizePolicy(self,
                                    horizontalSizePolicy=horizontalSizePolicy,
                                    verticalSizePolicy=verticalSizePolicy,
@@ -538,28 +558,19 @@ class GuitoolWidget(QtGui.QWidget):
         #self.addWidget = self._guitool_layout.addWidget
         #self.addLayout = self._guitool_layout.addLayout
         setattr(self, '_guitool_sizepolicy', sizePolicy)
-        # Black magic
-        #self.newButton = ut.partial(newButton, self)
-        #self.newLineEdit = ut.partial(newLineEdit, self)
-        #self.newLabel = ut.partial(newLabel, self)
-        #self.newWidget = ut.partial(newWidget, self)
-
-        guitype_list = ['Widget', 'Button', 'LineEdit', 'ComboBox', 'Label']
-        # Creates addNewWidget and newWidget
-        for guitype in guitype_list:
-            import guitool as gt
-            new_name = 'new' + guitype
-            addnew_name = 'addNew' + guitype
-            newfunc = getattr(gt, new_name)
-            addnew_func = self._addnew_factory(newfunc)
-            ut.inject_func_as_method(self, newfunc, new_name)
-            ut.inject_func_as_method(self, addnew_func, addnew_name)
+        self._inject_new_widget_methods()
         self.initialize(**kwargs)
+
+        if False:
+            # debug code
+            self.setStyleSheet("background-color: rgb(255,0,0); margin:5px; border:1px solid rgb(0, 255, 0); ")
+            self.setStyleSheet("background-color: border:5px solid rgb(255, 0, 0); ")
 
     @classmethod
     def as_dialog(cls, parent=None, **kwargs):
         widget = cls(**kwargs)
         dlg = QtGui.QDialog(parent)
+        dlg.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         dlg.widget = widget
         dlg.vlayout = QtGui.QVBoxLayout(dlg)
         dlg.vlayout.addWidget(widget)
@@ -597,75 +608,75 @@ class GuitoolWidget(QtGui.QWidget):
 
 class ConfigConfirmWidget(GuitoolWidget):
     """
+
+    CommandLine:
+        python -m guitool.guitool_components ConfigConfirmWidget --show
+
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from dtool.base import *  # NOQA
-        >>> cls = Config
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> import guitool
+        >>> import dtool
+        >>> guitool.ensure_qapp()  # must be ensured before any embeding
+        >>> cls = dtool.Config
         >>> dict_ = {'K': 1, 'Knorm': 5, 'min_pername': 1, 'max_pername': 1,}
         >>> tablename = None
         >>> config = cls.from_dict(dict_, tablename)
-        >>> print(config)
-        >>> ut.quit_if_noshow()
-        >>> import guitool
-        >>> guitool.ensure_qapp()  # must be ensured before any embeding
         >>> dlg = guitool.ConfigConfirmWidget.as_dialog(
         >>>     title='Confirm Merge Query',
         >>>     msg='Confirm',
         >>>     config=config)
-        >>> dlg.resize(700, 500)
+        >>> #dlg.resize(700, 500)
         >>> self = dlg.widget
-        >>> dlg.show()
+        >>> ut.quit_if_noshow()
         >>> import plottool as pt
+        >>> dlg.show()
         >>> guitool.qtapp_loop(qwin=dlg)
         >>> updated_config = self.config  # NOQA
         >>> print('updated_config = %r' % (updated_config,))
     """
-    def initialize(self, title, msg, config):
-        self.msg = msg
+    def __init__(self, *args, **kwargs):
+        # FIXME: http://doc.qt.io/qt-5/qsizepolicy.html
+        kwargs['horizontalSizePolicy'] = QtGui.QSizePolicy.Minimum
+        kwargs['verticalSizePolicy'] = QSizePolicy.Expanding
+        super(ConfigConfirmWidget, self).__init__(*args, **kwargs)
+
+    def initialize(self, title, msg, config, options=None, default=None):
         import copy
+        from guitool import PrefWidget2
+        self.msg = msg
         self.orig_config = config
         self.config = copy.deepcopy(config)
+        self.confirm_option = None
 
         self.setWindowTitle(title)
         self.addNewLabel(msg, align='left')
 
-        if False:
-            if hasattr(self.config, 'get_param_info_dict'):
-                self.param_info_dict = self.config.get_param_info_dict()
+        if config is not None:
+            self.editConfig = PrefWidget2.newConfigWidget(self.config, user_mode=True)
+            if not ut.get_argflag('--nospoiler'):
+                self.spoiler = Spoiler(self, title='advanced configuration')
+                self.spoiler.setContentLayout(self.editConfig.layout())
+                self.spoiler.toggle_finished.connect(self._size_adjust_slot)
+                self.addWidget(self.spoiler)
             else:
-                self.param_info_dict = None
-
-            self.row_dict = {}
-            for key, val in self.config.items():
-                row = self.newHWidget()
-                row.lbl  = row.addNewLabel(str(key))
-
-                if self.param_info_dict is None:
-                    pi = None
-                else:
-                    pi = self.param_info_dict[key]
-
-                if pi is None:
-                    row.edit = row.addNewLineEdit(str(val), align='right')
-                elif pi.type_ is bool:
-                    options = [True, False]
-                    row.edit = row.addNewComboBox(options, default=val,
-                                                  changed=self.update_state)
-                    # row.edit.changed.connect(lambda val: self.setitem(key, val[1]))
-                else:
-                    row.edit = row.addNewLineEdit('!' + str(val), align='right')
-
-                self.row_dict[key] = row
-        else:
-            from guitool import PrefWidget2
-            self.editConfig = PrefWidget2.newConfigWidget(self.config)
-            self.addWidget(self.editConfig)
+                self.addWidget(self.editConfig)
 
         self.button_row = self.newHWidget()
+        if options is None:
+            options = ['Confirm']
+        def _make_option_clicked(opt):
+            def _wrap():
+                return self.confirm(opt)
+            return _wrap
+        for opt in options:
+            self.button_row.addNewButton(opt, clicked=_make_option_clicked(opt))
         self.button_row.addNewButton('Cancel', clicked=self.cancel)
-        self.button_row.addNewButton('Confirm', clicked=self.confirm)
-        self.resize(668, 530)
-        # self.update_state()
+
+        self.layout().setAlignment(Qt.AlignBottom)
+        #self.layout().setSizeConstraint(QtGui.QLayout.SetFixedSize)
+        #self.resize(668, 530)
+        #self.update_state()
 
     def update_state(self, *args):
         print('*args = %r' % (args,))
@@ -685,9 +696,18 @@ class ConfigConfirmWidget(GuitoolWidget):
             flag = not pi.is_hidden(self.config)
             row.edit.setEnabled(flag)
 
-    def confirm(self):
+    def confirm(self, confirm_option=None):
         print('[gt] Confirmed config')
+        print('confirm_option = %r' % (confirm_option,))
+        self.confirm_option = confirm_option
         self.close()
+
+    def _size_adjust_slot(self):
+        print('_size_adjust_slot = ')
+        self.adjustSize()
+        parent = self.parent()
+        if parent is not None:
+            parent.adjustSize()
 
     def cancel(self):
         print('[gt] Canceled confirm config')
@@ -1070,6 +1090,141 @@ def layoutSplitter(splitter):
 def msg_event(title, msg):
     """ Returns a message event slot """
     return lambda: guitool_dialogs.msgbox(msg=msg, title=title)
+
+
+class Spoiler(QtGui.QWidget):
+    """
+    References:
+        # Adapted from c++ version
+        http://stackoverflow.com/questions/32476006/how-to-make-an-expandable-collapsable-section-widget-in-qt
+
+    CommandLine:
+        python -m guitool.guitool_components Spoiler --show
+
+    Example:
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> # build test data
+        >>> import guitool
+        >>> import guitool as gt
+        >>> guitool.ensure_qtapp()
+        >>> #ut.exec_funckw(newWidget, globals())
+        >>> parent = None
+        >>> widget1 = GuitoolWidget(parent)
+        >>> widget1.addWidget(gt.newButton(
+        >>>     widget1, 'Print Hi', lambda: print('hi')))
+        >>> widget2 = GuitoolWidget(parent)
+        >>> spoiler = widget1.addNewSpoiler(title='spoiler title')
+        >>> widget2.addWidget(gt.newButton(
+        >>>     widget2, 'Popup Hi', lambda: gt.user_info(widget2, 'hi')))
+        >>> spoiler.setContentLayout(widget2.layout())
+        >>> self = spoiler
+        >>> widget1.show()
+        >>> widget1.resize(int(ut.PHI * 500), 500)
+        >>> ut.quit_if_noshow()
+        >>> gt.qtapp_loop(qwin=widget1, freq=10)
+
+    #Example:
+    #    >>> from guitool.guitool_components import *  # NOQA
+    #    >>> # build test data
+    #    >>> import guitool
+    #    >>> import guitool as gt
+    #    >>> guitool.ensure_qtapp()
+    #    >>> #ut.exec_funckw(newWidget, globals())
+    #    >>> parent = None
+    #    >>> widget1 = GuitoolWidget(parent)
+    #    >>> widget1.addWidget(gt.newButton(
+    #    >>>     widget1, 'Print Hi', lambda: print('hi')))
+    #    >>> widget2 = GuitoolWidget(parent)
+    #    >>> spoiler = Spoiler(widget1, title='spoiler title')
+    #    >>> widget1.addWidget(spoiler)
+    #    >>> widget2.addWidget(gt.newButton(
+    #    >>>     widget2, 'Popup Hi', lambda: gt.user_info(widget2, 'hi')))
+    #    >>> spoiler.setContentLayout(widget2.layout())
+    #    >>> self = spoiler
+    #    >>> widget1.show()
+    #    >>> widget1.resize(int(ut.PHI * 500), 500)
+    #    >>> ut.quit_if_noshow()
+    #    >>> gt.qtapp_loop(qwin=widget1, freq=10)
+    """
+
+    def __init__(self, parent=None, title='', animationDuration=300):
+        super(Spoiler, self).__init__(parent=parent)
+
+        self.animationDuration = 150
+        self.toggleAnimation = QtCore.QParallelAnimationGroup()
+        self.contentArea = QtGui.QScrollArea()
+        self.headerLine = QtGui.QFrame()
+        self.toggleButton = QtGui.QToolButton()
+        self.mainLayout = QtGui.QGridLayout()
+
+        toggleButton = self.toggleButton
+        toggleButton.setStyleSheet("QToolButton { border: none; }")
+        toggleButton.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        toggleButton.setArrowType(QtCore.Qt.RightArrow)
+        toggleButton.setText(str(title))
+        toggleButton.setCheckable(True)
+        toggleButton.setChecked(False)
+
+        headerLine = self.headerLine
+        headerLine.setFrameShape(QtGui.QFrame.HLine)
+        headerLine.setFrameShadow(QtGui.QFrame.Sunken)
+        headerLine.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Maximum)
+
+        #self.contentArea.setStyleSheet("QScrollArea { background-color: white; border: none; }")
+        self.contentArea.setStyleSheet("QScrollArea { border: none; }")
+        #self.contentArea.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        self.contentArea.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        #self.contentArea.setWidgetResizable(True)
+        # start out collapsed
+        self.contentArea.setMaximumHeight(0)
+        self.contentArea.setMinimumHeight(0)
+        # let the entire widget grow and shrink with its content
+        self.toggleAnimation.addAnimation(QtCore.QPropertyAnimation(self, "minimumHeight"))
+        self.toggleAnimation.addAnimation(QtCore.QPropertyAnimation(self, "maximumHeight"))
+        self.toggleAnimation.addAnimation(QtCore.QPropertyAnimation(self.contentArea, "maximumHeight"))
+        # don't waste space
+        mainLayout = self.mainLayout
+        mainLayout.setVerticalSpacing(0)
+        mainLayout.setContentsMargins(0, 0, 0, 0)
+        row = 0
+        mainLayout.addWidget(self.toggleButton, row, 0, 1, 1, QtCore.Qt.AlignLeft)
+        row += 1
+        mainLayout.addWidget(self.headerLine, row, 2, 1, 1)
+        mainLayout.addWidget(self.contentArea, row, 0, 1, 3)
+        self.setLayout(self.mainLayout)
+
+        def toggle_spoiler(checked):
+            arrow_type = QtCore.Qt.DownArrow if checked else QtCore.Qt.RightArrow
+            direction = QtCore.QAbstractAnimation.Forward if checked else QtCore.QAbstractAnimation.Backward
+            toggleButton.setArrowType(arrow_type)
+            self.toggleAnimation.setDirection(direction)
+            self.toggleAnimation.start()
+            print('parent = %r' % (parent,))
+            #self.toggled.emit()
+            #if parent is not None:
+            #    parent.adjustSize()
+
+        self.toggle_finished = self.toggleAnimation.finished
+        self.toggleButton.clicked.connect(toggle_spoiler)
+
+    def setContentLayout(self, contentLayout):
+        # Not sure if this is equivalent to self.contentArea.destroy()
+        self.contentArea.destroy()
+        self.contentArea.setLayout(contentLayout)
+
+        # Find collapsed height
+        collapsedHeight = self.sizeHint().height() - self.contentArea.maximumHeight()
+        contentHeight = contentLayout.sizeHint().height()
+
+        for i in range(self.toggleAnimation.animationCount()):
+            spoilerAnimation = self.toggleAnimation.animationAt(i)
+            spoilerAnimation.setDuration(self.animationDuration)
+            spoilerAnimation.setStartValue(collapsedHeight)
+            spoilerAnimation.setEndValue(collapsedHeight + contentHeight)
+        contentAnimation = self.toggleAnimation.animationAt(self.toggleAnimation.animationCount() - 1)
+        contentAnimation.setDuration(self.animationDuration)
+        contentAnimation.setStartValue(0)
+        contentAnimation.setEndValue(contentHeight)
 
 
 if __name__ == '__main__':
