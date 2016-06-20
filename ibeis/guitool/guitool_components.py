@@ -596,6 +596,30 @@ class GuitoolWidget(QtGui.QWidget):
 
 
 class ConfigConfirmWidget(GuitoolWidget):
+    """
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from dtool.base import *  # NOQA
+        >>> cls = Config
+        >>> dict_ = {'K': 1, 'Knorm': 5, 'min_pername': 1, 'max_pername': 1,}
+        >>> tablename = None
+        >>> config = cls.from_dict(dict_, tablename)
+        >>> print(config)
+        >>> ut.quit_if_noshow()
+        >>> import guitool
+        >>> guitool.ensure_qapp()  # must be ensured before any embeding
+        >>> dlg = guitool.ConfigConfirmWidget.as_dialog(
+        >>>     title='Confirm Merge Query',
+        >>>     msg='Confirm',
+        >>>     config=config)
+        >>> dlg.resize(700, 500)
+        >>> self = dlg.widget
+        >>> dlg.show()
+        >>> import plottool as pt
+        >>> guitool.qtapp_loop(qwin=dlg)
+        >>> updated_config = self.config  # NOQA
+        >>> print('updated_config = %r' % (updated_config,))
+    """
     def initialize(self, title, msg, config):
         self.msg = msg
         import copy
