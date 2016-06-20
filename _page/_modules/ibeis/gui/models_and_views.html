@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.gui.models_and_views &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.gui.models_and_views &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,7 +129,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.gui.models_and_views</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This provides concrete classes which inherit from abstract</span>
 <span class="sd">api_item_models/api_table_models/api_tree_models in guitool.</span>
@@ -138,11 +138,11 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">guitool</span> <span class="kn">import</span> <span class="p">(</span><span class="n">APIItemModel</span><span class="p">,</span> <span class="n">APITableView</span><span class="p">,</span> <span class="n">APITreeView</span><span class="p">,</span> <span class="n">APIItemWidget</span><span class="p">,</span>
                      <span class="n">StripeProxyModel</span><span class="p">,</span> <span class="n">ChangeLayoutContext</span><span class="p">)</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[newgui_models]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[newgui_models]&#39;</span><span class="p">)</span>
 
-<span class="c">#---------------------</span>
-<span class="c"># --- IBEIS Tables ---</span>
-<span class="c">#---------------------</span>
+<span class="c1">#---------------------</span>
+<span class="c1"># --- IBEIS Tables ---</span>
+<span class="c1">#---------------------</span>
 
 
 <div class="viewcode-block" id="IBEISTableWidget"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.IBEISTableWidget">[docs]</a><span class="k">class</span> <span class="nc">IBEISTableWidget</span><span class="p">(</span><span class="n">APIItemWidget</span><span class="p">):</span>
@@ -164,7 +164,7 @@
 
 </div>
 <span class="n">IBEISSTRIPEMODEL_BASE</span> <span class="o">=</span> <span class="n">StripeProxyModel</span>
-<span class="c">#IBEISSTRIPEMODEL_BASE = APIItemModel</span>
+<span class="c1">#IBEISSTRIPEMODEL_BASE = APIItemModel</span>
 <span class="n">IBEISITEMMODEL_BASE</span> <span class="o">=</span> <span class="n">APIItemModel</span>
 
 
@@ -172,25 +172,25 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="n">IBEISSTRIPEMODEL_BASE</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">,</span> <span class="n">numduplicates</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c"># negative one is an invalid imgsetid</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">imgsetid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># negative one is an invalid imgsetid</span>
         <span class="n">model</span><span class="o">.</span><span class="n">original_ider</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="n">IBEISSTRIPEMODEL_BASE</span> <span class="o">==</span> <span class="n">StripeProxyModel</span><span class="p">:</span>
             <span class="n">model</span><span class="o">.</span><span class="n">sourcemodel</span> <span class="o">=</span> <span class="n">APIItemModel</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">parent</span><span class="p">)</span>
             <span class="n">model</span><span class="o">.</span><span class="n">setSourceModel</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sourcemodel</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs_model] just set the sourcemodel&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs_model] just set the sourcemodel&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_update_headers</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">headers</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">_null_ider</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">[]</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;iders&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">_null_ider</span><span class="p">])</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iders&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">_null_ider</span><span class="p">])</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">[:]</span>
             <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_ider</span>
-        <span class="n">headers</span><span class="p">[</span><span class="s">&#39;iders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">_nd</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;num_duplicates&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;iders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">_nd</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_duplicates&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">sourcemodel</span><span class="o">.</span><span class="n">_update_headers</span><span class="p">(</span><span class="o">**</span><span class="n">headers</span><span class="p">)</span>
-        <span class="c">#return IBEISSTRIPEMODEL_BASE._update_headers(model, **headers)</span>
+        <span class="c1">#return IBEISSTRIPEMODEL_BASE._update_headers(model, **headers)</span>
 
     <span class="k">def</span> <span class="nf">_ider</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Overrides the API model ider to give only selected imageset ids &quot;&quot;&quot;</span>
@@ -230,11 +230,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">def</span> <span class="nf">_null_ider</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">[]</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;iders&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">_null_ider</span><span class="p">])</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iders&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">_null_ider</span><span class="p">])</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">original_iders</span><span class="p">[:]</span>
             <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_ider</span>
-        <span class="n">headers</span><span class="p">[</span><span class="s">&#39;iders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span>
+        <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;iders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">new_iders</span>
         <span class="k">return</span> <span class="n">IBEISITEMMODEL_BASE</span><span class="o">.</span><span class="n">_update_headers</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">headers</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_ider</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
@@ -262,14 +262,14 @@
         <span class="n">treeview</span><span class="o">.</span><span class="n">verticalScrollBar</span><span class="p">()</span><span class="o">.</span><span class="n">setSliderPosition</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">treeview</span><span class="o">.</span><span class="n">model</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="c"># FIXME: should defer the change of imageset until</span>
-            <span class="c"># the view becomes visible</span>
+            <span class="c1"># FIXME: should defer the change of imageset until</span>
+            <span class="c1"># the view becomes visible</span>
             <span class="n">model</span><span class="o">.</span><span class="n">_change_imageset</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
 
 
-<span class="c">#-------------------------</span>
-<span class="c"># --- IMAGESET TABLES ---</span>
-<span class="c">#-------------------------</span>
+<span class="c1">#-------------------------</span>
+<span class="c1"># --- IMAGESET TABLES ---</span>
+<span class="c1">#-------------------------</span>
 
 </div>
 <div class="viewcode-block" id="ImagesetTableWidget"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui.models_and_views.ImagesetTableWidget">[docs]</a><span class="k">class</span> <span class="nc">ImagesetTableWidget</span><span class="p">(</span><span class="n">APIItemWidget</span><span class="p">):</span>
@@ -294,7 +294,7 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="n">APITableView</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">tblview</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
         <span class="n">tblview</span><span class="o">.</span><span class="n">ibswin</span> <span class="o">=</span> <span class="n">parent</span>
-        <span class="c">#tblview.setMaximumSize(500, 9999)</span></div>
+        <span class="c1">#tblview.setMaximumSize(500, 9999)</span></div>
 </pre></div>
 
            </div>
@@ -328,7 +328,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

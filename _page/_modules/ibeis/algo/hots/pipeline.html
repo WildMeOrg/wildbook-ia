@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.pipeline &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.hots.pipeline &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.hots.pipeline</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Hotspotter pipeline module</span>
 
@@ -186,44 +186,44 @@
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">chip_match</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">scoring</span>
-<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[pipeline]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[pipeline]&#39;</span><span class="p">)</span>
 
 
-<span class="c">#=================</span>
-<span class="c"># Globals</span>
-<span class="c">#=================</span>
+<span class="c1">#=================</span>
+<span class="c1"># Globals</span>
+<span class="c1">#=================</span>
 
-<span class="n">TAU</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>  <span class="c"># References: tauday.com</span>
-<span class="n">NOT_QUIET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--quiet-query&#39;</span><span class="p">)</span>
-<span class="n">DEBUG_PIPELINE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--debug-pipeline&#39;</span><span class="p">,</span> <span class="s">&#39;--debug-pipe&#39;</span><span class="p">))</span>
-<span class="n">VERB_PIPELINE</span> <span class="o">=</span>  <span class="n">NOT_QUIET</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--verbose-pipeline&#39;</span><span class="p">,</span> <span class="s">&#39;--verb-pipe&#39;</span><span class="p">)))</span>
-<span class="n">VERYVERBOSE_PIPELINE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--very-verbose-pipeline&#39;</span><span class="p">,</span> <span class="s">&#39;--very-verb-pipe&#39;</span><span class="p">))</span>
+<span class="n">TAU</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>  <span class="c1"># References: tauday.com</span>
+<span class="n">NOT_QUIET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--quiet-query&#39;</span><span class="p">)</span>
+<span class="n">DEBUG_PIPELINE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--debug-pipeline&#39;</span><span class="p">,</span> <span class="s1">&#39;--debug-pipe&#39;</span><span class="p">))</span>
+<span class="n">VERB_PIPELINE</span> <span class="o">=</span>  <span class="n">NOT_QUIET</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--verbose-pipeline&#39;</span><span class="p">,</span> <span class="s1">&#39;--verb-pipe&#39;</span><span class="p">)))</span>
+<span class="n">VERYVERBOSE_PIPELINE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--very-verbose-pipeline&#39;</span><span class="p">,</span> <span class="s1">&#39;--very-verb-pipe&#39;</span><span class="p">))</span>
 
-<span class="n">USE_HOTSPOTTER_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-hs&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">USE_CACHE</span>
+<span class="n">USE_HOTSPOTTER_CACHE</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nocache-hs&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">USE_CACHE</span>
 <span class="n">USE_NN_MID_CACHE</span> <span class="o">=</span> <span class="p">(</span>
     <span class="p">(</span><span class="bp">True</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">())</span> <span class="ow">and</span>
-    <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--nocache-nnmid&#39;</span><span class="p">)</span> <span class="ow">and</span>
+    <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--nocache-nnmid&#39;</span><span class="p">)</span> <span class="ow">and</span>
     <span class="n">USE_HOTSPOTTER_CACHE</span>
 <span class="p">)</span>
 
 
-<span class="n">NN_LBL</span>      <span class="o">=</span> <span class="s">&#39;Assign NN:       &#39;</span>
-<span class="n">FILT_LBL</span>    <span class="o">=</span> <span class="s">&#39;Filter NN:       &#39;</span>
-<span class="n">WEIGHT_LBL</span>  <span class="o">=</span> <span class="s">&#39;Weight NN:       &#39;</span>
-<span class="n">BUILDCM_LBL</span> <span class="o">=</span> <span class="s">&#39;Build Chipmatch: &#39;</span>
-<span class="n">SVER_LVL</span>    <span class="o">=</span> <span class="s">&#39;SVER:            &#39;</span>
+<span class="n">NN_LBL</span>      <span class="o">=</span> <span class="s1">&#39;Assign NN:       &#39;</span>
+<span class="n">FILT_LBL</span>    <span class="o">=</span> <span class="s1">&#39;Filter NN:       &#39;</span>
+<span class="n">WEIGHT_LBL</span>  <span class="o">=</span> <span class="s1">&#39;Weight NN:       &#39;</span>
+<span class="n">BUILDCM_LBL</span> <span class="o">=</span> <span class="s1">&#39;Build Chipmatch: &#39;</span>
+<span class="n">SVER_LVL</span>    <span class="o">=</span> <span class="s1">&#39;SVER:            &#39;</span>
 
 <span class="n">PROGKW</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_thresh</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 
-<span class="c"># Internal tuples denoting return types</span>
-<span class="n">WeightRet_</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;weight_ret&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;filtkey_list&#39;</span><span class="p">,</span> <span class="s">&#39;filtweights_list&#39;</span><span class="p">,</span>
-                                       <span class="s">&#39;filtvalids_list&#39;</span><span class="p">,</span> <span class="s">&#39;filtnormks_list&#39;</span><span class="p">))</span>
-<span class="n">ValidMatchTup_</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;vmt&#39;</span><span class="p">,</span> <span class="p">(</span>  <span class="c"># valid_match_tup</span>
-    <span class="s">&#39;daid&#39;</span><span class="p">,</span> <span class="s">&#39;qfx&#39;</span><span class="p">,</span> <span class="s">&#39;dfx&#39;</span><span class="p">,</span> <span class="s">&#39;scorevec&#39;</span><span class="p">,</span> <span class="s">&#39;rank&#39;</span><span class="p">,</span> <span class="s">&#39;norm_aids&#39;</span><span class="p">,</span> <span class="s">&#39;norm_fxs&#39;</span><span class="p">))</span>
+<span class="c1"># Internal tuples denoting return types</span>
+<span class="n">WeightRet_</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;weight_ret&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;filtkey_list&#39;</span><span class="p">,</span> <span class="s1">&#39;filtweights_list&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;filtvalids_list&#39;</span><span class="p">,</span> <span class="s1">&#39;filtnormks_list&#39;</span><span class="p">))</span>
+<span class="n">ValidMatchTup_</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;vmt&#39;</span><span class="p">,</span> <span class="p">(</span>  <span class="c1"># valid_match_tup</span>
+    <span class="s1">&#39;daid&#39;</span><span class="p">,</span> <span class="s1">&#39;qfx&#39;</span><span class="p">,</span> <span class="s1">&#39;dfx&#39;</span><span class="p">,</span> <span class="s1">&#39;scorevec&#39;</span><span class="p">,</span> <span class="s1">&#39;rank&#39;</span><span class="p">,</span> <span class="s1">&#39;norm_aids&#39;</span><span class="p">,</span> <span class="s1">&#39;norm_fxs&#39;</span><span class="p">))</span>
 
 
 <span class="nd">@profile</span>
@@ -289,106 +289,106 @@
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Load data for nearest neighbors</span>
+    <span class="c1"># Load data for nearest neighbors</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">ibs</span> <span class="ow">is</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s">[hs] +--- STARTING HOTSPOTTER PIPELINE ---&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">(),</span> <span class="s">&#39;[hs] &#39;</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">[hs] +--- STARTING HOTSPOTTER PIPELINE ---&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">(),</span> <span class="s1">&#39;[hs] &#39;</span><span class="p">))</span>
 
-    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">(),</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;pipeline qaids&#39;</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">(),</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;pipeline daids&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">(),</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;pipeline qaids&#39;</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">(),</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;pipeline daids&#39;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="s">&#39;smk&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="o">==</span> <span class="s1">&#39;smk&#39;</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis.algo.hots.smk</span> <span class="kn">import</span> <span class="n">smk_match</span>
-        <span class="c"># Alternative to naive bayes matching:</span>
-        <span class="c"># Selective match kernel</span>
+        <span class="c1"># Alternative to naive bayes matching:</span>
+        <span class="c1"># Selective match kernel</span>
         <span class="n">qaid2_scores</span><span class="p">,</span> <span class="n">qaid2_chipmatch_FILT_</span> <span class="o">=</span> <span class="n">smk_match</span><span class="o">.</span><span class="n">execute_smk_L5</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;vsone&#39;</span><span class="p">,</span> <span class="s">&#39;vsmany&#39;</span><span class="p">]:</span>
+    <span class="k">elif</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;vsone&#39;</span><span class="p">,</span> <span class="s1">&#39;vsmany&#39;</span><span class="p">]:</span>
         <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span><span class="o">.</span><span class="n">initialize_subhooks</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
 
-        <span class="c">#qreq_.lazy_load(verbose=(verbose and ut.NOT_QUIET))</span>
+        <span class="c1">#qreq_.lazy_load(verbose=(verbose and ut.NOT_QUIET))</span>
         <span class="n">qreq_</span><span class="o">.</span><span class="n">lazy_preload</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="p">(</span><span class="n">verbose</span> <span class="ow">and</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">))</span>
         <span class="n">impossible_daids_list</span><span class="p">,</span> <span class="n">Kpad_list</span> <span class="o">=</span> <span class="n">build_impossible_daids_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
 
-        <span class="c"># Nearest neighbors (nns_list)</span>
-        <span class="c"># a nns object is a tuple(ndarray, ndarray) - (qfx2_dx, qfx2_dist)</span>
-        <span class="c"># * query descriptors assigned to database descriptors</span>
-        <span class="c"># * FLANN used here</span>
+        <span class="c1"># Nearest neighbors (nns_list)</span>
+        <span class="c1"># a nns object is a tuple(ndarray, ndarray) - (qfx2_dx, qfx2_dist)</span>
+        <span class="c1"># * query descriptors assigned to database descriptors</span>
+        <span class="c1"># * FLANN used here</span>
         <span class="n">nns_list</span> <span class="o">=</span> <span class="n">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
-        <span class="c"># Remove Impossible Votes</span>
-        <span class="c"># a nnfilt object is an ndarray qfx2_valid</span>
-        <span class="c"># * marks matches to the same image as invalid</span>
+        <span class="c1"># Remove Impossible Votes</span>
+        <span class="c1"># a nnfilt object is an ndarray qfx2_valid</span>
+        <span class="c1"># * marks matches to the same image as invalid</span>
         <span class="n">nnvalid0_list</span> <span class="o">=</span> <span class="n">baseline_neighbor_filter</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span>
                                                  <span class="n">impossible_daids_list</span><span class="p">,</span>
                                                  <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
-        <span class="c"># Nearest neighbors weighting / scoring (filtweights_list)</span>
-        <span class="c"># filtweights_list maps qaid to filtweights which is a dict</span>
-        <span class="c"># that maps a filter name to that query&#39;s weights for that filter</span>
+        <span class="c1"># Nearest neighbors weighting / scoring (filtweights_list)</span>
+        <span class="c1"># filtweights_list maps qaid to filtweights which is a dict</span>
+        <span class="c1"># that maps a filter name to that query&#39;s weights for that filter</span>
         <span class="n">weight_ret</span> <span class="o">=</span> <span class="n">weight_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span>
                                       <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="n">filtkey_list</span><span class="p">,</span> <span class="n">filtweights_list</span><span class="p">,</span> <span class="n">filtvalids_list</span><span class="p">,</span> <span class="n">filtnormks_list</span> <span class="o">=</span> <span class="n">weight_ret</span>
 
-        <span class="c"># Nearest neighbors to chip matches (cm_list)</span>
-        <span class="c"># * Initial scoring occurs</span>
-        <span class="c"># * vsone un-swapping occurs here</span>
+        <span class="c1"># Nearest neighbors to chip matches (cm_list)</span>
+        <span class="c1"># * Initial scoring occurs</span>
+        <span class="c1"># * vsone un-swapping occurs here</span>
         <span class="n">cm_list_FILT</span> <span class="o">=</span> <span class="n">build_chipmatches</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span>
                                          <span class="n">filtkey_list</span><span class="p">,</span> <span class="n">filtweights_list</span><span class="p">,</span> <span class="n">filtvalids_list</span><span class="p">,</span>
                                          <span class="n">filtnormks_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;invalid pipeline root </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;invalid pipeline root </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span><span class="p">))</span>
 
-    <span class="c"># Spatial verification (cm_list) (TODO: cython)</span>
-    <span class="c"># * prunes chip results and feature matches</span>
-    <span class="c"># TODO: allow for reweighting of feature matches to happen.</span>
+    <span class="c1"># Spatial verification (cm_list) (TODO: cython)</span>
+    <span class="c1"># * prunes chip results and feature matches</span>
+    <span class="c1"># TODO: allow for reweighting of feature matches to happen.</span>
     <span class="n">cm_list_SVER</span> <span class="o">=</span> <span class="n">spatial_verification</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_FILT</span><span class="p">,</span>
                                         <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">cm_list_FILT</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">filtnorm_aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">cm_list_SVER</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">filtnorm_aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
 
-    <span class="c"># We might just put this check inside the function like it is for SVER.</span>
-    <span class="c"># or just not do that and use some good pipeline framework</span>
+    <span class="c1"># We might just put this check inside the function like it is for SVER.</span>
+    <span class="c1"># or just not do that and use some good pipeline framework</span>
     <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">rrvsone_on</span><span class="p">:</span>
-        <span class="c"># VSONE RERANKING</span>
+        <span class="c1"># VSONE RERANKING</span>
         <span class="n">cm_list</span> <span class="o">=</span> <span class="n">vsone_reranking</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_SVER</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">cm_list</span> <span class="o">=</span> <span class="n">cm_list_SVER</span>
-        <span class="c"># Final Scoring</span>
+        <span class="c1"># Final Scoring</span>
         <span class="n">score_method</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">score_method</span>
-        <span class="c"># TODO: move scoring part to pipeline</span>
+        <span class="c1"># TODO: move scoring part to pipeline</span>
         <span class="n">scoring</span><span class="o">.</span><span class="n">score_chipmatch_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">score_method</span><span class="p">)</span>
-        <span class="c"># Normalize scores if requested</span>
+        <span class="c1"># Normalize scores if requested</span>
         <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">score_normalization</span><span class="p">:</span>
             <span class="n">normalizer</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">normalizer</span>
             <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">:</span>
-                <span class="c"># cm.prob_list = normalizer.normalize_score_list(cm.score_list)</span>
+                <span class="c1"># cm.prob_list = normalizer.normalize_score_list(cm.score_list)</span>
                 <span class="n">cm</span><span class="o">.</span><span class="n">score_list</span> <span class="o">=</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">normalize_score_list</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">score_list</span><span class="p">)</span>
-                <span class="c"># TODO: DO EITHER ANNOT_SCORE_LIST OR NAME_SCORE_LIST</span>
+                <span class="c1"># TODO: DO EITHER ANNOT_SCORE_LIST OR NAME_SCORE_LIST</span>
                 <span class="n">cm</span><span class="o">.</span><span class="n">annot_score_list</span> <span class="o">=</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">normalize_score_list</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">annot_score_list</span><span class="p">)</span>
                 <span class="n">cm</span><span class="o">.</span><span class="n">name_score_list</span> <span class="o">=</span> <span class="n">normalizer</span><span class="o">.</span><span class="n">normalize_score_list</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">name_score_list</span><span class="p">)</span>
 
-    <span class="c"># &lt;HACK&gt;</span>
-    <span class="c"># FOR VSMANY DISTINCTIVENSS</span>
+    <span class="c1"># &lt;HACK&gt;</span>
+    <span class="c1"># FOR VSMANY DISTINCTIVENSS</span>
     <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">return_expanded_nns</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsmany</span><span class="p">,</span> <span class="s">&#39; must be in a special vsmany mode&#39;</span>
-        <span class="c"># MAJOR HACK TO RETURN ALL QUERY NEAREST NEIGHBORS</span>
-        <span class="c"># BREAKS PIPELINE CACHING ASSUMPTIONS</span>
-        <span class="c"># SHOULD ONLY BE CALLED BY SPECIAL_QUERY</span>
-        <span class="c"># CAUSES TOO MUCH DATA TO BE SAVED</span>
+        <span class="k">assert</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsmany</span><span class="p">,</span> <span class="s1">&#39; must be in a special vsmany mode&#39;</span>
+        <span class="c1"># MAJOR HACK TO RETURN ALL QUERY NEAREST NEIGHBORS</span>
+        <span class="c1"># BREAKS PIPELINE CACHING ASSUMPTIONS</span>
+        <span class="c1"># SHOULD ONLY BE CALLED BY SPECIAL_QUERY</span>
+        <span class="c1"># CAUSES TOO MUCH DATA TO BE SAVED</span>
         <span class="k">for</span> <span class="n">cm</span><span class="p">,</span> <span class="n">nns</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">):</span>
             <span class="n">cm</span><span class="o">.</span><span class="n">qfx2_dist</span> <span class="o">=</span> <span class="n">nns</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-    <span class="c"># &lt;/HACK&gt;</span>
+    <span class="c1"># &lt;/HACK&gt;</span>
 
     <span class="k">if</span> <span class="n">VERB_PIPELINE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] L___ FINISHED HOTSPOTTER PIPELINE ___&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[hs] L___ FINISHED HOTSPOTTER PIPELINE ___&#39;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">cm_list</span>
 
-<span class="c">#============================</span>
-<span class="c"># 0) Nearest Neighbors</span>
-<span class="c">#============================</span>
+<span class="c1">#============================</span>
+<span class="c1"># 0) Nearest Neighbors</span>
+<span class="c1">#============================</span>
 
 </div>
 <div class="viewcode-block" id="build_impossible_daids_list"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pipeline.build_impossible_daids_list">[docs]</a><span class="k">def</span> <span class="nf">build_impossible_daids_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
@@ -421,7 +421,7 @@
 <span class="sd">        ([array([1]), array([2, 3]), array([2, 3]), array([4]), array([5, 6]), array([5, 6])], [1, 2, 2, 1, 2, 2])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 0) Build impossible matches&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 0) Build impossible matches&#39;</span><span class="p">)</span>
 
     <span class="n">can_match_sameimg</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">can_match_sameimg</span>
     <span class="n">can_match_samename</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">can_match_samename</span>
@@ -434,21 +434,21 @@
     <span class="n">_impossible_daid_lists</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">cant_match_self</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">can_match_sameimg</span> <span class="ow">and</span> <span class="n">can_match_samename</span><span class="p">:</span>
-            <span class="c"># we can skip this if sameimg or samename is specified.</span>
-            <span class="c"># it will cover this case for us</span>
+            <span class="c1"># we can skip this if sameimg or samename is specified.</span>
+            <span class="c1"># it will cover this case for us</span>
             <span class="n">_impossible_daid_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([[</span><span class="n">qaid</span><span class="p">]</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">internal_qaids</span><span class="p">])</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">can_match_sameimg</span><span class="p">:</span>
-        <span class="c"># slow way of getting contact_aids (now incorporates faster way)</span>
+        <span class="c1"># slow way of getting contact_aids (now incorporates faster way)</span>
         <span class="n">contact_aids_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_contact_aids</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">,</span>
                                                              <span class="n">daid_list</span><span class="o">=</span><span class="n">internal_daids</span><span class="p">)</span>
         <span class="n">_impossible_daid_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">contact_aids_list</span><span class="p">)</span>
         <span class="n">EXTEND_TO_OTHER_CONTACT_GT</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="c"># TODO: flag overlapping keypoints with another annot as likely to</span>
-        <span class="c"># cause photobombs.</span>
-        <span class="c"># Also cannot match any aids with a name of an annotation in this image</span>
+        <span class="c1"># TODO: flag overlapping keypoints with another annot as likely to</span>
+        <span class="c1"># cause photobombs.</span>
+        <span class="c1"># Also cannot match any aids with a name of an annotation in this image</span>
         <span class="k">if</span> <span class="n">EXTEND_TO_OTHER_CONTACT_GT</span><span class="p">:</span>
-            <span class="c"># TODO: need a test set that can accomidate testing this case</span>
-            <span class="c"># testdb1 might cut it if we spruced it up</span>
+            <span class="c1"># TODO: need a test set that can accomidate testing this case</span>
+            <span class="c1"># testdb1 might cut it if we spruced it up</span>
             <span class="n">nonself_contact_aids</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">qaid</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">contact_aids_list</span><span class="p">,</span> <span class="n">internal_qaids</span><span class="p">)]</span>
@@ -469,34 +469,35 @@
             <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">internal_query_nids</span>
         <span class="p">]</span>
         <span class="n">_impossible_daid_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">)</span>
-    <span class="c"># TODO: add explicit not a match case in here</span>
+    <span class="c1"># TODO: add explicit not a match case in here</span>
     <span class="n">_impossible_daids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">_impossible_daid_lists</span><span class="p">)))</span>
     <span class="n">impossible_daids_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">impossible_daids</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">impossible_daids</span> <span class="ow">in</span> <span class="n">_impossible_daids_list</span><span class="p">]</span>
 
-    <span class="c"># TODO: we need to pad K for each bad annotation</span>
+    <span class="c1"># TODO: we need to pad K for each bad annotation</span>
     <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">vsone</span><span class="p">:</span>
-        <span class="c"># dont pad vsone</span>
+        <span class="c1"># dont pad vsone</span>
         <span class="n">Kpad_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">impossible_daids_list</span><span class="p">))]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">use_k_padding</span><span class="p">:</span>
-            <span class="n">Kpad_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">impossible_daids_list</span><span class="p">))</span>  <span class="c"># NOQA</span>
+            <span class="n">Kpad_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">impossible_daids_list</span><span class="p">))</span>  <span class="c1"># NOQA</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c"># always at least pad K for self queries</span>
+            <span class="c1"># always at least pad K for self queries</span>
             <span class="n">Kpad_list</span> <span class="o">=</span>  <span class="p">[</span>
                 <span class="mi">1</span> <span class="k">if</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">internal_daids</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">qaid</span> <span class="ow">in</span> <span class="n">internal_qaids</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">impossible_daids_list</span><span class="p">,</span> <span class="n">Kpad_list</span>
 
-<span class="c">#============================</span>
-<span class="c"># 1) Nearest Neighbors</span>
-<span class="c">#============================</span>
+<span class="c1">#============================</span>
+<span class="c1"># 1) Nearest Neighbors</span>
+<span class="c1">#============================</span>
 
 </div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="nearest_neighbor_cacheid2"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pipeline.nearest_neighbor_cacheid2">[docs]</a><span class="k">def</span> <span class="nf">nearest_neighbor_cacheid2</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
-<span class="sd">    Returns a hacky cacheid for neighbor configs</span>
+<span class="sd">    Returns a hacky cacheid for neighbor configs.</span>
+<span class="sd">    DEPRICATE: This will be replaced by dtool caching</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        qreq_ (QueryRequest):  query request object with hyper-parameters</span>
@@ -515,116 +516,105 @@
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
 <span class="sd">        &gt;&gt;&gt; verbose = True</span>
 <span class="sd">        &gt;&gt;&gt; cfgdict = dict(K=4, Knorm=1, use_k_padding=False)</span>
+<span class="sd">        &gt;&gt;&gt; # test 1</span>
 <span class="sd">        &gt;&gt;&gt; p = &#39;default&#39; + ut.get_cfg_lbl(cfgdict)</span>
 <span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.testdata_qreq_(defaultdb=&#39;testdb1&#39;, p=[p], qaid_override=[1, 2], daid_override=[1, 2, 3, 4, 5])</span>
 <span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq_, &#39;nearest_neighbors&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; Kpad_list, = ut.dict_take(locals_, [&#39;Kpad_list&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)</span>
 <span class="sd">        &gt;&gt;&gt; (nn_cachedir, nn_mid_cacheid_list) = tup</span>
-<span class="sd">        &gt;&gt;&gt; result = &#39;nn_mid_cacheid_list = &#39; + ut.list_str(nn_mid_cacheid_list)</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        nn_mid_cacheid_list = [</span>
-<span class="sd">            &#39;8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_truek6&#39;,</span>
-<span class="sd">            &#39;a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_truek6&#39;,</span>
-<span class="sd">        ]</span>
-
-<span class="sd">        nn_mid_cacheid_list = [</span>
-<span class="sd">            &#39;8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,K4+1,padk=False,last,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_1&#39;,</span>
-<span class="sd">            &#39;a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,K4+1,padk=False,last,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_1&#39;,</span>
-<span class="sd">        ]</span>
-
-<span class="sd">    Example1:</span>
-<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
-<span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pipeline import *  # NOQA</span>
-<span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; verbose = True</span>
-<span class="sd">        &gt;&gt;&gt; cfgdict = dict(K=2, Knorm=3, use_k_padding=True)</span>
-<span class="sd">        &gt;&gt;&gt; p = &#39;default&#39; + ut.get_cfg_lbl(cfgdict)</span>
-<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.testdata_qreq_(defaultdb=&#39;testdb1&#39;, p=[p], qaid_override=[1, 2], daid_override=[1, 2, 3, 4, 5])</span>
+<span class="sd">        &gt;&gt;&gt; result1 = &#39;nn_mid_cacheid_list = &#39; + ut.list_str(nn_mid_cacheid_list)</span>
+<span class="sd">        &gt;&gt;&gt; # test 2</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict2 = dict(K=2, Knorm=3, use_k_padding=True)</span>
+<span class="sd">        &gt;&gt;&gt; p2 = &#39;default&#39; + ut.get_cfg_lbl(cfgdict)</span>
 <span class="sd">        &gt;&gt;&gt; ibs = qreq_.ibs</span>
+<span class="sd">        &gt;&gt;&gt; qreq_ = ibeis.testdata_qreq_(defaultdb=&#39;testdb1&#39;, p=[p2], qaid_override=[1, 2], daid_override=[1, 2, 3, 4, 5])</span>
 <span class="sd">        &gt;&gt;&gt; locals_ = plh.testrun_pipeline_upto(qreq_, &#39;nearest_neighbors&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; Kpad_list, = ut.dict_take(locals_, [&#39;Kpad_list&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; tup = nearest_neighbor_cacheid2(qreq_, Kpad_list)</span>
 <span class="sd">        &gt;&gt;&gt; (nn_cachedir, nn_mid_cacheid_list) = tup</span>
-<span class="sd">        &gt;&gt;&gt; result = &#39;nn_mid_cacheid_list = &#39; + ut.list_str(nn_mid_cacheid_list)</span>
-<span class="sd">        &gt;&gt;&gt; print(result)</span>
-<span class="sd">        nn_mid_cacheid_list = [</span>
-<span class="sd">            &#39;8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_truek6&#39;,</span>
-<span class="sd">            &#39;a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_truek6&#39;,</span>
-<span class="sd">        ]</span>
-
-<span class="sd">        nn_mid_cacheid_list = [</span>
-<span class="sd">            &#39;8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,K4+1,padk=False,last,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_1&#39;,</span>
-<span class="sd">            &#39;a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,K4+1,padk=False,last,cks800)_FEAT(hesaff+sift_)_CHIP(sz450)_FLANN(8_kdtrees)_1&#39;,</span>
-<span class="sd">        ]</span>
+<span class="sd">        &gt;&gt;&gt; result2 = &#39;nn_mid_cacheid_list = &#39; + ut.list_str(nn_mid_cacheid_list)</span>
+<span class="sd">        &gt;&gt;&gt; print(result1)</span>
+<span class="sd">        &gt;&gt;&gt; print(result2)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.algo</span> <span class="kn">import</span> <span class="n">Config</span>
     <span class="n">internal_daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_daids</span><span class="p">()</span>
     <span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
     <span class="n">data_hashid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span>
-        <span class="n">internal_daids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;D&#39;</span><span class="p">)</span>
+        <span class="n">internal_daids</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">)</span>
 
     <span class="n">HACK_KCFG</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">SUPER_STRICT</span>
 
     <span class="k">if</span> <span class="n">HACK_KCFG</span><span class="p">:</span>
-        <span class="c"># hack config so we consolidate different k values</span>
-        <span class="c"># (ie, K=2,Knorm=1 == K=1,Knorm=2)</span>
+        <span class="c1"># hack config so we consolidate different k values</span>
+        <span class="c1"># (ie, K=2,Knorm=1 == K=1,Knorm=2)</span>
         <span class="n">nn_cfgstr</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">NNConfig</span><span class="p">(</span><span class="o">**</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="p">)</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span>
-            <span class="n">ignore_keys</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;K&#39;</span><span class="p">,</span> <span class="s">&#39;Knorm&#39;</span><span class="p">,</span> <span class="s">&#39;use_k_padding&#39;</span><span class="p">})</span>
+            <span class="n">ignore_keys</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;Knorm&#39;</span><span class="p">,</span> <span class="s1">&#39;use_k_padding&#39;</span><span class="p">})</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">nn_cfgstr</span>      <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nn_cfgstr</span>
 
+    <span class="n">chip_cfgstr</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">chip_cfgstr</span>
     <span class="n">feat_cfgstr</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">feat_cfgstr</span>
     <span class="n">flann_cfgstr</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">flann_cfgstr</span>
-    <span class="n">aug_cfgstr</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;aug_quryside&#39;</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">augment_queryside_hack</span>
-                  <span class="k">else</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-    <span class="n">nn_mid_cacheid</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">data_hashid</span><span class="p">,</span> <span class="n">nn_cfgstr</span><span class="p">,</span> <span class="n">feat_cfgstr</span><span class="p">,</span>
+    <span class="n">single_name_condition</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">single_name_condition</span>
+    <span class="n">aug_cfgstr</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;aug_quryside&#39;</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">augment_queryside_hack</span>
+                  <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">nn_mid_cacheid</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">data_hashid</span><span class="p">,</span> <span class="n">nn_cfgstr</span><span class="p">,</span> <span class="n">chip_cfgstr</span><span class="p">,</span> <span class="n">feat_cfgstr</span><span class="p">,</span>
                               <span class="n">flann_cfgstr</span><span class="p">,</span> <span class="n">aug_cfgstr</span><span class="p">])</span>
 
-    <span class="n">query_hashid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">single_name_condition</span><span class="p">:</span>
+        <span class="n">query_hashid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_semantic_uuids</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">query_hashid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">HACK_KCFG</span><span class="p">:</span>
         <span class="n">kbase</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span><span class="p">)</span>
         <span class="n">nn_mid_cacheid_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="nb">str</span><span class="p">(</span><span class="n">query_hashid</span><span class="p">)</span> <span class="o">+</span> <span class="n">nn_mid_cacheid</span> <span class="o">+</span> <span class="s">&#39;_truek&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">kbase</span> <span class="o">+</span> <span class="n">Kpad</span><span class="p">)</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">query_hashid</span><span class="p">)</span> <span class="o">+</span> <span class="n">nn_mid_cacheid</span> <span class="o">+</span> <span class="s1">&#39;_truek&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">kbase</span> <span class="o">+</span> <span class="n">Kpad</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">query_hashid</span><span class="p">,</span> <span class="n">Kpad</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">query_hashid_list</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">)]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">nn_mid_cacheid_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="nb">str</span><span class="p">(</span><span class="n">query_hashid</span><span class="p">)</span> <span class="o">+</span> <span class="n">nn_mid_cacheid</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">Kpad</span><span class="p">)</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">query_hashid</span><span class="p">)</span> <span class="o">+</span> <span class="n">nn_mid_cacheid</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">Kpad</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">query_hashid</span><span class="p">,</span> <span class="n">Kpad</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">query_hashid_list</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">)]</span>
 
     <span class="n">nn_cachedir</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_neighbor_cachedir</span><span class="p">()</span>
-    <span class="c"># ut.unixjoin(qreq_.ibs.get_cachedir(), &#39;neighborcache2&#39;)</span>
+    <span class="c1"># ut.unixjoin(qreq_.ibs.get_cachedir(), &#39;neighborcache2&#39;)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">nn_cachedir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;nn_mid_cacheid = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nn_mid_cacheid</span><span class="p">,))</span>
+        <span class="k">pass</span>
     <span class="k">return</span> <span class="n">nn_cachedir</span><span class="p">,</span> <span class="n">nn_mid_cacheid_list</span>
 
 </div>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="cachemiss_nn_compute_fn"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pipeline.cachemiss_nn_compute_fn">[docs]</a><span class="k">def</span> <span class="nf">cachemiss_nn_compute_fn</span><span class="p">(</span><span class="n">flags_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
-    <span class="c"># Cant do this here because of get_nn_aids. bleh</span>
-    <span class="c"># Could make this slightly more efficient</span>
-    <span class="c">#qreq_.load_indexer(verbose=verbose)</span>
+<div class="viewcode-block" id="cachemiss_nn_compute_fn"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pipeline.cachemiss_nn_compute_fn">[docs]</a><span class="k">def</span> <span class="nf">cachemiss_nn_compute_fn</span><span class="p">(</span><span class="n">flags_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">single_name_condition</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+    <span class="c1"># Cant do this here because of get_nn_aids. bleh</span>
+    <span class="c1"># Could make this slightly more efficient</span>
+    <span class="c1">#qreq_.load_indexer(verbose=verbose)</span>
 
     <span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
-    <span class="c"># Get only the data that needs to be computed</span>
+    <span class="c1"># Get only the data that needs to be computed</span>
     <span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">internal_qaids</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">flags_list</span><span class="p">)</span>
     <span class="n">Kpad_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">Kpad_list</span><span class="p">,</span> <span class="n">flags_list</span><span class="p">)</span>
-    <span class="c"># do computation</span>
+    <span class="c1"># do computation</span>
     <span class="n">num_neighbors_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">K</span> <span class="o">+</span> <span class="n">Kpad</span> <span class="o">+</span> <span class="n">Knorm</span> <span class="k">for</span> <span class="n">Kpad</span> <span class="ow">in</span> <span class="n">Kpad_list</span><span class="p">]</span>
     <span class="n">qvecs_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span>
         <span class="n">internal_qaids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_query_config2</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] depth(qvecs_list) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[hs] depth(qvecs_list) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
                   <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">),))</span>
-    <span class="c"># Mark progress ane execute nearest indexer nearest neighbor code</span>
+    <span class="c1"># Mark progress ane execute nearest indexer nearest neighbor code</span>
     <span class="n">prog_hook</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span>
                  <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span><span class="o">.</span><span class="n">next_subhook</span><span class="p">())</span>
     <span class="n">qvec_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">NN_LBL</span><span class="p">,</span>
                                 <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span> <span class="o">**</span><span class="n">PROGKW</span><span class="p">)</span>
-    <span class="n">nns_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">knn</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qvec_iter</span><span class="p">,</span> <span class="n">num_neighbors_list</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="n">single_name_condition</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nns_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">knn</span><span class="p">(</span><span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">qfx2_vec</span><span class="p">,</span> <span class="n">num_neighbors</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qvec_iter</span><span class="p">,</span> <span class="n">num_neighbors_list</span><span class="p">)]</span>
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">plh</span><span class="o">.</span><span class="n">print_nearest_neighbor_assignments</span><span class="p">(</span><span class="n">qvecs_list</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">)</span>
@@ -638,26 +628,26 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">K</span>      <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
     <span class="n">Knorm</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
-    <span class="c">#checks = qreq_.qparams.checks</span>
-    <span class="c"># Get both match neighbors (including padding) and normalizing neighbors</span>
+    <span class="n">single_name_condition</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">single_name_condition</span>
+    <span class="c1">#checks = qreq_.qparams.checks</span>
+    <span class="c1"># Get both match neighbors (including padding) and normalizing neighbors</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 1) Assign nearest neighbors: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 1) Assign nearest neighbors: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
               <span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nn_cfgstr</span><span class="p">,))</span>
     <span class="n">qreq_</span><span class="o">.</span><span class="n">load_indexer</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="c"># For each internal query annotation</span>
-    <span class="c"># Find the nearest neighbors of each descriptor vector</span>
-    <span class="c">#USE_NN_MID_CACHE = ut.is_developer()</span>
+    <span class="c1"># For each internal query annotation</span>
+    <span class="c1"># Find the nearest neighbors of each descriptor vector</span>
+    <span class="c1">#USE_NN_MID_CACHE = ut.is_developer()</span>
     <span class="n">nn_cachedir</span><span class="p">,</span> <span class="n">nn_mid_cacheid_list</span> <span class="o">=</span> <span class="n">nearest_neighbor_cacheid2</span><span class="p">(</span>
         <span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">)</span>
 
     <span class="n">use_cache</span> <span class="o">=</span> <span class="n">USE_NN_MID_CACHE</span>
     <span class="n">nns_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">tryload_cache_list_with_compute</span><span class="p">(</span>
-        <span class="n">use_cache</span><span class="p">,</span> <span class="n">nn_cachedir</span><span class="p">,</span> <span class="s">&#39;neighbs4&#39;</span><span class="p">,</span> <span class="n">nn_mid_cacheid_list</span><span class="p">,</span>
-        <span class="n">cachemiss_nn_compute_fn</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+        <span class="n">use_cache</span><span class="p">,</span> <span class="n">nn_cachedir</span><span class="p">,</span> <span class="s1">&#39;neighbs4&#39;</span><span class="p">,</span> <span class="n">nn_mid_cacheid_list</span><span class="p">,</span>
+        <span class="n">cachemiss_nn_compute_fn</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">single_name_condition</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">nns_list</span>
 
-
-<span class="c">#@ut.indent_func(&#39;[nn]&#39;)</span></div>
+</div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="nearest_neighbors"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pipeline.nearest_neighbors">[docs]</a><span class="k">def</span> <span class="nf">nearest_neighbors</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -684,45 +674,45 @@
 <span class="sd">        &gt;&gt;&gt; # Assert nns tuple is valid</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(qfx2_idx.shape, qfx2_dist.shape)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(qfx2_idx.shape[1], num_neighbors)</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(qfx2_idx.shape[0], 1000, 2000)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(qfx2_idx.shape[0], 1000, 3000)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#if True or USE_NN_MID_CACHE:</span>
+    <span class="c1">#if True or USE_NN_MID_CACHE:</span>
     <span class="k">return</span> <span class="n">nearest_neighbors_withcache</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">Kpad_list</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
-    <span class="c">#if False:</span>
-    <span class="c">#    # Neareset neighbor configuration</span>
-    <span class="c">#    K      = qreq_.qparams.K</span>
-    <span class="c">#    Knorm  = qreq_.qparams.Knorm</span>
-    <span class="c">#    #checks = qreq_.qparams.checks</span>
-    <span class="c">#    # Get both match neighbors (including padding) and normalizing neighbors</span>
-    <span class="c">#    num_neighbors_list = [(K + Kpad + Knorm) for Kpad in Kpad_list]</span>
-    <span class="c">#    if verbose:</span>
-    <span class="c">#        print(&#39;[hs] Step 1) Assign nearest neighbors: %s&#39; %</span>
-    <span class="c">#              (qreq_.qparams.nn_cfgstr,))</span>
-    <span class="c">#    internal_qaids = qreq_.get_internal_qaids()</span>
-    <span class="c">#    #num_deleted = qreq_.ibs.delete_annot_feats(</span>
-    <span class="c">#    #    internal_qaids, config2_=qreq_.get_internal_query_config2())</span>
-    <span class="c">#    qvecs_list = qreq_.ibs.get_annot_vecs(</span>
-    <span class="c">#        internal_qaids, config2_=qreq_.get_internal_query_config2())</span>
-    <span class="c">#    # Mark progress ane execute nearest indexer nearest neighbor code</span>
-    <span class="c">#    prog_hook = (None if qreq_.prog_hook is None else</span>
-    <span class="c">#                 qreq_.prog_hook.next_subhook())</span>
-    <span class="c">#    qvec_iter = ut.ProgressIter(</span>
-    <span class="c">#        qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW)</span>
-    <span class="c">#    nns_list = [</span>
-    <span class="c">#        qreq_.indexer.knn(qfx2_vec, num_neighbors)</span>
-    <span class="c">#        for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]</span>
+    <span class="c1">#if False:</span>
+    <span class="c1">#    # Neareset neighbor configuration</span>
+    <span class="c1">#    K      = qreq_.qparams.K</span>
+    <span class="c1">#    Knorm  = qreq_.qparams.Knorm</span>
+    <span class="c1">#    #checks = qreq_.qparams.checks</span>
+    <span class="c1">#    # Get both match neighbors (including padding) and normalizing neighbors</span>
+    <span class="c1">#    num_neighbors_list = [(K + Kpad + Knorm) for Kpad in Kpad_list]</span>
+    <span class="c1">#    if verbose:</span>
+    <span class="c1">#        print(&#39;[hs] Step 1) Assign nearest neighbors: %s&#39; %</span>
+    <span class="c1">#              (qreq_.qparams.nn_cfgstr,))</span>
+    <span class="c1">#    internal_qaids = qreq_.get_internal_qaids()</span>
+    <span class="c1">#    #num_deleted = qreq_.ibs.delete_annot_feats(</span>
+    <span class="c1">#    #    internal_qaids, config2_=qreq_.get_internal_query_config2())</span>
+    <span class="c1">#    qvecs_list = qreq_.ibs.get_annot_vecs(</span>
+    <span class="c1">#        internal_qaids, config2_=qreq_.get_internal_query_config2())</span>
+    <span class="c1">#    # Mark progress ane execute nearest indexer nearest neighbor code</span>
+    <span class="c1">#    prog_hook = (None if qreq_.prog_hook is None else</span>
+    <span class="c1">#                 qreq_.prog_hook.next_subhook())</span>
+    <span class="c1">#    qvec_iter = ut.ProgressIter(</span>
+    <span class="c1">#        qvecs_list, lbl=NN_LBL, prog_hook=prog_hook, **PROGKW)</span>
+    <span class="c1">#    nns_list = [</span>
+    <span class="c1">#        qreq_.indexer.knn(qfx2_vec, num_neighbors)</span>
+    <span class="c1">#        for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]</span>
 
-    <span class="c">#    # Verbose statistics reporting</span>
-    <span class="c">#    if verbose:</span>
-    <span class="c">#        plh.print_nearest_neighbor_assignments(qvecs_list, nns_list)</span>
-    <span class="c">#    #if qreq_.qparams.with_metadata:</span>
-    <span class="c">#    #    qreq_.metadata[&#39;nns&#39;] = nns_list</span>
-    <span class="c">#    return nns_list</span>
+    <span class="c1">#    # Verbose statistics reporting</span>
+    <span class="c1">#    if verbose:</span>
+    <span class="c1">#        plh.print_nearest_neighbor_assignments(qvecs_list, nns_list)</span>
+    <span class="c1">#    #if qreq_.qparams.with_metadata:</span>
+    <span class="c1">#    #    qreq_.metadata[&#39;nns&#39;] = nns_list</span>
+    <span class="c1">#    return nns_list</span>
 
 
-<span class="c">#============================</span>
-<span class="c"># 2) Remove Impossible Weights</span>
-<span class="c">#============================</span>
+<span class="c1">#============================</span>
+<span class="c1"># 2) Remove Impossible Weights</span>
+<span class="c1">#============================</span>
 
 </div>
 <span class="nd">@profile</span>
@@ -746,7 +736,7 @@
 <span class="sd">        ...    &#39;first col should be all invalid because of self match&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; assert not np.all(nnvalid0_list[0][:, 1]), (</span>
 <span class="sd">        ...    &#39;second col should have some good matches&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nnvalid0_list[0].sum(), 1900, 3500)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nnvalid0_list[0].sum(), 1000, 10000)</span>
 
 <span class="sd">    Example1:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -758,10 +748,10 @@
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(qreq_.qparams.K, 1, &#39;k is not 1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(nnvalid0_list[0].shape[1], qreq_.qparams.K, &#39;does not match k&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(nnvalid0_list[0].sum(), 0, &#39;no self matches&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nnvalid0_list[1].sum(), 800, 1100)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(nnvalid0_list[1].sum(), 200, 1500)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 2) Baseline neighbor filter&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 2) Baseline neighbor filter&#39;</span><span class="p">)</span>
     <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
     <span class="n">nnidx_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="n">Knorm</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="k">for</span> <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">nns_list</span><span class="p">)</span>
     <span class="n">qfx2_aid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">)</span> <span class="k">for</span> <span class="n">qfx2_nnidx</span> <span class="ow">in</span> <span class="n">nnidx_iter</span><span class="p">]</span>
@@ -776,9 +766,9 @@
     <span class="k">return</span> <span class="n">nnvalid0_list</span>
 
 
-<span class="c">#============================</span>
-<span class="c"># 3) Nearest Neighbor weights</span>
-<span class="c">#============================</span>
+<span class="c1">#============================</span>
+<span class="c1"># 3) Nearest Neighbor weights</span>
+<span class="c1">#============================</span>
 
 </div>
 <span class="nd">@profile</span>
@@ -881,15 +871,15 @@
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 3) Weight neighbors: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nnweight_cfgstr</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 3) Weight neighbors: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nnweight_cfgstr</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nns_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] depth(nns_list) &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">nns_list</span><span class="p">)))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[hs] depth(nns_list) &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">nns_list</span><span class="p">)))</span>
 
-    <span class="c">#print(WEIGHT_LBL)</span>
-    <span class="c">#intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL,</span>
-    <span class="c">#                                   **PROGKW)</span>
+    <span class="c1">#print(WEIGHT_LBL)</span>
+    <span class="c1">#intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL,</span>
+    <span class="c1">#                                   **PROGKW)</span>
 
-    <span class="c"># Build weights for each active filter</span>
+    <span class="c1"># Build weights for each active filter</span>
     <span class="n">filtkey_list</span>     <span class="o">=</span> <span class="p">[]</span>
     <span class="n">_filtweight_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">_filtvalid_list</span>  <span class="o">=</span> <span class="p">[]</span>
@@ -897,27 +887,27 @@
 
     <span class="n">config2_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_data_config2</span><span class="p">()</span>
 
-    <span class="c"># soft_weights = [&#39;lnbnn&#39;, &#39;normonly&#39;, &#39;bar_l2&#39;, &#39;const&#39;, &#39;borda&#39;, &#39;fg&#39;]</span>
-    <span class="c"># for filtname in soft_weights:</span>
-    <span class="c">#     pass</span>
-    <span class="c"># hard_weights = [&#39;ratio&#39;]</span>
+    <span class="c1"># soft_weights = [&#39;lnbnn&#39;, &#39;normonly&#39;, &#39;bar_l2&#39;, &#39;const&#39;, &#39;borda&#39;, &#39;fg&#39;]</span>
+    <span class="c1"># for filtname in soft_weights:</span>
+    <span class="c1">#     pass</span>
+    <span class="c1"># hard_weights = [&#39;ratio&#39;]</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">config2_</span><span class="o">.</span><span class="n">sqrd_dist_on</span><span class="p">:</span>
-        <span class="c"># Take the square root of the squared distances</span>
+        <span class="c1"># Take the square root of the squared distances</span>
         <span class="n">nns_list_</span> <span class="o">=</span> <span class="p">[(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">qfx2_dist</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)))</span>
                      <span class="k">for</span> <span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span> <span class="ow">in</span> <span class="n">nns_list</span><span class="p">]</span>
         <span class="n">nns_list</span> <span class="o">=</span> <span class="n">nns_list_</span>
 
     <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">lnbnn_on</span><span class="p">:</span>
-        <span class="n">filtname</span> <span class="o">=</span> <span class="s">&#39;lnbnn&#39;</span>
+        <span class="n">filtname</span> <span class="o">=</span> <span class="s1">&#39;lnbnn&#39;</span>
         <span class="n">lnbnn_weight_list</span><span class="p">,</span> <span class="n">normk_list</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtname</span><span class="p">](</span>
             <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">lnbnn_normer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] normalizing feat scores&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[hs] normalizing feat scores&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">lnbnn_normer</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">qreq_</span><span class="o">.</span><span class="n">lnbnn_normer</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ScoreNormalizer</span><span class="p">()</span>
-                <span class="c"># qreq_.lnbnn_normer.load(cfgstr=config2_.lnbnn_normer)</span>
+                <span class="c1"># qreq_.lnbnn_normer.load(cfgstr=config2_.lnbnn_normer)</span>
                 <span class="n">qreq_</span><span class="o">.</span><span class="n">lnbnn_normer</span><span class="o">.</span><span class="n">fuzzyload</span><span class="p">(</span><span class="n">partial_cfgstr</span><span class="o">=</span><span class="n">config2_</span><span class="o">.</span><span class="n">lnbnn_normer</span><span class="p">)</span>
 
             <span class="n">lnbnn_weight_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -925,83 +915,83 @@
                 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">lnbnn_weight_list</span>
             <span class="p">]</span>
 
-            <span class="c"># Thresholding like a champ!</span>
+            <span class="c1"># Thresholding like a champ!</span>
             <span class="n">lnbnn_norm_thresh</span> <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">lnbnn_norm_thresh</span>
-            <span class="c"># lnbnn_weight_list = [</span>
-            <span class="c">#     s * [s &gt; lnbnn_norm_thresh] for s in lnbnn_weight_list</span>
-            <span class="c"># ]</span>
+            <span class="c1"># lnbnn_weight_list = [</span>
+            <span class="c1">#     s * [s &gt; lnbnn_norm_thresh] for s in lnbnn_weight_list</span>
+            <span class="c1"># ]</span>
             <span class="n">lnbnn_isvalid</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="o">&gt;</span> <span class="n">lnbnn_norm_thresh</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">lnbnn_weight_list</span><span class="p">]</span>
-            <span class="c"># Softmaxing</span>
-            <span class="c"># from scipy.special import expit</span>
-            <span class="c"># y = expit(x * 6)</span>
-            <span class="c"># lnbnn_weight_list = [</span>
-            <span class="c">#     vt.logistic_01(s)</span>
-            <span class="c">#     for s in lnbnn_weight_list</span>
-            <span class="c"># ]</span>
-            <span class="n">filtname</span> <span class="o">+=</span> <span class="s">&#39;_norm&#39;</span>
-            <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lnbnn_isvalid</span><span class="p">)</span>  <span class="c"># None means all valid</span>
+            <span class="c1"># Softmaxing</span>
+            <span class="c1"># from scipy.special import expit</span>
+            <span class="c1"># y = expit(x * 6)</span>
+            <span class="c1"># lnbnn_weight_list = [</span>
+            <span class="c1">#     vt.logistic_01(s)</span>
+            <span class="c1">#     for s in lnbnn_weight_list</span>
+            <span class="c1"># ]</span>
+            <span class="n">filtname</span> <span class="o">+=</span> <span class="s1">&#39;_norm&#39;</span>
+            <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lnbnn_isvalid</span><span class="p">)</span>  <span class="c1"># None means all valid</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>  <span class="c"># None means all valid</span>
+            <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>  <span class="c1"># None means all valid</span>
 
         <span class="n">_filtweight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lnbnn_weight_list</span><span class="p">)</span>
         <span class="n">_filtnormk_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normk_list</span><span class="p">)</span>
         <span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtname</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">normonly_on</span><span class="p">:</span>
-        <span class="n">filtname</span> <span class="o">=</span> <span class="s">&#39;normonly&#39;</span>
+        <span class="n">filtname</span> <span class="o">=</span> <span class="s1">&#39;normonly&#39;</span>
         <span class="n">normonly_weight_list</span><span class="p">,</span> <span class="n">normk_list</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtname</span><span class="p">](</span>
             <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">_filtweight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normonly_weight_list</span><span class="p">)</span>
-        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>  <span class="c"># None means all valid</span>
+        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>  <span class="c1"># None means all valid</span>
         <span class="n">_filtnormk_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normk_list</span><span class="p">)</span>
         <span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtname</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">bar_l2_on</span><span class="p">:</span>
-        <span class="n">filtname</span> <span class="o">=</span> <span class="s">&#39;bar_l2&#39;</span>
+        <span class="n">filtname</span> <span class="o">=</span> <span class="s1">&#39;bar_l2&#39;</span>
         <span class="n">bar_l2_weight_list</span><span class="p">,</span> <span class="n">normk_list</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtname</span><span class="p">](</span>
             <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">_filtweight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bar_l2_weight_list</span><span class="p">)</span>
-        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>  <span class="c"># None means all valid</span>
+        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>  <span class="c1"># None means all valid</span>
         <span class="n">_filtnormk_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
         <span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtname</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">ratio_thresh</span><span class="p">:</span>
-        <span class="n">filtname</span> <span class="o">=</span> <span class="s">&#39;ratio&#39;</span>
+        <span class="n">filtname</span> <span class="o">=</span> <span class="s1">&#39;ratio&#39;</span>
         <span class="n">ratio_weight_list</span><span class="p">,</span> <span class="n">normk_list</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtname</span><span class="p">](</span>
             <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">ratio_isvalid</span>   <span class="o">=</span> <span class="p">[</span><span class="n">qfx2_ratio</span> <span class="o">&lt;=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">ratio_thresh</span> <span class="k">for</span>
                            <span class="n">qfx2_ratio</span> <span class="ow">in</span> <span class="n">ratio_weight_list</span><span class="p">]</span>
-        <span class="c"># HACK TO GET 1 - RATIO AS SCORE</span>
+        <span class="c1"># HACK TO GET 1 - RATIO AS SCORE</span>
         <span class="n">ratioscore_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">qfx2_ratio</span><span class="p">)</span>
                            <span class="k">for</span> <span class="n">qfx2_ratio</span> <span class="ow">in</span> <span class="n">ratio_weight_list</span><span class="p">]</span>
         <span class="n">_filtweight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ratioscore_list</span><span class="p">)</span>
         <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ratio_isvalid</span><span class="p">)</span>
         <span class="n">_filtnormk_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normk_list</span><span class="p">)</span>
         <span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtname</span><span class="p">)</span>
-    <span class="c"># --simple weighted implm</span>
+    <span class="c1"># --simple weighted implm</span>
     <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">const_on</span><span class="p">:</span>
-        <span class="n">filtname</span> <span class="o">=</span> <span class="s">&#39;const&#39;</span>
+        <span class="n">filtname</span> <span class="o">=</span> <span class="s1">&#39;const&#39;</span>
         <span class="n">constvote_weight_list</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtname</span><span class="p">](</span>
             <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">_filtweight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constvote_weight_list</span><span class="p">)</span>
-        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>  <span class="c"># None means all valid</span>
+        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>  <span class="c1"># None means all valid</span>
         <span class="n">_filtnormk_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
         <span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtname</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">borda_on</span><span class="p">:</span>
-        <span class="n">filtname</span> <span class="o">=</span> <span class="s">&#39;borda&#39;</span>
+        <span class="n">filtname</span> <span class="o">=</span> <span class="s1">&#39;borda&#39;</span>
         <span class="n">constvote_weight_list</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtname</span><span class="p">](</span>
             <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">_filtweight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constvote_weight_list</span><span class="p">)</span>
-        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>  <span class="c"># None means all valid</span>
+        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>  <span class="c1"># None means all valid</span>
         <span class="n">_filtnormk_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
         <span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtname</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">config2_</span><span class="o">.</span><span class="n">fg_on</span><span class="p">:</span>
-        <span class="n">filtname</span> <span class="o">=</span> <span class="s">&#39;fg&#39;</span>
+        <span class="n">filtname</span> <span class="o">=</span> <span class="s1">&#39;fg&#39;</span>
         <span class="n">fgvote_weight_list</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtname</span><span class="p">](</span>
             <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">_filtweight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fgvote_weight_list</span><span class="p">)</span>
-        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>  <span class="c"># None means all valid</span>
+        <span class="n">_filtvalid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>  <span class="c1"># None means all valid</span>
         <span class="n">_filtnormk_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
         <span class="n">filtkey_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filtname</span><span class="p">)</span>
 
-    <span class="c"># Switch nested list structure from [filt, qaid] to [qaid, filt]</span>
+    <span class="c1"># Switch nested list structure from [filt, qaid] to [qaid, filt]</span>
     <span class="n">nInternAids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nns_list</span><span class="p">)</span>
     <span class="n">filtweights_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">_filtweight_list</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInternAids</span><span class="p">)]</span>
@@ -1009,8 +999,8 @@
         <span class="bp">None</span> <span class="k">if</span> <span class="n">filtvalid</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">filtvalid</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">filtvalid</span> <span class="ow">in</span> <span class="n">_filtvalid_list</span>
     <span class="p">]</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInternAids</span><span class="p">)</span> <span class="p">]</span>
-    <span class="c"># print(&#39;ut.depth_profile(_filtweight_list) = %r&#39; % (ut.depth_profile(_filtweight_list),))</span>
-    <span class="c"># print(&#39;ut.depth_profile(filtweights_list) = %r&#39; % (ut.depth_profile(filtweights_list),))</span>
+    <span class="c1"># print(&#39;ut.depth_profile(_filtweight_list) = %r&#39; % (ut.depth_profile(_filtweight_list),))</span>
+    <span class="c1"># print(&#39;ut.depth_profile(filtweights_list) = %r&#39; % (ut.depth_profile(filtweights_list),))</span>
 
     <span class="n">filtnormks_list</span> <span class="o">=</span> <span class="p">[[</span>
         <span class="bp">None</span> <span class="k">if</span> <span class="n">normk</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">normk</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
@@ -1018,15 +1008,15 @@
     <span class="p">]</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInternAids</span><span class="p">)]</span>
 
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">filtkey_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
-        <span class="s">&#39;no feature correspondece filter keys were specified&#39;</span><span class="p">)</span>
+        <span class="s1">&#39;no feature correspondece filter keys were specified&#39;</span><span class="p">)</span>
 
     <span class="n">weight_ret</span> <span class="o">=</span> <span class="n">WeightRet_</span><span class="p">(</span><span class="n">filtkey_list</span><span class="p">,</span> <span class="n">filtweights_list</span><span class="p">,</span> <span class="n">filtvalids_list</span><span class="p">,</span> <span class="n">filtnormks_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">weight_ret</span>
 
 
-<span class="c">#============================</span>
-<span class="c"># 4) Conversion from featurematches to chipmatches qfx2 -&gt; aid2</span>
-<span class="c">#============================</span>
+<span class="c1">#============================</span>
+<span class="c1"># 4) Conversion from featurematches to chipmatches qfx2 -&gt; aid2</span>
+<span class="c1">#============================</span>
 
 </div>
 <span class="nd">@profile</span>
@@ -1062,7 +1052,7 @@
 <span class="sd">        &gt;&gt;&gt; fm = cm.fm_list[cm.daid2_idx[2]]</span>
 <span class="sd">        &gt;&gt;&gt; num_matches = len(fm)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;vsone num_matches = %r&#39; % num_matches)</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(num_matches, 500, 800, &#39;vsmany nmatches out of bounds&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(num_matches, 500, 2000, &#39;vsmany nmatches out of bounds&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; cm_list[0].show_single_annotmatch(qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
@@ -1081,7 +1071,7 @@
 <span class="sd">        &gt;&gt;&gt; fm = cm.fm_list[cm.daid2_idx[2]]</span>
 <span class="sd">        &gt;&gt;&gt; num_matches = len(fm)</span>
 <span class="sd">        &gt;&gt;&gt; print(&#39;vsone num_matches = %r&#39; % num_matches)</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(num_matches, 25, 42, &#39;vsone nmatches out of bounds&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(num_matches, 25, 100, &#39;vsone nmatches out of bounds&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_, daid=2)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
@@ -1090,11 +1080,11 @@
     <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="n">pipeline_root</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">pipeline_root</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 4) Building chipmatches </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pipeline_root</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 4) Building chipmatches </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pipeline_root</span><span class="p">,))</span>
     <span class="n">idx_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qfx2_idx</span> <span class="k">for</span> <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">nns_list</span><span class="p">]</span>
-    <span class="c">#nnvalid0_list</span>
-    <span class="c"># if filtnormks_list is None:</span>
-    <span class="c">#     filtnormks_list = [None] * len(filtweights_list)</span>
+    <span class="c1">#nnvalid0_list</span>
+    <span class="c1"># if filtnormks_list is None:</span>
+    <span class="c1">#     filtnormks_list = [None] * len(filtweights_list)</span>
     <span class="n">vmt_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">get_sparse_matchinfo_nonagg</span><span class="p">(</span>
             <span class="n">qreq_</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_valid0</span><span class="p">,</span> <span class="n">qfx2_score_list</span><span class="p">,</span>
@@ -1102,27 +1092,27 @@
         <span class="k">for</span> <span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_valid0</span><span class="p">,</span> <span class="n">qfx2_score_list</span><span class="p">,</span> <span class="n">qfx2_valid_list</span><span class="p">,</span> <span class="n">qfx2_normk_list</span> <span class="ow">in</span>
         <span class="nb">zip</span><span class="p">(</span><span class="n">idx_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">filtweights_list</span><span class="p">,</span> <span class="n">filtvalids_list</span><span class="p">,</span> <span class="n">filtnormks_list</span><span class="p">)</span>
     <span class="p">]</span>
-    <span class="c"># Iterate over INTERNAL query annotation ids</span>
+    <span class="c1"># Iterate over INTERNAL query annotation ids</span>
     <span class="n">internal_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
     <span class="n">external_qaids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()</span>
     <span class="n">external_daids</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_daids</span><span class="p">()</span>
     <span class="n">prog_hook</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">prog_hook</span><span class="o">.</span><span class="n">next_subhook</span><span class="p">()</span>
     <span class="n">intern_qaid_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">internal_qaids</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">BUILDCM_LBL</span><span class="p">,</span>
                                        <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span> <span class="o">**</span><span class="n">PROGKW</span><span class="p">)</span>
-    <span class="c">#intern_qaid_iter = internal_qaids</span>
+    <span class="c1">#intern_qaid_iter = internal_qaids</span>
 
     <span class="k">if</span> <span class="n">is_vsone</span><span class="p">:</span>
-        <span class="c"># VSONE build one cmtup_old</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">external_qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;vsone can only accept one external qaid&#39;</span>
+        <span class="c1"># VSONE build one cmtup_old</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">external_qaids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;vsone can only accept one external qaid&#39;</span>
         <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">external_daids</span> <span class="o">==</span> <span class="n">internal_qaids</span><span class="p">)</span>
-        <span class="c"># build vsone dict output</span>
+        <span class="c1"># build vsone dict output</span>
         <span class="n">qaid</span> <span class="o">=</span> <span class="n">external_qaids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">cm</span> <span class="o">=</span> <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span><span class="o">.</span><span class="n">from_vsone_match_tup</span><span class="p">(</span>
             <span class="n">vmt_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="o">=</span><span class="n">external_daids</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="n">qaid</span><span class="p">,</span>
             <span class="n">fsv_col_lbls</span><span class="o">=</span><span class="n">filtkey_list</span><span class="p">)</span>
         <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cm</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c"># VSMANY build many cmtup_olds</span>
+        <span class="c1"># VSMANY build many cmtup_olds</span>
         <span class="n">cm_list</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">chip_match</span><span class="o">.</span><span class="n">ChipMatch</span><span class="o">.</span><span class="n">from_vsmany_match_tup</span><span class="p">(</span>
                 <span class="n">vmt</span><span class="p">,</span> <span class="n">qaid</span><span class="o">=</span><span class="n">qaid</span><span class="p">,</span> <span class="n">fsv_col_lbls</span><span class="o">=</span><span class="n">filtkey_list</span><span class="p">)</span>
@@ -1186,47 +1176,47 @@
 <span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Unpack neighbor ids, indices, filter scores, and flags</span>
+    <span class="c1"># Unpack neighbor ids, indices, filter scores, and flags</span>
     <span class="n">indexer</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span>
     <span class="n">qfx2_nnidx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[:</span><span class="o">-</span><span class="n">Knorm</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
     <span class="n">K</span> <span class="o">=</span> <span class="n">qfx2_nnidx</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">qfx2_daid</span> <span class="o">=</span> <span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">)</span>
     <span class="n">qfx2_dfx</span> <span class="o">=</span> <span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_featxs</span><span class="p">(</span><span class="n">qfx2_nnidx</span><span class="p">)</span>
 
-    <span class="c"># Determine matches that are valid using all measurements</span>
+    <span class="c1"># Determine matches that are valid using all measurements</span>
     <span class="n">qfx2_valid_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">qfx2_valid0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">qfx2_valid_list</span><span class="p">)</span>
     <span class="n">qfx2_valid_agg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">qfx2_valid_list_</span><span class="p">)</span>
 
-    <span class="c"># We fill filter each relavant matrix by aggregate validity</span>
+    <span class="c1"># We fill filter each relavant matrix by aggregate validity</span>
     <span class="n">flat_validx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">qfx2_valid_agg</span><span class="p">)</span>
-    <span class="c"># Infer the valid internal query feature indexes and ranks</span>
+    <span class="c1"># Infer the valid internal query feature indexes and ranks</span>
     <span class="n">valid_qfx</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor_divide</span><span class="p">(</span><span class="n">flat_validx</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">INDEX_TYPE</span><span class="p">)</span>
     <span class="n">valid_rank</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">flat_validx</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FK_DTYPE</span><span class="p">)</span>
-    <span class="c"># Then take the valid indices from internal database</span>
-    <span class="c"># annot_rowids, feature indexes, and all scores</span>
+    <span class="c1"># Then take the valid indices from internal database</span>
+    <span class="c1"># annot_rowids, feature indexes, and all scores</span>
     <span class="n">valid_daid</span>  <span class="o">=</span> <span class="n">qfx2_daid</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">flat_validx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
     <span class="n">valid_dfx</span>   <span class="o">=</span> <span class="n">qfx2_dfx</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">flat_validx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
     <span class="n">valid_scorevec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
         <span class="p">[</span><span class="n">qfx2_score</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">flat_validx</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span>
          <span class="k">for</span> <span class="n">qfx2_score</span> <span class="ow">in</span> <span class="n">qfx2_score_list</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="c"># Incorporate Normalizers</span>
-    <span class="c"># Normalizers for each weight filter that used a normalizer</span>
-    <span class="c"># Determine which feature per annot was used as the normalizer for each filter</span>
-    <span class="c"># Each non-None sub list is still in qfx2_ format</span>
+    <span class="c1"># Incorporate Normalizers</span>
+    <span class="c1"># Normalizers for each weight filter that used a normalizer</span>
+    <span class="c1"># Determine which feature per annot was used as the normalizer for each filter</span>
+    <span class="c1"># Each non-None sub list is still in qfx2_ format</span>
     <span class="n">num_filts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qfx2_normk_list</span><span class="p">)</span>
     <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="n">Knorm</span>
     <span class="n">norm_filtxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">where_not_None</span><span class="p">(</span><span class="n">qfx2_normk_list</span><span class="p">)</span>
     <span class="n">num_normed_filts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">norm_filtxs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_normed_filts</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">_normks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">qfx2_normk_list</span><span class="p">,</span> <span class="n">norm_filtxs</span><span class="p">)</span>
-        <span class="c"># Offset index to get flat normalizer positions</span>
+        <span class="c1"># Offset index to get flat normalizer positions</span>
         <span class="n">_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">flat_normxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">_offset</span> <span class="o">+</span> <span class="n">qfx2_normk</span> <span class="k">for</span> <span class="n">qfx2_normk</span> <span class="ow">in</span> <span class="n">_normks</span><span class="p">]</span>
         <span class="n">flat_normidxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">qfx2_idx</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">ks</span><span class="p">)</span> <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">flat_normxs</span><span class="p">]</span>
         <span class="n">flat_norm_aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>   <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">flat_normidxs</span><span class="p">]</span>
         <span class="n">flat_norm_fxs</span>  <span class="o">=</span> <span class="p">[</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_featxs</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">flat_normidxs</span><span class="p">]</span>
-        <span class="c"># Take the valid indicies</span>
+        <span class="c1"># Take the valid indicies</span>
         <span class="n">_valid_norm_aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aids</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">valid_qfx</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">flat_norm_aids</span><span class="p">]</span>
         <span class="n">_valid_norm_fxs</span>  <span class="o">=</span> <span class="p">[</span><span class="n">fxs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">valid_qfx</span><span class="p">)</span>  <span class="k">for</span> <span class="n">fxs</span> <span class="ow">in</span> <span class="n">flat_norm_fxs</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
@@ -1235,15 +1225,15 @@
     <span class="n">valid_norm_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ungroup</span><span class="p">([</span><span class="n">_valid_norm_aids</span><span class="p">],</span> <span class="p">[</span><span class="n">norm_filtxs</span><span class="p">],</span> <span class="n">num_filts</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">valid_norm_fxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ungroup</span><span class="p">([</span><span class="n">_valid_norm_fxs</span><span class="p">],</span> <span class="p">[</span><span class="n">norm_filtxs</span><span class="p">],</span> <span class="n">num_filts</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="c"># The q/d&#39;s are all internal here, thus in vsone they swap</span>
+    <span class="c1"># The q/d&#39;s are all internal here, thus in vsone they swap</span>
     <span class="n">vmt</span> <span class="o">=</span> <span class="n">ValidMatchTup_</span><span class="p">(</span><span class="n">valid_daid</span><span class="p">,</span> <span class="n">valid_qfx</span><span class="p">,</span> <span class="n">valid_dfx</span><span class="p">,</span> <span class="n">valid_scorevec</span><span class="p">,</span>
                          <span class="n">valid_rank</span><span class="p">,</span> <span class="n">valid_norm_aids</span><span class="p">,</span> <span class="n">valid_norm_fxs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">vmt</span>
 
 
-<span class="c">#============================</span>
-<span class="c"># 5) Spatial Verification</span>
-<span class="c">#============================</span>
+<span class="c1">#============================</span>
+<span class="c1"># 5) Spatial Verification</span>
+<span class="c1">#============================</span>
 
 </div>
 <div class="viewcode-block" id="spatial_verification"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pipeline.spatial_verification">[docs]</a><span class="k">def</span> <span class="nf">spatial_verification</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_FILT</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
@@ -1315,7 +1305,7 @@
     <span class="n">cm_list</span> <span class="o">=</span> <span class="n">cm_list_FILT</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_on</span> <span class="ow">or</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">xy_thresh</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 5) Spatial verification: off&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 5) Spatial verification: off&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cm_list</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">cm_list_SVER</span> <span class="o">=</span> <span class="n">_spatial_verification</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
@@ -1329,22 +1319,22 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.pipeline import *  # NOQA</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] Step 5) Spatial verification: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_cfgstr</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[hs] Step 5) Spatial verification: &#39;</span> <span class="o">+</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sv_cfgstr</span><span class="p">)</span>
 
-    <span class="c"># TODO: move rerank out of theis pipeline node</span>
-    <span class="c">#with_metadata = qreq_.qparams.with_metadata</span>
-    <span class="c"># dbg info (can remove if there is a speed issue)</span>
+    <span class="c1"># TODO: move rerank out of theis pipeline node</span>
+    <span class="c1">#with_metadata = qreq_.qparams.with_metadata</span>
+    <span class="c1"># dbg info (can remove if there is a speed issue)</span>
     <span class="n">score_method</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">score_method</span>
     <span class="n">prescore_method</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">prescore_method</span>
     <span class="n">nNameShortList</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nNameShortlistSVER</span>
     <span class="n">nAnnotPerName</span>   <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">nAnnotPerNameSVER</span>
 
-    <span class="c"># Just in case we are csum scoring, this needs to be computed</span>
-    <span class="c"># FIXME: &#39;csum&#39; is much faster than &#39;nsum&#39;</span>
-    <span class="c"># and probably should be used pre-verification</span>
-    <span class="c">#for cm in cm_list:</span>
-    <span class="c">#    cm.evaluate_dnids(qreq_.ibs)</span>
-    <span class="c">#prescore_method = &#39;csum&#39;</span>
+    <span class="c1"># Just in case we are csum scoring, this needs to be computed</span>
+    <span class="c1"># FIXME: &#39;csum&#39; is much faster than &#39;nsum&#39;</span>
+    <span class="c1"># and probably should be used pre-verification</span>
+    <span class="c1">#for cm in cm_list:</span>
+    <span class="c1">#    cm.evaluate_dnids(qreq_.ibs)</span>
+    <span class="c1">#prescore_method = &#39;csum&#39;</span>
     <span class="n">scoring</span><span class="o">.</span><span class="n">score_chipmatch_list</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">prescore_method</span><span class="p">)</span>
     <span class="n">cm_shortlist</span> <span class="o">=</span> <span class="n">scoring</span><span class="o">.</span><span class="n">make_chipmatch_shortlists</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span>
                                                      <span class="n">nNameShortList</span><span class="p">,</span>
@@ -1354,7 +1344,7 @@
     <span class="n">cm_progiter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">cm_shortlist</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">cm_shortlist</span><span class="p">),</span>
                                   <span class="n">prog_hook</span><span class="o">=</span><span class="n">prog_hook</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">SVER_LVL</span><span class="p">,</span> <span class="o">**</span><span class="n">PROGKW</span><span class="p">)</span>
     <span class="n">cm_list_SVER</span> <span class="o">=</span> <span class="p">[</span><span class="n">sver_single_chipmatch</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="p">)</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_progiter</span><span class="p">]</span>
-    <span class="c"># rescore after verification?</span>
+    <span class="c1"># rescore after verification?</span>
     <span class="k">return</span> <span class="n">cm_list_SVER</span>
 
 
@@ -1453,9 +1443,10 @@
 <span class="sd">        &gt;&gt;&gt; kpts2, = ibs.get_annot_kpts([aid2], config2_=qreq_.get_external_data_config2())</span>
 <span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
 <span class="sd">        &gt;&gt;&gt; show_aff = not ut.get_argflag(&#39;--noaff&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; refine_method = qreq_.qparams.refine_method if not ut.get_argflag(&#39;--norefinelbl&#39;) else &#39;&#39;</span>
 <span class="sd">        &gt;&gt;&gt; pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup,</span>
 <span class="sd">        &gt;&gt;&gt;                    homog_tup=homog_tup, show_aff=show_aff,</span>
-<span class="sd">        &gt;&gt;&gt;                    refine_method=qreq_.qparams.refine_method)</span>
+<span class="sd">        &gt;&gt;&gt;                    refine_method=refine_method)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
@@ -1467,7 +1458,7 @@
     <span class="n">full_homog_checks</span>     <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">full_homog_checks</span>
     <span class="n">refine_method</span>         <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">refine_method</span>
     <span class="n">sver_output_weighting</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">sver_output_weighting</span>
-    <span class="c"># Precompute sver cmtup_old</span>
+    <span class="c1"># Precompute sver cmtup_old</span>
     <span class="n">kpts1</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
     <span class="n">kpts2_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">,</span>
                                           <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_data_config2</span><span class="p">())</span>
@@ -1478,41 +1469,41 @@
         <span class="n">top_dlen_sqrd_list</span> <span class="o">=</span> <span class="n">compute_matching_dlen_extent</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">kpts2_list</span><span class="p">)</span>
     <span class="n">config2_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">weight_inliers</span><span class="p">:</span>
-        <span class="c"># Weights for inlier scoring</span>
+        <span class="c1"># Weights for inlier scoring</span>
         <span class="n">qweights</span> <span class="o">=</span> <span class="n">scoring</span><span class="o">.</span><span class="n">get_annot_kpts_baseline_weights</span><span class="p">(</span>
             <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">qaid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
         <span class="n">match_weight_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qweights</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">match_weight_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">]</span>
 
-    <span class="c"># Make an svtup for every daid in the shortlist</span>
+    <span class="c1"># Make an svtup for every daid in the shortlist</span>
     <span class="n">_iter1</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">fsv_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">fk_list</span><span class="p">,</span> <span class="n">kpts2_list</span><span class="p">,</span>
                  <span class="n">top_dlen_sqrd_list</span><span class="p">,</span> <span class="n">match_weight_list</span><span class="p">)</span>
     <span class="n">svtup_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fsv</span><span class="p">,</span> <span class="n">fk</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">dlen_sqrd2</span><span class="p">,</span> <span class="n">match_weights</span> <span class="ow">in</span> <span class="n">_iter1</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c"># skip results without any matches</span>
+            <span class="c1"># skip results without any matches</span>
             <span class="n">sv_tup</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="c"># Compute homography from chip2 to chip1 returned homography</span>
-                <span class="c"># maps image1 space into image2 space image1 is a query chip</span>
-                <span class="c"># and image2 is a database chip</span>
+                <span class="c1"># Compute homography from chip2 to chip1 returned homography</span>
+                <span class="c1"># maps image1 space into image2 space image1 is a query chip</span>
+                <span class="c1"># and image2 is a database chip</span>
                 <span class="n">sv_tup</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">spatially_verify_kpts</span><span class="p">(</span>
                     <span class="n">kpts1</span><span class="p">,</span> <span class="n">kpts2</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">xy_thresh</span><span class="p">,</span> <span class="n">scale_thresh</span><span class="p">,</span> <span class="n">ori_thresh</span><span class="p">,</span>
                     <span class="n">dlen_sqrd2</span><span class="p">,</span> <span class="n">min_nInliers</span><span class="p">,</span> <span class="n">match_weights</span><span class="o">=</span><span class="n">match_weights</span><span class="p">,</span>
                     <span class="n">full_homog_checks</span><span class="o">=</span><span class="n">full_homog_checks</span><span class="p">,</span> <span class="n">refine_method</span><span class="o">=</span><span class="n">refine_method</span><span class="p">,</span>
                     <span class="n">returnAff</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Unknown error in spatial verification.&#39;</span><span class="p">,</span>
-                           <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;kpts1&#39;</span><span class="p">,</span> <span class="s">&#39;kpts2&#39;</span><span class="p">,</span>  <span class="s">&#39;fm&#39;</span><span class="p">,</span> <span class="s">&#39;xy_thresh&#39;</span><span class="p">,</span>
-                                 <span class="s">&#39;scale_thresh&#39;</span><span class="p">,</span> <span class="s">&#39;dlen_sqrd2&#39;</span><span class="p">,</span> <span class="s">&#39;min_nInliers&#39;</span><span class="p">])</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Unknown error in spatial verification.&#39;</span><span class="p">,</span>
+                           <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;kpts1&#39;</span><span class="p">,</span> <span class="s1">&#39;kpts2&#39;</span><span class="p">,</span>  <span class="s1">&#39;fm&#39;</span><span class="p">,</span> <span class="s1">&#39;xy_thresh&#39;</span><span class="p">,</span>
+                                 <span class="s1">&#39;scale_thresh&#39;</span><span class="p">,</span> <span class="s1">&#39;dlen_sqrd2&#39;</span><span class="p">,</span> <span class="s1">&#39;min_nInliers&#39;</span><span class="p">])</span>
                 <span class="n">sv_tup</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">svtup_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sv_tup</span><span class="p">)</span>
 
-    <span class="c"># &lt;SENTINAL&gt;</span>
+    <span class="c1"># &lt;SENTINAL&gt;</span>
 
-    <span class="c"># New way</span>
+    <span class="c1"># New way</span>
     <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
         <span class="n">inliers_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">sv_tup</span> <span class="ow">in</span> <span class="n">svtup_list</span><span class="p">:</span>
@@ -1525,9 +1516,9 @@
         <span class="n">indicies_list</span> <span class="o">=</span> <span class="n">inliers_list</span>
         <span class="n">cmSV</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">take_feature_matches</span><span class="p">(</span><span class="n">indicies_list</span><span class="p">,</span> <span class="n">keepscores</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
-        <span class="c"># NOTE: It is not very clear explicitly, but the way H_list and</span>
-        <span class="c"># homog_err_weight_list are built will correspond with the daid_list in</span>
-        <span class="c"># cmSV returned by cm.take_feature_matches</span>
+        <span class="c1"># NOTE: It is not very clear explicitly, but the way H_list and</span>
+        <span class="c1"># homog_err_weight_list are built will correspond with the daid_list in</span>
+        <span class="c1"># cmSV returned by cm.take_feature_matches</span>
         <span class="n">svtup_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">(</span><span class="n">svtup_list</span><span class="p">)</span>
         <span class="n">H_list_SV</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">svtup_list_</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">cmSV</span><span class="o">.</span><span class="n">H_list</span> <span class="o">=</span> <span class="n">H_list_SV</span>
@@ -1540,13 +1531,13 @@
                 <span class="n">homog_xy_errors</span> <span class="o">=</span> <span class="n">homog_errors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
                 <span class="n">homog_err_weight</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">homog_xy_errors</span> <span class="o">/</span> <span class="n">xy_thresh_sqrd</span><span class="p">))</span>
                 <span class="n">homog_err_weight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">homog_err_weight</span><span class="p">)</span>
-            <span class="c"># Rescore based on homography errors</span>
+            <span class="c1"># Rescore based on homography errors</span>
             <span class="n">filtkey</span> <span class="o">=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FiltKeys</span><span class="o">.</span><span class="n">HOMOGERR</span>
             <span class="n">filtweight_list</span> <span class="o">=</span> <span class="n">homog_err_weight_list</span>
             <span class="n">cmSV</span><span class="o">.</span><span class="n">append_featscore_column</span><span class="p">(</span><span class="n">filtkey</span><span class="p">,</span> <span class="n">filtweight_list</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c"># Remove all matches that failed spatial verification</span>
-        <span class="c"># TODO: change to list compress and numpy arrays</span>
+        <span class="c1"># Remove all matches that failed spatial verification</span>
+        <span class="c1"># TODO: change to list compress and numpy arrays</span>
         <span class="n">flags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flag_not_None_items</span><span class="p">(</span><span class="n">svtup_list</span><span class="p">)</span>
         <span class="n">svtup_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">svtup_list</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
         <span class="n">daid_list</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
@@ -1561,13 +1552,13 @@
             <span class="n">fsv_col_lbls</span> <span class="o">+=</span> <span class="p">[</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FiltKeys</span><span class="o">.</span><span class="n">HOMOGERR</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">sv_tup</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fsv</span><span class="p">,</span> <span class="n">fk</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">svtup_list_</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fsv_list</span><span class="p">,</span> <span class="n">fk_list</span><span class="p">):</span>
-            <span class="c"># Return the inliers to the homography from chip2 to chip1</span>
+            <span class="c1"># Return the inliers to the homography from chip2 to chip1</span>
             <span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">homog_errors</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">aff_inliers</span><span class="p">,</span> <span class="n">aff_errors</span><span class="p">,</span> <span class="n">Aff</span><span class="p">)</span> <span class="o">=</span> <span class="n">sv_tup</span>
             <span class="n">fm_SV</span>  <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">fsv_SV</span> <span class="o">=</span> <span class="n">fsv</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">fk_SV</span>  <span class="o">=</span> <span class="n">fk</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">sver_output_weighting</span><span class="p">:</span>
-                <span class="c"># Rescore based on homography errors</span>
+                <span class="c1"># Rescore based on homography errors</span>
                 <span class="n">xy_thresh_sqrd</span> <span class="o">=</span> <span class="n">dlen_sqrd2</span> <span class="o">*</span> <span class="n">xy_thresh</span>
                 <span class="n">homog_xy_errors</span> <span class="o">=</span> <span class="n">homog_errors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">homog_inliers</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
                 <span class="n">homog_err_weight</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">homog_xy_errors</span> <span class="o">/</span> <span class="n">xy_thresh_sqrd</span><span class="p">))</span>
@@ -1607,22 +1598,22 @@
 <span class="sd">        &gt;&gt;&gt; fm_list = cm.fm_list</span>
 <span class="sd">        &gt;&gt;&gt; kpts_list = qreq_.ibs.get_annot_kpts(cm.daid_list.tolist(), config2_=qreq_.get_external_data_config2())</span>
 <span class="sd">        &gt;&gt;&gt; topx2_dlen_sqrd = compute_matching_dlen_extent(qreq_, fm_list, kpts_list)</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(np.sqrt(topx2_dlen_sqrd)[0:5], 600, 800)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(np.sqrt(topx2_dlen_sqrd)[0:5], 600, 1500)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Use extent of matching keypoints</span>
-    <span class="c"># first get matching keypoints</span>
+    <span class="c1"># Use extent of matching keypoints</span>
+    <span class="c1"># first get matching keypoints</span>
     <span class="n">fx2_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">fm</span> <span class="ow">in</span> <span class="n">fm_list</span><span class="p">]</span>
     <span class="n">kpts2_m_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ziptake</span><span class="p">(</span><span class="n">kpts_list</span><span class="p">,</span> <span class="n">fx2_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="c">#[kpts.take(fx2, axis=0) for (kpts, fx2) in zip(kpts_list, fx2_list)]</span>
+    <span class="c1">#[kpts.take(fx2, axis=0) for (kpts, fx2) in zip(kpts_list, fx2_list)]</span>
     <span class="n">dlen_sqrd_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">get_kpts_dlen_sqrd</span><span class="p">(</span><span class="n">kpts2_m</span><span class="p">)</span>
                       <span class="k">for</span> <span class="n">kpts2_m</span> <span class="ow">in</span> <span class="n">kpts2_m_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">dlen_sqrd_list</span>
 
 
-<span class="c">#============================</span>
-<span class="c"># 5.5ish) Vsone Reranking</span>
-<span class="c">#============================</span>
+<span class="c1">#============================</span>
+<span class="c1"># 5.5ish) Vsone Reranking</span>
+<span class="c1">#============================</span>
 
 </div>
 <div class="viewcode-block" id="vsone_reranking"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.pipeline.vsone_reranking">[docs]</a><span class="k">def</span> <span class="nf">vsone_reranking</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list_SVER</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERB_PIPELINE</span><span class="p">):</span>
@@ -1653,13 +1644,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">vsone_pipeline</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Step 5.5ish) vsone reranking&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Step 5.5ish) vsone reranking&#39;</span><span class="p">)</span>
     <span class="n">cm_list</span> <span class="o">=</span> <span class="n">cm_list_SVER</span>
     <span class="n">cm_list_VSONE</span> <span class="o">=</span> <span class="n">vsone_pipeline</span><span class="o">.</span><span class="n">vsone_reranking</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cm_list_VSONE</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    python -m ibeis.algo.hots.pipeline --verb-test</span>
 <span class="sd">    python -m ibeis.algo.hots.pipeline --test-build_chipmatches</span>
@@ -1673,7 +1664,7 @@
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--show&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--show&#39;</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
         <span class="k">exec</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">present</span><span class="p">())</span>
 </pre></div>
@@ -1709,7 +1700,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

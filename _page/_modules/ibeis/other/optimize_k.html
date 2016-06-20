@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.other.optimize_k &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.other.optimize_k &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.other" href="../other.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,48 +131,48 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.other.optimize_k</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">reduce</span>
 <span class="kn">import</span> <span class="nn">fractions</span>
 <span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="c">#import plottool as pt</span>
+<span class="c1">#import plottool as pt</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">sp</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="n">builtins</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[optimze_k]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[optimze_k]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="collect_ibeis_training_annotations"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.optimize_k.collect_ibeis_training_annotations">[docs]</a><span class="k">def</span> <span class="nf">collect_ibeis_training_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nDaids_basis</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="c"># load a dataset</span>
-    <span class="c">#dbname = &#39;PZ_MTEST&#39;</span>
-    <span class="c">#dbname = &#39;GZ_ALL&#39;</span>
+    <span class="c1"># load a dataset</span>
+    <span class="c1">#dbname = &#39;PZ_MTEST&#39;</span>
+    <span class="c1">#dbname = &#39;GZ_ALL&#39;</span>
     <span class="k">def</span> <span class="nf">get_set_groundfalse</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">):</span>
-        <span class="c"># get groundfalse annots relative to the entire set</span>
+        <span class="c1"># get groundfalse annots relative to the entire set</span>
         <span class="n">valid_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">()</span>
         <span class="n">qnids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
         <span class="n">nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">valid_nids</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">qnids</span><span class="p">))</span>
         <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
 
-    <span class="c"># determanism</span>
+    <span class="c1"># determanism</span>
     <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="n">qaids_all</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_junk_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_rowid_sample</span><span class="p">(</span><span class="n">per_name</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_ngt</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">distinguish_unknowns</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
     <span class="n">qaids</span> <span class="o">=</span> <span class="n">qaids_all</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;nQaids = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;nQaids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">))</span>
     <span class="n">daids_gt_sample</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth_sample</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">isexemplar</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
     <span class="n">daids_gf_all</span> <span class="o">=</span> <span class="n">get_set_groundfalse</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">)</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">assert_eq</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">daids_gt_sample</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">),</span> <span class="s">&#39;missing gt&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_eq</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">daids_gt_sample</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">),</span> <span class="s1">&#39;missing gt&#39;</span><span class="p">)</span>
     <span class="n">daids_list</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">for</span> <span class="n">target_nDaids</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">nDaids_basis</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;testing dbsize&#39;</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;---------------------------&#39;</span><span class="p">)</span>
-        <span class="c"># Sample one match from the groundtruth with padding</span>
+    <span class="k">for</span> <span class="n">target_nDaids</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">nDaids_basis</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;testing dbsize&#39;</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;---------------------------&#39;</span><span class="p">)</span>
+        <span class="c1"># Sample one match from the groundtruth with padding</span>
         <span class="n">daids_gf_sample</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">random_sample</span><span class="p">(</span><span class="n">daids_gf_all</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">target_nDaids</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids_gt_sample</span><span class="p">)))</span>
         <span class="n">daids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">daids_gt_sample</span> <span class="o">+</span> <span class="n">daids_gf_sample</span><span class="p">)</span>
         <span class="n">nDaids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span>
@@ -187,12 +187,12 @@
     <span class="n">nDaids_list</span>  <span class="o">=</span> <span class="p">[]</span>
     <span class="n">cfgdict_list2</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">cfgdict_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">all_dict_combinations</span><span class="p">(</span><span class="n">varydict</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">daids</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">daids_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;testing dbsize&#39;</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">daids</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">daids_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;testing dbsize&#39;</span><span class="p">):</span>
         <span class="n">nDaids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">---------------------------&#39;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s">&#39;[nDaids=</span><span class="si">%r</span><span class="s">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nDaids</span><span class="p">)):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;nDaids = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">nDaids</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">cfgdict</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;testing cfgdict&#39;</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">---------------------------&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Indenter</span><span class="p">(</span><span class="s1">&#39;[nDaids=</span><span class="si">%r</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nDaids</span><span class="p">)):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;nDaids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">nDaids</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">cfgdict</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;testing cfgdict&#39;</span><span class="p">):</span>
                 <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
                 <span class="n">qres_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">(</span><span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
                 <span class="n">gt_ranks_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">qres</span><span class="o">.</span><span class="n">get_gt_ranks</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span> <span class="k">for</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">qres_list</span><span class="p">]</span>
@@ -204,52 +204,52 @@
 
     <span class="n">nError_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nError_list</span><span class="p">)</span>
     <span class="n">nDaids_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nDaids_list</span><span class="p">)</span>
-    <span class="n">K_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">cfgdict</span><span class="p">[</span><span class="s">&#39;K&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">cfgdict</span> <span class="ow">in</span> <span class="n">cfgdict_list2</span><span class="p">])</span>
+    <span class="n">K_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">cfgdict</span><span class="p">[</span><span class="s1">&#39;K&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">cfgdict</span> <span class="ow">in</span> <span class="n">cfgdict_list2</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">nDaids_list</span><span class="p">,</span> <span class="n">K_list</span><span class="p">,</span> <span class="n">nError_list</span>
 
 </div>
 <div class="viewcode-block" id="test_training_data"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.optimize_k.test_training_data">[docs]</a><span class="k">def</span> <span class="nf">test_training_data</span><span class="p">(</span><span class="n">varydict</span><span class="p">,</span> <span class="n">nDaids_basis</span><span class="p">):</span>
-    <span class="n">varydict</span><span class="p">[</span><span class="s">&#39;nDaids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nDaids_basis</span>
+    <span class="n">varydict</span><span class="p">[</span><span class="s1">&#39;nDaids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nDaids_basis</span>
     <span class="n">cfgdict_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">all_dict_combinations</span><span class="p">(</span><span class="n">varydict</span><span class="p">)</span>
-    <span class="n">K_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="s">&#39;K&#39;</span><span class="p">)</span>
-    <span class="n">nDaids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="s">&#39;nDaids&#39;</span><span class="p">)</span>
+    <span class="n">K_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)</span>
+    <span class="n">nDaids_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">cfgdict_list</span><span class="p">,</span> <span class="s1">&#39;nDaids&#39;</span><span class="p">)</span>
     <span class="n">max_error</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">nDaids_basis</span><span class="p">)</span>
     <span class="n">nError_perterb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">K_list</span><span class="p">))</span>
 
-    <span class="c">#def distance_point_polynomial(point, poly_coeff):</span>
-    <span class="c">#    &quot;&quot;&quot;</span>
-    <span class="c">#    References:</span>
-    <span class="c">#        http://kitchingroup.cheme.cmu.edu/blog/2013/02/14/Find-the-minimum-distance-from-a-point-to-a-curve/</span>
-    <span class="c">#    &quot;&quot;&quot;</span>
-    <span class="c">#    def f(x):</span>
-    <span class="c">#        return x ** 2</span>
-    <span class="c">#    def objective(X, *args):</span>
-    <span class="c">#        point = args[0]</span>
-    <span class="c">#        x, y = X</span>
-    <span class="c">#        px, py = point</span>
-    <span class="c">#        return np.sqrt((x - px) ** 2 + (y - py) ** 2)</span>
-    <span class="c">#    def c1(X, *args):</span>
-    <span class="c">#        x, y = X</span>
-    <span class="c">#        return f(x) - y</span>
-    <span class="c">#    X = sp.optimize.fmin_cobyla(objective, x0=[0.5, 0.5], args=(point,), cons=[c1], disp=False)</span>
-    <span class="c">#    return X</span>
-    <span class="c">#point_list = np.array([point for point in zip(nDaids_list, K_list)])</span>
-    <span class="c">#poly_coeff = [0.2,  0.5]  # K model_params</span>
-    <span class="c">#closest_point_list = np.array([distance_point_polynomial(point, poly_coeff) for point in point_list])</span>
-    <span class="c">#dist_list = np.sqrt(((point_list - closest_point_list) ** 2).sum(axis=1))</span>
-    <span class="c">#nError_list = max_error * dist_list / dist_list.max() + nError_perterb</span>
+    <span class="c1">#def distance_point_polynomial(point, poly_coeff):</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    References:</span>
+    <span class="c1">#        http://kitchingroup.cheme.cmu.edu/blog/2013/02/14/Find-the-minimum-distance-from-a-point-to-a-curve/</span>
+    <span class="c1">#    &quot;&quot;&quot;</span>
+    <span class="c1">#    def f(x):</span>
+    <span class="c1">#        return x ** 2</span>
+    <span class="c1">#    def objective(X, *args):</span>
+    <span class="c1">#        point = args[0]</span>
+    <span class="c1">#        x, y = X</span>
+    <span class="c1">#        px, py = point</span>
+    <span class="c1">#        return np.sqrt((x - px) ** 2 + (y - py) ** 2)</span>
+    <span class="c1">#    def c1(X, *args):</span>
+    <span class="c1">#        x, y = X</span>
+    <span class="c1">#        return f(x) - y</span>
+    <span class="c1">#    X = sp.optimize.fmin_cobyla(objective, x0=[0.5, 0.5], args=(point,), cons=[c1], disp=False)</span>
+    <span class="c1">#    return X</span>
+    <span class="c1">#point_list = np.array([point for point in zip(nDaids_list, K_list)])</span>
+    <span class="c1">#poly_coeff = [0.2,  0.5]  # K model_params</span>
+    <span class="c1">#closest_point_list = np.array([distance_point_polynomial(point, poly_coeff) for point in point_list])</span>
+    <span class="c1">#dist_list = np.sqrt(((point_list - closest_point_list) ** 2).sum(axis=1))</span>
+    <span class="c1">#nError_list = max_error * dist_list / dist_list.max() + nError_perterb</span>
     <span class="n">nError_list</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nDaids_list</span><span class="p">)</span> <span class="o">*</span> <span class="o">.</span><span class="mo">00001</span><span class="p">)</span>
     <span class="n">nError_list</span> <span class="o">/=</span> <span class="n">nError_list</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
     <span class="n">nError_list</span> <span class="o">*=</span> <span class="p">(</span><span class="n">max_error</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">nError_list</span> <span class="o">+=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">nError_perterb</span>
 
-    <span class="c">#K_list      = np.array([  1,   1,    1,   4,   4,    4,   7,   7,    7,   10,  10,   10,   13,  13,   13])</span>
-    <span class="c">#nDaids_list = np.array([100, 500, 1000, 100, 500, 1000, 100, 500, 1000,  100, 500, 1000,  100, 500, 1000])</span>
-    <span class="c">#nError_list = np.array([  5,  54,  130,  50,  50,   70,  14,  54,   40,   20,   9,   43,   90,  20,  130])</span>
+    <span class="c1">#K_list      = np.array([  1,   1,    1,   4,   4,    4,   7,   7,    7,   10,  10,   10,   13,  13,   13])</span>
+    <span class="c1">#nDaids_list = np.array([100, 500, 1000, 100, 500, 1000, 100, 500, 1000,  100, 500, 1000,  100, 500, 1000])</span>
+    <span class="c1">#nError_list = np.array([  5,  54,  130,  50,  50,   70,  14,  54,   40,   20,   9,   43,   90,  20,  130])</span>
     <span class="k">return</span> <span class="n">nDaids_list</span><span class="p">,</span> <span class="n">K_list</span><span class="p">,</span> <span class="n">nError_list</span>
 
 
-<span class="c"># Convert our non-uniform grid into a uniform grid using gcd</span></div>
+<span class="c1"># Convert our non-uniform grid into a uniform grid using gcd</span></div>
 <div class="viewcode-block" id="compute_interpolation_grid"><a class="viewcode-back" href="../../../ibeis.other.html#ibeis.other.optimize_k.compute_interpolation_grid">[docs]</a><span class="k">def</span> <span class="nf">compute_interpolation_grid</span><span class="p">(</span><span class="n">known_nd_data</span><span class="p">,</span> <span class="n">pad_steps</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; use gcd to get the number of steps to take in each dimension &quot;&quot;&quot;</span>
     <span class="n">ug_steps</span> <span class="o">=</span> <span class="p">[</span><span class="nb">reduce</span><span class="p">(</span><span class="n">fractions</span><span class="o">.</span><span class="n">gcd</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">x_</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span> <span class="k">for</span> <span class="n">x_</span> <span class="ow">in</span> <span class="n">known_nd_data</span><span class="o">.</span><span class="n">T</span><span class="p">]</span>
@@ -260,7 +260,7 @@
         <span class="k">for</span> <span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">,</span> <span class="n">step_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ug_min</span><span class="p">,</span> <span class="n">ug_max</span><span class="p">,</span> <span class="n">ug_steps</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="n">ug_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">basis</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">basis</span> <span class="ow">in</span> <span class="n">ug_basis</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-    <span class="c"># ig = interpolated grid</span>
+    <span class="c1"># ig = interpolated grid</span>
     <span class="n">unknown_nd_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">_pts</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="k">for</span> <span class="n">_pts</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">ug_basis</span><span class="p">)])</span><span class="o">.</span><span class="n">T</span>
     <span class="k">return</span> <span class="n">unknown_nd_data</span><span class="p">,</span> <span class="n">ug_shape</span>
 
@@ -270,8 +270,8 @@
 <span class="sd">    References:</span>
 <span class="sd">        http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.griddata.html</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#method = &#39;cubic&#39;  # {&#39;linear&#39;, &#39;nearest&#39;, &#39;cubic&#39;}</span>
-    <span class="n">method</span> <span class="o">=</span> <span class="s">&#39;linear&#39;</span>  <span class="c"># {&#39;linear&#39;, &#39;nearest&#39;, &#39;cubic&#39;}</span>
+    <span class="c1">#method = &#39;cubic&#39;  # {&#39;linear&#39;, &#39;nearest&#39;, &#39;cubic&#39;}</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;linear&#39;</span>  <span class="c1"># {&#39;linear&#39;, &#39;nearest&#39;, &#39;cubic&#39;}</span>
     <span class="n">interpolated_targets</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">griddata</span><span class="p">(</span><span class="n">known_nd_data</span><span class="p">,</span> <span class="n">known_targets</span><span class="p">,</span> <span class="n">unknown_nd_data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
     <span class="n">interpolated_targets</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">interpolated_targets</span><span class="p">)]</span> <span class="o">=</span> <span class="n">known_targets</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span>
     <span class="k">return</span> <span class="n">interpolated_targets</span>
@@ -310,39 +310,39 @@
 <span class="sd">        http://docs.scipy.org/doc/scipy-0.14.0/reference/optimize.html</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">poly_degree</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">mode</span> <span class="o">=</span> <span class="s">&#39;brute&#39;</span>
-    <span class="c">#mode = &#39;simplex&#39;</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;brute&#39;</span>
+    <span class="c1">#mode = &#39;simplex&#39;</span>
 
     <span class="k">if</span> <span class="n">poly_degree</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">initial_model_params</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">]</span>  <span class="c"># a guess</span>
+        <span class="n">initial_model_params</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span>  <span class="mf">0.5</span><span class="p">]</span>  <span class="c1"># a guess</span>
         <span class="n">ranges</span> <span class="o">=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">),</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">),</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">))</span>
-        <span class="c">#brute_force_basis = list(map(np.mgrid.__getitem__, ranges))</span>
+        <span class="c1">#brute_force_basis = list(map(np.mgrid.__getitem__, ranges))</span>
     <span class="k">elif</span> <span class="n">poly_degree</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="c">#initial_model_params = [ 0.00814424,  0.1855764 ]</span>
+        <span class="c1">#initial_model_params = [ 0.00814424,  0.1855764 ]</span>
         <span class="n">initial_model_params</span> <span class="o">=</span> <span class="p">[</span>  <span class="mf">6.73655087e-05</span><span class="p">,</span>   <span class="mf">9.25</span><span class="p">]</span>
         <span class="n">initial_model_params</span> <span class="o">=</span> <span class="p">[</span>  <span class="mi">0</span><span class="p">,</span>   <span class="mi">10</span><span class="p">]</span>
-        <span class="c">#initial_model_params = [0.02,  0.5]</span>
+        <span class="c1">#initial_model_params = [0.02,  0.5]</span>
         <span class="n">fidelity</span> <span class="o">=</span> <span class="mi">10</span>
         <span class="n">ranges</span> <span class="o">=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mo">01</span> <span class="o">*</span> <span class="n">fidelity</span><span class="p">),</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span> <span class="o">*</span> <span class="n">fidelity</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">poly_degree</span> <span class="o">&gt;</span> <span class="mi">2</span>
         <span class="n">initial_model_params</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">poly_degree</span><span class="p">)]</span>
         <span class="n">ranges</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">poly_degree</span><span class="p">)]</span>
-        <span class="c">#raise AssertionError(&#39;Unknown poly_degree=%r&#39; % (poly_degree,))</span>
+        <span class="c1">#raise AssertionError(&#39;Unknown poly_degree=%r&#39; % (poly_degree,))</span>
 
     <span class="n">infiter</span> <span class="o">=</span> <span class="n">builtins</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="c"># TODO: progress iter for unknown size</span>
-    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;brute&#39;</span><span class="p">:</span>
+    <span class="c1"># TODO: progress iter for unknown size</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;brute&#39;</span><span class="p">:</span>
         <span class="n">brute_force_basis</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mgrid</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">,</span> <span class="n">ranges</span><span class="p">))</span>
         <span class="n">nTotal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">([</span><span class="n">_basis</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">_basis</span> <span class="ow">in</span> <span class="n">brute_force_basis</span><span class="p">])</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">nTotal</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">optprog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">infiter</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="n">nTotal</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;optimizing&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">optprog</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">infiter</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="n">nTotal</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;optimizing&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">optprogiter</span> <span class="o">=</span> <span class="n">builtins</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="n">optprog</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">objective_func</span><span class="p">(</span><span class="n">model_params</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="n">known_nd_data</span><span class="p">,</span> <span class="n">known_target_points</span><span class="p">,</span> <span class="n">unique_nDaids</span> <span class="o">=</span> <span class="n">args</span>
-        <span class="c"># Return the error over all of the daids</span>
+        <span class="c1"># Return the error over all of the daids</span>
         <span class="n">K_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">compute_K</span><span class="p">(</span><span class="n">_nDaids</span><span class="p">,</span> <span class="n">model_params</span><span class="p">,</span> <span class="n">force_int</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">_nDaids</span> <span class="ow">in</span> <span class="n">unique_nDaids</span><span class="p">])</span>
         <span class="n">six</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="n">optprogiter</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">K_list</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
@@ -350,33 +350,33 @@
         <span class="n">unknown_nd_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">unique_nDaids</span><span class="p">,</span> <span class="n">K_list</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
         <span class="n">error_list</span> <span class="o">=</span> <span class="n">interpolate_error</span><span class="p">(</span><span class="n">known_nd_data</span><span class="p">,</span> <span class="n">known_target_points</span><span class="p">,</span> <span class="n">unknown_nd_data</span><span class="p">)</span>
         <span class="n">total_error</span> <span class="o">=</span> <span class="n">error_list</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        <span class="c">#print(&#39;-----------------&#39;)</span>
-        <span class="c">#print(&#39;model_params = %s&#39; % (np.array_str(np.array(model_params)),))</span>
-        <span class="c">#print(&#39;K_list       = %s&#39; % (np.array_str(np.array(K_list)),))</span>
-        <span class="c">#print(&#39;total_error = %r&#39; % (total_error,))</span>
+        <span class="c1">#print(&#39;-----------------&#39;)</span>
+        <span class="c1">#print(&#39;model_params = %s&#39; % (np.array_str(np.array(model_params)),))</span>
+        <span class="c1">#print(&#39;K_list       = %s&#39; % (np.array_str(np.array(K_list)),))</span>
+        <span class="c1">#print(&#39;total_error = %r&#39; % (total_error,))</span>
         <span class="k">return</span> <span class="n">total_error</span>
 
     <span class="n">unique_nDaids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">known_nd_data</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">given_data_dims</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">known_nd_data</span><span class="p">,</span> <span class="n">known_target_points</span><span class="p">,</span> <span class="n">unique_nDaids</span>
 
-    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;simplex&#39;</span><span class="p">:</span>
-        <span class="c">#method = &#39;Nelder-Mead&#39;</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;simplex&#39;</span><span class="p">:</span>
+        <span class="c1">#method = &#39;Nelder-Mead&#39;</span>
         <span class="n">_out</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span><span class="n">objective_func</span><span class="p">,</span> <span class="n">initial_model_params</span><span class="p">,</span> <span class="n">xtol</span><span class="o">=.</span><span class="mo">01</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">xopt</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">nIter</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span> <span class="o">=</span> <span class="n">_out</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
-        <span class="c">#, allvecs</span>
+        <span class="c1">#, allvecs</span>
         <span class="n">opt_model_params</span> <span class="o">=</span> <span class="n">xopt</span>
-        <span class="c">#opt_model_params = sp.optimize.basinhopping(objective_func, guess, args=args)</span>
-        <span class="c">#opt_model_params = sp.optimize.brute(objective_func, ranges, args=args, )</span>
-    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;brute&#39;</span><span class="p">:</span>
+        <span class="c1">#opt_model_params = sp.optimize.basinhopping(objective_func, guess, args=args)</span>
+        <span class="c1">#opt_model_params = sp.optimize.brute(objective_func, ranges, args=args, )</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;brute&#39;</span><span class="p">:</span>
         <span class="n">x0</span><span class="p">,</span> <span class="n">fval</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="n">Jout</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">brute</span><span class="p">(</span>
             <span class="n">objective_func</span><span class="p">,</span> <span class="n">ranges</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">opt_model_params</span> <span class="o">=</span> <span class="n">x0</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;Unknown mode=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mode</span><span class="p">,))</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;Unknown mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mode</span><span class="p">,))</span>
 
     <span class="n">opt_K_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">compute_K</span><span class="p">(</span><span class="n">_nDaids</span><span class="p">,</span> <span class="n">opt_model_params</span><span class="p">)</span> <span class="k">for</span> <span class="n">_nDaids</span> <span class="ow">in</span> <span class="n">unique_nDaids</span><span class="p">]</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;opt_model_params = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">opt_model_params</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;opt_K_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">opt_K_list</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;opt_model_params = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">opt_model_params</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;opt_K_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">opt_K_list</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">opt_model_params</span>
 
 </div>
@@ -384,7 +384,7 @@
     <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-    <span class="c"># Interpolate uniform grid positions</span>
+    <span class="c1"># Interpolate uniform grid positions</span>
     <span class="n">unknown_nd_data</span><span class="p">,</span> <span class="n">ug_shape</span> <span class="o">=</span> <span class="n">compute_interpolation_grid</span><span class="p">(</span><span class="n">known_nd_data</span><span class="p">,</span> <span class="mi">0</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span>
     <span class="n">interpolated_error</span> <span class="o">=</span> <span class="n">interpolate_error</span><span class="p">(</span><span class="n">known_nd_data</span><span class="p">,</span> <span class="n">known_target_points</span><span class="p">,</span> <span class="n">unknown_nd_data</span><span class="p">)</span>
 
@@ -392,19 +392,19 @@
         <span class="n">unknown_nd_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ug_shape</span><span class="p">),</span>
         <span class="n">unknown_nd_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ug_shape</span><span class="p">),</span>
         <span class="n">interpolated_error</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ug_shape</span><span class="p">),</span>
-        <span class="n">xlabel</span><span class="o">=</span><span class="s">&#39;nDaids&#39;</span><span class="p">,</span>
-        <span class="n">ylabel</span><span class="o">=</span><span class="s">&#39;K&#39;</span><span class="p">,</span>
-        <span class="n">zlabel</span><span class="o">=</span><span class="s">&#39;error&#39;</span><span class="p">,</span>
+        <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;nDaids&#39;</span><span class="p">,</span>
+        <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span>
+        <span class="n">zlabel</span><span class="o">=</span><span class="s1">&#39;error&#39;</span><span class="p">,</span>
         <span class="n">rstride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cstride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">cmap</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s">&#39;jet&#39;</span><span class="p">),</span>
+        <span class="n">cmap</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;jet&#39;</span><span class="p">),</span>
         <span class="n">wire</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-        <span class="c">#norm=pt.mpl.colors.Normalize(0, 1),</span>
-        <span class="c">#shade=False,</span>
-        <span class="c">#dark=False,</span>
+        <span class="c1">#norm=pt.mpl.colors.Normalize(0, 1),</span>
+        <span class="c1">#shade=False,</span>
+        <span class="c1">#dark=False,</span>
     <span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">known_nd_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">known_nd_data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">known_target_points</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">YELLOW</span><span class="p">)</span>
 
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">given_data_dims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;can only plot 1 given data dim&#39;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">given_data_dims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;can only plot 1 given data dim&#39;</span>
     <span class="n">xdim</span> <span class="o">=</span> <span class="n">given_data_dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">ydim</span> <span class="o">=</span> <span class="p">(</span><span class="n">xdim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">known_nd_data</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
     <span class="n">known_nd_min</span> <span class="o">=</span> <span class="n">known_nd_data</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -414,8 +414,8 @@
     <span class="n">zmin</span><span class="p">,</span> <span class="n">zmax</span> <span class="o">=</span> <span class="n">known_target_points</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">known_target_points</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">opt_model_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># plot learned data if availabel</span>
-        <span class="c">#given_known_nd_data = known_nd_data.take(given_data_dims, axis=1)</span>
+        <span class="c1"># plot learned data if availabel</span>
+        <span class="c1">#given_known_nd_data = known_nd_data.take(given_data_dims, axis=1)</span>
         <span class="n">xdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">)</span>
         <span class="n">ydata</span> <span class="o">=</span> <span class="n">compute_K</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="n">opt_model_params</span><span class="p">)</span>
         <span class="n">xydata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">xdata</span><span class="p">,</span> <span class="n">ydata</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
@@ -426,14 +426,14 @@
         <span class="n">zmin</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">zmin</span><span class="p">,</span> <span class="n">zdata</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
         <span class="n">zmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">zmax</span><span class="p">,</span> <span class="n">zdata</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="n">ydata</span><span class="p">,</span> <span class="n">zdata</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">ORANGE</span><span class="p">)</span>
-        <span class="c">#[t.set_color(&#39;white&#39;) for t in ax.xaxis.get_ticklines()]</span>
-        <span class="c">#[t.set_color(&#39;white&#39;) for t in ax.xaxis.get_ticklabels()]</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s">&#39;auto&#39;</span><span class="p">)</span>
+        <span class="c1">#[t.set_color(&#39;white&#39;) for t in ax.xaxis.get_ticklines()]</span>
+        <span class="c1">#[t.set_color(&#39;white&#39;) for t in ax.xaxis.get_ticklabels()]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_zlim</span><span class="p">(</span><span class="n">zmin</span><span class="p">,</span> <span class="n">zmax</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">matplotlib.ticker</span> <span class="kn">as</span> <span class="nn">mtick</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">zaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">mtick</span><span class="o">.</span><span class="n">FormatStrFormatter</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%.2f</span><span class="s">&#39;</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">zaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">mtick</span><span class="o">.</span><span class="n">FormatStrFormatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%.2f</span><span class="s1">&#39;</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">ax</span>
 
 </div>
@@ -457,43 +457,43 @@
 <span class="sd">        &gt;&gt;&gt; pt.all_figures_bring_to_front()</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Compute Training Data</span>
+    <span class="c1"># Compute Training Data</span>
     <span class="n">varydict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="c">#&#39;K&#39;: [4, 7, 10, 13, 16, 19, 22, 25][:4],</span>
-        <span class="c">#&#39;K&#39;: [1, 2, 3, 4, 8, 10, 13, 15],</span>
-        <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span>
-        <span class="c">#&#39;nDaids&#39;: [20, 100, 250, 500, 750, 1000],</span>
+        <span class="c1">#&#39;K&#39;: [4, 7, 10, 13, 16, 19, 22, 25][:4],</span>
+        <span class="c1">#&#39;K&#39;: [1, 2, 3, 4, 8, 10, 13, 15],</span>
+        <span class="s1">&#39;K&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span>
+        <span class="c1">#&#39;nDaids&#39;: [20, 100, 250, 500, 750, 1000],</span>
     <span class="p">}</span>
     <span class="n">nDaids_basis</span> <span class="o">=</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">325</span><span class="p">,</span> <span class="mi">350</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">750</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">900</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">1500</span><span class="p">]</span>
-    <span class="n">DUMMY</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--dummy&#39;</span><span class="p">)</span>
+    <span class="n">DUMMY</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--dummy&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">DUMMY</span><span class="p">:</span>
         <span class="n">nDaids_list</span><span class="p">,</span> <span class="n">K_list</span><span class="p">,</span> <span class="n">nError_list</span> <span class="o">=</span> <span class="n">test_training_data</span><span class="p">(</span><span class="n">varydict</span><span class="p">,</span> <span class="n">nDaids_basis</span><span class="p">)</span>
         <span class="n">nError_list</span> <span class="o">=</span> <span class="n">nError_list</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="n">nError_list</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">dbname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;PZ_Master0&#39;</span><span class="p">)</span>
+        <span class="n">dbname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--db&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;PZ_Master0&#39;</span><span class="p">)</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
         <span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="n">qaids</span><span class="p">,</span> <span class="n">daids_list</span> <span class="o">=</span> <span class="n">collect_ibeis_training_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nDaids_basis</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="n">nDaids_list</span><span class="p">,</span> <span class="n">K_list</span><span class="p">,</span> <span class="n">nError_list</span> <span class="o">=</span> <span class="n">evaluate_training_data</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">,</span> <span class="n">varydict</span><span class="p">,</span> <span class="n">nDaids_basis</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="n">nError_list</span> <span class="o">=</span> <span class="n">nError_list</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">Finished Get Training Data&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(qaids) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Finished Get Training Data&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;len(qaids) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qaids</span><span class="p">)))</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">nError_list</span><span class="p">))</span>
 
-    <span class="c">#unique_nDaids = np.unique(nDaids_list)</span>
+    <span class="c1">#unique_nDaids = np.unique(nDaids_list)</span>
 
-    <span class="c"># Alias to general optimization problem</span>
+    <span class="c1"># Alias to general optimization problem</span>
     <span class="n">known_nd_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">nDaids_list</span><span class="p">,</span> <span class="n">K_list</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
     <span class="n">known_target_points</span> <span class="o">=</span> <span class="n">nError_list</span>
-    <span class="c"># Mark the data we are given vs what we want to learn</span>
+    <span class="c1"># Mark the data we are given vs what we want to learn</span>
     <span class="n">given_data_dims</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="c">#learn_data_dims = [1]</span>
+    <span class="c1">#learn_data_dims = [1]</span>
 
-    <span class="c"># Minimize K params</span>
+    <span class="c1"># Minimize K params</span>
     <span class="n">opt_model_params</span> <span class="o">=</span> <span class="n">minimize_compute_K_params</span><span class="p">(</span><span class="n">known_nd_data</span><span class="p">,</span> <span class="n">known_target_points</span><span class="p">,</span> <span class="n">given_data_dims</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">known_nd_data</span><span class="p">,</span> <span class="n">known_target_points</span><span class="p">,</span> <span class="n">given_data_dims</span><span class="p">,</span> <span class="n">opt_model_params</span>
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.other.optimize_k</span>
@@ -501,8 +501,8 @@
 <span class="sd">        python -m ibeis.other.optimize_k --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -537,7 +537,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

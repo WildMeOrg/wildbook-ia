@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.preproc.preproc_probchip &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.preproc.preproc_probchip &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.preproc" href="../preproc.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.preproc.preproc_probchip</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Preprocess Probability Chips</span>
 
@@ -153,7 +153,7 @@
 <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_chip</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span>
-<span class="kn">import</span> <span class="nn">utool</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">utool</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">vtool</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
@@ -161,10 +161,10 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span>
 <span class="kn">import</span> <span class="nn">vtool.chip</span> <span class="kn">as</span> <span class="nn">ctool</span>
 <span class="kn">import</span> <span class="nn">vtool.image</span> <span class="kn">as</span> <span class="nn">gtool</span>
-<span class="c"># VTool</span>
-<span class="c">#import vtool.chip as ctool</span>
-<span class="c">#import vtool.image as gtool</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc_probchip]&#39;</span><span class="p">)</span>
+<span class="c1"># VTool</span>
+<span class="c1">#import vtool.chip as ctool</span>
+<span class="c1">#import vtool.image as gtool</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[preproc_probchip]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="postprocess_dev"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_probchip.postprocess_dev">[docs]</a><span class="k">def</span> <span class="nf">postprocess_dev</span><span class="p">():</span>
@@ -191,12 +191,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">df2</span> <span class="k">as</span> <span class="n">df2</span>
     <span class="kn">import</span> <span class="nn">cv2</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>  <span class="c"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>  <span class="c1"># NOQA</span>
 
-    <span class="c">#fpath = &#39;/media/raid/work/GZ_ALL/_ibsdb/figures/nsum_hard/qaid=420_res_5ujbs8h&amp;%vw1olnx_quuid=31cfdc3e/probchip_aid=478_auuid=5c327c5d-4bcc-22e4-764e-535e5874f1c7_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP()_zebra_grevys.png.png&#39;  # NOQA</span>
+    <span class="c1">#fpath = &#39;/media/raid/work/GZ_ALL/_ibsdb/figures/nsum_hard/qaid=420_res_5ujbs8h&amp;%vw1olnx_quuid=31cfdc3e/probchip_aid=478_auuid=5c327c5d-4bcc-22e4-764e-535e5874f1c7_CHIP(sz450)_FEATWEIGHT(ON,uselabel,rf)_CHIP()_zebra_grevys.png.png&#39;  # NOQA</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aids&#39;</span><span class="p">,</span> <span class="s">&#39;--aid&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s1">&#39;--aids&#39;</span><span class="p">,</span> <span class="s1">&#39;--aid&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
@@ -214,12 +214,12 @@
         <span class="k">def</span> <span class="nf">probchip_to_grabcut_labels</span><span class="p">(</span><span class="n">probchip_img</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
             <span class="n">scaled_probchip</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">probchip_img</span><span class="p">,</span> <span class="n">dsize</span><span class="o">=</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">))</span>
             <span class="n">mask</span> <span class="o">=</span> <span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">label_values</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">scaled_probchip</span> <span class="o">/</span> <span class="mi">255</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-            <span class="c"># Except for one center pixel</span>
-            <span class="c">#mask[mask.shape[0] // 2, mask.shape[1] // 2] = 3</span>
+            <span class="c1"># Except for one center pixel</span>
+            <span class="c1">#mask[mask.shape[0] // 2, mask.shape[1] // 2] = 3</span>
             <span class="n">label_mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">label_values</span><span class="p">):</span>
                 <span class="n">label_mask</span><span class="p">[</span><span class="n">mask</span> <span class="o">==</span> <span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-            <span class="c"># No certainty</span>
+            <span class="c1"># No certainty</span>
             <span class="n">label_mask</span><span class="p">[</span><span class="n">label_mask</span> <span class="o">==</span> <span class="n">cv2</span><span class="o">.</span><span class="n">GC_FGD</span><span class="p">]</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">GC_PR_FGD</span>
             <span class="n">label_mask</span><span class="p">[</span><span class="n">label_mask</span> <span class="o">==</span> <span class="n">cv2</span><span class="o">.</span><span class="n">GC_BGD</span><span class="p">]</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">GC_PR_BGD</span>
             <span class="k">return</span> <span class="n">label_mask</span>
@@ -237,14 +237,14 @@
             <span class="n">fgd_model</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">13</span> <span class="o">*</span> <span class="mi">5</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
             <span class="n">num_iters</span> <span class="o">=</span> <span class="mi">5</span>
             <span class="n">mode</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">GC_INIT_WITH_MASK</span>
-            <span class="c"># label_mask is an outvar</span>
+            <span class="c1"># label_mask is an outvar</span>
             <span class="n">label_mask_</span> <span class="o">=</span> <span class="n">label_mask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="k">print</span><span class="p">(</span><span class="n">label_values</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">label_mask_</span><span class="p">))</span>
-            <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s">&#39;grabcut&#39;</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="s1">&#39;grabcut&#39;</span><span class="p">):</span>
                 <span class="n">cv2</span><span class="o">.</span><span class="n">grabCut</span><span class="p">(</span><span class="n">chip_img</span><span class="p">,</span> <span class="n">label_mask_</span><span class="p">,</span> <span class="n">rect</span><span class="p">,</span> <span class="n">bgd_model</span><span class="p">,</span> <span class="n">fgd_model</span><span class="p">,</span> <span class="n">num_iters</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
-            <span class="c">#is_foreground = (label_mask == cv2.GC_FGD) + (label_mask == cv2.GC_PR_FGD)</span>
-            <span class="c">#is_foreground = (label_mask_ == cv2.GC_FGD)  # + (label_mask == cv2.GC_PR_FGD)</span>
+            <span class="c1">#is_foreground = (label_mask == cv2.GC_FGD) + (label_mask == cv2.GC_PR_FGD)</span>
+            <span class="c1">#is_foreground = (label_mask_ == cv2.GC_FGD)  # + (label_mask == cv2.GC_PR_FGD)</span>
             <span class="k">return</span> <span class="n">label_mask_</span>
 
         <span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span> <span class="o">=</span> <span class="n">chip_img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
@@ -264,15 +264,15 @@
     <span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">InteractiveIter</span><span class="p">(</span><span class="n">aid_list</span><span class="p">):</span>
         <span class="n">test_grabcut_on_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-        <span class="c">#input(&#39;press enter to continue&#39;)</span>
-    <span class="c">#kernel = np.ones((5, 5), np.uint8)</span>
-    <span class="c">#blur = cv2.GaussianBlur(img, (5, 5), 1.6)</span>
-    <span class="c">#dilation = cv2.dilate(img, kernel, iterations=10)</span>
-    <span class="c">#df2.imshow(blur, fnum=2)</span>
-    <span class="c">#df2.imshow(dilation, fnum=3)</span>
-    <span class="c">#cv2.floodFill(image, mask, seedPoint, newVal)</span>
-    <span class="c">#closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel, iterations=5)</span>
-    <span class="c">#df2.imshow(closing, fnum=4)</span>
+        <span class="c1">#input(&#39;press enter to continue&#39;)</span>
+    <span class="c1">#kernel = np.ones((5, 5), np.uint8)</span>
+    <span class="c1">#blur = cv2.GaussianBlur(img, (5, 5), 1.6)</span>
+    <span class="c1">#dilation = cv2.dilate(img, kernel, iterations=10)</span>
+    <span class="c1">#df2.imshow(blur, fnum=2)</span>
+    <span class="c1">#df2.imshow(dilation, fnum=3)</span>
+    <span class="c1">#cv2.floodFill(image, mask, seedPoint, newVal)</span>
+    <span class="c1">#closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel, iterations=5)</span>
+    <span class="c1">#df2.imshow(closing, fnum=4)</span>
     <span class="k">pass</span>
 
 </div>
@@ -291,10 +291,10 @@
     <span class="k">if</span> <span class="n">config2_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">featweight_species</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">featweight_cfg</span><span class="o">.</span><span class="n">featweight_species</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">featweight_species</span> <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;featweight_species&#39;</span><span class="p">)</span>
+        <span class="n">featweight_species</span> <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;featweight_species&#39;</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">featweight_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
-    <span class="k">if</span> <span class="n">featweight_species</span> <span class="o">==</span> <span class="s">&#39;uselabel&#39;</span><span class="p">:</span>
-        <span class="c"># Use the labeled species for the detector</span>
+    <span class="k">if</span> <span class="n">featweight_species</span> <span class="o">==</span> <span class="s1">&#39;uselabel&#39;</span><span class="p">:</span>
+        <span class="c1"># Use the labeled species for the detector</span>
         <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">species_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">featweight_species</span><span class="p">]</span>
@@ -332,23 +332,23 @@
     <span class="n">cfname_fmt</span> <span class="o">=</span> <span class="n">preproc_chip</span><span class="o">.</span><span class="n">get_chip_fname_fmt</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">config2_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># FIXME FIXME FIXME: ugly, bad code that wont generalize at all.</span>
-        <span class="c"># you can compute probchips correctly only once, if you change anything</span>
-        <span class="c"># you have to delete your cache.</span>
+        <span class="c1"># FIXME FIXME FIXME: ugly, bad code that wont generalize at all.</span>
+        <span class="c1"># you can compute probchips correctly only once, if you change anything</span>
+        <span class="c1"># you have to delete your cache.</span>
         <span class="n">probchip_cfgstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">featweight_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">(</span><span class="n">use_feat</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_chip</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">probchip_cfgstr</span> <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;probchip_cfgstr&#39;</span><span class="p">)</span>
+        <span class="n">probchip_cfgstr</span> <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;probchip_cfgstr&#39;</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">probchip_cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
-        <span class="c">#raise NotImplementedError(&#39;config2_ is not None&#39;)</span>
+        <span class="c1">#raise NotImplementedError(&#39;config2_ is not None&#39;)</span>
 
     <span class="n">suffix</span> <span class="o">=</span> <span class="n">probchip_cfgstr</span>
     <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># HACK, we sortof know the species here already from the</span>
-        <span class="c"># config string, but this helps in case we mess the config up</span>
-        <span class="n">suffix</span> <span class="o">+=</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">species</span>
-    <span class="c">#probchip_cfgstr = ibs.cfg.detect_cfg.get_cfgstr()   # algo settings cfgstr</span>
+        <span class="c1"># HACK, we sortof know the species here already from the</span>
+        <span class="c1"># config string, but this helps in case we mess the config up</span>
+        <span class="n">suffix</span> <span class="o">+=</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">species</span>
+    <span class="c1">#probchip_cfgstr = ibs.cfg.detect_cfg.get_cfgstr()   # algo settings cfgstr</span>
     <span class="n">fname_noext</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">cfname_fmt</span><span class="p">)</span>
-    <span class="n">probchip_fname_fmt</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;prob&#39;</span><span class="p">,</span> <span class="n">fname_noext</span><span class="p">,</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">ext</span><span class="p">])</span>
+    <span class="n">probchip_fname_fmt</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;prob&#39;</span><span class="p">,</span> <span class="n">fname_noext</span><span class="p">,</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">ext</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">probchip_fname_fmt</span>
 
 </div>
@@ -444,25 +444,25 @@
 <span class="sd">        #ibs.delete_annot_chips(aid_list)</span>
 <span class="sd">        #probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aid_list)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Get probchip dest information (output path)</span>
-    <span class="c"># TODO; properly ungroup output</span>
+    <span class="c1"># Get probchip dest information (output path)</span>
+    <span class="c1"># TODO; properly ungroup output</span>
     <span class="n">grouped_aids</span><span class="p">,</span> <span class="n">unique_species</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">group_aids_by_featweight_species</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="p">)</span>
     <span class="n">nSpecies</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_species</span><span class="p">)</span>
     <span class="n">nTasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">((</span><span class="s">&#39;[preproc_probchip.compute_and_write_probchip] &#39;</span>
-          <span class="s">&#39;Preparing to compute </span><span class="si">%d</span><span class="s"> probchips of </span><span class="si">%d</span><span class="s"> species&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">((</span><span class="s1">&#39;[preproc_probchip.compute_and_write_probchip] &#39;</span>
+          <span class="s1">&#39;Preparing to compute </span><span class="si">%d</span><span class="s1"> probchips of </span><span class="si">%d</span><span class="s1"> species&#39;</span><span class="p">)</span>
           <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">nSpecies</span><span class="p">))</span>
     <span class="n">cachedir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_probchip_dir</span><span class="p">()</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">cachedir</span><span class="p">)</span>
 
     <span class="n">grouped_probchip_fpath_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] +--------------------&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] +--------------------&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">grouped_aids</span><span class="p">,</span> <span class="n">unique_species</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] Computing probchips for species=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">species</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] |--------------------&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] Computing probchips for species=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">species</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] |--------------------&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="n">probchip_fpaths</span> <span class="o">=</span> <span class="n">get_annot_probchip_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span>
@@ -470,18 +470,18 @@
                                                         <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">lazy</span><span class="p">:</span>
-            <span class="c"># Filter out probchips that are already on disk</span>
-            <span class="c"># pyrf used to do this, now we need to do it</span>
-            <span class="c"># caching should be implicit due to using the visual_annot_uuid in</span>
-            <span class="c"># the filename</span>
+            <span class="c1"># Filter out probchips that are already on disk</span>
+            <span class="c1"># pyrf used to do this, now we need to do it</span>
+            <span class="c1"># caching should be implicit due to using the visual_annot_uuid in</span>
+            <span class="c1"># the filename</span>
             <span class="n">isdirty_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">not_list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">exists</span><span class="p">,</span> <span class="n">probchip_fpaths</span><span class="p">))</span>
             <span class="n">dirty_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
             <span class="n">dirty_probchip_fpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">probchip_fpaths</span><span class="p">,</span> <span class="n">isdirty_list</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">((</span><span class="s">&#39;[preproc_probchip.compute_and_write_probchip]&#39;</span>
-                  <span class="s">&#39; Lazy compute of to compute </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> of species=</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span>
+            <span class="k">print</span><span class="p">((</span><span class="s1">&#39;[preproc_probchip.compute_and_write_probchip]&#39;</span>
+                  <span class="s1">&#39; Lazy compute of to compute </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> of species=</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">%</span>
                   <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dirty_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),</span> <span class="n">species</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c"># No filtering</span>
+            <span class="c1"># No filtering</span>
             <span class="n">dirty_aids</span>  <span class="o">=</span> <span class="n">aids</span>
             <span class="n">dirty_probchip_fpath_list</span> <span class="o">=</span> <span class="n">probchip_fpaths</span>
 
@@ -490,8 +490,8 @@
 
         <span class="n">grouped_probchip_fpath_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">probchip_fpaths</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] Done computing probability images&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] L_______________________&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] Done computing probability images&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] L_______________________&#39;</span><span class="p">)</span>
 
     <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">invert_apply_grouping2</span><span class="p">(</span>
         <span class="n">grouped_probchip_fpath_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
@@ -502,29 +502,29 @@
     <span class="k">if</span> <span class="n">config2_</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">featweight_detector</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">featweight_cfg</span><span class="o">.</span><span class="n">featweight_detector</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">featweight_detector</span> <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;featweight_detector&#39;</span><span class="p">)</span>
+        <span class="n">featweight_detector</span> <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;featweight_detector&#39;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">featweight_detector</span> <span class="o">==</span> <span class="s">&#39;rf&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">featweight_detector</span> <span class="o">==</span> <span class="s1">&#39;rf&#39;</span><span class="p">:</span>
         <span class="p">(</span><span class="n">extramargin_fpath_list</span><span class="p">,</span>
          <span class="n">probchip_extramargin_fpath_list</span><span class="p">,</span>
          <span class="n">halfoffset_cs_list</span><span class="p">,</span>
          <span class="p">)</span> <span class="o">=</span> <span class="n">compute_extramargin_detectchip</span><span class="p">(</span>
              <span class="n">ibs</span><span class="p">,</span> <span class="n">dirty_aids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span> <span class="n">FACTOR</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-        <span class="c">#dirty_cfpath_list  = ibs.get_annot_chip_fpath(dirty_aids, ensure=True, config2_=config2_)</span>
+        <span class="c1">#dirty_cfpath_list  = ibs.get_annot_chip_fpath(dirty_aids, ensure=True, config2_=config2_)</span>
 
         <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;scale_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
-            <span class="s">&#39;output_gpath_list&#39;</span><span class="p">:</span> <span class="n">probchip_extramargin_fpath_list</span><span class="p">,</span>
-            <span class="s">&#39;mode&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s1">&#39;scale_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span>
+            <span class="s1">&#39;output_gpath_list&#39;</span><span class="p">:</span> <span class="n">probchip_extramargin_fpath_list</span><span class="p">,</span>
+            <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">probchip_generator</span> <span class="o">=</span> <span class="n">randomforest</span><span class="o">.</span><span class="n">detect_gpath_list_with_species</span><span class="p">(</span>
             <span class="n">ibs</span><span class="p">,</span> <span class="n">extramargin_fpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
-        <span class="c"># Evalutate genrator until completion</span>
+        <span class="c1"># Evalutate genrator until completion</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">evaluate_generator</span><span class="p">(</span><span class="n">probchip_generator</span><span class="p">)</span>
         <span class="n">extramargin_mask_gen</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">grayscale</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">probchip_extramargin_fpath_list</span>
         <span class="p">)</span>
-        <span class="c"># Crop the extra margin off of the new probchips</span>
+        <span class="c1"># Crop the extra margin off of the new probchips</span>
         <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dirty_probchip_fpath_list</span><span class="p">,</span>
                     <span class="n">extramargin_mask_gen</span><span class="p">,</span>
                     <span class="n">halfoffset_cs_list</span><span class="p">)</span>
@@ -532,17 +532,17 @@
             <span class="n">half_w</span><span class="p">,</span> <span class="n">half_h</span> <span class="o">=</span> <span class="n">halfmargin</span>
             <span class="n">probchip</span> <span class="o">=</span> <span class="n">extramargin_probchip</span><span class="p">[</span><span class="n">half_h</span><span class="p">:</span><span class="o">-</span><span class="n">half_h</span><span class="p">,</span> <span class="n">half_w</span><span class="p">:</span><span class="o">-</span><span class="n">half_w</span><span class="p">]</span>
             <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">probchip</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">featweight_detector</span> <span class="o">==</span> <span class="s">&#39;cnn&#39;</span><span class="p">:</span>
-        <span class="c"># dont use extrmargin here (for now)</span>
+    <span class="k">elif</span> <span class="n">featweight_detector</span> <span class="o">==</span> <span class="s1">&#39;cnn&#39;</span><span class="p">:</span>
+        <span class="c1"># dont use extrmargin here (for now)</span>
         <span class="n">chip_fpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">dirty_aids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
         <span class="n">mask_gen</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">generate_species_background_mask</span><span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
         <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dirty_probchip_fpath_list</span><span class="p">,</span> <span class="n">mask_gen</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">_iter</span><span class="p">,</span> <span class="mi">64</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">probchip</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;write probchip chunk&#39;</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">time_thresh</span><span class="o">=</span><span class="mf">30.0</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">probchip</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;write probchip chunk&#39;</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">time_thresh</span><span class="o">=</span><span class="mf">30.0</span><span class="p">):</span>
                 <span class="n">probchip</span> <span class="o">=</span> <span class="n">postprocess_mask</span><span class="p">(</span><span class="n">probchip</span><span class="p">)</span>
                 <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">probchip</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;bad featweight_detector=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">featweight_detector</span><span class="p">,))</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;bad featweight_detector=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">featweight_detector</span><span class="p">,))</span>
 
 </div>
 <div class="viewcode-block" id="postprocess_mask"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_probchip.postprocess_mask">[docs]</a><span class="k">def</span> <span class="nf">postprocess_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
@@ -594,9 +594,9 @@
     <span class="n">thresh</span> <span class="o">=</span> <span class="mi">20</span>
     <span class="n">kernel_size</span> <span class="o">=</span> <span class="mi">20</span>
     <span class="n">mask2</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="c"># light threshold</span>
+    <span class="c1"># light threshold</span>
     <span class="n">mask2</span><span class="p">[</span><span class="n">mask2</span> <span class="o">&lt;</span> <span class="n">thresh</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="c"># open and close</span>
+    <span class="c1"># open and close</span>
     <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">kernel_size</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
     <span class="n">mask2</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">morphologyEx</span><span class="p">(</span><span class="n">mask2</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">MORPH_CLOSE</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
     <span class="n">mask2</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">morphologyEx</span><span class="p">(</span><span class="n">mask2</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">MORPH_OPEN</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
@@ -615,24 +615,24 @@
 
 </div>
 <div class="viewcode-block" id="compute_extramargin_detectchip"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_probchip.compute_extramargin_detectchip">[docs]</a><span class="k">def</span> <span class="nf">compute_extramargin_detectchip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">FACTOR</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
-    <span class="c">#from vtool import chip as ctool</span>
-    <span class="c">#from vtool import image as gtool</span>
+    <span class="c1">#from vtool import chip as ctool</span>
+    <span class="c1">#from vtool import image as gtool</span>
     <span class="n">arg_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">,</span> <span class="n">halfoffset_cs_list</span> <span class="o">=</span> <span class="n">get_extramargin_detectchip_info</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span> <span class="n">FACTOR</span><span class="o">=</span><span class="n">FACTOR</span><span class="p">)</span>
-    <span class="c"># Again, it seems we cannot use warpAffine in parallel loops</span>
+    <span class="c1"># Again, it seems we cannot use warpAffine in parallel loops</span>
     <span class="n">extramargin_fpath_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
         <span class="n">gen_detectchip</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">force_serial</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
-    <span class="n">probchip_extramargin_fpath_list</span>   <span class="o">=</span> <span class="p">[</span><span class="n">fpath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;detectchip&#39;</span><span class="p">,</span> <span class="s">&#39;probchip&#39;</span><span class="p">)</span>
+    <span class="n">probchip_extramargin_fpath_list</span>   <span class="o">=</span> <span class="p">[</span><span class="n">fpath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;detectchip&#39;</span><span class="p">,</span> <span class="s1">&#39;probchip&#39;</span><span class="p">)</span>
                                          <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">extramargin_fpath_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">extramargin_fpath_list</span><span class="p">,</span> <span class="n">probchip_extramargin_fpath_list</span><span class="p">,</span> <span class="n">halfoffset_cs_list</span>
-    <span class="c">#probchip_extramargin_fpath_list = []</span>
-    <span class="c">#chipBGR = vt.imread(fpath)</span>
-    <span class="c">#print(chipBGR.shape)</span>
-    <span class="c">#assert chipBGR.shape[1] == 160</span>
-    <span class="c">#for cfpath, gfpath, bbox, theta, new_size, filter_list in arg_list:</span>
-    <span class="c">#    chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)</span>
-    <span class="c">#    gtool.imwrite(cfpath, chipBGR)</span>
-    <span class="c">#    probchip_extramargin_fpath_list.append(cfpath)</span>
+    <span class="c1">#probchip_extramargin_fpath_list = []</span>
+    <span class="c1">#chipBGR = vt.imread(fpath)</span>
+    <span class="c1">#print(chipBGR.shape)</span>
+    <span class="c1">#assert chipBGR.shape[1] == 160</span>
+    <span class="c1">#for cfpath, gfpath, bbox, theta, new_size, filter_list in arg_list:</span>
+    <span class="c1">#    chipBGR = ctool.compute_chip(gfpath, bbox, theta, new_size, filter_list)</span>
+    <span class="c1">#    gtool.imwrite(cfpath, chipBGR)</span>
+    <span class="c1">#    probchip_extramargin_fpath_list.append(cfpath)</span>
 
 </div>
 <div class="viewcode-block" id="get_extramargin_detectchip_info"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_probchip.get_extramargin_detectchip_info">[docs]</a><span class="k">def</span> <span class="nf">get_extramargin_detectchip_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">FACTOR</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
@@ -666,52 +666,52 @@
         <span class="n">bbox_size_list</span><span class="p">))</span>
     <span class="n">invalid_aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">bbox_size_list</span><span class="p">)</span> <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">h</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalid_aids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;REMOVE INVALID (BAD WIDTH AND/OR HEIGHT) AIDS TO COMPUTE AND WRITE CHIPS&quot;</span><span class="p">)</span>
-        <span class="n">msg</span> <span class="o">+=</span> <span class="p">(</span><span class="s">&quot;INVALID AIDS: </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">invalid_aids</span><span class="p">,</span> <span class="p">))</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;REMOVE INVALID (BAD WIDTH AND/OR HEIGHT) AIDS TO COMPUTE AND WRITE CHIPS&quot;</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;INVALID AIDS: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">invalid_aids</span><span class="p">,</span> <span class="p">))</span>
         <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-    <span class="c"># There are two spaces we are working in here</span>
-    <span class="c"># probchipspace _pcs (the space of the margined chip computed for probchip) and</span>
-    <span class="c"># imagespace _gs (the space using in bbox specification)</span>
+    <span class="c1"># There are two spaces we are working in here</span>
+    <span class="c1"># probchipspace _pcs (the space of the margined chip computed for probchip) and</span>
+    <span class="c1"># imagespace _gs (the space using in bbox specification)</span>
 
-    <span class="c"># Compute the offset we would like in chip space for margin expansion</span>
+    <span class="c1"># Compute the offset we would like in chip space for margin expansion</span>
     <span class="n">halfoffset_cs_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="c"># TODO: Find correct offsets</span>
-        <span class="p">(</span><span class="mi">16</span> <span class="o">*</span> <span class="n">FACTOR</span><span class="p">,</span> <span class="mi">16</span> <span class="o">*</span> <span class="n">FACTOR</span><span class="p">)</span>  <span class="c"># (w / 16, h / 16)</span>
+        <span class="c1"># TODO: Find correct offsets</span>
+        <span class="p">(</span><span class="mi">16</span> <span class="o">*</span> <span class="n">FACTOR</span><span class="p">,</span> <span class="mi">16</span> <span class="o">*</span> <span class="n">FACTOR</span><span class="p">)</span>  <span class="c1"># (w / 16, h / 16)</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">newsize_list</span> <span class="p">]</span>
 
-    <span class="c"># Compute expanded newsize list to include the extra margin offset</span>
+    <span class="c1"># Compute expanded newsize list to include the extra margin offset</span>
     <span class="n">expanded_newsize_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="n">w_pcs</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">xo_pcs</span><span class="p">),</span> <span class="n">h_pcs</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">yo_pcs</span><span class="p">))</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">w_pcs</span><span class="p">,</span> <span class="n">h_pcs</span><span class="p">),</span> <span class="p">(</span><span class="n">xo_pcs</span><span class="p">,</span> <span class="n">yo_pcs</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">newsize_list</span><span class="p">,</span> <span class="n">halfoffset_cs_list</span><span class="p">)</span> <span class="p">]</span>
 
-    <span class="c"># Get the conversion from chip to image space</span>
+    <span class="c1"># Get the conversion from chip to image space</span>
     <span class="n">to_imgspace_scale_factors</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="n">w_gs</span> <span class="o">/</span> <span class="n">w_pcs</span><span class="p">,</span> <span class="n">h_gs</span> <span class="o">/</span> <span class="n">h_pcs</span><span class="p">)</span>
         <span class="k">for</span> <span class="p">((</span><span class="n">w_pcs</span><span class="p">,</span> <span class="n">h_pcs</span><span class="p">),</span> <span class="p">(</span><span class="n">w_gs</span><span class="p">,</span> <span class="n">h_gs</span><span class="p">))</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">newsize_list</span><span class="p">,</span> <span class="n">bbox_size_list</span><span class="p">)</span> <span class="p">]</span>
 
-    <span class="c"># Convert the chip offsets to image space</span>
+    <span class="c1"># Convert the chip offsets to image space</span>
     <span class="n">halfoffset_gs_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">((</span><span class="n">sx</span> <span class="o">*</span> <span class="n">xo</span><span class="p">),</span> <span class="p">(</span><span class="n">sy</span> <span class="o">*</span> <span class="n">yo</span><span class="p">))</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">),</span> <span class="p">(</span><span class="n">xo</span><span class="p">,</span> <span class="n">yo</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">to_imgspace_scale_factors</span><span class="p">,</span> <span class="n">halfoffset_cs_list</span><span class="p">)</span> <span class="p">]</span>
 
-    <span class="c"># Find the size of the expanded margin bbox in image space</span>
+    <span class="c1"># Find the size of the expanded margin bbox in image space</span>
     <span class="n">expanded_bbox_gs_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="n">x_gs</span> <span class="o">-</span> <span class="n">xo_gs</span><span class="p">,</span> <span class="n">y_gs</span> <span class="o">-</span> <span class="n">yo_gs</span><span class="p">,</span> <span class="n">w_gs</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">xo_gs</span><span class="p">),</span> <span class="n">h_gs</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">yo_gs</span><span class="p">))</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">x_gs</span><span class="p">,</span> <span class="n">y_gs</span><span class="p">,</span> <span class="n">w_gs</span><span class="p">,</span> <span class="n">h_gs</span><span class="p">),</span> <span class="p">(</span><span class="n">xo_gs</span><span class="p">,</span> <span class="n">yo_gs</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">halfoffset_gs_list</span><span class="p">)</span> <span class="p">]</span>
 
-    <span class="c"># TODO: make this work</span>
+    <span class="c1"># TODO: make this work</span>
     <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">get_annot_probchip_fpath_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span>
                                                         <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">,</span>
                                                         <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">)</span>
-    <span class="c">#probchip_extramargin_fpath_list = [ut.augpath(fpath, &#39;_extramargin&#39;) for</span>
-    <span class="c">#fpath in probchip_fpath_list]</span>
-    <span class="n">extramargin_fpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">augpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;_extramargin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;probchip&#39;</span><span class="p">,</span> <span class="s">&#39;detectchip&#39;</span><span class="p">)</span>
+    <span class="c1">#probchip_extramargin_fpath_list = [ut.augpath(fpath, &#39;_extramargin&#39;) for</span>
+    <span class="c1">#fpath in probchip_fpath_list]</span>
+    <span class="n">extramargin_fpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">augpath</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s1">&#39;_extramargin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;probchip&#39;</span><span class="p">,</span> <span class="s1">&#39;detectchip&#39;</span><span class="p">)</span>
                               <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">probchip_fpath_list</span><span class="p">]</span>
-    <span class="c"># # filter by species and add a suffix for the probchip_input</span>
-    <span class="c"># # also compute a probchip fpath with an expanded suffix for the detector</span>
-    <span class="c">#probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, config2_=None, species=species)</span>
-    <span class="c"># Then crop the output and write that as the real probchip</span>
+    <span class="c1"># # filter by species and add a suffix for the probchip_input</span>
+    <span class="c1"># # also compute a probchip fpath with an expanded suffix for the detector</span>
+    <span class="c1">#probchip_fpath_list = get_annot_probchip_fpath_list(ibs, aids, config2_=None, species=species)</span>
+    <span class="c1"># Then crop the output and write that as the real probchip</span>
 
     <span class="n">filtlist_iter</span> <span class="o">=</span> <span class="p">([]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)))</span>
     <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">extramargin_fpath_list</span><span class="p">,</span> <span class="n">gfpath_list</span><span class="p">,</span>
@@ -722,8 +722,8 @@
 
 </div>
 <div class="viewcode-block" id="testshow_extramargin_info"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_probchip.testshow_extramargin_info">[docs]</a><span class="k">def</span> <span class="nf">testshow_extramargin_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">,</span> <span class="n">halfoffset_cs_list</span><span class="p">):</span>
-    <span class="c">#cfpath, gfpath, bbox, theta, new_size, filter_list = tup</span>
-    <span class="c"># TEMP TESTING</span>
+    <span class="c1">#cfpath, gfpath, bbox, theta, new_size, filter_list = tup</span>
+    <span class="c1"># TEMP TESTING</span>
     <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">chip</span> <span class="k">as</span> <span class="n">ctool</span>
     <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
@@ -738,24 +738,24 @@
     <span class="p">]</span>
     <span class="n">bbox_pcs</span> <span class="o">=</span> <span class="n">bbox_cs_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
     <span class="n">aid</span> <span class="o">=</span> <span class="n">aid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="c">#print(&#39;new_size = %r&#39; % (new_size,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;newsize_list[index] = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newsize_list</span><span class="p">[</span><span class="n">index</span><span class="p">],))</span>
+    <span class="c1">#print(&#39;new_size = %r&#39; % (new_size,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;newsize_list[index] = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newsize_list</span><span class="p">[</span><span class="n">index</span><span class="p">],))</span>
 
     <span class="n">fnum</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                       <span class="n">title_suffix</span><span class="o">=</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">original image&#39;</span><span class="p">)</span>
+                       <span class="n">title_suffix</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">original image&#39;</span><span class="p">)</span>
     <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-                       <span class="n">title_suffix</span><span class="o">=</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">original chip&#39;</span><span class="p">)</span>
+                       <span class="n">title_suffix</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">original chip&#39;</span><span class="p">)</span>
     <span class="n">bboxed_chip</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">draw_verts</span><span class="p">(</span><span class="n">expanded_chipBGR</span><span class="p">,</span>
                                 <span class="n">vt</span><span class="o">.</span><span class="n">scaled_verts_from_bbox</span><span class="p">(</span><span class="n">bbox_pcs</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">bboxed_chip</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span>
-              <span class="n">title</span><span class="o">=</span><span class="s">&#39;scaled chip with expanded margin.</span><span class="se">\n</span><span class="s">(orig margin drawn in orange)&#39;</span><span class="p">)</span>
+              <span class="n">title</span><span class="o">=</span><span class="s1">&#39;scaled chip with expanded margin.</span><span class="se">\n</span><span class="s1">(orig margin drawn in orange)&#39;</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">bboxed_chip</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
-    <span class="c">#pt.imshow(chipBGR)</span>
+    <span class="c1">#pt.imshow(chipBGR)</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.algo.preproc.preproc_probchip</span>
@@ -764,7 +764,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -799,7 +799,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

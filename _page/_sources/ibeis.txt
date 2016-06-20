@@ -78,6 +78,14 @@ ibeis.core_annots module
     :undoc-members:
     :show-inheritance:
 
+ibeis.core_images module
+------------------------
+
+.. automodule:: ibeis.core_images
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.dev module
 ----------------
 
@@ -94,18 +102,18 @@ ibeis.filter_configs module
     :undoc-members:
     :show-inheritance:
 
-ibeis.ibsfuncs module
----------------------
-
-.. automodule:: ibeis.ibsfuncs
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.main_module module
 ------------------------
 
 .. automodule:: ibeis.main_module
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.new_annots module
+-----------------------
+
+.. automodule:: ibeis.new_annots
     :members:
     :undoc-members:
     :show-inheritance:
@@ -134,10 +142,10 @@ ibeis.tag_funcs module
     :undoc-members:
     :show-inheritance:
 
-ibeis.workflow module
----------------------
+ibeis.workspace module
+----------------------
 
-.. automodule:: ibeis.workflow
+.. automodule:: ibeis.workspace
     :members:
     :undoc-members:
     :show-inheritance:

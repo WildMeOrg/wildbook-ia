@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.gui._grave &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.gui._grave &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,7 +129,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.gui._grave</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <div class="viewcode-block" id="inspect_orphaned_qres_bigcache"><a class="viewcode-back" href="../../../ibeis.gui.html#ibeis.gui._grave.inspect_orphaned_qres_bigcache">[docs]</a><span class="k">def</span> <span class="nf">inspect_orphaned_qres_bigcache</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">bc_fpath</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="p">{}):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Hack to try and grab the last big query</span>
@@ -157,27 +157,27 @@
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">]</span>
     <span class="n">qres</span> <span class="o">=</span> <span class="n">cm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">daid_list</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">daids</span>
-    <span class="c">#for qres in six.itervalues(cm_list):</span>
-    <span class="c">#    assert np.all(daid_list == qres.daids)</span>
+    <span class="c1">#for qres in six.itervalues(cm_list):</span>
+    <span class="c1">#    assert np.all(daid_list == qres.daids)</span>
     <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
 
     <span class="n">true_cfgstr</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">cfgstr</span>
     <span class="n">guess_cfgstr</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
 
-    <span class="n">true_cfgstr_</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">true_cfgstr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">))</span>
-    <span class="n">guess_cfgstr_</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">guess_cfgstr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">))</span>
+    <span class="n">true_cfgstr_</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">true_cfgstr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">))</span>
+    <span class="n">guess_cfgstr_</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">guess_cfgstr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">))</span>
     <span class="n">textdiff</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_textdiff</span><span class="p">(</span><span class="n">true_cfgstr_</span><span class="p">,</span> <span class="n">guess_cfgstr_</span><span class="p">))</span>
     <span class="k">print</span><span class="p">(</span><span class="n">textdiff</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">textdiff</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;you may need to fix the configstr&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;you may need to fix the configstr&#39;</span><span class="p">)</span>
 
-    <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_qres2</span>  <span class="c"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_qres2</span>  <span class="c1"># NOQA</span>
     <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
     <span class="n">guitool</span><span class="o">.</span><span class="n">ensure_qapp</span><span class="p">()</span>
     <span class="n">ranks_lt</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">qres_wgt</span> <span class="o">=</span> <span class="n">inspect_gui</span><span class="o">.</span><span class="n">QueryResultsWidget</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="n">ranks_lt</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">filter_reviewed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-        <span class="n">filter_duplicate_namepair_matches</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">query_title</span><span class="o">=</span><span class="s">&#39;Recovery Hack&#39;</span><span class="p">)</span>
+        <span class="n">filter_duplicate_namepair_matches</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">query_title</span><span class="o">=</span><span class="s1">&#39;Recovery Hack&#39;</span><span class="p">)</span>
     <span class="n">qres_wgt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
     <span class="n">qres_wgt</span><span class="o">.</span><span class="n">raise_</span><span class="p">()</span>
 </pre></div></div>
@@ -213,7 +213,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.hstypes &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.hots.hstypes &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.hots.hstypes</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">hstypes</span>
 <span class="sd">Todo:</span>
@@ -167,23 +167,23 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="s">&#39;[hstypes]&#39;</span><span class="p">)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="s1">&#39;[hstypes]&#39;</span><span class="p">)</span>
 
 
-<span class="c">#INTEGER_TYPE = np.int32</span>
-<span class="c">#INDEX_TYPE = np.int32</span>
-<span class="c">#INDEX_TYPE = np.int64</span>
-<span class="c"># The index type should be the native sytem int, otherwise np.take will fail</span>
-<span class="c"># due to the safe constraint.</span>
+<span class="c1">#INTEGER_TYPE = np.int32</span>
+<span class="c1">#INDEX_TYPE = np.int32</span>
+<span class="c1">#INDEX_TYPE = np.int64</span>
+<span class="c1"># The index type should be the native sytem int, otherwise np.take will fail</span>
+<span class="c1"># due to the safe constraint.</span>
 <span class="n">INDEX_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int_</span>
 
-<span class="c">#INTEGER_TYPE = np.int64</span>
-<span class="c">#INTEGER_TYPE = np.int32</span>
+<span class="c1">#INTEGER_TYPE = np.int64</span>
+<span class="c1">#INTEGER_TYPE = np.int32</span>
 <span class="n">INTEGER_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span>
 
-<span class="c">#FLOAT_TYPE = np.float64</span>
+<span class="c1">#FLOAT_TYPE = np.float64</span>
 <span class="n">FLOAT_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
-<span class="c">#FLOAT_TYPE = np.float32</span>
+<span class="c1">#FLOAT_TYPE = np.float32</span>
 
 <span class="n">VEC_DIM</span> <span class="o">=</span> <span class="mi">128</span>
 
@@ -191,25 +191,25 @@
 <span class="n">VEC_IINFO</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">VEC_TYPE</span><span class="p">)</span>
 <span class="n">VEC_MAX</span> <span class="o">=</span> <span class="n">VEC_IINFO</span><span class="o">.</span><span class="n">max</span>
 <span class="n">VEC_MIN</span> <span class="o">=</span> <span class="n">VEC_IINFO</span><span class="o">.</span><span class="n">min</span>
-<span class="c"># Psuedo max values come from SIFT descriptors implementation</span>
-<span class="c"># Each component has a theoretical maximum of 512</span>
+<span class="c1"># Psuedo max values come from SIFT descriptors implementation</span>
+<span class="c1"># Each component has a theoretical maximum of 512</span>
 <span class="n">VEC_PSEUDO_MAX</span> <span class="o">=</span> <span class="mi">512</span>
-<span class="c"># unit sphere points can only be twice the maximum descriptor magnitude away</span>
-<span class="c"># from each other. The pseudo max is 512, so 1024 is the upper bound</span>
-<span class="c"># FURTHERMORE SIFT Descriptors are constrained to be in the upper right quadrent</span>
-<span class="c"># which means any two vectors with one full component and zeros elsewhere are</span>
-<span class="c"># maximally distant. VEC_PSEUDO_MAX_DISTANCE = np.sqrt(2) * VEC_PSEUDO_MAX</span>
+<span class="c1"># unit sphere points can only be twice the maximum descriptor magnitude away</span>
+<span class="c1"># from each other. The pseudo max is 512, so 1024 is the upper bound</span>
+<span class="c1"># FURTHERMORE SIFT Descriptors are constrained to be in the upper right quadrent</span>
+<span class="c1"># which means any two vectors with one full component and zeros elsewhere are</span>
+<span class="c1"># maximally distant. VEC_PSEUDO_MAX_DISTANCE = np.sqrt(2) * VEC_PSEUDO_MAX</span>
 <span class="k">if</span> <span class="n">VEC_MIN</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-    <span class="c"># SIFT distances can be on only on one quadrent of unit sphere</span>
-    <span class="c"># hense the np.sqrt(2) coefficient on the component maximum</span>
-    <span class="c"># Otherwise it would be 2.</span>
+    <span class="c1"># SIFT distances can be on only on one quadrent of unit sphere</span>
+    <span class="c1"># hense the np.sqrt(2) coefficient on the component maximum</span>
+    <span class="c1"># Otherwise it would be 2.</span>
     <span class="n">VEC_PSEUDO_MAX_DISTANCE</span> <span class="o">=</span> <span class="n">VEC_PSEUDO_MAX</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
     <span class="n">VEC_PSEUDO_MAX_DISTANCE_SQRD</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="mf">512.0</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span>
 <span class="k">elif</span> <span class="n">VEC_MIN</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-    <span class="c"># Can be on whole unit sphere</span>
+    <span class="c1"># Can be on whole unit sphere</span>
     <span class="n">VEC_PSEUDO_MAX_DISTANCE</span> <span class="o">=</span> <span class="n">VEC_PSEUDO_MAX</span> <span class="o">*</span> <span class="mi">2</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;impossible state&#39;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;impossible state&#39;</span><span class="p">)</span>
 
 <span class="n">PSEUDO_UINT8_MAX_SQRD</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">VEC_PSEUDO_MAX</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
 
@@ -221,15 +221,15 @@
 
 
 <span class="n">RVEC_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span>
-<span class="c">#RVEC_TYPE = np.float16</span>
+<span class="c1">#RVEC_TYPE = np.float16</span>
 <span class="k">if</span> <span class="n">RVEC_TYPE</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">:</span>
-    <span class="c"># Unfortunatley int8 cannot represent NaN, maybe used a masked array</span>
+    <span class="c1"># Unfortunatley int8 cannot represent NaN, maybe used a masked array</span>
     <span class="n">RVEC_INFO</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">iinfo</span><span class="p">(</span><span class="n">RVEC_TYPE</span><span class="p">)</span>
     <span class="n">RVEC_MAX</span> <span class="o">=</span> <span class="mi">128</span>
     <span class="n">RVEC_MIN</span> <span class="o">=</span> <span class="o">-</span><span class="mi">128</span>
-    <span class="c"># Psuedo max values is used for a quantization trick where you pack more data</span>
-    <span class="c"># into a smaller space than would normally be allowed. We are able to do this</span>
-    <span class="c"># because values will hardly ever be close to the true max.</span>
+    <span class="c1"># Psuedo max values is used for a quantization trick where you pack more data</span>
+    <span class="c1"># into a smaller space than would normally be allowed. We are able to do this</span>
+    <span class="c1"># because values will hardly ever be close to the true max.</span>
     <span class="n">RVEC_PSEUDO_MAX</span> <span class="o">=</span> <span class="n">RVEC_MAX</span> <span class="o">*</span> <span class="mi">2</span>
     <span class="n">RVEC_PSEUDO_MAX_SQRD</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">RVEC_PSEUDO_MAX</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 <span class="k">elif</span> <span class="n">RVEC_TYPE</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
@@ -239,37 +239,37 @@
     <span class="n">RVEC_PSEUDO_MAX</span> <span class="o">=</span> <span class="n">RVEC_MAX</span>
     <span class="n">RVEC_PSEUDO_MAX_SQRD</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">RVEC_PSEUDO_MAX</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;impossible RVEC_TYPE&#39;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;impossible RVEC_TYPE&#39;</span><span class="p">)</span>
 
 
-<span class="c"># Feature Match datatype</span>
+<span class="c1"># Feature Match datatype</span>
 <span class="n">FM_DTYPE</span>  <span class="o">=</span> <span class="n">INTEGER_TYPE</span>
-<span class="c"># Feature Score datatype</span>
+<span class="c1"># Feature Score datatype</span>
 <span class="n">FS_DTYPE</span>  <span class="o">=</span> <span class="n">FLOAT_TYPE</span>
-<span class="c"># Feature Rank datatype</span>
-<span class="c">#FK_DTYPE  = np.int16</span>
+<span class="c1"># Feature Rank datatype</span>
+<span class="c1">#FK_DTYPE  = np.int16</span>
 <span class="n">FK_DTYPE</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span>
 
 
 <div class="viewcode-block" id="FiltKeys"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.hstypes.FiltKeys">[docs]</a><span class="k">class</span> <span class="nc">FiltKeys</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="n">DISTINCTIVENESS</span> <span class="o">=</span> <span class="s">&#39;distinctiveness&#39;</span>
-    <span class="n">FG</span> <span class="o">=</span> <span class="s">&#39;fg&#39;</span>
-    <span class="n">RATIO</span> <span class="o">=</span> <span class="s">&#39;ratio&#39;</span>
-    <span class="n">DIST</span> <span class="o">=</span> <span class="s">&#39;dist&#39;</span>
-    <span class="n">BARL2</span> <span class="o">=</span> <span class="s">&#39;bar_l2&#39;</span>
-    <span class="n">LNBNN</span> <span class="o">=</span> <span class="s">&#39;lnbnn&#39;</span>
-    <span class="n">HOMOGERR</span> <span class="o">=</span> <span class="s">&#39;homogerr&#39;</span>
+    <span class="n">DISTINCTIVENESS</span> <span class="o">=</span> <span class="s1">&#39;distinctiveness&#39;</span>
+    <span class="n">FG</span> <span class="o">=</span> <span class="s1">&#39;fg&#39;</span>
+    <span class="n">RATIO</span> <span class="o">=</span> <span class="s1">&#39;ratio&#39;</span>
+    <span class="n">DIST</span> <span class="o">=</span> <span class="s1">&#39;dist&#39;</span>
+    <span class="n">BARL2</span> <span class="o">=</span> <span class="s1">&#39;bar_l2&#39;</span>
+    <span class="n">LNBNN</span> <span class="o">=</span> <span class="s1">&#39;lnbnn&#39;</span>
+    <span class="n">HOMOGERR</span> <span class="o">=</span> <span class="s1">&#39;homogerr&#39;</span>
 
-<span class="c"># Denote which scores should be  used as weights</span>
-<span class="c"># the others are used as scores</span></div>
+<span class="c1"># Denote which scores should be  used as weights</span>
+<span class="c1"># the others are used as scores</span></div>
 <span class="n">WEIGHT_FILTERS</span> <span class="o">=</span> <span class="p">[</span><span class="n">FiltKeys</span><span class="o">.</span><span class="n">FG</span><span class="p">,</span> <span class="n">FiltKeys</span><span class="o">.</span><span class="n">DISTINCTIVENESS</span><span class="p">,</span> <span class="n">FiltKeys</span><span class="o">.</span><span class="n">HOMOGERR</span><span class="p">]</span>
 
 
-<span class="c"># Replace old cmtup_old with ducktype</span>
-<span class="c"># Keep this turned off for now until we actually start using it</span>
+<span class="c1"># Replace old cmtup_old with ducktype</span>
+<span class="c1"># Keep this turned off for now until we actually start using it</span>
 
 
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.algo.hots.hstypes</span>
@@ -277,8 +277,8 @@
 <span class="sd">        python -m ibeis.algo.hots.hstypes --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -313,7 +313,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

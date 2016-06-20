@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.species &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.species &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,11 +129,11 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.species</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[species]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[species]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="species_has_detector"><a class="viewcode-back" href="../../ibeis.html#ibeis.species.species_has_detector">[docs]</a><span class="k">def</span> <span class="nf">species_has_detector</span><span class="p">(</span><span class="n">species_text</span><span class="p">):</span>
@@ -142,10 +142,10 @@
 </div>
 <div class="viewcode-block" id="get_working_species_set"><a class="viewcode-back" href="../../ibeis.html#ibeis.species.get_working_species_set">[docs]</a><span class="k">def</span> <span class="nf">get_working_species_set</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot; hack to make only species with detectors show up &quot;&quot;&quot;</span>
-    <span class="c"># TODO: FUNCTIONS SHOULD NOT BE IN CONSTANTS</span>
-    <span class="c"># TODO: allow for custom user-define species</span>
-    <span class="c">#RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = not ut.get_argflag(&#39;--allspecies&#39;)</span>
-    <span class="n">RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--no-allspecies&#39;</span><span class="p">)</span>
+    <span class="c1"># TODO: FUNCTIONS SHOULD NOT BE IN CONSTANTS</span>
+    <span class="c1"># TODO: allow for custom user-define species</span>
+    <span class="c1">#RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS = not ut.get_argflag(&#39;--allspecies&#39;)</span>
+    <span class="n">RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--no-allspecies&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">RESTRICT_TO_ONLY_SPECIES_WITH_DETECTORS</span><span class="p">:</span>
         <span class="n">working_species_tups</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">(</span><span class="n">species_tup</span><span class="o">.</span><span class="n">species_nice</span><span class="p">,</span> <span class="n">species_tup</span><span class="o">.</span><span class="n">species_text</span><span class="p">)</span>
@@ -191,7 +191,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

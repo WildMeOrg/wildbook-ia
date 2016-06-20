@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.dbio.ingest_hsdb &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.dbio.ingest_hsdb &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,12 +129,12 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.dbio.ingest_hsdb</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c">#!/usr/bin/env python2.7</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#!/usr/bin/env python2.7</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Converts a hotspostter database to IBEIS</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="c"># TODO: ADD COPYRIGHT TAG</span>
+<span class="c1"># TODO: ADD COPYRIGHT TAG</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
@@ -143,10 +143,10 @@
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">csv</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ingest_hsbd]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[ingest_hsbd]&#39;</span><span class="p">)</span>
 
 
-<span class="n">SUCCESS_FLAG_FNAME</span> <span class="o">=</span> <span class="s">&#39;_hsdb_to_ibeis_convert_success&#39;</span>
+<span class="n">SUCCESS_FLAG_FNAME</span> <span class="o">=</span> <span class="s1">&#39;_hsdb_to_ibeis_convert_success&#39;</span>
 
 
 <div class="viewcode-block" id="is_hsdb"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_hsdb.is_hsdb">[docs]</a><span class="k">def</span> <span class="nf">is_hsdb</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
@@ -154,30 +154,30 @@
 
 </div>
 <div class="viewcode-block" id="is_hsdbv4"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_hsdb.is_hsdbv4">[docs]</a><span class="k">def</span> <span class="nf">is_hsdbv4</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
-    <span class="n">has4</span> <span class="o">=</span> <span class="p">(</span><span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s">&#39;_hsdb&#39;</span><span class="p">))</span> <span class="ow">and</span>
-            <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s">&#39;_hsdb&#39;</span><span class="p">,</span> <span class="s">&#39;name_table.csv&#39;</span><span class="p">))</span> <span class="ow">and</span>
-            <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s">&#39;_hsdb&#39;</span><span class="p">,</span> <span class="s">&#39;image_table.csv&#39;</span><span class="p">))</span> <span class="ow">and</span>
-            <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s">&#39;_hsdb&#39;</span><span class="p">,</span> <span class="s">&#39;chip_table.csv&#39;</span><span class="p">)))</span>
+    <span class="n">has4</span> <span class="o">=</span> <span class="p">(</span><span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;_hsdb&#39;</span><span class="p">))</span> <span class="ow">and</span>
+            <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;_hsdb&#39;</span><span class="p">,</span> <span class="s1">&#39;name_table.csv&#39;</span><span class="p">))</span> <span class="ow">and</span>
+            <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;_hsdb&#39;</span><span class="p">,</span> <span class="s1">&#39;image_table.csv&#39;</span><span class="p">))</span> <span class="ow">and</span>
+            <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;_hsdb&#39;</span><span class="p">,</span> <span class="s1">&#39;chip_table.csv&#39;</span><span class="p">)))</span>
     <span class="k">return</span> <span class="n">has4</span>
 
 </div>
 <div class="viewcode-block" id="is_hsdbv3"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_hsdb.is_hsdbv3">[docs]</a><span class="k">def</span> <span class="nf">is_hsdbv3</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
-    <span class="n">has3</span> <span class="o">=</span> <span class="p">(</span><span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s">&#39;.hs_internals&#39;</span><span class="p">))</span> <span class="ow">and</span>
-            <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s">&#39;.hs_internals&#39;</span><span class="p">,</span> <span class="s">&#39;name_table.csv&#39;</span><span class="p">))</span> <span class="ow">and</span>
-            <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s">&#39;.hs_internals&#39;</span><span class="p">,</span> <span class="s">&#39;image_table.csv&#39;</span><span class="p">))</span> <span class="ow">and</span>
-            <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s">&#39;.hs_internals&#39;</span><span class="p">,</span> <span class="s">&#39;chip_table.csv&#39;</span><span class="p">)))</span>
+    <span class="n">has3</span> <span class="o">=</span> <span class="p">(</span><span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;.hs_internals&#39;</span><span class="p">))</span> <span class="ow">and</span>
+            <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;.hs_internals&#39;</span><span class="p">,</span> <span class="s1">&#39;name_table.csv&#39;</span><span class="p">))</span> <span class="ow">and</span>
+            <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;.hs_internals&#39;</span><span class="p">,</span> <span class="s1">&#39;image_table.csv&#39;</span><span class="p">))</span> <span class="ow">and</span>
+            <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;.hs_internals&#39;</span><span class="p">,</span> <span class="s1">&#39;chip_table.csv&#39;</span><span class="p">)))</span>
     <span class="k">return</span> <span class="n">has3</span>
 
 </div>
 <div class="viewcode-block" id="get_hsinternal"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_hsdb.get_hsinternal">[docs]</a><span class="k">def</span> <span class="nf">get_hsinternal</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">):</span>
-    <span class="n">internal_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,</span> <span class="s">&#39;_hsdb&#39;</span><span class="p">)</span>
+    <span class="n">internal_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,</span> <span class="s1">&#39;_hsdb&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_hsdbv4</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">):</span>
-        <span class="n">internal_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,</span> <span class="s">&#39;.hs_internals&#39;</span><span class="p">)</span>
+        <span class="n">internal_dir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,</span> <span class="s1">&#39;.hs_internals&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">internal_dir</span>
 
 </div>
 <div class="viewcode-block" id="is_hsinternal"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_hsdb.is_hsinternal">[docs]</a><span class="k">def</span> <span class="nf">is_hsinternal</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s">&#39;.hs_internals&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="s1">&#39;.hs_internals&#39;</span><span class="p">))</span>
 
 </div>
 <div class="viewcode-block" id="is_succesful_convert"><a class="viewcode-back" href="../../../ibeis.dbio.html#ibeis.dbio.ingest_hsdb.is_succesful_convert">[docs]</a><span class="k">def</span> <span class="nf">is_succesful_convert</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
@@ -243,12 +243,12 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">(),</span> <span class="s">&#39;dev function only&#39;</span>
-    <span class="c"># Make an unconverted test database</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">ensurepath</span><span class="p">(</span><span class="s">&#39;/raid/tests/tmp&#39;</span><span class="p">)</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s">&#39;/raid/tests/tmp/Frogs&#39;</span><span class="p">)</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="s">&#39;/raid/tests/Frogs&#39;</span><span class="p">,</span> <span class="s">&#39;/raid/tests/tmp/Frogs&#39;</span><span class="p">)</span>
-    <span class="n">hsdb_dir</span> <span class="o">=</span> <span class="s">&#39;/raid/tests/tmp/Frogs&#39;</span>
+    <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_developer</span><span class="p">(),</span> <span class="s1">&#39;dev function only&#39;</span>
+    <span class="c1"># Make an unconverted test database</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">ensurepath</span><span class="p">(</span><span class="s1">&#39;/raid/tests/tmp&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s1">&#39;/raid/tests/tmp/Frogs&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="s1">&#39;/raid/tests/Frogs&#39;</span><span class="p">,</span> <span class="s1">&#39;/raid/tests/tmp/Frogs&#39;</span><span class="p">)</span>
+    <span class="n">hsdb_dir</span> <span class="o">=</span> <span class="s1">&#39;/raid/tests/tmp/Frogs&#39;</span>
     <span class="k">return</span> <span class="n">hsdb_dir</span>
 
 </div>
@@ -286,26 +286,26 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="k">assert</span> <span class="n">is_hsdb</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">),</span> <span class="s">&#39;not a hotspotter database. cannot even force convert: hsdb_dir=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,)</span>
-    <span class="k">assert</span> <span class="ow">not</span> <span class="n">is_succesful_convert</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">),</span> <span class="s">&#39;hsdb_dir=</span><span class="si">%r</span><span class="s"> is already converted&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,)</span>
-    <span class="c">#print(&#39;FORCE DELETE: %r&#39; % (hsdb_dir,))</span>
-    <span class="c">#ibsfuncs.delete_ibeis_database(hsdb_dir)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ingest] Ingesting hsdb: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">hsdb_dir</span><span class="p">)</span>
-    <span class="n">imgdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,</span> <span class="s">&#39;images&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">is_hsdb</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">),</span> <span class="s1">&#39;not a hotspotter database. cannot even force convert: hsdb_dir=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">is_succesful_convert</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">),</span> <span class="s1">&#39;hsdb_dir=</span><span class="si">%r</span><span class="s1"> is already converted&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,)</span>
+    <span class="c1">#print(&#39;FORCE DELETE: %r&#39; % (hsdb_dir,))</span>
+    <span class="c1">#ibsfuncs.delete_ibeis_database(hsdb_dir)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ingest] Ingesting hsdb: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">hsdb_dir</span><span class="p">)</span>
+    <span class="n">imgdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">)</span>
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="n">hsdb_dir</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="c"># READ NAME TABLE</span>
-    <span class="n">names_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;____&#39;</span><span class="p">]</span>
+    <span class="c1"># READ NAME TABLE</span>
+    <span class="n">names_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;____&#39;</span><span class="p">]</span>
     <span class="n">name_nid_list</span>   <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="n">internal_dir</span> <span class="o">=</span> <span class="n">get_hsinternal</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">internal_dir</span><span class="p">,</span> <span class="s">&#39;name_table.csv&#39;</span><span class="p">),</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">nametbl_file</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">internal_dir</span><span class="p">,</span> <span class="s1">&#39;name_table.csv&#39;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">nametbl_file</span><span class="p">:</span>
         <span class="n">name_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">nametbl_file</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">name_reader</span><span class="p">):</span>
-            <span class="c">#if ix &gt;= 3:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">):</span>
+            <span class="c1">#if ix &gt;= 3:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">):</span>
                 <span class="k">continue</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">nid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -313,26 +313,26 @@
                 <span class="n">names_name_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                 <span class="n">name_nid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
 
-    <span class="c"># ADD NAMES TABLE</span>
+    <span class="c1"># ADD NAMES TABLE</span>
     <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_names</span><span class="p">(</span><span class="n">names_name_list</span><span class="p">)</span>
-    <span class="c">#print(names_name_list)</span>
-    <span class="c">#print(nid_list)</span>
+    <span class="c1">#print(names_name_list)</span>
+    <span class="c1">#print(nid_list)</span>
 
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">names_name_list</span><span class="p">),</span> <span class="s">&#39;bad name adder&#39;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">names_name_list</span><span class="p">),</span> <span class="s1">&#39;bad name adder&#39;</span>
 
     <span class="n">image_gid_list</span>   <span class="o">=</span> <span class="p">[]</span>
     <span class="n">image_gname_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">image_reviewed_list</span>   <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">internal_dir</span><span class="p">,</span> <span class="s">&#39;image_table.csv&#39;</span><span class="p">),</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">imgtb_file</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">internal_dir</span><span class="p">,</span> <span class="s1">&#39;image_table.csv&#39;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">imgtb_file</span><span class="p">:</span>
         <span class="n">image_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">imgtb_file</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_reader</span><span class="p">):</span>
-            <span class="c">#if ix &gt;= 3:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">):</span>
+            <span class="c1">#if ix &gt;= 3:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">):</span>
                 <span class="k">continue</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">gid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="n">gname_</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-                <span class="n">reviewed</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>  <span class="c"># aif in hotspotter is equivilant to reviewed in IBEIS</span>
+                <span class="n">reviewed</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>  <span class="c1"># aif in hotspotter is equivilant to reviewed in IBEIS</span>
                 <span class="n">image_gid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
                 <span class="n">image_gname_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gname_</span><span class="p">)</span>
                 <span class="n">image_reviewed_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reviewed</span><span class="p">)</span>
@@ -340,83 +340,83 @@
     <span class="n">image_gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">imgdir</span><span class="p">,</span> <span class="n">gname</span><span class="p">)</span> <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">image_gname_list</span><span class="p">]</span>
 
     <span class="n">ut</span><span class="o">.</span><span class="n">debug_duplicate_items</span><span class="p">(</span><span class="n">image_gpath_list</span><span class="p">)</span>
-    <span class="c">#print(image_gpath_list)</span>
+    <span class="c1">#print(image_gpath_list)</span>
     <span class="n">flags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">exists</span><span class="p">,</span> <span class="n">image_gpath_list</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">image_gpath</span><span class="p">,</span> <span class="n">flag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">image_gpath_list</span><span class="p">,</span> <span class="n">flags</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">flag</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Image does not exist: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">image_gpath</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Image does not exist: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">image_gpath</span><span class="p">)</span>
 
-    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">flags</span><span class="p">),</span> <span class="s">&#39;some images dont exist&#39;</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">flags</span><span class="p">),</span> <span class="s1">&#39;some images dont exist&#39;</span>
 
-    <span class="c"># Add Images Table</span>
-    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">image_gpath_list</span><span class="p">)</span>  <span class="c"># any failed gids will be None</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_gpath_list</span><span class="p">),</span> <span class="s">&#39;bad image adder&#39;</span>
-    <span class="c"># Build mappings to new indexes</span>
+    <span class="c1"># Add Images Table</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">image_gpath_list</span><span class="p">)</span>  <span class="c1"># any failed gids will be None</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_gpath_list</span><span class="p">),</span> <span class="s1">&#39;bad image adder&#39;</span>
+    <span class="c1"># Build mappings to new indexes</span>
     <span class="n">names_nid_to_nid</span>  <span class="o">=</span> <span class="p">{</span><span class="n">names_nid</span><span class="p">:</span> <span class="n">nid</span> <span class="k">for</span> <span class="p">(</span><span class="n">names_nid</span><span class="p">,</span> <span class="n">nid</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">name_nid_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)}</span>
-    <span class="n">names_nid_to_nid</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">names_nid_to_nid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># hsdb unknknown is 0 or 1</span>
+    <span class="n">names_nid_to_nid</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">names_nid_to_nid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># hsdb unknknown is 0 or 1</span>
     <span class="n">images_gid_to_gid</span> <span class="o">=</span> <span class="p">{</span><span class="n">images_gid</span><span class="p">:</span> <span class="n">gid</span> <span class="k">for</span> <span class="p">(</span><span class="n">images_gid</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">image_gid_list</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)}</span>
 
-    <span class="c">#get annotations from chip_table</span>
+    <span class="c1">#get annotations from chip_table</span>
     <span class="n">chip_bbox_list</span>   <span class="o">=</span> <span class="p">[]</span>
     <span class="n">chip_theta_list</span>  <span class="o">=</span> <span class="p">[]</span>
     <span class="n">chip_nid_list</span>    <span class="o">=</span> <span class="p">[]</span>
     <span class="n">chip_gid_list</span>    <span class="o">=</span> <span class="p">[]</span>
     <span class="n">chip_note_list</span>   <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">internal_dir</span><span class="p">,</span> <span class="s">&#39;chip_table.csv&#39;</span><span class="p">),</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">chiptbl_file</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">internal_dir</span><span class="p">,</span> <span class="s1">&#39;chip_table.csv&#39;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">chiptbl_file</span><span class="p">:</span>
         <span class="n">chip_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">chiptbl_file</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chip_reader</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">):</span>
                 <span class="k">continue</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">images_gid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
                 <span class="n">names_nid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
                 <span class="n">bbox_text</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
                 <span class="n">theta</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
-                <span class="n">notes</span> <span class="o">=</span> <span class="s">&#39;&lt;COMMA&gt;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">item</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="mi">5</span><span class="p">:]])</span>
+                <span class="n">notes</span> <span class="o">=</span> <span class="s1">&#39;&lt;COMMA&gt;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">item</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="mi">5</span><span class="p">:]])</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">nid</span> <span class="o">=</span> <span class="n">names_nid_to_nid</span><span class="p">[</span><span class="n">names_nid</span><span class="p">]</span>
                 <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
                     <span class="k">print</span><span class="p">(</span><span class="n">names_nid_to_nid</span><span class="p">)</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Error no names_nid: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">names_nid</span><span class="p">)</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Error no names_nid: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">names_nid</span><span class="p">)</span>
                     <span class="k">raise</span>
                 <span class="n">gid</span> <span class="o">=</span> <span class="n">images_gid_to_gid</span><span class="p">[</span><span class="n">images_gid</span><span class="p">]</span>
-                <span class="n">bbox_text</span> <span class="o">=</span> <span class="n">bbox_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;[&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;]&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-                <span class="n">bbox_text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;  *&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">bbox_text</span><span class="p">)</span>
-                <span class="n">bbox_strlist</span> <span class="o">=</span> <span class="n">bbox_text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+                <span class="n">bbox_text</span> <span class="o">=</span> <span class="n">bbox_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="n">bbox_text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;  *&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">bbox_text</span><span class="p">)</span>
+                <span class="n">bbox_strlist</span> <span class="o">=</span> <span class="n">bbox_text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
                 <span class="n">bbox</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">bbox_strlist</span><span class="p">))</span>
                 <span class="k">if</span> <span class="n">gid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Not adding the ix=</span><span class="si">%r</span><span class="s">-th Chip. Its image is corrupted image.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ix</span><span class="p">,))</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Not adding the ix=</span><span class="si">%r</span><span class="s1">-th Chip. Its image is corrupted image.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ix</span><span class="p">,))</span>
                     <span class="k">continue</span>
-                <span class="c">#bbox = [int(item) for item in bbox_strlist]</span>
+                <span class="c1">#bbox = [int(item) for item in bbox_strlist]</span>
                 <span class="n">chip_nid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span>
                 <span class="n">chip_gid_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
                 <span class="n">chip_bbox_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span>
                 <span class="n">chip_theta_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
                 <span class="n">chip_note_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">notes</span><span class="p">)</span>
 
-    <span class="c"># Add Chips Table</span>
+    <span class="c1"># Add Chips Table</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">add_annots</span><span class="p">(</span><span class="n">chip_gid_list</span><span class="p">,</span> <span class="n">chip_bbox_list</span><span class="p">,</span> <span class="n">chip_theta_list</span><span class="p">,</span> <span class="n">nid_list</span><span class="o">=</span><span class="n">chip_nid_list</span><span class="p">,</span> <span class="n">notes_list</span><span class="o">=</span><span class="n">chip_note_list</span><span class="p">)</span>
 
-    <span class="c"># Set all injested RIDS as exemplars</span>
+    <span class="c1"># Set all injested RIDS as exemplars</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">flag_list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">flag_list</span><span class="p">)</span>
-    <span class="k">assert</span><span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))),</span> <span class="s">&#39;exemplars not set correctly&#39;</span>
+    <span class="k">assert</span><span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))),</span> <span class="s1">&#39;exemplars not set correctly&#39;</span>
 
-    <span class="c"># Write file flagging successful conversion</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">SUCCESS_FLAG_FNAME</span><span class="p">),</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
-        <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Successfully converted hsdb_dir=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;finished ingest&#39;</span><span class="p">)</span>
+    <span class="c1"># Write file flagging successful conversion</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibsdir</span><span class="p">(),</span> <span class="n">SUCCESS_FLAG_FNAME</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Successfully converted hsdb_dir=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hsdb_dir</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;finished ingest&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ibs</span>
 
 
-<span class="c">#if __name__ == &#39;__main__&#39;:</span>
-<span class="c">#    import multiprocessing</span>
-<span class="c">#    multiprocessing.freeze_support()  # win32</span>
-<span class="c">#    db = ut.get_argval(&#39;--db&#39;, type_=str, default=None)</span>
-<span class="c">#    dbdir = sysres.db_to_dbdir(db, allow_newdir=False, use_sync=False)</span>
-<span class="c">#    convert_hsdb_to_ibeis(dbdir)</span></div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="c1">#if __name__ == &#39;__main__&#39;:</span>
+<span class="c1">#    import multiprocessing</span>
+<span class="c1">#    multiprocessing.freeze_support()  # win32</span>
+<span class="c1">#    db = ut.get_argval(&#39;--db&#39;, type_=str, default=None)</span>
+<span class="c1">#    dbdir = sysres.db_to_dbdir(db, allow_newdir=False, use_sync=False)</span>
+<span class="c1">#    convert_hsdb_to_ibeis(dbdir)</span></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.dbio.ingest_hsdb</span>
@@ -424,8 +424,8 @@
 <span class="sd">        python -m ibeis.dbio.ingest_hsdb --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -460,7 +460,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -4,22 +4,6 @@ ibeis.control package
 Submodules
 ----------
 
-ibeis.control.DBCACHE_SCHEMA module
------------------------------------
-
-.. automodule:: ibeis.control.DBCACHE_SCHEMA
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.control.DBCACHE_SCHEMA_CURRENT module
--------------------------------------------
-
-.. automodule:: ibeis.control.DBCACHE_SCHEMA_CURRENT
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.control.DB_SCHEMA module
 ------------------------------
 
@@ -52,10 +36,10 @@ ibeis.control._autogen_annotmatch_funcs module
     :undoc-members:
     :show-inheritance:
 
-ibeis.control._autogen_featweight_funcs module
-----------------------------------------------
+ibeis.control._autogen_explicit_controller module
+-------------------------------------------------
 
-.. automodule:: ibeis.control._autogen_featweight_funcs
+.. automodule:: ibeis.control._autogen_explicit_controller
     :members:
     :undoc-members:
     :show-inheritance:
@@ -128,6 +112,14 @@ ibeis.control.manual_feat_funcs module
 --------------------------------------
 
 .. automodule:: ibeis.control.manual_feat_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.control.manual_featweight_funcs module
+--------------------------------------------
+
+.. automodule:: ibeis.control.manual_featweight_funcs
     :members:
     :undoc-members:
     :show-inheritance:

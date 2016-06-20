@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.init.main_commands &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.init.main_commands &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,7 +129,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.init.main_commands</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">TODO: Rename to ibeis/init/commands.py</span>
 
@@ -140,10 +140,10 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">params</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">ibeis.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis.init</span> <span class="kn">import</span> <span class="n">sysres</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[commands]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[commands]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="vdq"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_commands.vdq">[docs]</a><span class="k">def</span> <span class="nf">vdq</span><span class="p">(</span><span class="n">dbdir</span><span class="p">):</span>
@@ -154,7 +154,7 @@
 
 </div>
 <div class="viewcode-block" id="vdd"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_commands.vdd">[docs]</a><span class="k">def</span> <span class="nf">vdd</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="s">&quot; view data dir &quot;</span>
+    <span class="s2">&quot; view data dir &quot;</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">util_cplat</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">dbdir</span><span class="p">)</span>
 
 </div>
@@ -171,51 +171,57 @@
 </div>
 <div class="viewcode-block" id="preload_commands"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_commands.preload_commands">[docs]</a><span class="k">def</span> <span class="nf">preload_commands</span><span class="p">(</span><span class="n">dbdir</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Preload commands work with command line arguments and global caches &quot;&quot;&quot;</span>
-    <span class="c">#print(&#39;[main_cmd] preload_commands&#39;)</span>
+    <span class="c1">#print(&#39;[main_cmd] preload_commands&#39;)</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">dump_argv</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="p">),</span> <span class="n">sorted_</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">dump_global_cache</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">global_cache_dump</span><span class="p">()</span>  <span class="c"># debug command, dumps to stdout</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">global_cache_dump</span><span class="p">()</span>  <span class="c1"># debug command, dumps to stdout</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">set_workdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">sysres</span><span class="o">.</span><span class="n">set_workdir</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">set_workdir</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39; Current work dir = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">())</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39; Current work dir = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">logdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">sysres</span><span class="o">.</span><span class="n">set_logdir</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">logdir</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get_logdir</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39; Current log dir = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_logdir</span><span class="p">(),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39; Current log dir = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_logdir</span><span class="p">(),))</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">view_logdir</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_logdir</span><span class="p">())</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--vwd&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--vwd&#39;</span><span class="p">):</span>
         <span class="n">vwd</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--vdq&#39;</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;got arg --vdq&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--vdq&#39;</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;got arg --vdq&#39;</span><span class="p">)</span>
         <span class="n">vdq</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;delete_ibsdir&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;delete_ibsdir&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
         <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">delete_ibeis_database</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">convert</span><span class="p">:</span>
         <span class="n">preload_convert_hsdb</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">preload_exit</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_cmd] preload exit&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[main_cmd] preload exit&#39;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="postload_commands"><a class="viewcode-back" href="../../../ibeis.init.html#ibeis.init.main_commands.postload_commands">[docs]</a><span class="k">def</span> <span class="nf">postload_commands</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Postload commands deal with a specific ibeis database &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Postload commands deal with a specific ibeis database</span>
+
+<span class="sd">    ibeis --db PZ_MTEST --occur &quot;*All Images&quot; --query 1</span>
+<span class="sd">    ibeis --db PZ_MTEST --occur &quot;*All Images&quot; --query-intra</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">[main_cmd] postload_commands&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">[main_cmd] postload_commands&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">view_database_directory</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;got arg --vdd&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;got arg --vdd&#39;</span><span class="p">)</span>
         <span class="n">vdd</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">set_default_dbdir</span><span class="p">:</span>
         <span class="n">sysres</span><span class="o">.</span><span class="n">set_default_dbdir</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbdir</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">update_query_cfg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># Set query parameters from command line using the --cfg flag</span>
+        <span class="c1"># Set query parameters from command line using the --cfg flag</span>
         <span class="n">cfgdict</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_cfgstr_list</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Custom cfgdict specified&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Custom cfgdict specified&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cfgdict</span><span class="p">))</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">update_query_cfg</span><span class="p">(</span><span class="o">**</span><span class="n">cfgdict</span><span class="p">)</span>
-        <span class="c">#print(ibs.cfg.query_cfg.get_cfgstr())</span>
+        <span class="c1">#print(ibs.cfg.query_cfg.get_cfgstr())</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">edit_notes</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">editfile</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbnotes_fpath</span><span class="p">(</span><span class="n">ensure</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">delete_cache</span><span class="p">:</span>
@@ -224,35 +230,37 @@
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_cache</span><span class="p">(</span><span class="n">delete_chips</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_imagesets</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">delete_query_cache</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">delete_qres_cache</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">set_all_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">_overwrite_all_annot_species_to</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">set_all_species</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">dump_schema</span><span class="p">:</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">print_schema</span><span class="p">()</span>
+    <span class="c1"># DEPRICATE</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">set_notes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_dbnotes</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">set_notes</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">set_aids_as_hard</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">set_aids_as_hard</span>
         <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_is_hard</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="p">[</span><span class="bp">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">set_all_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">_overwrite_all_annot_species_to</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">set_all_species</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">dump_schema</span><span class="p">:</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">print_schema</span><span class="p">()</span>
+    <span class="c1">#/DEPRICATE</span>
 
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--ipynb&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--ipynb&#39;</span><span class="p">):</span>
         <span class="n">back</span><span class="o">.</span><span class="n">launch_ipy_notebook</span><span class="p">()</span>
 
-    <span class="n">select_imgsetid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--select-imgsetid&#39;</span><span class="p">,</span> <span class="s">&#39;--imgsetid&#39;</span><span class="p">,),</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">select_imgsetid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s1">&#39;--select-imgsetid&#39;</span><span class="p">,</span> <span class="s1">&#39;--imgsetid&#39;</span><span class="p">,</span> <span class="s1">&#39;--occur&#39;</span><span class="p">),</span> <span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">select_imgsetid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">+ --- CMD SELECT EID=</span><span class="si">%r</span><span class="s"> ---&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">select_imgsetid</span><span class="p">,))</span>
-        <span class="c"># Whoa: this doesnt work. weird.</span>
-        <span class="c">#back.select_imgsetid(select_imgsetid)</span>
-        <span class="c"># This might be the root of gui problems</span>
-        <span class="c">#back.front._change_imageset(select_imgsetid)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">+ --- CMD SELECT EID=</span><span class="si">%r</span><span class="s1"> ---&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">select_imgsetid</span><span class="p">,))</span>
+        <span class="c1"># Whoa: this doesnt work. weird.</span>
+        <span class="c1">#back.select_imgsetid(select_imgsetid)</span>
+        <span class="c1"># This might be the root of gui problems</span>
+        <span class="c1">#back.front._change_imageset(select_imgsetid)</span>
         <span class="n">back</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">select_imageset_tab</span><span class="p">(</span><span class="n">select_imgsetid</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;L ___ CMD SELECT EID=</span><span class="si">%r</span><span class="s"> ___</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">select_imgsetid</span><span class="p">,))</span>
-    <span class="c"># Send commands to GUIBack</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;L ___ CMD SELECT EID=</span><span class="si">%r</span><span class="s1"> ___</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">select_imgsetid</span><span class="p">,))</span>
+    <span class="c1"># Send commands to GUIBack</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_aid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">back</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_aid</span><span class="p">,))</span>
             <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Valid RIDs are: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(),))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Valid RIDs are: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(),))</span>
                 <span class="k">raise</span>
             <span class="n">back</span><span class="o">.</span><span class="n">select_aid</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_aid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_gid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -260,89 +268,92 @@
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_nid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">back</span><span class="o">.</span><span class="n">select_nid</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">select_nid</span><span class="p">)</span>
 
-    <span class="n">select_name</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--select-name&#39;</span><span class="p">)</span>
+    <span class="n">select_name</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--select-name&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">select_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">ibeis.gui.guiheaders</span> <span class="kn">as</span> <span class="nn">gh</span>
         <span class="n">back</span><span class="o">.</span><span class="n">ibswgt</span><span class="o">.</span><span class="n">select_table_indicies_from_text</span><span class="p">(</span><span class="n">gh</span><span class="o">.</span><span class="n">NAMES_TREE</span><span class="p">,</span> <span class="n">select_name</span><span class="p">,</span>
                                                     <span class="n">allow_table_change</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-    <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--query-aid&#39;</span><span class="p">,</span> <span class="s">&#39;--query&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--intra-occur-query&#39;</span><span class="p">,</span> <span class="s1">&#39;--query-intra-occur&#39;</span><span class="p">,</span> <span class="s1">&#39;--query-intra&#39;</span><span class="p">)):</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">special_query_funcs</span><span class="p">[</span><span class="s1">&#39;intra_occurrence&#39;</span><span class="p">](</span><span class="n">cfgdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;use_k_padding&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+
+    <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s1">&#39;--query-aid&#39;</span><span class="p">,</span> <span class="s1">&#39;--query&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">qaid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c">#qaid_list = params.args.query_aid</span>
-        <span class="c"># fix stride case</span>
+        <span class="c1">#qaid_list = params.args.query_aid</span>
+        <span class="c1"># fix stride case</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">):</span>
             <span class="n">qaid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">daids_mode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--daids-mode&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">)</span>
-        <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">(</span><span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span>
-                             <span class="n">daids_mode</span><span class="o">=</span><span class="n">daids_mode</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">daids_mode</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--daids-mode&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">VS_EXEMPLARS_KEY</span><span class="p">)</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">compute_queries</span><span class="p">(</span><span class="n">qaid_list</span><span class="o">=</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daids_mode</span><span class="o">=</span><span class="n">daids_mode</span><span class="p">,</span> <span class="n">ranks_lt</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--inc-query&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--inc-query&#39;</span><span class="p">):</span>
         <span class="n">back</span><span class="o">.</span><span class="n">incremental_query</span><span class="p">()</span>
 
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--dbinfo&#39;</span><span class="p">,</span> <span class="s">&#39;--display_dbinfo&#39;</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--dbinfo&#39;</span><span class="p">,</span> <span class="s1">&#39;--display_dbinfo&#39;</span><span class="p">)):</span>
         <span class="n">back</span><span class="o">.</span><span class="n">display_dbinfo</span><span class="p">()</span>
         <span class="k">pass</span>
 
-    <span class="n">aidcmd</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--aidcmd&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-    <span class="n">aid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--aid&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">aidcmd</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--aidcmd&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">aid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--aid&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">aidcmd</span><span class="p">:</span>
-        <span class="c">#aidcmd = &#39;Interact image&#39;</span>
+        <span class="c1">#aidcmd = &#39;Interact image&#39;</span>
         <span class="n">metadata</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_lazy_dict</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-        <span class="n">annot_context_options</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s">&#39;annot_context_options&#39;</span><span class="p">]</span>
+        <span class="n">annot_context_options</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;annot_context_options&#39;</span><span class="p">]</span>
         <span class="n">aidcmd_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">annot_context_options</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;aidcmd_dict = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">aidcmd_dict</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;aidcmd_dict = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">aidcmd_dict</span><span class="p">),))</span>
         <span class="n">command</span> <span class="o">=</span> <span class="n">aidcmd_dict</span><span class="p">[</span><span class="n">aidcmd</span><span class="p">]</span>
         <span class="n">command</span><span class="p">()</span>
-        <span class="c">#import utool</span>
-        <span class="c">#utool.embed()</span>
-        <span class="c">#back.start_web_server_parallel()</span>
+        <span class="c1">#import utool</span>
+        <span class="c1">#utool.embed()</span>
+        <span class="c1">#back.start_web_server_parallel()</span>
 
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--start-web&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--start-web&#39;</span><span class="p">):</span>
         <span class="n">back</span><span class="o">.</span><span class="n">start_web_server_parallel</span><span class="p">()</span>
 
-    <span class="c">#screengrab_fpath = ut.get_argval(&#39;--screengrab&#39;)</span>
-    <span class="c">#if screengrab_fpath:</span>
-    <span class="c">#    from guitool.__PYQT__.QtGui import QPixmap</span>
-    <span class="c">#    from PyQt4.QtTest import QTest</span>
-    <span class="c">#    from PyQt4.QtCore import Qt</span>
-    <span class="c">#    fpath = ut.truepath(screengrab_fpath)</span>
-    <span class="c">#    import guitool</span>
-    <span class="c">#    #ut.embed()</span>
-    <span class="c">#    timer2 = guitool.__PYQT__.QtCore.QTimer()</span>
-    <span class="c">#    done = [1000]</span>
-    <span class="c">#    def delayed_screenshot_func():</span>
-    <span class="c">#        if done[0] == 500:</span>
-    <span class="c">#            #back.mainwin.menubar.triggered.emit(back.mainwin.menuFile)</span>
-    <span class="c">#            print(&#39;Mouseclick&#39;)</span>
-    <span class="c">#            QTest.mouseClick(back.mainwin.menuFile, Qt.LeftButton)</span>
-    <span class="c">#            # This works</span>
-    <span class="c">#            #QTest.mouseClick(back.front.import_button, Qt.LeftButton)</span>
-    <span class="c">#        if done[0] == 1:</span>
-    <span class="c">#            timer2.stop()</span>
-    <span class="c">#            print(&#39;screengrab to %r&#39; % (fpath,))</span>
-    <span class="c">#            screenimg = QPixmap.grabWindow(back.mainwin.winId())</span>
-    <span class="c">#            screenimg.save(fpath, &#39;jpg&#39;)</span>
-    <span class="c">#            ut.startfile(fpath)</span>
-    <span class="c">#            print(&#39;lub dub2&#39;)</span>
-    <span class="c">#        done[0] -= 1</span>
-    <span class="c">#        return None</span>
-    <span class="c">#    CLICK_FILE_MENU = True</span>
-    <span class="c">#    if CLICK_FILE_MENU:</span>
-    <span class="c">#        #ut.embed()</span>
-    <span class="c">#        #QTest::keyClick(menu, Qt::Key_Down)</span>
-    <span class="c">#        pass</span>
-    <span class="c">#    timer2.delayed_screenshot_func = delayed_screenshot_func</span>
-    <span class="c">#    timer2.timeout.connect(timer2.delayed_screenshot_func)</span>
-    <span class="c">#    timer2.start(1)</span>
-    <span class="c">#    back.mainwin.timer2 = timer2</span>
-    <span class="c">#    guitool.activate_qwindow(back.mainwin)</span>
-    <span class="c">#    #QPixmap.grabWindow(back.mainwin.winId()).save(fpath, &#39;jpg&#39;)</span>
-    <span class="c">#    #ut.startfile(fpath)</span>
-    <span class="c">#    #ut.embed()</span>
-    <span class="c">#    pass</span>
+    <span class="n">screengrab_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--screengrab&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">screengrab_fpath</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">guitool.__PYQT__.QtGui</span> <span class="kn">import</span> <span class="n">QPixmap</span>
+        <span class="kn">from</span> <span class="nn">PyQt4.QtTest</span> <span class="kn">import</span> <span class="n">QTest</span>
+        <span class="kn">from</span> <span class="nn">PyQt4.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
+        <span class="n">fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="n">screengrab_fpath</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">guitool</span>
+        <span class="c1">#ut.embed()</span>
+        <span class="n">timer2</span> <span class="o">=</span> <span class="n">guitool</span><span class="o">.</span><span class="n">__PYQT__</span><span class="o">.</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QTimer</span><span class="p">()</span>
+        <span class="n">done</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000</span><span class="p">]</span>
+        <span class="k">def</span> <span class="nf">delayed_screenshot_func</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">done</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">500</span><span class="p">:</span>
+                <span class="c1">#back.mainwin.menubar.triggered.emit(back.mainwin.menuFile)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Mouseclick&#39;</span><span class="p">)</span>
+                <span class="n">QTest</span><span class="o">.</span><span class="n">mouseClick</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">mainwin</span><span class="o">.</span><span class="n">menuFile</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">LeftButton</span><span class="p">)</span>
+                <span class="c1"># This works</span>
+                <span class="c1">#QTest.mouseClick(back.front.import_button, Qt.LeftButton)</span>
+            <span class="k">if</span> <span class="n">done</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">timer2</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;screengrab to </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
+                <span class="n">screenimg</span> <span class="o">=</span> <span class="n">QPixmap</span><span class="o">.</span><span class="n">grabWindow</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">mainwin</span><span class="o">.</span><span class="n">winId</span><span class="p">())</span>
+                <span class="n">screenimg</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s1">&#39;jpg&#39;</span><span class="p">)</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;lub dub2&#39;</span><span class="p">)</span>
+            <span class="n">done</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="n">CLICK_FILE_MENU</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="n">CLICK_FILE_MENU</span><span class="p">:</span>
+            <span class="c1">#ut.embed()</span>
+            <span class="c1">#QTest::keyClick(menu, Qt::Key_Down)</span>
+            <span class="k">pass</span>
+        <span class="n">timer2</span><span class="o">.</span><span class="n">delayed_screenshot_func</span> <span class="o">=</span> <span class="n">delayed_screenshot_func</span>
+        <span class="n">timer2</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">timer2</span><span class="o">.</span><span class="n">delayed_screenshot_func</span><span class="p">)</span>
+        <span class="n">timer2</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">back</span><span class="o">.</span><span class="n">mainwin</span><span class="o">.</span><span class="n">timer2</span> <span class="o">=</span> <span class="n">timer2</span>
+        <span class="n">guitool</span><span class="o">.</span><span class="n">activate_qwindow</span><span class="p">(</span><span class="n">back</span><span class="o">.</span><span class="n">mainwin</span><span class="p">)</span>
+        <span class="c1">#QPixmap.grabWindow(back.mainwin.winId()).save(fpath, &#39;jpg&#39;)</span>
+        <span class="c1">#ut.startfile(fpath)</span>
+        <span class="c1">#ut.embed()</span>
+        <span class="k">pass</span>
+
     <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">postload_exit</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[main_cmd] postload exit&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[main_cmd] postload exit&#39;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
 </pre></div>
 
@@ -377,7 +388,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

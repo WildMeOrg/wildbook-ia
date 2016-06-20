@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests.test_ibs_query_components &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.tests.test_ibs_query_components &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,23 +129,23 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.tests.test_ibs_query_components</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python2.7</span>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c"># TODO: ADD COPYRIGHT TAG</span>
+<span></span><span class="ch">#!/usr/bin/env python2.7</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># TODO: ADD COPYRIGHT TAG</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="c"># Python</span>
+<span class="c1"># Python</span>
 <span class="kn">import</span> <span class="nn">six</span>
-<span class="c">#import sys</span>
+<span class="c1">#import sys</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
-<span class="c"># Tools</span>
+<span class="c1"># Tools</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
-<span class="c">#IBEIS</span>
+<span class="c1">#IBEIS</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">query_helpers</span>
 <span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
-    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_QUERY_COMP]&#39;</span><span class="p">)</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[TEST_QUERY_COMP]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="TEST_QUERY_COMP"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_ibs_query_components.TEST_QUERY_COMP">[docs]</a><span class="k">def</span> <span class="nf">TEST_QUERY_COMP</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -162,28 +162,28 @@
 <span class="sd">        &gt;&gt;&gt; # execute function</span>
 <span class="sd">        &gt;&gt;&gt; TEST_QUERY_COMP(ibs)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST_QUERY_COMP]&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[TEST_QUERY_COMP]&#39;</span><span class="p">)</span>
     <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
     <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">index</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--index&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--index&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">safe_slice</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST_QUERY_COMP] len(qaid_list)=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid_list</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[TEST_QUERY_COMP] len(qaid_list)=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qaid_list</span><span class="p">))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">comp_locals_</span> <span class="o">=</span> <span class="n">query_helpers</span><span class="o">.</span><span class="n">get_query_components</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">)</span>
         <span class="n">qres_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
-            <span class="p">(</span><span class="s">&#39;ORIG&#39;</span><span class="p">,</span> <span class="n">comp_locals_</span><span class="p">[</span><span class="s">&#39;qres_ORIG&#39;</span><span class="p">]),</span>
-            <span class="p">(</span><span class="s">&#39;FILT&#39;</span><span class="p">,</span> <span class="n">comp_locals_</span><span class="p">[</span><span class="s">&#39;qres_FILT&#39;</span><span class="p">]),</span>
-            <span class="p">(</span><span class="s">&#39;SVER&#39;</span><span class="p">,</span> <span class="n">comp_locals_</span><span class="p">[</span><span class="s">&#39;qres_SVER&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;ORIG&#39;</span><span class="p">,</span> <span class="n">comp_locals_</span><span class="p">[</span><span class="s1">&#39;qres_ORIG&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;FILT&#39;</span><span class="p">,</span> <span class="n">comp_locals_</span><span class="p">[</span><span class="s1">&#39;qres_FILT&#39;</span><span class="p">]),</span>
+            <span class="p">(</span><span class="s1">&#39;SVER&#39;</span><span class="p">,</span> <span class="n">comp_locals_</span><span class="p">[</span><span class="s1">&#39;qres_SVER&#39;</span><span class="p">]),</span>
         <span class="p">])</span>
 
-        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">qres_dict</span><span class="p">[</span><span class="s">&#39;SVER&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()</span>
+        <span class="n">top_aids</span> <span class="o">=</span> <span class="n">qres_dict</span><span class="p">[</span><span class="s1">&#39;SVER&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">()</span>
         <span class="n">aid2</span> <span class="o">=</span> <span class="n">top_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s">&#39;qres_dict&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">():</span>
+        <span class="k">if</span> <span class="s1">&#39;qres_dict&#39;</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">qres</span> <span class="ow">in</span> <span class="n">qres_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">print</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                 <span class="k">print</span><span class="p">(</span><span class="n">qres</span><span class="o">.</span><span class="n">get_inspect_str</span><span class="p">())</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;qaid_list&#39;</span><span class="p">],</span> <span class="n">pad_stdout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;qaid_list&#39;</span><span class="p">],</span> <span class="n">pad_stdout</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="k">raise</span>
 
     <span class="k">for</span> <span class="n">px</span><span class="p">,</span> <span class="p">(</span><span class="n">lbl</span><span class="p">,</span> <span class="n">qres</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">qres_dict</span><span class="p">)):</span>
@@ -196,37 +196,37 @@
 
     <span class="n">fnum</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
 
-    <span class="n">qaid2_svtups</span> <span class="o">=</span> <span class="n">comp_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_svtups&#39;</span><span class="p">]</span>
-    <span class="n">qaid2_chipmatch_FILT</span> <span class="o">=</span> <span class="n">comp_locals_</span><span class="p">[</span><span class="s">&#39;qaid2_chipmatch_FILT&#39;</span><span class="p">]</span>
-    <span class="n">aid1</span> <span class="o">=</span> <span class="n">qaid</span> <span class="o">=</span> <span class="n">comp_locals_</span><span class="p">[</span><span class="s">&#39;qaid&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_svtups</span> <span class="o">=</span> <span class="n">comp_locals_</span><span class="p">[</span><span class="s1">&#39;qaid2_svtups&#39;</span><span class="p">]</span>
+    <span class="n">qaid2_chipmatch_FILT</span> <span class="o">=</span> <span class="n">comp_locals_</span><span class="p">[</span><span class="s1">&#39;qaid2_chipmatch_FILT&#39;</span><span class="p">]</span>
+    <span class="n">aid1</span> <span class="o">=</span> <span class="n">qaid</span> <span class="o">=</span> <span class="n">comp_locals_</span><span class="p">[</span><span class="s1">&#39;qaid&#39;</span><span class="p">]</span>
     <span class="n">aid2_svtup</span>  <span class="o">=</span> <span class="n">qaid2_svtups</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
     <span class="n">chipmatch_FILT</span> <span class="o">=</span> <span class="n">qaid2_chipmatch_FILT</span><span class="p">[</span><span class="n">aid1</span><span class="p">]</span>
     <span class="n">viz</span><span class="o">.</span><span class="n">show_sver</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">chipmatch_FILT</span><span class="p">,</span> <span class="n">aid2_svtup</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 
 
-<span class="c">#if __name__ == &#39;__main__&#39;:</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    CommandLine:</span>
-<span class="c">#        python -m ibeis.tests.test_ibs_query_components</span>
-<span class="c">#        python -m ibeis.tests.test_ibs_query_components --allexamples</span>
-<span class="c">#        python -m ibeis.tests.test_ibs_query_components --allexamples --noface --nosrc</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    multiprocessing.freeze_support()  # for win32</span>
-<span class="c">#    import utool as ut  # NOQA</span>
-<span class="c">#    ut.doctest_funcs()</span>
+<span class="c1">#if __name__ == &#39;__main__&#39;:</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    CommandLine:</span>
+<span class="c1">#        python -m ibeis.tests.test_ibs_query_components</span>
+<span class="c1">#        python -m ibeis.tests.test_ibs_query_components --allexamples</span>
+<span class="c1">#        python -m ibeis.tests.test_ibs_query_components --allexamples --noface --nosrc</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    multiprocessing.freeze_support()  # for win32</span>
+<span class="c1">#    import utool as ut  # NOQA</span>
+<span class="c1">#    ut.doctest_funcs()</span>
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">sys</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For windows</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># For windows</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>
+    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">]</span>
     <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_QUERY_COMP</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s">&#39;--noshow&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s1">&#39;--noshow&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
         <span class="k">exec</span><span class="p">(</span><span class="n">df2</span><span class="o">.</span><span class="n">present</span><span class="p">())</span>
-    <span class="c">#execstr = utool.execstr_dict(test_locals, &#39;test_locals&#39;)</span>
-    <span class="c">#exec(execstr)</span>
+    <span class="c1">#execstr = utool.execstr_dict(test_locals, &#39;test_locals&#39;)</span>
+    <span class="c1">#exec(execstr)</span>
 </pre></div>
 
            </div>
@@ -260,7 +260,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

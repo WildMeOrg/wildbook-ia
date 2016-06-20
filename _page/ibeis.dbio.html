@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.dbio package &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.dbio package &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.expt package" href="ibeis.expt.html"/>
         <link rel="prev" title="ibeis.control package" href="ibeis.control.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -116,14 +116,15 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_annots">ibeis.core_annots module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_images">ibeis.core_images module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.new_annots">ibeis.new_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workflow">ibeis.workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workspace">ibeis.workspace module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -214,16 +215,16 @@
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_hsdb --exec-get_hots_flat_table
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.export_hsdb --exec-get_hots_flat_table
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">flat_table_str</span> <span class="o">=</span> <span class="n">get_hots_flat_table</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;flat_table_str = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">flat_table_str</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;flat_table_str = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">flat_table_str</span><span class="p">),))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -241,21 +242,21 @@
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_hsdb --test-get_hots_table_strings
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.export_hsdb --test-get_hots_table_strings
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">csvtup</span> <span class="o">=</span> <span class="n">get_hots_table_strings</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># hack so hashtag is at the end of each line</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">csvtup</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;#</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;#&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># hack so hashtag is at the end of each line</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">csvtup</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;#</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;#&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go"># image table#</span>
 <span class="go"># num_rows=13#</span>
@@ -325,19 +326,19 @@
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_hsdb --test-get_hsdb_image_gpaths
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.export_hsdb --test-get_hsdb_image_gpaths
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gpath_list</span> <span class="o">=</span> <span class="n">get_hsdb_image_gpaths</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">[</span>
@@ -1046,17 +1047,17 @@
 <dt id="ibeis.dbio.export_subset.check_database_overlap">
 <code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">check_database_overlap</code><span class="sig-paren">(</span><em>ibs1</em>, <em>ibs2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#check_database_overlap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.check_database_overlap" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.other.dbinfo --test-get_dbinfo:1 --db PZ_MTEST
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.other.dbinfo --test-get_dbinfo:1 --db PZ_MTEST
 dev.py -t listdbs
 python -m ibeis.dbio.export_subset --exec-check_database_overlap
 --db PZ_MTEST --db2 PZ_MOTHERS
 </pre></div>
 </div>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --exec-check_database_overlap
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.export_subset --exec-check_database_overlap
 
-python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1<span class="o">=</span>PZ_MTEST --db2<span class="o">=</span>PZ_Master0  <span class="c"># NOQA</span>
-python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1<span class="o">=</span>NNP_Master3 --db2<span class="o">=</span>PZ_Master0  <span class="c"># NOQA</span>
+python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1<span class="o">=</span>PZ_MTEST --db2<span class="o">=</span>PZ_Master0  <span class="c1"># NOQA</span>
+python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1<span class="o">=</span>NNP_Master3 --db2<span class="o">=</span>PZ_Master0  <span class="c1"># NOQA</span>
 
 python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1<span class="o">=</span>GZ_Master0 --db2<span class="o">=</span>GZ_ALL
 python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1<span class="o">=</span>GZ_ALL --db2<span class="o">=</span>lewa_grevys
@@ -1065,14 +1066,14 @@ python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1<span clas
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs1 = ibeis.opendb(db=&#39;PZ_Master0&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs2 = ibeis.opendb(dbdir=&#39;/raid/work2/Turk/PZ_Master&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">db1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db1&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">db2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db2&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--dbdir1&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--dbdir2&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs1 = ibeis.opendb(db=&#39;PZ_Master0&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs2 = ibeis.opendb(dbdir=&#39;/raid/work2/Turk/PZ_Master&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--db1&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--db2&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--dbdir1&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--dbdir2&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs1</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">db1</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs2</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">db2</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">check_database_overlap</span><span class="p">(</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">)</span>
@@ -1118,33 +1119,33 @@ python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1<span clas
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --exec-export_annots
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.export_subset --exec-export_annots
 python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
 python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
 
 python -m ibeis.dbio.export_subset --exec-export_annots --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd --new_dbpath<span class="o">=</span>PZ_ViewPoints
 
-python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a default:aids<span class="o">=</span>all,is_known<span class="o">=</span>True,view_pername<span class="o">=</span><span class="c">#primary&gt;0&amp;#primary1&gt;0,per_name=4,size=200</span>
+python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a default:aids<span class="o">=</span>all,is_known<span class="o">=</span>True,view_pername<span class="o">=</span><span class="c1">#primary&gt;0&amp;#primary1&gt;0,per_name=4,size=200</span>
 python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a default:aids<span class="o">=</span>all,is_known<span class="o">=</span>True,view_pername<span class="o">=</span><span class="s1">&#39;#primary&gt;0&amp;#primary1&gt;0&#39;</span>,per_name<span class="o">=</span>4,size<span class="o">=</span><span class="m">200</span> --acfginfo
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.expt</span> <span class="kn">import</span> <span class="n">experiment_helpers</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;NNP_Master3&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;NNP_Master3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acfg_name_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s1">&#39;--aidcfg&#39;</span><span class="p">,</span> <span class="s1">&#39;--acfg&#39;</span><span class="p">,</span> <span class="s1">&#39;-a&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">acfg_list</span><span class="p">,</span> <span class="n">expanded_aids_list</span> <span class="o">=</span> <span class="n">experiment_helpers</span><span class="o">.</span><span class="n">get_annotcfg_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">acfg_name_list</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">expanded_aids_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annot_stats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">yawtext_isect</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">per_image</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Expand to get all annots in each chosen image</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Expand to get all annots in each chosen image</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">print_annot_stats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">yawtext_isect</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">per_image</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">new_dbpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--new-dbpath&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;PZ_ViewPoints&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_dbpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--new-dbpath&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;PZ_ViewPoints&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">new_dbpath</span> <span class="o">=</span> <span class="n">export_annots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">new_dbpath</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;new_dbpath = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">new_dbpath</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;new_dbpath = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">new_dbpath</span><span class="p">),))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1159,16 +1160,16 @@ python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Mast
 <dt id="ibeis.dbio.export_subset.export_contributor_transfer_data">
 <code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">export_contributor_transfer_data</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>contributor_rowid</em>, <em>nid_list</em>, <em>species_rowid_list</em>, <em>valid_gid_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#export_contributor_transfer_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.export_contributor_transfer_data" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --test-export_contributor_transfer_data
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.export_subset --test-export_contributor_transfer_data
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SLOW_DOCTEST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">export_subset</span>    <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s">&#39;/raid/work2/Turk/PZ_Master&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bulk_conflict_resolution</span> <span class="o">=</span> <span class="s">&#39;ignore&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">export_subset</span>    <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s1">&#39;/raid/work2/Turk/PZ_Master&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bulk_conflict_resolution</span> <span class="o">=</span> <span class="s1">&#39;ignore&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[::</span><span class="mi">10</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">user_prompt</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nid_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_image_nids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))))</span>
@@ -1300,20 +1301,20 @@ NOTE: gid_list, config_rowid_list and imgsetid_list do not correspond</p>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --test-export_names
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.export_subset --test-export_names
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb2&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span><span class="o">.</span><span class="n">delete_empty_nids</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">_get_all_known_nids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">export_names</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1333,29 +1334,29 @@ print(ibs.db.get_table_csv_header(ibeis.const.SPECIES_TABLE))</p>
 <p>Packs all the data you are going to transfer from ibs_src
 info the transfer_data named tuple.</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --test-export_transfer_data
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.export_subset --test-export_transfer_data
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">export_subset</span>    <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs_src = ibeis.opendb(dbdir=&#39;/raid/work2/Turk/PZ_Master&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bulk_conflict_resolution</span> <span class="o">=</span> <span class="s">&#39;ignore&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">export_subset</span>    <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs_src = ibeis.opendb(dbdir=&#39;/raid/work2/Turk/PZ_Master&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bulk_conflict_resolution</span> <span class="o">=</span> <span class="s1">&#39;ignore&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">num</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span><span class="o">.</span><span class="n">ensure_contributor_rowids</span><span class="p">(</span><span class="n">user_prompt</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="n">num</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">td</span> <span class="o">=</span> <span class="n">export_transfer_data</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">gid_list</span><span class="o">=</span><span class="n">gid_list</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">td</span><span class="o">.</span><span class="n">contributor_td_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;more than 1 contrib&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">td</span><span class="o">.</span><span class="n">contributor_td_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;more than 1 contrib&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">contributor_td</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">contributor_td_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">image_td</span> <span class="o">=</span> <span class="n">contributor_td</span><span class="o">.</span><span class="n">image_td</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_td</span><span class="o">.</span><span class="n">annotation_td_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">num</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">annotation_td</span> <span class="o">=</span> <span class="n">image_td</span><span class="o">.</span><span class="n">annotation_td_list</span><span class="p">[</span><span class="n">num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">annot_td_dict</span> <span class="o">=</span> <span class="n">annotation_td</span><span class="o">.</span><span class="n">_asdict</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># remove non-determenistic uuid</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">annot_td_dict</span><span class="p">[</span><span class="s">&#39;annot_uuid_list&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># remove non-determenistic uuid</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">annot_td_dict</span><span class="p">[</span><span class="s1">&#39;annot_uuid_list&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">annot_td_dict</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">{</span>
@@ -1474,36 +1475,36 @@ WARNING - this may cause an exception to be raised
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --test-merge_databases
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.export_subset --test-merge_databases
 python -m ibeis.dbio.export_subset --test-merge_databases:1
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">export_subset</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bulk_conflict_resolution</span> <span class="o">=</span> <span class="s">&#39;ignore&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#gid_list = None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bulk_conflict_resolution</span> <span class="o">=</span> <span class="s1">&#39;ignore&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#gid_list = None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">user_prompt</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs_src2 = ibeis.opendb(dbdir=&#39;PZ_MTEST&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs_src2 = ibeis.opendb(dbdir=&#39;PZ_MTEST&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#print(ibs_src2.get_infostr())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># OPEN A CLEAN DATABASE</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_dst</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s">&#39;testdb_dst&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_names</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;dst database is not empty&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_images</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;dst database is not empty&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_annotations</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;dst database is not empty&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs_dst = ibs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#print(ibs_src2.get_infostr())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># OPEN A CLEAN DATABASE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_dst</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s1">&#39;testdb_dst&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_names</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;dst database is not empty&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_images</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;dst database is not empty&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_annotations</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;dst database is not empty&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs_dst = ibs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Execute test func&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;Execute test func&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">export_subset</span><span class="o">.</span><span class="n">merge_databases</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span>
 <span class="gp">... </span>                              <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="n">bulk_conflict_resolution</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution=&#39;ignore&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution=&#39;ignore&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Result:&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;Result:&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">dbname = &#39;testdb_dst&#39;</span>
 <span class="go">num_images = 13</span>
@@ -1513,31 +1514,31 @@ python -m ibeis.dbio.export_subset --test-merge_databases:1
 </div>
 <dl class="docutils">
 <dt>Example2:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio</span> <span class="kn">import</span> <span class="n">export_subset</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">bulk_conflict_resolution</span> <span class="o">=</span> <span class="s">&#39;ignore&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#gid_list = None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bulk_conflict_resolution</span> <span class="o">=</span> <span class="s1">&#39;ignore&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#gid_list = None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">user_prompt</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs_src2 = ibeis.opendb(dbdir=&#39;PZ_MTEST&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs_src2 = ibeis.opendb(dbdir=&#39;PZ_MTEST&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ibs_src</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#print(ibs_src2.get_infostr())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># OPEN A CLEAN DATABASE</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_dst</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s">&#39;testdb_dst&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_names</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;dst database is empty&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_images</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;dst database is empty&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_annotations</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;dst database is empty&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#ibs_dst = ibs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#print(ibs_src2.get_infostr())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># OPEN A CLEAN DATABASE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_dst</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s1">&#39;testdb_dst&#39;</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">delete_ibsdir</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_names</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;dst database is empty&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_images</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;dst database is empty&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_num_annotations</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;dst database is empty&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ibs_dst = ibs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs_src</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Execute test func&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;Execute test func&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">export_subset</span><span class="o">.</span><span class="n">merge_databases</span><span class="p">(</span><span class="n">ibs_src</span><span class="p">,</span> <span class="n">ibs_dst</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span>
 <span class="gp">... </span>                              <span class="n">bulk_conflict_resolution</span><span class="o">=</span><span class="n">bulk_conflict_resolution</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c">#export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution=&#39;ignore&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#export_subset.merge_databases(ibs_src2, ibs_dst, bulk_conflict_resolution=&#39;ignore&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ibs_dst</span><span class="o">.</span><span class="n">get_infostr</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s">&#39;Result:&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;Result:&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">dbname = &#39;testdb_dst&#39;</span>
 <span class="go">num_images = 128</span>
@@ -1552,9 +1553,13 @@ python -m ibeis.dbio.export_subset --test-merge_databases:1
 <dl class="function">
 <dt id="ibeis.dbio.export_subset.merge_databases2">
 <code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">merge_databases2</code><span class="sig-paren">(</span><em>ibs_src</em>, <em>ibs_dst</em>, <em>rowid_subsets=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#merge_databases2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.merge_databases2" title="Permalink to this definition">¶</a></dt>
-<dd><p>new way of merging using the non-hacky sql table merge that is only working due to major hacks</p>
+<dd><p>New way of merging using the non-hacky sql table merge.
+However, its only workings due to major hacks.</p>
+<p>FIXME: annotmatch table</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --test-merge_databases2:0
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis merge_databases2
+
+python -m ibeis.dbio.export_subset --test-merge_databases2:0
 python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 PZ_Master0 --db2 PZ_Master1
 python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 NNP_Master3 --db2 PZ_Master1
 
@@ -1563,20 +1568,20 @@ python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 lewa_grevys -
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">db1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db1&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">db2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db2&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--dbdir1&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--dbdir2&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--db1&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">db2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--db2&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--dbdir1&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--dbdir2&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">delete_ibsdir</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Check for test mode instead of script mode</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Check for test mode instead of script mode</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">db1</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">db2</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">dbdir1</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">dbdir2</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="n">db1</span> <span class="o">=</span> <span class="s">&#39;testdb1&#39;</span>
-<span class="gp">... </span>    <span class="n">dbdir2</span> <span class="o">=</span> <span class="s">&#39;testdb_dst&#39;</span>
+<span class="gp">... </span>    <span class="n">db1</span> <span class="o">=</span> <span class="s1">&#39;testdb1&#39;</span>
+<span class="gp">... </span>    <span class="n">dbdir2</span> <span class="o">=</span> <span class="s1">&#39;testdb_dst&#39;</span>
 <span class="gp">... </span>    <span class="n">delete_ibsdir</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Open the source and destination database</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Open the source and destination database</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">db1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">dbdir1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">db2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">dbdir2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_src</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">db</span><span class="o">=</span><span class="n">db1</span><span class="p">,</span> <span class="n">dbdir</span><span class="o">=</span><span class="n">dbdir1</span><span class="p">)</span>
@@ -1586,29 +1591,18 @@ python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 lewa_grevys -
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs_dst</span><span class="o">.</span><span class="n">print_dbinfo</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>#Example2:
-#    &gt;&gt;&gt; # DISABLE_DOCTEST
-#    &gt;&gt;&gt; from ibeis.dbio.export_subset import *  # NOQA
-#    &gt;&gt;&gt; import ibeis
-#    &gt;&gt;&gt; #ibs_dst = ibeis.opendb(dbdir=&#8217;testdb_dst&#8217;)
-#    &gt;&gt;&gt; ibs_src = ibeis.opendb(db=&#8217;PZ_MTEST&#8217;)
-#    &gt;&gt;&gt; # OPEN A CLEAN DATABASE
-#    &gt;&gt;&gt; delete_ibsdir = True
-#    &gt;&gt;&gt; ibs_dst = ibeis.opendb(db=&#8217;testdb_dst2&#8217;, allow_newdir=True, delete_ibsdir=delete_ibsdir)
-#    &gt;&gt;&gt; merge_databases2(ibs_src, ibs_dst)
-#    &gt;&gt;&gt; check_merge(ibs_src, ibs_dst)</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ibeis.dbio.export_subset.test_merge">
 <code class="descclassname">ibeis.dbio.export_subset.</code><code class="descname">test_merge</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/export_subset.html#test_merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.export_subset.test_merge" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.export_subset --test-test_merge
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.export_subset --test-test_merge
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SLOW_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SLOW_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.export_subset</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">test_merge</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
@@ -1673,6 +1667,17 @@ python -m ibeis &#8211;tf ingest_rawdata &#8211;db &lt;new-ibeis-db-name&gt; &#8
 
 </dd></dl>
 
+<dl class="class">
+<dt id="ibeis.dbio.ingest_database.Ingestable2">
+<em class="property">class </em><code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">Ingestable2</code><span class="sig-paren">(</span><em>dbdir</em>, <em>imgpath_list=None</em>, <em>imgdir_list=None</em>, <em>zipfile_list=None</em>, <em>postingest_func=None</em>, <em>ingest_config={}</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#Ingestable2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.Ingestable2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="ibeis.dbio.ingest_database.Ingestable2.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>ibs=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#Ingestable2.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.Ingestable2.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="function">
 <dt id="ibeis.dbio.ingest_database.get_name_texts_from_gnames">
 <code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">get_name_texts_from_gnames</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>img_dir</em>, <em>fmtkey='{name:*}[aid:d].{ext}'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#get_name_texts_from_gnames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.get_name_texts_from_gnames" title="Permalink to this definition">¶</a></dt>
@@ -1696,14 +1701,14 @@ python -m ibeis &#8211;tf ingest_rawdata &#8211;db &lt;new-ibeis-db-name&gt; &#8
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --test-get_name_texts_from_gnames
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.ingest_database --test-get_name_texts_from_gnames
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;e_f0273_f.jpg&#39;</span><span class="p">,</span> <span class="s">&#39;f0001_f.jpg&#39;</span><span class="p">,</span> <span class="s">&#39;f0259_l_3.jpg&#39;</span><span class="p">,</span> <span class="s">&#39;f0259_f_1.jpg&#39;</span><span class="p">,</span>  <span class="s">&#39;f0259_f (1).jpg&#39;</span><span class="p">,</span> <span class="s">&#39;f0058_u16_f.jpg&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">img_dir</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;e_f0273_f.jpg&#39;</span><span class="p">,</span> <span class="s1">&#39;f0001_f.jpg&#39;</span><span class="p">,</span> <span class="s1">&#39;f0259_l_3.jpg&#39;</span><span class="p">,</span> <span class="s1">&#39;f0259_f_1.jpg&#39;</span><span class="p">,</span>  <span class="s1">&#39;f0259_f (1).jpg&#39;</span><span class="p">,</span> <span class="s1">&#39;f0058_u16_f.jpg&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img_dir</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fmtkey</span> <span class="o">=</span> <span class="n">FMT_KEYS</span><span class="o">.</span><span class="n">elephant_fmt</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">get_name_texts_from_gnames</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="n">img_dir</span><span class="p">,</span> <span class="n">fmtkey</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -1747,7 +1752,7 @@ Output: names based on the parent folder of each image</p>
 <dt id="ibeis.dbio.ingest_database.ingest_lynx">
 <code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_lynx</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_lynx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_lynx" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --exec-injest_main --db lynx
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.ingest_database --exec-injest_main --db lynx
 </pre></div>
 </div>
 </dd></dl>
@@ -1765,13 +1770,13 @@ Output: names based on the parent folder of each image</p>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --exec-ingest_oxford_style_db --show
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.ingest_database --exec-ingest_oxford_style_db --show
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="s">&#39;/raid/work/Oxford&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="s1">&#39;/raid/work/Oxford&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dryrun</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ingest_oxford_style_db</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">quit_if_noshow</span><span class="p">()</span>
@@ -1817,7 +1822,7 @@ Output: names based on the parent folder of each image</p>
 <dd>Converts imgname structure where imgnames = name_id.ext, to ibsdb</dd>
 </dl>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python ibeis/dbio/ingest_database.py --db seals_drop2
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python ibeis/dbio/ingest_database.py --db seals_drop2
 python -m ibeis.dbio.ingest_database --exec-ingest_rawdata
 python -m ibeis.dbio.ingest_database --exec-ingest_rawdata --db snow-leopards --imgdir /raid/raw_rsync/snow-leopards
 
@@ -1826,21 +1831,21 @@ python -m ibeis --tf ingest_rawdata --db &lt;newdbname&gt;  --imgdir &lt;path-to
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># General ingest script</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># General ingest script</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>  <span class="c"># &#39;snow-leopards&#39;)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">force_delete</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--force_delete&#39;</span><span class="p">,</span> <span class="s">&#39;--force-delete&#39;</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">img_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--imgdir&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ingest_type</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--ingest-type&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;unknown&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fmtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--fmtkey&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--species&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">img_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;specify img dir&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">dbname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;specify dbname&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>  <span class="c1"># &#39;snow-leopards&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">force_delete</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--force_delete&#39;</span><span class="p">,</span> <span class="s1">&#39;--force-delete&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--imgdir&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ingest_type</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--ingest-type&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;unknown&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fmtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--fmtkey&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--species&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">img_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;specify img dir&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">dbname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;specify dbname&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ingestable</span> <span class="o">=</span> <span class="n">Ingestable</span><span class="p">(</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">dbname</span><span class="p">,</span> <span class="n">img_dir</span><span class="o">=</span><span class="n">img_dir</span><span class="p">,</span> <span class="n">ingest_type</span><span class="o">=</span><span class="n">ingest_type</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">fmtkey</span><span class="o">=</span><span class="n">fmtkey</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span> <span class="n">images_as_annots</span><span class="o">=</span><span class="n">ingest_type</span> <span class="o">!=</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">fmtkey</span><span class="o">=</span><span class="n">fmtkey</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span> <span class="n">images_as_annots</span><span class="o">=</span><span class="n">ingest_type</span> <span class="o">!=</span> <span class="s1">&#39;unknown&#39;</span><span class="p">,</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">adjust_percent</span><span class="o">=</span><span class="mf">0.00</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">IBEISControl</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dbdir</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">db_to_dbdir</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_sync</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -1850,7 +1855,7 @@ python -m ibeis --tf ingest_rawdata --db &lt;newdbname&gt;  --imgdir &lt;path-to
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">IBEISControl</span><span class="o">.</span><span class="n">request_IBEISController</span><span class="p">(</span><span class="n">dbdir</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">localize</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">aid_list</span> <span class="o">=</span> <span class="n">ingest_rawdata</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ingestable</span><span class="p">,</span> <span class="n">localize</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;aid_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;aid_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1884,16 +1889,16 @@ Repository. <a class="reference external" href="http://dx.doi.org/10.5061/dryad.
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species zebra_plains
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species zebra_plains
 python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --species cheetah
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--species&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># species = ut.get_argval(&#39;--species&#39;, type_=str, default=&#39;cheetah&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--species&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># species = ut.get_argval(&#39;--species&#39;, type_=str, default=&#39;cheetah&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ingest_serengeti_mamal_cameratrap</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
@@ -1921,8 +1926,8 @@ python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --
 </tbody>
 </table>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="s">&#39;testdb1&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dbname</span> <span class="o">=</span> <span class="s1">&#39;testdb1&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">force_delete</span> <span class="o">=</span> <span class="bp">False</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ingest_standard_database</span><span class="p">(</span><span class="n">dbname</span><span class="p">,</span> <span class="n">force_delete</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -1934,14 +1939,14 @@ python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --
 <dt id="ibeis.dbio.ingest_database.ingest_testdb1">
 <code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_testdb1</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_testdb1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_testdb1" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">vtool.tests</span> <span class="kn">import</span> <span class="n">grabdata</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">grabdata</span><span class="o">.</span><span class="n">ensure_testdata</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># DELETE TESTDB1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">TESTDB1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># DELETE TESTDB1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TESTDB1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">sysres</span><span class="o">.</span><span class="n">get_workdir</span><span class="p">(),</span> <span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">TESTDB1</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ingest_testdb1</span><span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
 </pre></div>
@@ -1952,7 +1957,7 @@ python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --
 <dt id="ibeis.dbio.ingest_database.ingest_whale_sharks">
 <code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_whale_sharks</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_whale_sharks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_whale_sharks" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --exec-injest_main --db WS_ALL
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.ingest_database --exec-injest_main --db WS_ALL
 </pre></div>
 </div>
 </dd></dl>
@@ -1961,7 +1966,7 @@ python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --
 <dt id="ibeis.dbio.ingest_database.ingest_wilddog_peter">
 <code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">ingest_wilddog_peter</code><span class="sig-paren">(</span><em>dbname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#ingest_wilddog_peter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.ingest_wilddog_peter" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --exec-injest_main --db wd_peter_blinston
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.ingest_database --exec-injest_main --db wd_peter_blinston
 </pre></div>
 </div>
 </dd></dl>
@@ -1970,13 +1975,13 @@ python -m ibeis.dbio.ingest_database --test-ingest_serengeti_mamal_cameratrap --
 <dt id="ibeis.dbio.ingest_database.injest_main">
 <code class="descclassname">ibeis.dbio.ingest_database.</code><code class="descname">injest_main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_database.html#injest_main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_database.injest_main" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_database --test-injest_main
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.ingest_database --test-injest_main
 python -m ibeis.dbio.ingest_database --test-injest_main --db snow-leopards
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_database</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">injest_main</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -2015,13 +2020,13 @@ python -m ibeis.dbio.ingest_database --test-injest_main --db snow-leopards
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_hsdb --test-convert_hsdb_to_ibeis:0 --db ~/work/Frogs
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.ingest_hsdb --test-convert_hsdb_to_ibeis:0 --db ~/work/Frogs
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hsdb_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--dbdir&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hsdb_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--dbdir&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">convert_hsdb_to_ibeis</span><span class="p">(</span><span class="n">hsdb_dir</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
@@ -2045,12 +2050,12 @@ python -m ibeis.dbio.ingest_database --test-injest_main --db snow-leopards
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_hsdb --test-get_unconverted_hsdbs
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.ingest_hsdb --test-get_unconverted_hsdbs
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">workdir</span> <span class="o">=</span> <span class="bp">None</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">get_unconverted_hsdbs</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -2093,12 +2098,12 @@ python -m ibeis.dbio.ingest_database --test-injest_main --db snow-leopards
 <dt id="ibeis.dbio.ingest_hsdb.test_open_to_convert">
 <code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">test_open_to_convert</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#test_open_to_convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.test_open_to_convert" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_hsdb --test-test_open_to_convert
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.ingest_hsdb --test-test_open_to_convert
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># VERY_UNSTABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># VERY_UNSTABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">test_open_to_convert</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
@@ -2110,12 +2115,12 @@ python -m ibeis.dbio.ingest_database --test-injest_main --db snow-leopards
 <code class="descclassname">ibeis.dbio.ingest_hsdb.</code><code class="descname">testdata_ensure_unconverted_hsdb</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/dbio/ingest_hsdb.html#testdata_ensure_unconverted_hsdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.dbio.ingest_hsdb.testdata_ensure_unconverted_hsdb" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes an unconverted test datapath</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.dbio.ingest_hsdb --test-testdata_ensure_unconverted_hsdb
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.dbio.ingest_hsdb --test-testdata_ensure_unconverted_hsdb
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.dbio.ingest_hsdb</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">testdata_ensure_unconverted_hsdb</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
@@ -2174,7 +2179,7 @@ best word i can think of is io. maybe marshall?</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

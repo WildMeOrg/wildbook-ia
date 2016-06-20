@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.web.apis &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.web.apis &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,7 +129,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.web.apis</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Dependencies: flask, tornado</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -137,52 +137,103 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
 <span class="kn">import</span> <span class="nn">zipfile</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">import</span> <span class="nn">cStringIO</span> <span class="kn">as</span> <span class="nn">StringIO</span>
 <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">current_app</span><span class="p">,</span> <span class="n">send_file</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[apis]&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[apis]&#39;</span><span class="p">)</span>
 
 
 <span class="n">register_api</span>   <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_api</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 <span class="n">register_route</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_route</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 
 
-<span class="c"># Special function that is a route only to ignore the JSON response, but is</span>
-<span class="c"># actually (and should be) an API call</span>
-<span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/api/image/src/&lt;gid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_prefix_check__</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="c1"># Special function that is a route only to ignore the JSON response, but is</span>
+<span class="c1"># actually (and should be) an API call</span>
+<span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/api/image/src/&lt;gid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_prefix_check__</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <div class="viewcode-block" id="image_src_api"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis.image_src_api">[docs]</a><span class="k">def</span> <span class="nf">image_src_api</span><span class="p">(</span><span class="n">gid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">thumbnail</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fresh</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns the image file of image &lt;gid&gt;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.web.app import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs = ibeis.opendb_bg_web(&#39;testdb1&#39;, start_job_queue=False)</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs.send_ibeis_request(&#39;/api/image/src/&#39;, type_=&#39;get&#39;, gid=1)</span>
+<span class="sd">        &gt;&gt;&gt; print(resp)</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
 
 <span class="sd">    RESTful:</span>
 <span class="sd">        Method: GET</span>
 <span class="sd">        URL:    /api/image/src/&lt;gid&gt;/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">thumbnail</span> <span class="o">=</span> <span class="n">thumbnail</span> <span class="ow">or</span> <span class="s">&#39;thumbnail&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="s">&#39;thumbnail&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span>
+    <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>  <span class="c1"># NOQA</span>
+    <span class="n">thumbnail</span> <span class="o">=</span> <span class="n">thumbnail</span> <span class="ow">or</span> <span class="s1">&#39;thumbnail&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="s1">&#39;thumbnail&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
     <span class="k">if</span> <span class="n">thumbnail</span><span class="p">:</span>
         <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">ensure_paths</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">fresh</span> <span class="o">=</span> <span class="n">fresh</span> <span class="ow">or</span> <span class="s">&#39;fresh&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="s">&#39;fresh&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span>
+        <span class="n">fresh</span> <span class="o">=</span> <span class="n">fresh</span> <span class="ow">or</span> <span class="s1">&#39;fresh&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="s1">&#39;fresh&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span>
         <span class="k">if</span> <span class="n">fresh</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">os</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+            <span class="c1">#import os</span>
+            <span class="c1">#os.remove(gpath)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
             <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">ensure_paths</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
 
-    <span class="n">image</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">open_oriented_image</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+    <span class="c1"># Load image</span>
+    <span class="k">assert</span> <span class="n">gpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;image path should not be None&#39;</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">resize_via_web_parameters</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Encode image</span>
     <span class="n">image_pil</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
     <span class="n">img_io</span> <span class="o">=</span> <span class="n">StringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
-    <span class="n">image_pil</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img_io</span><span class="p">,</span> <span class="s">&#39;JPEG&#39;</span><span class="p">,</span> <span class="n">quality</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">image_pil</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img_io</span><span class="p">,</span> <span class="s1">&#39;JPEG&#39;</span><span class="p">,</span> <span class="n">quality</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
     <span class="n">img_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">send_file</span><span class="p">(</span><span class="n">img_io</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="s">&#39;image/jpeg&#39;</span><span class="p">)</span>
-    <span class="c"># return send_file(gpath, mimetype=&#39;application/unknown&#39;)</span>
+    <span class="k">return</span> <span class="n">send_file</span><span class="p">(</span><span class="n">img_io</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="s1">&#39;image/jpeg&#39;</span><span class="p">)</span>
+    <span class="c1"># return send_file(gpath, mimetype=&#39;application/unknown&#39;)</span>
+
+
+<span class="c1"># Special function that is a route only to ignore the JSON response, but is</span>
+<span class="c1"># actually (and should be) an API call</span></div>
+<span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/api/image/src/json/&lt;image_uuid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">],</span> <span class="n">__api_prefix_check__</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<div class="viewcode-block" id="image_src_api_json"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis.image_src_api_json">[docs]</a><span class="k">def</span> <span class="nf">image_src_api_json</span><span class="p">(</span><span class="n">image_uuid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns the image file of image &lt;gid&gt;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.web.app import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs = ibeis.opendb_bg_web(&#39;testdb1&#39;, start_job_queue=False)</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs.send_ibeis_request(&#39;/api/image/src/&#39;, type_=&#39;get&#39;, gid=1)</span>
+<span class="sd">        &gt;&gt;&gt; print(resp)</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
+
+<span class="sd">    RESTful:</span>
+<span class="sd">        Method: GET</span>
+<span class="sd">        URL:    /api/image/src/&lt;gid&gt;/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_uuid</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="n">image_uuid</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">image_uuid</span><span class="p">)</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">(</span><span class="n">image_uuid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">image_src_api</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">translate_ibeis_webreturn</span>
+        <span class="k">return</span> <span class="n">translate_ibeis_webreturn</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">success</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                                         <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Invalid image UUID&#39;</span><span class="p">)</span>
 
 </div>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/upload/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/upload/image/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="image_upload"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis.image_upload">[docs]</a><span class="k">def</span> <span class="nf">image_upload</span><span class="p">(</span><span class="n">cleanup</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns the gid for an uploaded image.</span>
@@ -202,20 +253,20 @@
 <span class="sd">        URL:    /api/image/</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;request.files = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;request.files = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">,))</span>
 
-    <span class="n">filestore</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;image&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">filestore</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;image&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">filestore</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;Image not given&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;Image not given&#39;</span><span class="p">)</span>
 
     <span class="n">uploads_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_uploadsdir</span><span class="p">()</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">uploads_path</span><span class="p">)</span>
-    <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y_%m_</span><span class="si">%d</span><span class="s">_%H_%M_%S&#39;</span><span class="p">)</span>
+    <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y_%m_</span><span class="si">%d</span><span class="s1">_%H_%M_%S&#39;</span><span class="p">)</span>
 
     <span class="n">modifier</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">upload_filename</span> <span class="o">=</span> <span class="s">&#39;upload_</span><span class="si">%s</span><span class="s">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_time</span><span class="p">)</span>
+    <span class="n">upload_filename</span> <span class="o">=</span> <span class="s1">&#39;upload_</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_time</span><span class="p">)</span>
     <span class="k">while</span> <span class="n">exists</span><span class="p">(</span><span class="n">upload_filename</span><span class="p">):</span>
-        <span class="n">upload_filename</span> <span class="o">=</span> <span class="s">&#39;upload_</span><span class="si">%s</span><span class="s">_</span><span class="si">%04d</span><span class="s">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_time</span><span class="p">,</span> <span class="n">modifier</span><span class="p">)</span>
+        <span class="n">upload_filename</span> <span class="o">=</span> <span class="s1">&#39;upload_</span><span class="si">%s</span><span class="s1">_</span><span class="si">%04d</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_time</span><span class="p">,</span> <span class="n">modifier</span><span class="p">)</span>
         <span class="n">modifier</span> <span class="o">+=</span> <span class="mi">1</span>
 
     <span class="n">upload_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">uploads_path</span><span class="p">,</span> <span class="n">upload_filename</span><span class="p">)</span>
@@ -230,7 +281,7 @@
     <span class="k">return</span> <span class="n">gid</span>
 
 </div>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/upload/zip/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/upload/zip/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="image_upload_zip"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis.image_upload_zip">[docs]</a><span class="k">def</span> <span class="nf">image_upload_zip</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Returns the gid_list for image files submitted in a ZIP archive.  The image</span>
@@ -255,32 +306,32 @@
 <span class="sd">        URL:    /api/image/zip</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
-    <span class="c"># Get image archive</span>
-    <span class="n">image_archive</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;image_zip_archive&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="c1"># Get image archive</span>
+    <span class="n">image_archive</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;image_zip_archive&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">image_archive</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;Image archive not given&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;Image archive not given&#39;</span><span class="p">)</span>
 
-    <span class="c"># If the directory already exists, delete it</span>
+    <span class="c1"># If the directory already exists, delete it</span>
     <span class="n">uploads_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_uploadsdir</span><span class="p">()</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">uploads_path</span><span class="p">)</span>
-    <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y_%m_</span><span class="si">%d</span><span class="s">_%H_%M_%S&#39;</span><span class="p">)</span>
+    <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y_%m_</span><span class="si">%d</span><span class="s1">_%H_%M_%S&#39;</span><span class="p">)</span>
 
     <span class="n">modifier</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">upload_path</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_time</span><span class="p">)</span>
+    <span class="n">upload_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_time</span><span class="p">)</span>
     <span class="k">while</span> <span class="n">exists</span><span class="p">(</span><span class="n">upload_path</span><span class="p">):</span>
-        <span class="n">upload_path</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_</span><span class="si">%04d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_time</span><span class="p">,</span> <span class="n">modifier</span><span class="p">)</span>
+        <span class="n">upload_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%04d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_time</span><span class="p">,</span> <span class="n">modifier</span><span class="p">)</span>
         <span class="n">modifier</span> <span class="o">+=</span> <span class="mi">1</span>
 
     <span class="n">upload_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">uploads_path</span><span class="p">,</span> <span class="n">upload_path</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">upload_path</span><span class="p">)</span>
 
-    <span class="c"># Extract the content</span>
+    <span class="c1"># Extract the content</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">image_archive</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zfile</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">image_archive</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zfile</span><span class="p">:</span>
             <span class="n">zfile</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">upload_path</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">remove_dirs</span><span class="p">(</span><span class="n">upload_path</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;Image archive extracton failed&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;Image archive extracton failed&#39;</span><span class="p">)</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    test to ensure Directory and utool do the same thing</span>
@@ -297,36 +348,64 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">gpath_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_images</span><span class="p">(</span><span class="n">upload_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
-    <span class="c">#direct = Directory(upload_path, include_file_extensions=&#39;images&#39;, recursive=False)</span>
-    <span class="c">#gpath_list = direct.files()</span>
-    <span class="c">#gpath_list = sorted(gpath_list)</span>
+    <span class="c1">#direct = Directory(upload_path, include_file_extensions=&#39;images&#39;, recursive=False)</span>
+    <span class="c1">#gpath_list = direct.files()</span>
+    <span class="c1">#gpath_list = sorted(gpath_list)</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">gid_list</span>
 
 </div>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/test/helloworld/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">,</span> <span class="s">&#39;DELETE&#39;</span><span class="p">,</span> <span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/test/helloworld/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;DELETE&#39;</span><span class="p">,</span> <span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="hello_world"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis.hello_world">[docs]</a><span class="k">def</span> <span class="nf">hello_world</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
-<span class="sd">        python -m ibeis.web.app --exec-hello_world</span>
+<span class="sd">        python -m ibeis.web.apis --exec-hello_world:0</span>
+<span class="sd">        python -m ibeis.web.apis --exec-hello_world:1</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.web.app import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; import ibeis</span>
-<span class="sd">        &gt;&gt;&gt; web_ibs = ibeis.opendb_bg_web(browser=True, start_job_queue=False, url_suffix=&#39;/api/test/helloworld/&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs = ibeis.opendb_bg_web(browser=True, url_suffix=&#39;/api/test/helloworld/?test0=0&#39;)  # start_job_queue=False)</span>
+<span class="sd">        &gt;&gt;&gt; print(&#39;Server will run until control c&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; #web_ibs.terminate2()</span>
+
+<span class="sd">    Example1:</span>
+<span class="sd">        &gt;&gt;&gt; # WEB_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.web.app import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import requests</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs = ibeis.opendb_bg_web(&#39;testdb1&#39;, start_job_queue=False)</span>
+<span class="sd">        &gt;&gt;&gt; domain = &#39;http://127.0.0.1:5000&#39;</span>
+<span class="sd">        &gt;&gt;&gt; url = domain + &#39;/api/test/helloworld/?test0=0&#39;</span>
+<span class="sd">        &gt;&gt;&gt; payload = {</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;test1&#39; : &#39;test1&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;test2&#39; : None,  # NOTICE test2 DOES NOT SHOW UP</span>
+<span class="sd">        &gt;&gt;&gt; }</span>
+<span class="sd">        &gt;&gt;&gt; resp = requests.post(url, data=payload)</span>
+<span class="sd">        &gt;&gt;&gt; print(resp)</span>
+<span class="sd">        &gt;&gt;&gt; web_ibs.terminate2()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;------------------ HELLO WORLD ------------------&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Args: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Kwargs: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kwargs</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;request.args: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;request.form: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;request.url; </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;request.environ: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">),))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;request: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">__dict__</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;+------------ HELLO WORLD ------------&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Args: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">args</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Kwargs: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">kwargs</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;request.args: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;request.form: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;request.url; </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;request.environ: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;request: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">__dict__</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;L____________ HELLO WORLD ____________&#39;</span><span class="p">)</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/test/heartbeat/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;DELETE&#39;</span><span class="p">,</span> <span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="heartbeat"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.apis.heartbeat">[docs]</a><span class="k">def</span> <span class="nf">heartbeat</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">True</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.web.app</span>
@@ -334,8 +413,8 @@
 <span class="sd">        python -m ibeis.web.app --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -370,7 +449,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

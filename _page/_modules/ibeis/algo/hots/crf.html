@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.crf &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.hots.crf &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.hots.crf</h1><div class="highlight"><pre>
-<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span></span><span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
 
@@ -156,16 +156,16 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">pystruct</span>
     <span class="kn">import</span> <span class="nn">pystruct.models</span>
-    <span class="n">inference_method_options</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;lp&#39;</span><span class="p">,</span> <span class="s">&#39;max-product&#39;</span><span class="p">]</span>
+    <span class="n">inference_method_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;lp&#39;</span><span class="p">,</span> <span class="s1">&#39;max-product&#39;</span><span class="p">]</span>
     <span class="n">inference_method</span> <span class="o">=</span> <span class="n">inference_method_options</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
-    <span class="c">#graph = pystruct.models.GraphCRF(</span>
-    <span class="c">#    n_states=None,</span>
-    <span class="c">#    n_features=None,</span>
-    <span class="c">#    inference_method=inference_method,</span>
-    <span class="c">#    class_weight=None,</span>
-    <span class="c">#    directed=False,</span>
-    <span class="c">#)</span>
+    <span class="c1">#graph = pystruct.models.GraphCRF(</span>
+    <span class="c1">#    n_states=None,</span>
+    <span class="c1">#    n_features=None,</span>
+    <span class="c1">#    inference_method=inference_method,</span>
+    <span class="c1">#    class_weight=None,</span>
+    <span class="c1">#    directed=False,</span>
+    <span class="c1">#)</span>
 
     <span class="n">num_annots</span> <span class="o">=</span> <span class="mi">5</span>
     <span class="n">num_names</span> <span class="o">=</span> <span class="n">num_annots</span>
@@ -175,13 +175,13 @@
     <span class="n">hidden_nids</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_names</span><span class="p">,</span> <span class="n">num_annots</span><span class="p">)</span>
     <span class="n">unique_nids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">hidden_nids</span><span class="p">)</span>
 
-    <span class="c"># Indicator vector indicating the name</span>
+    <span class="c1"># Indicator vector indicating the name</span>
     <span class="n">node_features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_annots</span><span class="p">,</span> <span class="n">num_names</span><span class="p">))</span>
     <span class="n">node_features</span><span class="p">[(</span><span class="n">aids</span><span class="p">,</span> <span class="n">hidden_nids</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="n">toy_params</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">:</span> <span class="mf">2.2</span><span class="p">},</span>
-        <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">7.0</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}</span>
+        <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="mf">2.2</span><span class="p">},</span>
+        <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">7.0</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}</span>
     <span class="p">}</span>
     <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
@@ -190,14 +190,14 @@
         <span class="n">xdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
         <span class="n">tp_pdf</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">gauss_func1d</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="o">**</span><span class="n">toy_params</span><span class="p">[</span><span class="bp">True</span><span class="p">])</span>
         <span class="n">fp_pdf</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">gauss_func1d</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="o">**</span><span class="n">toy_params</span><span class="p">[</span><span class="bp">False</span><span class="p">])</span>
-        <span class="n">pt</span><span class="o">.</span><span class="n">plot_probabilities</span><span class="p">([</span><span class="n">tp_pdf</span><span class="p">,</span> <span class="n">fp_pdf</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;TP&#39;</span><span class="p">,</span> <span class="s">&#39;TF&#39;</span><span class="p">],</span> <span class="n">xdata</span><span class="o">=</span><span class="n">xdata</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">plot_probabilities</span><span class="p">([</span><span class="n">tp_pdf</span><span class="p">,</span> <span class="n">fp_pdf</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;TP&#39;</span><span class="p">,</span> <span class="s1">&#39;TF&#39;</span><span class="p">],</span> <span class="n">xdata</span><span class="o">=</span><span class="n">xdata</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">metric</span><span class="p">(</span><span class="n">aidx1</span><span class="p">,</span> <span class="n">aidx2</span><span class="p">,</span> <span class="n">hidden_nids</span><span class="o">=</span><span class="n">hidden_nids</span><span class="p">,</span> <span class="n">toy_params</span><span class="o">=</span><span class="n">toy_params</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">aidx1</span> <span class="o">==</span> <span class="n">aidx2</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">0</span>
         <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">aidx1</span> <span class="o">+</span> <span class="n">aidx2</span><span class="p">))</span>
         <span class="n">same</span> <span class="o">=</span> <span class="n">hidden_nids</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">aidx1</span><span class="p">)]</span> <span class="o">==</span> <span class="n">hidden_nids</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">aidx2</span><span class="p">)]</span>
-        <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">toy_params</span><span class="p">[</span><span class="n">same</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;mu&#39;</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">])</span>
+        <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">toy_params</span><span class="p">[</span><span class="n">same</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
 
     <span class="n">pairwise_aidxs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">iprod</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">)))</span>
@@ -221,20 +221,20 @@
     <span class="n">unary_fids</span> <span class="o">=</span> <span class="n">gm</span><span class="o">.</span><span class="n">addFunctions</span><span class="p">(</span><span class="n">unaries</span><span class="p">)</span>
     <span class="n">gm</span><span class="o">.</span><span class="n">addFactors</span><span class="p">(</span><span class="n">unary_fids</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">numVar</span><span class="p">))</span>
     <span class="n">infParam</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">InfParam</span><span class="p">(</span>
-        <span class="n">workflow</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">ensure_ascii</span><span class="p">(</span><span class="s">&#39;(IC)(TTC-I,CC-I)&#39;</span><span class="p">),</span>
+        <span class="n">workflow</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">ensure_ascii</span><span class="p">(</span><span class="s1">&#39;(IC)(TTC-I,CC-I)&#39;</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="n">inf</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">Multicut</span><span class="p">(</span><span class="n">gm</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="n">infParam</span><span class="p">)</span>
     <span class="n">visitor</span> <span class="o">=</span> <span class="n">inf</span><span class="o">.</span><span class="n">verboseVisitor</span><span class="p">(</span><span class="n">printNth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">multiline</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">inf</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span><span class="n">visitor</span><span class="p">)</span>
     <span class="n">arg</span> <span class="o">=</span> <span class="n">inf</span><span class="o">.</span><span class="n">arg</span><span class="p">()</span>
 
-    <span class="c"># gridVariableIndices = opengm.secondOrderGridVis(img.shape[0], img.shape[1])</span>
-    <span class="c"># fid = gm.addFunction(regularizer)</span>
-    <span class="c"># gm.addFactors(fid, gridVariableIndices)</span>
-    <span class="c"># regularizer = opengm.pottsFunction([3, 3], 0.0, beta)</span>
-    <span class="c"># gridVariableIndices = opengm.secondOrderGridVis(img.shape[0], img.shape[1])</span>
-    <span class="c"># fid = gm.addFunction(regularizer)</span>
-    <span class="c"># gm.addFactors(fid, gridVariableIndices)</span>
+    <span class="c1"># gridVariableIndices = opengm.secondOrderGridVis(img.shape[0], img.shape[1])</span>
+    <span class="c1"># fid = gm.addFunction(regularizer)</span>
+    <span class="c1"># gm.addFactors(fid, gridVariableIndices)</span>
+    <span class="c1"># regularizer = opengm.pottsFunction([3, 3], 0.0, beta)</span>
+    <span class="c1"># gridVariableIndices = opengm.secondOrderGridVis(img.shape[0], img.shape[1])</span>
+    <span class="c1"># fid = gm.addFunction(regularizer)</span>
+    <span class="c1"># gm.addFactors(fid, gridVariableIndices)</span>
 
     <span class="n">unaries</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">potts</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">PottsFunction</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span>
@@ -248,7 +248,7 @@
 <div class="viewcode-block" id="chain_crf"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.crf.chain_crf">[docs]</a><span class="k">def</span> <span class="nf">chain_crf</span><span class="p">():</span>
     <span class="kn">from</span> <span class="nn">pystruct.datasets</span> <span class="kn">import</span> <span class="n">load_letters</span>
     <span class="n">letters</span> <span class="o">=</span> <span class="n">load_letters</span><span class="p">()</span>
-    <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">folds</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">letters</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="s">&#39;labels&#39;</span><span class="p">,</span> <span class="s">&#39;folds&#39;</span><span class="p">])</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">folds</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">letters</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;labels&#39;</span><span class="p">,</span> <span class="s1">&#39;folds&#39;</span><span class="p">])</span>
     <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
     <span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">folds</span> <span class="o">==</span> <span class="mi">1</span><span class="p">],</span> <span class="n">X</span><span class="p">[</span><span class="n">folds</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">]</span>
     <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">folds</span> <span class="o">==</span> <span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">folds</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">]</span>
@@ -286,7 +286,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

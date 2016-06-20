@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests.test_sql_control &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.tests.test_sql_control &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,13 +129,13 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.tests.test_sql_control</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python2.7</span>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="ch">#!/usr/bin/env python2.7</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">SQLDatabaseControl</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_SQL_CONTROL]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[TEST_SQL_CONTROL]&#39;</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">six</span>
 
 <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
@@ -145,17 +145,17 @@
 
 
 <span class="k">def</span> <span class="nf">_define_test_schema</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s">&#39;names&#39;</span><span class="p">,</span> <span class="p">(</span>
-        <span class="p">(</span><span class="s">&#39;name_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
-        <span class="p">(</span><span class="s">&#39;name_text&#39;</span><span class="p">,</span>  <span class="s">&#39;TEXT NOT NULL&#39;</span><span class="p">),),</span>
-        <span class="p">[</span><span class="s">&#39;CONSTRAINT superkey UNIQUE (name_text)&#39;</span><span class="p">]</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">&#39;name_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;INTEGER PRIMARY KEY&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;name_text&#39;</span><span class="p">,</span>  <span class="s1">&#39;TEXT NOT NULL&#39;</span><span class="p">),),</span>
+        <span class="p">[</span><span class="s1">&#39;CONSTRAINT superkey UNIQUE (name_text)&#39;</span><span class="p">]</span>
     <span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_make_empty_controller</span><span class="p">():</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;make_empty_controller&#39;</span><span class="p">)</span>
-    <span class="n">sqldb_fname</span> <span class="o">=</span> <span class="s">&#39;temp_test_sql_control.sqlite3&#39;</span>
-    <span class="n">sqldb_dpath</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s">&#39;testfiles&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;make_empty_controller&#39;</span><span class="p">)</span>
+    <span class="n">sqldb_fname</span> <span class="o">=</span> <span class="s1">&#39;temp_test_sql_control.sqlite3&#39;</span>
+    <span class="n">sqldb_dpath</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_cplat</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s1">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s1">&#39;testfiles&#39;</span><span class="p">)</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">sqldb_dpath</span><span class="p">)</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">sqldb_dpath</span><span class="p">,</span> <span class="n">sqldb_fname</span><span class="p">),</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">db</span> <span class="o">=</span> <span class="n">SQLDatabaseControl</span><span class="o">.</span><span class="n">SQLDatabaseController</span><span class="p">(</span><span class="n">sqldb_dpath</span><span class="o">=</span><span class="n">sqldb_dpath</span><span class="p">,</span>
@@ -166,31 +166,31 @@
 <div class="viewcode-block" id="TEST_SQL_CONTROL"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_sql_control.TEST_SQL_CONTROL">[docs]</a><span class="k">def</span> <span class="nf">TEST_SQL_CONTROL</span><span class="p">():</span>
     <span class="n">db</span> <span class="o">=</span> <span class="n">_make_empty_controller</span><span class="p">()</span>
     <span class="n">_define_test_schema</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
-    <span class="c">#</span>
-    <span class="c"># -------- RUN INSERTS --------------</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] --- INSERT NAMES --- &#39;</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="c1"># -------- RUN INSERTS --------------</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[TEST] --- INSERT NAMES --- &#39;</span><span class="p">)</span>
     <span class="n">target_name_texts_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">__STR__</span><span class="p">,</span> <span class="p">[</span>
-        <span class="s">&#39;fred&#39;</span><span class="p">,</span>
-        <span class="s">&#39;sue&#39;</span><span class="p">,</span>
-        <span class="s">&#39;Robert</span><span class="se">\&#39;</span><span class="s">);DROP TABLE names;--&#39;</span><span class="p">,</span>
-        <span class="s">&#39;joe&#39;</span><span class="p">,</span>
-        <span class="s">&#39;rob&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;fred&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sue&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Robert</span><span class="se">\&#39;</span><span class="s1">);DROP TABLE names;--&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;joe&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;rob&#39;</span><span class="p">,</span>
     <span class="p">]))</span>
     <span class="n">target_name_texts_sublist</span> <span class="o">=</span> <span class="n">target_name_texts_list</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
 
     <span class="k">def</span> <span class="nf">get_nameid_from_text</span><span class="p">(</span><span class="n">text_list</span><span class="p">):</span>
         <span class="n">param_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">text</span><span class="p">,)</span> <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">text_list</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get_rowid_from_superkey</span><span class="p">(</span><span class="s">&#39;names&#39;</span><span class="p">,</span> <span class="n">param_iter</span><span class="p">,</span> <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;name_text&#39;</span><span class="p">,))</span>
+        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get_rowid_from_superkey</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="n">param_iter</span><span class="p">,</span> <span class="n">superkey_colnames</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;name_text&#39;</span><span class="p">,))</span>
 
     <span class="k">def</span> <span class="nf">add_names</span><span class="p">(</span><span class="n">names_list</span><span class="p">):</span>
         <span class="n">param_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">text</span><span class="p">,)</span> <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">names_list</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="s">&#39;names&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;name_text&#39;</span><span class="p">,),</span> <span class="n">param_iter</span><span class="p">,</span> <span class="n">get_nameid_from_text</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;name_text&#39;</span><span class="p">,),</span> <span class="n">param_iter</span><span class="p">,</span> <span class="n">get_nameid_from_text</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_name_texts</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;names&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;name_text&#39;</span><span class="p">,),</span> <span class="n">rowid_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;name_text&#39;</span><span class="p">,),</span> <span class="n">rowid_list</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">set_names</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">,</span> <span class="n">name_list</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s">&#39;names&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;name_text&#39;</span><span class="p">,),</span> <span class="n">name_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;name_text&#39;</span><span class="p">,),</span> <span class="n">name_list</span><span class="p">,</span> <span class="n">rowid_list</span><span class="p">)</span>
 
     <span class="n">rowid_list</span> <span class="o">=</span> <span class="n">add_names</span><span class="p">(</span><span class="n">target_name_texts_list</span><span class="p">)</span>
     <span class="n">rowid_sublist</span> <span class="o">=</span> <span class="n">add_names</span><span class="p">(</span><span class="n">target_name_texts_sublist</span><span class="p">)</span>
@@ -198,18 +198,18 @@
     <span class="n">rowid_list1</span> <span class="o">=</span> <span class="n">add_names</span><span class="p">(</span><span class="n">target_name_texts_list</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">rowid_sublist1</span> <span class="o">==</span> <span class="n">rowid_sublist</span>
     <span class="k">assert</span> <span class="n">rowid_list1</span> <span class="o">==</span> <span class="n">rowid_list</span>
-    <span class="c">#</span>
-    <span class="c"># -------- RUN SELECT NAMES --------------</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] --- SELECT NAMES ---&#39;</span><span class="p">)</span>
+    <span class="c1">#</span>
+    <span class="c1"># -------- RUN SELECT NAMES --------------</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[TEST] --- SELECT NAMES ---&#39;</span><span class="p">)</span>
     <span class="n">test_names_list</span> <span class="o">=</span> <span class="n">get_name_texts</span><span class="p">(</span><span class="n">rowid_list</span><span class="p">)</span>
     <span class="n">test_names_sublist</span> <span class="o">=</span> <span class="n">get_name_texts</span><span class="p">(</span><span class="n">rowid_sublist</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">test_names_list</span> <span class="o">==</span> <span class="n">target_name_texts_list</span>
     <span class="k">assert</span> <span class="n">test_names_sublist</span> <span class="o">==</span> <span class="n">target_name_texts_sublist</span>
 
-    <span class="c">#</span>
-    <span class="c"># --- TEST SETTER ---</span>
+    <span class="c1">#</span>
+    <span class="c1"># --- TEST SETTER ---</span>
 
-    <span class="n">name_sublist_new</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;newset_&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">target_name_texts_sublist</span><span class="p">]</span>
+    <span class="n">name_sublist_new</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;newset_&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">target_name_texts_sublist</span><span class="p">]</span>
 
     <span class="n">set_names</span><span class="p">(</span><span class="n">rowid_sublist</span><span class="p">,</span> <span class="n">name_sublist_new</span><span class="p">)</span>
     <span class="n">name_sublist_new_test</span>  <span class="o">=</span> <span class="n">get_name_texts</span><span class="p">(</span><span class="n">rowid_sublist</span><span class="p">)</span>
@@ -220,29 +220,29 @@
 
     <span class="n">new_rowid_sublist</span> <span class="o">=</span> <span class="n">add_names</span><span class="p">(</span><span class="n">name_sublist_new</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">new_rowid_sublist</span> <span class="o">==</span> <span class="n">rowid_sublist</span>
-    <span class="c"># Because the old are no longer in the database these should be newids</span>
+    <span class="c1"># Because the old are no longer in the database these should be newids</span>
     <span class="n">old_rowid_sublist</span> <span class="o">=</span> <span class="n">add_names</span><span class="p">(</span><span class="n">target_name_texts_sublist</span><span class="p">)</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">old_rowid_sublist</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">new_rowid_sublist</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
 
-    <span class="n">csv_target</span> <span class="o">=</span> <span class="s">u&#39;&#39;&#39;</span>
-<span class="s">        1,                                 fred</span>
-<span class="s">        2,                                  sue</span>
-<span class="s">        3,  newset_Robert&#39;);DROP TABLE names;--</span>
-<span class="s">        4,                           newset_joe</span>
-<span class="s">        5,                           newset_rob</span>
-<span class="s">        6,         Robert&#39;);DROP TABLE names;--</span>
-<span class="s">        7,                                  joe</span>
-<span class="s">        8,                                  rob</span>
-<span class="s">    &#39;&#39;&#39;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">csv_target</span> <span class="o">=</span> <span class="s1">u&#39;&#39;&#39;</span>
+<span class="s1">        1,                                 fred</span>
+<span class="s1">        2,                                  sue</span>
+<span class="s1">        3,  newset_Robert&#39;);DROP TABLE names;--</span>
+<span class="s1">        4,                           newset_joe</span>
+<span class="s1">        5,                           newset_rob</span>
+<span class="s1">        6,         Robert&#39;);DROP TABLE names;--</span>
+<span class="s1">        7,                                  joe</span>
+<span class="s1">        8,                                  rob</span>
+<span class="s1">    &#39;&#39;&#39;</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
-    <span class="n">csv_test</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="s">&#39;names&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;test=&#39;</span><span class="p">)</span>
+    <span class="n">csv_test</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_table_csv</span><span class="p">(</span><span class="s1">&#39;names&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;test=&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">csv_test</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">csv_test</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">csv_target</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;target=&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;target=&#39;</span><span class="p">)</span>
         <span class="k">print</span><span class="p">(</span><span class="n">csv_target</span><span class="p">)</span>
         <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
         <span class="k">raise</span>
@@ -250,11 +250,11 @@
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For windows</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># For windows</span>
     <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_SQL_CONTROL</span><span class="p">)</span>
-    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s">&#39;test_locals&#39;</span><span class="p">)</span>
+    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s1">&#39;test_locals&#39;</span><span class="p">)</span>
     <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
 </pre></div>
 
@@ -289,7 +289,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -12,34 +12,10 @@ ibeis.templates.generate_notebook module
     :undoc-members:
     :show-inheritance:
 
-ibeis.templates.markdown_cells module
--------------------------------------
-
-.. automodule:: ibeis.templates.markdown_cells
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.templates.notebook_cells module
 -------------------------------------
 
 .. automodule:: ibeis.templates.notebook_cells
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.templates.template_definitions module
--------------------------------------------
-
-.. automodule:: ibeis.templates.template_definitions
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.templates.template_generator module
------------------------------------------
-
-.. automodule:: ibeis.templates.template_generator
     :members:
     :undoc-members:
     :show-inheritance:

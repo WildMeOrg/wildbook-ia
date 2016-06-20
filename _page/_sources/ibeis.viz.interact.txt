@@ -12,14 +12,6 @@ ibeis.viz.interact.interact_annotations2 module
     :undoc-members:
     :show-inheritance:
 
-ibeis.viz.interact.interact_bbox module
----------------------------------------
-
-.. automodule:: ibeis.viz.interact.interact_bbox
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 ibeis.viz.interact.interact_chip module
 ---------------------------------------
 

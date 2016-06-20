@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests.test_ibs_encounters &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.tests.test_ibs_encounters &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,31 +129,31 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.tests.test_ibs_encounters</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python2.7</span>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c"># TODO: ADD COPYRIGHT TAG</span>
+<span></span><span class="ch">#!/usr/bin/env python2.7</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># TODO: ADD COPYRIGHT TAG</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
-<span class="c"># Python</span>
+<span class="c1"># Python</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
-<span class="c">#import numpy as np</span>
+<span class="c1">#import numpy as np</span>
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
-<span class="c"># Tools</span>
+<span class="c1"># Tools</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.IBEISControl</span> <span class="kn">import</span> <span class="n">IBEISController</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_ENCOUNTERS]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[TEST_ENCOUNTERS]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="TEST_ENCOUNTERS"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_ibs_encounters.TEST_ENCOUNTERS">[docs]</a><span class="k">def</span> <span class="nf">TEST_ENCOUNTERS</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST_ENCOUNTERS]&#39;</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">IBEISController</span><span class="p">),</span> <span class="s">&#39;type enforment&#39;</span>
-    <span class="c"># Delete all encounters</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[TEST_ENCOUNTERS]&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">IBEISController</span><span class="p">),</span> <span class="s1">&#39;type enforment&#39;</span>
+    <span class="c1"># Delete all encounters</span>
     <span class="n">_eid_list1</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_encounters</span><span class="p">(</span><span class="n">_eid_list1</span><span class="p">)</span>
     <span class="n">_eid_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">()</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">_eid_list2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;eids should have been deleted&#39;</span>
-    <span class="c"># Recompute encounters</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">_eid_list2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;eids should have been deleted&#39;</span>
+    <span class="c1"># Recompute encounters</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">compute_encounters</span><span class="p">()</span>
 
     <span class="n">eid_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_eids</span><span class="p">())</span>
@@ -166,27 +166,27 @@
     <span class="n">annotation_uuids_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)))</span>
     <span class="n">names_list</span>     <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_name_texts</span><span class="p">,</span> <span class="n">nids_list</span><span class="p">)))</span>
 
-    <span class="c">#target_enctexts = [&#39;E0_ENC(agg,sec_60,1)&#39;, &#39;E1_ENC(agg,sec_60,1)&#39;]</span>
-    <span class="n">target_enctexts</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;Encounter 0&#39;</span><span class="p">,</span> <span class="s">u&#39;Encounter 1&#39;</span><span class="p">]</span>
+    <span class="c1">#target_enctexts = [&#39;E0_ENC(agg,sec_60,1)&#39;, &#39;E1_ENC(agg,sec_60,1)&#39;]</span>
+    <span class="n">target_enctexts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">u&#39;Encounter 0&#39;</span><span class="p">,</span> <span class="s1">u&#39;Encounter 1&#39;</span><span class="p">]</span>
 
-    <span class="n">target_gid_uuids</span> <span class="o">=</span> <span class="p">[[</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;66ec193a-1619-b3b6-216d-1784b4833b61&#39;</span><span class="p">),</span>
-                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;d8903434-942f-e0f5-d6c2-0dcbe3137bf7&#39;</span><span class="p">),</span>
-                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;b73b72f4-4acb-c445-e72c-05ce02719d3d&#39;</span><span class="p">),</span>
-                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;0cd05978-3d83-b2ee-2ac9-798dd571c3b3&#39;</span><span class="p">),</span>
-                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;0a9bc03d-a75e-8d14-0153-e2949502aba7&#39;</span><span class="p">),</span>
-                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;2deeff06-5546-c752-15dc-2bd0fdb1198a&#39;</span><span class="p">),</span>
-                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;a9b70278-a936-c1dd-8a3b-bc1e9a998bf0&#39;</span><span class="p">)],</span>
-                        <span class="p">[</span><span class="n">UUID</span><span class="p">(</span><span class="s">&#39;42fdad98-369a-2cbc-67b1-983d6d6a3a60&#39;</span><span class="p">),</span>
-                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;c459d381-fd74-1d99-6215-e42e3f432ea9&#39;</span><span class="p">),</span>
-                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;33fd9813-3a2b-774b-3fcc-4360d1ae151b&#39;</span><span class="p">),</span>
-                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;97e8ea74-873f-2092-b372-f928a7be30fa&#39;</span><span class="p">),</span>
-                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;588bc218-83a5-d400-21aa-d499832632b0&#39;</span><span class="p">),</span>
-                         <span class="n">UUID</span><span class="p">(</span><span class="s">&#39;163a890c-36f2-981e-3529-c552b6d668a3&#39;</span><span class="p">)],</span>
+    <span class="n">target_gid_uuids</span> <span class="o">=</span> <span class="p">[[</span><span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;66ec193a-1619-b3b6-216d-1784b4833b61&#39;</span><span class="p">),</span>
+                         <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;d8903434-942f-e0f5-d6c2-0dcbe3137bf7&#39;</span><span class="p">),</span>
+                         <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;b73b72f4-4acb-c445-e72c-05ce02719d3d&#39;</span><span class="p">),</span>
+                         <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;0cd05978-3d83-b2ee-2ac9-798dd571c3b3&#39;</span><span class="p">),</span>
+                         <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;0a9bc03d-a75e-8d14-0153-e2949502aba7&#39;</span><span class="p">),</span>
+                         <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;2deeff06-5546-c752-15dc-2bd0fdb1198a&#39;</span><span class="p">),</span>
+                         <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;a9b70278-a936-c1dd-8a3b-bc1e9a998bf0&#39;</span><span class="p">)],</span>
+                        <span class="p">[</span><span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;42fdad98-369a-2cbc-67b1-983d6d6a3a60&#39;</span><span class="p">),</span>
+                         <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;c459d381-fd74-1d99-6215-e42e3f432ea9&#39;</span><span class="p">),</span>
+                         <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;33fd9813-3a2b-774b-3fcc-4360d1ae151b&#39;</span><span class="p">),</span>
+                         <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;97e8ea74-873f-2092-b372-f928a7be30fa&#39;</span><span class="p">),</span>
+                         <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;588bc218-83a5-d400-21aa-d499832632b0&#39;</span><span class="p">),</span>
+                         <span class="n">UUID</span><span class="p">(</span><span class="s1">&#39;163a890c-36f2-981e-3529-c552b6d668a3&#39;</span><span class="p">)],</span>
                         <span class="p">]</span>
 
     <span class="n">target_name_texts</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">[</span><span class="s">&#39;easy&#39;</span><span class="p">,</span> <span class="s">&#39;hard&#39;</span><span class="p">,</span> <span class="s">&#39;jeff&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s">&#39;lena&#39;</span><span class="p">,</span> <span class="s">&#39;occl&#39;</span><span class="p">,</span> <span class="s">&#39;polar&#39;</span><span class="p">,</span> <span class="s">&#39;zebra&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;easy&#39;</span><span class="p">,</span> <span class="s1">&#39;hard&#39;</span><span class="p">,</span> <span class="s1">&#39;jeff&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;lena&#39;</span><span class="p">,</span> <span class="s1">&#39;occl&#39;</span><span class="p">,</span> <span class="s1">&#39;polar&#39;</span><span class="p">,</span> <span class="s1">&#39;zebra&#39;</span><span class="p">],</span>
     <span class="p">]</span>
 
     <span class="n">ibs</span><span class="o">.</span><span class="n">print_lblannot_table</span><span class="p">()</span>
@@ -196,39 +196,39 @@
     <span class="n">gids_test_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">,</span> <span class="n">gid_uuids_list</span><span class="p">)</span>
     <span class="n">gids_target_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gids_from_uuid</span><span class="p">,</span> <span class="n">target_gid_uuids</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;0) gid_uuids_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">gids_test_list</span><span class="p">),))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;0) target_gid_uuids = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">gids_target_list</span><span class="p">),))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;1) gid_uuids_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">gid_uuids_list</span><span class="p">),))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;1) target_gid_uuids = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">target_gid_uuids</span><span class="p">),))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;2) enctext_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">enctext_list</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;2) target_enctexts = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">target_enctexts</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;0) gid_uuids_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">gids_test_list</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;0) target_gid_uuids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">gids_target_list</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;1) gid_uuids_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">gid_uuids_list</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;1) target_gid_uuids = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">target_gid_uuids</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;2) enctext_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">enctext_list</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;2) target_enctexts = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">target_enctexts</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 
         <span class="n">aids_test_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">,</span> <span class="n">gids_test_list</span><span class="p">)</span>
         <span class="n">aids_target_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">,</span> <span class="n">gids_target_list</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;a) aids_test_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">aids_test_list</span><span class="p">),))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;a) aids_target_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">aids_target_list</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;a) aids_test_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">aids_test_list</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;a) aids_target_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">aids_target_list</span><span class="p">),))</span>
 
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;3a) aids_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">aids_list</span><span class="p">),))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;3a) nids_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">nids_list</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;3a) aids_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">aids_list</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;3a) nids_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">nids_list</span><span class="p">),))</span>
         <span class="n">nids_listb</span> <span class="o">=</span> <span class="p">[</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid_list</span> <span class="ow">in</span> <span class="n">aids_list</span> <span class="p">]</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;3a) nids_listb = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">nids_listb</span><span class="p">),))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;3b) names_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">names_list</span><span class="p">),))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;3b) target_name_texts = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">target_name_texts</span><span class="p">),))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;3a) nids_listb = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">nids_listb</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;3b) names_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">names_list</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;3b) target_name_texts = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">target_name_texts</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 
-        <span class="k">assert</span> <span class="n">gids_test_list</span> <span class="o">==</span> <span class="n">gids_target_list</span><span class="p">,</span> <span class="s">&#39;gids_test_list does not match gids_target_list&#39;</span>
+        <span class="k">assert</span> <span class="n">gids_test_list</span> <span class="o">==</span> <span class="n">gids_target_list</span><span class="p">,</span> <span class="s1">&#39;gids_test_list does not match gids_target_list&#39;</span>
 
-        <span class="k">assert</span> <span class="n">gid_uuids_list</span> <span class="o">==</span> <span class="n">target_gid_uuids</span><span class="p">,</span> <span class="s">&#39;gid_uuids_list does not match target_gid_uuids&#39;</span>
+        <span class="k">assert</span> <span class="n">gid_uuids_list</span> <span class="o">==</span> <span class="n">target_gid_uuids</span><span class="p">,</span> <span class="s1">&#39;gid_uuids_list does not match target_gid_uuids&#39;</span>
 
-        <span class="k">assert</span> <span class="n">enctext_list</span> <span class="o">==</span> <span class="n">target_enctexts</span><span class="p">,</span> <span class="s">&#39;enctext_list does not match target_enctexts&#39;</span>
+        <span class="k">assert</span> <span class="n">enctext_list</span> <span class="o">==</span> <span class="n">target_enctexts</span><span class="p">,</span> <span class="s1">&#39;enctext_list does not match target_enctexts&#39;</span>
 
-        <span class="k">assert</span> <span class="n">names_list</span> <span class="o">==</span> <span class="n">target_name_texts</span><span class="p">,</span> <span class="s">&#39;names_list does not match target_name_texts&#39;</span>
+        <span class="k">assert</span> <span class="n">names_list</span> <span class="o">==</span> <span class="n">target_name_texts</span><span class="p">,</span> <span class="s1">&#39;names_list does not match target_name_texts&#39;</span>
 
     <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;failed test_encounter&#39;</span><span class="p">)</span>
+        <span class="n">utool</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;failed test_encounter&#39;</span><span class="p">)</span>
         <span class="k">raise</span>
 
     <span class="n">gids_list2</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)))</span>
@@ -237,13 +237,13 @@
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For windows</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># For windows</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>
+    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">]</span>
     <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_ENCOUNTERS</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
-    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s">&#39;test_locals&#39;</span><span class="p">)</span>
+    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s1">&#39;test_locals&#39;</span><span class="p">)</span>
     <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
 </pre></div>
 
@@ -278,7 +278,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

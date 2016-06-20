@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests.test_gui_import_images &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.tests.test_gui_import_images &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,52 +129,52 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.tests.test_gui_import_images</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python2.7</span>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c"># TODO: ADD COPYRIGHT TAG</span>
+<span></span><span class="ch">#!/usr/bin/env python2.7</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># TODO: ADD COPYRIGHT TAG</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">from</span> <span class="nn">vtool.tests</span> <span class="kn">import</span> <span class="n">grabdata</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_GUI_IMPORT_IMAGES]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[TEST_GUI_IMPORT_IMAGES]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="TEST_GUI_IMPORT_IMAGES"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_gui_import_images.TEST_GUI_IMPORT_IMAGES">[docs]</a><span class="k">def</span> <span class="nf">TEST_GUI_IMPORT_IMAGES</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] GET_TEST_IMAGE_PATHS&#39;</span><span class="p">)</span>
-    <span class="c"># The test api returns a list of interesting chip indexes</span>
-    <span class="n">mode</span> <span class="o">=</span> <span class="s">&#39;FILE&#39;</span>
-    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;FILE&#39;</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[TEST] GET_TEST_IMAGE_PATHS&#39;</span><span class="p">)</span>
+    <span class="c1"># The test api returns a list of interesting chip indexes</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;FILE&#39;</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;FILE&#39;</span><span class="p">:</span>
         <span class="n">gpath_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">utool</span><span class="o">.</span><span class="n">unixpath</span><span class="p">,</span> <span class="n">grabdata</span><span class="o">.</span><span class="n">get_test_gpaths</span><span class="p">()))</span>
 
-        <span class="c"># else:</span>
-        <span class="c">#    dir_ = utool.truepath(join(sysres.get_workdir(), &#39;PZ_MOTHERS/images&#39;))</span>
-        <span class="c">#    gpath_list = utool.list_images(dir_, fullpath=True, recursive=True)[::4]</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] IMPORT IMAGES FROM FILE</span><span class="se">\n</span><span class="s"> * gpath_list=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">gpath_list</span><span class="p">)</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#    dir_ = utool.truepath(join(sysres.get_workdir(), &#39;PZ_MOTHERS/images&#39;))</span>
+        <span class="c1">#    gpath_list = utool.list_images(dir_, fullpath=True, recursive=True)[::4]</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[TEST] IMPORT IMAGES FROM FILE</span><span class="se">\n</span><span class="s1"> * gpath_list=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">gpath_list</span><span class="p">)</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">import_images</span><span class="p">(</span><span class="n">gpath_list</span><span class="o">=</span><span class="n">gpath_list</span><span class="p">)</span>
         <span class="n">thumbtup_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbtup</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
         <span class="n">imgpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">thumbtup_list</span><span class="p">]</span>
         <span class="n">gpath_list2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">gpath_list2</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">imgpath_list</span><span class="p">,</span> <span class="s">&quot;Imported Image not in db, path=</span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">path</span>
-    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s">&#39;DIR&#39;</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">imgpath_list</span><span class="p">,</span> <span class="s2">&quot;Imported Image not in db, path=</span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;DIR&#39;</span><span class="p">:</span>
         <span class="n">dir_</span> <span class="o">=</span> <span class="n">grabdata</span><span class="o">.</span><span class="n">get_testdata_dir</span><span class="p">()</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] IMPORT IMAGES FROM DIR</span><span class="se">\n</span><span class="s"> * dir_=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">dir_</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[TEST] IMPORT IMAGES FROM DIR</span><span class="se">\n</span><span class="s1"> * dir_=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">dir_</span><span class="p">)</span>
         <span class="n">gid_list</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">import_images</span><span class="p">(</span><span class="n">dir_</span><span class="o">=</span><span class="n">dir_</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown mode=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;unknown mode=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[TEST] * len(gid_list)=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[TEST] * len(gid_list)=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For windows</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># For windows</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb0&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">ibs</span>  <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>   <span class="c"># IBEIS Control</span>
-    <span class="n">back</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;back&#39;</span><span class="p">]</span>  <span class="c"># IBEIS GUI backend</span>
+    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb0&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">allow_newdir</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">ibs</span>  <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">]</span>   <span class="c1"># IBEIS Control</span>
+    <span class="n">back</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;back&#39;</span><span class="p">]</span>  <span class="c1"># IBEIS GUI backend</span>
     <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_GUI_IMPORT_IMAGES</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">back</span><span class="p">)</span>
-    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s">&#39;test_locals&#39;</span><span class="p">)</span>
+    <span class="n">execstr</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">execstr_dict</span><span class="p">(</span><span class="n">test_locals</span><span class="p">,</span> <span class="s1">&#39;test_locals&#39;</span><span class="p">)</span>
     <span class="k">exec</span><span class="p">(</span><span class="n">execstr</span><span class="p">)</span>
 </pre></div>
 
@@ -209,7 +209,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -1,0 +1,776 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.core_images &mdash; ibeis 1.5.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
+        <link rel="up" title="ibeis" href="../ibeis.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.core_images</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.core_images</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">IBEIS CORE</span>
+<span class="sd">Defines the core dependency cache supported by the image analysis api</span>
+
+<span class="sd">Extracts detection results from images and applies additional processing</span>
+<span class="sd">automatically</span>
+
+
+<span class="sd">Ex</span>
+<span class="sd">    python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show</span>
+<span class="sd">    python -m ibeis.control.IBEISControl --test-show_depc_image_graph --show --reduced</span>
+
+
+<span class="sd">TODO:</span>
+
+<span class="sd">NOTES:</span>
+<span class="sd">    HOW TO DESIGN INTERACTIVE PLOTS:</span>
+<span class="sd">        decorate as interactive</span>
+
+<span class="sd">        depc.get_property(recompute=True)</span>
+
+<span class="sd">        instead of calling preproc as a generator and then adding,</span>
+<span class="sd">        calls preproc and passes in a callback function.</span>
+<span class="sd">        preproc spawns interaction and must call callback function when finished.</span>
+
+<span class="sd">        callback function adds the rowids to the table.</span>
+
+<span class="sd">Needed Tables:</span>
+<span class="sd">    Detections</span>
+<span class="sd">    QualityClassifier</span>
+<span class="sd">    ViewpointClassifier</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">dtool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">register_preprocs</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[core_images]&#39;</span><span class="p">)</span>
+
+
+<span class="n">register_preproc</span> <span class="o">=</span> <span class="n">register_preprocs</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="ThumbnailConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.ThumbnailConfig">[docs]</a><span class="k">class</span> <span class="nc">ThumbnailConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;draw_annots&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;thumbsize&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">None</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;ext&#39;</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="s1">&#39;.png&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;force_serial&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+    <span class="p">]</span>
+
+</div>
+<span class="nd">@register_preproc</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;thumbnails&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;images&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">ThumbnailConfig</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;thumbcache&#39;</span><span class="p">,</span>
+    <span class="n">rm_extern_on_delete</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">chunksize</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+<span class="p">)</span>
+<div class="viewcode-block" id="compute_thumbnails"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.compute_thumbnails">[docs]</a><span class="k">def</span> <span class="nf">compute_thumbnails</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Computers the thumbnail for a given input image</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        depc (ibeis.depends_cache.DependencyCache):</span>
+<span class="sd">        gid_list (list):  list of image rowids</span>
+<span class="sd">        config (dict): (default = None)</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        (uri, int, int): tup</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        ibeis --tf compute_thumbnails --show --db PZ_MTEST</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_images import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb = &#39;testdb1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=defaultdb)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc_image</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:10]</span>
+<span class="sd">        &gt;&gt;&gt; thumbs = depc.get_property(&#39;thumbnails&#39;, gid_list, &#39;img&#39;, config={&#39;thumbsize&#39;: 221})</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; iteract_obj = pt.interact_multi_image.MultiImageInteraction(thumbs, nPerPage=4)</span>
+<span class="sd">        &gt;&gt;&gt; iteract_obj.start()</span>
+<span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+    <span class="n">draw_annots</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;draw_annots&#39;</span><span class="p">]</span>
+    <span class="n">thumbsize</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;thumbsize&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">thumbsize</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">other_cfg</span>
+        <span class="n">thumbsize</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">thumb_size</span> <span class="k">if</span> <span class="n">draw_annots</span> <span class="k">else</span> <span class="n">cfg</span><span class="o">.</span><span class="n">thumb_bare_size</span>
+    <span class="n">thumbsize_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">thumbsize</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">gpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">orient_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_orientation</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">draw_annots</span><span class="p">:</span>
+        <span class="n">bboxes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+        <span class="n">thetas_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">bboxes_list</span> <span class="o">=</span> <span class="p">[</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list</span> <span class="p">]</span>
+        <span class="n">thetas_list</span> <span class="o">=</span> <span class="p">[</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list</span> <span class="p">]</span>
+
+    <span class="c1"># Execute all tasks in parallel</span>
+    <span class="n">args_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">thumbsize_list</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">orient_list</span><span class="p">,</span> <span class="n">bboxes_list</span><span class="p">,</span> <span class="n">thetas_list</span><span class="p">)</span>
+    <span class="n">genkw</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;ordered&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s1">&#39;chunksize&#39;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
+        <span class="s1">&#39;freq&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+        <span class="c1">#&#39;adjust&#39;: True,</span>
+        <span class="s1">&#39;force_serial&#39;</span><span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">force_serial</span> <span class="ow">or</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;force_serial&#39;</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="n">gen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">draw_thumb_helper</span><span class="p">,</span> <span class="n">args_list</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">),</span> <span class="o">**</span><span class="n">genkw</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">gen</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">val</span>
+
+</div>
+<div class="viewcode-block" id="draw_thumb_helper"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.draw_thumb_helper">[docs]</a><span class="k">def</span> <span class="nf">draw_thumb_helper</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
+    <span class="n">thumbsize</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">orient</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span> <span class="o">=</span> <span class="n">tup</span>
+    <span class="c1"># time consuming</span>
+    <span class="c1"># img = vt.imread(gpath, orient=orient)</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">gh</span><span class="p">,</span> <span class="n">gw</span><span class="p">)</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">img_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">gw</span><span class="p">,</span> <span class="n">gh</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">thumbsize</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">max_dsize</span> <span class="o">=</span> <span class="p">(</span><span class="n">thumbsize</span><span class="p">,</span> <span class="n">thumbsize</span><span class="p">)</span>
+        <span class="n">dsize</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resized_clamped_thumb_dims</span><span class="p">(</span><span class="n">img_size</span><span class="p">,</span> <span class="n">max_dsize</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">thumbsize</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">thumbsize</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">th</span><span class="p">,</span> <span class="n">tw</span> <span class="o">=</span> <span class="n">thumbsize</span>
+        <span class="n">dsize</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">thumbsize</span><span class="p">,</span> <span class="n">tw</span> <span class="o">/</span> <span class="n">gw</span><span class="p">,</span> <span class="n">th</span> <span class="o">/</span> <span class="n">gh</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Incompatible thumbsize&#39;</span><span class="p">)</span>
+    <span class="n">new_verts_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">scaled_verts_from_bbox_gen</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">))</span>
+    <span class="c1"># -----------------</span>
+    <span class="c1"># Actual computation</span>
+    <span class="n">thumb</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">dsize</span><span class="p">)</span>
+    <span class="n">orange_bgr</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">new_verts</span> <span class="ow">in</span> <span class="n">new_verts_list</span><span class="p">:</span>
+        <span class="n">thumb</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">draw_verts</span><span class="p">(</span><span class="n">thumb</span><span class="p">,</span> <span class="n">new_verts</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">orange_bgr</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">dsize</span>
+    <span class="k">return</span> <span class="n">thumb</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span>
+
+</div>
+<div class="viewcode-block" id="ClassifierConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.ClassifierConfig">[docs]</a><span class="k">class</span> <span class="nc">ClassifierConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;classifier_sensitivity&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ThumbnailConfig</span>
+    <span class="p">]</span>
+
+</div>
+<span class="nd">@register_preproc</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;classifier&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;images&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="s1">&#39;class&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">ClassifierConfig</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;detectcache&#39;</span><span class="p">,</span>
+    <span class="n">chunksize</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+<span class="p">)</span>
+<div class="viewcode-block" id="compute_classifications"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.compute_classifications">[docs]</a><span class="k">def</span> <span class="nf">compute_classifications</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Extracts the detections for a given input image</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        depc (ibeis.depends_cache.DependencyCache):</span>
+<span class="sd">        gid_list (list):  list of image rowids</span>
+<span class="sd">        config (dict): (default = None)</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        (float, str): tup</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        ibeis compute_classifications</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_images import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb = &#39;PZ_MTEST&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=defaultdb)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc_image</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:8]</span>
+<span class="sd">        &gt;&gt;&gt; # depc.delete_property(&#39;classifier&#39;, gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; results = depc.get_property(&#39;classifier&#39;, gid_list, None)</span>
+<span class="sd">        &gt;&gt;&gt; print(results)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.detect.classifier.classifier</span> <span class="kn">import</span> <span class="n">classify_thumbnail_list</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs] Process Image Classifications&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+    <span class="c1"># Get controller</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;draw_annots&#39;</span> <span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s1">&#39;thumbsize&#39;</span>   <span class="p">:</span> <span class="p">(</span><span class="mi">192</span><span class="p">,</span> <span class="mi">192</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="n">thumbnail_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;thumbnails&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">result_list</span> <span class="o">=</span> <span class="n">classify_thumbnail_list</span><span class="p">(</span><span class="n">thumbnail_list</span><span class="p">)</span>
+    <span class="c1"># yield detections</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">result</span>
+
+</div>
+<div class="viewcode-block" id="LocalizerConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.LocalizerConfig">[docs]</a><span class="k">class</span> <span class="nc">LocalizerConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;algo&#39;</span><span class="p">,</span> <span class="s1">&#39;yolo&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;sensitivity&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="s1">&#39;zebra_plains&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="s1">&#39;zebra_plains&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;config_filepath&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;weight_filepath&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;grid&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ThumbnailConfig</span>
+    <span class="p">]</span>
+
+</div>
+<span class="nd">@register_preproc</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;images&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="s1">&#39;bboxes&#39;</span><span class="p">,</span> <span class="s1">&#39;thetas&#39;</span><span class="p">,</span> <span class="s1">&#39;confs&#39;</span><span class="p">,</span> <span class="s1">&#39;classes&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">LocalizerConfig</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;detectcache&#39;</span><span class="p">,</span>
+    <span class="n">chunksize</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+<span class="p">)</span>
+<div class="viewcode-block" id="compute_localizations"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.compute_localizations">[docs]</a><span class="k">def</span> <span class="nf">compute_localizations</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Extracts the localizations for a given input image</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        depc (ibeis.depends_cache.DependencyCache):</span>
+<span class="sd">        gid_list (list):  list of image rowids</span>
+<span class="sd">        config (dict): (default = None)</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        (float, np.ndarray, np.ndarray, np.ndarray, np.ndarray): tup</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        ibeis compute_localizations</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.core_images compute_localizations --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_images import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb = &#39;PZ_MTEST&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=defaultdb)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc_image</span>
+<span class="sd">        &gt;&gt;&gt; print(depc.get_tablenames())</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; config = {&#39;algo&#39;: &#39;yolo&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; depc.delete_property(&#39;localizations&#39;, gid_list, config=config)</span>
+<span class="sd">        &gt;&gt;&gt; detects = depc.get_property(&#39;localizations&#39;, gid_list, &#39;bboxes&#39;, config=config)</span>
+<span class="sd">        &gt;&gt;&gt; print(detects)</span>
+<span class="sd">        &gt;&gt;&gt; config = {&#39;algo&#39;: &#39;pyrf&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; depc.delete_property(&#39;localizations&#39;, gid_list, config=config)</span>
+<span class="sd">        &gt;&gt;&gt; detects = depc.get_property(&#39;localizations&#39;, gid_list, &#39;bboxes&#39;, config=config)</span>
+<span class="sd">        &gt;&gt;&gt; print(detects)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">package_to_numpy</span><span class="p">(</span><span class="n">key_list</span><span class="p">,</span> <span class="n">result_list</span><span class="p">,</span> <span class="n">score</span><span class="p">):</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span>
+                <span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">key_list</span>
+            <span class="p">]</span>
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">result_list</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">score</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span> <span class="n">_</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">temp</span> <span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span> <span class="n">_</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>   <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">temp</span> <span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span> <span class="n">_</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>   <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">temp</span> <span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span> <span class="n">_</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>   <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">temp</span> <span class="p">]),</span>
+        <span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs] Preprocess Localizations&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+    <span class="c1"># Get controller</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_gids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+    <span class="n">base_key_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;xtl&#39;</span><span class="p">,</span> <span class="s1">&#39;ytl&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">,</span> <span class="s1">&#39;class&#39;</span><span class="p">]</span>
+    <span class="c1"># Temporary for all detectors</span>
+    <span class="n">base_key_list</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="p">)</span>  <span class="c1"># Theta</span>
+
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;algo&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;yolo&#39;</span><span class="p">,</span> <span class="s1">&#39;cnn&#39;</span><span class="p">]:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.algo.detect</span> <span class="kn">import</span> <span class="n">yolo</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs] detecting using CNN YOLO&#39;</span><span class="p">)</span>
+        <span class="n">detect_gen</span> <span class="o">=</span> <span class="n">yolo</span><span class="o">.</span><span class="n">detect_gid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;algo&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;pyrf&#39;</span><span class="p">]:</span>
+        <span class="kn">from</span> <span class="nn">ibeis.algo.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs] detecting using Random Forests&#39;</span><span class="p">)</span>
+        <span class="n">base_key_list</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;species&#39;</span><span class="p">],</span> <span class="p">)</span>  <span class="c1"># class == species</span>
+        <span class="n">detect_gen</span> <span class="o">=</span> <span class="n">randomforest</span><span class="o">.</span><span class="n">detect_gid_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;specified detection algo is not supported in config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="p">))</span>
+
+    <span class="c1"># yield detections</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">gpath</span><span class="p">,</span> <span class="n">result_list</span> <span class="ow">in</span> <span class="n">detect_gen</span><span class="p">:</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">yield</span> <span class="n">package_to_numpy</span><span class="p">(</span><span class="n">base_key_list</span><span class="p">,</span> <span class="n">result_list</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="LabelerConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.LabelerConfig">[docs]</a><span class="k">class</span> <span class="nc">LabelerConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;labeler_sensitivity&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">]</span>
+
+</div>
+<span class="nd">@register_preproc</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;localizations&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="s1">&#39;quality&#39;</span><span class="p">,</span> <span class="s1">&#39;orientation&#39;</span><span class="p">,</span> <span class="s1">&#39;probs&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">LabelerConfig</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;detectcache&#39;</span><span class="p">,</span>
+    <span class="n">chunksize</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+<span class="p">)</span>
+<div class="viewcode-block" id="compute_labels_localizations"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.compute_labels_localizations">[docs]</a><span class="k">def</span> <span class="nf">compute_labels_localizations</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">loc_id_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Extracts the detections for a given input image</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        depc (ibeis.depends_cache.DependencyCache):</span>
+<span class="sd">        loc_id_list (list):  list of localization rowids</span>
+<span class="sd">        config (dict): (default = None)</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        (float, str): tup</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        ibeis compute_labels_localizations</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_images import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb = &#39;PZ_MTEST&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=defaultdb)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc_image</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:100]</span>
+<span class="sd">        &gt;&gt;&gt; depc.delete_property(&#39;labeler&#39;, gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; results = depc.get_property(&#39;labeler&#39;, gid_list, None)</span>
+<span class="sd">        &gt;&gt;&gt; results = depc.get_property(&#39;labeler&#39;, gid_list, &#39;species&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; print(results)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.detect.labeler.labeler</span> <span class="kn">import</span> <span class="n">label_chip_list</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs] Process Localization Labels&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+    <span class="c1"># Get controller</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span>
+
+    <span class="n">gid_list_</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_ancestor_rowids</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">loc_id_list</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">loc_id_list</span><span class="p">)</span>
+
+    <span class="c1"># Grab the localizations</span>
+    <span class="n">bboxes_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">loc_id_list</span><span class="p">,</span> <span class="s1">&#39;bboxes&#39;</span><span class="p">)</span>
+    <span class="n">thetas_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">loc_id_list</span><span class="p">,</span> <span class="s1">&#39;thetas&#39;</span><span class="p">)</span>
+    <span class="n">gids_list</span>   <span class="o">=</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">gid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">bbox_list</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">,</span> <span class="n">bboxes_list</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Flatten all of these lists for efficiency</span>
+    <span class="n">bbox_list</span>      <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">bboxes_list</span><span class="p">)</span>
+    <span class="n">theta_list</span>     <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">thetas_list</span><span class="p">)</span>
+    <span class="n">gid_list</span>       <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">gids_list</span><span class="p">)</span>
+    <span class="n">bbox_size_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+    <span class="n">newsize_list</span>   <span class="o">=</span> <span class="p">[(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+    <span class="c1"># Checks</span>
+    <span class="n">invalid_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">h</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bbox_size_list</span><span class="p">]</span>
+    <span class="n">invalid_bboxes</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">invalid_flags</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalid_bboxes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;invalid bboxes=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">invalid_bboxes</span><span class="p">,)</span>
+
+    <span class="c1"># Build transformation from image to chip</span>
+    <span class="n">M_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">get_image_to_chip_transform</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">new_size</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">new_size</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Extract &quot;chips&quot;</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LANCZOS4</span>
+    <span class="n">borderMode</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">BORDER_CONSTANT</span>
+    <span class="n">warpkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">,</span> <span class="n">borderMode</span><span class="o">=</span><span class="n">borderMode</span><span class="p">)</span>
+
+    <span class="n">last_gid</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">chip_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">new_size</span><span class="p">,</span> <span class="n">M</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">,</span> <span class="n">M_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">gid</span> <span class="o">!=</span> <span class="n">last_gid</span><span class="p">:</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+            <span class="n">last_gid</span> <span class="o">=</span> <span class="n">gid</span>
+        <span class="n">chip</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpAffine</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">new_size</span><span class="p">),</span> <span class="o">**</span><span class="n">warpkw</span><span class="p">)</span>
+        <span class="c1"># cv2.imshow(&#39;&#39;, chip)</span>
+        <span class="c1"># cv2.waitKey()</span>
+        <span class="k">assert</span> <span class="n">chip</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">128</span> <span class="ow">and</span> <span class="n">chip</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">128</span>
+        <span class="n">chip_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chip</span><span class="p">)</span>
+
+    <span class="c1"># Get the results from the algorithm</span>
+    <span class="n">result_list</span> <span class="o">=</span> <span class="n">label_chip_list</span><span class="p">(</span><span class="n">chip_list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">result_list</span><span class="p">)</span>
+
+    <span class="c1"># Group the results</span>
+    <span class="n">group_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">result_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">gid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">group_dict</span><span class="p">:</span>
+            <span class="n">group_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">group_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">group_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="c1"># Return the results</span>
+    <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list_</span><span class="p">:</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="n">group_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span>
+        <span class="n">zipped_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">result_list</span><span class="p">)</span>
+        <span class="n">ret_tuple</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">zipped_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">zipped_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">zipped_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">zipped_list</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">zipped_list</span><span class="p">[</span><span class="mi">4</span><span class="p">]),</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">zipped_list</span><span class="p">[</span><span class="mi">5</span><span class="p">]),</span>
+        <span class="p">)</span>
+        <span class="c1"># print(ret_tuple[:-1])</span>
+        <span class="c1"># print(&#39;-------&#39;)</span>
+        <span class="k">yield</span> <span class="n">ret_tuple</span>
+
+</div>
+<div class="viewcode-block" id="DetectorConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.DetectorConfig">[docs]</a><span class="k">class</span> <span class="nc">DetectorConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;classifier_sensitivity&#39;</span><span class="p">,</span>    <span class="mf">0.82</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;localizer_config_filepath&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;localizer_weight_filepath&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;localizer_grid&#39;</span><span class="p">,</span>            <span class="bp">False</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;localizer_sensitivity&#39;</span><span class="p">,</span>     <span class="mf">0.16</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;labeler_sensitivity&#39;</span><span class="p">,</span>       <span class="mf">0.42</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ThumbnailConfig</span><span class="p">,</span>
+        <span class="n">LocalizerConfig</span><span class="p">,</span>
+    <span class="p">]</span>
+
+</div>
+<span class="nd">@register_preproc</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;detections&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;images&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="s1">&#39;bboxes&#39;</span><span class="p">,</span> <span class="s1">&#39;thetas&#39;</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="s1">&#39;viewpoints&#39;</span><span class="p">,</span> <span class="s1">&#39;confs&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">DetectorConfig</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;detectcache&#39;</span><span class="p">,</span>
+    <span class="n">chunksize</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+<span class="p">)</span>
+<div class="viewcode-block" id="compute_detections"><a class="viewcode-back" href="../../ibeis.html#ibeis.core_images.compute_detections">[docs]</a><span class="k">def</span> <span class="nf">compute_detections</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Extracts the detections for a given input image</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        depc (ibeis.depends_cache.DependencyCache):</span>
+<span class="sd">        gid_list (list):  list of image rowids</span>
+<span class="sd">        config (dict): (default = None)</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        (float, np.ndarray, np.ndarray, np.ndarray, np.ndarray): tup</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        ibeis compute_detections</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_images import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb = &#39;PZ_MTEST&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=defaultdb)</span>
+<span class="sd">        &gt;&gt;&gt; # dbdir = &#39;/Users/bluemellophone/Desktop/GGR-IBEIS-TEST/&#39;</span>
+<span class="sd">        &gt;&gt;&gt; # dbdir = &#39;/media/danger/GGR/GGR-IBEIS-TEST/&#39;</span>
+<span class="sd">        &gt;&gt;&gt; # ibs = ibeis.opendb(dbdir=dbdir)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc_image</span>
+<span class="sd">        &gt;&gt;&gt; gid_list = ibs.get_valid_gids()[0:10]</span>
+<span class="sd">        &gt;&gt;&gt; depc.delete_property(&#39;detections&#39;, gid_list)</span>
+<span class="sd">        &gt;&gt;&gt; detects = depc.get_property(&#39;detections&#39;, gid_list, None)</span>
+<span class="sd">        &gt;&gt;&gt; print(detects)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs] Preprocess Detections&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+    <span class="c1"># Get controller</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">assert_valid_gids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="c1"># Filter the gids by annotations</span>
+    <span class="n">prediction_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;classifier&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;class&#39;</span><span class="p">)</span>
+    <span class="n">confidence_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;classifier&#39;</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">)</span>
+    <span class="n">confidence_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">confidence</span> <span class="k">if</span> <span class="n">prediction</span> <span class="o">==</span> <span class="s1">&#39;positive&#39;</span> <span class="k">else</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">confidence</span>
+        <span class="k">for</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">confidence</span>  <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">prediction_list</span><span class="p">,</span> <span class="n">confidence_list</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">gid_list_</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">gid</span>
+        <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">confidence</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">confidence_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">confidence</span> <span class="o">&gt;=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;classifier_sensitivity&#39;</span><span class="p">]</span>
+    <span class="p">]</span>
+    <span class="n">gid_set_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">)</span>
+
+    <span class="c1"># Get the localizations for the good gids and add formal annotations</span>
+    <span class="n">localizer_config</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;config_filepath&#39;</span> <span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;localizer_config_filepath&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;weight_filepath&#39;</span> <span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;localizer_weight_filepath&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;grid&#39;</span>            <span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;localizer_grid&#39;</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="n">bboxes_list</span>  <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list_</span><span class="p">,</span> <span class="s1">&#39;bboxes&#39;</span><span class="p">,</span>    <span class="n">config</span><span class="o">=</span><span class="n">localizer_config</span><span class="p">)</span>
+    <span class="n">thetas_list</span>  <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list_</span><span class="p">,</span> <span class="s1">&#39;thetas&#39;</span><span class="p">,</span>    <span class="n">config</span><span class="o">=</span><span class="n">localizer_config</span><span class="p">)</span>
+    <span class="n">confses_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;localizations&#39;</span><span class="p">,</span> <span class="n">gid_list_</span><span class="p">,</span> <span class="s1">&#39;confs&#39;</span><span class="p">,</span>     <span class="n">config</span><span class="o">=</span><span class="n">localizer_config</span><span class="p">)</span>
+
+    <span class="c1"># depc.delete_property(&#39;labeler&#39;, gid_list_, config=localizer_config)</span>
+    <span class="n">specieses_list</span>     <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">gid_list_</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span>   <span class="n">config</span><span class="o">=</span><span class="n">localizer_config</span><span class="p">)</span>
+    <span class="n">viewpoints_list</span>    <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">gid_list_</span><span class="p">,</span> <span class="s1">&#39;viewpoint&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">localizer_config</span><span class="p">)</span>
+    <span class="n">scores_list</span>        <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s1">&#39;labeler&#39;</span><span class="p">,</span> <span class="n">gid_list_</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">,</span>     <span class="n">config</span><span class="o">=</span><span class="n">localizer_config</span><span class="p">)</span>
+
+    <span class="c1"># Collect the detections, filtering by the localization confidence</span>
+    <span class="n">empty_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])]</span>
+    <span class="n">detect_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gid_list_</span><span class="p">):</span>
+        <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">bboxes_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">theta_list</span> <span class="o">=</span> <span class="n">thetas_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="n">specieses_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="c1"># species_dict = {}</span>
+        <span class="c1"># for species in species_list:</span>
+        <span class="c1">#     if species not in species_dict:</span>
+        <span class="c1">#         species_dict[species] = 0</span>
+        <span class="c1">#     species_dict[species] += 1</span>
+        <span class="c1"># for tup in species_dict.iteritems():</span>
+        <span class="c1">#     print(&#39;\t%r&#39; % (tup, ))</span>
+        <span class="c1"># print(&#39;----&#39;)</span>
+        <span class="n">viewpoint_list</span> <span class="o">=</span> <span class="n">viewpoints_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">conf_list</span> <span class="o">=</span> <span class="n">confses_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">score_list</span> <span class="o">=</span> <span class="n">scores_list</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">species_list</span><span class="p">,</span> <span class="n">viewpoint_list</span><span class="p">,</span> <span class="n">conf_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">)</span>
+        <span class="n">zipped</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,</span> <span class="n">conf</span> <span class="o">*</span> <span class="n">score</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">viewpoint</span><span class="p">,</span> <span class="n">conf</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">zipped</span>
+            <span class="k">if</span> <span class="n">conf</span> <span class="o">&gt;=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;localizer_sensitivity&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;labeler_sensitivity&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="nb">max</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="nb">min</span><span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">20.0</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zipped</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">detect_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">empty_list</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">detect_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">zipped</span><span class="p">)]</span>
+        <span class="n">detect_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span> <span class="o">=</span> <span class="n">detect_list</span>
+
+    <span class="c1"># Filter the annotations by the localizer operating point</span>
+    <span class="k">for</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">gid_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">gid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">gid_set_</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">gid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">detect_dict</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">empty_list</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">gid</span> <span class="ow">in</span> <span class="n">detect_dict</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">detect_dict</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span>
+        <span class="c1"># print(result)</span>
+        <span class="c1"># raw_input()</span>
+        <span class="c1"># print(&#39;&#39;)</span>
+        <span class="c1"># image = ibs.get_images(gid)</span>
+        <span class="c1"># image = vt.resize(image, (500, 500))</span>
+        <span class="c1"># cv2.imshow(&#39;&#39;, image)</span>
+        <span class="c1"># cv2.waitKey(0)</span>
+        <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.core_images</span>
+<span class="sd">        python -m ibeis.core_images --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.5.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

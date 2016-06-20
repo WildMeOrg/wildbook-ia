@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.smk.smk_plots &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.hots.smk.smk_plots &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots.smk" href="../smk.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -135,8 +135,8 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.hots.smk.smk_plots</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python</span>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Algorithm:</span>
 <span class="sd">    Feature Weighting</span>
@@ -158,10 +158,10 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
 <span class="kn">import</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">as</span> <span class="nn">spdist</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[smk_plots]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[smk_plots]&#39;</span><span class="p">)</span>
 
 
-<span class="n">Metrics</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;Metrics&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;wx2_nMembers&#39;</span><span class="p">,</span> <span class="s">&#39;wx2_pdist_stats&#39;</span><span class="p">,</span> <span class="s">&#39;wx2_wdist_stats&#39;</span><span class="p">,))</span>
+<span class="n">Metrics</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Metrics&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;wx2_nMembers&#39;</span><span class="p">,</span> <span class="s1">&#39;wx2_pdist_stats&#39;</span><span class="p">,</span> <span class="s1">&#39;wx2_wdist_stats&#39;</span><span class="p">,))</span>
 
 
 <div class="viewcode-block" id="vizualize_vocabulary"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_plots.vizualize_vocabulary">[docs]</a><span class="k">def</span> <span class="nf">vizualize_vocabulary</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">invindex</span><span class="p">):</span>
@@ -187,26 +187,26 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span><span class="p">)</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_plots] Vizualizing vocabulary&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[smk_plots] Vizualizing vocabulary&#39;</span><span class="p">)</span>
 
-    <span class="c"># DUMPING PART --- dumps patches to disk</span>
+    <span class="c1"># DUMPING PART --- dumps patches to disk</span>
     <span class="n">figdir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_fig_dir</span><span class="p">()</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">figdir</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--vf&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--vf&#39;</span><span class="p">):</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">view_directory</span><span class="p">(</span><span class="n">figdir</span><span class="p">)</span>
 
-    <span class="c"># Compute Word Statistics</span>
+    <span class="c1"># Compute Word Statistics</span>
     <span class="n">metrics</span> <span class="o">=</span> <span class="n">compute_word_metrics</span><span class="p">(</span><span class="n">invindex</span><span class="p">)</span>
     <span class="n">wx2_nMembers</span><span class="p">,</span> <span class="n">wx2_pdist_stats</span><span class="p">,</span> <span class="n">wx2_wdist_stats</span> <span class="o">=</span> <span class="n">metrics</span>
-    <span class="c">#(wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats) = metrics</span>
+    <span class="c1">#(wx2_pdist, wx2_wdist, wx2_nMembers, wx2_pdist_stats, wx2_wdist_stats) = metrics</span>
 
-    <span class="c">#wx2_prad = {wx: pdist_stats[&#39;max&#39;] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if &#39;max&#39; in pdist_stats}</span>
-    <span class="c">#wx2_wrad = {wx: wdist_stats[&#39;max&#39;] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if &#39;max&#39; in wdist_stats}</span>
+    <span class="c1">#wx2_prad = {wx: pdist_stats[&#39;max&#39;] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if &#39;max&#39; in pdist_stats}</span>
+    <span class="c1">#wx2_wrad = {wx: wdist_stats[&#39;max&#39;] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if &#39;max&#39; in wdist_stats}</span>
 
-    <span class="n">wx2_prad</span> <span class="o">=</span> <span class="p">{</span><span class="n">wx</span><span class="p">:</span> <span class="n">stats</span><span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">wx2_pdist_stats</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s">&#39;max&#39;</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">}</span>
-    <span class="n">wx2_wrad</span> <span class="o">=</span> <span class="p">{</span><span class="n">wx</span><span class="p">:</span> <span class="n">stats</span><span class="p">[</span><span class="s">&#39;max&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">wx2_wdist_stats</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s">&#39;max&#39;</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">}</span>
-    <span class="c">#wx2_prad = get_metric(metrics, &#39;wx2_pdist_stats&#39;, &#39;max&#39;)</span>
-    <span class="c">#wx2_wrad = get_metric(metrics, &#39;wx2_wdist_stats&#39;, &#39;max&#39;)</span>
+    <span class="n">wx2_prad</span> <span class="o">=</span> <span class="p">{</span><span class="n">wx</span><span class="p">:</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">wx2_pdist_stats</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s1">&#39;max&#39;</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">}</span>
+    <span class="n">wx2_wrad</span> <span class="o">=</span> <span class="p">{</span><span class="n">wx</span><span class="p">:</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">wx2_wdist_stats</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s1">&#39;max&#39;</span> <span class="ow">in</span> <span class="n">stats</span><span class="p">}</span>
+    <span class="c1">#wx2_prad = get_metric(metrics, &#39;wx2_pdist_stats&#39;, &#39;max&#39;)</span>
+    <span class="c1">#wx2_wrad = get_metric(metrics, &#39;wx2_wdist_stats&#39;, &#39;max&#39;)</span>
 
     <span class="n">wx_sample1</span> <span class="o">=</span> <span class="n">select_by_metric</span><span class="p">(</span><span class="n">wx2_nMembers</span><span class="p">)</span>
     <span class="n">wx_sample2</span> <span class="o">=</span> <span class="n">select_by_metric</span><span class="p">(</span><span class="n">wx2_prad</span><span class="p">)</span>
@@ -214,13 +214,13 @@
 
     <span class="n">wx_sample</span> <span class="o">=</span> <span class="n">wx_sample1</span> <span class="o">+</span> <span class="n">wx_sample2</span> <span class="o">+</span> <span class="n">wx_sample3</span>
     <span class="n">overlap123</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;overlap123 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">overlap123</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;overlap123 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">overlap123</span><span class="p">)</span>
     <span class="n">wx_sample</span>  <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;len(wx_sample) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;len(wx_sample) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">))</span>
 
-    <span class="c">#make_scatterplots(ibs, figdir, invindex, metrics)</span>
+    <span class="c1">#make_scatterplots(ibs, figdir, invindex, metrics)</span>
 
-    <span class="n">vocabdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="s">&#39;vocab_patches2&#39;</span><span class="p">)</span>
+    <span class="n">vocabdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="s1">&#39;vocab_patches2&#39;</span><span class="p">)</span>
     <span class="n">wx2_dpath</span> <span class="o">=</span> <span class="n">get_word_dpaths</span><span class="p">(</span><span class="n">vocabdir</span><span class="p">,</span> <span class="n">wx_sample</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span>
 
     <span class="n">make_wordfigures</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">figdir</span><span class="p">,</span> <span class="n">wx_sample</span><span class="p">,</span> <span class="n">wx2_dpath</span><span class="p">)</span>
@@ -243,7 +243,7 @@
             <span class="n">stat_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">wx2_metric</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_list</span><span class="p">])</span>
         <span class="n">stat_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">negative_minclamp_inplace</span><span class="p">(</span><span class="n">stat_list</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">])</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">stat_list</span>
 
 </div>
@@ -257,36 +257,36 @@
     <span class="n">wx2_nMembers</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">wx2_pdist_stats</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">wx2_wdist_stats</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">wordidx_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Word Dists: &#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+    <span class="n">wordidx_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;Word Dists: &#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">_item</span> <span class="ow">in</span> <span class="n">wordidx_iter</span><span class="p">:</span>
         <span class="n">wx</span><span class="p">,</span> <span class="n">idxs</span> <span class="o">=</span> <span class="n">_item</span>
         <span class="n">dvecs</span> <span class="o">=</span> <span class="n">idx2_dvec</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">word</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="n">wx</span><span class="p">:</span><span class="n">wx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="n">wx2_pdist</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="o">=</span> <span class="n">spdist</span><span class="o">.</span><span class="n">pdist</span><span class="p">(</span><span class="n">dvecs</span><span class="p">)</span>  <span class="c"># pairwise dist between words</span>
-        <span class="n">wx2_wdist</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">euclidean_dist</span><span class="p">(</span><span class="n">dvecs</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>  <span class="c"># dist to word center</span>
+        <span class="n">wx2_pdist</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="o">=</span> <span class="n">spdist</span><span class="o">.</span><span class="n">pdist</span><span class="p">(</span><span class="n">dvecs</span><span class="p">)</span>  <span class="c1"># pairwise dist between words</span>
+        <span class="n">wx2_wdist</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">euclidean_dist</span><span class="p">(</span><span class="n">dvecs</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>  <span class="c1"># dist to word center</span>
         <span class="n">wx2_nMembers</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">pdist</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">wx2_pdist</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Word pdist Stats: &#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">2000</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">pdist</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">wx2_pdist</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;Word pdist Stats: &#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">2000</span><span class="p">):</span>
         <span class="n">wx2_pdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">pdist</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">wdist</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">wx2_wdist</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Word wdist Stats: &#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">2000</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">wdist</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">wx2_wdist</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;Word wdist Stats: &#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">wx2_idxs</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">2000</span><span class="p">):</span>
         <span class="n">wx2_wdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">wdist</span><span class="p">)</span>
 
-    <span class="n">ut</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="n">wx2_nMembers</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="s">&#39;word members&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="n">wx2_nMembers</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="s1">&#39;word members&#39;</span><span class="p">)</span>
     <span class="n">metrics</span> <span class="o">=</span> <span class="n">Metrics</span><span class="p">(</span><span class="n">wx2_nMembers</span><span class="p">,</span> <span class="n">wx2_pdist_stats</span><span class="p">,</span> <span class="n">wx2_wdist_stats</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">metrics</span>
-    <span class="c">#word_pdist = spdist.pdist(invindex.words)</span>
+    <span class="c1">#word_pdist = spdist.pdist(invindex.words)</span>
 
 </div>
 <div class="viewcode-block" id="draw_scatterplot"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_plots.draw_scatterplot">[docs]</a><span class="k">def</span> <span class="nf">draw_scatterplot</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">datax</span><span class="p">,</span> <span class="n">datay</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">df2</span>
     <span class="n">datac</span> <span class="o">=</span> <span class="p">[</span><span class="n">color</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">datax</span><span class="p">))]</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">datax</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">datay</span><span class="p">),</span> <span class="s">&#39;</span><span class="si">%r</span><span class="s"> </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">datax</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">datay</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">datax</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">datay</span><span class="p">),</span> <span class="s1">&#39;</span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">datax</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">datay</span><span class="p">))</span>
     <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">df2</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">datax</span><span class="p">,</span> <span class="n">datay</span><span class="p">,</span>  <span class="n">c</span><span class="o">=</span><span class="n">datac</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s">&#39;o&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">9</span><span class="p">)</span>
+    <span class="n">df2</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">datax</span><span class="p">,</span> <span class="n">datay</span><span class="p">,</span>  <span class="n">c</span><span class="o">=</span><span class="n">datac</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">9</span><span class="p">)</span>
     <span class="n">ax</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
-    <span class="n">title</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> vs </span><span class="si">%s</span><span class="s">.</span><span class="se">\n</span><span class="s">nWords=</span><span class="si">%r</span><span class="s">. db=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">datax</span><span class="p">),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">())</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> vs </span><span class="si">%s</span><span class="s1">.</span><span class="se">\n</span><span class="s1">nWords=</span><span class="si">%r</span><span class="s1">. db=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">datax</span><span class="p">),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">())</span>
     <span class="n">df2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
     <span class="n">df2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">datay</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">datay</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
@@ -303,20 +303,20 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">wx2_dpath</span> <span class="o">=</span> <span class="n">get_word_dpaths</span><span class="p">(</span><span class="n">vocabdir</span><span class="p">,</span> <span class="n">wx_sample</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span>
 
-    <span class="c"># Write each patch from each annotation to disk</span>
+    <span class="c1"># Write each patch from each annotation to disk</span>
     <span class="n">idx2_daid</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_daid</span>
     <span class="n">daids</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">daids</span>
     <span class="n">idx2_dfx</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dfx</span>
-    <span class="c">#maws_list = invindex.idx2_wxs[idxs]</span>
+    <span class="c1">#maws_list = invindex.idx2_wxs[idxs]</span>
 
-    <span class="c"># Loop over all annotations skipping the ones without any words in the sample</span>
-    <span class="n">ax2_idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">idx2_daid</span> <span class="o">==</span> <span class="n">aid_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">aid_</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="s">&#39;Building Forward Index: &#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">100</span><span class="p">)]</span>
+    <span class="c1"># Loop over all annotations skipping the ones without any words in the sample</span>
+    <span class="n">ax2_idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">idx2_daid</span> <span class="o">==</span> <span class="n">aid_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">aid_</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="s1">&#39;Building Forward Index: &#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">100</span><span class="p">)]</span>
     <span class="n">patchdump_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">daids</span><span class="p">,</span> <span class="n">ax2_idxs</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                                    <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Dumping Selected Patches: &#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">))</span>
+                                    <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;Dumping Selected Patches: &#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">patchdump_iter</span><span class="p">:</span>
         <span class="n">wxs_list</span>  <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">wxs_list</span><span class="p">))</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wx_sample</span><span class="p">)))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c"># skip this annotation</span>
+            <span class="c1"># skip this annotation</span>
             <span class="k">continue</span>
         <span class="n">fx_list</span>   <span class="o">=</span> <span class="n">idx2_dfx</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span>
         <span class="n">chip</span>      <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
@@ -324,24 +324,24 @@
         <span class="n">nid</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
         <span class="n">patches</span><span class="p">,</span> <span class="n">subkpts</span> <span class="o">=</span> <span class="n">ptool</span><span class="o">.</span><span class="n">get_warped_patches</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">chip_kpts</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">fx</span><span class="p">,</span> <span class="n">wxs</span><span class="p">,</span> <span class="n">patch</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fx_list</span><span class="p">,</span> <span class="n">wxs_list</span><span class="p">,</span> <span class="n">patches</span><span class="p">):</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">wxs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;did you multiassign the database? If so implement it here too&#39;</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">wxs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;did you multiassign the database? If so implement it here too&#39;</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">wx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">wxs</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">wx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">wx_sample</span><span class="p">:</span>
                     <span class="k">continue</span>
-                <span class="n">patch_fname</span> <span class="o">=</span> <span class="s">&#39;patch_nid=</span><span class="si">%04d</span><span class="s">_aid=</span><span class="si">%04d</span><span class="s">_fx=</span><span class="si">%04d</span><span class="s">_k=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                <span class="n">patch_fname</span> <span class="o">=</span> <span class="s1">&#39;patch_nid=</span><span class="si">%04d</span><span class="s1">_aid=</span><span class="si">%04d</span><span class="s1">_fx=</span><span class="si">%04d</span><span class="s1">_k=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
                 <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">wx2_dpath</span><span class="p">[</span><span class="n">wx</span><span class="p">],</span> <span class="n">patch_fname</span><span class="p">)</span>
-                <span class="c">#gtool.imwrite(fpath, patch, fallback=True)</span>
+                <span class="c1">#gtool.imwrite(fpath, patch, fallback=True)</span>
                 <span class="n">gtool</span><span class="o">.</span><span class="n">imwrite_fallback</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">patch</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="get_word_dname"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_plots.get_word_dname">[docs]</a><span class="k">def</span> <span class="nf">get_word_dname</span><span class="p">(</span><span class="n">wx</span><span class="p">,</span> <span class="n">metrics</span><span class="p">):</span>
     <span class="n">stats_</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">wx2_wdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>
-    <span class="n">wname_clean</span> <span class="o">=</span> <span class="s">&#39;wx=</span><span class="si">%06d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">wx</span>
-    <span class="n">stats1</span> <span class="o">=</span> <span class="s">&#39;max={max},min={min},mean={mean},&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">stats_</span><span class="p">)</span>
-    <span class="n">stats2</span> <span class="o">=</span> <span class="s">&#39;std={std},nMaxMin=({nMax},{nMin}),shape={shape}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">stats_</span><span class="p">)</span>
-    <span class="n">fname_fmt</span> <span class="o">=</span> <span class="n">wname_clean</span> <span class="o">+</span> <span class="s">&#39;_{stats1}{stats2}&#39;</span>
+    <span class="n">wname_clean</span> <span class="o">=</span> <span class="s1">&#39;wx=</span><span class="si">%06d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">wx</span>
+    <span class="n">stats1</span> <span class="o">=</span> <span class="s1">&#39;max={max},min={min},mean={mean},&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">stats_</span><span class="p">)</span>
+    <span class="n">stats2</span> <span class="o">=</span> <span class="s1">&#39;std={std},nMaxMin=({nMax},{nMin}),shape={shape}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">stats_</span><span class="p">)</span>
+    <span class="n">fname_fmt</span> <span class="o">=</span> <span class="n">wname_clean</span> <span class="o">+</span> <span class="s1">&#39;_{stats1}{stats2}&#39;</span>
     <span class="n">fmt_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">stats1</span><span class="o">=</span><span class="n">stats1</span><span class="p">,</span> <span class="n">stats2</span><span class="o">=</span><span class="n">stats2</span><span class="p">)</span>
-    <span class="n">word_dname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">long_fname_format</span><span class="p">(</span><span class="n">fname_fmt</span><span class="p">,</span> <span class="n">fmt_dict</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;stats2&#39;</span><span class="p">,</span> <span class="s">&#39;stats1&#39;</span><span class="p">],</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">hashlen</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">word_dname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">long_fname_format</span><span class="p">(</span><span class="n">fname_fmt</span><span class="p">,</span> <span class="n">fmt_dict</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;stats2&#39;</span><span class="p">,</span> <span class="s1">&#39;stats1&#39;</span><span class="p">],</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">hashlen</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">word_dname</span>
 
 </div>
@@ -351,14 +351,14 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">vocabdir</span><span class="p">)</span>
     <span class="n">wx2_dpath</span> <span class="o">=</span> <span class="p">{</span><span class="n">wx</span><span class="p">:</span> <span class="n">join</span><span class="p">(</span><span class="n">vocabdir</span><span class="p">,</span> <span class="n">get_word_dname</span><span class="p">(</span><span class="n">wx</span><span class="p">,</span> <span class="n">metrics</span><span class="p">))</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sample</span><span class="p">}</span>
-    <span class="n">iter_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">wx2_dpath</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Ensuring word_dpath: &#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+    <span class="n">iter_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="n">wx2_dpath</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;Ensuring word_dpath: &#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">dpath</span> <span class="ow">in</span> <span class="n">iter_</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wx2_dpath</span>
 
 </div>
 <div class="viewcode-block" id="select_by_metric"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_plots.select_by_metric">[docs]</a><span class="k">def</span> <span class="nf">select_by_metric</span><span class="p">(</span><span class="n">wx2_metric</span><span class="p">,</span> <span class="n">per_quantile</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
-    <span class="c"># sample a few words around the quantile points</span>
+    <span class="c1"># sample a few words around the quantile points</span>
     <span class="n">metric_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">wx2_metric</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
     <span class="n">wx_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">wx2_metric</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
     <span class="n">metric_quantiles</span> <span class="o">=</span> <span class="n">spms</span><span class="o">.</span><span class="n">mquantiles</span><span class="p">(</span><span class="n">metric_list</span><span class="p">)</span>
@@ -370,7 +370,7 @@
         <span class="n">wx_interest</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">wx_quantile</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
     <span class="n">overlap</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wx_interest</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">wx_interest</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">overlap</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;warning: overlap=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">overlap</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;warning: overlap=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">overlap</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wx_interest</span>
 
 </div>
@@ -381,8 +381,8 @@
         <span class="k">return</span> <span class="n">wx2_submetric</span>
     <span class="k">return</span> <span class="n">wx2_metric</span>
 
-<span class="c">#{wx: pdist_stats[&#39;max&#39;] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if &#39;max&#39; in pdist_stats}</span>
-<span class="c">#wx2_wrad = {wx: wdist_stats[&#39;max&#39;] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if &#39;max&#39; in wdist_stats}</span>
+<span class="c1">#{wx: pdist_stats[&#39;max&#39;] for wx, pdist_stats in six.iteritems(wx2_pdist_stats) if &#39;max&#39; in pdist_stats}</span>
+<span class="c1">#wx2_wrad = {wx: wdist_stats[&#39;max&#39;] for wx, wdist_stats in six.iteritems(wx2_wdist_stats) if &#39;max&#39; in wdist_stats}</span>
 
 </div>
 <div class="viewcode-block" id="make_scatterplots"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_plots.make_scatterplots">[docs]</a><span class="k">def</span> <span class="nf">make_scatterplots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">figdir</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">metrics</span><span class="p">):</span>
@@ -392,13 +392,13 @@
     <span class="n">wx2_nMembers</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">wx2_nMembers</span>
 
     <span class="k">def</span> <span class="nf">wx2_avepdist</span><span class="p">(</span><span class="n">wx</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">wx2_pdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">][</span><span class="s">&#39;mean&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx2_pdist_stats</span> <span class="ow">and</span> <span class="s">&#39;mean&#39;</span> <span class="ow">in</span> <span class="n">wx2_pdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="n">wx2_pdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">][</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx2_pdist_stats</span> <span class="ow">and</span> <span class="s1">&#39;mean&#39;</span> <span class="ow">in</span> <span class="n">wx2_pdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
     <span class="k">def</span> <span class="nf">wx2_avewdist</span><span class="p">(</span><span class="n">wx</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">wx2_wdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">][</span><span class="s">&#39;mean&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx2_wdist_stats</span> <span class="ow">and</span> <span class="s">&#39;mean&#39;</span> <span class="ow">in</span> <span class="n">wx2_wdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="n">wx2_wdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">][</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx2_wdist_stats</span> <span class="ow">and</span> <span class="s1">&#39;mean&#39;</span> <span class="ow">in</span> <span class="n">wx2_wdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
 
     <span class="n">wx2_idf</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idf</span>
 
-    <span class="c"># data</span>
+    <span class="c1"># data</span>
     <span class="n">wx_list</span>  <span class="o">=</span>  <span class="nb">list</span><span class="p">(</span><span class="n">wx2_idf</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="n">idf_list</span> <span class="o">=</span>  <span class="p">[</span><span class="n">wx2_idf</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_list</span><span class="p">]</span>
     <span class="n">nPoints_list</span> <span class="o">=</span>  <span class="p">[</span><span class="n">wx2_nMembers</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span> <span class="k">if</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx2_nMembers</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_list</span><span class="p">]</span>
@@ -406,13 +406,13 @@
     <span class="n">avewdist_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">wx2_avewdist</span><span class="p">(</span><span class="n">wx</span><span class="p">)</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_list</span><span class="p">]</span>
 
     <span class="n">df2</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-    <span class="n">draw_scatterplot</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">avepdist_list</span><span class="p">,</span> <span class="s">&#39;idf&#39;</span><span class="p">,</span> <span class="s">&#39;mean(pdist)&#39;</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">WHITE</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">draw_scatterplot</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">avewdist_list</span><span class="p">,</span> <span class="s">&#39;idf&#39;</span><span class="p">,</span> <span class="s">&#39;mean(wdist)&#39;</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">PINK</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-    <span class="n">draw_scatterplot</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">nPoints_list</span><span class="p">,</span> <span class="n">avepdist_list</span><span class="p">,</span> <span class="s">&#39;nPointsInWord&#39;</span><span class="p">,</span> <span class="s">&#39;mean(pdist)&#39;</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">GREEN</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-    <span class="n">draw_scatterplot</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">avepdist_list</span><span class="p">,</span> <span class="n">avewdist_list</span><span class="p">,</span> <span class="s">&#39;mean(pdist)&#39;</span><span class="p">,</span> <span class="s">&#39;mean(wdist)&#39;</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">YELLOW</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-    <span class="n">draw_scatterplot</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">nPoints_list</span><span class="p">,</span> <span class="n">avewdist_list</span><span class="p">,</span> <span class="s">&#39;nPointsInWord&#39;</span><span class="p">,</span> <span class="s">&#39;mean(wdist)&#39;</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">ORANGE</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-    <span class="n">draw_scatterplot</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">nPoints_list</span><span class="p">,</span> <span class="s">&#39;idf&#39;</span><span class="p">,</span> <span class="s">&#39;nPointsInWord&#39;</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">LIGHT_BLUE</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
-    <span class="c">#df2.present()</span>
+    <span class="n">draw_scatterplot</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">avepdist_list</span><span class="p">,</span> <span class="s1">&#39;idf&#39;</span><span class="p">,</span> <span class="s1">&#39;mean(pdist)&#39;</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">WHITE</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">draw_scatterplot</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">avewdist_list</span><span class="p">,</span> <span class="s1">&#39;idf&#39;</span><span class="p">,</span> <span class="s1">&#39;mean(wdist)&#39;</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">PINK</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">draw_scatterplot</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">nPoints_list</span><span class="p">,</span> <span class="n">avepdist_list</span><span class="p">,</span> <span class="s1">&#39;nPointsInWord&#39;</span><span class="p">,</span> <span class="s1">&#39;mean(pdist)&#39;</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">GREEN</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">draw_scatterplot</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">avepdist_list</span><span class="p">,</span> <span class="n">avewdist_list</span><span class="p">,</span> <span class="s1">&#39;mean(pdist)&#39;</span><span class="p">,</span> <span class="s1">&#39;mean(wdist)&#39;</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">YELLOW</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">draw_scatterplot</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">nPoints_list</span><span class="p">,</span> <span class="n">avewdist_list</span><span class="p">,</span> <span class="s1">&#39;nPointsInWord&#39;</span><span class="p">,</span> <span class="s1">&#39;mean(wdist)&#39;</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">ORANGE</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">draw_scatterplot</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">idf_list</span><span class="p">,</span> <span class="n">nPoints_list</span><span class="p">,</span> <span class="s1">&#39;idf&#39;</span><span class="p">,</span> <span class="s1">&#39;nPointsInWord&#39;</span><span class="p">,</span> <span class="n">df2</span><span class="o">.</span><span class="n">LIGHT_BLUE</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+    <span class="c1">#df2.present()</span>
 
 </div>
 <div class="viewcode-block" id="make_wordfigures"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_plots.make_wordfigures">[docs]</a><span class="k">def</span> <span class="nf">make_wordfigures</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">figdir</span><span class="p">,</span> <span class="n">wx_sample</span><span class="p">,</span> <span class="n">wx2_dpath</span><span class="p">):</span>
@@ -424,30 +424,30 @@
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
     <span class="kn">import</span> <span class="nn">parse</span>
 
-    <span class="n">vocabdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="s">&#39;vocab_patches2&#39;</span><span class="p">)</span>
+    <span class="n">vocabdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">figdir</span><span class="p">,</span> <span class="s1">&#39;vocab_patches2&#39;</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">vocabdir</span><span class="p">)</span>
     <span class="n">dump_word_patches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">vocabdir</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">wx_sample</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span>
 
-    <span class="c"># COLLECTING PART --- collects patches in word folders</span>
-    <span class="c">#vocabdir</span>
+    <span class="c1"># COLLECTING PART --- collects patches in word folders</span>
+    <span class="c1">#vocabdir</span>
 
-    <span class="n">seldpath</span> <span class="o">=</span> <span class="n">vocabdir</span> <span class="o">+</span> <span class="s">&#39;_selected&#39;</span>
+    <span class="n">seldpath</span> <span class="o">=</span> <span class="n">vocabdir</span> <span class="o">+</span> <span class="s1">&#39;_selected&#39;</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensurepath</span><span class="p">(</span><span class="n">seldpath</span><span class="p">)</span>
-    <span class="c"># stack for show</span>
-    <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">dpath</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">wx2_dpath</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Dumping Word Images:&#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">wx2_dpath</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">backspace</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-        <span class="c">#df2.rrr()</span>
+    <span class="c1"># stack for show</span>
+    <span class="k">for</span> <span class="n">wx</span><span class="p">,</span> <span class="n">dpath</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">progiter</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">wx2_dpath</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;Dumping Word Images:&#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">wx2_dpath</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">backspace</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="c1">#df2.rrr()</span>
         <span class="n">fpath_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ls</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span>
         <span class="n">fname_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">basename</span><span class="p">(</span><span class="n">fpath_</span><span class="p">)</span> <span class="k">for</span> <span class="n">fpath_</span> <span class="ow">in</span> <span class="n">fpath_list</span><span class="p">]</span>
-        <span class="n">patch_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">gtool</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">fpath_</span><span class="p">)</span> <span class="k">for</span> <span class="n">fpath_</span> <span class="ow">in</span> <span class="n">fpath_list</span><span class="p">]</span>
-        <span class="c"># color each patch by nid</span>
-        <span class="n">nid_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">parse</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s">&#39;{}_nid={nid}_{}&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="p">)[</span><span class="s">&#39;nid&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">fname_list</span><span class="p">]</span>
+        <span class="n">patch_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">fpath_</span><span class="p">)</span> <span class="k">for</span> <span class="n">fpath_</span> <span class="ow">in</span> <span class="n">fpath_list</span><span class="p">]</span>
+        <span class="c1"># color each patch by nid</span>
+        <span class="n">nid_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">parse</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s1">&#39;{}_nid={nid}_{}&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="p">)[</span><span class="s1">&#39;nid&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">fname_list</span><span class="p">]</span>
         <span class="n">nid_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
         <span class="n">nid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid_set</span><span class="p">):</span>
-            <span class="c"># no duplicate names</span>
+            <span class="c1"># no duplicate names</span>
             <span class="n">newpatch_list</span> <span class="o">=</span> <span class="n">patch_list</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c"># duplicate names. do coloring</span>
+            <span class="c1"># duplicate names. do coloring</span>
             <span class="n">sortx</span> <span class="o">=</span> <span class="n">nid_list</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
             <span class="n">patch_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">patch_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)[</span><span class="n">sortx</span><span class="p">]</span>
             <span class="n">fname_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fname_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)[</span><span class="n">sortx</span><span class="p">]</span>
@@ -460,44 +460,44 @@
             <span class="n">newpatch_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span> <span class="n">color</span><span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">]</span> <span class="k">for</span> <span class="n">shape</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">newshape_list</span><span class="p">,</span> <span class="n">color_list</span><span class="p">)]</span>
             <span class="k">for</span> <span class="n">patch</span><span class="p">,</span> <span class="n">newpatch</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">patch_list</span><span class="p">,</span> <span class="n">newpatch_list</span><span class="p">):</span>
                 <span class="n">newpatch</span><span class="p">[</span><span class="n">wpad</span><span class="p">:</span><span class="o">-</span><span class="n">wpad</span><span class="p">,</span> <span class="n">hpad</span><span class="p">:</span><span class="o">-</span><span class="n">hpad</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">patch</span>
-            <span class="c">#img_list = patch_list</span>
-            <span class="c">#bigpatch = vt.stack_image_recurse(patch_list)</span>
-        <span class="c">#bigpatch = vt.stack_image_list(patch_list, vert=False)</span>
+            <span class="c1">#img_list = patch_list</span>
+            <span class="c1">#bigpatch = vt.stack_image_recurse(patch_list)</span>
+        <span class="c1">#bigpatch = vt.stack_image_list(patch_list, vert=False)</span>
         <span class="n">bigpatch</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">stack_square_images</span><span class="p">(</span><span class="n">newpatch_list</span><span class="p">)</span>
-        <span class="n">bigpatch_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">seldpath</span><span class="p">,</span> <span class="n">basename</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_patches.png&#39;</span><span class="p">)</span>
+        <span class="n">bigpatch_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">seldpath</span><span class="p">,</span> <span class="n">basename</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_patches.png&#39;</span><span class="p">)</span>
 
-        <span class="c">#</span>
+        <span class="c1">#</span>
         <span class="k">def</span> <span class="nf">_dictstr</span><span class="p">(</span><span class="n">dict_</span><span class="p">):</span>
             <span class="n">str_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">dict_</span><span class="p">,</span> <span class="n">newlines</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-            <span class="n">str_</span> <span class="o">=</span> <span class="n">str_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;: &#39;</span><span class="p">,</span> <span class="s">&#39;=&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;{},&#39;</span><span class="p">)</span>
+            <span class="n">str_</span> <span class="o">=</span> <span class="n">str_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;{},&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">str_</span>
 
-        <span class="n">figtitle</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
-            <span class="s">&#39;wx=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">wx</span><span class="p">,</span>
-            <span class="s">&#39;stat(pdist): </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">_dictstr</span><span class="p">(</span><span class="n">metrics</span><span class="o">.</span><span class="n">wx2_pdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">]),</span>
-            <span class="s">&#39;stat(wdist): </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">_dictstr</span><span class="p">(</span><span class="n">metrics</span><span class="o">.</span><span class="n">wx2_wdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">]),</span>
+        <span class="n">figtitle</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="s1">&#39;wx=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">wx</span><span class="p">,</span>
+            <span class="s1">&#39;stat(pdist): </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_dictstr</span><span class="p">(</span><span class="n">metrics</span><span class="o">.</span><span class="n">wx2_pdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">]),</span>
+            <span class="s1">&#39;stat(wdist): </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_dictstr</span><span class="p">(</span><span class="n">metrics</span><span class="o">.</span><span class="n">wx2_wdist_stats</span><span class="p">[</span><span class="n">wx</span><span class="p">]),</span>
         <span class="p">])</span>
         <span class="n">metrics</span><span class="o">.</span><span class="n">wx2_nMembers</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>
 
         <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">bigpatch</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="n">figtitle</span><span class="p">)</span>
-        <span class="c">#fig.show()</span>
+        <span class="c1">#fig.show()</span>
         <span class="n">df2</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
         <span class="n">df2</span><span class="o">.</span><span class="n">adjust_subplots</span><span class="p">(</span><span class="n">top</span><span class="o">=.</span><span class="mi">878</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">df2</span><span class="o">.</span><span class="n">save_figure</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bigpatch_fpath</span><span class="p">)</span>
-        <span class="c">#gtool.imwrite(bigpatch_fpath, bigpatch)</span>
+        <span class="c1">#gtool.imwrite(bigpatch_fpath, bigpatch)</span>
 
 </div>
 <div class="viewcode-block" id="get_cached_vocabs"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_plots.get_cached_vocabs">[docs]</a><span class="k">def</span> <span class="nf">get_cached_vocabs</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">parse</span>
-    <span class="c"># Parse some of the training data from fname</span>
-    <span class="n">parse_str</span> <span class="o">=</span> <span class="s">&#39;{}nC={num_cent},{}_DPTS(({num_dpts},{dim}){}&#39;</span>
-    <span class="n">smkdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;smk&#39;</span><span class="p">)</span>
-    <span class="n">fname_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">smkdir</span><span class="p">,</span> <span class="s">&#39;akmeans*&#39;</span><span class="p">)</span>
+    <span class="c1"># Parse some of the training data from fname</span>
+    <span class="n">parse_str</span> <span class="o">=</span> <span class="s1">&#39;{}nC={num_cent},{}_DPTS(({num_dpts},{dim}){}&#39;</span>
+    <span class="n">smkdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s1">&#39;smk&#39;</span><span class="p">)</span>
+    <span class="n">fname_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">smkdir</span><span class="p">,</span> <span class="s1">&#39;akmeans*&#39;</span><span class="p">)</span>
     <span class="n">fpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">smkdir</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span> <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">fname_list</span><span class="p">]</span>
     <span class="n">result_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">parse</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">parse_str</span><span class="p">,</span> <span class="n">fpath</span><span class="p">)</span> <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">fpath_list</span><span class="p">]</span>
-    <span class="n">nCent_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s">&#39;num_cent&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">]</span>
-    <span class="n">nDpts_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s">&#39;num_dpts&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">]</span>
+    <span class="n">nCent_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;num_cent&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">]</span>
+    <span class="n">nDpts_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;num_dpts&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">result_list</span><span class="p">]</span>
     <span class="n">key_list</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nCent_list</span><span class="p">,</span> <span class="n">nDpts_list</span><span class="p">)</span>
     <span class="n">fpath_sorted</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">sortedby</span><span class="p">(</span><span class="n">fpath_list</span><span class="p">,</span> <span class="n">key_list</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">fpath_sorted</span>
@@ -524,22 +524,22 @@
 
     <span class="n">fpath_sorted</span> <span class="o">=</span> <span class="n">get_cached_vocabs</span><span class="p">()</span>
 
-    <span class="n">num_pca_dims</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c"># 3</span>
+    <span class="n">num_pca_dims</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># 3</span>
     <span class="n">whiten</span>       <span class="o">=</span> <span class="bp">False</span>
     <span class="n">kwd</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">num_pca_dims</span><span class="o">=</span><span class="n">num_pca_dims</span><span class="p">,</span>
                <span class="n">whiten</span><span class="o">=</span><span class="n">whiten</span><span class="p">,)</span>
 
     <span class="k">def</span> <span class="nf">view_vocab</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
-        <span class="c"># QUANTIZED AND FLOATING POINT STATS</span>
+        <span class="c1"># QUANTIZED AND FLOATING POINT STATS</span>
         <span class="n">centroids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">load_cPkl</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;viewing vocat fpath=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
-        <span class="n">smk_debug</span><span class="o">.</span><span class="n">vector_stats</span><span class="p">(</span><span class="n">centroids</span><span class="p">,</span> <span class="s">&#39;centroids&#39;</span><span class="p">)</span>
-        <span class="c">#centroids_float = centroids.astype(np.float64) / 255.0</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;viewing vocat fpath=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
+        <span class="n">smk_debug</span><span class="o">.</span><span class="n">vector_stats</span><span class="p">(</span><span class="n">centroids</span><span class="p">,</span> <span class="s1">&#39;centroids&#39;</span><span class="p">)</span>
+        <span class="c1">#centroids_float = centroids.astype(np.float64) / 255.0</span>
         <span class="n">centroids_float</span> <span class="o">=</span> <span class="n">centroids</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">/</span> <span class="mf">512.0</span>
-        <span class="n">smk_debug</span><span class="o">.</span><span class="n">vector_stats</span><span class="p">(</span><span class="n">centroids_float</span><span class="p">,</span> <span class="s">&#39;centroids_float&#39;</span><span class="p">)</span>
+        <span class="n">smk_debug</span><span class="o">.</span><span class="n">vector_stats</span><span class="p">(</span><span class="n">centroids_float</span><span class="p">,</span> <span class="s1">&#39;centroids_float&#39;</span><span class="p">)</span>
 
-        <span class="n">fig</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">plot_centroids</span><span class="p">(</span><span class="n">centroids</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="s">&#39;centroids&#39;</span><span class="p">,</span>
-                                         <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;centroid vecs</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwd</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">clustertool</span><span class="o">.</span><span class="n">plot_centroids</span><span class="p">(</span><span class="n">centroids</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="s1">&#39;centroids&#39;</span><span class="p">,</span>
+                                         <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;centroid vecs</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwd</span><span class="p">)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
     <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fpath_sorted</span><span class="p">):</span>
@@ -548,8 +548,8 @@
         <span class="n">view_vocab</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="plot_chip_metric"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_plots.plot_chip_metric">[docs]</a><span class="k">def</span> <span class="nf">plot_chip_metric</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">colortype</span><span class="o">=</span><span class="s">&#39;score&#39;</span><span class="p">,</span>
-                     <span class="n">darken</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">cmap_</span><span class="o">=</span><span class="s">&#39;hot&#39;</span><span class="p">,</span> <span class="n">reverse_cmap</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="plot_chip_metric"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_plots.plot_chip_metric">[docs]</a><span class="k">def</span> <span class="nf">plot_chip_metric</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">colortype</span><span class="o">=</span><span class="s1">&#39;score&#39;</span><span class="p">,</span>
+                     <span class="n">darken</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">cmap_</span><span class="o">=</span><span class="s1">&#39;hot&#39;</span><span class="p">,</span> <span class="n">reverse_cmap</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plots one annotation with one metric.</span>
 
@@ -581,37 +581,37 @@
     <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
     <span class="n">df2</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">doclf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">docla</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">metric</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">if</span>  <span class="n">colortype</span> <span class="o">==</span> <span class="s">&#39;score&#39;</span><span class="p">:</span>
+        <span class="k">if</span>  <span class="n">colortype</span> <span class="o">==</span> <span class="s1">&#39;score&#39;</span><span class="p">:</span>
             <span class="n">colors</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">scores_to_color</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cmap_</span><span class="o">=</span><span class="n">cmap_</span><span class="p">,</span> <span class="n">reverse_cmap</span><span class="o">=</span><span class="n">reverse_cmap</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">colortype</span> <span class="o">==</span> <span class="s">&#39;label&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">colortype</span> <span class="o">==</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span>
             <span class="n">colors</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">label_to_colors</span><span class="p">(</span><span class="n">metric</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">colortype</span> <span class="o">==</span> <span class="s">&#39;custom&#39;</span><span class="p">:</span>
-            <span class="c"># Give ranks of -1 and -2 special meaning</span>
+        <span class="k">elif</span> <span class="n">colortype</span> <span class="o">==</span> <span class="s1">&#39;custom&#39;</span><span class="p">:</span>
+            <span class="c1"># Give ranks of -1 and -2 special meaning</span>
             <span class="n">val2_customcolor</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="n">df2</span><span class="o">.</span><span class="n">UNKNOWN_PURP</span><span class="p">,</span>
                 <span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="n">df2</span><span class="o">.</span><span class="n">LIGHT_BLUE</span><span class="p">,</span>
             <span class="p">}</span>
-            <span class="c"># Inconsistent but visable colors</span>
+            <span class="c1"># Inconsistent but visable colors</span>
             <span class="n">scale_max</span> <span class="o">=</span> <span class="o">.</span><span class="mi">7</span>
-            <span class="c">#consistent colors (needs to know highest K)</span>
-            <span class="c">#maxval = np.array(metric).max()</span>
-            <span class="c">#scale_max = .7 * (float(maxval) / 20.0)</span>
+            <span class="c1">#consistent colors (needs to know highest K)</span>
+            <span class="c1">#maxval = np.array(metric).max()</span>
+            <span class="c1">#scale_max = .7 * (float(maxval) / 20.0)</span>
             <span class="n">colors</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">scores_to_color</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">cmap_</span><span class="o">=</span><span class="n">cmap_</span><span class="p">,</span>
                                          <span class="n">reverse_cmap</span><span class="o">=</span><span class="n">reverse_cmap</span><span class="p">,</span>
                                          <span class="n">scale_max</span><span class="o">=</span><span class="n">scale_max</span><span class="p">,</span>
                                          <span class="n">val2_customcolor</span><span class="o">=</span><span class="n">val2_customcolor</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;no known colortype = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">colortype</span><span class="p">,))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;no known colortype = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">colortype</span><span class="p">,))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">colors</span> <span class="o">=</span> <span class="s">&#39;distinct&#39;</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="s1">&#39;distinct&#39;</span>
     <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_chip</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">darken</span><span class="o">=</span><span class="n">darken</span><span class="p">,</span>
                        <span class="n">ell_alpha</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span>
-                       <span class="c">#ell_linewidth=4,</span>
+                       <span class="c1">#ell_linewidth=4,</span>
                        <span class="n">ell_linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">df2</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="n">figtitle</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">metric</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">cb</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">custom</span><span class="o">=</span><span class="p">(</span><span class="n">colortype</span> <span class="o">==</span> <span class="s">&#39;custom&#39;</span><span class="p">))</span>
+        <span class="n">cb</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">custom</span><span class="o">=</span><span class="p">(</span><span class="n">colortype</span> <span class="o">==</span> <span class="s1">&#39;custom&#39;</span><span class="p">))</span>
         <span class="n">cb</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span>
 
 </div>
@@ -625,38 +625,38 @@
 <span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(&#39;testdb1&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; aid = 2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># FIXME: Put query_cfg into the qreq_ structure by itself.</span>
-    <span class="c"># Don&#39;t change the IBEIS Structure</span>
+    <span class="c1"># FIXME: Put query_cfg into the qreq_ structure by itself.</span>
+    <span class="c1"># Don&#39;t change the IBEIS Structure</span>
     <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="s">&#39;vsmany&#39;</span><span class="p">,</span>
-        <span class="s">&#39;with_metadata&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-        <span class="s">&#39;K&#39;</span><span class="p">:</span> <span class="n">K</span><span class="p">,</span>
-        <span class="c">#&#39;sv_on&#39;: False,</span>
-        <span class="s">&#39;sv_on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
-        <span class="c">#K=4</span>
+        <span class="s1">&#39;pipeline_root&#39;</span><span class="p">:</span> <span class="s1">&#39;vsmany&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;with_metadata&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s1">&#39;K&#39;</span><span class="p">:</span> <span class="n">K</span><span class="p">,</span>
+        <span class="c1">#&#39;sv_on&#39;: False,</span>
+        <span class="s1">&#39;sv_on&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="c1">#K=4</span>
     <span class="p">}</span>
-    <span class="c">#ibs.cfg.query_cfg.pipeline_root = &#39;vsmany&#39;</span>
-    <span class="c">#ibs.cfg.query_cfg.with_metadata = True</span>
+    <span class="c1">#ibs.cfg.query_cfg.pipeline_root = &#39;vsmany&#39;</span>
+    <span class="c1">#ibs.cfg.query_cfg.with_metadata = True</span>
     <span class="n">qaid2_qres</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">query_chips</span><span class="p">([</span><span class="n">aid</span><span class="p">],</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(),</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">return_request</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
     <span class="n">indexer</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span>
     <span class="n">qres</span> <span class="o">=</span> <span class="n">qaid2_qres</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">qres</span><span class="p">,</span> <span class="bp">None</span>
-    <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;nns&#39;</span><span class="p">]</span>
+    <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">qres</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;nns&#39;</span><span class="p">]</span>
     <span class="n">nid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
     <span class="n">qfx2_aids</span> <span class="o">=</span> <span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">)</span>
     <span class="n">qfx2_nids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qfx2_aids</span><span class="p">)</span>
     <span class="n">qfx2_isself</span>  <span class="o">=</span> <span class="n">qfx2_aids</span> <span class="o">!=</span> <span class="n">aid</span>
     <span class="n">qfx2_correct</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">qfx2_nids</span> <span class="o">==</span> <span class="n">nid</span><span class="p">,</span> <span class="n">qfx2_isself</span><span class="p">)</span>
-    <span class="c"># Mark the top ranked groundtruth</span>
+    <span class="c1"># Mark the top ranked groundtruth</span>
     <span class="n">qfx2_valid_ks</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">ranks</span><span class="p">)</span> <span class="k">for</span> <span class="n">ranks</span> <span class="ow">in</span> <span class="n">qfx2_correct</span><span class="p">]</span>
     <span class="n">NO_VALID_RANKS_CODE</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span>
     <span class="n">POSSIBLY_VALID_RANKS_CODE</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
     <span class="n">qfx2_closest_k</span> <span class="o">=</span> <span class="p">[</span><span class="n">ks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ks</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">NO_VALID_RANKS_CODE</span> <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">qfx2_valid_ks</span><span class="p">]</span>
-    <span class="c"># Mark cases where it is not possible to know the groundtruth</span>
+    <span class="c1"># Mark cases where it is not possible to know the groundtruth</span>
     <span class="n">qfx2_isimpossible</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">qfx2_nids</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">qfx2_isself</span><span class="p">)</span>
     <span class="n">qfx2_possibly_impossible_ks</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">ranks</span><span class="p">)</span> <span class="k">for</span> <span class="n">ranks</span> <span class="ow">in</span> <span class="n">qfx2_isimpossible</span><span class="p">]</span>
-    <span class="c"># Mark as POSSIBLY_VALID_RANKS_CODE if there is no best k</span>
-    <span class="c">#</span>
+    <span class="c1"># Mark as POSSIBLY_VALID_RANKS_CODE if there is no best k</span>
+    <span class="c1">#</span>
     <span class="k">def</span> <span class="nf">is_possible</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">pi_ks</span><span class="p">):</span>
         <span class="n">ERR_ON_THE_SIDE_OF_THE_IMPOSSIBLE</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pi_ks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -674,15 +674,14 @@
 
 </div>
 <div class="viewcode-block" id="viz_annot_with_metrics"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_plots.viz_annot_with_metrics">[docs]</a><span class="k">def</span> <span class="nf">viz_annot_with_metrics</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span>
-                           <span class="n">metric_keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;wx2_nMembers&#39;</span><span class="p">,</span>
-                                        <span class="p">(</span><span class="s">&#39;wx2_pdist_stats&#39;</span><span class="p">,</span> <span class="s">&#39;mean&#39;</span><span class="p">),</span>
-                                        <span class="p">(</span><span class="s">&#39;wx2_wdist_stats&#39;</span><span class="p">,</span> <span class="s">&#39;mean&#39;</span><span class="p">)],</span>
+                           <span class="n">metric_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;wx2_nMembers&#39;</span><span class="p">,</span>
+                                        <span class="p">(</span><span class="s1">&#39;wx2_pdist_stats&#39;</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">),</span>
+                                        <span class="p">(</span><span class="s1">&#39;wx2_wdist_stats&#39;</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">)],</span>
                            <span class="n">show_orig</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                            <span class="n">show_idf</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                            <span class="n">show_words</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                            <span class="n">show_analysis</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                            <span class="n">show_aveprecision</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                           <span class="n">show_featweights</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                            <span class="n">qfx2_closest_k_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                            <span class="n">show_word_correct_assignments</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                            <span class="n">qres_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -709,15 +708,15 @@
 <span class="sd">        &gt;&gt;&gt; aid = 1</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#viz_chip.rrr()</span>
-    <span class="c">#df2.rrr()</span>
+    <span class="c1">#viz_chip.rrr()</span>
+    <span class="c1">#df2.rrr()</span>
     <span class="n">kpts</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">super_print</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">show_word_correct_assignments</span> <span class="ow">or</span> <span class="n">show_idf</span><span class="p">:</span>
-        <span class="c"># Get only the first assigned word</span>
-        <span class="c"># FIXME: need to look at multi-assignment</span>
+        <span class="c1"># Get only the first assigned word</span>
+        <span class="c1"># FIXME: need to look at multi-assignment</span>
         <span class="n">_mask</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_daid</span> <span class="o">==</span> <span class="n">aid</span>
         <span class="n">fxs</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_dfx</span><span class="p">[</span><span class="n">_mask</span><span class="p">]</span>
         <span class="n">wxs</span> <span class="o">=</span> <span class="n">invindex</span><span class="o">.</span><span class="n">idx2_wxs</span><span class="p">[</span><span class="n">_mask</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
@@ -728,34 +727,34 @@
     <span class="n">fnum</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_plot</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">darken</span><span class="o">=.</span><span class="mi">1</span><span class="p">,</span> <span class="n">colortype</span><span class="o">=</span><span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;ploting fnum=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">fnum</span><span class="p">)</span>
-        <span class="c">#lblaug = &#39; db=%r, nWords = %r&#39; % (dbname, nWords)</span>
-        <span class="n">lblaug</span> <span class="o">=</span> <span class="s">&#39; db=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_plot</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">darken</span><span class="o">=.</span><span class="mi">1</span><span class="p">,</span> <span class="n">colortype</span><span class="o">=</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;ploting fnum=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fnum</span><span class="p">)</span>
+        <span class="c1">#lblaug = &#39; db=%r, nWords = %r&#39; % (dbname, nWords)</span>
+        <span class="n">lblaug</span> <span class="o">=</span> <span class="s1">&#39; db=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbname</span><span class="p">)</span>
         <span class="n">figtitle</span> <span class="o">=</span> <span class="n">lbl</span> <span class="o">+</span> <span class="n">lblaug</span>
         <span class="n">lbl</span> <span class="o">=</span> <span class="n">lbl</span>
         <span class="n">plot_chip_metric</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">figtitle</span><span class="o">=</span><span class="n">figtitle</span><span class="p">,</span>
                          <span class="n">annote</span><span class="o">=</span><span class="n">annote</span><span class="p">,</span> <span class="n">darken</span><span class="o">=</span><span class="n">darken</span><span class="p">,</span> <span class="n">colortype</span><span class="o">=</span><span class="n">colortype</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fnum</span> <span class="o">+</span> <span class="mi">1</span>
 
-    <span class="c"># Original Plot</span>
+    <span class="c1"># Original Plot</span>
     <span class="k">if</span> <span class="n">show_orig</span><span class="p">:</span>
-        <span class="n">fnum</span> <span class="o">=</span> <span class="n">_plot</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Orig Chip&#39;</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">darken</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">_plot</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;Orig Chip&#39;</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">darken</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 
-    <span class="c"># IDF Plot</span>
+    <span class="c1"># IDF Plot</span>
     <span class="k">if</span> <span class="n">show_idf</span><span class="p">:</span>
         <span class="n">idf_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take_gen</span><span class="p">(</span><span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idf</span><span class="p">,</span> <span class="n">wxs</span><span class="p">)))</span>
-        <span class="n">fnum</span> <span class="o">=</span> <span class="n">_plot</span><span class="p">(</span><span class="n">idf_list</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;IDF&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;stats(idf_list) = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">idf_list</span><span class="p">))</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">_plot</span><span class="p">(</span><span class="n">idf_list</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;IDF&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;stats(idf_list) = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">idf_list</span><span class="p">))</span>
 
-    <span class="c"># Word Plot</span>
+    <span class="c1"># Word Plot</span>
     <span class="k">if</span> <span class="n">show_words</span><span class="p">:</span>
-        <span class="n">fnum</span> <span class="o">=</span> <span class="n">_plot</span><span class="p">(</span><span class="n">wxs</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Words&#39;</span><span class="p">,</span> <span class="n">colortype</span><span class="o">=</span><span class="s">&#39;label&#39;</span><span class="p">)</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">_plot</span><span class="p">(</span><span class="n">wxs</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;Words&#39;</span><span class="p">,</span> <span class="n">colortype</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">)</span>
 
-    <span class="c"># LNBNN Result Plots</span>
+    <span class="c1"># LNBNN Result Plots</span>
     <span class="k">if</span> <span class="n">qfx2_closest_k_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qfx2_closest_k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qres_list</span><span class="p">,</span> <span class="n">qfx2_closest_k_list</span><span class="p">):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;  --- qres item ---&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;  --- qres item ---&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">qres</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="kn">from</span> <span class="nn">ibeis.algo.hots.hots_query_result</span> <span class="kn">import</span> <span class="n">QueryResult</span>
                 <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qres</span><span class="p">,</span> <span class="n">QueryResult</span><span class="p">)</span>
@@ -767,46 +766,38 @@
                     <span class="n">fnum</span> <span class="o">+=</span> <span class="mi">1</span>
 
             <span class="k">if</span> <span class="n">qfx2_closest_k</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="c"># Plot ranked positions</span>
+                <span class="c1"># Plot ranked positions</span>
                 <span class="n">qfx2_closest_k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qfx2_closest_k</span><span class="p">)</span>
                 <span class="n">qfx2_closest_k_qeq0</span> <span class="o">=</span> <span class="n">qfx2_closest_k</span><span class="p">[</span><span class="n">qfx2_closest_k</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
                 <span class="n">qfx2_closest_k_lt0</span>  <span class="o">=</span> <span class="n">qfx2_closest_k</span><span class="p">[</span><span class="n">qfx2_closest_k</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;stats(qfx2_closest_k_qeq0) = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">qfx2_closest_k_qeq0</span><span class="p">))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;stats(qfx2_closest_k_lt0)  = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">qfx2_closest_k_lt0</span><span class="p">))</span>
-                <span class="n">fnum</span> <span class="o">=</span> <span class="n">_plot</span><span class="p">(</span><span class="n">qfx2_closest_k</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Correct Ranks &#39;</span> <span class="o">+</span> <span class="n">qres</span><span class="o">.</span><span class="n">make_smaller_title</span><span class="p">(),</span> <span class="n">colortype</span><span class="o">=</span><span class="s">&#39;custom&#39;</span><span class="p">,</span> <span class="n">reverse_cmap</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;stats(qfx2_closest_k_qeq0) = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">qfx2_closest_k_qeq0</span><span class="p">))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;stats(qfx2_closest_k_lt0)  = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats_str</span><span class="p">(</span><span class="n">qfx2_closest_k_lt0</span><span class="p">))</span>
+                <span class="n">fnum</span> <span class="o">=</span> <span class="n">_plot</span><span class="p">(</span><span class="n">qfx2_closest_k</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;Correct Ranks &#39;</span> <span class="o">+</span> <span class="n">qres</span><span class="o">.</span><span class="n">make_smaller_title</span><span class="p">(),</span> <span class="n">colortype</span><span class="o">=</span><span class="s1">&#39;custom&#39;</span><span class="p">,</span> <span class="n">reverse_cmap</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-    <span class="c"># Correct word assignment plots</span>
+    <span class="c1"># Correct word assignment plots</span>
     <span class="k">if</span> <span class="n">show_word_correct_assignments</span><span class="p">:</span>
         <span class="n">unique_wxs</span><span class="p">,</span> <span class="n">unique_inverse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">wxs</span><span class="p">,</span> <span class="n">return_inverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="c"># Get the aids that belong to each word</span>
+        <span class="c1"># Get the aids that belong to each word</span>
         <span class="n">_idxs_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">invindex</span><span class="o">.</span><span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">unique_wxs</span><span class="p">)</span>
         <span class="n">_aids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">invindex</span><span class="o">.</span><span class="n">idx2_daid</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">_idxs_list</span><span class="p">]</span>
-        <span class="c"># Check if this word will provide a correct assignment -</span>
-        <span class="c"># two ground truth chip exist within the same word</span>
+        <span class="c1"># Check if this word will provide a correct assignment -</span>
+        <span class="c1"># two ground truth chip exist within the same word</span>
         <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aid</span><span class="p">))</span>
         <span class="n">_hastp_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">gt_aids</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">_aids_list</span><span class="p">])</span>
-        <span class="c"># Map back to the space of features</span>
-        <span class="c"># mark each feature match as having a correct word mapping or not</span>
+        <span class="c1"># Map back to the space of features</span>
+        <span class="c1"># mark each feature match as having a correct word mapping or not</span>
         <span class="n">hascorrectmatch</span> <span class="o">=</span> <span class="n">_hastp_list</span><span class="p">[</span><span class="n">unique_inverse</span><span class="p">]</span>
         <span class="n">hascorrectmatch_</span> <span class="o">=</span> <span class="n">hascorrectmatch</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">-</span> <span class="mi">2</span>
-        <span class="n">lbl</span> <span class="o">=</span> <span class="s">&#39;Correct Words &#39;</span> <span class="o">+</span> <span class="n">qres</span><span class="o">.</span><span class="n">make_smaller_title</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s"> Yellow means the word contains a correct match in the word</span><span class="se">\&#39;</span><span class="s">s invindex. Blue is the opposite.&#39;</span>
-        <span class="n">fnum</span> <span class="o">=</span> <span class="n">_plot</span><span class="p">(</span><span class="n">hascorrectmatch_</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">colortype</span><span class="o">=</span><span class="s">&#39;custom&#39;</span><span class="p">,</span> <span class="n">reverse_cmap</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">lbl</span> <span class="o">=</span> <span class="s1">&#39;Correct Words &#39;</span> <span class="o">+</span> <span class="n">qres</span><span class="o">.</span><span class="n">make_smaller_title</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> Yellow means the word contains a correct match in the word</span><span class="se">\&#39;</span><span class="s1">s invindex. Blue is the opposite.&#39;</span>
+        <span class="n">fnum</span> <span class="o">=</span> <span class="n">_plot</span><span class="p">(</span><span class="n">hascorrectmatch_</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="n">colortype</span><span class="o">=</span><span class="s1">&#39;custom&#39;</span><span class="p">,</span> <span class="n">reverse_cmap</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
-    <span class="c"># Feature Weight Plots</span>
-    <span class="k">if</span> <span class="n">show_featweights</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">ibeis.algo.preproc</span> <span class="kn">import</span> <span class="n">preproc_featweight</span>
-        <span class="n">featweights</span> <span class="o">=</span> <span class="n">preproc_featweight</span><span class="o">.</span><span class="n">compute_fgweights</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">aid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="c"># plot rf feature weights</span>
-        <span class="n">detect_cfgstr</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
-        <span class="n">fnum</span> <span class="o">=</span> <span class="n">_plot</span><span class="p">(</span><span class="n">featweights</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;Feature Weights &#39;</span> <span class="o">+</span> <span class="n">detect_cfgstr</span><span class="p">,</span> <span class="n">colortype</span><span class="o">=</span><span class="s">&#39;score&#39;</span><span class="p">)</span>
-
-    <span class="c"># Word Metric Plots</span>
+    <span class="c1"># Word Metric Plots</span>
     <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">metrickey</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">metric_keys</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metrickey</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-            <span class="c">#lbl = repr(metrickey)</span>
+            <span class="c1">#lbl = repr(metrickey)</span>
             <span class="k">def</span> <span class="nf">fixstr</span><span class="p">(</span><span class="n">str_</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">str_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;wx2_&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_stats&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-            <span class="n">lbl</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">metrickey</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">fixstr</span><span class="p">(</span><span class="n">metrickey</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="k">return</span> <span class="n">str_</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;wx2_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_stats&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">lbl</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">metrickey</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">fixstr</span><span class="p">(</span><span class="n">metrickey</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">lbl</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">metrickey</span><span class="p">)</span>
         <span class="n">metric_list</span> <span class="o">=</span> <span class="n">metric_clamped_stat</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">wxs</span><span class="p">,</span> <span class="n">metrickey</span><span class="p">)</span>
@@ -829,43 +820,43 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.algo.hots.smk</span> <span class="kn">import</span> <span class="n">smk_plots</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="c">#from plottool import draw_func2 as df2</span>
+    <span class="c1">#from plottool import draw_func2 as df2</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="c">#&#39;db&#39;: &#39;GZ_ALL&#39;,</span>
-        <span class="c">#&#39;db&#39;: &#39;PZ_MTEST&#39;,</span>
-        <span class="s">&#39;db&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">),</span>
-        <span class="s">&#39;nWords&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--nWords&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">8000</span><span class="p">),</span>
-        <span class="s">&#39;delete_rawvecs&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="c1">#&#39;db&#39;: &#39;GZ_ALL&#39;,</span>
+        <span class="c1">#&#39;db&#39;: &#39;PZ_MTEST&#39;,</span>
+        <span class="s1">&#39;db&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--db&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;nWords&#39;</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--nWords&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">8000</span><span class="p">),</span>
+        <span class="s1">&#39;delete_rawvecs&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annots_df</span><span class="p">,</span> <span class="n">daids</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">invindex</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span> <span class="o">=</span> <span class="n">smk_debug</span><span class="o">.</span><span class="n">testdata_internals_full</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">aid</span> <span class="o">=</span> <span class="mi">3</span>
-    <span class="c">#try:</span>
-    <span class="c">#    testdata = (&#39;metrics&#39;,)</span>
-    <span class="c">#    metrics = ut.load_testdata(*testdata)</span>
-    <span class="c">#except Exception as ex:</span>
+    <span class="c1">#try:</span>
+    <span class="c1">#    testdata = (&#39;metrics&#39;,)</span>
+    <span class="c1">#    metrics = ut.load_testdata(*testdata)</span>
+    <span class="c1">#except Exception as ex:</span>
     <span class="n">metrics</span> <span class="o">=</span> <span class="n">smk_plots</span><span class="o">.</span><span class="n">compute_word_metrics</span><span class="p">(</span><span class="n">invindex</span><span class="p">)</span>
-    <span class="c">#ut.save_testdata(*testdata)</span>
+    <span class="c1">#ut.save_testdata(*testdata)</span>
     <span class="n">valid_aids</span> <span class="o">=</span>  <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
 
-    <span class="c"># HACK</span>
-    <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;GZ_&#39;</span><span class="p">):</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species_text</span> <span class="o">=</span> <span class="s">&#39;zebra_grevys&#39;</span>
+    <span class="c1"># HACK</span>
+    <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;GZ_&#39;</span><span class="p">):</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species_text</span> <span class="o">=</span> <span class="s1">&#39;zebra_grevys&#39;</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species_text</span> <span class="o">=</span> <span class="s">&#39;zebra_plains&#39;</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">detect_cfg</span><span class="o">.</span><span class="n">species_text</span> <span class="o">=</span> <span class="s1">&#39;zebra_plains&#39;</span>
 
-    <span class="c"># Define the plots you want</span>
+    <span class="c1"># Define the plots you want</span>
 
-    <span class="n">startx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--startx&#39;</span><span class="p">,</span> <span class="s">&#39;--x&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">startx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s1">&#39;--startx&#39;</span><span class="p">,</span> <span class="s1">&#39;--x&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
 
     <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">InteractiveIter</span><span class="p">(</span><span class="n">valid_aids</span><span class="p">,</span> <span class="n">startx</span><span class="o">=</span><span class="n">startx</span><span class="p">):</span>
-        <span class="c">#df2.rrr()</span>
-        <span class="c">#smk_plots.rrr()</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[smk_plot] visualizing annotation aid=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
+        <span class="c1">#df2.rrr()</span>
+        <span class="c1">#smk_plots.rrr()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[smk_plot] visualizing annotation aid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid</span><span class="p">,))</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="n">smk_plots</span><span class="o">.</span><span class="n">main_options</span><span class="p">()</span>
         <span class="n">qres_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">qfx2_closest_k_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">K_list</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;K_list&#39;</span><span class="p">)</span>
+        <span class="n">K_list</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;K_list&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">K</span> <span class="ow">in</span> <span class="n">K_list</span><span class="p">:</span>
             <span class="n">qres</span><span class="p">,</span> <span class="n">qfx2_closest_k</span> <span class="o">=</span> <span class="n">smk_plots</span><span class="o">.</span><span class="n">get_qres_and_closest_valid_k</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">K</span><span class="p">)</span>
             <span class="n">qres_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qres</span><span class="p">)</span>
@@ -874,20 +865,20 @@
                                          <span class="n">qfx2_closest_k_list</span><span class="o">=</span><span class="n">qfx2_closest_k_list</span><span class="p">,</span>
                                          <span class="n">qres_list</span><span class="o">=</span><span class="n">qres_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">smk_plots</span><span class="o">.</span><span class="n">present</span><span class="p">()</span>
-    <span class="c">#return execstr</span>
+    <span class="c1">#return execstr</span>
 
 </div>
 <div class="viewcode-block" id="present"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_plots.present">[docs]</a><span class="k">def</span> <span class="nf">present</span><span class="p">():</span>
-    <span class="c"># In its own function for reloadableness</span>
+    <span class="c1"># In its own function for reloadableness</span>
     <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">draw_func2</span> <span class="k">as</span> <span class="n">df2</span>
     <span class="k">return</span> <span class="n">df2</span><span class="o">.</span><span class="n">present</span><span class="p">(</span><span class="n">max_rows</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">row_first</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="main_options"><a class="viewcode-back" href="../../../../../ibeis.algo.hots.smk.html#ibeis.algo.hots.smk.smk_plots.main_options">[docs]</a><span class="k">def</span> <span class="nf">main_options</span><span class="p">():</span>
     <span class="n">metric_keys</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="c">#&#39;wx2_nMembers&#39;,</span>
-        <span class="c">#(&#39;wx2_pdist_stats&#39;, &#39;mean&#39;),</span>
-        <span class="c">#(&#39;wx2_wdist_stats&#39;, &#39;mean&#39;),</span>
+        <span class="c1">#&#39;wx2_nMembers&#39;,</span>
+        <span class="c1">#(&#39;wx2_pdist_stats&#39;, &#39;mean&#39;),</span>
+        <span class="c1">#(&#39;wx2_wdist_stats&#39;, &#39;mean&#39;),</span>
     <span class="p">]</span>
 
     <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -896,24 +887,23 @@
         <span class="n">show_words</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
         <span class="n">show_analysis</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
         <span class="n">show_aveprecision</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-        <span class="n">show_featweights</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
         <span class="n">show_word_correct_assignments</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
         <span class="n">metric_keys</span><span class="o">=</span><span class="n">metric_keys</span><span class="p">,</span>
         <span class="n">K_list</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
-        <span class="c">#K_list=[10, 20],</span>
-        <span class="c">#K_list=[4, 10],</span>
+        <span class="c1">#K_list=[10, 20],</span>
+        <span class="c1">#K_list=[4, 10],</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">kwargs</span>
 
 
-<span class="c">#if __name__ == &#39;__main__&#39;:</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    &gt;&gt;&gt; aid = 1</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    execstr = smk_plots_main()</span>
-<span class="c">#    #exec(execstr)</span>
+<span class="c1">#if __name__ == &#39;__main__&#39;:</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    &gt;&gt;&gt; aid = 1</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    execstr = smk_plots_main()</span>
+<span class="c1">#    #exec(execstr)</span>
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    python -m ibeis.algo.hots.smk.smk_plots --test-view_vocabs --show</span>
 <span class="sd">    python -m ibeis.algo.hots.smk.smk_debug --test-main_smk_debug</span>
@@ -925,8 +915,8 @@
 <span class="sd">        python -m ibeis.algo.hots.smk.smk_plots --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -961,7 +951,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

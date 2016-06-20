@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tag_funcs &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.tag_funcs &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,7 +129,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.tag_funcs</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">map</span>
@@ -137,84 +137,84 @@
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[tag_funcs]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[tag_funcs]&#39;</span><span class="p">)</span>
 
 
-<span class="c"># Create dectorator to inject functions in this module into the IBEISController</span>
+<span class="c1"># Create dectorator to inject functions in this module into the IBEISController</span>
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">make_ibs_register_decorator</span><span class="p">(</span>
     <span class="n">__name__</span><span class="p">)</span>
 
 
-<span class="c"># TODO : make a annot_tags file</span>
+<span class="c1"># TODO : make a annot_tags file</span>
 
 
 <span class="n">ANNOTMATCH_PROPS_STANDARD</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="c">#&#39;SceneryMatch&#39;,</span>
-    <span class="c">#&#39;Photobomb&#39;,</span>
-    <span class="c">#&#39;Hard&#39;,</span>
-    <span class="c">#&#39;NonDistinct&#39;,</span>
+    <span class="c1">#&#39;SceneryMatch&#39;,</span>
+    <span class="c1">#&#39;Photobomb&#39;,</span>
+    <span class="c1">#&#39;Hard&#39;,</span>
+    <span class="c1">#&#39;NonDistinct&#39;,</span>
 <span class="p">]</span>
 
 <span class="n">ANNOTMATCH_PROPS_OTHER</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s">&#39;SceneryMatch&#39;</span><span class="p">,</span>
-    <span class="s">&#39;Photobomb&#39;</span><span class="p">,</span>
-    <span class="s">&#39;Hard&#39;</span><span class="p">,</span>
-    <span class="s">&#39;NonDistinct&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SceneryMatch&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Photobomb&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Hard&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;NonDistinct&#39;</span><span class="p">,</span>
 
-    <span class="s">&#39;Occlusion&#39;</span><span class="p">,</span>
-    <span class="s">&#39;Viewpoint&#39;</span><span class="p">,</span>
-    <span class="s">&#39;MildViewpoint&#39;</span><span class="p">,</span>
-    <span class="s">&#39;Pose&#39;</span><span class="p">,</span>
-    <span class="s">&#39;Lighting&#39;</span><span class="p">,</span>
-    <span class="s">&#39;Quality&#39;</span><span class="p">,</span>  <span class="c"># quality causes failure</span>
+    <span class="s1">&#39;Occlusion&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Viewpoint&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MildViewpoint&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Pose&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Lighting&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Quality&#39;</span><span class="p">,</span>  <span class="c1"># quality causes failure</span>
 
-    <span class="s">&#39;Orientation&#39;</span><span class="p">,</span>  <span class="c"># orientation caused failure</span>
+    <span class="s1">&#39;Orientation&#39;</span><span class="p">,</span>  <span class="c1"># orientation caused failure</span>
 
-    <span class="s">&#39;EdgeMatch&#39;</span><span class="p">,</span>  <span class="c"># descriptors on the edge of the naimal produce strong matches</span>
-    <span class="s">&#39;Interesting&#39;</span><span class="p">,</span>   <span class="c"># flag a case as interesting</span>
+    <span class="s1">&#39;EdgeMatch&#39;</span><span class="p">,</span>  <span class="c1"># descriptors on the edge of the naimal produce strong matches</span>
+    <span class="s1">&#39;Interesting&#39;</span><span class="p">,</span>   <span class="c1"># flag a case as interesting</span>
 
-    <span class="s">&#39;JoinCase&#39;</span><span class="p">,</span>  <span class="c"># case should actually be marked as correct</span>
-    <span class="s">&#39;SplitCase&#39;</span><span class="p">,</span>  <span class="c"># case should actually be marked as correct</span>
+    <span class="s1">&#39;JoinCase&#39;</span><span class="p">,</span>  <span class="c1"># case should actually be marked as correct</span>
+    <span class="s1">&#39;SplitCase&#39;</span><span class="p">,</span>  <span class="c1"># case should actually be marked as correct</span>
 
-    <span class="s">&#39;random&#39;</span><span class="p">,</span>  <span class="c"># gf case has random matches, the gt is to blame</span>
+    <span class="s1">&#39;random&#39;</span><span class="p">,</span>  <span class="c1"># gf case has random matches, the gt is to blame</span>
 
-    <span class="s">&#39;BadShoulder&#39;</span><span class="p">,</span>  <span class="c"># gf is a bad shoulder match</span>
-    <span class="s">&#39;BadTail&#39;</span><span class="p">,</span>  <span class="c"># gf is a bad tail match</span>
-    <span class="s">&#39;TimeDeltaError&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BadShoulder&#39;</span><span class="p">,</span>  <span class="c1"># gf is a bad shoulder match</span>
+    <span class="s1">&#39;BadTail&#39;</span><span class="p">,</span>  <span class="c1"># gf is a bad tail match</span>
+    <span class="s1">&#39;TimeDeltaError&#39;</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="n">OLD_ANNOTMATCH_PROPS</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s">&#39;TooLargeMatches&#39;</span><span class="p">,</span>  <span class="c"># really big nondistinct matches</span>
-    <span class="s">&#39;TooSmallMatches&#39;</span><span class="p">,</span>  <span class="c"># really big nondistinct matches</span>
-    <span class="s">&#39;ScoringIssue&#39;</span><span class="p">,</span>  <span class="c"># matches should be scored differently</span>
-    <span class="s">&#39;BadCoverage&#39;</span><span class="p">,</span>  <span class="c"># matches were not in good places (missing matches)</span>
-    <span class="s">&#39;ViewpointOMG&#39;</span><span class="p">,</span>  <span class="c"># gf is a bad tail match</span>
-    <span class="s">&#39;ViewpointCanDo&#39;</span><span class="p">,</span>  <span class="c"># gf is a bad tail match</span>
-    <span class="s">&#39;shouldhavemore&#39;</span><span class="p">,</span>
-    <span class="s">&#39;Shadowing&#39;</span><span class="p">,</span>  <span class="c"># shadow causes failure</span>
-    <span class="s">&#39;success&#39;</span><span class="p">,</span>  <span class="c"># A good success case</span>
-    <span class="s">&#39;GoodCoverage&#39;</span><span class="p">,</span>  <span class="c"># matches were spread out correctly (scoring may be off though)</span>
+    <span class="s1">&#39;TooLargeMatches&#39;</span><span class="p">,</span>  <span class="c1"># really big nondistinct matches</span>
+    <span class="s1">&#39;TooSmallMatches&#39;</span><span class="p">,</span>  <span class="c1"># really big nondistinct matches</span>
+    <span class="s1">&#39;ScoringIssue&#39;</span><span class="p">,</span>  <span class="c1"># matches should be scored differently</span>
+    <span class="s1">&#39;BadCoverage&#39;</span><span class="p">,</span>  <span class="c1"># matches were not in good places (missing matches)</span>
+    <span class="s1">&#39;ViewpointOMG&#39;</span><span class="p">,</span>  <span class="c1"># gf is a bad tail match</span>
+    <span class="s1">&#39;ViewpointCanDo&#39;</span><span class="p">,</span>  <span class="c1"># gf is a bad tail match</span>
+    <span class="s1">&#39;shouldhavemore&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Shadowing&#39;</span><span class="p">,</span>  <span class="c1"># shadow causes failure</span>
+    <span class="s1">&#39;success&#39;</span><span class="p">,</span>  <span class="c1"># A good success case</span>
+    <span class="s1">&#39;GoodCoverage&#39;</span><span class="p">,</span>  <span class="c1"># matches were spread out correctly (scoring may be off though)</span>
 <span class="p">]</span>
 
-<span class="c"># Changes to prop names</span>
+<span class="c1"># Changes to prop names</span>
 <span class="n">PROP_MAPPING</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;ViewpointCanDo&#39;</span> <span class="p">:</span> <span class="s">&#39;Correctable&#39;</span><span class="p">,</span>
-    <span class="s">&#39;ViewpointOMG&#39;</span>   <span class="p">:</span> <span class="s">&#39;Uncorrectable&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ViewpointCanDo&#39;</span> <span class="p">:</span> <span class="s1">&#39;Correctable&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ViewpointOMG&#39;</span>   <span class="p">:</span> <span class="s1">&#39;Uncorrectable&#39;</span><span class="p">,</span>
 
-    <span class="s">&#39;Shadowing&#39;</span>      <span class="p">:</span> <span class="s">&#39;Lighting&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Shadowing&#39;</span>      <span class="p">:</span> <span class="s1">&#39;Lighting&#39;</span><span class="p">,</span>
 
-    <span class="s">&#39;success&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-    <span class="s">&#39;GoodCoverage&#39;</span><span class="p">:</span>  <span class="bp">None</span><span class="p">,</span>
+    <span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="s1">&#39;GoodCoverage&#39;</span><span class="p">:</span>  <span class="bp">None</span><span class="p">,</span>
 
-    <span class="c">#&#39;Hard&#39;           : &#39;NeedsWork&#39;,</span>
-    <span class="s">&#39;shouldhavemore&#39;</span> <span class="p">:</span> <span class="s">&#39;NeedsWork&#39;</span><span class="p">,</span>
-    <span class="s">&#39;BadCoverage&#39;</span>    <span class="p">:</span> <span class="s">&#39;NeedsWork&#39;</span><span class="p">,</span>
-    <span class="s">&#39;ScoringIssue&#39;</span>   <span class="p">:</span> <span class="s">&#39;NeedsWork&#39;</span><span class="p">,</span>
+    <span class="c1">#&#39;Hard&#39;           : &#39;NeedsWork&#39;,</span>
+    <span class="s1">&#39;shouldhavemore&#39;</span> <span class="p">:</span> <span class="s1">&#39;NeedsWork&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BadCoverage&#39;</span>    <span class="p">:</span> <span class="s1">&#39;NeedsWork&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ScoringIssue&#39;</span>   <span class="p">:</span> <span class="s1">&#39;NeedsWork&#39;</span><span class="p">,</span>
 
-    <span class="s">&#39;TooSmallMatches&#39;</span> <span class="p">:</span> <span class="s">&#39;FeatureScale&#39;</span><span class="p">,</span>
-    <span class="s">&#39;TooLargeMatches&#39;</span> <span class="p">:</span> <span class="s">&#39;FeatureScale&#39;</span><span class="p">,</span>
-    <span class="c">#&#39;BadShoulder&#39; : &#39;BadShoulder&#39;,</span>
-    <span class="c">#&#39;GoodCoverage&#39;: None,</span>
+    <span class="s1">&#39;TooSmallMatches&#39;</span> <span class="p">:</span> <span class="s1">&#39;FeatureScale&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;TooLargeMatches&#39;</span> <span class="p">:</span> <span class="s1">&#39;FeatureScale&#39;</span><span class="p">,</span>
+    <span class="c1">#&#39;BadShoulder&#39; : &#39;BadShoulder&#39;,</span>
+    <span class="c1">#&#39;GoodCoverage&#39;: None,</span>
 <span class="p">}</span>
 
 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">PROP_MAPPING</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -229,44 +229,44 @@
 
 
 <div class="viewcode-block" id="consolodate_annotmatch_tags"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.consolodate_annotmatch_tags">[docs]</a><span class="k">def</span> <span class="nf">consolodate_annotmatch_tags</span><span class="p">(</span><span class="n">case_tags</span><span class="p">):</span>
-    <span class="c">#return case_tags</span>
+    <span class="c1">#return case_tags</span>
     <span class="n">remove_tags</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s">&#39;hard&#39;</span><span class="p">,</span>
-        <span class="s">&#39;needswork&#39;</span><span class="p">,</span>
-        <span class="s">&#39;correctable&#39;</span><span class="p">,</span>
-        <span class="s">&#39;uncorrectable&#39;</span><span class="p">,</span>
-        <span class="s">&#39;interesting&#39;</span><span class="p">,</span>
-        <span class="s">&#39;splitcase&#39;</span><span class="p">,</span>
-        <span class="s">&#39;joincase&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;orientation&#39;,</span>
-        <span class="s">&#39;random&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;badtail&#39;, &#39;badshoulder&#39;, &#39;splitcase&#39;, &#39;joincase&#39;, &#39;goodcoverage&#39;, &#39;interesting&#39;, &#39;hard&#39;</span>
+        <span class="s1">&#39;hard&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;needswork&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;correctable&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;uncorrectable&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;interesting&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;splitcase&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;joincase&#39;</span><span class="p">,</span>
+        <span class="c1">#&#39;orientation&#39;,</span>
+        <span class="s1">&#39;random&#39;</span><span class="p">,</span>
+        <span class="c1">#&#39;badtail&#39;, &#39;badshoulder&#39;, &#39;splitcase&#39;, &#39;joincase&#39;, &#39;goodcoverage&#39;, &#39;interesting&#39;, &#39;hard&#39;</span>
     <span class="p">]</span>
     <span class="n">tags_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="c">#&#39;quality&#39;: &#39;Quality&#39;,</span>
-        <span class="c">#&#39;scoringissue&#39;: &#39;ScoringIssue&#39;,</span>
-        <span class="c">#&#39;orientation&#39;: &#39;Orientation&#39;,</span>
-        <span class="c">#&#39;orientation&#39;: &#39;MildViewpoint&#39;,</span>
-        <span class="s">&#39;orientation&#39;</span><span class="p">:</span> <span class="s">&#39;Viewpoint&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;pose&#39;: &#39;SimilarPose&#39;,</span>
-        <span class="s">&#39;pose&#39;</span><span class="p">:</span> <span class="s">&#39;NonDistinct&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;lighting&#39;: &#39;Lighting&#39;,</span>
-        <span class="c">#&#39;occlusion&#39;: &#39;Occlusion&#39;,</span>
-        <span class="c">#&#39;featurescale&#39;: &#39;FeatureScale&#39;,</span>
-        <span class="c">#&#39;edgematch&#39;: &#39;EdgeMatches&#39;,</span>
-        <span class="c">#&#39;featurescale&#39;: &#39;Pose&#39;,</span>
-        <span class="c">#&#39;featurescale&#39;: &#39;FeatureScale&#39;,</span>
-        <span class="s">&#39;nondistinct&#39;</span><span class="p">:</span> <span class="s">&#39;NonDistinct&#39;</span><span class="p">,</span>
-        <span class="s">&#39;featurescale&#39;</span><span class="p">:</span> <span class="s">&#39;NonDistinct&#39;</span><span class="p">,</span>
-        <span class="s">&#39;edgematch&#39;</span><span class="p">:</span> <span class="s">&#39;SimilarPose&#39;</span><span class="p">,</span>
-        <span class="s">&#39;badtail&#39;</span><span class="p">:</span> <span class="s">&#39;NonDistinct&#39;</span><span class="p">,</span>
-        <span class="s">&#39;badshoulder&#39;</span><span class="p">:</span> <span class="s">&#39;NonDistinct&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;mildviewpoint&#39;: &#39;MildViewpoint&#39;,</span>
-        <span class="s">&#39;mildviewpoint&#39;</span><span class="p">:</span> <span class="s">&#39;Viewpoint&#39;</span><span class="p">,</span>
-        <span class="c">#&#39;toolargematches&#39;: &#39;CoarseFeatures&#39;,</span>
-        <span class="c">#&#39;badcoverage&#39;: &#39;LowCoverage&#39;,</span>
-        <span class="c">#&#39;shouldhavemore&#39;: &#39;LowCoverage&#39;,</span>
-        <span class="c">#&#39;viewpoint&#39;: &#39;Viewpoint&#39;,</span>
+        <span class="c1">#&#39;quality&#39;: &#39;Quality&#39;,</span>
+        <span class="c1">#&#39;scoringissue&#39;: &#39;ScoringIssue&#39;,</span>
+        <span class="c1">#&#39;orientation&#39;: &#39;Orientation&#39;,</span>
+        <span class="c1">#&#39;orientation&#39;: &#39;MildViewpoint&#39;,</span>
+        <span class="s1">&#39;orientation&#39;</span><span class="p">:</span> <span class="s1">&#39;Viewpoint&#39;</span><span class="p">,</span>
+        <span class="c1">#&#39;pose&#39;: &#39;SimilarPose&#39;,</span>
+        <span class="s1">&#39;pose&#39;</span><span class="p">:</span> <span class="s1">&#39;NonDistinct&#39;</span><span class="p">,</span>
+        <span class="c1">#&#39;lighting&#39;: &#39;Lighting&#39;,</span>
+        <span class="c1">#&#39;occlusion&#39;: &#39;Occlusion&#39;,</span>
+        <span class="c1">#&#39;featurescale&#39;: &#39;FeatureScale&#39;,</span>
+        <span class="c1">#&#39;edgematch&#39;: &#39;EdgeMatches&#39;,</span>
+        <span class="c1">#&#39;featurescale&#39;: &#39;Pose&#39;,</span>
+        <span class="c1">#&#39;featurescale&#39;: &#39;FeatureScale&#39;,</span>
+        <span class="s1">&#39;nondistinct&#39;</span><span class="p">:</span> <span class="s1">&#39;NonDistinct&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;featurescale&#39;</span><span class="p">:</span> <span class="s1">&#39;NonDistinct&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;edgematch&#39;</span><span class="p">:</span> <span class="s1">&#39;SimilarPose&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;badtail&#39;</span><span class="p">:</span> <span class="s1">&#39;NonDistinct&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;badshoulder&#39;</span><span class="p">:</span> <span class="s1">&#39;NonDistinct&#39;</span><span class="p">,</span>
+        <span class="c1">#&#39;mildviewpoint&#39;: &#39;MildViewpoint&#39;,</span>
+        <span class="s1">&#39;mildviewpoint&#39;</span><span class="p">:</span> <span class="s1">&#39;Viewpoint&#39;</span><span class="p">,</span>
+        <span class="c1">#&#39;toolargematches&#39;: &#39;CoarseFeatures&#39;,</span>
+        <span class="c1">#&#39;badcoverage&#39;: &#39;LowCoverage&#39;,</span>
+        <span class="c1">#&#39;shouldhavemore&#39;: &#39;LowCoverage&#39;,</span>
+        <span class="c1">#&#39;viewpoint&#39;: &#39;Viewpoint&#39;,</span>
     <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">filter_tags</span><span class="p">(</span><span class="n">tags</span><span class="p">):</span>
@@ -327,11 +327,11 @@
 <div class="viewcode-block" id="get_cate_categories"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.get_cate_categories">[docs]</a><span class="k">def</span> <span class="nf">get_cate_categories</span><span class="p">():</span>
     <span class="n">standard</span> <span class="o">=</span> <span class="n">ANNOTMATCH_PROPS_STANDARD</span>
     <span class="n">other</span> <span class="o">=</span> <span class="n">ANNOTMATCH_PROPS_OTHER</span>
-    <span class="c">#case_list = standard + other</span>
+    <span class="c1">#case_list = standard + other</span>
     <span class="k">return</span> <span class="n">standard</span><span class="p">,</span> <span class="n">other</span>
 
 </div>
-<div class="viewcode-block" id="export_tagged_chips"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.export_tagged_chips">[docs]</a><span class="k">def</span> <span class="nf">export_tagged_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">dpath</span><span class="o">=</span><span class="s">&#39;.&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="export_tagged_chips"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.export_tagged_chips">[docs]</a><span class="k">def</span> <span class="nf">export_tagged_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">dpath</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.tag_funcs --exec-export_tagged_chips --tags Hard interesting needswork --db PZ_Master1</span>
@@ -354,8 +354,8 @@
 <span class="sd">        &gt;&gt;&gt; export_tagged_chips(ibs, aid_list, dpath)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">visual_uuid_hashid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_hashid_visual_uuid</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">_new</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">zip_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="s">&#39;exported_chips2_&#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span>
-                            <span class="n">visual_uuid_hashid</span> <span class="o">+</span> <span class="s">&#39;.zip&#39;</span><span class="p">)</span>
+    <span class="n">zip_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">dpath</span><span class="p">,</span> <span class="s1">&#39;exported_chips2_&#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span>
+                            <span class="n">visual_uuid_hashid</span> <span class="o">+</span> <span class="s1">&#39;.zip&#39;</span><span class="p">)</span>
     <span class="n">chip_fpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">archive_files</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">,</span> <span class="n">chip_fpath</span><span class="p">,</span> <span class="n">common_prefix</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
@@ -403,6 +403,17 @@
     <span class="k">return</span> <span class="n">aid_list</span>
 
 </div>
+<span class="nd">@register_ibs_method</span>
+<div class="viewcode-block" id="filterflags_annot_tags"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.filterflags_annot_tags">[docs]</a><span class="k">def</span> <span class="nf">filterflags_annot_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Filter / Find / Search for annotations with particular tags</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_all_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">filterflags_general_tags</span><span class="p">(</span><span class="n">tags_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flags</span>
+
+</div>
+<span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="get_aidpair_tags"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.get_aidpair_tags">[docs]</a><span class="k">def</span> <span class="nf">get_aidpair_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">,</span> <span class="n">directed</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
@@ -430,7 +441,9 @@
 <span class="sd">        &gt;&gt;&gt; undirected_tags = get_aidpair_tags(ibs, aid1_list, aid2_list, directed=False)</span>
 <span class="sd">        &gt;&gt;&gt; tagged_pairs = list(zip(aid_pairs.tolist(), undirected_tags))</span>
 <span class="sd">        &gt;&gt;&gt; print(ut.list_str(tagged_pairs))</span>
-<span class="sd">        &gt;&gt;&gt; print(ut.dict_str(ut.groupby_tags(tagged_pairs, undirected_tags), nl=2))</span>
+<span class="sd">        &gt;&gt;&gt; tag_dict = ut.groupby_tags(tagged_pairs, undirected_tags)</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.dict_str(tag_dict, nl=2))</span>
+<span class="sd">        &gt;&gt;&gt; print(ut.dict_str(ut.map_dict_vals(len, tag_dict)))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">aid_pairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
     <span class="k">if</span> <span class="n">directed</span><span class="p">:</span>
@@ -456,21 +469,23 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    list(zip(aid_pairs, undirected_tags))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#annotmatch_rowids = ibs.get_annotmatch_rowids_from_aid(aid_list)</span>
+
     <span class="n">filtered_annotmatch_rowids</span> <span class="o">=</span> <span class="n">filter_annotmatch_by_tags</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">has_any</span><span class="o">=</span><span class="n">has_any</span><span class="p">,</span> <span class="n">has_all</span><span class="o">=</span><span class="n">has_all</span><span class="p">,</span> <span class="n">min_num</span><span class="o">=</span><span class="n">min_num</span><span class="p">,</span>
         <span class="n">max_num</span><span class="o">=</span><span class="n">max_num</span><span class="p">)</span>
     <span class="n">aid1_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid1</span><span class="p">(</span><span class="n">filtered_annotmatch_rowids</span><span class="p">))</span>
     <span class="n">aid2_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_aid2</span><span class="p">(</span><span class="n">filtered_annotmatch_rowids</span><span class="p">))</span>
     <span class="n">aid_pairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
-    <span class="c"># Dont double count</span>
+    <span class="c1"># Dont double count</span>
     <span class="n">vt</span><span class="o">.</span><span class="n">get_undirected_edge_ids</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">)</span>
     <span class="n">xs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">find_best_undirected_edge_indexes</span><span class="p">(</span><span class="n">aid_pairs</span><span class="p">)</span>
     <span class="n">aid1_list</span> <span class="o">=</span> <span class="n">aid1_list</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
     <span class="n">aid2_list</span> <span class="o">=</span> <span class="n">aid2_list</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
     <span class="n">aid_pairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
     <span class="k">return</span> <span class="n">aid_pairs</span>
-    <span class="c">#directed_tags = get_aidpair_tags(ibs, aid_pairs.T[0], aid_pairs.T[1], directed=True)</span>
-    <span class="c">#valid_tags_list = ibs.get_annotmatch_case_tags(filtered_annotmatch_rowids)</span>
+    <span class="c1">#directed_tags = get_aidpair_tags(ibs, aid_pairs.T[0], aid_pairs.T[1], directed=True)</span>
+    <span class="c1">#valid_tags_list = ibs.get_annotmatch_case_tags(filtered_annotmatch_rowids)</span>
 
 </div>
 <div class="viewcode-block" id="filter_annotmatch_by_tags"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.filter_annotmatch_by_tags">[docs]</a><span class="k">def</span> <span class="nf">filter_annotmatch_by_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">annotmatch_rowids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -538,7 +553,7 @@
     <span class="k">return</span> <span class="n">filtered_annotmatch_rowids</span>
 
 
-<span class="c"># TODO: ut.filterflags_general_tags</span>
+<span class="c1"># TODO: ut.filterflags_general_tags</span>
 
 </div>
 <div class="viewcode-block" id="filterflags_general_tags"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.filterflags_general_tags">[docs]</a><span class="k">def</span> <span class="nf">filterflags_general_tags</span><span class="p">(</span><span class="n">tags_list</span><span class="p">,</span>
@@ -551,7 +566,7 @@
                              <span class="n">any_endswith</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                              <span class="n">any_match</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                              <span class="n">none_match</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                             <span class="n">logic</span><span class="o">=</span><span class="s">&#39;and&#39;</span><span class="p">):</span>
+                             <span class="n">logic</span><span class="o">=</span><span class="s1">&#39;and&#39;</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    maybe integrate into utool? Seems pretty general</span>
 
@@ -621,16 +636,16 @@
         <span class="k">return</span> <span class="p">{</span><span class="n">const</span><span class="o">.</span><span class="n">__STR__</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">}</span>
 
     <span class="k">if</span> <span class="n">logic</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">logic</span> <span class="o">=</span> <span class="s">&#39;and&#39;</span>
+        <span class="n">logic</span> <span class="o">=</span> <span class="s1">&#39;and&#39;</span>
 
     <span class="n">logic_func</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;and&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">,</span>
-        <span class="s">&#39;or&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">,</span>
+        <span class="s1">&#39;and&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">,</span>
+        <span class="s1">&#39;or&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">,</span>
     <span class="p">}[</span><span class="n">logic</span><span class="p">]</span>
 
     <span class="n">default_func</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;and&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">,</span>
-        <span class="s">&#39;or&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">,</span>
+        <span class="s1">&#39;and&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">,</span>
+        <span class="s1">&#39;or&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">,</span>
     <span class="p">}[</span><span class="n">logic</span><span class="p">]</span>
 
     <span class="n">tags_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">fix_tags</span><span class="p">(</span><span class="n">tags_</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags_</span> <span class="ow">in</span> <span class="n">tags_list</span><span class="p">]</span>
@@ -722,36 +737,36 @@
     <span class="n">standard</span><span class="p">,</span> <span class="n">other</span> <span class="o">=</span> <span class="n">get_cate_categories</span><span class="p">()</span>
     <span class="n">annotmatch_tag_texts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_tag_text</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
     <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">_parse_note</span><span class="p">(</span><span class="n">note</span><span class="p">)</span> <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">annotmatch_tag_texts_list</span><span class="p">]</span>
-    <span class="c">#NEW = False</span>
-    <span class="c">#if NEW:</span>
-    <span class="c">#    # hack for faster tag parsing</span>
-    <span class="c">#    from ibeis.control import _autogen_annotmatch_funcs as _aaf</span>
-    <span class="c">#    import itertools</span>
-    <span class="c">#    colnames = (_aaf.ANNOTMATCH_IS_HARD, _aaf.ANNOTMATCH_IS_SCENERYMATCH,</span>
-    <span class="c">#                _aaf.ANNOTMATCH_IS_PHOTOBOMB, _aaf.ANNOTMATCH_IS_NONDISTINCT)</span>
-    <span class="c">#    id_iter = annotmatch_rowids</span>
-    <span class="c">#    annotmatch_is_col = ibs.db.get(</span>
-    <span class="c">#        ibs.const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname=&#39;rowid&#39;,</span>
-    <span class="c">#        eager=True, nInput=None, unpack_scalars=True)</span>
-    <span class="c">#    annotmatch_is_col = [col if col is not None else [None] * len(colnames)</span>
-    <span class="c">#                         for col in annotmatch_is_col]</span>
-    <span class="c">#    standardtags = [x[len(&#39;annotmatch_is_&#39;):] for x in colnames]</span>
-    <span class="c">#    standard_tags_list = ut.list_zipcompress(itertools.repeat(standardtags), annotmatch_is_col)</span>
-    <span class="c">#    tags_list = [tags1 + tags2 for tags1, tags2 in zip(tags_list, standard_tags_list)]</span>
-    <span class="c">#else:</span>
-    <span class="c">#    for case in standard:</span>
-    <span class="c">#        flag_list = ibs.get_annotmatch_prop(case, annotmatch_rowids)</span>
-    <span class="c">#        for tags in ut.compress(tags_list, flag_list):</span>
-    <span class="c">#            tags.append(case)</span>
+    <span class="c1">#NEW = False</span>
+    <span class="c1">#if NEW:</span>
+    <span class="c1">#    # hack for faster tag parsing</span>
+    <span class="c1">#    from ibeis.control import _autogen_annotmatch_funcs as _aaf</span>
+    <span class="c1">#    import itertools</span>
+    <span class="c1">#    colnames = (_aaf.ANNOTMATCH_IS_HARD, _aaf.ANNOTMATCH_IS_SCENERYMATCH,</span>
+    <span class="c1">#                _aaf.ANNOTMATCH_IS_PHOTOBOMB, _aaf.ANNOTMATCH_IS_NONDISTINCT)</span>
+    <span class="c1">#    id_iter = annotmatch_rowids</span>
+    <span class="c1">#    annotmatch_is_col = ibs.db.get(</span>
+    <span class="c1">#        ibs.const.ANNOTMATCH_TABLE, colnames, id_iter, id_colname=&#39;rowid&#39;,</span>
+    <span class="c1">#        eager=True, nInput=None, unpack_scalars=True)</span>
+    <span class="c1">#    annotmatch_is_col = [col if col is not None else [None] * len(colnames)</span>
+    <span class="c1">#                         for col in annotmatch_is_col]</span>
+    <span class="c1">#    standardtags = [x[len(&#39;annotmatch_is_&#39;):] for x in colnames]</span>
+    <span class="c1">#    standard_tags_list = ut.list_zipcompress(itertools.repeat(standardtags), annotmatch_is_col)</span>
+    <span class="c1">#    tags_list = [tags1 + tags2 for tags1, tags2 in zip(tags_list, standard_tags_list)]</span>
+    <span class="c1">#else:</span>
+    <span class="c1">#    for case in standard:</span>
+    <span class="c1">#        flag_list = ibs.get_annotmatch_prop(case, annotmatch_rowids)</span>
+    <span class="c1">#        for tags in ut.compress(tags_list, flag_list):</span>
+    <span class="c1">#            tags.append(case)</span>
     <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">tags_list</span><span class="p">]</span>
-    <span class="c">#if ut.get_argval(&#39;--consol&#39;) or True:</span>
-    <span class="c">#    tags_list = consolodate_annotmatch_tags(tags_list)</span>
+    <span class="c1">#if ut.get_argval(&#39;--consol&#39;) or True:</span>
+    <span class="c1">#    tags_list = consolodate_annotmatch_tags(tags_list)</span>
     <span class="k">return</span> <span class="n">tags_list</span>
 
 </div>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="get_annotmatch_standard_prop"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.get_annotmatch_standard_prop">[docs]</a><span class="k">def</span> <span class="nf">get_annotmatch_standard_prop</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="n">annotmatch_rowids</span><span class="p">):</span>
-    <span class="n">getter</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s">&#39;get_annotmatch_is_&#39;</span> <span class="o">+</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="n">getter</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;get_annotmatch_is_&#39;</span> <span class="o">+</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
     <span class="n">flag_list</span> <span class="o">=</span> <span class="n">getter</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">flag_list</span>
 
@@ -809,7 +824,7 @@
     <span class="k">elif</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">ANNOTMATCH_PROPS_OTHER_SET</span> <span class="ow">or</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">ANNOTMATCH_PROPS_OLD_SET</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">get_annotmatch_other_prop</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="n">annotmatch_rowids</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;Unknown prop=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,))</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Unknown prop=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,))</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -818,17 +833,17 @@
 <span class="sd">    hacky setter for dynamic properties of annotmatches using notes table</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">ANNOTMATCH_PROPS_STANDARD_SET</span><span class="p">:</span>
-        <span class="n">setter</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s">&#39;set_annotmatch_is_&#39;</span> <span class="o">+</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="n">setter</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="s1">&#39;set_annotmatch_is_&#39;</span> <span class="o">+</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">setter</span><span class="p">(</span><span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">ANNOTMATCH_PROPS_OTHER_SET</span> <span class="ow">or</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">ANNOTMATCH_PROPS_OLD_SET</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">set_annotmatch_other_prop</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="n">annotmatch_rowids</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;Unknown prop=</span><span class="si">%r</span><span class="s"> not in </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">ANNOTMATCH_PROPS_OTHER_SET</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Unknown prop=</span><span class="si">%r</span><span class="s1"> not in </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">ANNOTMATCH_PROPS_OTHER_SET</span><span class="p">))</span>
 
 </div>
 <span class="k">def</span> <span class="nf">_parse_note</span><span class="p">(</span><span class="n">note</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; convert a note into tags &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">tag</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">note</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">tag</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">note</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">_remove_tag</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="n">prop</span><span class="p">):</span>
@@ -870,45 +885,45 @@
 <div class="viewcode-block" id="set_tags_in_textformat"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.set_tags_in_textformat">[docs]</a><span class="k">def</span> <span class="nf">set_tags_in_textformat</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">text_list</span><span class="p">,</span> <span class="n">flags</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; general text tag setter hack &quot;&quot;&quot;</span>
     <span class="n">prop</span> <span class="o">=</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="n">ensured_text</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">note</span> <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">text_list</span><span class="p">]</span>
+    <span class="n">ensured_text</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">note</span> <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">text_list</span><span class="p">]</span>
     <span class="n">tags_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_parse_note</span><span class="p">(</span><span class="n">note</span><span class="p">)</span> <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">ensured_text</span><span class="p">]</span>
-    <span class="c"># Remove from all</span>
+    <span class="c1"># Remove from all</span>
     <span class="n">new_tags_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_remove_tag</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="n">prop</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">tags_list</span><span class="p">]</span>
-    <span class="c"># then add to specified ones</span>
+    <span class="c1"># then add to specified ones</span>
     <span class="k">for</span> <span class="n">tags</span><span class="p">,</span> <span class="n">flag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">new_tags_list</span><span class="p">,</span> <span class="n">flags</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">flag</span><span class="p">:</span>
             <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
-    <span class="n">new_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">new_tags_list</span><span class="p">]</span>
+    <span class="n">new_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">new_tags_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">new_text_list</span>
 
 </div>
 <span class="n">ANNOT_TAGS</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s">&#39;occlusion&#39;</span><span class="p">,</span>
-    <span class="s">&#39;lighting&#39;</span><span class="p">,</span>
-    <span class="s">&#39;quality&#39;</span><span class="p">,</span>
-    <span class="s">&#39;pose&#39;</span><span class="p">,</span>
-    <span class="s">&#39;error&#39;</span><span class="p">,</span>
-    <span class="s">&#39;interesting&#39;</span><span class="p">,</span>
-    <span class="s">&#39;error:viewpoint&#39;</span><span class="p">,</span>
-    <span class="s">&#39;error:quality&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;occlusion&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lighting&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;quality&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;pose&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;error&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;interesting&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;error:viewpoint&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;error:quality&#39;</span><span class="p">,</span>
 
-    <span class="s">&#39;occlusion:large&#39;</span><span class="p">,</span>
-    <span class="s">&#39;occlusion:medium&#39;</span><span class="p">,</span>
-    <span class="s">&#39;occlusion:small&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;occlusion:large&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;occlusion:medium&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;occlusion:small&#39;</span><span class="p">,</span>
 
-    <span class="s">&#39;lighting:shadowed&#39;</span><span class="p">,</span>
-    <span class="s">&#39;lighting:overexposed&#39;</span><span class="p">,</span>
-    <span class="s">&#39;lighting:underexposed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lighting:shadowed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lighting:overexposed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;lighting:underexposed&#39;</span><span class="p">,</span>
 
-    <span class="s">&#39;quality:washedout&#39;</span><span class="p">,</span>
-    <span class="s">&#39;quality:blury&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;quality:washedout&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;quality:blury&#39;</span><span class="p">,</span>
 
-    <span class="s">&#39;pose:novel&#39;</span><span class="p">,</span>
-    <span class="s">&#39;pose:common&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;pose:novel&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;pose:common&#39;</span><span class="p">,</span>
 
-    <span class="s">&#39;error:bbox&#39;</span><span class="p">,</span>
-    <span class="s">&#39;error:mask&#39;</span><span class="p">,</span>
-    <span class="s">&#39;error:other&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;error:bbox&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;error:mask&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;error:other&#39;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -951,7 +966,7 @@
     <span class="n">text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_tag_text</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">orig_tags_list</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">_parse_note</span><span class="p">(</span><span class="n">note</span><span class="p">)</span> <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">text_list</span><span class="p">]</span>
     <span class="n">new_tags_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">t1</span> <span class="o">+</span> <span class="n">t2</span> <span class="k">for</span> <span class="n">t1</span><span class="p">,</span> <span class="n">t2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tags_list</span><span class="p">,</span> <span class="n">orig_tags_list</span><span class="p">)]</span>
-    <span class="n">new_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">tags</span><span class="p">))))</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">new_tags_list</span><span class="p">]</span>
+    <span class="n">new_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">tags</span><span class="p">))))</span> <span class="k">for</span> <span class="n">tags</span> <span class="ow">in</span> <span class="n">new_tags_list</span><span class="p">]</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_tag_text</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">new_text_list</span><span class="p">)</span>
 
 </div>
@@ -1076,7 +1091,7 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="get_annot_all_tags"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.get_annot_all_tags">[docs]</a><span class="k">def</span> <span class="nf">get_annot_all_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+<div class="viewcode-block" id="get_annot_all_tags"><a class="viewcode-back" href="../../ibeis.html#ibeis.tag_funcs.get_annot_all_tags">[docs]</a><span class="k">def</span> <span class="nf">get_annot_all_tags</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.tag_funcs --exec-get_annot_all_tags --db GZ_Master1</span>
@@ -1091,6 +1106,9 @@
 <span class="sd">        &gt;&gt;&gt; tag_hist = ut.dict_hist(all_tags)</span>
 <span class="sd">        &gt;&gt;&gt; ut.print_dict(tag_hist)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()</span>
+
     <span class="n">annotmatch_tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_annotmatch_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">annot_tags_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_case_tags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">both_tags_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique_ordered</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">,</span>
@@ -1099,7 +1117,7 @@
     <span class="k">return</span> <span class="n">both_tags_list</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.tag_funcs</span>
@@ -1107,8 +1125,8 @@
 <span class="sd">        python -m ibeis.tag_funcs --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -1143,7 +1161,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_lblannot_funcs &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.control.manual_lblannot_funcs &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,28 +131,28 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.control.manual_lblannot_funcs</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
-<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># NOQA</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">range</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">const</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">ibeis.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.accessor_decors</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">adder</span><span class="p">,</span> <span class="n">deleter</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">getter_1to1</span><span class="p">,</span> <span class="n">getter_1toM</span><span class="p">,</span> <span class="n">default_decorator</span><span class="p">,</span> <span class="n">ider</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[autogen_lblannot]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[autogen_lblannot]&#39;</span><span class="p">)</span>
 
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
-<span class="n">LBLANNOT_VALUE</span> <span class="o">=</span> <span class="s">&#39;lblannot_value&#39;</span>
+<span class="n">LBLANNOT_VALUE</span> <span class="o">=</span> <span class="s1">&#39;lblannot_value&#39;</span>
 
 
-<span class="c">#@ider</span>
-<span class="c">#def _get_all_alr_rowids(ibs):</span>
-<span class="c">#    all_alr_rowids = ibs.db.get_all_rowids(const.AL_RELATION_TABLE)</span>
-<span class="c">#    return all_alr_rowids</span>
+<span class="c1">#@ider</span>
+<span class="c1">#def _get_all_alr_rowids(ibs):</span>
+<span class="c1">#    all_alr_rowids = ibs.db.get_all_rowids(const.AL_RELATION_TABLE)</span>
+<span class="c1">#    return all_alr_rowids</span>
 
 
 <span class="nd">@register_ibs_method</span>
@@ -174,10 +174,10 @@
         <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">MANUAL_CONFIGID</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">alr_confidence_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">alr_confidence_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;lblannot_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s">&#39;alr_confidence&#39;</span><span class="p">,)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;lblannot_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;config_rowid&#39;</span><span class="p">,</span> <span class="s1">&#39;alr_confidence&#39;</span><span class="p">,)</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">,</span> <span class="n">alr_confidence_list</span><span class="p">))</span>
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_alrid_from_superkey</span>
-    <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c"># TODO HAVE SQL GIVE YOU THESE NUMBERS</span>
+    <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># TODO HAVE SQL GIVE YOU THESE NUMBERS</span>
     <span class="n">alrid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">add_cleanly</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span>
                                     <span class="n">get_rowid_from_superkey</span><span class="p">,</span> <span class="n">superkey_paramx</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">alrid_list</span>
@@ -191,11 +191,11 @@
 <span class="sd">    #TODO: reverse order of rowid_list value_list in input</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">note_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">note_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">value_list</span><span class="p">)</span>
-    <span class="c"># Get random uuids</span>
+        <span class="n">note_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">value_list</span><span class="p">)</span>
+    <span class="c1"># Get random uuids</span>
     <span class="k">if</span> <span class="n">lblannot_uuid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">lblannot_uuid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">value_list</span><span class="p">))]</span>
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;lblannot_uuid&#39;</span><span class="p">,</span> <span class="s">&#39;lbltype_rowid&#39;</span><span class="p">,</span> <span class="n">LBLANNOT_VALUE</span><span class="p">,</span> <span class="s">&#39;lblannot_note&#39;</span><span class="p">]</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;lblannot_uuid&#39;</span><span class="p">,</span> <span class="s1">&#39;lbltype_rowid&#39;</span><span class="p">,</span> <span class="n">LBLANNOT_VALUE</span><span class="p">,</span> <span class="s1">&#39;lblannot_note&#39;</span><span class="p">]</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lblannot_uuid_list</span><span class="p">,</span> <span class="n">lbltype_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">,</span> <span class="n">note_list</span><span class="p">))</span>
     <span class="n">get_rowid_from_superkey</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_lblannot_rowid_from_superkey</span>
     <span class="n">superkey_paramx</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -211,11 +211,11 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list):  lblannot_rowid_list from the superkey (lbltype, value)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;lblannot_rowid&#39;</span><span class="p">,)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;lblannot_rowid&#39;</span><span class="p">,)</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lbltype_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">)</span>
-    <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;lbltype_rowid=? AND lblannot_value=?&#39;</span>
+    <span class="n">where_clause</span> <span class="o">=</span> <span class="s1">&#39;lbltype_rowid=? AND lblannot_value=?&#39;</span>
     <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">)</span>
-    <span class="c"># BIG HACK FOR ENFORCING UNKNOWN LBLANNOTS HAVE ROWID 0</span>
+    <span class="c1"># BIG HACK FOR ENFORCING UNKNOWN LBLANNOTS HAVE ROWID 0</span>
     <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">val</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">UNKNOWN</span> <span class="k">else</span> <span class="n">rowid</span>
                            <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">value_list</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">lblannot_rowid_list</span>
@@ -244,7 +244,7 @@
 <div class="viewcode-block" id="delete_lblannots"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_lblannot_funcs.delete_lblannots">[docs]</a><span class="k">def</span> <span class="nf">delete_lblannots</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; deletes lblannots from the database &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s"> lblannots&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs] deleting </span><span class="si">%d</span><span class="s1"> lblannots&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">))</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">delete_rowids</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
 
 </div>
@@ -255,7 +255,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        alrid_list (list of rowids): annot + label relationship rows</span>
 <span class="sd">    get the annot_rowid belonging to each relationship &quot;&quot;&quot;</span>
-    <span class="n">annot_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,),</span> <span class="n">alrid_list</span><span class="p">)</span>
+    <span class="n">annot_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,),</span> <span class="n">alrid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">annot_rowids_list</span>
 
 </div>
@@ -274,14 +274,14 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        aids_list (list): of lists annotation rowids</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#verbose = len(lblannot_rowid_list) &gt; 20</span>
-    <span class="c"># TODO: Optimize IF POSSIBLE</span>
-    <span class="c"># FIXME: SLOW</span>
-    <span class="c">#if verbose:</span>
-    <span class="c">#    print(ut.get_caller_name(N=list(range(0, 20))))</span>
-    <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;lblannot_rowid=?&#39;</span>
+    <span class="c1">#verbose = len(lblannot_rowid_list) &gt; 20</span>
+    <span class="c1"># TODO: Optimize IF POSSIBLE</span>
+    <span class="c1"># FIXME: SLOW</span>
+    <span class="c1">#if verbose:</span>
+    <span class="c1">#    print(ut.get_caller_name(N=list(range(0, 20))))</span>
+    <span class="n">where_clause</span> <span class="o">=</span> <span class="s1">&#39;lblannot_rowid=?&#39;</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="p">[(</span><span class="n">lblannot_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">lblannot_rowid</span> <span class="ow">in</span> <span class="n">lblannot_rowid_list</span><span class="p">]</span>
-    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span>
                                  <span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">aids_list</span>
 
@@ -295,7 +295,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        alr_confidence_list (list of rowids): confidence in an annotation relationship</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">alr_confidence_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;alr_confidence&#39;</span><span class="p">,),</span> <span class="n">alrid_list</span><span class="p">)</span>
+    <span class="n">alr_confidence_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;alr_confidence&#39;</span><span class="p">,),</span> <span class="n">alrid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">alr_confidence_list</span>
 
 </div>
@@ -308,7 +308,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        config_rowid_list (list): config_rowid in an annotation relationship</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;config_rowid&#39;</span><span class="p">,),</span> <span class="n">alrid_list</span><span class="p">)</span>
+    <span class="n">config_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;config_rowid&#39;</span><span class="p">,),</span> <span class="n">alrid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">config_rowid_list</span>
 
 </div>
@@ -321,7 +321,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        lblannot_rowids_list (list of rowids): label rowids (of annotations)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">lblannot_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;lblannot_rowid&#39;</span><span class="p">,),</span> <span class="n">alrid_list</span><span class="p">)</span>
+    <span class="n">lblannot_rowids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblannot_rowid&#39;</span><span class="p">,),</span> <span class="n">alrid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">lblannot_rowids_list</span>
 
 </div>
@@ -336,9 +336,9 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        alrid_list (list): annot-label relationship id list</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,)</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">config_rowid_list</span><span class="p">)</span>
-    <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;annot_rowid=? AND lblannot_rowid=? AND config_rowid=?&#39;</span>
+    <span class="n">where_clause</span> <span class="o">=</span> <span class="s1">&#39;annot_rowid=? AND lblannot_rowid=? AND config_rowid=?&#39;</span>
     <span class="n">alrid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">where_clause</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">alrid_list</span>
 
@@ -353,7 +353,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">lbltype_dict_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_lblannot_rowids_oftype</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">_lbltype</span><span class="p">)</span>
     <span class="n">DEFAULT_VALUE</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">KEY_DEFAULTS</span><span class="p">[</span><span class="n">_lbltype</span><span class="p">]</span>
-    <span class="c"># FIXME: Use filters and unflat maps</span>
+    <span class="c1"># FIXME: Use filters and unflat maps</span>
     <span class="n">lblannot_value_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">lblannot_value_getter</span><span class="p">(</span><span class="n">lblannot_rowids</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lblannot_rowids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">DEFAULT_VALUE</span>
                            <span class="k">for</span> <span class="n">lblannot_rowids</span> <span class="ow">in</span> <span class="n">lbltype_dict_list</span><span class="p">]</span>
@@ -363,14 +363,14 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
 <div class="viewcode-block" id="get_lblannot_lbltypes_rowids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_lblannot_funcs.get_lblannot_lbltypes_rowids">[docs]</a><span class="k">def</span> <span class="nf">get_lblannot_lbltypes_rowids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">):</span>
-    <span class="n">lbltype_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;lbltype_rowid&#39;</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
+    <span class="n">lbltype_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lbltype_rowid&#39;</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">lbltype_rowid_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
 <div class="viewcode-block" id="get_lblannot_notes"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_lblannot_funcs.get_lblannot_notes">[docs]</a><span class="k">def</span> <span class="nf">get_lblannot_notes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">):</span>
-    <span class="n">lblannotnotes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;lblannot_note&#39;</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
+    <span class="n">lblannotnotes_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblannot_note&#39;</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">lblannotnotes_list</span>
 
 </div>
@@ -383,10 +383,10 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        lblannot_rowid_list from the superkey (lbltype, value)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&quot;CALL TO get_lblannot_rowid_from_uuid IS UNSAFE.  USE get_lblannot_rowid_from_superkey&quot;</span><span class="p">)</span>
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;lblannot_rowid&#39;</span><span class="p">,)</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;CALL TO get_lblannot_rowid_from_uuid IS UNSAFE.  USE get_lblannot_rowid_from_superkey&quot;</span><span class="p">)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;lblannot_rowid&#39;</span><span class="p">,)</span>
     <span class="n">params_iter</span> <span class="o">=</span> <span class="n">lblannot_uuid_list</span>
-    <span class="n">id_colname</span> <span class="o">=</span> <span class="s">&#39;lblannot_uuid&#39;</span>
+    <span class="n">id_colname</span> <span class="o">=</span> <span class="s1">&#39;lblannot_uuid&#39;</span>
     <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">params_iter</span><span class="p">,</span> <span class="n">id_colname</span><span class="o">=</span><span class="n">id_colname</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">lblannot_rowid_list</span>
 
@@ -394,7 +394,7 @@
 <span class="nd">@register_ibs_method</span>
 <span class="nd">@getter_1to1</span>
 <div class="viewcode-block" id="get_lblannot_uuids"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_lblannot_funcs.get_lblannot_uuids">[docs]</a><span class="k">def</span> <span class="nf">get_lblannot_uuids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">):</span>
-    <span class="n">lblannotuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;lblannot_uuid&#39;</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
+    <span class="n">lblannotuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblannot_uuid&#39;</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">lblannotuuid_list</span>
 
 </div>
@@ -405,8 +405,8 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        text lblannots</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#TODO: Remove keyword argument</span>
-    <span class="c">#ibsfuncs.assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,  ibs.lbltype_ids[_lbltype])</span>
+    <span class="c1">#TODO: Remove keyword argument</span>
+    <span class="c1">#ibsfuncs.assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,  ibs.lbltype_ids[_lbltype])</span>
     <span class="n">lblannot_value_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="n">LBLANNOT_VALUE</span><span class="p">,),</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">lblannot_value_list</span>
 
@@ -417,7 +417,7 @@
     <span class="sd">&quot;&quot;&quot; sets annotation-lblannot-relationship confidence &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">alrid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">alrid</span> <span class="ow">in</span> <span class="n">alrid_list</span><span class="p">)</span>
     <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">confidence</span><span class="p">,)</span> <span class="k">for</span> <span class="n">confidence</span> <span class="ow">in</span> <span class="n">confidence_list</span><span class="p">)</span>
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;alr_confidence&#39;</span><span class="p">,)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;alr_confidence&#39;</span><span class="p">,)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
 
 </div>
@@ -430,7 +430,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">alrid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">alrid</span> <span class="ow">in</span> <span class="n">alrid_list</span><span class="p">)</span>
     <span class="n">val_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">lblannot_rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">lblannot_rowid</span> <span class="ow">in</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
-    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;lblannot_rowid&#39;</span><span class="p">,)</span>
+    <span class="n">colnames</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;lblannot_rowid&#39;</span><span class="p">,)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">val_iter</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
 
 </div>
@@ -438,22 +438,22 @@
 <span class="nd">@setter</span>
 <div class="viewcode-block" id="set_annot_lblannot_from_rowid"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_lblannot_funcs.set_annot_lblannot_from_rowid">[docs]</a><span class="k">def</span> <span class="nf">set_annot_lblannot_from_rowid</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">_lbltype</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Sets items/lblannot_rowids of a list of annotations.&quot;&quot;&quot;</span>
-    <span class="c"># Get the alrids_list for the aids, using the lbltype as a filter</span>
+    <span class="c1"># Get the alrids_list for the aids, using the lbltype as a filter</span>
     <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_alrids_oftype</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">lbltype_ids</span><span class="p">[</span><span class="n">_lbltype</span><span class="p">])</span>
-    <span class="c"># Find the aids which already have relationships (of _lbltype)</span>
+    <span class="c1"># Find the aids which already have relationships (of _lbltype)</span>
     <span class="n">setflag_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">alrids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">alrids</span> <span class="ow">in</span> <span class="n">alrids_list</span><span class="p">]</span>
-    <span class="c"># Add the relationship if it doesn&#39;t exist</span>
+    <span class="c1"># Add the relationship if it doesn&#39;t exist</span>
     <span class="n">aid_list_to_add</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">setflag_list</span><span class="p">)</span>
     <span class="n">lblannot_rowid_list_to_add</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">setflag_list</span><span class="p">)</span>
-    <span class="c"># set the existing relationship if one already exists</span>
+    <span class="c1"># set the existing relationship if one already exists</span>
     <span class="n">alrids_list_to_set</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">,</span> <span class="n">setflag_list</span><span class="p">)</span>
     <span class="n">lblannot_rowid_list_to_set</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">setflag_list</span><span class="p">)</span>
-    <span class="c"># Assert each annot has only one relationship of this type</span>
+    <span class="c1"># Assert each annot has only one relationship of this type</span>
     <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">assert_singleton_relationship</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">alrids_list_to_set</span><span class="p">)</span>
     <span class="n">alrid_list_to_set</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">alrids_list_to_set</span><span class="p">)</span>
-    <span class="c"># Add the new relationships</span>
+    <span class="c1"># Add the new relationships</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">add_annot_relationship</span><span class="p">(</span><span class="n">aid_list_to_add</span><span class="p">,</span> <span class="n">lblannot_rowid_list_to_add</span><span class="p">)</span>
-    <span class="c"># Set the old relationships</span>
+    <span class="c1"># Set the old relationships</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_alr_lblannot_rowids</span><span class="p">(</span><span class="n">alrid_list_to_set</span><span class="p">,</span> <span class="n">lblannot_rowid_list_to_set</span><span class="p">)</span>
 
 </div>
@@ -469,26 +469,26 @@
     <span class="k">assert</span> <span class="n">_lbltype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="n">ensure</span><span class="p">:</span>
         <span class="k">pass</span>
-    <span class="c"># a value consisting of an empty string or all spaces is set to the default</span>
+    <span class="c1"># a value consisting of an empty string or all spaces is set to the default</span>
     <span class="n">DEFAULT_VALUE</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">KEY_DEFAULTS</span><span class="p">[</span><span class="n">_lbltype</span><span class="p">]</span>
     <span class="n">EMPTY_KEY</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">EMPTY_KEY</span>
-    <span class="c"># setting a name to DEFAULT_VALUE or EMPTY is equivalent to unnaming it</span>
+    <span class="c1"># setting a name to DEFAULT_VALUE or EMPTY is equivalent to unnaming it</span>
     <span class="n">value_list_</span> <span class="o">=</span> <span class="p">[</span><span class="n">DEFAULT_VALUE</span> <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="n">EMPTY_KEY</span> <span class="k">else</span> <span class="n">value</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">value_list</span><span class="p">]</span>
     <span class="n">notdefault_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span> <span class="o">!=</span> <span class="n">DEFAULT_VALUE</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">value_list_</span><span class="p">]</span>
     <span class="n">aid_list_to_delete</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_dirty_items</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">notdefault_list</span><span class="p">)</span>
-    <span class="c"># Set all the valid valids</span>
+    <span class="c1"># Set all the valid valids</span>
     <span class="n">aids_to_set</span>   <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">notdefault_list</span><span class="p">)</span>
     <span class="n">values_to_set</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">value_list_</span><span class="p">,</span> <span class="n">notdefault_list</span><span class="p">)</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">delete_annot_relations_oftype</span><span class="p">(</span><span class="n">aid_list_to_delete</span><span class="p">,</span> <span class="n">_lbltype</span><span class="p">)</span>
-    <span class="c"># remove the relationships that have now been unnamed</span>
-    <span class="c"># Convert names into lblannot_rowid</span>
-    <span class="c"># FIXME: This function should not be able to set label realationships</span>
-    <span class="c"># to labels that have not been added!!</span>
-    <span class="c"># This is an inefficient way of getting lblannot_rowids!</span>
+    <span class="c1"># remove the relationships that have now been unnamed</span>
+    <span class="c1"># Convert names into lblannot_rowid</span>
+    <span class="c1"># FIXME: This function should not be able to set label realationships</span>
+    <span class="c1"># to labels that have not been added!!</span>
+    <span class="c1"># This is an inefficient way of getting lblannot_rowids!</span>
     <span class="n">lbltype_rowid_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">lbltype_ids</span><span class="p">[</span><span class="n">_lbltype</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">values_to_set</span><span class="p">)</span>
-    <span class="c"># auto ensure</span>
+    <span class="c1"># auto ensure</span>
     <span class="n">lblannot_rowid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">add_lblannots</span><span class="p">(</span><span class="n">lbltype_rowid_list</span><span class="p">,</span> <span class="n">values_to_set</span><span class="p">)</span>
-    <span class="c"># Call set_annot_from_lblannot_rowid to finish the conditional adding</span>
+    <span class="c1"># Call set_annot_from_lblannot_rowid to finish the conditional adding</span>
     <span class="n">ibs</span><span class="o">.</span><span class="n">set_annot_lblannot_from_rowid</span><span class="p">(</span><span class="n">aids_to_set</span><span class="p">,</span> <span class="n">lblannot_rowid_list</span><span class="p">,</span> <span class="n">_lbltype</span><span class="p">)</span>
 
 </div>
@@ -500,7 +500,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">id_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">rowid</span><span class="p">,)</span> <span class="k">for</span> <span class="n">rowid</span> <span class="ow">in</span> <span class="n">lblannot_rowid_list</span><span class="p">)</span>
     <span class="n">val_list</span> <span class="o">=</span> <span class="p">((</span><span class="n">value</span><span class="p">,)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">value_list</span><span class="p">)</span>
-    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;lblannot_note&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">LBLANNOT_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;lblannot_note&#39;</span><span class="p">,),</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">id_iter</span><span class="p">)</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
@@ -523,14 +523,14 @@
 <span class="sd">    be only of a specific lbltype/category/type</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">configid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;alr_rowid&#39;</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">,</span>
-                                 <span class="n">id_colname</span><span class="o">=</span><span class="s">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;alr_rowid&#39;</span><span class="p">,),</span> <span class="n">aid_list</span><span class="p">,</span>
+                                 <span class="n">id_colname</span><span class="o">=</span><span class="s1">&#39;annot_rowid&#39;</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">params_iter</span> <span class="o">=</span> <span class="p">((</span><span class="n">aid</span><span class="p">,</span> <span class="n">configid</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">where_clause</span> <span class="o">=</span> <span class="s">&#39;annot_rowid=? AND config_rowid=?&#39;</span>
-        <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;alr_rowid&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span>
+        <span class="n">where_clause</span> <span class="o">=</span> <span class="s1">&#39;annot_rowid=? AND config_rowid=?&#39;</span>
+        <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">get_where</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">AL_RELATION_TABLE</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;alr_rowid&#39;</span><span class="p">,),</span> <span class="n">params_iter</span><span class="p">,</span>
                                        <span class="n">where_clause</span><span class="o">=</span><span class="n">where_clause</span><span class="p">,</span> <span class="n">unpack_scalars</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="c"># assert all([x &gt; 0 for x in map(len, alrids_list)]), &#39;annotations must have at least one relationship&#39;</span>
+    <span class="c1"># assert all([x &gt; 0 for x in map(len, alrids_list)]), &#39;annotations must have at least one relationship&#39;</span>
     <span class="k">return</span> <span class="n">alrids_list</span>
 
 </div>
@@ -542,11 +542,11 @@
 <span class="sd">    relationship ids are filtered to be only of a specific lbltype/category/type</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_alrids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">configid</span><span class="o">=</span><span class="n">configid</span><span class="p">)</span>
-    <span class="c"># Get lblannot_rowid of each relationship</span>
+    <span class="c1"># Get lblannot_rowid of each relationship</span>
     <span class="n">lblannot_rowids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_lblannot_rowids</span><span class="p">,</span> <span class="n">alrids_list</span><span class="p">)</span>
-    <span class="c"># Get the type of each lblannot</span>
+    <span class="c1"># Get the type of each lblannot</span>
     <span class="n">lbltype_rowids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_lblannot_lbltypes_rowids</span><span class="p">,</span> <span class="n">lblannot_rowids_list</span><span class="p">)</span>
-    <span class="c"># only want the nids of individuals, not species, for example</span>
+    <span class="c1"># only want the nids of individuals, not species, for example</span>
     <span class="n">valids_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">typeid</span> <span class="o">==</span> <span class="n">lbltype_rowid</span> <span class="k">for</span> <span class="n">typeid</span> <span class="ow">in</span> <span class="n">rowids</span><span class="p">]</span> <span class="k">for</span> <span class="n">rowids</span> <span class="ow">in</span> <span class="n">lbltype_rowids_list</span><span class="p">]</span>
     <span class="n">alrids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span><span class="p">)</span> <span class="k">for</span> <span class="n">alrids</span><span class="p">,</span> <span class="n">valids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">,</span> <span class="n">valids_list</span><span class="p">)]</span>
     <span class="k">if</span> <span class="n">configid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -565,8 +565,8 @@
             <span class="k">for</span> <span class="n">alrid_list</span> <span class="ow">in</span> <span class="n">alrids_list</span>
         <span class="p">]</span>
     <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">alrid_list</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">alrid_list</span> <span class="ow">in</span> <span class="n">alrids_list</span><span class="p">]),</span>\
-        <span class="p">(</span><span class="s">&quot;More than one type per lbltype.  ALRIDS: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">)</span> <span class="o">+</span>
-         <span class="s">&quot;, ROW: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">lbltype_rowid</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;, KEYS:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">lbltype_ids</span><span class="p">))</span>
+        <span class="p">(</span><span class="s2">&quot;More than one type per lbltype.  ALRIDS: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">alrids_list</span><span class="p">)</span> <span class="o">+</span>
+         <span class="s2">&quot;, ROW: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">lbltype_rowid</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, KEYS:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">lbltype_ids</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">alrids_list</span>
 
 </div>
@@ -576,8 +576,8 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list): the name id of each annotation. &quot;&quot;&quot;</span>
-    <span class="c"># Get all the annotation lblannot relationships</span>
-    <span class="c"># filter out only the ones which specify names</span>
+    <span class="c1"># Get all the annotation lblannot relationships</span>
+    <span class="c1"># filter out only the ones which specify names</span>
     <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_alrids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">lblannot_rowids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_lblannot_rowids</span><span class="p">,</span> <span class="n">alrids_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">lblannot_rowids_list</span>
@@ -589,15 +589,15 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        list_ (list): the name id of each annotation. &quot;&quot;&quot;</span>
-    <span class="c"># Get all the annotation lblannot relationships</span>
-    <span class="c"># filter out only the ones which specify names</span>
-    <span class="k">assert</span> <span class="n">_lbltype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;should be using lbltype_rowids anyway&#39;</span>
+    <span class="c1"># Get all the annotation lblannot relationships</span>
+    <span class="c1"># filter out only the ones which specify names</span>
+    <span class="k">assert</span> <span class="n">_lbltype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;should be using lbltype_rowids anyway&#39;</span>
     <span class="n">alrids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_alrids_oftype</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">lbltype_ids</span><span class="p">[</span><span class="n">_lbltype</span><span class="p">])</span>
     <span class="n">lblannot_rowids_list</span> <span class="o">=</span> <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_alr_lblannot_rowids</span><span class="p">,</span> <span class="n">alrids_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">lblannot_rowids_list</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.manual_lblannot_funcs</span>
@@ -605,8 +605,8 @@
 <span class="sd">        python -m ibeis.control.manual_lblannot_funcs --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -641,7 +641,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

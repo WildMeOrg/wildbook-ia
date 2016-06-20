@@ -1,0 +1,815 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.new_annots &mdash; ibeis 1.5.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
+        <link rel="up" title="ibeis" href="../ibeis.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.new_annots</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.new_annots</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="c1"># from six.moves import zip</span>
+<span class="kn">import</span> <span class="nn">dtool</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">pyflann</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="c1"># import cv2</span>
+<span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">register_preprocs</span><span class="p">,</span> <span class="n">register_subprops</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[new_annots]&#39;</span><span class="p">)</span>
+
+
+<span class="n">derived_attribute</span> <span class="o">=</span> <span class="n">register_preprocs</span><span class="p">[</span><span class="s1">&#39;annot&#39;</span><span class="p">]</span>
+<span class="n">register_subprop</span> <span class="o">=</span> <span class="n">register_subprops</span><span class="p">[</span><span class="s1">&#39;annot&#39;</span><span class="p">]</span>
+<span class="c1"># dtool.Config.register_func = derived_attribute</span>
+
+
+<span class="nd">@ut.memoize</span>
+<div class="viewcode-block" id="testdata_vocab"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.testdata_vocab">[docs]</a><span class="k">def</span> <span class="nf">testdata_vocab</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">ibeis.new_annots</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span>
+    <span class="n">fid_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_rowids</span><span class="p">(</span><span class="s1">&#39;feat&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">VocabConfig</span><span class="p">()</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="n">compute_vocab</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">vocab</span>
+
+</div>
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<div class="viewcode-block" id="VisualVocab"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.VisualVocab">[docs]</a><span class="k">class</span> <span class="nc">VisualVocab</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">words</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wx2_word</span> <span class="o">=</span> <span class="n">words</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wordflann</span> <span class="o">=</span> <span class="n">pyflann</span><span class="o">.</span><span class="n">FLANN</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flann_params</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_flann_params</span><span class="p">(</span><span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+
+<div class="viewcode-block" id="VisualVocab.reindex"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.VisualVocab.reindex">[docs]</a>    <span class="k">def</span> <span class="nf">reindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="n">num_vecs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wx2_word</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[nnindex] ...building kdtree over </span><span class="si">%d</span><span class="s1"> points (this may take a sec).&#39;</span> <span class="o">%</span> <span class="n">num_vecs</span><span class="p">)</span>
+            <span class="n">tt</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">tic</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="s1">&#39;Building vocab index&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_vecs</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wordflann</span><span class="o">.</span><span class="n">build_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wx2_word</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">flann_params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">toc</span><span class="p">(</span><span class="n">tt</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="VisualVocab.nn_index"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.VisualVocab.nn_index">[docs]</a>    <span class="k">def</span> <span class="nf">nn_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            &gt;&gt;&gt; idx2_vec = depc.d.get_feat_vecs(aid_list)[0]</span>
+<span class="sd">            &gt;&gt;&gt; self = vocab</span>
+<span class="sd">            &gt;&gt;&gt; nAssign = 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Assign each vector to the nearest visual words</span>
+        <span class="k">assert</span> <span class="n">nAssign</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;cannot assign to 0 neighbors&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_idx2_wx</span><span class="p">,</span> <span class="n">_idx2_wdist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wordflann</span><span class="o">.</span><span class="n">nn_index</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">pyflann</span><span class="o">.</span><span class="n">FLANNException</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;probably misread the cached flann_fpath=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wordflann</span><span class="o">.</span><span class="n">flann_fpath</span><span class="p">,))</span>
+            <span class="k">raise</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_idx2_wx</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">atleast_nd</span><span class="p">(</span><span class="n">_idx2_wx</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">_idx2_wdist</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">atleast_nd</span><span class="p">(</span><span class="n">_idx2_wdist</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">_idx2_wx</span><span class="p">,</span> <span class="n">_idx2_wdist</span>
+</div>
+<div class="viewcode-block" id="VisualVocab.assign_to_words"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.VisualVocab.assign_to_words">[docs]</a>    <span class="k">def</span> <span class="nf">assign_to_words</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">,</span> <span class="n">massign_alpha</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
+                        <span class="n">massign_sigma</span><span class="o">=</span><span class="mf">80.0</span><span class="p">,</span> <span class="n">massign_equal_weights</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assigns descriptor-vectors to nearest word.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            wordflann (FLANN): nearest neighbor index over words</span>
+<span class="sd">            words (ndarray): vocabulary words</span>
+<span class="sd">            idx2_vec (ndarray): descriptors to assign</span>
+<span class="sd">            nAssign (int): number of words to assign each descriptor to</span>
+<span class="sd">            massign_alpha (float): multiple-assignment ratio threshold</span>
+<span class="sd">            massign_sigma (float): multiple-assignment gaussian variance</span>
+<span class="sd">            massign_equal_weights (bool): assign equal weight to all multiassigned words</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: inverted index, multi-assigned weights, and forward index</span>
+<span class="sd">            formated as::</span>
+
+<span class="sd">                * wx2_idxs - word index   -&gt; vector indexes</span>
+<span class="sd">                * wx2_maws - word index   -&gt; multi-assignment weights</span>
+<span class="sd">                * idf2_wxs - vector index -&gt; assigned word indexes</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; # SLOW_DOCTEST</span>
+<span class="sd">            &gt;&gt;&gt; idx2_vec = depc.d.get_feat_vecs(aid_list)[0][0::300]</span>
+<span class="sd">            &gt;&gt;&gt; idx2_vec = np.vstack((idx2_vec, self.wx2_word[0]))</span>
+<span class="sd">            &gt;&gt;&gt; nAssign = 2</span>
+<span class="sd">            &gt;&gt;&gt; massign_equal_weights = False</span>
+<span class="sd">            &gt;&gt;&gt; massign_alpha = 1.2</span>
+<span class="sd">            &gt;&gt;&gt; massign_sigma = 80.0</span>
+<span class="sd">            &gt;&gt;&gt; nAssign = 2</span>
+<span class="sd">            &gt;&gt;&gt; idx2_wxs, idx2_maws = self.assign_to_words(idx2_vec, nAssign)</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;idx2_maws = %s&#39; % (ut.repr2(idx2_wxs, precision=2),))</span>
+<span class="sd">            &gt;&gt;&gt; print(&#39;idx2_wxs = %s&#39; % (ut.repr2(idx2_maws, precision=2),))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[smk_index.assign] +--- Start Assign vecs to words.&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[smk_index.assign] * nAssign=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">nAssign</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[smk_index.assign] assign_to_words_. len(idx2_vec) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">))</span>
+        <span class="n">_idx2_wx</span><span class="p">,</span> <span class="n">_idx2_wdist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn_index</span><span class="p">(</span><span class="n">idx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nAssign</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">idx2_wxs</span><span class="p">,</span> <span class="n">idx2_maws</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_multiassign_weights</span><span class="p">(</span>
+                <span class="n">_idx2_wx</span><span class="p">,</span> <span class="n">_idx2_wdist</span><span class="p">,</span> <span class="n">massign_alpha</span><span class="p">,</span> <span class="n">massign_sigma</span><span class="p">,</span> <span class="n">massign_equal_weights</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">idx2_wxs</span> <span class="o">=</span> <span class="n">_idx2_wx</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">idx2_maws</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">1.0</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx2_wxs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">idx2_wxs</span><span class="p">,</span> <span class="n">idx2_maws</span>
+</div>
+<div class="viewcode-block" id="VisualVocab.invert_assignment"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.VisualVocab.invert_assignment">[docs]</a>    <span class="k">def</span> <span class="nf">invert_assignment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx2_wxs</span><span class="p">,</span> <span class="n">idx2_maws</span><span class="p">,</span> <span class="o">*</span><span class="n">other_idx2_prop</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Inverts assignment of vectors to words into words to vectors.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; idx2_idx = np.arange(len(idx2_wxs))</span>
+<span class="sd">            &gt;&gt;&gt; other_idx2_prop = (idx2_idx,)</span>
+<span class="sd">            &gt;&gt;&gt; wx2_idxs, wx2_maws, wx2_idxs_ = self.invert_assignment(idx2_wxs, idx2_maws, idx2_idx)</span>
+<span class="sd">            &gt;&gt;&gt; assert ut.dict_str(wx2_idxs) == ut.dict_str(wx2_idxs_)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Invert mapping -- Group by word indexes</span>
+        <span class="n">idx2_nAssign</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">wxs</span><span class="p">)</span> <span class="k">for</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="n">idx2_wxs</span><span class="p">]</span>
+        <span class="n">jagged_idxs</span> <span class="o">=</span> <span class="p">[[</span><span class="n">idx</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">idx2_nAssign</span><span class="p">)]</span>
+        <span class="n">wx_keys</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">jagged_group</span><span class="p">(</span><span class="n">idx2_wxs</span><span class="p">)</span>
+        <span class="n">idxs_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_jagged_grouping</span><span class="p">(</span><span class="n">jagged_idxs</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+        <span class="n">wx2_idxs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_keys</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">))</span>
+        <span class="n">maws_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_jagged_grouping</span><span class="p">(</span><span class="n">idx2_maws</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+        <span class="n">wx2_maws</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_keys</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">))</span>
+
+        <span class="n">other_wx2_prop</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx2_prop</span> <span class="ow">in</span> <span class="n">other_idx2_prop</span><span class="p">:</span>
+            <span class="c1"># Props are assumed to be non-jagged, so make them jagged</span>
+            <span class="n">jagged_prop</span> <span class="o">=</span> <span class="p">[[</span><span class="n">prop</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span> <span class="k">for</span> <span class="n">prop</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">idx2_prop</span><span class="p">,</span> <span class="n">idx2_nAssign</span><span class="p">)]</span>
+            <span class="n">prop_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_jagged_grouping</span><span class="p">(</span><span class="n">jagged_prop</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+            <span class="n">wx2_prop</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wx_keys</span><span class="p">,</span> <span class="n">prop_list</span><span class="p">))</span>
+            <span class="n">other_wx2_prop</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wx2_prop</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[smk_index.assign] L___ End Assign vecs to words.&#39;</span><span class="p">)</span>
+        <span class="n">assignment</span> <span class="o">=</span> <span class="p">(</span><span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">other_wx2_prop</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">assignment</span>
+</div>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_compute_multiassign_weights</span><span class="p">(</span><span class="n">_idx2_wx</span><span class="p">,</span> <span class="n">_idx2_wdist</span><span class="p">,</span> <span class="n">massign_alpha</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
+                                     <span class="n">massign_sigma</span><span class="o">=</span><span class="mf">80.0</span><span class="p">,</span>
+                                     <span class="n">massign_equal_weights</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Multi Assignment Weight Filtering from Improving Bag of Features</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            massign_equal_weights (): Turns off soft weighting. Gives all assigned</span>
+<span class="sd">                vectors weight 1</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple : (idx2_wxs, idx2_maws)</span>
+
+<span class="sd">        References:</span>
+<span class="sd">            (Improving Bag of Features)</span>
+<span class="sd">            http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf</span>
+<span class="sd">            (Lost in Quantization)</span>
+<span class="sd">            http://www.robots.ox.ac.uk/~vgg/publications/papers/philbin08.ps.gz</span>
+<span class="sd">            (A Context Dissimilarity Measure for Accurate and Efficient Image Search)</span>
+<span class="sd">            https://lear.inrialpes.fr/pubs/2007/JHS07/jegou_cdm.pdf</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; massign_alpha = 1.2</span>
+<span class="sd">            &gt;&gt;&gt; massign_sigma = 80.0</span>
+<span class="sd">            &gt;&gt;&gt; massign_equal_weights = False</span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">            sigma values from \cite{philbin_lost08}</span>
+<span class="sd">            (70 ** 2) ~= 5000, (80 ** 2) ~= 6250, (86 ** 2) ~= 7500,</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">QUIET</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[smk_index.assign] compute_multiassign_weights_&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_idx2_wx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">idx2_wxs</span> <span class="o">=</span> <span class="n">_idx2_wx</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">idx2_maws</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">1.0</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx2_wxs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Valid word assignments are beyond fraction of distance to the nearest word</span>
+            <span class="n">massign_thresh</span> <span class="o">=</span> <span class="n">_idx2_wdist</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="c1"># HACK: If the nearest word has distance 0 then this threshold is too hard</span>
+            <span class="c1"># so we should use the distance to the second nearest word.</span>
+            <span class="n">EXACT_MATCH_HACK</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="n">EXACT_MATCH_HACK</span><span class="p">:</span>
+                <span class="n">flag_too_close</span> <span class="o">=</span> <span class="p">(</span><span class="n">massign_thresh</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">massign_thresh</span><span class="p">[</span><span class="n">flag_too_close</span><span class="p">]</span> <span class="o">=</span> <span class="n">_idx2_wdist</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">flag_too_close</span><span class="p">]</span>
+            <span class="c1"># Compute the threshold fraction</span>
+            <span class="n">epsilon</span> <span class="o">=</span> <span class="o">.</span><span class="mo">001</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">epsilon</span><span class="p">,</span> <span class="n">massign_thresh</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">massign_thresh</span><span class="p">)</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">massign_alpha</span><span class="p">,</span> <span class="n">massign_thresh</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">massign_thresh</span><span class="p">)</span>
+            <span class="c1"># Mark assignments as invalid if they are too far away from the nearest assignment</span>
+            <span class="n">invalid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">greater_equal</span><span class="p">(</span><span class="n">_idx2_wdist</span><span class="p">,</span> <span class="n">massign_thresh</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
+                <span class="n">nInvalid</span> <span class="o">=</span> <span class="p">(</span><span class="n">invalid</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">invalid</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">invalid</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[maw] + massign_alpha = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_alpha</span><span class="p">,))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[maw] + massign_sigma = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_sigma</span><span class="p">,))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[maw] + massign_equal_weights = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">massign_equal_weights</span><span class="p">,))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[maw] * Marked </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> assignments as invalid&#39;</span> <span class="o">%</span> <span class="n">nInvalid</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">massign_equal_weights</span><span class="p">:</span>
+                <span class="c1"># Performance hack from jegou paper: just give everyone equal weight</span>
+                <span class="n">masked_wxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">_idx2_wx</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">invalid</span><span class="p">)</span>
+                <span class="n">idx2_wxs</span>  <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">,</span> <span class="n">masked_wxs</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+                <span class="c1">#ut.embed()</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">wxs</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">for</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="n">idx2_wxs</span><span class="p">])</span>
+                <span class="n">idx2_maws</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wxs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="k">for</span> <span class="n">wxs</span> <span class="ow">in</span> <span class="n">idx2_wxs</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># More natural weighting scheme</span>
+                <span class="c1"># Weighting as in Lost in Quantization</span>
+                <span class="n">gauss_numer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">negative</span><span class="p">(</span><span class="n">_idx2_wdist</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span>
+                <span class="n">gauss_denom</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">massign_sigma</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">gauss_exp</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">gauss_numer</span><span class="p">,</span> <span class="n">gauss_denom</span><span class="p">)</span>
+                <span class="n">unnorm_maw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">gauss_exp</span><span class="p">)</span>
+                <span class="c1"># Mask invalid multiassignment weights</span>
+                <span class="n">masked_unorm_maw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">unnorm_maw</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">invalid</span><span class="p">)</span>
+                <span class="c1"># Normalize multiassignment weights from 0 to 1</span>
+                <span class="n">masked_norm</span> <span class="o">=</span> <span class="n">masked_unorm_maw</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+                <span class="n">masked_maw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">masked_unorm_maw</span><span class="p">,</span> <span class="n">masked_norm</span><span class="p">)</span>
+                <span class="n">masked_wxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">_idx2_wx</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">invalid</span><span class="p">)</span>
+                <span class="c1"># Remove masked weights and word indexes</span>
+                <span class="n">idx2_wxs</span>  <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">,</span> <span class="n">masked_wxs</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+                <span class="n">idx2_maws</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">,</span> <span class="n">masked_maw</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+                <span class="c1">#with ut.EmbedOnException():</span>
+                <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DEBUG2</span><span class="p">:</span>
+                    <span class="n">checksum</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">maws</span><span class="p">)</span> <span class="k">for</span> <span class="n">maws</span> <span class="ow">in</span> <span class="n">idx2_maws</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">([</span><span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">almost_eq</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">checksum</span><span class="p">])[</span><span class="mi">0</span><span class="p">]:</span>
+                        <span class="k">print</span><span class="p">(</span><span class="n">checksum</span><span class="p">[</span><span class="n">x</span><span class="p">])</span>
+                        <span class="k">print</span><span class="p">(</span><span class="n">_idx2_wx</span><span class="p">[</span><span class="n">x</span><span class="p">])</span>
+                        <span class="k">print</span><span class="p">(</span><span class="n">masked_wxs</span><span class="p">[</span><span class="n">x</span><span class="p">])</span>
+                        <span class="k">print</span><span class="p">(</span><span class="n">masked_maw</span><span class="p">[</span><span class="n">x</span><span class="p">])</span>
+                        <span class="k">print</span><span class="p">(</span><span class="n">massign_thresh</span><span class="p">[</span><span class="n">x</span><span class="p">])</span>
+                        <span class="k">print</span><span class="p">(</span><span class="n">_idx2_wdist</span><span class="p">[</span><span class="n">x</span><span class="p">])</span>
+                    <span class="c1">#all([ut.almost_eq(x, 1) for x in checksum])</span>
+                    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="n">ut</span><span class="o">.</span><span class="n">almost_eq</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">checksum</span><span class="p">]),</span> <span class="s1">&#39;weights did not break evenly&#39;</span>
+        <span class="k">return</span> <span class="n">idx2_wxs</span><span class="p">,</span> <span class="n">idx2_maws</span>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39; nW=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">safelen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wx2_word</span><span class="p">))</span>
+
+<div class="viewcode-block" id="VisualVocab.on_load"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.VisualVocab.on_load">[docs]</a>    <span class="k">def</span> <span class="nf">on_load</span><span class="p">(</span><span class="n">nnindexer</span><span class="p">,</span> <span class="n">depc</span><span class="p">):</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="VisualVocab.on_save"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.VisualVocab.on_save">[docs]</a>    <span class="k">def</span> <span class="nf">on_save</span><span class="p">(</span><span class="n">nnindexer</span><span class="p">,</span> <span class="n">depc</span><span class="p">,</span> <span class="n">fpath</span><span class="p">):</span>
+        <span class="k">pass</span>
+</div>
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># TODO: Figure out how to make these play nice with the depcache</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span>
+        <span class="k">del</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;wordflann&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">state</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+
+</div>
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<div class="viewcode-block" id="InvertedIndex"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.InvertedIndex">[docs]</a><span class="k">class</span> <span class="nc">InvertedIndex</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="VocabConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.VocabConfig">[docs]</a><span class="k">class</span> <span class="nc">VocabConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">Config</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.core_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; cfg = VocabConfig()</span>
+<span class="sd">        &gt;&gt;&gt; result = str(cfg)</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;algorithm&#39;</span><span class="p">,</span> <span class="s1">&#39;kdtree&#39;</span><span class="p">,</span> <span class="s1">&#39;alg&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;random_seed&#39;</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="s1">&#39;seed&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;num_words&#39;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="s1">&#39;seed&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="c1"># max iters</span>
+        <span class="c1"># flann params</span>
+        <span class="c1"># random seed</span>
+    <span class="p">]</span>
+    <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">]</span>
+
+</div>
+<span class="nd">@derived_attribute</span><span class="p">(</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;vocab&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;feat*&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;words&#39;</span><span class="p">],</span> <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">VisualVocab</span><span class="p">],</span>
+    <span class="n">configclass</span><span class="o">=</span><span class="n">VocabConfig</span><span class="p">,</span>
+    <span class="n">chunksize</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;visual_vocab&#39;</span><span class="p">,</span>
+    <span class="c1"># func_is_single=True,</span>
+    <span class="c1"># _internal_parent_ids=False,  # Give the function nicer ids to work with</span>
+    <span class="c1"># _internal_parent_ids=True,  # Give the function nicer ids to work with</span>
+<span class="p">)</span>
+<div class="viewcode-block" id="compute_vocab"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.compute_vocab">[docs]</a><span class="k">def</span> <span class="nf">compute_vocab</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        depc (dtool.DependencyCache):</span>
+<span class="sd">        fids_list (list):</span>
+<span class="sd">        config (dtool.Config):</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.core_annots --exec-compute_neighbor_index --show</span>
+<span class="sd">        python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.new_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list = ibeis.testdata_aids(&#39;testdb1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; depc = ibs.depc_annot</span>
+<span class="sd">        &gt;&gt;&gt; fid_list = depc.get_rowids(&#39;feat&#39;, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; config = VocabConfig()</span>
+<span class="sd">        &gt;&gt;&gt; vocab, train_vecs = ut.exec_func_src(compute_vocab, key_list=[&#39;vocab&#39;, &#39;train_vecs&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; idx2_vec = depc.d.get_feat_vecs(aid_list)[0]</span>
+<span class="sd">        &gt;&gt;&gt; self = vocab</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; data = train_vecs</span>
+<span class="sd">        &gt;&gt;&gt; centroids = vocab.wx2_word</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; vt.plot_centroids(data, centroids, num_pca_dims=2)</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">        &gt;&gt;&gt; #config = ibs.depc_annot[&#39;vocab&#39;].configclass()</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[IBEIS] COMPUTE_VOCAB:&#39;</span><span class="p">)</span>
+    <span class="n">vecs_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;feat&#39;</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="s1">&#39;vecs&#39;</span><span class="p">)</span>
+    <span class="n">train_vecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">)</span>
+    <span class="n">num_words</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;num_words&#39;</span><span class="p">]</span>
+    <span class="n">max_iters</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[smk_index] Train Vocab(nWords=</span><span class="si">%d</span><span class="s1">) using </span><span class="si">%d</span><span class="s1"> annots and </span><span class="si">%d</span><span class="s1"> descriptors&#39;</span> <span class="o">%</span>
+          <span class="p">(</span><span class="n">num_words</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">fid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_vecs</span><span class="p">)))</span>
+    <span class="n">flann_params</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_flann_params</span><span class="p">(</span><span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+    <span class="n">kwds</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">max_iters</span><span class="o">=</span><span class="n">max_iters</span><span class="p">,</span>
+        <span class="n">flann_params</span><span class="o">=</span><span class="n">flann_params</span>
+    <span class="p">)</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">akmeans</span><span class="p">(</span><span class="n">train_vecs</span><span class="p">,</span> <span class="n">num_words</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="n">VisualVocab</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
+    <span class="n">vocab</span><span class="o">.</span><span class="n">reindex</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">vocab</span>
+
+</div>
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<div class="viewcode-block" id="StackedFeatures"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.StackedFeatures">[docs]</a><span class="k">class</span> <span class="nc">StackedFeatures</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">fstack</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">ax2_vecs</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">get_feat_vecs</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">fstack</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="n">fstack</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+        <span class="n">fstack</span><span class="o">.</span><span class="n">ax2_aid</span> <span class="o">=</span> <span class="n">aid_list</span>
+        <span class="n">fstack</span><span class="o">.</span><span class="n">ax2_nFeat</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">vecs</span><span class="p">)</span> <span class="k">for</span> <span class="n">vecs</span> <span class="ow">in</span> <span class="n">ax2_vecs</span><span class="p">]</span>
+        <span class="n">fstack</span><span class="o">.</span><span class="n">idx2_fxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">))</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">fstack</span><span class="o">.</span><span class="n">ax2_nFeat</span><span class="p">])</span>
+        <span class="n">fstack</span><span class="o">.</span><span class="n">idx2_axs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([[</span><span class="n">ax</span><span class="p">]</span> <span class="o">*</span> <span class="n">num</span> <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fstack</span><span class="o">.</span><span class="n">ax2_nFeat</span><span class="p">)])</span>
+        <span class="n">fstack</span><span class="o">.</span><span class="n">idx2_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">ax2_vecs</span><span class="p">)</span>
+        <span class="c1">#fstack.idx2_fxs = vt.atleast_nd(fstack.idx2_fxs, 2)</span>
+        <span class="c1">#fstack.idx2_axs = vt.atleast_nd(fstack.idx2_axs, 2)</span>
+        <span class="n">fstack</span><span class="o">.</span><span class="n">num_feat</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">fstack</span><span class="o">.</span><span class="n">ax2_nFeat</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="n">fstack</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39; nA=</span><span class="si">%r</span><span class="s1"> nF=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">safelen</span><span class="p">(</span><span class="n">fstack</span><span class="o">.</span><span class="n">ax2_aid</span><span class="p">),</span> <span class="n">fstack</span><span class="o">.</span><span class="n">num_feat</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StackedFeatures.inverted_assignment"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.StackedFeatures.inverted_assignment">[docs]</a>    <span class="k">def</span> <span class="nf">inverted_assignment</span><span class="p">(</span><span class="n">fstack</span><span class="p">,</span> <span class="n">vocab</span><span class="p">,</span> <span class="n">nAssign</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># do work</span>
+        <span class="n">idx2_wxs</span><span class="p">,</span> <span class="n">idx2_maws</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">assign_to_words</span><span class="p">(</span><span class="n">fstack</span><span class="o">.</span><span class="n">idx2_vec</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">)</span>
+        <span class="c1"># Pack into structure</span>
+        <span class="n">forward_assign</span> <span class="o">=</span> <span class="p">(</span><span class="n">idx2_wxs</span><span class="p">,</span> <span class="n">idx2_maws</span><span class="p">,</span> <span class="n">fstack</span><span class="o">.</span><span class="n">idx2_fxs</span><span class="p">,</span> <span class="n">fstack</span><span class="o">.</span><span class="n">idx2_axs</span><span class="p">)</span>
+        <span class="n">invert_assign</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">invert_assignment</span><span class="p">(</span><span class="o">*</span><span class="n">forward_assign</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">wx2_fxs</span><span class="p">,</span> <span class="n">wx2_axs</span><span class="p">)</span> <span class="o">=</span> <span class="n">invert_assign</span>
+        <span class="n">invassign</span> <span class="o">=</span> <span class="n">InvertedStackAssignment</span><span class="p">(</span><span class="n">fstack</span><span class="p">,</span> <span class="n">vocab</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">wx2_fxs</span><span class="p">,</span> <span class="n">wx2_axs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">invassign</span>
+
+</div></div>
+<span class="nd">@six.add_metaclass</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">ReloadingMetaclass</span><span class="p">)</span>
+<div class="viewcode-block" id="InvertedStackAssignment"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.InvertedStackAssignment">[docs]</a><span class="k">class</span> <span class="nc">InvertedStackAssignment</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">NiceRepr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">invassign</span><span class="p">,</span> <span class="n">fstack</span><span class="p">,</span> <span class="n">vocab</span><span class="p">,</span> <span class="n">wx2_idxs</span><span class="p">,</span> <span class="n">wx2_maws</span><span class="p">,</span> <span class="n">wx2_fxs</span><span class="p">,</span> <span class="n">wx2_axs</span><span class="p">):</span>
+        <span class="n">invassign</span><span class="o">.</span><span class="n">fstack</span> <span class="o">=</span> <span class="n">fstack</span>
+        <span class="n">invassign</span><span class="o">.</span><span class="n">vocab</span> <span class="o">=</span> <span class="n">vocab</span>
+        <span class="n">invassign</span><span class="o">.</span><span class="n">wx2_idxs</span> <span class="o">=</span> <span class="n">wx2_idxs</span>
+        <span class="n">invassign</span><span class="o">.</span><span class="n">wx2_maws</span> <span class="o">=</span> <span class="n">wx2_maws</span>
+        <span class="n">invassign</span><span class="o">.</span><span class="n">wx2_fxs</span> <span class="o">=</span> <span class="n">wx2_fxs</span>
+        <span class="n">invassign</span><span class="o">.</span><span class="n">wx2_axs</span> <span class="o">=</span> <span class="n">wx2_axs</span>
+        <span class="n">invassign</span><span class="o">.</span><span class="n">wx2_num</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">invassign</span><span class="o">.</span><span class="n">wx2_axs</span><span class="p">)</span>
+        <span class="n">invassign</span><span class="o">.</span><span class="n">wx_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">invassign</span><span class="o">.</span><span class="n">wx2_num</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">invassign</span><span class="o">.</span><span class="n">num_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">invassign</span><span class="o">.</span><span class="n">wx2_num</span><span class="p">,</span> <span class="n">invassign</span><span class="o">.</span><span class="n">wx_list</span><span class="p">)</span>
+        <span class="n">invassign</span><span class="o">.</span><span class="n">perword_stats</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">invassign</span><span class="o">.</span><span class="n">num_list</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__nice__</span><span class="p">(</span><span class="n">invassign</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39; nW=</span><span class="si">%r</span><span class="s1"> mean=</span><span class="si">%.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">safelen</span><span class="p">(</span><span class="n">invassign</span><span class="o">.</span><span class="n">wx2_idxs</span><span class="p">),</span> <span class="n">invassign</span><span class="o">.</span><span class="n">perword_stats</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">])</span>
+
+<div class="viewcode-block" id="InvertedStackAssignment.get_vecs"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.InvertedStackAssignment.get_vecs">[docs]</a>    <span class="k">def</span> <span class="nf">get_vecs</span><span class="p">(</span><span class="n">invassign</span><span class="p">,</span> <span class="n">wx</span><span class="p">):</span>
+        <span class="n">vecs</span> <span class="o">=</span> <span class="n">invassign</span><span class="o">.</span><span class="n">fstack</span><span class="o">.</span><span class="n">idx2_vec</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">invassign</span><span class="o">.</span><span class="n">wx2_idxs</span><span class="p">[</span><span class="n">wx</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">vecs</span>
+</div>
+<div class="viewcode-block" id="InvertedStackAssignment.get_patches"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.InvertedStackAssignment.get_patches">[docs]</a>    <span class="k">def</span> <span class="nf">get_patches</span><span class="p">(</span><span class="n">invassign</span><span class="p">,</span> <span class="n">wx</span><span class="p">):</span>
+        <span class="n">ax_list</span> <span class="o">=</span> <span class="n">invassign</span><span class="o">.</span><span class="n">wx2_axs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>
+        <span class="n">fx_list</span> <span class="o">=</span> <span class="n">invassign</span><span class="o">.</span><span class="n">wx2_fxs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">invassign</span><span class="o">.</span><span class="n">fstack</span><span class="o">.</span><span class="n">config</span>
+        <span class="n">ibs</span> <span class="o">=</span> <span class="n">invassign</span><span class="o">.</span><span class="n">fstack</span><span class="o">.</span><span class="n">ibs</span>
+
+        <span class="n">unique_axs</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">ax_list</span><span class="p">)</span>
+        <span class="n">fxs_groups</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">fx_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+
+        <span class="n">unique_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">invassign</span><span class="o">.</span><span class="n">fstack</span><span class="o">.</span><span class="n">ax2_aid</span><span class="p">,</span> <span class="n">unique_axs</span><span class="p">)</span>
+
+        <span class="n">all_kpts_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">get_feat_kpts</span><span class="p">(</span><span class="n">unique_aids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">sub_kpts_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ziptake</span><span class="p">(</span><span class="n">all_kpts_list</span><span class="p">,</span> <span class="n">fxs_groups</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">chip_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">get_chips_img</span><span class="p">(</span><span class="n">unique_aids</span><span class="p">)</span>
+        <span class="c1"># convert to approprate colorspace</span>
+        <span class="c1">#if colorspace is not None:</span>
+        <span class="c1">#    chip_list = vt.convert_image_list_colorspace(chip_list, colorspace)</span>
+        <span class="c1"># ut.print_object_size(chip_list, &#39;chip_list&#39;)</span>
+        <span class="n">patch_size</span> <span class="o">=</span> <span class="mi">64</span>
+        <span class="n">grouped_patches_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">vt</span><span class="o">.</span><span class="n">get_warped_patches</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">patch_size</span><span class="o">=</span><span class="n">patch_size</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">chip</span><span class="p">,</span> <span class="n">kpts</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">chip_list</span><span class="p">,</span> <span class="n">sub_kpts_list</span><span class="p">),</span>
+                                          <span class="n">nTotal</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_aids</span><span class="p">),</span>
+                                          <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;warping patches&#39;</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="c1"># Make it correspond with original fx_list and ax_list</span>
+        <span class="n">word_patches</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">invert_apply_grouping</span><span class="p">(</span><span class="n">grouped_patches_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">word_patches</span>
+</div>
+<div class="viewcode-block" id="InvertedStackAssignment.compute_nonagg_rvecs"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.InvertedStackAssignment.compute_nonagg_rvecs">[docs]</a>    <span class="k">def</span> <span class="nf">compute_nonagg_rvecs</span><span class="p">(</span><span class="n">invassign</span><span class="p">,</span> <span class="n">wx</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Driver function for nonagg residual computation</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            words (ndarray): array of words</span>
+<span class="sd">            idx2_vec (dict): stacked vectors</span>
+<span class="sd">            wx_sublist (list): words of interest</span>
+<span class="sd">            idxs_list (list): list of idxs grouped by wx_sublist</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple : (rvecs_list, flags_list)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Pick out corresonding lists of residuals and words</span>
+        <span class="n">vecs</span> <span class="o">=</span> <span class="n">invassign</span><span class="o">.</span><span class="n">get_vecs</span><span class="p">(</span><span class="n">wx</span><span class="p">)</span>
+        <span class="n">word</span> <span class="o">=</span> <span class="n">invassign</span><span class="o">.</span><span class="n">vocab</span><span class="o">.</span><span class="n">wx2_word</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>
+        <span class="c1"># Compute nonaggregated normalized residuals</span>
+        <span class="n">arr_float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">),</span> <span class="n">vecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">))</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">normalize_rows</span><span class="p">(</span><span class="n">arr_float</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">arr_float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
+            <span class="n">rvecs_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">arr_float</span> <span class="o">*</span> <span class="mf">255.0</span><span class="p">),</span> <span class="o">-</span><span class="mi">127</span><span class="p">,</span> <span class="mi">127</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rvecs_list</span> <span class="o">=</span> <span class="n">arr_float</span>
+        <span class="c1"># Extract flags (rvecs_list which are all zeros) and rvecs_list</span>
+        <span class="n">error_flags</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rvecs_list</span><span class="p">,</span> <span class="n">error_flags</span>
+</div>
+<div class="viewcode-block" id="InvertedStackAssignment.compute_agg_rvecs"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.InvertedStackAssignment.compute_agg_rvecs">[docs]</a>    <span class="k">def</span> <span class="nf">compute_agg_rvecs</span><span class="p">(</span><span class="n">invassign</span><span class="p">,</span> <span class="n">wx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sums and normalizes all rvecs that belong to the same word and the same</span>
+<span class="sd">        annotation id</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rvecs_list</span><span class="p">,</span> <span class="n">error_flags</span> <span class="o">=</span> <span class="n">invassign</span><span class="o">.</span><span class="n">compute_nonagg_rvecs</span><span class="p">(</span><span class="n">wx</span><span class="p">)</span>
+        <span class="n">ax_list</span> <span class="o">=</span> <span class="n">invassign</span><span class="o">.</span><span class="n">wx2_axs</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>
+        <span class="n">maw_list</span> <span class="o">=</span> <span class="n">invassign</span><span class="o">.</span><span class="n">wx2_maws</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>
+        <span class="c1"># group members of each word by aid, we will collapse these groups</span>
+        <span class="n">unique_ax</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">ax_list</span><span class="p">)</span>
+        <span class="c1"># (weighted aggregation with multi-assign-weights)</span>
+        <span class="n">grouped_maws</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">maw_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+        <span class="n">grouped_rvecs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+        <span class="n">grouped_flags</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="o">~</span><span class="n">error_flags</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
+
+        <span class="n">grouped_rvecs2_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">grouped_rvecs</span><span class="p">,</span> <span class="n">grouped_flags</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">grouped_maws2_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">zipcompress</span><span class="p">(</span><span class="n">grouped_maws</span><span class="p">,</span> <span class="n">grouped_flags</span><span class="p">)</span>
+        <span class="n">is_good</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">rvecs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">rvecs</span> <span class="ow">in</span> <span class="n">grouped_rvecs2_</span><span class="p">]</span>
+        <span class="n">aggvecs</span> <span class="o">=</span> <span class="p">[</span><span class="n">aggregate_rvecs</span><span class="p">(</span><span class="n">rvecs</span><span class="p">,</span> <span class="n">maws</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">rvecs</span><span class="p">,</span> <span class="n">maws</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">grouped_rvecs2_</span><span class="p">,</span> <span class="n">grouped_maws2_</span><span class="p">)]</span>
+        <span class="n">unique_ax2_</span> <span class="o">=</span> <span class="n">unique_ax</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_good</span><span class="p">)</span>
+        <span class="n">ax2_aggvec</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_ax2_</span><span class="p">,</span> <span class="n">aggvecs</span><span class="p">))</span>
+        <span class="c1"># Need to recompute flags for consistency</span>
+        <span class="c1"># flag is true when aggvec is all zeros</span>
+        <span class="k">return</span> <span class="n">ax2_aggvec</span>
+
+</div></div>
+<div class="viewcode-block" id="aggregate_rvecs"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.aggregate_rvecs">[docs]</a><span class="k">def</span> <span class="nf">aggregate_rvecs</span><span class="p">(</span><span class="n">rvecs</span><span class="p">,</span> <span class="n">maws</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    helper for compute_agg_rvecs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">rvecs_agg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">rvecs_agg</span> <span class="o">=</span> <span class="n">rvecs</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Prealloc sum output (do not assign the result of sum)</span>
+        <span class="n">arr_float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">arr_float</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># Take weighted average of multi-assigned vectors</span>
+        <span class="n">total_weight</span> <span class="o">=</span> <span class="n">maws</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">weighted_sum</span> <span class="o">=</span> <span class="p">(</span><span class="n">maws</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">weighted_sum</span><span class="p">,</span> <span class="n">total_weight</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">normalize_rows</span><span class="p">(</span><span class="n">arr_float</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">arr_float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
+            <span class="n">rvecs_agg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">arr_float</span> <span class="o">*</span> <span class="mf">255.0</span><span class="p">),</span> <span class="o">-</span><span class="mi">127</span><span class="p">,</span> <span class="mi">127</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rvecs_agg</span> <span class="o">=</span> <span class="n">arr_float</span>
+    <span class="k">return</span> <span class="n">rvecs_agg</span>
+
+</div>
+<div class="viewcode-block" id="visualize_vocab_word"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.visualize_vocab_word">[docs]</a><span class="k">def</span> <span class="nf">visualize_vocab_word</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">invassign</span><span class="p">,</span> <span class="n">wx</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.new_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; pt.qt4ensure()</span>
+<span class="sd">        &gt;&gt;&gt; ibs, aid_list, vocab = testdata_vocab()</span>
+<span class="sd">        &gt;&gt;&gt; #aid_list = aid_list[0:1]</span>
+<span class="sd">        &gt;&gt;&gt; fstack = StackedFeatures(ibs, aid_list)</span>
+<span class="sd">        &gt;&gt;&gt; nAssign = 2</span>
+<span class="sd">        &gt;&gt;&gt; invassign = fstack.inverted_assignment(vocab, nAssign)</span>
+<span class="sd">        &gt;&gt;&gt; sortx = ut.argsort(invassign.num_list)[::-1]</span>
+<span class="sd">        &gt;&gt;&gt; wx_list = ut.take(invassign.wx_list, sortx)</span>
+<span class="sd">        &gt;&gt;&gt; wx = wx_list[0]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">qt4ensure</span><span class="p">()</span>
+    <span class="n">vecs</span> <span class="o">=</span> <span class="n">invassign</span><span class="o">.</span><span class="n">get_vecs</span><span class="p">(</span><span class="n">wx</span><span class="p">)</span>
+    <span class="n">word</span> <span class="o">=</span> <span class="n">invassign</span><span class="o">.</span><span class="n">vocab</span><span class="o">.</span><span class="n">wx2_word</span><span class="p">[</span><span class="n">wx</span><span class="p">]</span>
+
+    <span class="n">word_patches</span> <span class="o">=</span> <span class="n">invassign</span><span class="o">.</span><span class="n">get_patches</span><span class="p">(</span><span class="n">wx</span><span class="p">)</span>
+    <span class="n">average_patch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">word_patches</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">average_vec</span> <span class="o">=</span> <span class="n">vecs</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">average_vec</span> <span class="o">=</span> <span class="n">word</span>
+
+    <span class="n">word</span>
+
+    <span class="n">with_sift</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">with_sift</span><span class="p">:</span>
+        <span class="n">patch_img</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">render_sift_on_patch</span><span class="p">(</span><span class="n">average_patch</span><span class="p">,</span> <span class="n">average_vec</span><span class="p">)</span>
+        <span class="c1">#sift_word_patches = [pt.render_sift_on_patch(patch, vec) for patch, vec in ut.ProgIter(list(zip(word_patches, vecs)))]</span>
+        <span class="c1">#stacked_patches = vt.stack_square_images(word_patches)</span>
+        <span class="c1">#stacked_patches = vt.stack_square_images(sift_word_patches)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">patch_img</span> <span class="o">=</span> <span class="n">average_patch</span>
+    <span class="n">stacked_patches</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">stack_square_images</span><span class="p">(</span><span class="n">word_patches</span><span class="p">)</span>
+    <span class="n">solidbar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">patch_img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">patch_img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="o">.</span><span class="mi">1</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">patch_img</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">border_color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>  <span class="c1"># bgr, darkblue</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_float</span><span class="p">(</span><span class="n">solidbar</span><span class="p">):</span>
+        <span class="n">solidbar</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">border_color</span><span class="p">)</span> <span class="o">/</span> <span class="mi">255</span><span class="p">)[</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">solidbar</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">border_color</span><span class="p">)[</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">]</span>
+    <span class="n">word_img</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">stack_image_list</span><span class="p">([</span><span class="n">patch_img</span><span class="p">,</span> <span class="n">solidbar</span><span class="p">,</span> <span class="n">stacked_patches</span><span class="p">],</span> <span class="n">vert</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">modifysize</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">word_img</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+    <span class="c1">#pt.imshow(patch_img, pnum=(1, 2, 1), fnum=fnum)</span>
+    <span class="c1">#patch_size = 64</span>
+    <span class="c1">#half_size = patch_size / 2</span>
+    <span class="c1">#pt.imshow(stacked_patches, pnum=(1, 2, 2), fnum=fnum)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">iup</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="test_visualize_vocab_interact"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.test_visualize_vocab_interact">[docs]</a><span class="k">def</span> <span class="nf">test_visualize_vocab_interact</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    python -m ibeis.new_annots --exec-test_visualize_vocab_interact --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.new_annots import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; test_visualize_vocab_interact()</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">qt4ensure</span><span class="p">()</span>
+    <span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">vocab</span> <span class="o">=</span> <span class="n">testdata_vocab</span><span class="p">()</span>
+    <span class="c1">#aid_list = aid_list[0:1]</span>
+    <span class="n">fstack</span> <span class="o">=</span> <span class="n">StackedFeatures</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">nAssign</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">invassign</span> <span class="o">=</span> <span class="n">fstack</span><span class="o">.</span><span class="n">inverted_assignment</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">nAssign</span><span class="p">)</span>
+    <span class="n">sortx</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">invassign</span><span class="o">.</span><span class="n">num_list</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">wx_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">invassign</span><span class="o">.</span><span class="n">wx_list</span><span class="p">,</span> <span class="n">sortx</span><span class="p">)</span>
+    <span class="n">wx</span> <span class="o">=</span> <span class="n">wx_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">fnum</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">InteractiveIter</span><span class="p">(</span><span class="n">wx_list</span><span class="p">):</span>
+        <span class="n">visualize_vocab_word</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">invassign</span><span class="p">,</span> <span class="n">wx</span><span class="p">,</span> <span class="n">fnum</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="extract_patches"><a class="viewcode-back" href="../../ibeis.html#ibeis.new_annots.extract_patches">[docs]</a><span class="k">def</span> <span class="nf">extract_patches</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">fxs_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">patch_size</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">colorspace</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis_cnn.ingest_ibeis import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span>
+    <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">get_feat_kpts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fxs_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">fxs_list</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts_list</span><span class="p">)</span>
+    <span class="n">kpts_list_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ziptake</span><span class="p">(</span><span class="n">kpts_list</span><span class="p">,</span> <span class="n">fxs_list</span><span class="p">)</span>
+    <span class="n">chip_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">get_chips_img</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+    <span class="c1"># convert to approprate colorspace</span>
+    <span class="k">if</span> <span class="n">colorspace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">chip_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">convert_image_list_colorspace</span><span class="p">(</span><span class="n">chip_list</span><span class="p">,</span> <span class="n">colorspace</span><span class="p">)</span>
+    <span class="c1"># ut.print_object_size(chip_list, &#39;chip_list&#39;)</span>
+    <span class="n">patch_size</span> <span class="o">=</span> <span class="mi">64</span>
+
+    <span class="n">patches_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">vt</span><span class="o">.</span><span class="n">get_warped_patches</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">patch_size</span><span class="o">=</span><span class="n">patch_size</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">chip</span><span class="p">,</span> <span class="n">kpts</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">chip_list</span><span class="p">,</span> <span class="n">kpts_list_</span><span class="p">),</span>
+                                      <span class="n">nTotal</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+                                      <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;warping patches&#39;</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">patches_list</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.new_annots</span>
+<span class="sd">        python -m ibeis.new_annots --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.5.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

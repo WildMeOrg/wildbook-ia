@@ -4,10 +4,10 @@ ibeis.algo.preproc package
 Submodules
 ----------
 
-ibeis.algo.preproc.old_chip_preproc module
-------------------------------------------
+ibeis.algo.preproc.occurrence_blackbox module
+---------------------------------------------
 
-.. automodule:: ibeis.algo.preproc.old_chip_preproc
+.. automodule:: ibeis.algo.preproc.occurrence_blackbox
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,38 +16,6 @@ ibeis.algo.preproc.preproc_annot module
 ---------------------------------------
 
 .. automodule:: ibeis.algo.preproc.preproc_annot
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.algo.preproc.preproc_chip module
---------------------------------------
-
-.. automodule:: ibeis.algo.preproc.preproc_chip
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.algo.preproc.preproc_detectimg module
--------------------------------------------
-
-.. automodule:: ibeis.algo.preproc.preproc_detectimg
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.algo.preproc.preproc_feat module
---------------------------------------
-
-.. automodule:: ibeis.algo.preproc.preproc_feat
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.algo.preproc.preproc_featweight module
---------------------------------------------
-
-.. automodule:: ibeis.algo.preproc.preproc_featweight
     :members:
     :undoc-members:
     :show-inheritance:
@@ -64,14 +32,6 @@ ibeis.algo.preproc.preproc_occurrence module
 --------------------------------------------
 
 .. automodule:: ibeis.algo.preproc.preproc_occurrence
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-ibeis.algo.preproc.preproc_probchip module
-------------------------------------------
-
-.. automodule:: ibeis.algo.preproc.preproc_probchip
     :members:
     :undoc-members:
     :show-inheritance:

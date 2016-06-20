@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.scoring &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.hots.scoring &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,27 +133,27 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.hots.scoring</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">TODO:</span>
 <span class="sd">optional symetric and asymmetric search</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">coverage_kpts</span>
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">coverage_grid</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
-<span class="c">#from ibeis.algo.hots import name_scoring</span>
+<span class="c1">#from ibeis.algo.hots import name_scoring</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">distinctiveness_normalizer</span>
-<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c"># NOQA</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">scipy.stats.mstats</span> <span class="kn">as</span> <span class="nn">spmstat</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>  <span class="c"># NOQA</span>
-<span class="c">#profile = ut.profile</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[scoring]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>  <span class="c1"># NOQA</span>
+<span class="c1">#profile = ut.profile</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[scoring]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
 <span class="nd">@profile</span>
@@ -193,17 +193,17 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">progkw</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">progkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_thresh</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">lbl</span> <span class="o">=</span> <span class="s">&#39;scoring </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">score_method</span><span class="p">)</span>
-    <span class="c"># Choose the appropriate scoring mechanism</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[scoring] score </span><span class="si">%d</span><span class="s"> chipmatches with </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cm_list</span><span class="p">),</span> <span class="n">score_method</span><span class="p">,))</span>
-    <span class="k">if</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s">&#39;csum&#39;</span><span class="p">:</span>
+    <span class="n">lbl</span> <span class="o">=</span> <span class="s1">&#39;scoring </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">score_method</span><span class="p">)</span>
+    <span class="c1"># Choose the appropriate scoring mechanism</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[scoring] score </span><span class="si">%d</span><span class="s1"> chipmatches with </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cm_list</span><span class="p">),</span> <span class="n">score_method</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s1">&#39;csum&#39;</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="o">**</span><span class="n">progkw</span><span class="p">):</span>
             <span class="n">cm</span><span class="o">.</span><span class="n">score_maxcsum</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s">&#39;nsum&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s1">&#39;nsum&#39;</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">cm_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="n">lbl</span><span class="p">,</span> <span class="o">**</span><span class="n">progkw</span><span class="p">):</span>
             <span class="n">cm</span><span class="o">.</span><span class="n">score_nsum</span><span class="p">(</span><span class="n">qreq_</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;[hs] unknown scoring method:&#39;</span> <span class="o">+</span> <span class="n">score_method</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;[hs] unknown scoring method:&#39;</span> <span class="o">+</span> <span class="n">score_method</span><span class="p">)</span>
 
 </div>
 <span class="nd">@profile</span>
@@ -258,15 +258,15 @@
     <span class="n">unique_nids</span><span class="p">,</span> <span class="n">groupxs</span>    <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dnid_list</span><span class="p">))</span>
     <span class="n">grouped_annot_scores</span>    <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">annot_score_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
     <span class="n">grouped_daids</span>           <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">daid_list</span><span class="p">),</span> <span class="n">groupxs</span><span class="p">)</span>
-    <span class="c"># Ensure name score list is aligned with the unique_nids</span>
+    <span class="c1"># Ensure name score list is aligned with the unique_nids</span>
     <span class="n">aligned_name_score_list</span> <span class="o">=</span> <span class="n">name_score_list</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">nid2_nidx</span><span class="p">,</span> <span class="n">unique_nids</span><span class="p">))</span>
-    <span class="c"># Sort each group by the name score</span>
+    <span class="c1"># Sort each group by the name score</span>
     <span class="n">group_sortx</span>             <span class="o">=</span> <span class="n">aligned_name_score_list</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">_top_daid_groups</span>        <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">grouped_daids</span><span class="p">,</span> <span class="n">group_sortx</span><span class="p">)</span>
     <span class="n">_top_annot_score_groups</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">grouped_annot_scores</span><span class="p">,</span> <span class="n">group_sortx</span><span class="p">)</span>
     <span class="n">top_daid_groups</span>         <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listclip</span><span class="p">(</span><span class="n">_top_daid_groups</span><span class="p">,</span> <span class="n">nNameShortList</span><span class="p">)</span>
     <span class="n">top_annot_score_groups</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">listclip</span><span class="p">(</span><span class="n">_top_annot_score_groups</span><span class="p">,</span> <span class="n">nNameShortList</span><span class="p">)</span>
-    <span class="c"># Sort within each group by the annotation score</span>
+    <span class="c1"># Sort within each group by the annotation score</span>
     <span class="n">top_daid_sortx_groups</span>   <span class="o">=</span> <span class="p">[</span><span class="n">annot_score_group</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                                <span class="k">for</span> <span class="n">annot_score_group</span> <span class="ow">in</span> <span class="n">top_annot_score_groups</span><span class="p">]</span>
     <span class="n">top_sorted_daid_groups</span>  <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ziptake</span><span class="p">(</span><span class="n">top_daid_groups</span><span class="p">,</span> <span class="n">top_daid_sortx_groups</span><span class="p">)</span>
@@ -277,7 +277,7 @@
 
 </div>
 <span class="nd">@profile</span>
-<div class="viewcode-block" id="make_chipmatch_shortlists"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.scoring.make_chipmatch_shortlists">[docs]</a><span class="k">def</span> <span class="nf">make_chipmatch_shortlists</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">nNameShortList</span><span class="p">,</span> <span class="n">nAnnotPerName</span><span class="p">,</span> <span class="n">score_method</span><span class="o">=</span><span class="s">&#39;nsum&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="make_chipmatch_shortlists"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.scoring.make_chipmatch_shortlists">[docs]</a><span class="k">def</span> <span class="nf">make_chipmatch_shortlists</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">,</span> <span class="n">nNameShortList</span><span class="p">,</span> <span class="n">nAnnotPerName</span><span class="p">,</span> <span class="n">score_method</span><span class="o">=</span><span class="s1">&#39;nsum&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Makes shortlists for reranking</span>
 
@@ -316,21 +316,21 @@
 <span class="sd">        &gt;&gt;&gt; cm.show_single_annotmatch(qreq_, daid=top_aid_list[0])</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[scoring] Making shortlist nNameShortList=</span><span class="si">%r</span><span class="s">, nAnnotPerName=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nNameShortList</span><span class="p">,</span> <span class="n">nAnnotPerName</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[scoring] Making shortlist nNameShortList=</span><span class="si">%r</span><span class="s1">, nAnnotPerName=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nNameShortList</span><span class="p">,</span> <span class="n">nAnnotPerName</span><span class="p">))</span>
     <span class="n">cm_shortlist</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">cm</span><span class="o">.</span><span class="n">score_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;score list must be computed&#39;</span>
-        <span class="k">assert</span> <span class="n">cm</span><span class="o">.</span><span class="n">annot_score_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;annot_score_list must be computed&#39;</span>
-        <span class="c">#nscore_tup = name_scoring.group_scores_by_name(qreq_.ibs, cm.daid_list, cm.score_list)</span>
-        <span class="c">#(sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscore_tup</span>
-        <span class="c"># Clip number of names</span>
-        <span class="c">#_top_aids_list  = ut.listclip(sorted_aids, nNameShortList)</span>
-        <span class="c"># Clip number of annots per name</span>
-        <span class="c">#_top_clipped_aids_list = [ut.listclip(aids, nAnnotPerName) for aids in _top_aids_list]</span>
-        <span class="c">#top_aids = ut.flatten(_top_clipped_aids_list)</span>
-        <span class="k">if</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s">&#39;nsum&#39;</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">cm</span><span class="o">.</span><span class="n">score_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;score list must be computed&#39;</span>
+        <span class="k">assert</span> <span class="n">cm</span><span class="o">.</span><span class="n">annot_score_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;annot_score_list must be computed&#39;</span>
+        <span class="c1">#nscore_tup = name_scoring.group_scores_by_name(qreq_.ibs, cm.daid_list, cm.score_list)</span>
+        <span class="c1">#(sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscore_tup</span>
+        <span class="c1"># Clip number of names</span>
+        <span class="c1">#_top_aids_list  = ut.listclip(sorted_aids, nNameShortList)</span>
+        <span class="c1"># Clip number of annots per name</span>
+        <span class="c1">#_top_clipped_aids_list = [ut.listclip(aids, nAnnotPerName) for aids in _top_aids_list]</span>
+        <span class="c1">#top_aids = ut.flatten(_top_clipped_aids_list)</span>
+        <span class="k">if</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s1">&#39;nsum&#39;</span><span class="p">:</span>
             <span class="n">top_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_name_shortlist_aids</span><span class="p">(</span><span class="n">nNameShortList</span><span class="p">,</span> <span class="n">nAnnotPerName</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s">&#39;csum&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">score_method</span> <span class="o">==</span> <span class="s1">&#39;csum&#39;</span><span class="p">:</span>
             <span class="n">top_aids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_chip_shortlist_aids</span><span class="p">(</span><span class="n">nNameShortList</span> <span class="o">*</span> <span class="n">nAnnotPerName</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">score_method</span><span class="p">)</span>
@@ -339,8 +339,8 @@
     <span class="k">return</span> <span class="n">cm_shortlist</span>
 
 
-<span class="c">#### FEATURE WEIGHTS ####</span>
-<span class="c"># TODO: qreq_</span>
+<span class="c1">#### FEATURE WEIGHTS ####</span>
+<span class="c1"># TODO: qreq_</span>
 
 </div>
 <div class="viewcode-block" id="sift_selectivity_score"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.scoring.sift_selectivity_score">[docs]</a><span class="k">def</span> <span class="nf">sift_selectivity_score</span><span class="p">(</span><span class="n">vecs1_m</span><span class="p">,</span> <span class="n">vecs2_m</span><span class="p">,</span> <span class="n">cos_power</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">):</span>
@@ -349,15 +349,15 @@
 <span class="sd">    Take componentwise dot produt and divide by 512**2 because of the</span>
 <span class="sd">    sift descriptor uint8 trick</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Compute dot product (cosine of angle between sift descriptors)</span>
+    <span class="c1"># Compute dot product (cosine of angle between sift descriptors)</span>
     <span class="n">cosangle</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">componentwise_dot</span><span class="p">(</span><span class="n">vecs1_m</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">),</span> <span class="n">vecs2_m</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">))</span>
-    <span class="c"># Adjust for uint8 trick</span>
+    <span class="c1"># Adjust for uint8 trick</span>
     <span class="n">cosangle</span> <span class="o">/=</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">PSEUDO_UINT8_MAX_SQRD</span>
-    <span class="c"># apply selectivity functiodictin</span>
+    <span class="c1"># apply selectivity functiodictin</span>
     <span class="n">selectivity_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">cosangle</span><span class="p">,</span> <span class="n">cos_power</span><span class="p">)</span>
-    <span class="c"># If cosine can be less than 0 replace previous line with next line</span>
-    <span class="c"># or just write an rvec_selectivity_score function</span>
-    <span class="c">#selectivity_score = np.multiply(np.sign(cosangle), np.power(cosangle, cos_power))</span>
+    <span class="c1"># If cosine can be less than 0 replace previous line with next line</span>
+    <span class="c1"># or just write an rvec_selectivity_score function</span>
+    <span class="c1">#selectivity_score = np.multiply(np.sign(cosangle), np.power(cosangle, cos_power))</span>
     <span class="k">return</span> <span class="n">selectivity_score</span>
 
 </div>
@@ -404,10 +404,10 @@
 <span class="sd">        &gt;&gt;&gt; result = str(depth2)</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># TODO: clip the fgweights? (dilation?)</span>
-    <span class="c"># TODO; normalize and paramatarize and clean</span>
-    <span class="n">dcvs_on</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dcvs_on&#39;</span><span class="p">)</span>
-    <span class="n">fg_on</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;fg_on&#39;</span><span class="p">)</span>
+    <span class="c1"># TODO: clip the fgweights? (dilation?)</span>
+    <span class="c1"># TODO; normalize and paramatarize and clean</span>
+    <span class="n">dcvs_on</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dcvs_on&#39;</span><span class="p">)</span>
+    <span class="n">fg_on</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fg_on&#39;</span><span class="p">)</span>
     <span class="n">weight_lists</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">dcvs_on</span><span class="p">:</span>
         <span class="n">qdstncvs_list</span> <span class="o">=</span> <span class="n">get_kpts_distinctiveness</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
@@ -417,28 +417,28 @@
         <span class="n">weight_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qfgweight_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">weight_lists</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">baseline_weights_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_num_feats</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)]</span>
-        <span class="c">#baseline_weights_list = [None] * len(aid_list)</span>
+        <span class="c1">#baseline_weights_list = [None] * len(aid_list)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c"># geometric mean of the selected weights</span>
+        <span class="c1"># geometric mean of the selected weights</span>
         <span class="n">baseline_weights_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">spmstat</span><span class="o">.</span><span class="n">gmean</span><span class="p">(</span><span class="n">weight_tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">weight_tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">weight_lists</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">baseline_weights_list</span>
 
 </div>
 <div class="viewcode-block" id="get_mask_func"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.scoring.get_mask_func">[docs]</a><span class="k">def</span> <span class="nf">get_mask_func</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
-    <span class="n">maskscore_mode</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;maskscore_mode&#39;</span><span class="p">,</span> <span class="s">&#39;grid&#39;</span><span class="p">)</span>
-    <span class="c">#print(maskscore_mode)</span>
+    <span class="n">maskscore_mode</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;maskscore_mode&#39;</span><span class="p">,</span> <span class="s1">&#39;grid&#39;</span><span class="p">)</span>
+    <span class="c1">#print(maskscore_mode)</span>
     <span class="n">FUNC_ARGS_DICT</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;grid&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">coverage_grid</span><span class="o">.</span><span class="n">make_grid_coverage_mask</span><span class="p">,</span> <span class="n">coverage_grid</span><span class="o">.</span><span class="n">COVGRID_DEFAULT</span><span class="p">),</span>
-        <span class="s">&#39;kpts&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">coverage_kpts</span><span class="o">.</span><span class="n">make_kpts_coverage_mask</span><span class="p">,</span> <span class="n">coverage_kpts</span><span class="o">.</span><span class="n">COVKPTS_DEFAULT</span><span class="p">),</span>
+        <span class="s1">&#39;grid&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">coverage_grid</span><span class="o">.</span><span class="n">make_grid_coverage_mask</span><span class="p">,</span> <span class="n">coverage_grid</span><span class="o">.</span><span class="n">COVGRID_DEFAULT</span><span class="p">),</span>
+        <span class="s1">&#39;kpts&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">coverage_kpts</span><span class="o">.</span><span class="n">make_kpts_coverage_mask</span><span class="p">,</span> <span class="n">coverage_kpts</span><span class="o">.</span><span class="n">COVKPTS_DEFAULT</span><span class="p">),</span>
     <span class="p">}</span>
     <span class="n">make_mask_func</span><span class="p">,</span> <span class="n">func_defaults</span> <span class="o">=</span> <span class="n">FUNC_ARGS_DICT</span><span class="p">[</span><span class="n">maskscore_mode</span><span class="p">]</span>
     <span class="n">cov_cfg</span> <span class="o">=</span> <span class="n">func_defaults</span><span class="o">.</span><span class="n">updated_cfgdict</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-    <span class="c"># Hack to make kwargs happy</span>
-    <span class="c">#cov_cfg = ut.filter_valid_kwargs(make_mask_func, config)</span>
+    <span class="c1"># Hack to make kwargs happy</span>
+    <span class="c1">#cov_cfg = ut.filter_valid_kwargs(make_mask_func, config)</span>
     <span class="k">return</span> <span class="n">make_mask_func</span><span class="p">,</span> <span class="n">cov_cfg</span>
 
 
-<span class="c">#### MASK COVERAGE SCORING ####</span>
+<span class="c1">#### MASK COVERAGE SCORING ####</span>
 
 </div>
 <div class="viewcode-block" id="compute_annot_coverage_score"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.scoring.compute_annot_coverage_score">[docs]</a><span class="k">def</span> <span class="nf">compute_annot_coverage_score</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{}):</span>
@@ -528,8 +528,8 @@
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[acov] make_mask_func = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">make_mask_func</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[acov] cov_cfg = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cov_cfg</span><span class="p">),))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[acov] make_mask_func = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">make_mask_func</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[acov] cov_cfg = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cov_cfg</span><span class="p">),))</span>
     <span class="k">return</span> <span class="n">general_coverage_mask_generator</span><span class="p">(</span><span class="n">make_mask_func</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">cm</span><span class="o">.</span><span class="n">fs_list</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">cov_cfg</span><span class="p">)</span>
 
 </div>
@@ -562,9 +562,9 @@
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ncov] make_mask_func = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">make_mask_func</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ncov] cov_cfg = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cov_cfg</span><span class="p">),))</span>
-    <span class="k">assert</span> <span class="n">cm</span><span class="o">.</span><span class="n">dnid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;eval nids&#39;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ncov] make_mask_func = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">make_mask_func</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ncov] cov_cfg = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cov_cfg</span><span class="p">),))</span>
+    <span class="k">assert</span> <span class="n">cm</span><span class="o">.</span><span class="n">dnid_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;eval nids&#39;</span>
     <span class="n">unique_dnids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">dnid_list</span><span class="p">)</span>
     <span class="n">fm_groups</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping_</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
     <span class="n">fs_groups</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping_</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">fs_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
@@ -576,19 +576,19 @@
 <div class="viewcode-block" id="general_coverage_mask_generator"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.scoring.general_coverage_mask_generator">[docs]</a><span class="k">def</span> <span class="nf">general_coverage_mask_generator</span><span class="p">(</span><span class="n">make_mask_func</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">id_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">cov_cfg</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; agnostic to whether or not the id/fm/fs lists are name or annotation groups &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[acov] make_mask_func = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">make_mask_func</span><span class="p">,))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[acov] cov_cfg = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cov_cfg</span><span class="p">),))</span>
-    <span class="c"># Distinctivness and foreground weight</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[acov] make_mask_func = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">make_mask_func</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[acov] cov_cfg = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">cov_cfg</span><span class="p">),))</span>
+    <span class="c1"># Distinctivness and foreground weight</span>
     <span class="n">qweights</span> <span class="o">=</span> <span class="n">get_annot_kpts_baseline_weights</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">qaid</span><span class="p">],</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">(),</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="c"># Denominator weight mask</span>
+    <span class="c1"># Denominator weight mask</span>
     <span class="n">chipsize</span>    <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_sizes</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
     <span class="n">qkpts</span>       <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
     <span class="n">weight_mask</span> <span class="o">=</span> <span class="n">make_mask_func</span><span class="p">(</span><span class="n">qkpts</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">,</span> <span class="n">qweights</span><span class="p">,</span> <span class="n">resize</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">cov_cfg</span><span class="p">)</span>
-    <span class="c"># Prealloc data for loop</span>
+    <span class="c1"># Prealloc data for loop</span>
     <span class="n">weight_mask_m</span> <span class="o">=</span> <span class="n">weight_mask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="c"># Apply weighted scoring to matches</span>
+    <span class="c1"># Apply weighted scoring to matches</span>
     <span class="k">for</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">id_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">):</span>
-        <span class="c"># CAREFUL weight_mask_m is overriden on every iteration</span>
+        <span class="c1"># CAREFUL weight_mask_m is overriden on every iteration</span>
         <span class="n">weight_mask_m</span> <span class="o">=</span> <span class="n">compute_general_matching_coverage_mask</span><span class="p">(</span>
             <span class="n">make_mask_func</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">qkpts</span><span class="p">,</span> <span class="n">qweights</span><span class="p">,</span> <span class="n">cov_cfg</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">weight_mask_m</span><span class="p">)</span>
         <span class="k">yield</span> <span class="n">daid</span><span class="p">,</span> <span class="n">weight_mask_m</span><span class="p">,</span> <span class="n">weight_mask</span>
@@ -596,15 +596,15 @@
 </div>
 <div class="viewcode-block" id="compute_general_matching_coverage_mask"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.scoring.compute_general_matching_coverage_mask">[docs]</a><span class="k">def</span> <span class="nf">compute_general_matching_coverage_mask</span><span class="p">(</span><span class="n">make_mask_func</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span>
                                            <span class="n">qkpts</span><span class="p">,</span> <span class="n">qweights</span><span class="p">,</span> <span class="n">cov_cfg</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="c"># Get matching query keypoints</span>
-    <span class="c">#SYMMETRIC = False</span>
-    <span class="c">#if SYMMETRIC:</span>
-    <span class="c">#    get_annot_kpts_baseline_weights()</span>
+    <span class="c1"># Get matching query keypoints</span>
+    <span class="c1">#SYMMETRIC = False</span>
+    <span class="c1">#if SYMMETRIC:</span>
+    <span class="c1">#    get_annot_kpts_baseline_weights()</span>
     <span class="n">qkpts_m</span>    <span class="o">=</span> <span class="n">qkpts</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">weights_m</span>  <span class="o">=</span> <span class="n">fs</span> <span class="o">*</span> <span class="n">qweights</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">fm</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="c"># hacky buisness</span>
-    <span class="c">#weights_m  = qweights.take(fm.T[0], axis=0)</span>
-    <span class="c">#weights_m = fs</span>
+    <span class="c1"># hacky buisness</span>
+    <span class="c1">#weights_m  = qweights.take(fm.T[0], axis=0)</span>
+    <span class="c1">#weights_m = fs</span>
     <span class="n">weight_mask_m</span> <span class="o">=</span> <span class="n">make_mask_func</span><span class="p">(</span><span class="n">qkpts_m</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">,</span> <span class="n">weights_m</span><span class="p">,</span>
                                    <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">,</span> <span class="n">resize</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                                    <span class="o">**</span><span class="n">cov_cfg</span><span class="p">)</span>
@@ -647,7 +647,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">make_mask_func</span><span class="p">,</span> <span class="n">cov_cfg</span> <span class="o">=</span> <span class="n">get_mask_func</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
     <span class="n">masks_iter</span> <span class="o">=</span> <span class="n">general_annot_coverage_mask_generator</span><span class="p">(</span><span class="n">make_mask_func</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">cm</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">cov_cfg</span><span class="p">)</span>
-    <span class="c"># copy weight mask as it comes back if you want to see them</span>
+    <span class="c1"># copy weight mask as it comes back if you want to see them</span>
     <span class="n">id_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">,</span> <span class="n">masks_list</span> <span class="o">=</span> <span class="n">evaluate_masks_iter</span><span class="p">(</span><span class="n">masks_iter</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">id_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">,</span> <span class="n">masks_list</span>
@@ -676,31 +676,31 @@
     <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_square_row_cols</span><span class="p">(</span><span class="n">nPlots</span><span class="p">)</span>
     <span class="n">pnum_</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_pnum_nextgen</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-    <span class="c"># Draw coverage masks with bbox</span>
-    <span class="c"># &lt;FlipHack&gt;</span>
-    <span class="c">#weight_mask_m = np.fliplr(np.flipud(weight_mask_m))</span>
-    <span class="c">#weight_mask = np.fliplr(np.flipud(weight_mask))</span>
-    <span class="c"># &lt;/FlipHack&gt;</span>
+    <span class="c1"># Draw coverage masks with bbox</span>
+    <span class="c1"># &lt;FlipHack&gt;</span>
+    <span class="c1">#weight_mask_m = np.fliplr(np.flipud(weight_mask_m))</span>
+    <span class="c1">#weight_mask = np.fliplr(np.flipud(weight_mask))</span>
+    <span class="c1"># &lt;/FlipHack&gt;</span>
     <span class="n">stacked_weights</span><span class="p">,</span> <span class="n">offset_tup</span><span class="p">,</span> <span class="n">sf_tup</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">stack_images</span><span class="p">(</span><span class="n">weight_mask_m</span><span class="p">,</span> <span class="n">weight_mask</span><span class="p">,</span> <span class="n">return_sf</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="p">(</span><span class="n">woff</span><span class="p">,</span> <span class="n">hoff</span><span class="p">)</span> <span class="o">=</span> <span class="n">offset_tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">wh1</span> <span class="o">=</span> <span class="n">weight_mask_m</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">wh2</span> <span class="o">=</span> <span class="n">weight_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="p">(</span><span class="n">stacked_weights</span><span class="p">),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">title</span><span class="o">=</span><span class="s">&#39;(query image) What did match vs what should match&#39;</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="p">(</span><span class="n">stacked_weights</span><span class="p">),</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;(query image) What did match vs what should match&#39;</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">draw_bbox</span><span class="p">((</span>   <span class="mi">0</span><span class="p">,</span>    <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">wh1</span><span class="p">,</span> <span class="n">bbox_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">draw_bbox</span><span class="p">((</span><span class="n">woff</span><span class="p">,</span> <span class="n">hoff</span><span class="p">)</span> <span class="o">+</span> <span class="n">wh2</span><span class="p">,</span> <span class="n">bbox_color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-    <span class="c"># Get contributing matches</span>
+    <span class="c1"># Get contributing matches</span>
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">qaid</span>
     <span class="n">daid_list</span> <span class="o">=</span> <span class="n">daids</span>
     <span class="n">fm_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">fm_list</span><span class="p">,</span> <span class="n">idx_list</span><span class="p">)</span>
     <span class="n">fs_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">fs_list</span><span class="p">,</span> <span class="n">idx_list</span><span class="p">)</span>
-    <span class="c"># Draw matches</span>
+    <span class="c1"># Draw matches</span>
     <span class="k">for</span> <span class="n">px</span><span class="p">,</span> <span class="p">(</span><span class="n">daid</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">daid_list</span><span class="p">,</span> <span class="n">fm_list</span><span class="p">,</span> <span class="n">fs_list</span><span class="p">),</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="n">viz</span><span class="o">.</span><span class="n">viz_matches</span><span class="o">.</span><span class="n">show_matches2</span><span class="p">(</span><span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span>
                                       <span class="n">draw_pts</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">draw_lines</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                                       <span class="n">draw_ell</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(</span><span class="n">px</span><span class="p">),</span>
                                       <span class="n">darken</span><span class="o">=.</span><span class="mi">5</span><span class="p">)</span>
     <span class="n">coverage_score</span> <span class="o">=</span> <span class="n">score_matching_mask</span><span class="p">(</span><span class="n">weight_mask_m</span><span class="p">,</span> <span class="n">weight_mask</span><span class="p">)</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="s">&#39;score=</span><span class="si">%.4f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">coverage_score</span><span class="p">,))</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">set_figtitle</span><span class="p">(</span><span class="s1">&#39;score=</span><span class="si">%.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">coverage_score</span><span class="p">,))</span>
 
 </div>
 <div class="viewcode-block" id="show_annot_weights"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.scoring.show_annot_weights">[docs]</a><span class="k">def</span> <span class="nf">show_annot_weights</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="p">{}):</span>
@@ -725,7 +725,7 @@
 <span class="sd">        &gt;&gt;&gt; show_annot_weights(qreq_, aid, config)</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#import plottool as pt</span>
+    <span class="c1">#import plottool as pt</span>
     <span class="n">fnum</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">chipsize</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_sizes</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
     <span class="n">chip</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_query_config2</span><span class="p">())</span>
@@ -734,10 +734,10 @@
     <span class="n">make_mask_func</span><span class="p">,</span> <span class="n">cov_cfg</span> <span class="o">=</span> <span class="n">get_mask_func</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="n">make_mask_func</span><span class="p">(</span><span class="n">qkpts</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">resize</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">cov_cfg</span><span class="p">)</span>
     <span class="n">coverage_kpts</span><span class="o">.</span><span class="n">show_coverage_map</span><span class="p">(</span><span class="n">chip</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">qkpts</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">ell_alpha</span><span class="o">=.</span><span class="mi">2</span><span class="p">,</span> <span class="n">show_mask_kpts</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="c">#pt.set_figtitle(mode)</span>
+    <span class="c1">#pt.set_figtitle(mode)</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.algo.hots.scoring</span>
@@ -745,8 +745,8 @@
 <span class="sd">        python -m ibeis.algo.hots.scoring --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -781,7 +781,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

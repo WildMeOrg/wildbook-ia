@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_helpers &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.viz.viz_helpers &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,34 +131,34 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.viz.viz_helpers</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="c">#from ibeis import constants as const</span>
+<span class="c1">#from ibeis import constants as const</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">import</span> <span class="nn">plottool.draw_func2</span> <span class="kn">as</span> <span class="nn">df2</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">vtool.keypoint</span> <span class="kn">as</span> <span class="nn">ktool</span>
-<span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
+<span class="kn">from</span> <span class="nn">ibeis.other</span> <span class="kn">import</span> <span class="n">ibsfuncs</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.accessor_decors</span> <span class="kn">import</span> <span class="n">getter</span><span class="p">,</span> <span class="n">getter_vector_output</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_helpers]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[viz_helpers]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
-<span class="n">NO_LBL_OVERRIDE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--no-lbl-override&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="n">NO_LBL_OVERRIDE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--no-lbl-override&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 
 
 <span class="n">FNUMS</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">chip</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">res</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">inspect</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">special</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
 
-<span class="n">IN_IMAGE_OVERRIDE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--in-image-override&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="n">SHOW_QUERY_OVERRIDE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--show-query-override&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-<span class="n">NO_LBL_OVERRIDE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--no-lbl-override&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="n">IN_IMAGE_OVERRIDE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--in-image-override&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="n">SHOW_QUERY_OVERRIDE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--show-query-override&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="n">NO_LBL_OVERRIDE</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--no-lbl-override&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 
 <span class="n">SIFT_OR_VECFIELD</span>  <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">SIFT_OR_VECFIELD</span>
 
 
 <div class="viewcode-block" id="register_FNUMS"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_helpers.register_FNUMS">[docs]</a><span class="k">def</span> <span class="nf">register_FNUMS</span><span class="p">(</span><span class="n">FNUMS_</span><span class="p">):</span>
-    <span class="c"># DEPREICATE</span>
+    <span class="c1"># DEPREICATE</span>
     <span class="k">global</span> <span class="n">FNUMS</span>
     <span class="n">FNUMS</span> <span class="o">=</span> <span class="n">FNUMS_</span>
 </div>
@@ -176,8 +176,8 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="n">chipsz_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_sizes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;[!ibs.get_annot_kpts_in_imgspace]&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[!ibs.get_annot_kpts_in_imgspace] aid_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,))</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;[!ibs.get_annot_kpts_in_imgspace]&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[!ibs.get_annot_kpts_in_imgspace] aid_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">,))</span>
         <span class="k">raise</span>
     <span class="n">kpts_list</span>    <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="n">ensure</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="n">imgkpts_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ktool</span><span class="o">.</span><span class="n">transform_kpts_to_imgspace</span><span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">chipsz</span><span class="p">)</span>
@@ -188,7 +188,7 @@
 </div>
 <span class="nd">@getter_vector_output</span>
 <div class="viewcode-block" id="get_chips"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_helpers.get_chips">[docs]</a><span class="k">def</span> <span class="nf">get_chips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">in_image</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="c">#print(&#39;config2_ = %r&#39; % (config2_,))</span>
+    <span class="c1">#print(&#39;config2_ = %r&#39; % (config2_,))</span>
     <span class="k">if</span> <span class="n">in_image</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_images</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -214,9 +214,9 @@
     <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">offset_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">offset_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
-        <span class="c"># convert (ofx, ofy) offsets to (ofx, ofy, 0, 0) numpy arrays</span>
+        <span class="c1"># convert (ofx, ofy) offsets to (ofx, ofy, 0, 0) numpy arrays</span>
         <span class="n">np_offsts</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">offst</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">offst</span> <span class="ow">in</span> <span class="n">offset_list</span><span class="p">]</span>
-        <span class="c"># add offsets to (x, y, w, h) bounding boxes</span>
+        <span class="c1"># add offsets to (x, y, w, h) bounding boxes</span>
         <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span> <span class="o">+</span> <span class="n">offst</span> <span class="k">for</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">offst</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">np_offsts</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">bbox_list</span>
 
@@ -230,9 +230,9 @@
 </div>
 <div class="viewcode-block" id="get_nidstrs"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_helpers.get_nidstrs">[docs]</a><span class="k">def</span> <span class="nf">get_nidstrs</span><span class="p">(</span><span class="n">nid_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">nid_list</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s">&#39;nid</span><span class="si">%d</span><span class="s">&#39;</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;nid</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s">&#39;nid</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">nid_list</span>
+        <span class="k">return</span> <span class="s1">&#39;nid</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">nid_list</span>
 
 </div>
 <div class="viewcode-block" id="get_vsstr"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_helpers.get_vsstr">[docs]</a><span class="k">def</span> <span class="nf">get_vsstr</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">aid</span><span class="p">):</span>
@@ -247,18 +247,18 @@
 
 </div>
 <div class="viewcode-block" id="is_unknown"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_helpers.is_unknown">[docs]</a><span class="k">def</span> <span class="nf">is_unknown</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid_list</span><span class="p">):</span>
-    <span class="c"># this func seems unused</span>
+    <span class="c1"># this func seems unused</span>
     <span class="k">return</span> <span class="p">[</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nid</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">VALID_INT_TYPES</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">nid</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">]</span>
 
 </div>
 <div class="viewcode-block" id="get_truth_text"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_helpers.get_truth_text">[docs]</a><span class="k">def</span> <span class="nf">get_truth_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">truth</span><span class="p">):</span>
     <span class="n">truth_texts</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="c">#&#39;FALSE&#39;,</span>
-        <span class="c">#&#39;TRUE&#39;,</span>
-        <span class="c">#&#39;???&#39;</span>
-        <span class="s">&#39;Imposter&#39;</span><span class="p">,</span>
-        <span class="s">&#39;Genuine&#39;</span><span class="p">,</span>
-        <span class="s">&#39;Unknown&#39;</span><span class="p">,</span>
+        <span class="c1">#&#39;FALSE&#39;,</span>
+        <span class="c1">#&#39;TRUE&#39;,</span>
+        <span class="c1">#&#39;???&#39;</span>
+        <span class="s1">&#39;Imposter&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Genuine&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Unknown&#39;</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="k">return</span> <span class="n">truth_texts</span><span class="p">[</span><span class="n">truth</span><span class="p">]</span>
 
@@ -271,9 +271,9 @@
     <span class="p">]</span>
     <span class="n">color</span> <span class="o">=</span> <span class="n">truth_colors</span><span class="p">[</span><span class="n">truth</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">lighten_amount</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c">#print(&#39;color = %r, lighten_amount=%r&#39; % (color, lighten_amount))</span>
+        <span class="c1">#print(&#39;color = %r, lighten_amount=%r&#39; % (color, lighten_amount))</span>
         <span class="n">color</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">lighten_rgb</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">lighten_amount</span><span class="p">)</span>
-        <span class="c">#print(&#39;color = %r&#39; % (color))</span>
+        <span class="c1">#print(&#39;color = %r&#39; % (color))</span>
     <span class="k">if</span> <span class="n">base255</span><span class="p">:</span>
         <span class="n">color</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">to_base255</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">color</span>
@@ -312,13 +312,13 @@
     <span class="n">gid1</span><span class="p">,</span> <span class="n">gid2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">([</span><span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">])</span>
     <span class="n">unixtime1</span><span class="p">,</span> <span class="n">unixtime2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_unixtime</span><span class="p">([</span><span class="n">gid1</span><span class="p">,</span> <span class="n">gid2</span><span class="p">])</span>
     <span class="k">if</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">in</span> <span class="p">[</span><span class="n">unixtime1</span><span class="p">,</span> <span class="n">unixtime2</span><span class="p">]:</span>
-        <span class="n">timedelta_str_</span> <span class="o">=</span> <span class="s">&#39;NA&#39;</span>
+        <span class="n">timedelta_str_</span> <span class="o">=</span> <span class="s1">&#39;NA&#39;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">unixtime_diff</span> <span class="o">=</span> <span class="n">unixtime2</span> <span class="o">-</span> <span class="n">unixtime1</span>
-        <span class="c">#timedelta_str_ = ut.get_posix_timedelta_str(unixtime_diff)</span>
+        <span class="c1">#timedelta_str_ = ut.get_posix_timedelta_str(unixtime_diff)</span>
         <span class="n">timedelta_str_</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_unix_timedelta_str</span><span class="p">(</span><span class="n">unixtime_diff</span><span class="p">)</span>
-    <span class="c">#timedelta_str = &#39;timedelta(%s)&#39; % (timedelta_str_)</span>
-    <span class="n">timedelta_str</span> <span class="o">=</span> <span class="s">&#39;td(</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timedelta_str_</span><span class="p">)</span>
+    <span class="c1">#timedelta_str = &#39;timedelta(%s)&#39; % (timedelta_str_)</span>
+    <span class="n">timedelta_str</span> <span class="o">=</span> <span class="s1">&#39;td(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">timedelta_str_</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">timedelta_str</span>
 
 </div>
@@ -360,51 +360,51 @@
 <span class="sd">            &#39;aid13, gname=zebra.jpg, name=zebra, nid=7, EX, nGt=0, quality=UNKNOWN, yaw=None&#39;,</span>
 <span class="sd">        ]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># HACK FOR TEST</span>
-    <span class="k">if</span> <span class="s">&#39;kwargs_proxy&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;kwargs_proxy&#39;</span><span class="p">]</span>
+    <span class="c1"># HACK FOR TEST</span>
+    <span class="k">if</span> <span class="s1">&#39;kwargs_proxy&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;kwargs_proxy&#39;</span><span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">ibsfuncs</span><span class="o">.</span><span class="n">assert_valid_aids</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="s">&#39;input must be iterable&#39;</span>
-        <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">VALID_INT_TYPES</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]),</span> <span class="s">&#39;invalid input&#39;</span>
+        <span class="k">assert</span> <span class="n">ut</span><span class="o">.</span><span class="n">isiterable</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="s1">&#39;input must be iterable&#39;</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">VALID_INT_TYPES</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]),</span> <span class="s1">&#39;invalid input&#39;</span>
     <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;invalid input&#39;</span><span class="p">,</span> <span class="s">&#39;viz&#39;</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;aid_list&#39;</span><span class="p">])</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;invalid input&#39;</span><span class="p">,</span> <span class="s1">&#39;viz&#39;</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;aid_list&#39;</span><span class="p">])</span>
         <span class="k">raise</span>
-    <span class="n">texts_list</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># list of lists of texts</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_aidstr&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+    <span class="n">texts_list</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># list of lists of texts</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_aidstr&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
         <span class="n">aidstr_list</span> <span class="o">=</span> <span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aidstr_list</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_gname&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_gname&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
         <span class="n">gname_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_image_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s">&#39;gname=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">gname</span> <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">gname_list</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_name&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;gname=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">gname</span> <span class="k">for</span> <span class="n">gname</span> <span class="ow">in</span> <span class="n">gname_list</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_name&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
         <span class="n">name_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_names</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s">&#39;name=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">name_list</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_nid&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;name=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">name_list</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_nid&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
         <span class="n">nid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s">&#39;nid=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">nid</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_exemplar&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;nid=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">nid</span> <span class="k">for</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">nid_list</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_exemplar&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
         <span class="n">flag_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_exemplar_flags</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s">&#39;EX&#39;</span> <span class="k">if</span> <span class="n">flag</span> <span class="k">else</span> <span class="s">&#39;&#39;</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_num_gt&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
-        <span class="c"># FIXME: This should be num_groundtruth with respect to the currently</span>
-        <span class="c"># allowed annotations</span>
+        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;EX&#39;</span> <span class="k">if</span> <span class="n">flag</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span> <span class="k">for</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">flag_list</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_num_gt&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="c1"># FIXME: This should be num_groundtruth with respect to the currently</span>
+        <span class="c1"># allowed annotations</span>
         <span class="n">nGt_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_num_groundtruth</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s">&#39;nGt=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">nGt</span> <span class="k">for</span> <span class="n">nGt</span> <span class="ow">in</span> <span class="n">nGt_list</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_quality_text&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s1">&#39;nGt=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">nGt</span> <span class="k">for</span> <span class="n">nGt</span> <span class="ow">in</span> <span class="n">nGt_list</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_quality_text&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
         <span class="n">qualtext_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_quality_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">text</span><span class="p">:</span> <span class="s">&#39;quality=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">text</span><span class="p">,</span> <span class="n">qualtext_list</span><span class="p">)))</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_yawtext&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
-        <span class="c"># FIXME: This should be num_groundtruth with respect to the currently</span>
-        <span class="c"># allowed annotations</span>
+        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">text</span><span class="p">:</span> <span class="s1">&#39;quality=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">text</span><span class="p">,</span> <span class="n">qualtext_list</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_yawtext&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="c1"># FIXME: This should be num_groundtruth with respect to the currently</span>
+        <span class="c1"># allowed annotations</span>
         <span class="n">yawtext_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_yaw_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">text</span><span class="p">:</span> <span class="s">&#39;yaw=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">text</span><span class="p">,</span> <span class="n">yawtext_list</span><span class="p">)))</span>
-    <span class="c"># zip them up to get a tuple for each chip and join the fields</span>
+        <span class="n">texts_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">text</span><span class="p">:</span> <span class="s1">&#39;yaw=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">text</span><span class="p">,</span> <span class="n">yawtext_list</span><span class="p">)))</span>
+    <span class="c1"># zip them up to get a tuple for each chip and join the fields</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">texts_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">annotation_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">texts_list</span><span class="p">)]</span>
+        <span class="n">annotation_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">texts_list</span><span class="p">)]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c"># no texts were specified return empty string for each input</span>
-        <span class="n">annotation_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="c1"># no texts were specified return empty string for each input</span>
+        <span class="n">annotation_text_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">annotation_text_list</span>
 
 </div>
@@ -412,7 +412,7 @@
 <div class="viewcode-block" id="get_image_titles"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_helpers.get_image_titles">[docs]</a><span class="k">def</span> <span class="nf">get_image_titles</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">):</span>
     <span class="n">gname_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_gnames</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
     <span class="n">title_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s">&#39;gname=</span><span class="si">%r</span><span class="s">, gid=</span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">gname</span><span class="p">),</span> <span class="n">gid</span><span class="p">)</span>
+        <span class="s1">&#39;gname=</span><span class="si">%r</span><span class="s1">, gid=</span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">gname</span><span class="p">),</span> <span class="n">gid</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">gname</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">gname_list</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="k">return</span> <span class="n">title_list</span>
@@ -465,73 +465,73 @@
         <span class="n">rawscore</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_aid_scores</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="n">rawscore</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">aid2_raw_rank</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_aid_ranks</span><span class="p">([</span><span class="n">aid2</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">qaid</span>          <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qaid&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-        <span class="n">score</span>         <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-        <span class="n">rawscore</span>      <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;rawscore&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-        <span class="n">aid2_raw_rank</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;aid2_raw_rank&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_truth&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
-        <span class="n">truth_str</span> <span class="o">=</span> <span class="s">&#39;*</span><span class="si">%s</span><span class="s">*&#39;</span> <span class="o">%</span> <span class="n">get_truth_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">truth</span><span class="p">)</span>
+        <span class="n">qaid</span>          <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;qaid&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">score</span>         <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">rawscore</span>      <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rawscore&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">aid2_raw_rank</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;aid2_raw_rank&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_truth&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="n">truth_str</span> <span class="o">=</span> <span class="s1">&#39;*</span><span class="si">%s</span><span class="s1">*&#39;</span> <span class="o">%</span> <span class="n">get_truth_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">truth</span><span class="p">)</span>
         <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">truth_str</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_rank&#39;</span><span class="p">,</span> <span class="n">aid2_raw_rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_rank&#39;</span><span class="p">,</span> <span class="n">aid2_raw_rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="c">#aid2_raw_rank = cm.get_aid_ranks([aid2])[0]</span>
+            <span class="c1">#aid2_raw_rank = cm.get_aid_ranks([aid2])[0]</span>
             <span class="n">aid2_rank</span> <span class="o">=</span> <span class="n">aid2_raw_rank</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">aid2_raw_rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">None</span>
-            <span class="n">rank_str</span> <span class="o">=</span> <span class="s">&#39;rank=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">aid2_rank</span><span class="p">)</span>
+            <span class="n">rank_str</span> <span class="o">=</span> <span class="s1">&#39;rank=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">aid2_rank</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
-            <span class="c">#ut.embed()</span>
+            <span class="c1">#ut.embed()</span>
             <span class="k">raise</span>
         <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rank_str</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_rawscore&#39;</span><span class="p">,</span> <span class="n">rawscore</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="c">#rawscore = cm.get_aid_scores([aid2], rawscore=True)[0]</span>
-        <span class="n">rawscore_str</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;rawscore=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="n">rawscore</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_rawscore&#39;</span><span class="p">,</span> <span class="n">rawscore</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="c1">#rawscore = cm.get_aid_scores([aid2], rawscore=True)[0]</span>
+        <span class="n">rawscore_str</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;rawscore=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="n">rawscore</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">rawscore_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">rawscore_str</span>
+            <span class="n">rawscore_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">rawscore_str</span>
         <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rawscore_str</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_score&#39;</span><span class="p">,</span> <span class="n">score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
-        <span class="c">#score = cm.get_aid_scores([aid2])[0]</span>
-        <span class="n">score_str</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;score=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="n">score</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_score&#39;</span><span class="p">,</span> <span class="n">score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">cm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="c1">#score = cm.get_aid_scores([aid2])[0]</span>
+        <span class="n">score_str</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;score=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="n">score</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">score_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">score_str</span>
+            <span class="n">score_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">score_str</span>
         <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score_str</span><span class="p">)</span>
-    <span class="n">name_score</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_score&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="n">name_rank</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_rank&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_name_score&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+    <span class="n">name_score</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name_score&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">name_rank</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name_rank&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_name_score&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">name_score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;name_score=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="n">name_score</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_name_rank&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+            <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;name_score=&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">num_fmt</span><span class="p">(</span><span class="n">name_score</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_name_rank&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">name_rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="c"># Make display one based</span>
-            <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;name_rank=#</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name_rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),))</span>
-    <span class="c">#with ut.embed_on_exception_context:</span>
-    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;show_timedelta&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="n">qaid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;qaid cannot be None&#39;</span>
-        <span class="c"># TODO: fixme</span>
+            <span class="c1"># Make display one based</span>
+            <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;name_rank=#</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">name_rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),))</span>
+    <span class="c1">#with ut.embed_on_exception_context:</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;show_timedelta&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">qaid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;qaid cannot be None&#39;</span>
+        <span class="c1"># TODO: fixme</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">aid2</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">aid2_</span> <span class="o">=</span> <span class="n">aid2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">aid2_</span> <span class="o">=</span> <span class="n">aid2</span>
-        <span class="n">timedelta_str</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">get_timedelta_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">aid2_</span><span class="p">))</span>
+        <span class="n">timedelta_str</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">get_timedelta_str</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">aid2_</span><span class="p">))</span>
         <span class="n">text_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">timedelta_str</span><span class="p">)</span>
-    <span class="n">query_text</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">text_list</span><span class="p">)</span>
+    <span class="n">query_text</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">text_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">query_text</span>
 
 
-<span class="c">#==========================#</span>
-<span class="c">#  --- TESTING FUNCS ---   #</span>
-<span class="c">#==========================#</span>
+<span class="c1">#==========================#</span>
+<span class="c1">#  --- TESTING FUNCS ---   #</span>
+<span class="c1">#==========================#</span>
 
 </div>
 <div class="viewcode-block" id="show_keypoint_gradient_orientations"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_helpers.show_keypoint_gradient_orientations">[docs]</a><span class="k">def</span> <span class="nf">show_keypoint_gradient_orientations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="c"># Draw the gradient vectors of a patch overlaying the keypoint</span>
+    <span class="c1"># Draw the gradient vectors of a patch overlaying the keypoint</span>
     <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">fnum</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
     <span class="n">rchip</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="n">kp</span>    <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_kpts</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)[</span><span class="n">fx</span><span class="p">]</span>
     <span class="n">sift</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)[</span><span class="n">fx</span><span class="p">]</span>
     <span class="n">df2</span><span class="o">.</span><span class="n">draw_keypoint_gradient_orientations</span><span class="p">(</span><span class="n">rchip</span><span class="p">,</span> <span class="n">kp</span><span class="p">,</span> <span class="n">sift</span><span class="o">=</span><span class="n">sift</span><span class="p">,</span>
-                                            <span class="n">mode</span><span class="o">=</span><span class="s">&#39;vec&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
-    <span class="n">df2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">&#39;Gradient orientation</span><span class="se">\n</span><span class="s"> </span><span class="si">%s</span><span class="s">, fx=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="n">fx</span><span class="p">))</span>
+                                            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;vec&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum</span><span class="p">)</span>
+    <span class="n">df2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Gradient orientation</span><span class="se">\n</span><span class="s1"> </span><span class="si">%s</span><span class="s1">, fx=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">get_aidstrs</span><span class="p">(</span><span class="n">aid</span><span class="p">),</span> <span class="n">fx</span><span class="p">))</span>
 
 </div>
 <div class="viewcode-block" id="kp_info"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_helpers.kp_info">[docs]</a><span class="k">def</span> <span class="nf">kp_info</span><span class="p">(</span><span class="n">kp</span><span class="p">):</span>
@@ -539,13 +539,13 @@
     <span class="n">xy_str</span>    <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_xy_strs</span><span class="p">(</span><span class="n">kpts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">shape_str</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_shape_strs</span><span class="p">(</span><span class="n">kpts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">ori_</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_oris</span><span class="p">(</span><span class="n">kpts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">ori_str</span> <span class="o">=</span> <span class="s">&#39;ori=</span><span class="si">%.2f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">ori_</span>
+    <span class="n">ori_str</span> <span class="o">=</span> <span class="s1">&#39;ori=</span><span class="si">%.2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ori_</span>
     <span class="n">scale</span> <span class="o">=</span> <span class="n">ktool</span><span class="o">.</span><span class="n">get_scales</span><span class="p">(</span><span class="n">kpts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">xy_str</span><span class="p">,</span> <span class="n">shape_str</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">ori_str</span>
-<span class="c">#----</span>
+<span class="c1">#----</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.viz.viz_helpers</span>
@@ -553,8 +553,8 @@
 <span class="sd">        python -m ibeis.viz.viz_helpers --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -589,7 +589,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

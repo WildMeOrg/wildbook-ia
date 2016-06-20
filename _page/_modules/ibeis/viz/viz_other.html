@@ -1,0 +1,268 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.viz.viz_other &mdash; ibeis 1.5.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.viz" href="../viz.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../viz.html">ibeis.viz</a> &raquo;</li>
+      
+    <li>ibeis.viz.viz_other</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.viz.viz_other</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span>  <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[viz_chip]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="chip_montage"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_other.chip_montage">[docs]</a><span class="k">def</span> <span class="nf">chip_montage</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_other chip_montage --show --db PZ_MTEST</span>
+<span class="sd">        python -m ibeis.viz.viz_other chip_montage --show --db GZ_ALL</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_other import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; defaltdb = &#39;seaturtles&#39;</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; a = [&#39;default&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=defaltdb)</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qaids, daids = ibeis.testdata_expanded_aids(ibs=ibs, a=a)</span>
+<span class="sd">        &gt;&gt;&gt; config = None</span>
+<span class="sd">        &gt;&gt;&gt; chip_montage(ibs, qaids, config)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="n">chip_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">qaids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="mi">2000</span>
+    <span class="n">dsize</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">height</span> <span class="o">*</span> <span class="n">ut</span><span class="o">.</span><span class="n">PHI</span><span class="p">),</span> <span class="n">height</span><span class="p">)</span>
+    <span class="n">dst</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">montage</span><span class="p">(</span><span class="n">chip_list</span><span class="p">,</span> <span class="n">dsize</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="image_montage"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_other.image_montage">[docs]</a><span class="k">def</span> <span class="nf">image_montage</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gids</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_other image_montage --show --db PZ_Master1</span>
+<span class="sd">        python -m ibeis.viz.viz_other image_montage --show --db GZ_ALL</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_other import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; defaltdb = &#39;seaturtles&#39;</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; a = [&#39;default&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=defaltdb)</span>
+<span class="sd">        &gt;&gt;&gt; ibs, qaids, daids = ibeis.testdata_expanded_aids(ibs=ibs, a=a)</span>
+<span class="sd">        &gt;&gt;&gt; config = None</span>
+<span class="sd">        &gt;&gt;&gt; gids = ibs.get_annot_gids(qaids[0:1000])</span>
+<span class="sd">        &gt;&gt;&gt; image_montage(ibs, gids, config)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="n">img_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gids</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="mi">2000</span>
+    <span class="n">dsize</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">height</span> <span class="o">*</span> <span class="n">ut</span><span class="o">.</span><span class="n">PHI</span><span class="p">),</span> <span class="n">height</span><span class="p">)</span>
+    <span class="n">dst</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">montage</span><span class="p">(</span><span class="n">img_list</span> <span class="p">,</span> <span class="n">dsize</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_other</span>
+<span class="sd">        python -m ibeis.viz.viz_other --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.5.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
