@@ -483,6 +483,44 @@ def get_annot_age_months_est_max_texts_json(ibs, annot_uuid_list, **kwargs):
     return ibs.get_annot_age_months_est_max_texts(aid_list, **kwargs)
 
 
+@register_api('/chaos/imageset/', methods=['GET', 'POST'])
+def chaos_imageset(ibs):
+    """
+    REST:
+        Method: POST
+        URL: /api/image/json/
+
+    Args:
+        image_uuid_list (list of str) : list of image UUIDs to be delete from IBEIS
+    """
+    from random import shuffle, randint
+    gid_list = ibs.get_valid_gids()
+    shuffle(gid_list)
+    sample = min(len(gid_list) // 2, 50)
+    assert sample > 0, 'Cannot create a chaos imageset using an empty database'
+    gid_list_ = gid_list[:sample]
+    imagetset_name = 'RANDOM_CHAOS_TEST_IMAGESET_%08d' % (randint(0, 99999999))
+    imagetset_rowid = ibs.add_imagesets(imagetset_name)
+    imagetset_uuid = ibs.get_imageset_uuid(imagetset_rowid)
+    ibs.add_image_relationship(gid_list_, [imagetset_rowid] * len(gid_list_))
+    return imagetset_name, imagetset_uuid
+
+
+@register_api('/api/imageset/json/', methods=['DELETE'])
+def delete_imageset_json(ibs, imageset_uuid_list):
+    """
+    REST:
+        Method: POST
+        URL: /api/image/json/
+
+    Args:
+        image_uuid_list (list of str) : list of image UUIDs to be delete from IBEIS
+    """
+    imgsetid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
+    ibs.delete_imagesets(imgsetid_list)
+    return True
+
+
 @register_api('/api/image/json/', methods=['DELETE'])
 def delete_images_json(ibs, image_uuid_list):
     """
