@@ -249,6 +249,9 @@ def compute_localizations(depc, gid_list, config=None):
     CommandLine:
         ibeis compute_localizations
 
+    CommandLine:
+        python -m ibeis.core_images compute_localizations --show
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
@@ -257,7 +260,7 @@ def compute_localizations(depc, gid_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
-        >>> gid_list = ibs.get_valid_gids()[0:8]
+        >>> gid_list = ibs.get_valid_gids()[0:1]
         >>> config = {'algo': 'yolo'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
