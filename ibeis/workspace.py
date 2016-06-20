@@ -154,7 +154,7 @@ def find_most_disitnctive_keypoints():
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.workflow import *  # NOQA
+        >>> from ibeis.workspace import *  # NOQA
         >>> find_most_disitnctive_keypoints()
     """
     import ibeis
