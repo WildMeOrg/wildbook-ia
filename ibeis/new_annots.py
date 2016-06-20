@@ -295,7 +295,7 @@ class VocabConfig(dtool.Config):
     chunksize=1, fname='visual_vocab',
     # func_is_single=True,
     # _internal_parent_ids=False,  # Give the function nicer ids to work with
-    _internal_parent_ids=True,  # Give the function nicer ids to work with
+    # _internal_parent_ids=True,  # Give the function nicer ids to work with
 )
 def compute_vocab(depc, fid_list, config):
     r"""
