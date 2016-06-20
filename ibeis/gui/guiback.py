@@ -1604,12 +1604,12 @@ class MainWindowBackend(GUIBACK_BASE):
             raise Exception('[back] invalid imgsetid')
 
         if ibs.cfg.other_cfg.enable_custom_filter:
-            back.user_info(msg=ut.codeblock(
+            back.user_warning(msg=ut.codeblock(
                 '''
                 other_cfg.enable_custom_filter=True is not longer supported.
                 Please turn off in Preferences
                 '''
-            ), title='Warning')
+            ))
 
         # Query aids are either: given, taken from gui selection, or by imageset
         if qaid_list is not None:
@@ -1798,18 +1798,104 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] FINISHED compute_queries: imgsetid=%r' % (imgsetid,))
 
     @blocking_slot()
-    def compute_occurrences(back, refresh=True):
-        """ Batch -> Compute ImageSets """
-        print('[back] compute_occurrences')
-        if not back.are_you_sure(ut.codeblock(
-            '''
-            About to automatically group any ungrouped images into occurrences.
-            Click Yes to continue.
-            '''
-        )):
+    def do_group_occurrence_step(back, refresh=True):
+        """
+        Group Step for computing occurrneces
+
+        CommandLine:
+            python -m ibeis.gui.guiback --test-MainWindowBackend.do_group_occurrence_step --show --no-cnn
+
+        Example:
+            >>> # GUI_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> import ibeis
+            >>> main_locals = ibeis.main(defaultdb='testdb1')
+            >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
+            >>> ut.exec_funckw(back.do_group_occurrence_step, globals())
+            >>> back.do_group_occurrence_step()
+            >>> ut.quit_if_noshow()
+        """
+        print('[back] do_group_occurrence_step')
+        import dtool
+        #class TmpConfig(dtool.Config):
+        #    _param_info_list = back.ibs.cfg.occur_cfg.get_param_info_list()
+        ibs = back.ibs
+
+        ungrouped_gid_list = ibs.get_ungrouped_gids()
+        #ungrouped_images = ibs.get_image_instancelist(ungrouped_gid_list)
+        # image_list['unixtime']
+        if len(ungrouped_gid_list) == 0:
+            back.user_warning(msg='There are no ungrouped images.')
             raise guiexcept.UserCancel
-        #back.ibs.delete_all_imagesets()
-        back.ibs.compute_occurrences()
+
+        existing_imgset_id_list = ibs.get_valid_imgsetids(is_occurrence=True,
+                                                          min_num_gids=1)
+
+        class TmpConfig(dtool.Config):
+            _param_info_list = [
+                ut.ParamInfo('seconds_thresh', 600, 'sec'),
+            ]
+        config = TmpConfig(**back.ibs.cfg.occur_cfg.to_dict())
+
+        options = [
+            'Create new occurrences',
+            'Add to existing',
+            #'Regroup everything',
+        ]
+        reply, new_config = back.user_option(
+            title='Occurrence Grouping',
+            msg=ut.codeblock(
+                '''
+                Choose how we should group the %d ungrouped images into occurrences.
+                We can either:
+                    (1) create new occurrences or
+                    (2) add to the %d existing occurrences.
+                ''') % (len(ungrouped_gid_list), len(existing_imgset_id_list)),
+            config=config,
+            options=options,
+            default=options[0],
+        )
+        print('reply = %r' % (reply,))
+
+        if reply not in options:
+            raise guiexcept.UserCancel
+
+        seconds_thresh = new_config['seconds_thresh']
+
+        #from ibeis.algo.preproc import preproc_occurrence
+        #flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
+        #    ibs, gid_list, seconds_thresh=seconds_thresh)
+        #sortx = ut.argsort(flat_imgsetids)
+        #flat_imgsetids = ut.take(flat_imgsetids, sortx)
+        #flat_gids = ut.take(flat_gids, sortx)
+
+        if reply == options[0]:
+            #back.ibs.delete_all_imagesets()
+            back.ibs.compute_occurrences(seconds_thresh=seconds_thresh)
+        elif reply == options[1]:
+            # Add to existing imaesets
+            imagesettext_list = ibs.get_imageset_text(existing_imgset_id_list)
+            import numpy as np
+            # Get unixtimes of the new images
+            unixtime_list = ibs.get_image_unixtime(ungrouped_gid_list)
+            # Get unixtimes of the occurrences
+            imgset_gids_list = ibs.get_imageset_gids(existing_imgset_id_list)
+            imgset_unixtimes_list = ibs.unflat_map(ibs.get_image_unixtime,
+                                                   imgset_gids_list)
+            #imageset_start_time_posix_list = np.array(ut.lmap(np.min, unixtimes_list))
+            imageset_mean_time_posix_list = np.array(ut.lmap(np.mean, imgset_unixtimes_list))
+            #imageset_end_time_posix_list = np.array(ut.lmap(np.max, unixtimes_list))
+
+            assigned_idx = [np.abs(x - imageset_mean_time_posix_list).argmin()
+                            for x in unixtime_list]
+            assigned_imgset = ut.take(imagesettext_list, assigned_idx)
+            ibs.set_image_imagesettext(ungrouped_gid_list, assigned_imgset)
+            # HACK TO UPDATE IMAGESET POSIX TIMES
+            # CAREFUL THIS BLOWS AWAY SMART DATA
+            ibs.update_imageset_info(ibs.get_valid_imgsetids())
+        else:
+            # Redo everything
+            pass
         back.ibs.update_special_imagesets()
         print('[back] about to finish computing imagesets')
         back.front.imageset_tabwgt._close_all_tabs()
@@ -1828,13 +1914,13 @@ class MainWindowBackend(GUIBACK_BASE):
         """
         imgsetid = back.get_selected_imgsetid()
         if back.contains_special_imagesets([imgsetid]):
-            back.user_info(msg=ut.codeblock(
+            back.user_warning(msg=ut.codeblock(
                 '''
                 This operation is only allowed for OCCURRENCES.
                 Tried to send a special ImageSet to Wildbook as an occurrence.
                 Special ImageSets are living entities and are never truely complete.
                 '''
-            ), title='Warning')
+            ))
         elif imgsetid is not None:
             # Set all images to be reviewed
             gid_list = back.ibs.get_valid_gids(imgsetid=imgsetid)
@@ -2358,11 +2444,23 @@ class MainWindowBackend(GUIBACK_BASE):
     def user_info(back, **kwargs):
         return guitool.user_info(parent=back.front, **kwargs)
 
+    def user_warning(back, title='Warning', **kwargs):
+        return guitool.user_info(parent=back.front, title=title, **kwargs)
+
     def user_input(back, msg='user input', **kwargs):
         return guitool.user_input(parent=back.front, msg=msg, **kwargs)
 
     def user_option(back, **kwargs):
-        return guitool.user_option(parent=back.front, **kwargs)
+        if kwargs.get('config'):
+            # options, config, msg, title
+            dlg = guitool.ConfigConfirmWidget.as_dialog(**kwargs)
+            #dlg.resize(700, 500)
+            confirm_widget = dlg.widget
+            dlg.exec_()
+            return confirm_widget.confirm_option, confirm_widget.config
+            #return guitool.user_option(parent=back.front, **kwargs)
+        else:
+            return guitool.user_option(parent=back.front, **kwargs)
 
     def are_you_sure(back, use_msg=None, title='Confirmation', default=None, action=None, detailed_msg=None):
         """ Prompt user for conformation before changing something """
@@ -2399,7 +2497,7 @@ class MainWindowBackend(GUIBACK_BASE):
         return any(isspecial_list)
 
     def display_special_imagesets_error(back):
-        back.user_info(msg="Contains special imagesets")
+        back.user_warning(msg="Contains special imagesets")
 
     @slot_()
     def override_all_annotation_species(back):
@@ -2421,8 +2519,8 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs = back.ibs
         species_text = back.get_selected_species()
         if species_text in [const.UNKNOWN, '']:
-            back.user_info(msg="Cannot rename this species...")
-            return
+            back.user_warning(msg="Cannot rename this species...")
+            raise guiexcept.UserCancel
         species_rowid = ibs.get_species_rowids_from_text(species_text)
         species_nice = ibs.get_species_nice(species_rowid)
         new_species_nice = back.user_input(
@@ -2441,8 +2539,8 @@ class MainWindowBackend(GUIBACK_BASE):
         ibs = back.ibs
         species_text = back.get_selected_species()
         if species_text in [const.UNKNOWN, '']:
-            back.user_info(msg="Cannot delete this species...")
-            return
+            back.user_warning(msg="Cannot delete this species...")
+            raise guiexcept.UserCancel
         species_rowid = ibs.get_species_rowids_from_text(species_text)
         species_nice = ibs.get_species_nice(species_rowid)
 

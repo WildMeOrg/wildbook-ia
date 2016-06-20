@@ -520,7 +520,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         ibswgt.imageset_button = _NEWBUT(
             '2) Group',
-            ibswgt.back.compute_occurrences,
+            ibswgt.back.do_group_occurrence_step,
             bgcolor=(255, 255, 150), fontkw=primary_fontkw)
 
         ibswgt.detect_button = _NEWBUT(

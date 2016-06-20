@@ -52,8 +52,11 @@ def _get_all_imgsetids(ibs):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/imageset/', methods=['GET'])
-def get_valid_imgsetids(ibs, min_num_gids=0, processed=None, shipped=None):
+def get_valid_imgsetids(ibs, min_num_gids=0, processed=None, shipped=None,
+                        is_occurrence=None):
     r"""
+    FIX NAME imgagesetids
+
     Returns:
         list_ (list):  list of all imageset ids
 
@@ -68,14 +71,26 @@ def get_valid_imgsetids(ibs, min_num_gids=0, processed=None, shipped=None):
         imgsetid_list  = ut.compress(imgsetid_list, flag_list)
     if processed is not None:
         flag_list = ibs.get_imageset_processed_flags(imgsetid_list)
-        isvalid_list = [ flag == 1 if processed else flag == 0 for flag in flag_list]
+        isvalid_list = [flag == 1 if processed else flag == 0 for flag in flag_list]
         imgsetid_list  = ut.compress(imgsetid_list, isvalid_list)
     if shipped is not None:
         flag_list = ibs.get_imageset_shipped_flags(imgsetid_list)
-        isvalid_list = [ flag == 1 if shipped else flag == 0 for flag in flag_list]
+        isvalid_list = [flag == 1 if shipped else flag == 0 for flag in flag_list]
         imgsetid_list  = ut.compress(imgsetid_list, isvalid_list)
-
+    if is_occurrence is not None:
+        flag_list = ibs.get_imageset_isoccurrence(imgsetid_list)
+        isvalid_list = [flag == is_occurrence for flag in flag_list]
+        imgsetid_list  = ut.compress(imgsetid_list, isvalid_list)
     return imgsetid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/imageset/is_occurrence/', methods=['GET'])
+def get_imageset_isoccurrence(ibs, imgsetid_list):
+    imgset_texts = ibs.get_imageset_text(imgsetid_list)
+    flags = [text.lower().startswith('occurrence') for text in imgset_texts]
+    return flags
 
 
 @register_ibs_method
