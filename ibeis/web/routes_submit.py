@@ -238,12 +238,18 @@ def submit_annotation():
     else:
         if src_ag is not None and dst_ag is not None:
             appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
-        viewpoint = int(request.form['viewpoint-value'])
+        try:
+            viewpoint = int(request.form['viewpoint-value'])
+        except ValueError:
+            viewpoint = int(float(request.form['viewpoint-value']))
         yaw = appf.convert_old_viewpoint_to_yaw(viewpoint)
         species_text = request.form['annotation-species']
         ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
         ibs.set_annot_species([aid], [species_text])
-        quality = int(request.form['quality-value'])
+        try:
+            quality = int(request.form['quality-value'])
+        except ValueError:
+            quality = int(float(request.form['quality-value']))
         ibs.set_annot_qualities([aid], [quality])
         ibs.set_annot_reviewed([aid], [1])
         print('[web] turk_id: %s, aid: %d, yaw: %d, quality: %d' % (turk_id, aid, yaw, quality))

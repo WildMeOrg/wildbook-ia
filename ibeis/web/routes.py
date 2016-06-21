@@ -749,14 +749,6 @@ def turk_annotation():
     tup = appf.get_turk_annot_args(appf.imageset_annot_processed)
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
-    viewpoint_value = appf.convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
-
-    quality_value = ibs.get_annot_qualities(aid)
-    if quality_value == -1:
-        quality_value = None
-    if quality_value == 0:
-        quality_value = 1
-
     review = 'review' in request.args.keys()
     finished = aid is None
     display_instructions = request.cookies.get('annotation_instructions_seen', 1) == 0
@@ -766,11 +758,19 @@ def turk_annotation():
         image     = vt.imread(gpath)
         image_src = appf.embed_image_html(image)
         species   = ibs.get_annot_species_texts(aid)
+        viewpoint_value = appf.convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
+        quality_value = ibs.get_annot_qualities(aid)
+        if quality_value == -1:
+            quality_value = None
+        if quality_value == 0:
+            quality_value = 1
     else:
         gid       = None
         gpath     = None
         image_src = None
         species   = None
+        viewpoint_value = None
+        quality_value = None
 
     imagesettext = ibs.get_imageset_text(imgsetid)
 
