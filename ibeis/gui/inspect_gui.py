@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 This module was never really finished. It is used in some cases
-to display the results from a query in a qt window. It needs
-some work if its to be re-integrated.
+to display the results from a query in a qt window.
 
 TODO:
     Refresh name table on inspect gui close
+
+CommandLine:
+    python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from functools import partial
@@ -372,6 +374,8 @@ class QueryResultsWidget(APIItemWidget):
         else:
             APIItemWidget.__init__(qres_wgt, parent=parent)
 
+        qres_wgt.OLD_CLICK_BEHAVIOR = False
+
         #qres_wgt.altkey_shortcut =
         #QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ALT), qres_wgt,
         #                qres_wgt.on_alt_pressed,
@@ -503,10 +507,8 @@ class QueryResultsWidget(APIItemWidget):
         model = qtindex.model()
         colname = model.get_header_name(col)
 
-        if colname == MATCHED_STATUS_TEXT:
-            #qres_callback = partial(show_match_at_qtindex, qres_wgt, qtindex)
-            #review_match_at_qtindex(qres_wgt, qtindex,
-            #qres_callback=qres_callback)
+
+        if qres_wgt.OLD_CLICK_BEHAVIOR and colname == MATCHED_STATUS_TEXT:
             review_match_at_qtindex(qres_wgt, qtindex)
 
     @guitool.slot_(QtCore.QModelIndex)
@@ -519,7 +521,7 @@ class QueryResultsWidget(APIItemWidget):
             return
         model = qtindex.model()
         colname = model.get_header_name(col)
-        if colname != MATCHED_STATUS_TEXT:
+        if not qres_wgt.OLD_CLICK_BEHAVIOR or colname != MATCHED_STATUS_TEXT:
             return show_match_at_qtindex(qres_wgt, qtindex)
         pass
 
@@ -534,7 +536,7 @@ class QueryResultsWidget(APIItemWidget):
             model = qtindex.model()
             colname = model.get_header_name(col)
             if distance <= threshold:
-                if colname == MATCHED_STATUS_TEXT:
+                if not qres_wgt.OLD_CLICK_BEHAVIOR and colname == MATCHED_STATUS_TEXT:
                     qres_wgt.view.clicked.emit(qtindex)
                     qres_wgt._on_click(qtindex)
                 else:
