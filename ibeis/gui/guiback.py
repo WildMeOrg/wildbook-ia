@@ -1171,7 +1171,7 @@ class MainWindowBackend(GUIBACK_BASE):
             raise ValueError('Detector not recognized')
         show_after = True
         if show_after:
-            back.user_info(msg='Detection has finished. Launching web review')
+            # back.user_info(msg='Detection has finished. Launching web review')
             url = 'http://%s/turk/annotation/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
             # url = 'http://%s/turk/detection/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
             print('[guiback] Opening... %r' % (url, ))
