@@ -38,8 +38,8 @@ def run_ibeis():
     r"""
     CommandLine:
         python -m ibeis
-        python -m ibeis --tf find_installed_tomcat
-        python -m ibeis --tf get_annot_groundtruth:1
+        python -m ibeis find_installed_tomcat
+        python -m ibeis get_annot_groundtruth:1
     """
     #ut.set_process_title('IBEIS_main')
     #main_locals = ibeis.main()

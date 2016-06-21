@@ -507,7 +507,6 @@ class QueryResultsWidget(APIItemWidget):
         model = qtindex.model()
         colname = model.get_header_name(col)
 
-
         if qres_wgt.OLD_CLICK_BEHAVIOR and colname == MATCHED_STATUS_TEXT:
             review_match_at_qtindex(qres_wgt, qtindex)
 

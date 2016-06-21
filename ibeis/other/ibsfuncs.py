@@ -2951,7 +2951,7 @@ def get_title(ibs):
         dbdir = ibs.get_dbdir()
         dbname = ibs.get_dbname()
         title = 'IBEIS - %r - Database Directory = %s' % (dbname, dbdir)
-        wb_target = ibs.get_wildbook_target()
+        wb_target = ibs.const.WILDBOOK_TARGET
         #params.args.wildbook_target
         if wb_target is not None:
             title = '%s - Wildbook Target = %s' % (title, wb_target)
