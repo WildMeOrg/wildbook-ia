@@ -145,7 +145,7 @@ def set_imageset_text(ibs, imgsetid_list, imageset_text_list):
         URL:    /api/imageset/text/
     """
     # Special set checks
-    if any(ibs.fis_special_imageset(imgsetid_list)):
+    if any(ibs.is_special_imageset(imgsetid_list)):
         raise ValueError('cannot rename special imagesets')
     id_iter = ((imgsetid,) for imgsetid in imgsetid_list)
     val_list = ((imageset_text,) for imageset_text in imageset_text_list)

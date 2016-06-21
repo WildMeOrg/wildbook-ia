@@ -248,8 +248,8 @@ def assert_valid_species_texts(ibs, species_list, iswarning=True):
             for species in species_list
         ]
         assert all(isvalid_list), 'invalid species found in %r: %r' % (
-            ut.get_caller_name(range(1, 3)), ut.filterfalse_items(
-                species_list, isvalid_list),)
+            ut.get_caller_name(range(1, 3)), ut.compress(
+                species_list, ut.not_list(isvalid_list)),)
     except AssertionError as ex:
         ut.printex(ex, iswarning=iswarning)
         if not iswarning:
@@ -391,7 +391,7 @@ def get_missing_gids(ibs, gid_list=None):
         gid_list = ibs.get_valid_gids()
     gpath_list = ibs.get_image_paths(gid_list)
     exists_list = list(map(exists, gpath_list))
-    bad_gids = ut.filterfalse_items(gid_list, exists_list)
+    bad_gids = ut.compress(gid_list, ut.not_list(exists_list))
     return bad_gids
 
 
@@ -1847,10 +1847,22 @@ def update_special_imagesets(ibs):
 
 
 def _get_unreviewed_gids(ibs):
+    """
+        >>> import ibeis  # NOQA
+        >>> ibs = ibeis.opendb('testdb1')
+    """
     # hack
     gid_list = ibs.get_valid_gids()
     flag_list = ibs.detect_cnn_yolo_exists(gid_list)
-    gid_list_ = ut.filterfalse_items(gid_list, flag_list)
+    gid_list_ = ut.compress(gid_list, ut.not_list(flag_list))
+    # unreviewed and unshipped
+    imgsets_list = ibs.get_image_imgsetids(gid_list_)
+    nonspecial_imgset_ids = [ut.compress(ids, ut.not_list(mask))
+                             for mask, ids in zip(ibs.unflat_map(ibs.is_special_imageset, imgsets_list), imgsets_list)]
+    flags_list = ibs.unflat_map(ibs.get_imageset_shipped_flags, nonspecial_imgset_ids)
+    # Keep images that have at least one instance in an unshipped non-special set
+    flag_list = [not all(flags) for flags in flags_list]
+    gid_list_ = ut.compress(gid_list_, flag_list)
     return gid_list_
 
 

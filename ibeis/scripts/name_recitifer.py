@@ -3,17 +3,23 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 
 
-def rectify_names(ibs, aid_list=None, old_img2_names=None, common_prefix=''):
+def reasign_names1(ibs, aid_list=None, old_img2_names=None, common_prefix=''):
     r"""
     Changes the names in the IA-database to correspond to an older naming
     convention.  If splits and merges were preformed tries to find the
     maximally consistent renaming scheme.
 
-    Args:
-        ibs (ibeis.IBEISController): image analysis api
-        aid_list (list):  list of annotation rowids
-        img_list (list):
-        name_list (list): (default = None)
+    Notes:
+        For each annotation:
+        * get the image
+        * get the image full path
+        * strip the full path down to the file name prefix:
+             [ example /foo/bar/pic.jpg -> pic ]
+        * make the name of the individual associated with that annotation be the
+          file name prefix
+        * save the new names to the image analysis database
+        * wildbook will make a request to get all of the annotations, image
+          file names, image names and animal ids
 
     CommandLine:
         python -m ibeis.scripts.name_recitifer rectify_names --show
@@ -26,7 +32,7 @@ def rectify_names(ibs, aid_list=None, old_img2_names=None, common_prefix=''):
         >>> aid_list = None
         >>> common_prefix = ''
         >>> old_img2_names = None #['img_fred.png', ']
-        >>> result = rectify_names(ibs, aid_list, img_list, name_list)
+        >>> result = reasign_names1(ibs, aid_list, img_list, name_list)
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -68,6 +74,70 @@ def rectify_names(ibs, aid_list=None, old_img2_names=None, common_prefix=''):
     if not dry:
         # Save the new names to the image analysis database
         ibs.set_name_texts(unique_nids, new_name_text)
+
+
+def reasign_names2(ibs, gname_name_pairs, aid_list=None):
+    """
+
+    Notes:
+        * Given a list of pairs:  image file names (full path), animal name.
+        * Go through all the images in the database and create a dictionary that
+          associates the file name (full path) of the image in the database with the
+          annotation or annotations associated with that image.
+        * Go through the list of pairs:
+          For each image file name, look up in the dictionary the image file
+          name and assign the annotation associated with the image file name
+          the animal name
+        * Throughout this, keep a list of annotations that have been changed
+        * Wildbook will issue a pull request to get these annotation.
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = None
+        >>> common_prefix = ''
+        >>> gname_name_pairs = [
+        >>>     ('easy1.JPG', 'easy'),
+        >>>     ('easy2.JPG', 'easy'),
+        >>>     ('easy3.JPG', 'easy'),
+        >>>     ('hard1.JPG', 'hard')
+        >>> ]
+        >>> changed_pairs = reasign_names2(gname_name_pairs)
+    """
+    from os.path import basename
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids()
+    annot_gnames = ibs.get_annot_image_names(aid_list)
+    # Other image name getters that may be useful
+    # ibs.get_annot_image_paths(aid_list)
+    # ibs.get_image_uris_original(ibs.get_annot_gids(aid_list))
+    gname2_aids = ut.group_items(aid_list, annot_gnames)
+
+    changed_aids = []
+    changed_names = []
+
+    for gname, name in gname_name_pairs:
+        # make sure its just the last part of the name.
+        # Ignore preceding path
+        gname = basename(gname)
+        aids = gname2_aids[gname]
+        texts = ibs.get_annot_name_texts(aids)
+        flags = [text != name for text in texts]
+        aids_ = ut.compress(aids, flags)
+        if len(aids_):
+            changed_aids.extend(aids_)
+            changed_names.extend([name] * len(aids_))
+
+    dry = False
+    if not dry:
+        # Save the new names to the image analysis database
+        ibs.set_annot_name_texts(changed_aids, changed_names)
+
+    # Returned list tells you who was changed.
+    changed_pairs = list(zip(changed_names, changed_aids))
+    return changed_pairs
 
 
 def find_consistent_labeling(grouped_oldnames):

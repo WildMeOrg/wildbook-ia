@@ -71,6 +71,7 @@ def wildbook_status_info(ibs, wb_target=None, dryrun=False):
     wb_url = ibs.get_wildbook_base_url(wb_target)
     response = requests.get(wb_url + '/uptest/ia?status')
     status = response.status_code == 200
+    #result_json = {"settings":{"IBEISIARestUrlAddAnnotations":"http://52.37.240.178:5000/api/annot/json/"},"iaURL":"http://52.37.240.178:5000/","iaEnabled":true,"timestamp":1466534267714}
     if not status:
         raise Exception('Couldnt get info')
     print('response = %r' % (response,))
