@@ -369,9 +369,9 @@ class MainWindowBackend(GUIBACK_BASE):
         if web:
             import webbrowser
             back.start_web_server_parallel(browser=False)
-            # url = 'http://%s/turk/detection?gid=%s&refer=dmlldy9pbWFnZXM=' % (WEB_DOMAIN, gid, )
-            url = 'http://%s/turk/detection?gid=%s' % (WEB_DOMAIN, gid, )
-            # url = 'http://%s/turk/detection?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
+            # url = 'http://%s/turk/detection/?gid=%s&refer=dmlldy9pbWFnZXM=' % (WEB_DOMAIN, gid, )
+            url = 'http://%s/turk/detection/?gid=%s' % (WEB_DOMAIN, gid, )
+            # url = 'http://%s/turk/detection/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
             webbrowser.open(url)
         else:
             kwargs.update({
@@ -1172,9 +1172,11 @@ class MainWindowBackend(GUIBACK_BASE):
         show_after = True
         if show_after:
             back.user_info(msg='Detection has finished. Launching web review')
+            # url = 'http://%s/turk/annotation/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
+            url = 'http://%s/turk/detection/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
+            print('[guiback] Opening... %r' % (url, ))
             import webbrowser
             back.start_web_server_parallel(browser=False)
-            url = 'http://%s/turk/detection?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
             webbrowser.open(url)
         else:
             back.user_info(msg='Detection has finished.')

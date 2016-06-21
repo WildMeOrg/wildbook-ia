@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <title>IBEIS Web Interface</title>
+
+  	<link rel="stylesheet" href="{{ url_for('static', filename='include/jquery-ui/jquery-ui.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='include/jquery.ui.rotatable/jquery.ui.rotatable.css') }}">
+  	<link rel="stylesheet" href="{{ url_for('static', filename='include/bootstrap/css/bootstrap.min.css') }}">
+  	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <script type="text/javascript" src="{{ url_for('static', filename='javascript/jquery.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='include/jquery-ui/jquery-ui.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='include/jquery.ui.rotatable/jquery.ui.rotatable.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='include/jquery.onscreen.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='include/bootstrap/js/bootstrap.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='include/countUp.js/countUp.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='include/Chart.js/Chart.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='javascript/script.js') }}"></script>
+
+    {% block content_custom_css %}{% endblock %}
+  </head>
+
+  <body>
+    <div class="container">
+      {% if __wrapper__ %}
+        <div class="header">
+          <h3 class="text-muted">IBEIS Web Interface</h3>
+        </div>
+      {% endif %}
+
+  	  <div class="content">
+  	    {% block content %}{% endblock %}
+  	  </div>
+
+      {% if __wrapper__ %}
+        <div class="footer">
+          <p>&copy; IBEIS {{ YEAR }}</p>
+        </div>
+      {% endif %}
+    </div> <!-- /container -->
+    {% block content_custom_javascript %}{% endblock %}
+  </body>
+</html>
