@@ -41,6 +41,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import requests
 from ibeis.control import controller_inject
+from ibeis.control import wildbook_manager as wb_man  # NOQA
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__, '[manual_wildbook]')
 
@@ -66,15 +67,46 @@ def get_wildbook_base_url(ibs, wb_target=None):
     return wildbook_base_url
 
 
-def wildbook_status_info(ibs, wb_target=None, dryrun=False):
+@register_ibs_method
+def assert_ia_available_for_wb(ibs, wb_target=None):
+    # Test if we have a server alive
+    ia_url = ibs.get_wildbook_ia_url(wb_target)
+    have_server = False
+    for count in ut.delayed_retry_gen([1], timeout=3, raise_=False):
+        try:
+            rsp = requests.get(ia_url + '/api/test/heartbeat/', timeout=3)
+            have_server = rsp.status_code == 200
+            break
+        except requests.ConnectionError:
+            pass
+    if not have_server:
+        raise Exception('The image analysis server is not started.')
+    return have_server
+
+
+@register_ibs_method
+def get_wildbook_ia_url(ibs, wb_target=None):
+    """
+    Where does wildbook expect us to be?
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> ibs.get_wildbook_ia_url()
+    """
     import requests
     wb_url = ibs.get_wildbook_base_url(wb_target)
-    response = requests.get(wb_url + '/uptest/ia?status')
+    response = requests.get(wb_url + '/ia?status')
     status = response.status_code == 200
     #result_json = {"settings":{"IBEISIARestUrlAddAnnotations":"http://52.37.240.178:5000/api/annot/json/"},"iaURL":"http://52.37.240.178:5000/","iaEnabled":true,"timestamp":1466534267714}
     if not status:
         raise Exception('Couldnt get info')
-    print('response = %r' % (response,))
+    json_response = response.json()
+    ia_url = json_response.get('iaURL')
+    #print('response = %r' % (response,))
+    return ia_url
 
 
 @register_ibs_method
@@ -147,8 +179,10 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
     """
     print('[ibs.wildbook_signal_imgsetid_list] signaling annot name changes to wildbook')
     wb_url = ibs.get_wildbook_base_url(wb_target)
+    ibs.assert_ia_available_for_wb(wb_target)
     if aid_list is None:
         aid_list = ibs.get_valid_aids(is_known=True)
+
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
     annot_name_text_list = ibs.get_annot_name_texts(aid_list)
     grouped_uuids = ut.group_items(annot_uuid_list, annot_name_text_list)
@@ -263,10 +297,8 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
         >>>     web_ibs.terminate2()
 
     """
-    if wb_target is None:
-        wb_target = ibs.const.WILDBOOK_TARGET
-    # Configuration
     wb_url = ibs.get_wildbook_base_url(wb_target)
+    ibs.assert_ia_available_for_wb(wb_target)
 
     if imgsetid_list is None:
         imgsetid_list = ibs.get_valid_imgsetids()

@@ -85,11 +85,20 @@ def get_valid_imgsetids(ibs, min_num_gids=0, processed=None, shipped=None,
 
 
 @register_ibs_method
+def is_special_imageset(ibs, imgsetid_list):
+    imagesettext_list = ibs.get_imageset_text(imgsetid_list)
+    isspecial_list = [str(imagesettext) in set(const.SPECIAL_IMAGESET_LABELS)
+                      for imagesettext in imagesettext_list]
+    return isspecial_list
+
+
+@register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/imageset/is_occurrence/', methods=['GET'])
 def get_imageset_isoccurrence(ibs, imgsetid_list):
-    imgset_texts = ibs.get_imageset_text(imgsetid_list)
-    flags = [text.lower().startswith('occurrence') for text in imgset_texts]
+    flags = ut.not_list(ibs.is_special_imageset(imgsetid_list))
+    #imgset_texts = ibs.get_imageset_text(imgsetid_list)
+    #flags = [text.lower().startswith('occurrence') for text in imgset_texts]
     return flags
 
 

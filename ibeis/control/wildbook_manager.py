@@ -217,7 +217,7 @@ def find_java_jvm():
     return jvm_fpath
 
 
-def find_or_download_wilbook_warfile(redownload=False):
+def find_or_download_wilbook_warfile(ensure=True, redownload=False):
     r"""
     scp jonc@pachy.cs.uic.edu:/var/lib/tomcat/webapps/ibeis.war \
             ~/Downloads/pachy_ibeis.war wget
@@ -226,7 +226,8 @@ def find_or_download_wilbook_warfile(redownload=False):
     #war_url = 'http://dev.wildme.org/ibeis_data_dir/ibeis.war'
     war_url = 'http://springbreak.wildbook.org/tools/latest.war'
     war_fpath = ut.grab_file_url(war_url, appname='ibeis',
-                                 redownload=redownload, fname='ibeis.war')
+                                 ensure=ensure, redownload=redownload,
+                                 fname='ibeis.war')
     return war_fpath
 
 
@@ -236,6 +237,7 @@ def purge_local_wildbook():
 
     CommandLine:
         python -m ibeis purge_local_wildbook
+        python -m ibeis purge_local_wildbook --purge-war
 
     Example:
         >>> # SCRIPT
@@ -247,6 +249,9 @@ def purge_local_wildbook():
     except ImportError:
         pass
     ut.delete(ut.unixjoin(ut.get_app_resource_dir('ibeis'), 'tomcat'))
+    if ut.get_argflag('--purge-war'):
+        war_fpath = find_or_download_wilbook_warfile(ensure=False)
+        ut.delete(war_fpath)
 
 
 def ensure_wb_mysql():
@@ -284,15 +289,17 @@ def ensure_wb_mysql():
         '''))
 
 
-def ensure_wb_tomcat(verbose=ut.NOT_QUIET):
+def ensure_local_war(verbose=ut.NOT_QUIET):
     """
+    Ensures tomcat has been unpacked and the war is localized
+
     CommandLine:
-        ibeis ensure_wb_tomcat
+        ibeis ensure_local_war
 
     Example:
         >>> # SCRIPT
         >>> from ibeis.control.wildbook_manager import *  # NOQA
-        >>> result = ensure_wb_tomcat()
+        >>> result = ensure_local_war()
         >>> print(result)
     """
     # TODO: allow custom specified tomcat directory
@@ -338,6 +345,7 @@ def install_wildbook(verbose=ut.NOT_QUIET):
         # Reset
         ibeis purge_local_wildbook
         ibeis ensure_wb_mysql
+        ibeis ensure_local_war
         # Setup
         ibeis install_wildbook
         # ibeis install_wildbook --nomysql
@@ -358,7 +366,7 @@ def install_wildbook(verbose=ut.NOT_QUIET):
     """
     import requests
     # Ensure that the war file has been unpacked
-    tomcat_dpath, webapps_dpath, wb_target = ensure_wb_tomcat()
+    tomcat_dpath, webapps_dpath, wb_target = ensure_local_war()
 
     unpacked_war_dpath = join(webapps_dpath, wb_target)
     tomcat_startup_dir = get_tomcat_startup_tmpdir()
@@ -432,7 +440,7 @@ def install_wildbook(verbose=ut.NOT_QUIET):
 def update_wildbook_install_config(webapps_dpath, unpacked_war_dpath):
     """
     CommandLine:
-        python -m ibeis ensure_wb_tomcat
+        python -m ibeis ensure_local_war
         python -m ibeis update_wildbook_install_config
         python -m ibeis update_wildbook_install_config --show
 
@@ -645,16 +653,16 @@ def shutdown_wildbook_server(verbose=ut.NOT_QUIET):
         >>> ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)
     """
     # TODO: allow custom specified tomcat directory
-    tomcat_dpath = find_installed_tomcat(check_unpacked=False)
+    tomcat_dpath = find_installed_tomcat(check_unpacked=False, strict=False)
     # TODO: allow custom specified tomcat directory
     #tomcat_dpath = find_installed_tomcat(check_unpacked=False)
     #catalina_out_fpath = join(tomcat_dpath, 'logs', 'catalina.out')
-
-    with ut.ChdirContext(get_tomcat_startup_tmpdir()):
-        shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
-        #ut.cmd(shutdown_fpath)
-        ut.cmd(ut.quote_single_command(shutdown_fpath))
-        time.sleep(.5)
+    if tomcat_dpath is not None:
+        with ut.ChdirContext(get_tomcat_startup_tmpdir()):
+            shutdown_fpath = join(tomcat_dpath, 'bin', 'shutdown.sh')
+            #ut.cmd(shutdown_fpath)
+            ut.cmd(ut.quote_single_command(shutdown_fpath))
+            time.sleep(.5)
 
 
 def monitor_wildbook_logs(verbose=ut.NOT_QUIET):
