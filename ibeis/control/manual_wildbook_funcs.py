@@ -698,14 +698,18 @@ def get_wildbook_target(ibs):
 def get_wildbook_info(ibs, tomcat_dpath=None, wb_target=None):
     # TODO: Clean this up
     wildbook_base_url = ibs.get_wildbook_base_url(wb_target)
-    wildbook_tomcat_path = ibs.get_wildbook_tomcat_path(tomcat_dpath, wb_target)
+    try:
+        wildbook_tomcat_path = ibs.get_wildbook_tomcat_path(tomcat_dpath, wb_target)
+    except ImportError:
+        wildbook_tomcat_path = None
+        pass
     # Setup
     print('Looking for Wildbook (tomcat) installation: %r' % ( wildbook_tomcat_path, ))
     if False:
         ut.assert_exists(wildbook_tomcat_path,
                          'Wildbook (tomcat) is not installed on this machine', info=True)
     else:
-        if not ut.checkpath(wildbook_tomcat_path):
+        if wildbook_tomcat_path is None or not ut.checkpath(wildbook_tomcat_path):
             wildbook_tomcat_path = None
     return wildbook_base_url, wildbook_tomcat_path
 
