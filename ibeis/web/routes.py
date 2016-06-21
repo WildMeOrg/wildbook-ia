@@ -745,7 +745,7 @@ def turk_annotation():
         >>> ibs.start_web_annot_groupreview(aid_list)
     """
     ibs = current_app.ibs
-    tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed)
+    tup = appf.get_turk_annot_args(appf.imageset_annot_processed)
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
     viewpoint_value = appf.convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))

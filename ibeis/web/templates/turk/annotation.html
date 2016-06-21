@@ -2,9 +2,9 @@
 {% block content %}
   {% if finished %}
   <div class="alert alert-info text-center" role="alert">
-    Congratulations, viewpoint turking is completed.  Thank you!
+    Congratulations, annotation turking is completed.  Thank you!
     <br/>
-    <a href="{{ url_for('turk_quality') }}?imgsetid={{ imgsetid }}">Continue by turking qualities</a>
+    <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid }}">View completed annotations</a>
   </div>
   {% else %}
   <div class="row">

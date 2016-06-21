@@ -188,7 +188,7 @@ def submit_annotation():
         ibs.delete_annots(aid)
         print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
         aid = None  # Reset AID to prevent previous
-    if method.lower() == 'make junk':
+    elif method.lower() == 'make junk':
         ibs.set_annot_quality_texts([aid], [const.QUAL_JUNK])
         print('[web] (SET AS JUNK) turk_id: %s, aid: %d' % (turk_id, aid, ))
         redirection = request.referrer
@@ -199,7 +199,7 @@ def submit_annotation():
             else:
                 redirection = '%s?aid=%d' % (redirection, aid, )
         return redirect(redirection)
-    if method.lower() == 'rotate left':
+    elif method.lower() == 'rotate left':
         theta = ibs.get_annot_thetas(aid)
         theta = (theta + PI / 2) % TAU
         ibs.set_annot_thetas(aid, theta)
@@ -217,7 +217,7 @@ def submit_annotation():
             else:
                 redirection = '%s?aid=%d' % (redirection, aid, )
         return redirect(redirection)
-    if method.lower() == 'rotate right':
+    elif method.lower() == 'rotate right':
         theta = ibs.get_annot_thetas(aid)
         theta = (theta - PI / 2) % TAU
         ibs.set_annot_thetas(aid, theta)
@@ -245,6 +245,7 @@ def submit_annotation():
         ibs.set_annot_species([aid], [species_text])
         quality = int(request.form['quality-value'])
         ibs.set_annot_qualities([aid], [quality])
+        ibs.set_annot_reviewed([aid], [1])
         print('[web] turk_id: %s, aid: %d, yaw: %d, quality: %d' % (turk_id, aid, yaw, quality))
     # Return HTML
     refer = request.args.get('refer', '')

@@ -243,7 +243,7 @@ class Classifier_Model(JPCNN_Auto_Model):
             stride=(1, 1),
             pad=1,
             nonlinearity=_lasagne.nonlinearities.linear,
-            W=_lasagne.init.Orthogonal('relu'),
+            # W=_lasagne.init.Orthogonal('relu'),
         )
 
         l_batchnorm6 = _lasagne.layers.BatchNormLayer(
@@ -263,7 +263,7 @@ class Classifier_Model(JPCNN_Auto_Model):
             stride=(1, 1),
             pad=1,
             nonlinearity=_lasagne.nonlinearities.linear,
-            W=_lasagne.init.Orthogonal('relu'),
+            # W=_lasagne.init.Orthogonal('relu'),
         )
 
         l_batchnorm7 = _lasagne.layers.BatchNormLayer(
@@ -294,7 +294,7 @@ class Classifier_Model(JPCNN_Auto_Model):
             stride=(1, 1),
             pad=1,
             nonlinearity=_lasagne.nonlinearities.linear,
-            W=_lasagne.init.Orthogonal('relu'),
+            # W=_lasagne.init.Orthogonal('relu'),
         )
 
         l_batchnorm12 = _lasagne.layers.BatchNormLayer(
@@ -314,7 +314,7 @@ class Classifier_Model(JPCNN_Auto_Model):
             stride=(1, 1),
             pad=1,
             nonlinearity=_lasagne.nonlinearities.linear,
-            W=_lasagne.init.Orthogonal('relu'),
+            # W=_lasagne.init.Orthogonal('relu'),
         )
 
         l_batchnorm13 = _lasagne.layers.BatchNormLayer(
@@ -334,7 +334,7 @@ class Classifier_Model(JPCNN_Auto_Model):
             stride=(1, 1),
             pad=1,
             nonlinearity=_lasagne.nonlinearities.linear,
-            W=_lasagne.init.Orthogonal('relu'),
+            # W=_lasagne.init.Orthogonal('relu'),
         )
 
         l_batchnorm14 = _lasagne.layers.BatchNormLayer(
@@ -382,7 +382,7 @@ class Classifier_Model(JPCNN_Auto_Model):
             num_units=768,
             nonlinearity=_lasagne.nonlinearities.linear,
             # nonlinearity=_lasagne.nonlinearities.rectify,
-            W=_lasagne.init.Orthogonal('relu'),
+            # W=_lasagne.init.Orthogonal('relu'),
         )
 
         l_batchnorm12 = _lasagne.layers.BatchNormLayer(
@@ -410,7 +410,7 @@ class Classifier_Model(JPCNN_Auto_Model):
             num_units=768,
             nonlinearity=_lasagne.nonlinearities.linear,
             # nonlinearity=_lasagne.nonlinearities.rectify,
-            W=_lasagne.init.Orthogonal('relu'),
+            # W=_lasagne.init.Orthogonal('relu'),
         )
 
         l_batchnorm13 = _lasagne.layers.BatchNormLayer(
@@ -437,7 +437,7 @@ class Classifier_Model(JPCNN_Auto_Model):
             l_dropout2,
             num_units=out_classes,
             nonlinearity=_lasagne.nonlinearities.softmax,
-            W=_lasagne.init.Orthogonal(1.0),
+            # W=_lasagne.init.Orthogonal(1.0),
         )
 
         return l_out

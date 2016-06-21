@@ -254,6 +254,11 @@ def imageset_image_processed(ibs, gid_list):
     return images_reviewed
 
 
+def imageset_annot_processed(ibs, aid_list):
+    annots_reviewed = [ reviewed == 1 for reviewed in ibs.get_annot_reviewed(aid_list) ]
+    return annots_reviewed
+
+
 def imageset_annot_viewpoint_processed(ibs, aid_list):
     annots_reviewed = [ reviewed is not None for reviewed in ibs.get_annot_yaws(aid_list) ]
     return annots_reviewed

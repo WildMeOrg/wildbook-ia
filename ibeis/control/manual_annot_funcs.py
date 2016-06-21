@@ -3318,6 +3318,39 @@ def set_annot_tag_text(ibs, aid_list, annot_tags_list, duplicate_behavior='error
                id_iter, duplicate_behavior=duplicate_behavior)
 
 
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/annot/reviewed/', methods=['GET'])
+def get_annot_reviewed(ibs, aid_list):
+    r"""
+    Returns:
+        list_ (list): "All Instances Found" flag, true if all objects of interest
+    (animals) have an ANNOTATION in the annot
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/reviewed/
+    """
+    reviewed_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_toggle_reviewed',), aid_list)
+    return reviewed_list
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/annot/reviewed/', methods=['PUT'])
+def set_annot_reviewed(ibs, aid_list, reviewed_list):
+    r"""
+    Sets the annot all instances found bit
+
+    RESTful:
+        Method: PUT
+        URL:    /api/annot/reviewed/
+    """
+    id_iter = ((aid,) for aid in aid_list)
+    val_list = ((reviewed,) for reviewed in reviewed_list)
+    ibs.db.set(const.ANNOTATION_TABLE, ('annot_toggle_reviewed',), val_list, id_iter)
+
+
 #==========
 # Testdata
 #==========
