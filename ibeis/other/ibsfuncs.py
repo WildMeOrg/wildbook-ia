@@ -3681,14 +3681,6 @@ def check_chip_existence(ibs, aid_list=None):
 
 
 @register_ibs_method
-def is_special_imageset(ibs, imgsetid_list):
-    imagesettext_list = ibs.get_imageset_text(imgsetid_list)
-    isspecial_list = [str(imagesettext) in set(const.SPECIAL_IMAGESET_LABELS)
-                      for imagesettext in imagesettext_list]
-    return isspecial_list
-
-
-@register_ibs_method
 def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
     r"""
     Args:
@@ -5695,12 +5687,34 @@ def get_annot_encounter_text(ibs, aids):
 
 @register_ibs_method
 def get_annot_occurrence_text(ibs, aids):
-    """ Occurrence identifier for annotations """
+    """ Occurrence identifier for annotations
+
+    Args:
+        ibs (ibeis.IBEISController):  image analysis api
+        aids (list):  list of annotation rowids
+
+    Returns:
+        list: occur_texts
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs get_annot_occurrence_text --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aids = ibs.get_valid_aids()
+        >>> occur_texts = get_annot_occurrence_text(ibs, aids)
+        >>> result = ('occur_texts = %s' % (ut.repr2(occur_texts),))
+        >>> print(result)
+    """
     imgset_ids = ibs.get_annot_imgsetids(aids)
-    imgset_texts = ibs.unflat_map(ibs.get_imageset_text, imgset_ids)
-    flags = [[text.lower().startswith('occurrence') for text in texts]
-             for texts in imgset_texts]
-    _occur_texts = ut.zipcompress(imgset_texts, flags)
+    flags = ibs.unflat_map(ibs.get_imageset_isoccurrence, imgset_ids)
+    #flags = [[text.lower().startswith('occurrence') for text in texts]
+    #         for texts in imgset_texts]
+    imgset_ids = ut.zipcompress(imgset_ids, flags)
+    _occur_texts = ibs.unflat_map(ibs.get_imageset_text, imgset_ids)
     _occur_texts = [t if len(t) > 0 else [None] for t in _occur_texts]
     assert all([len(t) == 1 for t in _occur_texts]), 'annot must be in exactly one occurrence'
     occur_texts = ut.take_column(_occur_texts, 0)

@@ -1831,6 +1831,7 @@ class MainWindowBackend(GUIBACK_BASE):
             raise guiexcept.UserCancel
 
         existing_imgset_id_list = ibs.get_valid_imgsetids(is_occurrence=True,
+                                                          shipped=False,
                                                           min_num_gids=1)
 
         class TmpConfig(dtool.Config):
