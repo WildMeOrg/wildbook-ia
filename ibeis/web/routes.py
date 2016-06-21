@@ -482,7 +482,8 @@ def view_annotations():
         ibs.get_annot_quality_texts(aid_list),
         ibs.get_annot_sex_texts(aid_list),
         ibs.get_annot_age_months_est(aid_list),
-        [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list), appf.imageset_annot_quality_processed(ibs, aid_list)) ],
+        ibs.get_annot_reviewed(aid_list),
+        # [ reviewed_viewpoint and reviewed_quality for reviewed_viewpoint, reviewed_quality in zip(appf.imageset_annot_viewpoint_processed(ibs, aid_list), appf.imageset_annot_quality_processed(ibs, aid_list)) ],
     )
     annotation_list.sort(key=lambda t: t[0])
     return appf.template('view', 'annotations',

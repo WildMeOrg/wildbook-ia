@@ -97,8 +97,8 @@
               <td>{{ name }}</td>
               <td>{{ exemplar }}</td>
               <td>{{ species }}</td>
-              <td><a href="{{ url_for('turk_viewpoint') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ viewpoint }}</a></td>
-              <td><a href="{{ url_for('turk_quality') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ quality }}</a></td>
+              <td><a href="{{ url_for('turk_annotation') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ viewpoint }}</a></td>
+              <td><a href="{{ url_for('turk_annotation') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ quality }}</a></td>
               <td><a href="{{ url_for('turk_additional') }}?aid={{ aid }}&refer={{ REFER_SRC_ENCODED }}">{{ sex }} / {{ age }}</a></td>
               <td><a href="{{ url_for('view_images') }}?gid={{ gid }}">Go to</a></td>
               <td><a href="{{ url_for('view_images') }}?imgsetid={{ imgsetid_list_str_ }}">Go to</a></td>
