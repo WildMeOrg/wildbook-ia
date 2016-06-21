@@ -320,7 +320,7 @@ def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
 @register_api('/api/detect/cnn/yolo/', methods=['PUT', 'GET'])
-def detect_cnn_yolo(ibs, gid_list, commit=True, **kwargs):
+def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, **kwargs):
     """
     Runs animal detection in each image. Adds annotations to the database
     as they are found.
@@ -370,15 +370,73 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, **kwargs):
         # 'detector_sensitivity'   : 0.08,
     }
     if USE_LOCALIZATIONS:
+        if testing:
+            depc.delete_property('localizations', gid_list, config=config)
         results_list = depc.get_property('localizations', gid_list, None, config=config)
         if commit:
             aids_list = ibs.commit_localization_results(gid_list, results_list, note='cnnyolodetect')
             return aids_list
     else:
+        if testing:
+            depc.delete_property('detections', gid_list, config=config)
         results_list = depc.get_property('detections', gid_list, None, config=config)
         if commit:
             aids_list = ibs.commit_detection_results(gid_list, results_list, note='cnnyolodetect')
             return aids_list
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@accessor_decors.getter_1to1
+@register_api('/api/detect/cnn/yolo/exists/', methods=['GET'])
+def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
+    """
+    Checks to see if a detection has been completed.
+
+    Args:
+        gid_list (list): list of image ids to run detection on
+
+    Returns:
+        flag_list (list): list of flags for if the detection has been run on
+            the image
+
+    CommandLine:
+        python -m ibeis.web.apis_detect --test-detect_cnn_yolo_exists
+
+    RESTful:
+        Method: GET
+        URL:    /api/detect/cnn/yolo/exists/
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.web.apis_detect import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> gid_list = ibs.get_valid_gids()
+        >>> depc = ibs.depc_image
+        >>> aids_list = ibs.detect_cnn_yolo(gid_list[:3], testing=True)
+        >>> result = ibs.detect_cnn_yolo_exists(gid_list[:5])
+        >>> ibs.delete_annots(ut.flatten(aids_list))
+        >>> print(result)
+        [True, True, True, False, False]
+    """
+    depc = ibs.depc_image
+    config = {
+        'algo'                   : 'yolo',
+        'sensitivity'            : 0.2,
+        # 'classifier_sensitivity' : 0.64,
+        # 'localizer_grid'         : False,
+        # 'localizer_sensitivity'  : 0.16,
+        # 'labeler_sensitivity'    : 0.42,
+        # 'detector_sensitivity'   : 0.08,
+    }
+    if USE_LOCALIZATIONS:
+        score_list = depc.get_property('localizations', gid_list, 'score', ensure=False, config=config)
+    else:
+        score_list = depc.get_property('detections', gid_list, 'score', ensure=False, config=config)
+    flag_list = [ score is not None for score in score_list ]
+    return flag_list
 
 
 @register_ibs_method

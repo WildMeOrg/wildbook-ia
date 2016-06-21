@@ -1822,28 +1822,44 @@ def update_special_imagesets(ibs):
     ibs.update_ungrouped_special_imageset()
 
 
+# def _get_unreviewed_gids(ibs):
+#     # hack
+#     gid_list = ibs.db.executeone(
+#         '''
+#         SELECT image_rowid
+#         FROM {IMAGE_TABLE}
+#         WHERE
+#         image_toggle_reviewed=0
+#         '''.format(**const.__dict__))
+#     return gid_list
+
+
+# def _get_reviewed_gids(ibs):
+#     # hack
+#     gid_list = ibs.db.executeone(
+#         '''
+#         SELECT image_rowid
+#         FROM {IMAGE_TABLE}
+#         WHERE
+#         image_toggle_reviewed=1
+#         '''.format(**const.__dict__))
+#     return gid_list
+
+
 def _get_unreviewed_gids(ibs):
     # hack
-    gid_list = ibs.db.executeone(
-        '''
-        SELECT image_rowid
-        FROM {IMAGE_TABLE}
-        WHERE
-        image_toggle_reviewed=0
-        '''.format(**const.__dict__))
-    return gid_list
+    gid_list = ibs.get_valid_gids()
+    flag_list = ibs.detect_cnn_yolo_exists(gid_list)
+    gid_list_ = ut.filterfalse_items(gid_list, flag_list)
+    return gid_list_
 
 
 def _get_reviewed_gids(ibs):
     # hack
-    gid_list = ibs.db.executeone(
-        '''
-        SELECT image_rowid
-        FROM {IMAGE_TABLE}
-        WHERE
-        image_toggle_reviewed=1
-        '''.format(**const.__dict__))
-    return gid_list
+    gid_list = ibs.get_valid_gids()
+    flag_list = ibs.detect_cnn_yolo_exists(gid_list)
+    gid_list_ = ut.filter_items(gid_list, flag_list)
+    return gid_list_
 
 
 def _get_gids_in_imgsetid(ibs, imgsetid):
