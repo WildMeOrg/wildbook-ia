@@ -51,7 +51,7 @@
               <td>{{ start }}</td>
               <td><a href="{{ url_for('view_images') }}?imgsetid={{ imgsetid }}">Review</a></td>
               <td><a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid }}">Review</a></td>
-              <td><a href="{{ url_for('turk_detection') }}?imgsetid={{ imgsetid }}">Detections</a> | <a href="{{ url_for('turk_viewpoint') }}?imgsetid={{ imgsetid }}">Viewpoint</a> | <a href="{{ url_for('turk_quality') }}?imgsetid={{ imgsetid }}">Quality</a> | <a href="{{ url_for('turk_additional') }}?imgsetid={{ imgsetid }}">Additional</a></td>
+              <td><a href="{{ url_for('turk_detection') }}?imgsetid={{ imgsetid }}">Detections</a> | <a href="{{ url_for('turk_annotation') }}?imgsetid={{ imgsetid }}">Viewpoint</a> | <a href="{{ url_for('turk_annotation') }}?imgsetid={{ imgsetid }}">Quality</a> | <a href="{{ url_for('turk_additional') }}?imgsetid={{ imgsetid }}">Additional</a></td>
             </tr>
             {% endfor %}
           {% endif %}
