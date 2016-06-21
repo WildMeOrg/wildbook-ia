@@ -7,6 +7,8 @@ TODO: need to split up into sub modules:
     feasibility_fixes
     move the export stuff to dbio
 
+    python -m utool.util_inspect check_module_usage --pat="ibsfuncs.py"
+
     then there are also convineience functions that need to be ordered at least
     within this file
 """

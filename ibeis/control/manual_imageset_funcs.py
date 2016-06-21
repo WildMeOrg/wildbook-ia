@@ -145,7 +145,7 @@ def set_imageset_text(ibs, imgsetid_list, imageset_text_list):
         URL:    /api/imageset/text/
     """
     # Special set checks
-    if any(ibs.is_special_imageset(imgsetid_list)):
+    if any(ibs.fis_special_imageset(imgsetid_list)):
         raise ValueError('cannot rename special imagesets')
     id_iter = ((imgsetid,) for imgsetid in imgsetid_list)
     val_list = ((imageset_text,) for imageset_text in imageset_text_list)
@@ -1279,14 +1279,18 @@ def get_imageset_smart_xml_contents(ibs, imageset_rowid_list):
     from os.path import join, exists
     imageset_smart_xml_fname_list = ibs.get_imageset_smart_xml_fnames(imageset_rowid_list)
     content_list = []
+    smart_patrol_dir = ibs.get_smart_patrol_dir()
     for imageset_smart_xml_fname in imageset_smart_xml_fname_list:
-        imageset_smart_xml_fpath = join(ibs.get_smart_patrol_dir(), imageset_smart_xml_fname)
-        if exists(imageset_smart_xml_fpath):
-            with open(imageset_smart_xml_fpath, 'r') as imageset_smart_xml:
-                content = imageset_smart_xml.read()
-                content_list.append(content)
-        else:
+        if imageset_smart_xml_fname is None:
             content_list.append(None)
+        else:
+            imageset_smart_xml_fpath = join(smart_patrol_dir, imageset_smart_xml_fname)
+            if exists(imageset_smart_xml_fpath):
+                with open(imageset_smart_xml_fpath, 'r') as imageset_smart_xml:
+                    content = imageset_smart_xml.read()
+                    content_list.append(content)
+            else:
+                content_list.append(None)
     return content_list
 
 
