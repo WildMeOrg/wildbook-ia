@@ -741,6 +741,14 @@ def test_wildbook_login():
         view_all.click()
 
 
+def get_wildbook_tomcat_path(ibs, tomcat_dpath=None, wb_target=None):
+    DEFAULT_TOMCAT_PATH = find_installed_tomcat()
+    tomcat_dpath = DEFAULT_TOMCAT_PATH if tomcat_dpath is None else tomcat_dpath
+    wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
+    wildbook_tomcat_path = join(tomcat_dpath, 'webapps', wb_target)
+    return wildbook_tomcat_path
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
