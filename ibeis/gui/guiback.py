@@ -1115,13 +1115,169 @@ class MainWindowBackend(GUIBACK_BASE):
         #ibs.cfg.save()
 
     @blocking_slot()
-    def run_detection(back, refresh=True, **kwargs):
+    def do_group_occurrence_step(back, refresh=True):
+        """
+        Group Step for computing occurrneces
+
+        CommandLine:
+            python -m ibeis.gui.guiback --test-MainWindowBackend.do_group_occurrence_step --show --no-cnn
+
+        Example:
+            >>> # GUI_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> import ibeis
+            >>> main_locals = ibeis.main(defaultdb='testdb1')
+            >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
+            >>> ut.exec_funckw(back.do_group_occurrence_step, globals())
+            >>> back.do_group_occurrence_step()
+            >>> ut.quit_if_noshow()
+        """
+        print('[back] do_group_occurrence_step')
+        import dtool
+        #class TmpConfig(dtool.Config):
+        #    _param_info_list = back.ibs.cfg.occur_cfg.get_param_info_list()
+        ibs = back.ibs
+
+        ungrouped_gid_list = ibs.get_ungrouped_gids()
+        #ungrouped_images = ibs.get_image_instancelist(ungrouped_gid_list)
+        # image_list['unixtime']
+        if len(ungrouped_gid_list) == 0:
+            back.user_warning(msg='There are no ungrouped images.')
+            raise guiexcept.UserCancel
+
+        existing_imgset_id_list = ibs.get_valid_imgsetids(is_occurrence=True,
+                                                          shipped=False,
+                                                          min_num_gids=1)
+
+        class TmpConfig(dtool.Config):
+            _param_info_list = [
+                ut.ParamInfo('seconds_thresh', 600, 'sec'),
+            ]
+        config = TmpConfig(**back.ibs.cfg.occur_cfg.to_dict())
+
+        options = [
+            'Create new occurrences',
+            'Add to existing',
+            #'Regroup everything',
+        ]
+        reply, new_config = back.user_option(
+            title='Occurrence Grouping',
+            msg=ut.codeblock(
+                '''
+                Choose how we should group the %d ungrouped images into occurrences.
+                We can either:
+                    (1) create new occurrences or
+                    (2) add to the %d existing occurrences.
+                ''') % (len(ungrouped_gid_list), len(existing_imgset_id_list)),
+            config=config,
+            options=options,
+            default=options[0],
+        )
+        print('reply = %r' % (reply,))
+
+        if reply not in options:
+            raise guiexcept.UserCancel
+
+        seconds_thresh = new_config['seconds_thresh']
+
+        #from ibeis.algo.preproc import preproc_occurrence
+        #flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
+        #    ibs, gid_list, seconds_thresh=seconds_thresh)
+        #sortx = ut.argsort(flat_imgsetids)
+        #flat_imgsetids = ut.take(flat_imgsetids, sortx)
+        #flat_gids = ut.take(flat_gids, sortx)
+
+        if reply == options[0]:
+            #back.ibs.delete_all_imagesets()
+            back.ibs.compute_occurrences(seconds_thresh=seconds_thresh)
+        elif reply == options[1]:
+            # Add to existing imaesets
+            imagesettext_list = ibs.get_imageset_text(existing_imgset_id_list)
+            import numpy as np
+            # Get unixtimes of the new images
+            unixtime_list = ibs.get_image_unixtime(ungrouped_gid_list)
+            # Get unixtimes of the occurrences
+            imgset_gids_list = ibs.get_imageset_gids(existing_imgset_id_list)
+            imgset_unixtimes_list = ibs.unflat_map(ibs.get_image_unixtime,
+                                                   imgset_gids_list)
+            #imageset_start_time_posix_list = np.array(ut.lmap(np.min, unixtimes_list))
+            imageset_mean_time_posix_list = np.array(ut.lmap(np.mean, imgset_unixtimes_list))
+            #imageset_end_time_posix_list = np.array(ut.lmap(np.max, unixtimes_list))
+
+            assigned_idx = [np.abs(x - imageset_mean_time_posix_list).argmin()
+                            for x in unixtime_list]
+            assigned_imgset = ut.take(imagesettext_list, assigned_idx)
+            ibs.set_image_imagesettext(ungrouped_gid_list, assigned_imgset)
+            # HACK TO UPDATE IMAGESET POSIX TIMES
+            # CAREFUL THIS BLOWS AWAY SMART DATA
+            ibs.update_imageset_info(ibs.get_valid_imgsetids())
+        else:
+            # Redo everything
+            pass
+        back.ibs.update_special_imagesets()
+        print('[back] about to finish computing imagesets')
+        back.front.imageset_tabwgt._close_all_tabs()
+        if refresh:
+            back.front.update_tables()
+        print('[back] finished computing imagesets')
+
+    @blocking_slot()
+    def run_detection_step(back, refresh=True, **kwargs):
+        r"""
+        Args:
+            refresh (bool): (default = True)
+
+        CommandLine:
+            python -m ibeis.gui.guiback run_detection_step --show
+
+        Example:
+            >>> # GUI_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> import ibeis
+            >>> main_locals = ibeis.main(defaultdb='testdb1')
+            >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
+            >>> ut.exec_funckw(back.run_detection_step, globals())
+            >>> back.run_detection_step()
+            >>> ut.quit_if_noshow()
+        """
         print('\n\n')
         imgsetid = back._eidfromkw(kwargs)
         ibs = back.ibs
         gid_list = ibsfuncs.get_empty_gids(ibs, imgsetid=imgsetid)
 
         detector = back.ibs.cfg.detect_cfg.detector
+
+        if False:
+            pass
+            #import dtool
+            #class TmpDetectConfig(dtool.Config):
+            #    _param_info_list = [
+            #        ut.ParamInfo('detector', 'yolo', valid_values=['yolo', 'random_forest']),
+            #    ]
+            #config = TmpDetectConfig(**back.ibs.cfg.detect_cfg.to_dict())
+            #options = [
+            #    'Start',
+            #    'Add to existing',
+            #    #'Regroup everything',
+            #]
+            #reply, new_config = back.user_option(
+            #    title='Occurrence Grouping',
+            #    msg=ut.codeblock(
+            #        '''
+            #        Choose how we should group the %d ungrouped images into occurrences.
+            #        We can either:
+            #            (1) create new occurrences or
+            #            (2) add to the %d existing occurrences.
+            #        ''') % (len(ungrouped_gid_list), len(existing_imgset_id_list)),
+            #    config=config,
+            #    options=options,
+            #    default=options[0],
+            #)
+            #print('reply = %r' % (reply,))
+
+            #if reply not in options:
+            #    raise guiexcept.UserCancel
+
         if detector in ['cnn_yolo', 'yolo', 'cnn']:
             # Construct message
             msg_fmtstr_list = ['You are about to run detection using CNN YOLO...']
@@ -1137,7 +1293,7 @@ class MainWindowBackend(GUIBACK_BASE):
             msg_fmtstr = '\n'.join(msg_fmtstr_list)
             msg_str = msg_fmtstr.format(**fmtdict)
             if back.are_you_sure(use_msg=msg_str):
-                print('[back] run_detection(imgsetid=%r)' % (imgsetid))
+                print('[back] run_detection_step(imgsetid=%r)' % (imgsetid))
                 ibs.detect_cnn_yolo(gid_list)
                 print('[back] about to finish detection')
                 if refresh:
@@ -1161,7 +1317,7 @@ class MainWindowBackend(GUIBACK_BASE):
             msg_fmtstr = '\n'.join(msg_fmtstr_list)
             msg_str = msg_fmtstr.format(**fmtdict)
             if back.are_you_sure(use_msg=msg_str):
-                print('[back] run_detection(species=%r, imgsetid=%r)' % (species, imgsetid))
+                print('[back] run_detection_step(species=%r, imgsetid=%r)' % (species, imgsetid))
                 ibs.detect_random_forest(gid_list, species)
                 print('[back] about to finish detection')
                 if refresh:
@@ -1798,113 +1954,6 @@ class MainWindowBackend(GUIBACK_BASE):
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: imgsetid=%r' % (imgsetid,))
-
-    @blocking_slot()
-    def do_group_occurrence_step(back, refresh=True):
-        """
-        Group Step for computing occurrneces
-
-        CommandLine:
-            python -m ibeis.gui.guiback --test-MainWindowBackend.do_group_occurrence_step --show --no-cnn
-
-        Example:
-            >>> # GUI_DOCTEST
-            >>> from ibeis.gui.guiback import *  # NOQA
-            >>> import ibeis
-            >>> main_locals = ibeis.main(defaultdb='testdb1')
-            >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
-            >>> ut.exec_funckw(back.do_group_occurrence_step, globals())
-            >>> back.do_group_occurrence_step()
-            >>> ut.quit_if_noshow()
-        """
-        print('[back] do_group_occurrence_step')
-        import dtool
-        #class TmpConfig(dtool.Config):
-        #    _param_info_list = back.ibs.cfg.occur_cfg.get_param_info_list()
-        ibs = back.ibs
-
-        ungrouped_gid_list = ibs.get_ungrouped_gids()
-        #ungrouped_images = ibs.get_image_instancelist(ungrouped_gid_list)
-        # image_list['unixtime']
-        if len(ungrouped_gid_list) == 0:
-            back.user_warning(msg='There are no ungrouped images.')
-            raise guiexcept.UserCancel
-
-        existing_imgset_id_list = ibs.get_valid_imgsetids(is_occurrence=True,
-                                                          shipped=False,
-                                                          min_num_gids=1)
-
-        class TmpConfig(dtool.Config):
-            _param_info_list = [
-                ut.ParamInfo('seconds_thresh', 600, 'sec'),
-            ]
-        config = TmpConfig(**back.ibs.cfg.occur_cfg.to_dict())
-
-        options = [
-            'Create new occurrences',
-            'Add to existing',
-            #'Regroup everything',
-        ]
-        reply, new_config = back.user_option(
-            title='Occurrence Grouping',
-            msg=ut.codeblock(
-                '''
-                Choose how we should group the %d ungrouped images into occurrences.
-                We can either:
-                    (1) create new occurrences or
-                    (2) add to the %d existing occurrences.
-                ''') % (len(ungrouped_gid_list), len(existing_imgset_id_list)),
-            config=config,
-            options=options,
-            default=options[0],
-        )
-        print('reply = %r' % (reply,))
-
-        if reply not in options:
-            raise guiexcept.UserCancel
-
-        seconds_thresh = new_config['seconds_thresh']
-
-        #from ibeis.algo.preproc import preproc_occurrence
-        #flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
-        #    ibs, gid_list, seconds_thresh=seconds_thresh)
-        #sortx = ut.argsort(flat_imgsetids)
-        #flat_imgsetids = ut.take(flat_imgsetids, sortx)
-        #flat_gids = ut.take(flat_gids, sortx)
-
-        if reply == options[0]:
-            #back.ibs.delete_all_imagesets()
-            back.ibs.compute_occurrences(seconds_thresh=seconds_thresh)
-        elif reply == options[1]:
-            # Add to existing imaesets
-            imagesettext_list = ibs.get_imageset_text(existing_imgset_id_list)
-            import numpy as np
-            # Get unixtimes of the new images
-            unixtime_list = ibs.get_image_unixtime(ungrouped_gid_list)
-            # Get unixtimes of the occurrences
-            imgset_gids_list = ibs.get_imageset_gids(existing_imgset_id_list)
-            imgset_unixtimes_list = ibs.unflat_map(ibs.get_image_unixtime,
-                                                   imgset_gids_list)
-            #imageset_start_time_posix_list = np.array(ut.lmap(np.min, unixtimes_list))
-            imageset_mean_time_posix_list = np.array(ut.lmap(np.mean, imgset_unixtimes_list))
-            #imageset_end_time_posix_list = np.array(ut.lmap(np.max, unixtimes_list))
-
-            assigned_idx = [np.abs(x - imageset_mean_time_posix_list).argmin()
-                            for x in unixtime_list]
-            assigned_imgset = ut.take(imagesettext_list, assigned_idx)
-            ibs.set_image_imagesettext(ungrouped_gid_list, assigned_imgset)
-            # HACK TO UPDATE IMAGESET POSIX TIMES
-            # CAREFUL THIS BLOWS AWAY SMART DATA
-            ibs.update_imageset_info(ibs.get_valid_imgsetids())
-        else:
-            # Redo everything
-            pass
-        back.ibs.update_special_imagesets()
-        print('[back] about to finish computing imagesets')
-        back.front.imageset_tabwgt._close_all_tabs()
-        if refresh:
-            back.front.update_tables()
-        print('[back] finished computing imagesets')
 
     @blocking_slot()
     def imageset_reviewed_all_images(back, refresh=True):

@@ -159,7 +159,7 @@ def setup_actions_menu(mainwin, back):
         name='actionDetect',
         text='Run Detection',
         #shortcut='Ctrl+3',
-        slot_fn=back.run_detection)
+        slot_fn=back.run_detection_step)
     menu.addSeparator()  # ---------
     menu.newAction(
         name='actionQuery',

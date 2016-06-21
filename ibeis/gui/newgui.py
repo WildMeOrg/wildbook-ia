@@ -525,7 +525,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         ibswgt.detect_button = _NEWBUT(
             '3) Detect',
-            ibswgt.back.run_detection,
+            ibswgt.back.run_detection_step,
             bgcolor=(150, 255, 150),
             fontkw=primary_fontkw
         )

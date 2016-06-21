@@ -5716,7 +5716,8 @@ def get_annot_occurrence_text(ibs, aids):
     imgset_ids = ut.zipcompress(imgset_ids, flags)
     _occur_texts = ibs.unflat_map(ibs.get_imageset_text, imgset_ids)
     _occur_texts = [t if len(t) > 0 else [None] for t in _occur_texts]
-    assert all([len(t) == 1 for t in _occur_texts]), 'annot must be in exactly one occurrence'
+    if not all([len(t) == 1 for t in _occur_texts]):
+        print('WARNING: annot must be in exactly one occurrence')
     occur_texts = ut.take_column(_occur_texts, 0)
     return occur_texts
 
