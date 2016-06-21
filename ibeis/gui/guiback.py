@@ -2668,19 +2668,19 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @slot_()
     def install_wildbook(back):
-        import ibeis
-        ibeis.control.manual_wildbook_funcs.install_wildbook()
+        import ibeis.control.wildbook_manager as wb_man
+        wb_man.install_wildbook()
 
     @slot_()
     def startup_wildbook(back):
-        import ibeis
+        import ibeis.control.wildbook_manager as wb_man
         back.wb_server_running = True
-        ibeis.control.manual_wildbook_funcs.startup_wildbook_server()
+        wb_man.startup_wildbook_server()
 
     @slot_()
     def shutdown_wildbook(back):
-        import ibeis
-        ibeis.control.manual_wildbook_funcs.shutdown_wildbook_server()
+        import ibeis.control.wildbook_manager as wb_man
+        wb_man.shutdown_wildbook_server()
         back.wb_server_running = False
 
     @slot_()
