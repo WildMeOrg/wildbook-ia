@@ -1681,23 +1681,24 @@ def update_exemplar_special_imageset(ibs):
 @register_ibs_method
 @ut.time_func
 #@profile
-def update_reviewed_unreviewed_image_special_imageset(ibs):
+def update_reviewed_unreviewed_image_special_imageset(ibs, reviewed=True, unreviewed=True):
     """
     Creates imageset of images that have not been reviewed
-    and that have been reviewed
+    and that have been reviewed (wrt detection)
     """
     # FIXME SLOW
-    unreviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(const.UNREVIEWED_IMAGE_IMAGESETTEXT)
-    reviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(const.REVIEWED_IMAGE_IMAGESETTEXT)
-    #ibs.delete_imagesets(imgsetid)
-    ibs.delete_gsgr_imageset_relations(unreviewed_imgsetid)
-    ibs.delete_gsgr_imageset_relations(reviewed_imgsetid)
-    #gid_list = ibs.get_valid_gids(reviewed=False)
-    #ibs.set_image_imagesettext(gid_list, [const.UNREVIEWED_IMAGE_IMAGESETTEXT] * len(gid_list))
-    unreviewed_gids = _get_unreviewed_gids(ibs)  # hack
-    reviewed_gids   = _get_reviewed_gids(ibs)  # hack
-    ibs.set_image_imgsetids(unreviewed_gids, [unreviewed_imgsetid] * len(unreviewed_gids))
-    ibs.set_image_imgsetids(reviewed_gids, [reviewed_imgsetid] * len(reviewed_gids))
+    if unreviewed:
+        unreviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(const.UNREVIEWED_IMAGE_IMAGESETTEXT)
+        ibs.delete_gsgr_imageset_relations(unreviewed_imgsetid)
+        unreviewed_gids = _get_unreviewed_gids(ibs)  # hack
+        ibs.set_image_imgsetids(unreviewed_gids, [unreviewed_imgsetid] * len(unreviewed_gids))
+    if reviewed:
+        reviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(const.REVIEWED_IMAGE_IMAGESETTEXT)
+        ibs.delete_gsgr_imageset_relations(reviewed_imgsetid)
+        #gid_list = ibs.get_valid_gids(reviewed=False)
+        #ibs.set_image_imagesettext(gid_list, [const.UNREVIEWED_IMAGE_IMAGESETTEXT] * len(gid_list))
+        reviewed_gids   = _get_reviewed_gids(ibs)  # hack
+        ibs.set_image_imgsetids(reviewed_gids, [reviewed_imgsetid] * len(reviewed_gids))
 
 
 @register_ibs_method
@@ -1815,6 +1816,7 @@ def update_special_imagesets(ibs):
         'use_more_special_imagesets', False)
     if USE_MORE_SPECIAL_IMAGESETS:
         #ibs.update_reviewed_unreviewed_image_special_imageset()
+        ibs.update_reviewed_unreviewed_image_special_imageset(reviewed=False)
         ibs.update_exemplar_special_imageset()
         ibs.update_all_image_special_imageset()
     ibs.update_ungrouped_special_imageset()
