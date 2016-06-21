@@ -10,23 +10,20 @@ PS1=${ORIG}${TITLE}
 #cd  ~/.config/ibeis/tomcat/
 
 # Reset Wildbook database
-python -m ibeis purge_local_wildbook
-
-python -m ibeis install_wildbook
-
+python -m ibeis purge_local_wildbook && python -m ibeis install_wildbook
 python -m ibeis startup_wildbook_server
 
 #python -m ibeis test_wildbook_login
 wmctrl -xa WILDBOOK_TEST_TERM
 
 #tail -f ~/.config/ibeis/tomcat/logs/catalina.out&
-sleep 2
+sleep 1
 xdotool key ctrl+shift+i
 xdotool type --clearmodifiers "tail -f ~/.config/ibeis/tomcat/logs/catalina.out&"
 xdotool key KP_Enter
 
 # Start IA server
-sleep 2
+sleep 1
 xdotool key ctrl+shift+i
 xdotool type --clearmodifiers "python -m ibeis --web --db PZ_MTEST"
 xdotool key KP_Enter

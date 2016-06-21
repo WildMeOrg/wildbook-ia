@@ -882,13 +882,13 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, tomcat_dpath=None, wb
     wildbook_base_url, wildbook_tomcat_path = ibs.get_wildbook_info(tomcat_dpath, wb_target)
     # url_command = 'ImageSetSetMarkedIndividual'
     url_command = 'EncounterSetMarkedIndividual'
-    BASIC_AUTH = False
-    if BASIC_AUTH:
-        #url_command += '=authcBasicWildbook'
-        username = 'tomcat'
-        password = 'tomcat123'
-        wildbook_base_url = ('http://' + username + ':' + password + '@' +
-                             wildbook_base_url.replace('http://', ''))
+    #BASIC_AUTH = False
+    #if BASIC_AUTH:
+    #    #url_command += '=authcBasicWildbook'
+    #    username = 'tomcat'
+    #    password = 'tomcat123'
+    #    wildbook_base_url = ('http://' + username + ':' + password + '@' +
+    #                         wildbook_base_url.replace('http://', ''))
     url_args_fmtstr = '&'.join([
         'annotID={annot_uuid!s}',
         'individualID={name_text!s}',
@@ -997,12 +997,11 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
         >>> import ibeis
         >>> # Need to start a web server for wildbook to hook into
         >>> defaultdb = 'PZ_MTEST'
-        >>> if ut.get_argflag('--bg'):
-        >>>     web_ibs = ibeis.opendb_bg_web(defaultdb)
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> #gid_list = ibs.get_valid_gids()[0:10]
-        >>> gid_list = ibs.get_valid_gids()[3:5]
+        >>> gid_list = ibs.get_valid_gids()[3:6]
         >>> new_imgsetid = ibs.create_new_imageset_from_images(gid_list)  # NOQA
+        >>> imgsetid = new_imgsetid
         >>> print('new imageset uuid = %r' % (ibs.get_imageset_uuid(new_imgsetid),))
         >>> print('new imageset text = %r' % (ibs.get_imageset_text(new_imgsetid),))
         >>> imgsetid_list = [new_imgsetid]
@@ -1011,6 +1010,8 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
         >>> ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
         >>> set_shipped_flag = True
         >>> open_url_on_complete = True
+        >>> if ut.get_argflag('--bg'):
+        >>>     web_ibs = ibeis.opendb_bg_web(defaultdb)
         >>> result = ibs.wildbook_signal_imgsetid_list(imgsetid_list, set_shipped_flag, open_url_on_complete, tomcat_dpath, wb_target, dryrun)
         >>> # cleanup
         >>> #ibs.delete_imagesets(new_imgsetid)
@@ -1029,59 +1030,6 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
     # VIEW ENCOUNTER
     #http://localhost:8080/ibeis/encounters/encounter.jsp?number=826c83fa-f15b-42a5-8382-74100a086d56
 
-    def _send(imgsetid, use_config_file=False, dryrun=dryrun):
-        imageset_uuid = ibs.get_imageset_uuid(imgsetid)
-        #url = submit_imgsetid_url_fmtstr.format(imageset_uuid=imageset_uuid)
-        url = wildbook_base_url + '/ia'
-        print('[_send] URL=%r' % (url, ))
-        payload = {
-            'resolver':
-            {
-                'fromIAImageSet': str(imageset_uuid)
-            }
-        }
-        response = requests.post(url, data=payload, timeout=10)
-
-        status, response = submit_wildbook_url(url, payload, dryrun=dryrun)
-
-        view_occur_url = wildbook_base_url + '/occurrence.jsp?number=%s' % (imageset_uuid,)
-        print('TODO; goto here view_occur_url = %r' % (view_occur_url,))
-
-        #smart_xml_fname = ibs.get_imageset_smart_xml_fnames([imgsetid])[0]
-        #smart_waypoint_id = ibs.get_imageset_smart_waypoint_ids([imgsetid])[0]
-        #if smart_xml_fname is not None and smart_waypoint_id is not None:
-        #    # Send smart data if availabel
-        #    print(smart_xml_fname, smart_waypoint_id)
-        #    smart_xml_fpath = join(ibs.get_smart_patrol_dir(), smart_xml_fname)
-        #    smart_xml_content_list = open(smart_xml_fpath).readlines()
-        #    print('[_send] Sending with SMART payload')
-        #    print('[_send] - patrol: %r (%d lines) waypoint_id: %r' %
-        #          (smart_xml_fpath, len(smart_xml_content_list),
-        #           smart_waypoint_id))
-        #    smart_xml_content = ''.join(smart_xml_content_list)
-        #    payload = {
-        #        'smart_xml_content': smart_xml_content,
-        #        'smart_waypoint_id': smart_waypoint_id,
-        #    }
-        #    if not use_config_file:
-        #        payload.update({
-        #            'IBEIS_DB_path'    : ibs.get_db_core_path(),
-        #            'IBEIS_image_path' : ibs.get_imgdir(),
-        #        })
-        #else:
-        #    payload = None
-        #status, response = submit_wildbook_url(url, payload, dryrun=dryrun)
-        return status
-
-    #def _complete(imgsetid):
-    #    imageset_uuid = ibs.get_imageset_uuid(imgsetid)
-    #    complete_url_ = complete_url_fmtstr.format(
-    #        imageset_uuid=imageset_uuid)
-    #    print('[_complete] URL=%r' % (complete_url_, ))
-    #    if open_url_on_complete and not dryrun:
-    #        _browser = ut.get_prefered_browser(PREFERED_BROWSER)
-    #        _browser.open_new_tab(complete_url_)
-
     if imgsetid_list is None:
         imgsetid_list = ibs.get_valid_imgsetids()
     # Check to make sure imagesets are ok:
@@ -1095,13 +1043,7 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
         assert len(unnamed_aid_list) == 0, (
             ('ImageSet imgsetid=%r cannot be shipped becuase '
              'annotation(s) %r have not been named') % (imgsetid, unnamed_aid_list, ))
-    #submit_imgsetid_url_fmtstr  = (
-    #    wildbook_base_url +
-    #    # TODO: wildbook should rename their function
-    #    # '/OccurrenceCreateIBEIS?ibeis_imageset_id={imageset_uuid!s}')
-    #    '/OccurrenceCreateIBEIS?ibeis_encounter_id={imageset_uuid!s}')
-    #complete_url_fmtstr = (
-    #    wildbook_base_url + '/occurrence.jsp?number={imageset_uuid!s}')
+
     ## Call Wildbook url to signal update
     print('[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = %r to wildbook' % (
         imgsetid_list, ))
@@ -1116,17 +1058,33 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
         # Check and push 'done' imagesets
         status_list = []
         for imgsetid in imgsetid_list:
-            pass
             #Check for nones
-            status = _send(imgsetid, use_config_file=use_config_file, dryrun=dryrun)
-            status_list.append(status)
+            #status = _send(imgsetid, use_config_file=use_config_file, dryrun=dryrun)
+            imageset_uuid = ibs.get_imageset_uuid(imgsetid)
+            #url = submit_imgsetid_url_fmtstr.format(imageset_uuid=imageset_uuid)
+            url = wildbook_base_url + '/ia'
+            print('[_send] URL=%r' % (url, ))
+            payload = {
+                'resolver':
+                {
+                    'fromIAImageSet': str(imageset_uuid)
+                }
+            }
+            if not dryrun:
+                response = requests.post(url, json=payload)
+                print('response = %r' % (response,))
 
-            #if set_shipped_flag and not dryrun:
-            #    if status:
-            #        ibs.set_imageset_shipped_flags([imgsetid], [1])
-            #        _complete(imgsetid)
-            #    else:
-            #        ibs.set_imageset_shipped_flags([imgsetid], [0])
+            status = response.status_code == 200
+            if set_shipped_flag and not dryrun:
+                if status:
+                    ibs.set_imageset_shipped_flags([imgsetid], [1])
+                    if open_url_on_complete:
+                        #status, response = submit_wildbook_url(url, payload, dryrun=dryrun)
+                        view_occur_url = wildbook_base_url + '/occurrence.jsp?number=%s' % (imageset_uuid,)
+                        _browser = ut.get_prefered_browser(PREFERED_BROWSER)
+                        _browser.open_new_tab(view_occur_url)
+                else:
+                    ibs.set_imageset_shipped_flags([imgsetid], [0])
         return status_list
 
 
