@@ -729,6 +729,81 @@ def turk_detection_dynamic():
                          __wrapper__=False)
 
 
+@register_route('/turk/annotation/', methods=['GET'])
+def turk_annotation():
+    """
+    CommandLine:
+        python -m ibeis.web.app --exec-turk_viewpoint --db PZ_Master1
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> aid_list_ = ibs.find_unlabeled_name_members(suspect_yaws=True)
+        >>> aid_list = ibs.filter_aids_to_quality(aid_list_, 'good', unknown_ok=False)
+        >>> ibs.start_web_annot_groupreview(aid_list)
+    """
+    ibs = current_app.ibs
+    tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed)
+    (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
+
+    viewpoint_value = appf.convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
+
+    quality_value = ibs.get_annot_qualities(aid)
+    if quality_value == -1:
+        quality_value = None
+    if quality_value == 0:
+        quality_value = 1
+
+    review = 'review' in request.args.keys()
+    finished = aid is None
+    display_instructions = request.cookies.get('annotation_instructions_seen', 1) == 0
+    if not finished:
+        gid       = ibs.get_annot_gids(aid)
+        gpath     = ibs.get_annot_chip_fpath(aid)
+        image     = vt.imread(gpath)
+        image_src = appf.embed_image_html(image)
+        species   = ibs.get_annot_species_texts(aid)
+    else:
+        gid       = None
+        gpath     = None
+        image_src = None
+        species   = None
+
+    imagesettext = ibs.get_imageset_text(imgsetid)
+
+    species_rowids = ibs._get_all_species_rowids()
+    species_nice_list = ibs.get_species_nice(species_rowids)
+
+    combined_list = sorted(zip(species_nice_list, species_rowids))
+    species_nice_list = [ combined[0] for combined in combined_list ]
+    species_rowids = [ combined[1] for combined in combined_list ]
+
+    species_text_list = ibs.get_species_texts(species_rowids)
+    species_selected_list = [ species == species_ for species_ in species_text_list ]
+    species_list = zip(species_nice_list, species_text_list, species_selected_list)
+    species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
+
+    return appf.template('turk', 'annotation',
+                         imgsetid=imgsetid,
+                         src_ag=src_ag,
+                         dst_ag=dst_ag,
+                         gid=gid,
+                         aid=aid,
+                         viewpoint_value=viewpoint_value,
+                         quality_value=quality_value,
+                         image_path=gpath,
+                         image_src=image_src,
+                         previous=previous,
+                         species_list=species_list,
+                         imagesettext=imagesettext,
+                         progress=progress,
+                         finished=finished,
+                         display_instructions=display_instructions,
+                         review=review)
+
+
 @register_route('/turk/viewpoint/', methods=['GET'])
 def turk_viewpoint():
     """
