@@ -261,11 +261,12 @@ HARD_NOTE_TAG = '<HARDCASE>'
 
 # HACK
 if ut.get_computer_name() == 'ibeis.cs.uic.edu':
-    WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default='prod',
-                                    help_='specify the Wildbook target deployment')
+    #_DEFAULT_WILDBOOK_TARGET = 'prod'
+    _DEFAULT_WILDBOOK_TARGET = 'lewa2'
 else:
-    WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default='ibeis',
-                                    help_='specify the Wildbook target deployment')
+    _DEFAULT_WILDBOOK_TARGET = 'ibeis'
+WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default=_DEFAULT_WILDBOOK_TARGET,
+                                help_='specify the Wildbook target deployment')
 
 
 class ZIPPED_URLS(object):

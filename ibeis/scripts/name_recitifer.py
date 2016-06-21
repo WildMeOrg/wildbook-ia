@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 
 
-def rectify_names(ibs, aid_list=None, old_img2_names=None, hack_prefix=''):
+def rectify_names(ibs, aid_list=None, old_img2_names=None, common_prefix=''):
     r"""
     Changes the names in the IA-database to correspond to an older naming
     convention.  If splits and merges were preformed tries to find the
@@ -24,7 +24,7 @@ def rectify_names(ibs, aid_list=None, old_img2_names=None, hack_prefix=''):
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = None
-        >>> hack_prefix = ''
+        >>> common_prefix = ''
         >>> old_img2_names = None #['img_fred.png', ']
         >>> result = rectify_names(ibs, aid_list, img_list, name_list)
     """
@@ -42,28 +42,31 @@ def rectify_names(ibs, aid_list=None, old_img2_names=None, hack_prefix=''):
     # Assume a mapping from old image names to old names is given.
     # Or just hack it in the Lewa case.
     if old_img2_names is None:
-        def hackkey(gname):
+        def get_name_from_gname(gname):
             from os.path import splitext
             gname_, ext = splitext(gname)
-            gname_.lstrip(hack_prefix)
+            assert gname_.startswith(common_prefix), 'prefix assumption is invalidated'
+            gname_ = gname_[len(common_prefix):]
             return gname_
         # Create mapping from image name to the desired "name" for the image.
-        old_img2_names = {gname: hackkey(gname) for gname in ut.flatten(grouped_imgnames)}
+        old_img2_names = {gname: get_name_from_gname(gname)
+                          for gname in ut.flatten(grouped_imgnames)}
 
-    # Find which old names correspond to the current IA-name grouping
+    # Make the name of the individual associated with that annotation be the file name prefix
     grouped_oldnames = [ut.take(old_img2_names, gnames) for gnames in grouped_imgnames]
 
     # The task is now to map each name in unique_nids to one of these names
-    # subject to the contraint that each name can only be used once.
-    # This is solved using a maximum bipartite matching. The new names are the left nodes,
-    # the old name are the right nodes, and grouped_oldnames definse the adjacency matrix.
+    # subject to the contraint that each name can only be used once.  This is
+    # solved using a maximum bipartite matching. The new names are the left
+    # nodes, the old name are the right nodes, and grouped_oldnames definse the
+    # adjacency matrix.
     # NOTE: In rare cases it may be impossible to find a correct labeling using
     # only old names.  In this case new names will be created.
     new_name_text = find_consistent_labeling(grouped_oldnames)
 
     dry = False
     if not dry:
-        # Update the state of the image analysis database
+        # Save the new names to the image analysis database
         ibs.set_name_texts(unique_nids, new_name_text)
 
 

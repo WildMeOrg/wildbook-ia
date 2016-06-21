@@ -38,13 +38,9 @@ CommandLine;
     python -m ibeis wildbook_signal_annot_name_changes:2
 """
 from __future__ import absolute_import, division, print_function
-import six  # NOQA
 import utool as ut
-#import lockfile
 import requests
-from os.path import join
 from ibeis.control import controller_inject
-from ibeis.control import wildbook_manager as wb_man
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__, '[manual_wildbook]')
 
@@ -59,15 +55,6 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 PREFERED_BROWSER = None
 if ut.get_computer_name() == 'hyrule':
     PREFERED_BROWSER = 'firefox'
-
-
-@register_ibs_method
-def get_wildbook_tomcat_path(ibs, tomcat_dpath=None, wb_target=None):
-    DEFAULT_TOMCAT_PATH = wb_man.find_installed_tomcat()
-    tomcat_dpath = DEFAULT_TOMCAT_PATH if tomcat_dpath is None else tomcat_dpath
-    wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
-    wildbook_tomcat_path = join(tomcat_dpath, 'webapps', wb_target)
-    return wildbook_tomcat_path
 
 
 @register_ibs_method
