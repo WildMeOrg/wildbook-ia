@@ -700,9 +700,13 @@ def get_wildbook_info(ibs, tomcat_dpath=None, wb_target=None):
     wildbook_base_url = ibs.get_wildbook_base_url(wb_target)
     wildbook_tomcat_path = ibs.get_wildbook_tomcat_path(tomcat_dpath, wb_target)
     # Setup
-    print('Looking for WildBook installation: %r' % ( wildbook_tomcat_path, ))
-    ut.assert_exists(wildbook_tomcat_path,
-                     'Wildbook is not installed on this machine', info=True)
+    print('Looking for Wildbook (tomcat) installation: %r' % ( wildbook_tomcat_path, ))
+    if False:
+        ut.assert_exists(wildbook_tomcat_path,
+                         'Wildbook (tomcat) is not installed on this machine', info=True)
+    else:
+        if not ut.checkpath(wildbook_tomcat_path):
+            wildbook_tomcat_path = None
     return wildbook_base_url, wildbook_tomcat_path
 
 
@@ -1052,7 +1056,7 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
     lock_fpath = join(ibs.get_ibeis_resource_dir(), 'wildbook.lock')
     with lockfile.LockFile(lock_fpath):
         # Update the Wildbook configuration to see *THIS* ibeis database
-        if use_config_file:
+        if use_config_file and wildbook_tomcat_path:
             update_wildbook_config(ibs, wildbook_tomcat_path, dryrun)
 
         # Check and push 'done' imagesets
