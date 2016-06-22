@@ -8,6 +8,16 @@ TODO:
     open_database should not allow you to open subfolders
 
     python -m utool.util_inspect check_module_usage --pat="guiback.py"
+
+
+Notes:
+    LAYOUT TERMS;
+        Content Margins;
+           - space around the widgets in the layout
+        Spacing
+           - space between widges in the layout
+        Stretch
+           - relative size ratio vector (1 compoment for each widget)
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
@@ -1248,35 +1258,31 @@ class MainWindowBackend(GUIBACK_BASE):
         detector = back.ibs.cfg.detect_cfg.detector
 
         if False:
-            pass
-            #import dtool
-            #class TmpDetectConfig(dtool.Config):
-            #    _param_info_list = [
-            #        ut.ParamInfo('detector', 'yolo', valid_values=['yolo', 'random_forest']),
-            #    ]
-            #config = TmpDetectConfig(**back.ibs.cfg.detect_cfg.to_dict())
-            #options = [
-            #    'Start',
-            #    'Add to existing',
-            #    #'Regroup everything',
-            #]
-            #reply, new_config = back.user_option(
-            #    title='Occurrence Grouping',
-            #    msg=ut.codeblock(
-            #        '''
-            #        Choose how we should group the %d ungrouped images into occurrences.
-            #        We can either:
-            #            (1) create new occurrences or
-            #            (2) add to the %d existing occurrences.
-            #        ''') % (len(ungrouped_gid_list), len(existing_imgset_id_list)),
-            #    config=config,
-            #    options=options,
-            #    default=options[0],
-            #)
-            #print('reply = %r' % (reply,))
+            # TODO better confirm dialog
+            import dtool
+            class TmpDetectConfig(dtool.Config):
+                _param_info_list = [
+                    ut.ParamInfo('detector', 'cnn', valid_values=['cnn', 'rf']),
+                ]
+            config = TmpDetectConfig(**back.ibs.cfg.detect_cfg.to_dict())
+            options = [
+                'Start Detection',
+                #'Regroup everything',
+            ]
+            reply, new_config = back.user_option(
+                title='Occurrence Grouping',
+                msg=ut.codeblock(
+                    '''
+                    About to start detection on %d images.
+                    ''') % (len(gid_list)),
+                config=config,
+                options=options,
+                default=options[0],
+            )
+            print('reply = %r' % (reply,))
 
-            #if reply not in options:
-            #    raise guiexcept.UserCancel
+            if reply not in options:
+                raise guiexcept.UserCancel
 
         if detector in ['cnn_yolo', 'yolo', 'cnn']:
             # Construct message
