@@ -267,11 +267,16 @@ def set_exemplars_from_quality_and_viewpoint_json(ibs, annot_uuid_list,
     return new_annot_uuid_list, new_flag_list
 
 
+@register_api('/api/image/unixtimes/json/', methods=['GET'])
+def get_image_unixtimes_json(ibs, image_uuid_list):
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    return ibs.get_image_unixtime(gid_list)
+
+
 @register_api('/api/image/uris_original/json/', methods=['GET'])
 def get_image_uris_original_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    uri_list = ibs.get_image_uris_original(gid_list)
-    return uri_list
+    return ibs.get_image_uris_original(gid_list)
 
 
 @register_api('/api/image/json/', methods=['GET'])
