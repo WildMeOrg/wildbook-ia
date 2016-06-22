@@ -70,18 +70,22 @@ def get_wildbook_base_url(ibs, wb_target=None):
 @register_ibs_method
 def assert_ia_available_for_wb(ibs, wb_target=None):
     # Test if we have a server alive
-    ia_url = ibs.get_wildbook_ia_url(wb_target)
-    have_server = False
-    for count in ut.delayed_retry_gen([1], timeout=3, raise_=False):
-        try:
-            rsp = requests.get(ia_url + '/api/test/heartbeat/', timeout=3)
-            have_server = rsp.status_code == 200
-            break
-        except requests.ConnectionError:
-            pass
-    if not have_server:
-        raise Exception('The image analysis server is not started.')
-    return have_server
+    try:
+        ia_url = ibs.get_wildbook_ia_url(wb_target)
+    except Exception as ex:
+        ut.printex(ex, 'Could not get IA url. BLINDLY CHARCHING FORWARD!', iswarning=True)
+    else:
+        have_server = False
+        for count in ut.delayed_retry_gen([1], timeout=3, raise_=False):
+            try:
+                rsp = requests.get(ia_url + '/api/test/heartbeat/', timeout=3)
+                have_server = rsp.status_code == 200
+                break
+            except requests.ConnectionError:
+                pass
+        if not have_server:
+            raise Exception('The image analysis server is not started.')
+        return have_server
 
 
 @register_ibs_method
@@ -102,7 +106,7 @@ def get_wildbook_ia_url(ibs, wb_target=None):
     status = response.status_code == 200
     #result_json = {"settings":{"IBEISIARestUrlAddAnnotations":"http://52.37.240.178:5000/api/annot/json/"},"iaURL":"http://52.37.240.178:5000/","iaEnabled":true,"timestamp":1466534267714}
     if not status:
-        raise Exception('Couldnt get info')
+        raise Exception('Cou.ld not get IA status from wildbook')
     json_response = response.json()
     ia_url = json_response.get('iaURL')
     #print('response = %r' % (response,))
@@ -179,7 +183,10 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
     """
     print('[ibs.wildbook_signal_imgsetid_list] signaling annot name changes to wildbook')
     wb_url = ibs.get_wildbook_base_url(wb_target)
-    ibs.assert_ia_available_for_wb(wb_target)
+    try:
+        ibs.assert_ia_available_for_wb(wb_target)
+    except Exception:
+        pass
     if aid_list is None:
         aid_list = ibs.get_valid_aids(is_known=True)
 
@@ -298,7 +305,10 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
 
     """
     wb_url = ibs.get_wildbook_base_url(wb_target)
-    ibs.assert_ia_available_for_wb(wb_target)
+    try:
+        ibs.assert_ia_available_for_wb(wb_target)
+    except Exception:
+        pass
 
     if imgsetid_list is None:
         imgsetid_list = ibs.get_valid_imgsetids()
