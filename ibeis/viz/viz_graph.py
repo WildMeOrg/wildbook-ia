@@ -533,8 +533,8 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
 
         def highlight_aid(self, aid, color=pt.ORANGE):
             node = self.aid2_node[aid]
-            import utool
-            utool.embed()
+            #import utool
+            #utool.embed()
             frame = self.plotinfo['patch_frame_dict'][node]
             frame.set_facecolor(color)
             frame.set_edgecolor(color)

@@ -8,6 +8,16 @@ TODO:
     open_database should not allow you to open subfolders
 
     python -m utool.util_inspect check_module_usage --pat="guiback.py"
+
+
+Notes:
+    LAYOUT TERMS;
+        Content Margins;
+           - space around the widgets in the layout
+        Spacing
+           - space between widges in the layout
+        Stretch
+           - relative size ratio vector (1 compoment for each widget)
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
@@ -327,8 +337,14 @@ class MainWindowBackend(GUIBACK_BASE):
         #back.front.menuActions.
 
     def cleanup(back):
-        if back.ibs is not None:
-            back.ibs.remove_observer(back)
+        back.kill_web_server_parallel()
+        if back.wb_server_running:
+            back.shutdown_wildbook()
+        try:
+            if back.ibs is not None:
+                back.ibs.remove_observer(back)
+        except Exception as ex:
+            ut.printex(ex, '[back] observer fail')
 
     #@ut.indent_func
     def notify(back):
@@ -1238,95 +1254,118 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
             >>> ut.exec_funckw(back.run_detection_step, globals())
             >>> back.run_detection_step()
+            >>> back.cleanup()
             >>> ut.quit_if_noshow()
         """
         print('\n\n')
         imgsetid = back._eidfromkw(kwargs)
         ibs = back.ibs
         gid_list = ibsfuncs.get_empty_gids(ibs, imgsetid=imgsetid)
+        print('[back] run_detection_step(imgsetid=%r)' % (imgsetid))
+
+        imgset_text = back.ibs.get_imageset_text(imgsetid)
 
         detector = back.ibs.cfg.detect_cfg.detector
 
-        if False:
-            pass
-            #import dtool
-            #class TmpDetectConfig(dtool.Config):
-            #    _param_info_list = [
-            #        ut.ParamInfo('detector', 'yolo', valid_values=['yolo', 'random_forest']),
-            #    ]
-            #config = TmpDetectConfig(**back.ibs.cfg.detect_cfg.to_dict())
-            #options = [
-            #    'Start',
-            #    'Add to existing',
-            #    #'Regroup everything',
-            #]
-            #reply, new_config = back.user_option(
-            #    title='Occurrence Grouping',
-            #    msg=ut.codeblock(
-            #        '''
-            #        Choose how we should group the %d ungrouped images into occurrences.
-            #        We can either:
-            #            (1) create new occurrences or
-            #            (2) add to the %d existing occurrences.
-            #        ''') % (len(ungrouped_gid_list), len(existing_imgset_id_list)),
-            #    config=config,
-            #    options=options,
-            #    default=options[0],
-            #)
-            #print('reply = %r' % (reply,))
+        review_in_web = True
+        if True:
+            # TODO better confirm dialog
+            import dtool
+            species_text = ibs.get_all_species_texts()
+            species_nice = ibs.get_all_species_nice()
+            class TmpDetectConfig(dtool.Config):
+                _param_info_list = [
+                    ut.ParamInfo('review_in_web', review_in_web),
+                    ut.ParamInfo('detector', ibs.cfg.detect_cfg.detector, valid_values=['cnn', 'rf']),
+                    ut.ParamInfo('species', ibs.cfg.detect_cfg.species_text, valid_values=species_nice, hideif=lambda cfg: cfg['detector'] != 'rf'),
+                ]
+            config = TmpDetectConfig(**back.ibs.cfg.detect_cfg.to_dict())
+            options = [
+                'Start Detection',
+            ]
+            reply, new_config = back.user_option(
+                title='Run Detection Confirmation',
+                msg=ut.codeblock(
+                    '''
+                    Preparing to run detection on %d images in \'%s\'.
+                    ''') % (len(gid_list), imgset_text),
+                config=config,
+                options=options,
+                default=options[0],
+            )
+            print('reply = %r' % (reply,))
 
-            #if reply not in options:
-            #    raise guiexcept.UserCancel
+            if reply not in options:
+                raise guiexcept.UserCancel
 
-        if detector in ['cnn_yolo', 'yolo', 'cnn']:
-            # Construct message
-            msg_fmtstr_list = ['You are about to run detection using CNN YOLO...']
-            fmtdict = dict()
-            # Append detection configuration information
-            msg_fmtstr_list += ['    Images:   {num_gids}']  # Add more spaces
-            # msg_fmtstr_list += ['* # database annotations={num_daids}.']
-            # msg_fmtstr_list += ['* database species={d_species_phrase}.']
-            fmtdict['num_gids'] = len(gid_list)
-            # Finish building confirmation message
-            msg_fmtstr_list += ['']
-            msg_fmtstr_list += ['Press \'Yes\' to continue']
-            msg_fmtstr = '\n'.join(msg_fmtstr_list)
-            msg_str = msg_fmtstr.format(**fmtdict)
-            if back.are_you_sure(use_msg=msg_str):
-                print('[back] run_detection_step(imgsetid=%r)' % (imgsetid))
+            review_in_web = new_config['review_in_web']
+            detector = new_config['detector']
+            species = new_config['species']
+            nice2_text = dict(zip(species_nice, species_text))
+            species = nice2_text.get(species, species)
+
+            if detector in ['cnn', 'cnn_yolo', 'yolo']:
                 ibs.detect_cnn_yolo(gid_list)
-                print('[back] about to finish detection')
-                if refresh:
-                    back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
-                print('[back] finished detection')
-        elif detector in ['random_forest', 'rf']:
-            species = ibs.cfg.detect_cfg.species_text
-            # Construct message
-            msg_fmtstr_list = ['You are about to run detection using Random Forests...']
-            fmtdict = dict()
-            # Append detection configuration information
-            msg_fmtstr_list += ['    Images:   {num_gids}']  # Add more spaces
-            msg_fmtstr_list += ['    Species: {species_phrase}']
-            # msg_fmtstr_list += ['* # database annotations={num_daids}.']
-            # msg_fmtstr_list += ['* database species={d_species_phrase}.']
-            fmtdict['num_gids'] = len(gid_list)
-            fmtdict['species_phrase'] = species
-            # Finish building confirmation message
-            msg_fmtstr_list += ['']
-            msg_fmtstr_list += ['Press \'Yes\' to continue']
-            msg_fmtstr = '\n'.join(msg_fmtstr_list)
-            msg_str = msg_fmtstr.format(**fmtdict)
-            if back.are_you_sure(use_msg=msg_str):
-                print('[back] run_detection_step(species=%r, imgsetid=%r)' % (species, imgsetid))
+                back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
+            elif detector in ['random_forest', 'rf']:
                 ibs.detect_random_forest(gid_list, species)
-                print('[back] about to finish detection')
-                if refresh:
-                    back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
-                print('[back] finished detection')
+            else:
+                raise ValueError('Detector=%r not recognized' % (detector,))
+            print('[back] about to finish detection')
+            if refresh:
+                back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
+
         else:
-            raise ValueError('Detector not recognized')
-        show_after = True
-        if show_after:
+            # OLD CODE
+            if detector in ['cnn', 'cnn_yolo', 'yolo']:
+                # Construct message
+                msg_fmtstr_list = ['You are about to run detection using CNN YOLO...']
+                fmtdict = dict()
+                # Append detection configuration information
+                msg_fmtstr_list += ['    Images:   {num_gids}']  # Add more spaces
+                # msg_fmtstr_list += ['* # database annotations={num_daids}.']
+                # msg_fmtstr_list += ['* database species={d_species_phrase}.']
+                fmtdict['num_gids'] = len(gid_list)
+                # Finish building confirmation message
+                msg_fmtstr_list += ['']
+                msg_fmtstr_list += ['Press \'Yes\' to continue']
+                msg_fmtstr = '\n'.join(msg_fmtstr_list)
+                msg_str = msg_fmtstr.format(**fmtdict)
+                if back.are_you_sure(use_msg=msg_str):
+                    print('[back] run_detection_step(imgsetid=%r)' % (imgsetid))
+                    ibs.detect_cnn_yolo(gid_list)
+                    print('[back] about to finish detection')
+                    if refresh:
+                        back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
+                    print('[back] finished detection')
+            elif detector in ['random_forest', 'rf']:
+                species = ibs.cfg.detect_cfg.species_text
+                # Construct message
+                msg_fmtstr_list = ['You are about to run detection using Random Forests...']
+                fmtdict = dict()
+                # Append detection configuration information
+                msg_fmtstr_list += ['    Images:   {num_gids}']  # Add more spaces
+                msg_fmtstr_list += ['    Species: {species_phrase}']
+                # msg_fmtstr_list += ['* # database annotations={num_daids}.']
+                # msg_fmtstr_list += ['* database species={d_species_phrase}.']
+                fmtdict['num_gids'] = len(gid_list)
+                fmtdict['species_phrase'] = species
+                # Finish building confirmation message
+                msg_fmtstr_list += ['']
+                msg_fmtstr_list += ['Press \'Yes\' to continue']
+                msg_fmtstr = '\n'.join(msg_fmtstr_list)
+                msg_str = msg_fmtstr.format(**fmtdict)
+                if back.are_you_sure(use_msg=msg_str):
+                    print('[back] run_detection_step(species=%r, imgsetid=%r)' % (species, imgsetid))
+                    ibs.detect_random_forest(gid_list, species)
+                    print('[back] about to finish detection')
+                    if refresh:
+                        back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
+                    print('[back] finished detection')
+            else:
+                raise ValueError('Detector not recognized')
+
+        if review_in_web:
             # back.user_info(msg='Detection has finished. Launching web review')
             url = 'http://%s/turk/annotation/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
             # url = 'http://%s/turk/detection/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
@@ -1337,21 +1376,152 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             back.user_info(msg='Detection has finished.')
 
-    def get_selected_qaids(back, imgsetid=None, minqual='poor', is_known=None, species=None):
-        if species is None:
-            species = back.get_selected_species()
+    @blocking_slot()
+    def compute_queries(back, refresh=True, daids_mode=None,
+                        query_is_known=None, qaid_list=None,
+                        use_prioritized_name_subset=False,
+                        use_visual_selection=False, cfgdict={},
+                        query_msg=None,
+                        custom_qaid_list_title=None,
+                        daid_list=None,
+                        **kwargs):
+        """
+        MAIN QUERY FUNCTION
 
-        valid_kw = dict(
-            imgsetid=imgsetid,
-            minqual=minqual,
-            is_known=is_known,
-        )
-        if species != const.UNKNOWN:
-            valid_kw['species'] = species
-        qaid_list = back.ibs.get_valid_aids(**valid_kw)
-        return qaid_list
+        execute_query
 
-    def get_selected_daids(back, imgsetid=None, daids_mode=None, qaid_list=None, species=None):
+        Batch -> Compute OldStyle Queries
+        and Actions -> Query
+
+        Computes query results for all annotations in an imageset.
+        Results are either vs-exemplar or intra-imageset
+
+        CommandLine:
+            ./main.py --query 1 -y
+            python -m ibeis --query 1 -y
+            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y
+            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y --force-all-progress
+            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=3 -y
+            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=3 -y
+            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=32 -y
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> import ibeis
+            >>> main_locals = ibeis.main(db='testdb2')
+            >>> # build test data
+            >>> back = main_locals['back']
+            >>> ibs = back.ibs
+            >>> query_is_known = None
+            >>> # execute function
+            >>> refresh = True
+            >>> daids_mode = None
+            >>> imgsetid = None
+            >>> kwargs = {}
+            >>> # verify results
+            >>> print(result)
+        """
+        imgsetid = back._eidfromkw(kwargs)
+        print('\n')
+        print('------')
+        print('[back] compute_queries: imgsetid=%r, mode=%r' % (imgsetid, back.daids_mode))
+        print('[back] use_prioritized_name_subset = %r' % (use_prioritized_name_subset,))
+        print('[back] use_visual_selection        = %r' % (use_visual_selection,))
+        print('[back] daids_mode                  = %r' % (daids_mode,))
+        print('[back] cfgdict                     = %r' % (cfgdict,))
+        print('[back] query_is_known              = %r' % (query_is_known,))
+
+        if qaid_list is not None:
+            if custom_qaid_list_title is None:
+                custom_qaid_list_title = 'Custom'
+            qaid_title = custom_qaid_list_title
+        elif use_visual_selection:
+            qaid_title = 'Selected'
+        else:
+            # if not visual selection, then qaids are selected by imageset
+            qaid_title = back.ibs.get_imageset_text(imgsetid)
+        if use_prioritized_name_subset:
+            qaid_title += '(priority_subset)'
+
+        # Set title variables
+        daid_title = None
+        if daids_mode == const.VS_EXEMPLARS_KEY:
+            daid_title = 'Exemplars'
+        elif daids_mode == const.INTRA_OCCUR_KEY:
+            daid_title = 'Intra ImageSet'
+        elif daids_mode == 'All':
+            daid_title = 'Everything'
+        else:
+            print('Unknown daids_mode=%r' % (daids_mode,))
+
+        query_title = '%s-vs-%s' % (qaid_title, daid_title)
+
+        print('query_title = %r' % (query_title,))
+        if daids_mode == const.VS_EXEMPLARS_KEY:
+            # Automatic setting of exemplars
+            back.set_exemplars_from_quality_and_viewpoint()
+
+        species2_expanded_aids = back._get_expanded_aids_groups(
+            imgsetid, daids_mode=daids_mode,
+            use_prioritized_name_subset=use_prioritized_name_subset,
+            use_visual_selection=use_visual_selection, qaid_list=qaid_list,
+            daid_list=daid_list, query_is_known=query_is_known)
+
+        if len(species2_expanded_aids) == 0:
+            raise guiexcept.InvalidRequest(
+                'Is the database empty? Are species labels assigned correctly? '
+                'There are no pairs of query and database annotations with the same species')
+
+        review_cfg = kwargs.copy()
+
+        cfgdict, review_cfg = back.confirm_query_dialog2(species2_expanded_aids,
+                                                         query_msg=query_msg,
+                                                         query_title=query_title,
+                                                         cfgdict=cfgdict,
+                                                         review_cfg=review_cfg)
+        print('cfgdict = %r' % (cfgdict,))
+
+        query_results = {}
+        for key, (qaids, daids) in species2_expanded_aids.items():
+            qreq_ = back.ibs.new_query_request(qaids, daids,
+                                               cfgdict=cfgdict)
+            #if not ut.WIN32:
+            #    progbar = guitool.newProgressBar(back.mainwin)
+            #else:
+            progbar = guitool.newProgressBar(None)  # back.front)
+            progbar.setWindowTitle('querying')
+            progbar.utool_prog_hook.set_progress(0)
+            # Doesn't seem to work correctly
+            #progbar.utool_prog_hook.show_indefinite_progress()
+            progbar.utool_prog_hook.force_event_update()
+            cm_list = back.ibs.query_chips(qreq_=qreq_,
+                                           prog_hook=progbar.utool_prog_hook)
+            query_results[key] = (cm_list, qreq_)
+            progbar.close()
+            del progbar
+
+            # HACK IN IMAGESET INFO
+            if daids_mode == const.INTRA_OCCUR_KEY:
+                for cm in cm_list:
+                    #if cm is not None:
+                    cm.imgsetid = imgsetid
+
+        print('[back] About to finish compute_queries: imgsetid=%r' % (imgsetid,))
+        for key in query_results.keys():
+            (cm_list, qreq_) = query_results[key]
+            # Filter duplicate names if running vsexemplar
+            filter_duplicate_namepair_matches = (daids_mode == const.VS_EXEMPLARS_KEY)
+            back.review_queries(
+                cm_list,
+                filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
+                qreq_=qreq_, query_title=query_title + ' ' + str(key), **review_cfg)
+        if refresh:
+            back.front.update_tables()
+        print('[back] FINISHED compute_queries: imgsetid=%r' % (imgsetid,))
+
+    def get_selected_daids(back, imgsetid=None, daids_mode=None,
+                           qaid_list=None, species=None):
         daids_mode = back.daids_mode if daids_mode is None else daids_mode
         daids_mode_valid_kw_dict = {
             const.VS_EXEMPLARS_KEY: {
@@ -1393,7 +1563,7 @@ class MainWindowBackend(GUIBACK_BASE):
         return daid_list
 
     def confirm_query_dialog2(back, species2_expanded_aids=None, cfgdict=None,
-                              query_msg=None, query_title=None):
+                              query_msg=None, query_title=None, review_cfg={}):
         """
         Asks the user to confirm starting the identification query
         """
@@ -1403,8 +1573,52 @@ class MainWindowBackend(GUIBACK_BASE):
             query_title = 'custom'
         confirm_kw = dict(use_msg=msg_str, title='Begin %s ID' % (query_title,),
                           default='Yes', detailed_msg=detailed_msg)
-        if not back.are_you_sure(**confirm_kw):
-            raise guiexcept.UserCancel
+
+        # TODO better confirm dialog
+        if True:
+            import dtool
+            ibs = back.ibs   # NOQA
+            #class TmpIDConfig(dtool.Config):
+            #    _param_info_list = [
+            #        #ut.ParamInfo('K', ibs.cfg.query_cfg.nn_cfg.K),
+            #        #ut.ParamInfo('Knorm', ibs.cfg.query_cfg.nn_cfg.Knorm),
+            #        #ut.ParamInfo('chip_size', ibs.cfg.chip_cfg.dim_size),
+            #    ]
+            #**back.ibs.cfg.to_dict())
+            #config = TmpIDConfig()
+
+            review_config = {
+                'filter_reviewed': review_cfg.get('filter_reviewed', ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True))
+            }
+
+            tmpdict = cfgdict.copy()
+            tmpdict.update(review_config)
+
+            config = dtool.Config.from_dict(tmpdict)
+
+            #print('config = %r' % (config,))
+            options = [
+                'Start ID',
+            ]
+            reply, new_config = back.user_option(
+                title='Begin %s ID' % (query_title,),
+                msg=msg_str,
+                config=config,
+                options=options,
+                default=options[0],
+                detailed_msg=detailed_msg,
+            )
+            print('reply = %r' % (reply,))
+            updated_config = new_config.asdict()
+            updated_review_cfg = ut.dict_subset(updated_config, review_config.keys())
+            ut.delete_dict_keys(updated_config, review_config.keys())
+
+            if reply not in options:
+                raise guiexcept.UserCancel
+            return updated_config, updated_review_cfg
+        else:
+            if not back.are_you_sure(**confirm_kw):
+                raise guiexcept.UserCancel
 
     def make_confirm_query_msg2(back, species2_expanded_aids,
                                 cfgdict=None, query_msg=None,
@@ -1490,110 +1704,18 @@ class MainWindowBackend(GUIBACK_BASE):
             detailed_msg_list.append('--- Group %d ---' % (count,))
             detailed_msg_list.append(stats_str2)
 
-        if cfgdict is not None and len(cfgdict) > 0:
-            msg_fmtstr_list += ['']
-            fmtdict['special_settings'] = ut.dict_str(cfgdict)
-            msg_fmtstr_list += ['Special Settings: {special_settings}']
-
         # Finish building confirmation message
         msg_fmtstr_list += ['']
         msg_fmtstr_list += ['Press \'Yes\' to continue']
         msg_fmtstr = '\n'.join(msg_fmtstr_list)
         msg_str = msg_fmtstr.format(**fmtdict)
+
+        if cfgdict is not None and len(cfgdict) > 0:
+            detailed_msg_list = ['Special Settings: {}'.format(ut.dict_str(cfgdict))] + detailed_msg_list
 
         detailed_msg = '\n'.join(detailed_msg_list)
 
         return msg_str, detailed_msg
-
-    def make_confirm_query_msg(back, daid_list, qaid_list, cfgdict=None, query_msg=None):
-        r"""
-        Args:
-            daid_list (list):
-            qaid_list (list):
-
-        CommandLine:
-            python -m ibeis.gui.guiback --test-MainWindowBackend.make_confirm_query_msg
-
-        Example:
-            >>> # GUI_DOCTEST
-            >>> from ibeis.gui.guiback import *  # NOQA
-            >>> import ibeis
-            >>> # build test data
-            >>> main_locals = ibeis.main(defaultdb='testdb1')
-            >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
-            >>> daid_list = [1, 2, 3, 4, 5]
-            >>> qaid_list = [4, 5, 6, 7, 8, 9]
-            >>> ibs.get_annotconfig_stats(qaid_list, daid_list)
-            >>> # execute function
-            >>> result = back.make_confirm_query_msg(daid_list, qaid_list)
-            >>> # verify results
-            >>> print(result)
-        """
-        ibs = back.ibs
-        species_text = ibs.get_all_species_texts()
-        species_nice = ibs.get_all_species_nice()
-        species_dict = dict(zip(species_text, species_nice))
-
-        def get_unique_species_phrase(aid_list):
-            def boldspecies(species):
-                species_bold_nice = '\'%s\'' % (species_dict.get(species, species).upper(),)
-                return species_bold_nice
-            species_list = list(set(ibs.get_annot_species_texts(aid_list)))
-            species_nice_list = list(map(boldspecies, species_list))
-            species_phrase = ut.conj_phrase(species_nice_list, 'and')
-            return species_phrase
-
-        # Build confirmation message
-        fmtdict = dict()
-        msg_fmtstr_list = ['You are about to run identification...']
-        if query_msg is not None:
-            msg_fmtstr_list = [query_msg]
-        msg_fmtstr_list += ['    -----']
-        # Append database information to query confirmation
-        if daid_list is not None:
-            msg_fmtstr_list += ['    Database annotations: {num_daids}']
-            msg_fmtstr_list += ['    Database species:         {d_species_phrase}']
-            fmtdict['d_annotation_s']  = ut.pluralize('annotation', len(daid_list))
-            fmtdict['num_daids'] = len(daid_list)
-            fmtdict['d_species_phrase'] = get_unique_species_phrase(daid_list)
-            if qaid_list is not None:
-                msg_fmtstr_list += ['    -----']
-        # Append query information to query confirmation
-        if qaid_list is not None:
-            msg_fmtstr_list += ['    Query annotations: {num_qaids}']
-            msg_fmtstr_list += ['    Query species:         {q_species_phrase}']
-            fmtdict['q_annotation_s']  = ut.pluralize('annotation', len(qaid_list))
-            fmtdict['num_qaids'] = len(qaid_list)
-            fmtdict['q_species_phrase'] = get_unique_species_phrase(qaid_list)
-
-        if qaid_list is not None and daid_list is not None:
-            overlap_aids = ut.list_intersection(daid_list, qaid_list)
-            num_overlap = len(overlap_aids)
-            msg_fmtstr_list += ['    -----']
-            msg_fmtstr_list += ['    Num Overlap: {num_overlap}']
-            fmtdict['num_overlap'] = num_overlap
-        if cfgdict is not None and len(cfgdict) > 0:
-            fmtdict['special_settings'] = ut.dict_str(cfgdict)
-            msg_fmtstr_list += ['Special Settings: {special_settings}']
-
-        # Finish building confirmation message
-        msg_fmtstr_list += ['']
-        msg_fmtstr_list += ['Press \'Yes\' to continue']
-        msg_fmtstr = '\n'.join(msg_fmtstr_list)
-        msg_str = msg_fmtstr.format(**fmtdict)
-        return msg_str
-
-    def confirm_query_dialog(back, daid_list=None, qaid_list=None,
-                             cfgdict=None, query_msg=None):
-        """
-        Asks the user to confirm starting the identification query
-        """
-        msg_str = back.make_confirm_query_msg(
-            daid_list, qaid_list, cfgdict=cfgdict, query_msg=query_msg)
-        confirm_kw = dict(use_msg=msg_str, title='Begin Identification?',
-                          default='Yes')
-        if not back.are_you_sure(**confirm_kw):
-            raise guiexcept.UserCancel
 
     def run_annot_splits(back, aid_list):
         """
@@ -1624,15 +1746,22 @@ class MainWindowBackend(GUIBACK_BASE):
             'score_method': 'csum'
         }
         ranks_lt = min(len(aid_list), 10)
+        review_cfg = {
+            'filter_reviewed': False,
+            'ranks_lt': ranks_lt,
+        }
         ibs = back.ibs
+        cfgdict, review_cfg = back.confirm_query_dialog2(
+            {'split': (aid_list, aid_list)}, cfgdict=cfgdict,
+            query_msg='Checking for SPLIT cases (matching each annotation within a name)',
+            review_cfg=review_cfg,
+        )
         qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
-        back.confirm_query_dialog(aid_list, aid_list, cfgdict=cfgdict, query_msg='Checking for SPLIT cases (matching each annotation within a name)')
         cm_list = qreq_.execute()
         back.review_queries(cm_list, qreq_=qreq_,
-                            filter_reviewed=False,
                             name_scoring=False,
-                            ranks_lt=ranks_lt,
-                            query_title='Annot Splits')
+                            query_title='Annot Splits',
+                            **review_cfg)
 
         #if False:
         #    from ibeis.viz import viz_graph
@@ -1816,147 +1945,7 @@ class MainWindowBackend(GUIBACK_BASE):
         return species2_expanded_aids
 
     @blocking_slot()
-    def compute_queries(back, refresh=True, daids_mode=None,
-                        query_is_known=None, qaid_list=None,
-                        use_prioritized_name_subset=False,
-                        use_visual_selection=False, cfgdict={},
-                        query_msg=None,
-                        custom_qaid_list_title=None,
-                        daid_list=None,
-                        **kwargs):
-        """
-        MAIN QUERY FUNCTION
-
-        execute_query
-
-        Batch -> Compute OldStyle Queries
-        and Actions -> Query
-
-        Computes query results for all annotations in an imageset.
-        Results are either vs-exemplar or intra-imageset
-
-        CommandLine:
-            ./main.py --query 1 -y
-            python -m ibeis --query 1 -y
-            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y
-            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y --force-all-progress
-            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=3 -y
-            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=3 -y
-            python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid --hots-batch-size=32 -y
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.gui.guiback import *  # NOQA
-            >>> import ibeis
-            >>> main_locals = ibeis.main(db='testdb2')
-            >>> # build test data
-            >>> back = main_locals['back']
-            >>> ibs = back.ibs
-            >>> query_is_known = None
-            >>> # execute function
-            >>> refresh = True
-            >>> daids_mode = None
-            >>> imgsetid = None
-            >>> kwargs = {}
-            >>> # verify results
-            >>> print(result)
-        """
-        imgsetid = back._eidfromkw(kwargs)
-        print('\n')
-        print('------')
-        print('[back] compute_queries: imgsetid=%r, mode=%r' % (imgsetid, back.daids_mode))
-        print('[back] use_prioritized_name_subset = %r' % (use_prioritized_name_subset,))
-        print('[back] use_visual_selection        = %r' % (use_visual_selection,))
-        print('[back] daids_mode                  = %r' % (daids_mode,))
-        print('[back] cfgdict                     = %r' % (cfgdict,))
-        print('[back] query_is_known              = %r' % (query_is_known,))
-
-        if qaid_list is not None:
-            if custom_qaid_list_title is None:
-                custom_qaid_list_title = 'Custom'
-            qaid_title = custom_qaid_list_title
-        elif use_visual_selection:
-            qaid_title = 'Selected'
-        else:
-            # if not visual selection, then qaids are selected by imageset
-            # qaid_list = back.get_selected_qaids(imgsetid=imgsetid, is_known=query_is_known)
-            qaid_title = back.ibs.get_imageset_text(imgsetid)
-        if use_prioritized_name_subset:
-            qaid_title += '(priority_subset)'
-
-        # Set title variables
-        daid_title = None
-        if daids_mode == const.VS_EXEMPLARS_KEY:
-            daid_title = 'Exemplars'
-        elif daids_mode == const.INTRA_OCCUR_KEY:
-            daid_title = 'Intra ImageSet'
-        elif daids_mode == 'All':
-            daid_title = 'Everything'
-        else:
-            print('Unknown daids_mode=%r' % (daids_mode,))
-
-        query_title = qaid_title + '-vs-' + daid_title
-
-        print('query_title = %r' % (query_title,))
-        if daids_mode == const.VS_EXEMPLARS_KEY:
-            # Automatic setting of exemplars
-            back.set_exemplars_from_quality_and_viewpoint()
-
-        species2_expanded_aids = back._get_expanded_aids_groups(
-            imgsetid, daids_mode=daids_mode,
-            use_prioritized_name_subset=use_prioritized_name_subset,
-            use_visual_selection=use_visual_selection, qaid_list=qaid_list,
-            daid_list=daid_list, query_is_known=query_is_known)
-
-        if len(species2_expanded_aids) == 0:
-            raise guiexcept.InvalidRequest(
-                'Is the database empty? Are species labels assigned correctly? '
-                'There are no pairs of query and database annotations with the same species')
-
-        back.confirm_query_dialog2(species2_expanded_aids,
-                                   query_msg=query_msg,
-                                   query_title=query_title, cfgdict=cfgdict)
-
-        query_results = {}
-        for key, (qaids, daids) in species2_expanded_aids.items():
-            qreq_ = back.ibs.new_query_request(qaids, daids,
-                                               cfgdict=cfgdict)
-            #if not ut.WIN32:
-            #    progbar = guitool.newProgressBar(back.mainwin)
-            #else:
-            progbar = guitool.newProgressBar(None)  # back.front)
-            progbar.setWindowTitle('querying')
-            progbar.utool_prog_hook.set_progress(0)
-            # Doesn't seem to work correctly
-            #progbar.utool_prog_hook.show_indefinite_progress()
-            progbar.utool_prog_hook.force_event_update()
-            cm_list = back.ibs.query_chips(qreq_=qreq_,
-                                           prog_hook=progbar.utool_prog_hook)
-            query_results[key] = (cm_list, qreq_)
-            progbar.close()
-            del progbar
-
-            # HACK IN IMAGESET INFO
-            if daids_mode == const.INTRA_OCCUR_KEY:
-                for cm in cm_list:
-                    #if cm is not None:
-                    cm.imgsetid = imgsetid
-
-        print('[back] About to finish compute_queries: imgsetid=%r' % (imgsetid,))
-        for key in query_results.keys():
-            (cm_list, qreq_) = query_results[key]
-            # Filter duplicate names if running vsexemplar
-            filter_duplicate_namepair_matches = (daids_mode == const.VS_EXEMPLARS_KEY)
-            back.review_queries(
-                cm_list,
-                filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
-                qreq_=qreq_, query_title=query_title + ' ' + str(key), **kwargs)
-        if refresh:
-            back.front.update_tables()
-        print('[back] FINISHED compute_queries: imgsetid=%r' % (imgsetid,))
-
-    @blocking_slot()
-    def imageset_reviewed_all_images(back, refresh=True):
+    def commit_to_wb_step(back, refresh=True):
         """
         Step 6) Commit
 
@@ -1965,7 +1954,7 @@ class MainWindowBackend(GUIBACK_BASE):
         commit step
         """
         imgsetid = back.get_selected_imgsetid()
-        if back.contains_special_imagesets([imgsetid]):
+        if back.contains_special_imagesets([imgsetid]) or imgsetid is None:
             back.user_warning(msg=ut.codeblock(
                 '''
                 This operation is only allowed for OCCURRENCES.
@@ -1973,21 +1962,58 @@ class MainWindowBackend(GUIBACK_BASE):
                 Special ImageSets are living entities and are never truely complete.
                 '''
             ))
-        elif imgsetid is not None:
+        else:
+
+            # Check to make sure imagesets are ok:
+            # First, check if imageset can be pushed
+            ibs = back.ibs
+            aid_list = ibs.get_imageset_aids(imgsetid)
+
+            assert len(aid_list) > 0, (
+                'ImageSet imgsetid=%r cannot be shipped with0 annots' % (imgsetid,))
+
+            unknown_flags = ibs.is_aid_unknown(aid_list)
+            nUnknown = sum(unknown_flags)
+
+            unnamed_aid_list = ut.compress(aid_list, unknown_flags)
+            aid_list = ut.compress(aid_list, ut.not_list(unknown_flags))
+            nid2_aids = ut.group_items(aid_list, ibs.get_annot_nids(aid_list))
+            nMultiEncounters = sum([len(x) > 0 for x in nid2_aids.values()])
+            nSingleEncounters = sum([len(x) == 1 for x in nid2_aids.values()])
+
+            other_aids = ibs.get_annot_groundtruth(ut.take_column(nid2_aids.values(), 0), is_exemplar=True)
+            other_aids = [set(aids) - set(aid_list) for aids in other_aids]
+            nMatchedExemplars = sum([len(x) == 1 for x in other_aids])
+
+            msg_list = [
+                '%d Encounter%s matched an exemplar' % ((nMatchedExemplars), '' if nMatchedExemplars == 1 else 's'),
+                '%d Encounter%s only one annotation' % ((nSingleEncounters), ' has' if nSingleEncounters == 1 else 's have'),
+                '%d Encounter%s  more than one annotation'  % ((nMultiEncounters), ' has' if nMultiEncounters == 1 else 's have'),
+                '%d annotation%s have not been identified%s' % (nUnknown, '' if nUnknown == 1 else 's', '!' if nUnknown > 0 else '.'),
+            ]
+
             # Set all images to be reviewed
             gid_list = back.ibs.get_valid_gids(imgsetid=imgsetid)
 
             confirm_kw = dict(use_msg=ut.codeblock(
                 '''
-                Have you finished ALL detections, Intra Occurrence
-                Identitifications, and Vs-Exemplar Identifications?
+                Have you finished reviewing ALL detections,
+                Intra-Occurence IDs, and Vs-Exemplar IDs?
 
-                Selecting YES will remove this occurrence and send it to wildbook.
-                ''')
+                %s
+
+                Selecting YES will remove this occurrence, mark all images are
+                reviewed and processed, and then send it to wildbook.
+                ''')  % '\n'.join(msg_list)
                 , title='Complete Occurrence?',
                 default='Yes')
             if not back.are_you_sure(**confirm_kw):
                 raise guiexcept.UserCancel
+
+            assert nUnknown == 0, (
+                ('ImageSet imgsetid=%r1 cannot be shipped becuase '
+                 'annotation(s) %r have not been named') % (imgsetid, unnamed_aid_list, ))
+
             #gid_list = ibs.get_imageset_gids(imgsetid)
             back.ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
             # Set imageset to be processed
@@ -2487,6 +2513,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def quit(back):
         """ File -> Quit"""
         print('[back] ')
+        #back.cleanup()
         guitool.exit_application()
 
     #--------------------------------------------------------------------------
@@ -2503,7 +2530,7 @@ class MainWindowBackend(GUIBACK_BASE):
         return guitool.user_input(parent=back.front, msg=msg, **kwargs)
 
     def user_option(back, **kwargs):
-        if kwargs.get('config'):
+        if kwargs.get('config', None) is not None:
             # options, config, msg, title
             dlg = guitool.ConfigConfirmWidget.as_dialog(**kwargs)
             #dlg.resize(700, 500)
