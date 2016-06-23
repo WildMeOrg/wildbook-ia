@@ -12,6 +12,12 @@ from guitool import guitool_dialogs
 import weakref
 (print, rrr, profile) = utool.inject2(__name__, '[guitool_components]')
 
+DEBUG_WIDGET = ut.get_argflag('--debugwidget')
+
+if DEBUG_WIDGET:
+    WIDGET_BASE = QtGui.QFrame
+else:
+    WIDGET_BASE = QtGui.QWidget
 
 ALIGN_DICT = {
     'center': Qt.AlignCenter,
@@ -392,15 +398,117 @@ def newOutputLog(parent, pointSize=6, visible=True, verticalStretch=1):
     return outputLog
 
 
-def newTextEdit(parent, label=None, visible=True, label_pos='above'):
+def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}):
+    r"""
+    Args:
+        parent (None): (default = None)
+        text (str):  (default = '')
+        align (str): (default = 'center')
+        gpath (None): (default = None)
+        fontkw (dict): (default = {})
+
+    Kwargs:
+        parent, text, align, gpath, fontkw
+
+    Returns:
+        ?: label
+
+    CommandLine:
+        python -m guitool.guitool_components --exec-newLabel --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
+        >>> parent = None
+        >>> text = ''
+        >>> align = 'center'
+        >>> gpath = ut.grab_test_imgpath('lena.png')
+        >>> fontkw = {}
+        >>> label = newLabel(parent, text, align, gpath, fontkw)
+        >>> ut.quit_if_noshow()
+        >>> label.show()
+        >>> guitool.qtapp_loop(qwin=label, freq=10)
+    """
+    label = QtGui.QLabel(text, parent=parent)
+    #label.setAlignment(ALIGN_DICT[align])
+    if isinstance(align, six.string_types):
+        align = ALIGN_DICT[align]
+    label.setAlignment(align)
+    adjust_font(label, **fontkw)
+    if gpath is not None:
+        # http://stackoverflow.com/questions/8211982/qt-resizing-a-qlabel-containing-a-qpixmap-while-keeping-its-aspect-ratio
+        # TODO
+        label._orig_pixmap = QtGui.QPixmap(gpath)
+        label.setPixmap(label._orig_pixmap.scaled(label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        label.setScaledContents(True)
+
+        def _on_resize_slot():
+            #print('_on_resize_slot')
+            label.setPixmap(label._orig_pixmap.scaled(label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            #label.setPixmap(label._orig_pixmap.scaled(label.size()))
+        label._on_resize_slot = _on_resize_slot
+        #ut.embed()
+
+    def setColorFG(self, fgcolor):
+        #current_sheet = self.styleSheet()
+        style_sheet_str = make_style_sheet(bgcolor=None, fgcolor=fgcolor)
+        if style_sheet_str is None:
+            style_sheet_str = ''
+        self.setStyleSheet(style_sheet_str)
+    ut.inject_func_as_method(label, setColorFG)
+    return label
+
+
+class ResizableTextEdit(QtGui.QTextEdit):
+    """
+    http://stackoverflow.com/questions/3050537/resizing-qts-qtextedit-to-match-text-height-maximumviewportsize
+    """
+    def sizeHint(self):
+        text = self.toPlainText()
+        font = self.document().defaultFont()    # or another font if you change it
+        fontMetrics = QtGui.QFontMetrics(font)      # a QFontMetrics based on our font
+        textSize = fontMetrics.size(0, text)
+
+        textWidth = textSize.width() + 30       # constant may need to be tweaked
+        textHeight = textSize.height() + 30     # constant may need to be tweaked
+        return (textWidth, textHeight)
+
+
+def newTextEdit(parent=None, label=None, visible=None, label_pos='above',
+                align='left', text=None, enabled=True, editable=True, fit_to_text=False):
     """ This is a text area """
+    #if fit_to_text:
+    #outputEdit = ResizableTextEdit(parent)
+    #else:
     outputEdit = QtGui.QTextEdit(parent)
     sizePolicy = newSizePolicy(outputEdit, verticalStretch=1)
     outputEdit.setSizePolicy(sizePolicy)
     outputEdit.setAcceptRichText(False)
-    outputEdit.setVisible(visible)
+    if visible is not None:
+        outputEdit.setVisible(visible)
+    outputEdit.setEnabled(enabled)
+    outputEdit.setReadOnly(not editable)
+    if text is not None:
+        outputEdit.setText(text)
+    if isinstance(align, six.string_types):
+        align = ALIGN_DICT[align]
+    outputEdit.setAlignment(align)
     if label is None:
         pass
+
+    if fit_to_text:
+        font = outputEdit.document().defaultFont()    # or another font if you change it
+        fontMetrics = QtGui.QFontMetrics(font)      # a QFontMetrics based on our font
+        textSize = fontMetrics.size(0, text)
+
+        textWidth = textSize.width() + 30       # constant may need to be tweaked
+        textHeight = textSize.height() + 30     # constant may need to be tweaked
+        outputEdit.setMinimumSize(textWidth, textHeight)
+    #else:
+    #    outputEdit.setMinimumHeight(0)
+
     setattr(outputEdit, '_guitool_sizepolicy', sizePolicy)
     return outputEdit
 
@@ -408,6 +516,7 @@ def newTextEdit(parent, label=None, visible=True, label_pos='above'):
 def newLineEdit(parent, text=None, enabled=True, align='center',
                 textChangedSlot=None, textEditedSlot=None,
                 editingFinishedSlot=None, visible=True, readOnly=False,
+                editable=None,
                 verticalStretch=0, fontkw={}):
     """ This is a text line
 
@@ -423,6 +532,8 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
         >>> result = str(widget)
         >>> print(result)
     """
+    if editable is not None:
+        readOnly = editable
     widget = QtGui.QLineEdit(parent)
     sizePolicy = newSizePolicy(widget,
                                verticalSizePolicy=QSizePolicy.Fixed,
@@ -431,7 +542,9 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
     if text is not None:
         widget.setText(text)
     widget.setEnabled(enabled)
-    widget.setAlignment(ALIGN_DICT[align])
+    if isinstance(align, six.string_types):
+        align = ALIGN_DICT[align]
+    widget.setAlignment(align)
     widget.setReadOnly(readOnly)
     if textChangedSlot is not None:
         widget.textChanged.connect(textChangedSlot)
@@ -493,7 +606,12 @@ def newWidget(parent=None, orientation=Qt.Vertical,
     return widget
 
 
-class GuitoolWidget(QtGui.QWidget):
+def newFrame(*args):
+    return QtGui.QFrame()
+
+
+#class GuitoolWidget(QtGui.QWidget):
+class GuitoolWidget(WIDGET_BASE):
     """
     CommandLine:
         python -m guitool.guitool_components GuitoolWidget --show
@@ -522,7 +640,7 @@ class GuitoolWidget(QtGui.QWidget):
     def _inject_new_widget_methods(self):
         import guitool as gt
         # Black magic
-        guitype_list = ['Widget', 'Button', 'LineEdit', 'ComboBox', 'Label', 'Spoiler']
+        guitype_list = ['Widget', 'Button', 'LineEdit', 'ComboBox', 'Label', 'Spoiler', 'Frame']
         # Creates addNewWidget and newWidget
         for guitype in guitype_list:
             if hasattr(gt, 'new' + guitype):
@@ -543,11 +661,12 @@ class GuitoolWidget(QtGui.QWidget):
                  verticalStretch=0, **kwargs):
         super(GuitoolWidget, self).__init__(parent)
 
-        sizePolicy = newSizePolicy(self,
-                                   horizontalSizePolicy=horizontalSizePolicy,
-                                   verticalSizePolicy=verticalSizePolicy,
-                                   verticalStretch=verticalStretch)
-        self.setSizePolicy(sizePolicy)
+        #sizePolicy = newSizePolicy(self,
+        #                           horizontalSizePolicy=horizontalSizePolicy,
+        #                           verticalSizePolicy=verticalSizePolicy,
+        #                           verticalStretch=verticalStretch)
+        #self.setSizePolicy(sizePolicy)
+        #setattr(self, '_guitool_sizepolicy', sizePolicy)
         if orientation == Qt.Vertical:
             layout = QtGui.QVBoxLayout(self)
         elif orientation == Qt.Horizontal:
@@ -555,27 +674,35 @@ class GuitoolWidget(QtGui.QWidget):
         else:
             raise NotImplementedError('orientation')
         self._guitool_layout = layout
+        #layout.setAlignment(Qt.AlignBottom)
         #self.addWidget = self._guitool_layout.addWidget
         #self.addLayout = self._guitool_layout.addLayout
-        setattr(self, '_guitool_sizepolicy', sizePolicy)
         self._inject_new_widget_methods()
         self.initialize(**kwargs)
 
-        if False:
+        if DEBUG_WIDGET:
             # debug code
             self.setStyleSheet("background-color: rgb(255,0,0); margin:5px; border:1px solid rgb(0, 255, 0); ")
-            self.setStyleSheet("background-color: border:5px solid rgb(255, 0, 0); ")
+            #self.setStyleSheet("background-color: border:5px solid rgb(255, 0, 0); ")
 
     @classmethod
     def as_dialog(cls, parent=None, **kwargs):
         widget = cls(**kwargs)
         dlg = QtGui.QDialog(parent)
-        dlg.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        #dlg.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        #dlg.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        #dlg.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+        #widget.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
         dlg.widget = widget
         dlg.vlayout = QtGui.QVBoxLayout(dlg)
+        #dlg.vlayout.setAlignment(Qt.AlignBottom)
         dlg.vlayout.addWidget(widget)
         widget.closed.connect(dlg.close)
         dlg.setWindowTitle(widget.windowTitle())
+
+        if DEBUG_WIDGET:
+            # debug code
+            dlg.setStyleSheet("background-color: rgb(255,0,0); margin:0px; border:1px solid rgb(0, 255, 0); ")
         return dlg
 
     def initialize(self, **kwargs):
@@ -606,6 +733,79 @@ class GuitoolWidget(QtGui.QWidget):
         self.closed.emit()
 
 
+def prop_text_map(prop, val):
+    if prop == 'QtGui.QSizePolicy':
+        pol_info = {eval('QtGui.QSizePolicy.' + key): key for key in
+                    ['Fixed', 'Minimum', 'Maximum', 'Preferred', 'Expanding',
+                     'MinimumExpanding', 'Ignored', ]}
+        return pol_info[val]
+    else:
+        return val
+
+
+def get_nested_attr(obj, attr):
+    """
+    attr = 'sizePolicy().verticalPolicy()'
+    """
+    attr_list = attr.split('.')
+    current = obj
+    for a in attr_list:
+        flag = a.endswith('()')
+        a_ = a[:-2] if flag else a
+        current = getattr(current, a_, None)
+        if current is None:
+            raise AttributeError(attr)
+        if flag:
+            current = current()
+    return current
+
+
+def walk_widget_heirarchy(obj, level=0):
+    children = obj.children()
+    lines = []
+    info = str(ut.type_str(obj.__class__)).replace('PyQt4', '') + ' - ' + repr(obj.objectName())
+    #print(info)
+    lines.append(info)
+    if hasattr(obj, 'sizePolicy'):
+        val = obj.sizePolicy().verticalPolicy()
+        hval = obj.sizePolicy().horizontalPolicy()
+        lines.append('  * verticalSizePolicy   = %r' % prop_text_map('QtGui.QSizePolicy', val))
+        lines.append('  * horizontalSizePolicy = %r' % prop_text_map('QtGui.QSizePolicy', hval))
+    for attr in [
+        'widgetResizable',
+        'maximumHeight',
+        'minimumHeight',
+        #'alignment'
+    ]:
+        try:
+            val = get_nested_attr(obj, attr + '()')
+            lines.append('  * %s = %r' % (attr, prop_text_map(attr, val)))
+        except AttributeError:
+            pass
+
+    #if hasattr(obj, 'alignment'):
+    #    val = obj.alignment()
+    #    lines.append('  * widgetResizable = %r' % prop_text_map('widgetResizable', val))
+    lines = [ut.indent(line, ' ' * level * 4) for line in lines]
+    for child in children:
+        child_info = walk_widget_heirarchy(child, level + 1)
+        lines.extend(child_info)
+    return lines
+#ut.fix_embed_globals()
+#print('\n'.join(walk_widget_heirarchy(obj)))
+
+
+def fix_child_size_heirarchy(obj, pol):
+    if hasattr(obj, 'sizePolicy'):
+        obj.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+    for child in obj.children():
+        fix_child_size_heirarchy(child, pol)
+
+
+def print_widget_heirarchy(obj):
+    print('\n'.join(walk_widget_heirarchy(obj)))
+
+
 class ConfigConfirmWidget(GuitoolWidget):
     """
 
@@ -618,13 +818,15 @@ class ConfigConfirmWidget(GuitoolWidget):
         >>> import guitool
         >>> import dtool
         >>> guitool.ensure_qapp()  # must be ensured before any embeding
-        >>> cls = dtool.Config
-        >>> dict_ = {'K': 1, 'Knorm': 5, 'min_pername': 1, 'max_pername': 1,}
         >>> tablename = None
-        >>> config = cls.from_dict(dict_, tablename)
+        >>> dict_ = {'K': 1, 'Knorm': 5,
+        >>>          'choice': ut.ParamInfo(varname='choice', default='one',
+        >>>                                 valid_values=['one', 'two'])}
+        >>> config = dtool.Config.from_dict(dict_, tablename)
         >>> dlg = guitool.ConfigConfirmWidget.as_dialog(
         >>>     title='Confirm Merge Query',
         >>>     msg='Confirm',
+        >>>     detailed_msg=ut.lorium_ipsum()*10,
         >>>     config=config)
         >>> #dlg.resize(700, 500)
         >>> self = dlg.widget
@@ -637,43 +839,87 @@ class ConfigConfirmWidget(GuitoolWidget):
     """
     def __init__(self, *args, **kwargs):
         # FIXME: http://doc.qt.io/qt-5/qsizepolicy.html
-        kwargs['horizontalSizePolicy'] = QtGui.QSizePolicy.Minimum
+        #kwargs['horizontalSizePolicy'] = QSizePolicy.Minimum
+        kwargs['horizontalSizePolicy'] = QSizePolicy.Expanding
         kwargs['verticalSizePolicy'] = QSizePolicy.Expanding
         super(ConfigConfirmWidget, self).__init__(*args, **kwargs)
 
-    def initialize(self, title, msg, config, options=None, default=None):
-        import copy
+    def initialize(self, title, msg, config, options=None, default=None, detailed_msg=None):
+        #import copy
         from guitool import PrefWidget2
         self.msg = msg
         self.orig_config = config
-        self.config = copy.deepcopy(config)
+        self.config = config.deepcopy()
         self.confirm_option = None
 
         self.setWindowTitle(title)
-        self.addNewLabel(msg, align='left')
 
-        if config is not None:
+        layout = self.layout()
+
+        if 1:
+            msg_widget = newLabel(self, text=msg, align='left')
+            #msg_widget = newTextEdit(self, text=msg, align='left', editable=False, fit_to_text=True)
+            msg_widget.setObjectName('msg_widget')
+            #msg_widget = self.addNewLabel(msg, align='left')
+            #msg_widget.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred,
+            #                                       verticalStretch=1))
+            print(msg_widget.sizeHint())
+            msg_widget.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Expanding,
+                                                   QtGui.QSizePolicy.Maximum,
+                                                   verticalStretch=1))
+            #msg_widget.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Preferred,
+            #QtGui.QSizePolicy.Expanding, #verticalStretch=1))
+            layout.addWidget(msg_widget)
+
+        if 1 and config is not None:
             self.editConfig = PrefWidget2.newConfigWidget(self.config, user_mode=True)
-            if not ut.get_argflag('--nospoiler'):
-                self.spoiler = Spoiler(self, title='advanced configuration')
-                self.spoiler.setContentLayout(self.editConfig.layout())
-                self.spoiler.toggle_finished.connect(self._size_adjust_slot)
-                self.addWidget(self.spoiler)
-            else:
-                self.addWidget(self.editConfig)
+            #if not ut.get_argflag('--nospoiler'):
+            self.spoiler = Spoiler(self, title='Advanced Configuration')
+            #self.spoiler.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Expanding,
+            #                                         QtGui.QSizePolicy.Preferred,
+            #                                         verticalStretch=0))
+            self.spoiler.setObjectName('spoiler')
+            self.spoiler.setContentLayout(self.editConfig)
+            #self.layout().addStretch(1)
+            self.addWidget(self.spoiler)
+            #self.addWidget(self.spoiler, alignment=Qt.AlignTop)
+            self.spoiler.toggle_finished.connect(self._size_adjust_slot)
+            #else:
+            #    self.addWidget(self.editConfig)
 
-        self.button_row = self.newHWidget()
-        if options is None:
-            options = ['Confirm']
-        def _make_option_clicked(opt):
-            def _wrap():
-                return self.confirm(opt)
-            return _wrap
-        for opt in options:
-            self.button_row.addNewButton(opt, clicked=_make_option_clicked(opt))
-        self.button_row.addNewButton('Cancel', clicked=self.cancel)
+        if 1 and detailed_msg is not None:
+            detailed_msg_widget = newTextEdit(text=detailed_msg, editable=False)
+            detailed_msg_widget.setObjectName('detailed_msg_widget')
+            self.spoiler2 = Spoiler(self, title='Details')
+            #self.spoiler2.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Expanding,
+            #                                          QtGui.QSizePolicy.Preferred,
+            #                                          verticalStretch=0))
+            self.spoiler2.setObjectName('spoiler2')
+            self.spoiler2.setContentLayout(detailed_msg_widget)
+            self.addWidget(self.spoiler2)
+            self.spoiler2.toggle_finished.connect(self._size_adjust_slot)
+            #self.spoiler2.setAlignment(Qt.AlignBottom)
 
-        self.layout().setAlignment(Qt.AlignBottom)
+        if 1:
+            self.button_row = self.newHWidget(verticalStretch=1000)
+            self.button_row.setObjectName('button_row')
+            self.button_row.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Expanding,
+                                                        QtGui.QSizePolicy.Maximum))
+            self.button_row._guitool_layout.setAlignment(Qt.AlignBottom)
+            if options is None:
+                options = ['Confirm']
+            def _make_option_clicked(opt):
+                def _wrap():
+                    return self.confirm(opt)
+                return _wrap
+            for opt in options:
+                self.button_row.addNewButton(opt, clicked=_make_option_clicked(opt))
+            self.button_row.addNewButton('Cancel', clicked=self.cancel)
+
+        print_widget_heirarchy(self)
+
+        #self.layout().setAlignment(Qt.AlignBottom)
+        self.layout().setAlignment(Qt.AlignTop)
         #self.layout().setSizeConstraint(QtGui.QLayout.SetFixedSize)
         #self.resize(668, 530)
         #self.update_state()
@@ -702,12 +948,87 @@ class ConfigConfirmWidget(GuitoolWidget):
         self.confirm_option = confirm_option
         self.close()
 
-    def _size_adjust_slot(self):
-        print('_size_adjust_slot = ')
-        self.adjustSize()
-        parent = self.parent()
-        if parent is not None:
-            parent.adjustSize()
+    def _size_adjust_slot(self, checked):
+
+        #def adjusted_size(q):
+        #    """
+        #    gvim ~/code/qt4/src/gui/kernel/qwidget.cpp
+        #    """
+        #    #Q_Q(const QWidget);
+        #    s = q.sizeHint()
+        #    layout = q.layout()
+
+        #    if (q.isWindow()):
+        #        exp = Qt.Orientations()
+        #        if (layout) :
+        #            if (layout.hasHeightForWidth()):
+        #                s.setHeight(layout.totalHeightForWidth(s.width()))
+        #            exp = layout.expandingDirections()
+        #        else:
+        #            if (q.sizePolicy().hasHeightForWidth()):
+        #                s.setHeight(q.heightForWidth(s.width()))
+        #            exp = q.sizePolicy().expandingDirections()
+        #        if (exp & Qt.Horizontal):
+        #            s.setWidth(max(s.width(), 200))
+        #        if (exp & Qt.Vertical):
+        #            s.setHeight(max(s.height(), 100))
+
+        #        #if defined(Q_WS_X11)
+        #        try:
+        #            screen = QtGui.QApplication.desktop().screenGeometry(q.pos())
+        #        except Exception:
+        #            #else // all others
+        #            screen = QtGui.QApplication.desktop().screenGeometry(q.x11Info().screen())
+        #            #endif
+
+        #        #if defined (Q_WS_WINCE) || defined (Q_OS_SYMBIAN)
+        #        try:
+        #            s.setWidth(min(s.width(), screen.width()))
+        #            s.setHeight(min(s.height(), screen.height()))
+        #        except Exception:
+        #            #else
+        #            s.setWidth(min(s.width(), screen.width() * 2 / 3))
+        #            s.setHeight(min(s.height(), screen.height() * 2 / 3))
+        #            #endif
+        #        #if (QTLWExtra *extra = maybeTopData())
+        #        #    extra.sizeAdjusted = true
+
+        #    if (not s.isValid()):
+        #        r = q.childrenRect()  # get children rectangle
+        #        if (not r.isNull()):
+        #            s = r.size() + QtCore.QSize(2 * r.x(), 2 * r.y())
+        #    return s
+
+        def _adjust_widget(w):
+            print('-----------')
+            print('w = %r' % (w,))
+            orig_size = w.size()
+            hint_size = w.sizeHint()
+            #adj_size = adjusted_size(w)
+            r = w.childrenRect()  # get children rectangle
+            adj_size = r.size()
+            #+ QtCore.QSize(2 * r.x(), 2 * r.y())
+            #height = min(adj_size.height(), hint_size.height())
+            height = hint_size.height()
+            newsize = (orig_size.width(), height)
+            print('orig_size = %r' % (orig_size,))
+            print('hint_size = %r' % (hint_size,))
+            print('adj_size = %r' % (adj_size,))
+            print('newsize = %r' % (newsize,))
+            #w.setMinimumSize(*newsize)
+            w.resize(*newsize)
+            print('Actual new size = %r' % (w.size()))
+
+        top = self.topLevelWidget()
+        #top.ensurePolished()
+        if not checked:
+            _adjust_widget(top)
+        #_adjust_widget(self)
+
+        #parent = self.parent()
+        #_adjust_widget(self)
+        #if parent is not None:
+        #    _adjust_widget(parent)
 
     def cancel(self):
         print('[gt] Canceled confirm config')
@@ -1004,66 +1325,6 @@ def make_style_sheet(bgcolor=None, fgcolor=None):
 #    #app_style = QtGui.Q Application.style()
 
 
-def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}):
-    r"""
-    Args:
-        parent (None): (default = None)
-        text (str):  (default = '')
-        align (str): (default = 'center')
-        gpath (None): (default = None)
-        fontkw (dict): (default = {})
-
-    Kwargs:
-        parent, text, align, gpath, fontkw
-
-    Returns:
-        ?: label
-
-    CommandLine:
-        python -m guitool.guitool_components --exec-newLabel --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from guitool.guitool_components import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qtapp()
-        >>> parent = None
-        >>> text = ''
-        >>> align = 'center'
-        >>> gpath = ut.grab_test_imgpath('lena.png')
-        >>> fontkw = {}
-        >>> label = newLabel(parent, text, align, gpath, fontkw)
-        >>> ut.quit_if_noshow()
-        >>> label.show()
-        >>> guitool.qtapp_loop(qwin=label, freq=10)
-    """
-    label = QtGui.QLabel(text, parent=parent)
-    label.setAlignment(ALIGN_DICT[align])
-    adjust_font(label, **fontkw)
-    if gpath is not None:
-        # http://stackoverflow.com/questions/8211982/qt-resizing-a-qlabel-containing-a-qpixmap-while-keeping-its-aspect-ratio
-        # TODO
-        label._orig_pixmap = QtGui.QPixmap(gpath)
-        label.setPixmap(label._orig_pixmap.scaled(label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        label.setScaledContents(True)
-
-        def _on_resize_slot():
-            #print('_on_resize_slot')
-            label.setPixmap(label._orig_pixmap.scaled(label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
-            #label.setPixmap(label._orig_pixmap.scaled(label.size()))
-        label._on_resize_slot = _on_resize_slot
-        #ut.embed()
-
-    def setColorFG(self, fgcolor):
-        #current_sheet = self.styleSheet()
-        style_sheet_str = make_style_sheet(bgcolor=None, fgcolor=fgcolor)
-        if style_sheet_str is None:
-            style_sheet_str = ''
-        self.setStyleSheet(style_sheet_str)
-    ut.inject_func_as_method(label, setColorFG)
-    return label
-
-
 def getAvailableFonts():
     fontdb = QtGui.QFontDatabase()
     available_fonts = list(map(str, list(fontdb.families())))
@@ -1092,8 +1353,8 @@ def msg_event(title, msg):
     return lambda: guitool_dialogs.msgbox(msg=msg, title=title)
 
 
-class Spoiler(QtGui.QWidget):
-    """
+class Spoiler(WIDGET_BASE):
+    r"""
     References:
         # Adapted from c++ version
         http://stackoverflow.com/questions/32476006/how-to-make-an-expandable-collapsable-section-widget-in-qt
@@ -1111,120 +1372,245 @@ class Spoiler(QtGui.QWidget):
         >>> parent = None
         >>> widget1 = GuitoolWidget(parent)
         >>> widget1.addWidget(gt.newButton(
-        >>>     widget1, 'Print Hi', lambda: print('hi')))
-        >>> widget2 = GuitoolWidget(parent)
-        >>> spoiler = widget1.addNewSpoiler(title='spoiler title')
-        >>> widget2.addWidget(gt.newButton(
-        >>>     widget2, 'Popup Hi', lambda: gt.user_info(widget2, 'hi')))
-        >>> spoiler.setContentLayout(widget2.layout())
-        >>> self = spoiler
+        >>>      widget1, 'Print Hi', lambda: print('hi')))
+        >>> #widget2 = GuitoolWidget(parent)
+        >>> #widget2.addWidget(gt.newButton(
+        >>> #    widget2, 'Popup Hi', lambda: gt.user_info(widget2, 'hi')))
+        >>> spoiler = Spoiler(title='spoiler title')
+        >>> widget1._guitool_layout.addWidget(spoiler)
+        >>> #top = widget1.addNewFrame()
+        >>> #top._guitool_layout.addWidget(spoiler)
+        >>> detailed_msg = 'Foo\nbar'
+        >>> child_widget = QtGui.QTextEdit()
+        >>> #child_widget.setWordWrap(True)
+        >>> #child_widget = QtGui.QPushButton()
+        >>> child_widget.setObjectName('child_widget')
+        >>> child_widget.setText(ut.lorium_ipsum() * 10)
+        >>> #vbox = QtGui.QVBoxLayout()
+        >>> #vbox.setContentsMargins(0, 0, 0, 0)
+        >>> #vbox.addWidget(child_widget)
+        >>> #child_widget.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Ignored,
+        >>> #                                         QtGui.QSizePolicy.Ignored))
+        >>> # spoiler = widget1.addNewSpoiler(title='spoiler title')
+        >>> #contentLayout = widget2.layout()
+        >>> spoiler.setContentLayout(child_widget)
+        >>> print_widget_heirarchy(widget1)
+        >>> #widget1.setStyleSheet("background-color: rgb(255,0,0); margin:5px; border:1px solid rgb(0, 255, 0); ")
+        >>> widget1.layout().setAlignment(Qt.AlignBottom)
         >>> widget1.show()
-        >>> widget1.resize(int(ut.PHI * 500), 500)
+        >>> #widget1.resize(int(ut.PHI * 500), 500)
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=widget1, freq=10)
-
-    #Example:
-    #    >>> from guitool.guitool_components import *  # NOQA
-    #    >>> # build test data
-    #    >>> import guitool
-    #    >>> import guitool as gt
-    #    >>> guitool.ensure_qtapp()
-    #    >>> #ut.exec_funckw(newWidget, globals())
-    #    >>> parent = None
-    #    >>> widget1 = GuitoolWidget(parent)
-    #    >>> widget1.addWidget(gt.newButton(
-    #    >>>     widget1, 'Print Hi', lambda: print('hi')))
-    #    >>> widget2 = GuitoolWidget(parent)
-    #    >>> spoiler = Spoiler(widget1, title='spoiler title')
-    #    >>> widget1.addWidget(spoiler)
-    #    >>> widget2.addWidget(gt.newButton(
-    #    >>>     widget2, 'Popup Hi', lambda: gt.user_info(widget2, 'hi')))
-    #    >>> spoiler.setContentLayout(widget2.layout())
-    #    >>> self = spoiler
-    #    >>> widget1.show()
-    #    >>> widget1.resize(int(ut.PHI * 500), 500)
-    #    >>> ut.quit_if_noshow()
-    #    >>> gt.qtapp_loop(qwin=widget1, freq=10)
     """
+    toggle_finished = QtCore.pyqtSignal(bool)
 
-    def __init__(self, parent=None, title='', animationDuration=300):
+    def __init__(self, parent=None, title='', animationDuration=300, checked=False, contentWidget=None):
         super(Spoiler, self).__init__(parent=parent)
 
-        self.animationDuration = 150
-        self.toggleAnimation = QtCore.QParallelAnimationGroup()
-        self.contentArea = QtGui.QScrollArea()
-        self.headerLine = QtGui.QFrame()
-        self.toggleButton = QtGui.QToolButton()
-        self.mainLayout = QtGui.QGridLayout()
+        # Maps checked states to arrows and animation directions
+        self._arrow_states = {
+            False: QtCore.Qt.RightArrow,
+            True: QtCore.Qt.DownArrow,
+        }
+        self._animation_state = {
+            False: QtCore.QAbstractAnimation.Backward,
+            True: QtCore.QAbstractAnimation.Forward,
+        }
+        self.change_policy = False
+        #:
+        self._header_size_policy_states = {
+            #False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed),
+            #False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Maximum),
+            False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum),
+            True: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding),
+        }
+        self._self_size_policy = {
+            #False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed),
+            #False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Maximum),
+            False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum),
+            True: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding),
+        }
+        self._scroll_size_policy_states = {
+            #False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed),
+            False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding),
+            #False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding),
+            True: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding),
+        }
+        if not self.change_policy:
+            del self._header_size_policy_states[True]
+            del self._scroll_size_policy_states[True]
+            del self._scroll_size_policy_states[False]
+        self.checked = checked
 
+        self.animationDuration = 150
+        #150
+
+        self.toggleButton = QtGui.QToolButton()
         toggleButton = self.toggleButton
-        toggleButton.setStyleSheet("QToolButton { border: none; }")
+        toggleButton.setStyleSheet('QToolButton { border: none; }')
         toggleButton.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        toggleButton.setArrowType(QtCore.Qt.RightArrow)
         toggleButton.setText(str(title))
         toggleButton.setCheckable(True)
-        toggleButton.setChecked(False)
+        toggleButton.setArrowType(self._arrow_states[self.checked])
+        toggleButton.setChecked(self.checked)
+        toggleButton.clicked.connect(self.toggle_spoiler)
 
-        headerLine = self.headerLine
-        headerLine.setFrameShape(QtGui.QFrame.HLine)
-        headerLine.setFrameShadow(QtGui.QFrame.Sunken)
-        headerLine.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Maximum)
+        self.headerLine = QtGui.QFrame()
+        self.headerLine.setFrameShape(QtGui.QFrame.HLine)
+        self.headerLine.setFrameShadow(QtGui.QFrame.Sunken)
+        if self.change_policy:
+            self.headerLine.setSizePolicy(self._header_size_policy_states[self.checked])
+        else:
+            self.headerLine.setSizePolicy(self._header_size_policy_states[False])
 
-        #self.contentArea.setStyleSheet("QScrollArea { background-color: white; border: none; }")
-        self.contentArea.setStyleSheet("QScrollArea { border: none; }")
-        #self.contentArea.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
-        self.contentArea.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        #self.contentArea.setWidgetResizable(True)
-        # start out collapsed
-        self.contentArea.setMaximumHeight(0)
-        self.contentArea.setMinimumHeight(0)
+        if False:
+            if contentWidget is None:
+                self.contentWidget = QtGui.QScrollArea()
+                self.contentWidget.setStyleSheet('QScrollArea { background-color: white; border: none; }')
+                if self.change_policy:
+                    self.contentWidget.setSizePolicy(self._scroll_size_policy_states[self.checked])
+                else:
+                    self.contentWidget.setSizePolicy(self._scroll_size_policy_states[False])
+                self.contentWidget.setStyleSheet('QScrollArea { border: none; }')
+
+                # start out collapsed
+                self.contentWidget.setMaximumHeight(0)
+                self.contentWidget.setMinimumHeight(0)
+                self.contentWidget.setWidgetResizable(True)
+            else:
+                self.contentWidget = contentWidget
+        else:
+            self.contentWidget = None
+
         # let the entire widget grow and shrink with its content
-        self.toggleAnimation.addAnimation(QtCore.QPropertyAnimation(self, "minimumHeight"))
-        self.toggleAnimation.addAnimation(QtCore.QPropertyAnimation(self, "maximumHeight"))
-        self.toggleAnimation.addAnimation(QtCore.QPropertyAnimation(self.contentArea, "maximumHeight"))
+        # The animation forces the minimum and maximum height to be equal
+        # By having the minimum and maximum height simultaniously
+        self.toggleAnimation = QtCore.QParallelAnimationGroup()
+        self.spoiler_animations = [
+            QtCore.QPropertyAnimation(self, 'minimumHeight'),
+            QtCore.QPropertyAnimation(self, 'maximumHeight'),
+        ]
+        self.content_animations = [
+            #QtCore.QPropertyAnimation(self.contentWidget, 'maximumHeight')
+        ]
+        for animation in self.spoiler_animations + self.content_animations:
+            self.toggleAnimation.addAnimation(animation)
+        #self.toggle_finished = self.toggleAnimation.finished
+
         # don't waste space
+        self.mainLayout = QtGui.QGridLayout()
+        #self.mainLayout = QtGui.QVBoxLayout()
         mainLayout = self.mainLayout
         mainLayout.setVerticalSpacing(0)
         mainLayout.setContentsMargins(0, 0, 0, 0)
-        row = 0
-        mainLayout.addWidget(self.toggleButton, row, 0, 1, 1, QtCore.Qt.AlignLeft)
-        row += 1
-        mainLayout.addWidget(self.headerLine, row, 2, 1, 1)
-        mainLayout.addWidget(self.contentArea, row, 0, 1, 3)
+        #mainLayout.addWidget(self.toggleButton, alignment=QtCore.Qt.AlignLeft)
+        #mainLayout.addWidget(self.contentWidget)
+        mainLayout.addWidget(self.toggleButton, 0, 0, 1, 1, QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+        #mainLayout.addWidget(self.headerLine, 1, 2, 1, 1)
+        #mainLayout.addWidget(self.contentWidget, 1, 0, 1, 3)
         self.setLayout(self.mainLayout)
 
-        def toggle_spoiler(checked):
-            arrow_type = QtCore.Qt.DownArrow if checked else QtCore.Qt.RightArrow
-            direction = QtCore.QAbstractAnimation.Forward if checked else QtCore.QAbstractAnimation.Backward
-            toggleButton.setArrowType(arrow_type)
-            self.toggleAnimation.setDirection(direction)
-            self.toggleAnimation.start()
-            print('parent = %r' % (parent,))
-            #self.toggled.emit()
-            #if parent is not None:
-            #    parent.adjustSize()
+        self.setMaximumHeight(16777215)
+        self.setMinimumHeight(0)
 
-        self.toggle_finished = self.toggleAnimation.finished
-        self.toggleButton.clicked.connect(toggle_spoiler)
+        self.toggleAnimation.finished.connect(self.finalize_animation)
+        self.setSizePolicy(self._self_size_policy[self.checked])
+
+        if DEBUG_WIDGET:
+            # debug code
+            self.setStyleSheet("background-color: rgb(255,0,0); margin:5px; border:1px solid rgb(0, 255, 0); ")
+
+    def finalize_animation(self):
+        if self.checked:
+            self.contentWidget.setMaximumHeight(16777215)
+            self.contentWidget.setMinimumHeight(0)
+            self.setMaximumHeight(16777215)
+            self.setMinimumHeight(0)
+        else:
+            self.contentWidget.setMaximumHeight(0)
+            self.contentWidget.setMinimumHeight(0)
+            #self.setMaximumHeight(0)
+        self.toggle_finished.emit(self.checked)
+
+    def toggle_spoiler(self, checked):
+        self.checked = checked
+        self.toggleButton.setArrowType(self._arrow_states[self.checked])
+        self.toggleAnimation.setDirection(self._animation_state[self.checked])
+
+        self.setSizePolicy(self._self_size_policy[self.checked])
+
+        if self.change_policy:
+            self.headerLine.setSizePolicy(self._header_size_policy_states[self.checked])
+            self.contentWidget.setSizePolicy(self._scroll_size_policy_states[self.checked])
+        self.toggleAnimation.start()
 
     def setContentLayout(self, contentLayout):
-        # Not sure if this is equivalent to self.contentArea.destroy()
-        self.contentArea.destroy()
-        self.contentArea.setLayout(contentLayout)
+        # Not sure if this is equivalent to self.contentWidget.destroy()
+        #self.contentWidget.destroy()
+        try:
+            self.contentWidget.setLayout(contentLayout)
+        except Exception:
+            #import utool
+            #utool.embed()
+            # HACKY
+            contentWidgetNew = contentLayout
+            contentWidgetOld = self.contentWidget
+            #self.contentWidget.setWidget(contentWidget)
 
-        # Find collapsed height
-        collapsedHeight = self.sizeHint().height() - self.contentArea.maximumHeight()
-        contentHeight = contentLayout.sizeHint().height()
+            if contentWidgetOld is not None:
+                # Replace existing scrollbar with something else
+                self.mainLayout.removeWidget(contentWidgetOld)
+                for animation in self.content_animations:
+                    self.toggleAnimation.removeAnimation(animation)
 
-        for i in range(self.toggleAnimation.animationCount()):
-            spoilerAnimation = self.toggleAnimation.animationAt(i)
+            self.contentWidget = contentWidgetNew
+            self.content_animations = [
+                QtCore.QPropertyAnimation(self.contentWidget, 'maximumHeight')
+            ]
+            for animation in self.content_animations:
+                self.toggleAnimation.addAnimation(animation)
+
+            self.contentWidget.setMaximumHeight(0)
+            self.contentWidget.setMinimumHeight(0)
+
+            self.mainLayout.addWidget(self.contentWidget, 1, 0, 1, 3)
+            #if False:
+            #    if self.change_policy:
+            #        self.contentWidget.setSizePolicy(self._scroll_size_policy_states[self.checked])
+            #    else:
+            #        self.contentWidget.setSizePolicy(self._scroll_size_policy_states[False])
+
+        # Find content height
+        collapsedConentHeight = 0
+        expandedContentHeight = contentLayout.sizeHint().height()
+
+        # Container height
+        collapsedSpoilerHeight = self.sizeHint().height() - self.contentWidget.maximumHeight()
+        expandedSpoilerHeight = collapsedSpoilerHeight + expandedContentHeight
+
+        contentStart = collapsedConentHeight
+        contentEnd = expandedContentHeight
+
+        spoilerStart = collapsedSpoilerHeight
+        spoilerEnd = expandedSpoilerHeight
+
+        if self.checked:
+            # Start expanded
+            spoilerStart, spoilerEnd = spoilerEnd, spoilerStart
+            contentStart, contentEnd = contentEnd, contentStart
+            self.contentWidget.setMinimumHeight(contentStart)
+        self.spoilerStart = spoilerStart
+        self.spoilerEnd = spoilerEnd
+
+        for spoilerAnimation in self.spoiler_animations:
             spoilerAnimation.setDuration(self.animationDuration)
-            spoilerAnimation.setStartValue(collapsedHeight)
-            spoilerAnimation.setEndValue(collapsedHeight + contentHeight)
-        contentAnimation = self.toggleAnimation.animationAt(self.toggleAnimation.animationCount() - 1)
-        contentAnimation.setDuration(self.animationDuration)
-        contentAnimation.setStartValue(0)
-        contentAnimation.setEndValue(contentHeight)
+            spoilerAnimation.setStartValue(spoilerStart)
+            spoilerAnimation.setEndValue(spoilerEnd)
+
+        for contentAnimation in self.content_animations:
+            contentAnimation.setDuration(self.animationDuration)
+            contentAnimation.setStartValue(contentStart)
+            contentAnimation.setEndValue(contentEnd)
 
 
 if __name__ == '__main__':

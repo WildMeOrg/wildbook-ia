@@ -1,31 +1,24 @@
 # -*- coding: utf-8 -*-
+"""
+
+python -m guitool.guitool_components ConfigConfirmWidget --show
+python -m guitool.PrefWidget2 newConfigWidget --show --verbconf
+
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import six  # NOQA
 import traceback
-from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtCore, QtGui  # NOQA
 from guitool.__PYQT__ import QVariantHack
 from guitool.__PYQT__.QtCore import Qt, QAbstractItemModel, QModelIndex, QObject
 from guitool.__PYQT__.QtGui import QWidget
+from guitool.__PYQT__ import _fromUtf8, _encoding, _translate  # NOQA
 from guitool import qtype
 import utool as ut
 ut.noinject(__name__, '[PrefWidget2]', DEBUG=False)
 
 VERBOSE_CONFIG = ut.VERBOSE or ut.get_argflag('--verbconf')
-
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
-try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
 
 
 def report_thread_error(fn):
@@ -49,7 +42,9 @@ def qindexstr(index):
     return 'QIndex(%r, %r)' % (index.row(), index.column())
 
 
-class ConfigValueDelegate(QtGui.QItemDelegate):
+#class ConfigValueDelegate(QtGui.QItemDelegate):
+class ConfigValueDelegate(QtGui.QStyledItemDelegate):
+
     """
     A delegate that decides what the editor should be for each row in a
     specific column
@@ -62,6 +57,11 @@ class ConfigValueDelegate(QtGui.QItemDelegate):
         http://stackoverflow.com/questions/28037126/how-to-use-qcombobox-as-delegate-with-qtableview
         http://www.qtcentre.org/threads/41409-PyQt-QTableView-with-comboBox
         http://stackoverflow.com/questions/28680150/qtableview-data-in-background--cell-is-edited
+        https://forum.qt.io/topic/46628/qtreeview-with-qitemdelegate-and-qcombobox-inside-not-work-propertly/5
+        http://stackoverflow.com/questions/33990029/what-are-the-mechanics-of-the-default-delegate-for-item-views-in-qt
+        #http://www.qtcentre.org/archive/index.php/t-64165.html
+        #http://doc.qt.io/qt-4.8/style-reference.html
+
     """
     def __init__(self, parent):
         super(ConfigValueDelegate, self).__init__(parent)
@@ -70,64 +70,119 @@ class ConfigValueDelegate(QtGui.QItemDelegate):
         # Get Item Data
         # value = index.data(QtCore.Qt.DisplayRole).toInt()[0]
         leafNode = index.internalPointer()
-        if VERBOSE_CONFIG and False:
+        if (VERBOSE_CONFIG and False):
             print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
         if leafNode.is_combo:
+            #print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
+            #painter.save()
             curent_value = six.text_type(index.model().data(index))
             # fill style options with item data
-            style = QtGui.QApplication.style()
+            app = QtCore.QCoreApplication.instance()
+            #print('app = %r' % (app,))
+            #print('style = %r' % (style,))
+            style = app.style()
+            #style = QtGui.QApplication.style()
             opt = QtGui.QStyleOptionComboBox()
-            #optdict = {key: getattr(opt, key) for key in dir(opt)}
-            #import utool
-            #utool.embed()
-            #print(dir(opt))
-            #print('opt = %s' % (ut.repr3(optdict),))
             opt.currentText = curent_value
             opt.rect = option.rect
+            #opt.rect.setWidth(400)
+            #print('opt.rect = %r' % (opt.rect,))
             opt.editable = False
 
-            #style.State                      style.StateFlag                  style.State_NoChange             style.State_Sibling
-            #style.State_Active               style.State_FocusAtBorder        style.State_None                 style.State_Small
-            #style.State_AutoRaise            style.State_HasFocus             style.State_Off                  style.State_Sunken
-            #style.State_Bottom               style.State_Horizontal           style.State_On                   style.State_Top
-            #style.State_Children             style.State_Item                 style.State_Open                 style.State_UpArrow
-            #style.State_DownArrow            style.State_KeyboardFocusChange  style.State_Raised               style.State_Window
-            #style.State_Editing              style.State_Mini                 style.State_ReadOnly
-            #style.State_Enabled              style.State_MouseOver            style.State_Selected
+            #style.State style.StateFlag style.State_NoChange style.State_Sibling
+            #style.State_Active style.State_FocusAtBorder style.State_None
+            #style.State_Small style.State_AutoRaise style.State_HasFocus
+            #style.State_Off style.State_Sunken style.State_Bottom
+            #style.State_Horizontal style.State_On style.State_Top
+            #style.State_Children style.State_Item style.State_Open
+            #style.State_UpArrow style.State_DownArrow
+            #style.State_KeyboardFocusChange style.State_Raised style.State_Window
+            #style.State_Editing style.State_Mini style.State_ReadOnly
+            #style.State_Enabled style.State_MouseOver style.State_Selected
 
             #opt.state |= style.State_Raised
+            #opt.state |= style.State_UpArrow
             #opt.state |= style.State_AutoRaise
             #opt.state |= style.State_Active
             #opt.state |= style.State_Editing
+            #opt.state |= style.State_Enabled
+            #opt.state |= style.State_On
+            #opt.state |= style.State_Open
+            #opt.state |= style.State_HasFocus
+            #opt.state |= style.State_FocusAtBorder
+            #opt.state |= style.State_Selected
+
+            #painter.drawText(option.rect, Qt.AlignLeft, "FOOBAR")
+            #print('opt.state = %r' % (opt.state,))
 
             if leafNode.qt_is_editable():
+                opt.state |= style.State_On
                 opt.state |= style.State_Enabled
-            #'activeSubControls': <PyQt4.QtGui.SubControls object at 0x7fb195966578>,
+                opt.state = style.State_Enabled | style.State_Active
+            #else:
+                #opt.state = style.State_Enabled | style.State_Active
+
+            #self.initStyleOption(opt)
+
             #'currentIcon': <PyQt4.QtGui.QIcon object at 0x7fb19681b8a0>,
             #'currentText': '',
             #'direction': 0,
             #'editable': False,
-            #'fontMetrics': <PyQt4.QtGui.QFontMetrics object at 0x7fb1959665f0>,
             #'frame': True,
             #'iconSize': PyQt4.QtCore.QSize(-1, -1),
-            #'init': <built-in method init of QStyleOptionComboBox object at 0x7fb195966230>,
-            #'initFrom': <built-in method initFrom of QStyleOptionComboBox object at 0x7fb195966230>,
             #'palette': <PyQt4.QtGui.QPalette object at 0x7fb1959666e0>,
             #'popupRect': PyQt4.QtCore.QRect(),
             #'rect': PyQt4.QtCore.QRect(),
             #'state': <PyQt4.QtGui.State object at 0x7fb195966848>,
+            #'activeSubControls': <PyQt4.QtGui.SubControls object at 0x7fb195966578>,
             #'subControls': <PyQt4.QtGui.SubControls object at 0x7fb1959668c0>,
-            #'type': 983044,
-            #'version': 1,
+
+            opt.subControls = QtGui.QStyle.SC_All
+            #print('QtGui.QStyle.SC_All = %r' % (QtGui.QStyle.SC_All,))
+            #print('opt.subControls = %r' % (opt.subControls,))
+
             # draw item data as ComboBox
             #element = QtGui.QStyle.CE_ItemViewItem
             element = QtGui.QStyle.CE_ComboBoxLabel
             control = QtGui.QStyle.CC_ComboBox
 
-            style.drawComplexControl(control, opt, painter)
+            #QtGui.QStyle.SC_ComboBoxArrow
+            #QtGui.QStyle.SC_ComboBoxEditField
+            #QtGui.QStyle.SC_ComboBoxFrame
+            #QtGui.QStyle.SC_ComboBoxListBoxPopup
+
+            #style.drawPrimitive(QtGui.QStyle.PE_PanelButtonBevel, opt, painter)
+            # Do I need to draw sub controls?
             style.drawControl(element, opt, painter)
+            style.drawComplexControl(control, opt, painter)
+            #self.drawDisplay(painter, opt, opt.rect, opt.currentText)
+            #self.drawFocus(painter, opt, opt.rect)
+            #QtGui.QItemDelegate
+            #painter.restore()
+            #return super(ConfigValueDelegate, self).paint(painter, option, index)
+        #elif leafNode is not None and leafNode.type_ is int:
+        #    curent_value = six.text_type(index.model().data(index))
+        #    # fill style options with item data
+        #    style = QtGui.QApplication.style()
+        #    opt = QtGui.QStyleOptionSpinBox()
+        #    opt.currentText = curent_value
+        #    opt.rect = option.rect
+        #    #opt.editable = False
+        #    if leafNode.qt_is_editable():
+        #        opt.state |= style.State_Enabled
+        #    element = QtGui.QStyle.CE_ItemViewItem
+        #    control = QtGui.QStyle.CC_SpinBox
+        #    style.drawControl(element, opt, painter)
+        #    style.drawComplexControl(control, opt, painter)
         else:
             return super(ConfigValueDelegate, self).paint(painter, option, index)
+
+    #def sizeHint(self, option, index):
+    #    size_hint = super(ConfigValueDelegate, self).sizeHint(option, index)
+    #    print('size_hint = %r' % (size_hint,))
+    #    size_hint = QtCore.QSize(50, 21)
+    #    print('size_hint = %r' % (size_hint,))
+    #    return size_hint
 
     def createEditor(self, parent, option, index):
         """
@@ -209,7 +264,10 @@ class ConfigValueDelegate(QtGui.QItemDelegate):
         self.commitData.emit(self.sender())
 
     def updateEditorGeometry(self, editor, option, index):
+        if VERBOSE_CONFIG:
+            print('[DELEGATE] updateEditorGeometry at %s' % (qindexstr(index)))
         editor.setGeometry(option.rect)
+        #return super(ConfigValueDelegate, self).updateEditorGeometry(editor, option, index)
 
     #def editorChanged(self, index):
     #    check = self.editor.itemText(index)
@@ -563,23 +621,35 @@ class EditConfigWidget(QWidget):
         self.init_mvc()
 
     def init_layout(self):
-        import guitool
-        #self.resize(668, 530)
-        #horizontalSizePolicy=QSizePolicy.Preferred,
-        #verticalSizePolicy=QSizePolicy.MinimumExpanding)
+        import guitool as gt
         self.vbox = QtGui.QVBoxLayout(self)
         self.tree_view = QtGui.QTreeView(self)
         self.delegate = ConfigValueDelegate(self.tree_view)
         self.tree_view.setItemDelegateForColumn(1, self.delegate)
         self.vbox.addWidget(self.tree_view)
+
         self.hbox = QtGui.QHBoxLayout()
-        self.default_but = guitool.newButton(self, 'Defaults', clicked=self.default_config)
+        self.default_but = gt.newButton(self, 'Defaults', clicked=self.default_config)
+        self.default_but.setStyleSheet('QToolButton { border: none; }')
         self.hbox.addWidget(self.default_but)
+
         if not self.user_mode:
-            self.print_internals = guitool.newButton(self, 'Print Internals', clicked=self.print_internals)
+            self.print_internals = gt.newButton(self, 'Print Internals',
+                                                clicked=self.print_internals)
             self.hbox.addWidget(self.print_internals)
         self.vbox.addLayout(self.hbox)
         self.setWindowTitle(_translate('self', 'Edit Config Widget', None))
+        #self.tree_view.setSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        #self.tree_view.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.Preferred)
+        #self.tree_view.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
+        #                             QtGui.QSizePolicy.MinimumExpanding)
+        # FIXME: http://doc.qt.io/qt-5/qsizepolicy.html
+        #self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.Preferred)
+        #self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
+        #                   QtGui.QSizePolicy.MinimumExpanding)
+        if 0 or False:
+            # debug code
+            self.setStyleSheet("background-color: rgb(255,0,0); margin:5px; border:1px solid rgb(0, 255, 0); ")
 
     def init_mvc(self):
         import operator
@@ -592,19 +662,39 @@ class EditConfigWidget(QWidget):
         ])
         self.tree_view.setEditTriggers(edit_triggers)
         self.tree_view.setModel(self.config_model)
-        self.tree_view.header().resizeSection(0, 250)
+        view_header = self.tree_view.header()
+        #import utool
+        #utool.embed()
+        #view_header.setDefaultSectionSize(250)
+        #self.tree_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.tree_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        #view_header.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
+        #                          QtGui.QSizePolicy.MinimumExpanding)
+        #view_header.setSizePolicy(QtGui.QSizePolicy.Preferred,
+        #                          QtGui.QSizePolicy.Preferred)
+        self.tree_view.resizeColumnToContents(0)
+        self.tree_view.resizeColumnToContents(1)
+        #self.tree_view.setAnimated(True)
+        #view_header.setStretchLastSection(True)
+        view_header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        #view_header.setResizeMode(QtGui.QHeaderView.Interactive)
+        #import utool
+        #utool.embed()
+        #self.tree_view.header().resizeSection(0, 250)
+        #setDefaultSectionSize(
 
         # from guitool import api_item_view
         # api_item_view.set_column_persistant_editor(self.tree_view, 1)
         # # Persistant editors
-        # num_rows = 4  # self.tree_view.model.rowCount()
-        # print('view.set_persistant: %r rows' % num_rows)
-        # view = self.tree_view
-        # model = self.config_model
-        # column = 1
-        # for row in range(num_rows):
-        #     index  = model.index(row, column)
-        #     view.openPersistentEditor(index)
+        #num_rows = 4  # self.tree_view.model.rowCount()
+        #print('view.set_persistant: %r rows' % num_rows)
+        if False:
+            view = self.tree_view
+            model = self.config_model
+            column = 1
+            for row in range(model.rowCount()):
+                index  = model.index(row, column)
+                view.openPersistentEditor(index)
 
     def default_config(self):
         print('Defaulting')

@@ -49,7 +49,7 @@ def simple_api_item_widget():
     col_setter_dict = {}
     editable_colnames = []
     sortby = 'col1'
-    get_thumb_size = lambda: 128
+    get_thumb_size = lambda: 128  # HACK
     col_width_dict = {}
     col_bgrole_dict = {}
 
