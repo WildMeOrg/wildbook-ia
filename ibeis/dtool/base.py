@@ -18,6 +18,16 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         cfg._parent = None
         cfg.initialize_params(**kwargs)
 
+    def deepcopy(cfg):
+        cfg2 = copy.deepcopy(cfg)
+        cfg2._subconfig_attrs = copy.deepcopy(cfg._subconfig_attrs)
+        cfg2._subconfig_names = copy.deepcopy(cfg._subconfig_names)
+        try:
+            cfg2._param_info_list = copy.deepcopy(cfg._param_info_list)
+        except AttributeError:
+            pass
+        return cfg2
+
     def __nice__(cfg):
         return cfg.get_cfgstr(with_name=False)
 
@@ -66,6 +76,7 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
 
     def initialize_params(cfg, **kwargs):
         """ Initializes config class attributes based on params info list """
+        #print("INIT PARAMS")
         for pi in cfg.get_param_info_list():
             setattr(cfg, pi.varname, pi.default)
 
@@ -91,7 +102,7 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         if hasattr(cfg, '_sub_config_list'):
             return cfg._sub_config_list
         else:
-            return None
+            return []
 
     def parse_namespace_config_items(cfg):
         """
@@ -295,9 +306,26 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         """
         if tablename is None:
             tablename = 'Unknown'
-        param_info_list = [
-            ut.ParamInfo(key, val) if val is None else ut.ParamInfo(key, val, type_=type(val))
-            for key, val in dict_.items()]
+
+        def rectify_item(key, val):
+            if val is None:
+                return ut.ParamInfo(key, val)
+            elif isinstance(val, ut.ParamInfo):
+                if val.varname is None:
+                    # Copy and assign a new varname
+                    pi = copy.deepcopy(val)
+                    pi.varname = key
+                else:
+                    pi = val
+                    assert pi.varname == key, (
+                        'Given varname=%r does not match key=%r' % (pi.varname, key))
+                return pi
+            else:
+                return ut.ParamInfo(key, val, type_=type(val))
+
+        param_info_list = [rectify_item(key, val) for key, val in dict_.items()]
+        #ut.ParamInfo(key, val) if val is None else ut.ParamInfo(key, val, type_=type(val))
+        #for key, val in dict_.items()]
         class UnnamedConfig(cls):
             def get_param_info_list(cfg):
                 #print('default_cfgdict = %r' % (default_cfgdict,))

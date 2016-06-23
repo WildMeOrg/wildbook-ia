@@ -1260,7 +1260,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         for tablename2, configclass in depc.configclass_dict.items():
             cfg = configclass()
             subconfigs = cfg.get_sub_config_list()
-            if subconfigs is not None:
+            if subconfigs is not None and len(subconfigs) > 0:
                 tablename1_list = ut.dict_take(_inverted_ccdict, subconfigs, None)
                 for tablename1 in ut.filter_Nones(tablename1_list):
                     implicit_edges.append((tablename1, tablename2))
