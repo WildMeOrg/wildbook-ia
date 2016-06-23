@@ -547,7 +547,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         ibswgt.reviewed_button = _NEWBUT(
             '6) Complete',
-            ibswgt.back.imageset_reviewed_all_images,
+            ibswgt.back.commit_to_wb_step,
             bgcolor=color_funcs.adjust_hsv_of_rgb255((0, 232, 211), 0., -.9, 0.),
             fontkw=primary_fontkw,
             enabled=enable_complete)

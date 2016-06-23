@@ -537,9 +537,6 @@ def setup_depricated_menu(mainwin, back):
         text='Developer Reload',
         shortcut='Ctrl+Shift+R',
         slot_fn=back.dev_reload)
-    menu.newAction(
-        text='Reviewed All Occurrence Images',
-        slot_fn=back.imageset_reviewed_all_images)
 
 if __name__ == '__main__':
     """
