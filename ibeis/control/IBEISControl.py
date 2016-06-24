@@ -723,7 +723,7 @@ class IBEISController(BASE_CLASS):
     # --- DIRS ----
     #--------------
 
-    @register_api('/api/core/dbname/', methods=['GET'])
+    @register_api('/api/core/db/name/', methods=['GET'])
     def get_dbname(ibs):
         """
         Returns:
@@ -731,7 +731,7 @@ class IBEISController(BASE_CLASS):
 
         RESTful:
             Method: GET
-            URL:    /api/core/dbname/
+            URL:    /api/core/db/name/
         """
         return ibs.dbname
 
@@ -972,7 +972,7 @@ class IBEISController(BASE_CLASS):
         return text
 
     @accessor_decors.default_decorator
-    @register_api('/api/core/dbinfo/', methods=['GET'])
+    @register_api('/api/core/db/info/', methods=['GET'])
     def get_dbinfo(ibs):
         from ibeis.other import dbinfo
         locals_ = dbinfo.get_dbinfo(ibs)

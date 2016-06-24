@@ -26,7 +26,7 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 @register_ibs_method
 @accessor_decors.adder
-@register_api('/api/contributor/', methods=['POST'])
+# @register_api('/api/contributor/', methods=['POST'])
 def add_contributors(ibs, tag_list, uuid_list=None, name_first_list=None, name_last_list=None,
                      loc_city_list=None, loc_state_list=None,
                      loc_country_list=None, loc_zip_list=None,
@@ -107,7 +107,7 @@ def add_version(ibs, versiontext_list):
 
 @register_ibs_method
 @accessor_decors.adder
-@register_api('/api/config/', methods=['POST'])
+# @register_api('/api/config/', methods=['POST'])
 def add_config(ibs, cfgsuffix_list, contrib_rowid_list=None):
     r"""
     Adds an algorithm / actor configuration as a string
@@ -162,14 +162,14 @@ def ensure_config_rowid_from_suffix(ibs, cfgsuffix_list):
 
 #@register_ibs_method
 #@accessor_decors.default_decorator
-#@register_api('/api/query/config_rowid/', methods=['GET'])
+#@register_api('/api/query/config/rowid/', methods=['GET'])
 #def get_query_config_rowid(ibs):
 #    r"""
 #    # FIXME: Configs are still handled poorly
 
 #    RESTful:
 #        Method: GET
-#        URL:    /api/query/config_rowid/
+#        URL:    /api/query/config/rowid/
 #    """
 #    query_cfg_suffix = ibs.cfg.query_cfg.get_cfgstr()
 #    query_cfg_rowid = ibs.add_config(query_cfg_suffix)
@@ -180,7 +180,7 @@ def ensure_config_rowid_from_suffix(ibs, cfgsuffix_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/metadata/value/', methods=['PUT'])
+# @register_api('/api/metadata/value/', methods=['PUT'])
 def set_metadata_value(ibs, metadata_key_list, metadata_value_list, db):
     r"""
     Sets metadata key, value pairs
@@ -207,14 +207,14 @@ def set_database_version(ibs, db, version):
 
 
 @register_ibs_method
-@register_api('/api/config/contributor_rowid/', methods=['PUT'])
+# @register_api('/api/config/contributor/rowid/', methods=['PUT'])
 def set_config_contributor_rowid(ibs, config_rowid_list, contrib_rowid_list):
     r"""
     Sets the config's contributor rowid
 
     RESTful:
         Method: PUT
-        URL:    /api/config/contributor_rowid/
+        URL:    /api/config/contributor/rowid/
     """
     id_iter = ((config_rowid,) for config_rowid in config_rowid_list)
     val_list = ((contrib_rowid,) for contrib_rowid in contrib_rowid_list)
@@ -222,13 +222,13 @@ def set_config_contributor_rowid(ibs, config_rowid_list, contrib_rowid_list):
 
 
 @register_ibs_method
-@register_api('/api/contributor/new_temp/', methods=['POST'])
+# @register_api('/api/contributor/new/temp/', methods=['POST'])
 def add_new_temp_contributor(ibs, user_prompt=False, offset=None, autolocate=False):
     r"""
 
     RESTful:
         Method: POST
-        URL:    /api/contributor/new_temp/
+        URL:    /api/contributor/new/temp/
     """
     name_first = ibs.get_dbname()
     name_last = ut.get_computer_name() + ':' + ut.get_user_name() + ':' + ibs.get_dbdir()
@@ -339,13 +339,13 @@ def ensure_contributor_rowids(ibs, user_prompt=False, autolocate=False):
 
 
 @register_ibs_method
-@register_api('/api/contributor/all_uncontributed_images/', methods=['GET'])
+# @register_api('/api/contributor/gids/uncontributed/', methods=['GET'])
 def get_all_uncontributed_images(ibs):
     r"""
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/all_uncontributed_images/
+        URL:    /api/contributor/gids/uncontributed/
     """
     gid_list = ibs.get_valid_gids()
     contrib_rowid_list = ibs.get_image_contributor_rowid(gid_list)
@@ -362,13 +362,13 @@ def get_all_uncontributed_images(ibs):
 
 
 @register_ibs_method
-@register_api('/api/contributor/all_uncontributed_configs/', methods=['GET'])
+# @register_api('/api/contributor/configs/uncontributed/', methods=['GET'])
 def get_all_uncontributed_configs(ibs):
     r"""
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/all_uncontributed_configs/
+        URL:    /api/contributor/configs/uncontributed/
     """
     config_rowid_list = ibs.get_valid_configids()
     contrib_rowid_list = ibs.get_config_contributor_rowid(config_rowid_list)
@@ -383,13 +383,13 @@ def get_all_uncontributed_configs(ibs):
 
 
 @register_ibs_method
-@register_api('/api/config/contributor_unassigned/', methods=['PUT'])
+# @register_api('/api/config/contributor/unassigned/', methods=['PUT'])
 def set_config_contributor_unassigned(ibs, contrib_rowid):
     r"""
 
     RESTful:
         Method: PUT
-        URL:    /api/config/contributor_unassigned/
+        URL:    /api/config/contributor/unassigned/
     """
     # IS THIS NECESSARY?
     unassigned_config_rowid_list = ibs.get_all_uncontributed_configs()
@@ -422,7 +422,7 @@ def ensure_imageset_configs_populated(ibs):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/rowid_from_uuid/', methods=['GET'])
+# @register_api('/api/contributor/rowid/uuid/', methods=['GET'])
 def get_contributor_rowid_from_uuid(ibs, uuid_list):
     r"""
     Returns:
@@ -430,7 +430,7 @@ def get_contributor_rowid_from_uuid(ibs, uuid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/rowid_from_uuid/
+        URL:    /api/contributor/rowid/uuid/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
     contrib_rowid_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_rowid',), uuid_list, id_colname='contributor_uuid')
@@ -439,7 +439,7 @@ def get_contributor_rowid_from_uuid(ibs, uuid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/rowid_from_tag/', methods=['GET'])
+# @register_api('/api/contributor/rowid/tag/', methods=['GET'])
 def get_contributor_rowid_from_tag(ibs, tag_list):
     r"""
     Returns:
@@ -447,7 +447,7 @@ def get_contributor_rowid_from_tag(ibs, tag_list):
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/rowid_from_tag/
+        URL:    /api/contributor/rowid/tag/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
     contrib_rowid_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_rowid',), tag_list, id_colname='contributor_tag')
@@ -456,7 +456,7 @@ def get_contributor_rowid_from_tag(ibs, tag_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/uuid/', methods=['GET'])
+# @register_api('/api/contributor/uuid/', methods=['GET'])
 def get_contributor_uuid(ibs, contrib_rowid_list):
     r"""
     Returns:
@@ -524,7 +524,7 @@ def _get_all_contributor_rowids(ibs):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/tag/', methods=['GET'])
+# @register_api('/api/contributor/tag/', methods=['GET'])
 def get_contributor_tag(ibs, contributor_rowid_list, eager=True, nInput=None):
     r"""
     contributor_tag_list <- contributor.contributor_tag[contributor_rowid_list]
@@ -567,7 +567,7 @@ def get_contributor_tag(ibs, contributor_rowid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/first_name/', methods=['GET'])
+# @register_api('/api/contributor/name/first/', methods=['GET'])
 def get_contributor_first_name(ibs, contrib_rowid_list):
     r"""
     Returns:
@@ -575,7 +575,7 @@ def get_contributor_first_name(ibs, contrib_rowid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/first_name/
+        URL:    /api/contributor/name/first/
     """
     contrib_name_first_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_name_first',), contrib_rowid_list)
     return contrib_name_first_list
@@ -583,7 +583,7 @@ def get_contributor_first_name(ibs, contrib_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/last_name/', methods=['GET'])
+# @register_api('/api/contributor/name/last/', methods=['GET'])
 def get_contributor_last_name(ibs, contrib_rowid_list):
     r"""
     Returns:
@@ -591,7 +591,7 @@ def get_contributor_last_name(ibs, contrib_rowid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/last_name/
+        URL:    /api/contributor/name/last/
     """
     contrib_name_last_list = ibs.db.get(const.CONTRIBUTOR_TABLE, ('contributor_name_last',), contrib_rowid_list)
     return contrib_name_last_list
@@ -599,7 +599,7 @@ def get_contributor_last_name(ibs, contrib_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/name_string/', methods=['GET'])
+# @register_api('/api/contributor/name/string/', methods=['GET'])
 def get_contributor_name_string(ibs, contrib_rowid_list, include_tag=False):
     r"""
     Returns:
@@ -607,7 +607,7 @@ def get_contributor_name_string(ibs, contrib_rowid_list, include_tag=False):
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/name_string/
+        URL:    /api/contributor/name/string/
     """
     first_list = ibs.get_contributor_first_name(contrib_rowid_list)
     last_list = ibs.get_contributor_last_name(contrib_rowid_list)
@@ -630,7 +630,7 @@ def get_contributor_name_string(ibs, contrib_rowid_list, include_tag=False):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/city/', methods=['GET'])
+# @register_api('/api/contributor/city/', methods=['GET'])
 def get_contributor_city(ibs, contrib_rowid_list):
     r"""
     Returns:
@@ -646,7 +646,7 @@ def get_contributor_city(ibs, contrib_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/state/', methods=['GET'])
+# @register_api('/api/contributor/state/', methods=['GET'])
 def get_contributor_state(ibs, contrib_rowid_list):
     r"""
     Returns:
@@ -662,7 +662,7 @@ def get_contributor_state(ibs, contrib_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/country/', methods=['GET'])
+# @register_api('/api/contributor/country/', methods=['GET'])
 def get_contributor_country(ibs, contrib_rowid_list):
     r"""
     Returns:
@@ -678,7 +678,7 @@ def get_contributor_country(ibs, contrib_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/zip/', methods=['GET'])
+# @register_api('/api/contributor/zip/', methods=['GET'])
 def get_contributor_zip(ibs, contrib_rowid_list):
     r"""
     Returns:
@@ -694,7 +694,7 @@ def get_contributor_zip(ibs, contrib_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/location_string/', methods=['GET'])
+# @register_api('/api/contributor/location/string/', methods=['GET'])
 def get_contributor_location_string(ibs, contrib_rowid_list):
     r"""
     Returns:
@@ -702,7 +702,7 @@ def get_contributor_location_string(ibs, contrib_rowid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/location_string/
+        URL:    /api/contributor/location/string/
     """
     city_list = ibs.get_contributor_city(contrib_rowid_list)
     state_list = ibs.get_contributor_state(contrib_rowid_list)
@@ -718,7 +718,7 @@ def get_contributor_location_string(ibs, contrib_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/note/', methods=['GET'])
+# @register_api('/api/contributor/note/', methods=['GET'])
 def get_contributor_note(ibs, contrib_rowid_list):
     r"""
     Returns:
@@ -734,7 +734,7 @@ def get_contributor_note(ibs, contrib_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/config_rowids/', methods=['GET'])
+# @register_api('/api/contributor/config/rowids/', methods=['GET'])
 def get_contributor_config_rowids(ibs, contrib_rowid_list):
     r"""
     Returns:
@@ -742,7 +742,7 @@ def get_contributor_config_rowids(ibs, contrib_rowid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/config_rowids/
+        URL:    /api/contributor/config/rowids/
     """
     config_rowid_list = ibs.db.get(const.CONFIG_TABLE, ('config_rowid',), contrib_rowid_list, id_colname='contributor_rowid', unpack_scalars=False)
     return config_rowid_list
@@ -750,7 +750,7 @@ def get_contributor_config_rowids(ibs, contrib_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/imgsetids/', methods=['GET'])
+# @register_api('/api/contributor/imageset/rowids/', methods=['GET'])
 def get_contributor_imgsetids(ibs, config_rowid_list):
     r"""
     Returns:
@@ -758,7 +758,7 @@ def get_contributor_imgsetids(ibs, config_rowid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/imgsetids/
+        URL:    /api/contributor/imageset/rowids/
     """
     imgsetid_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_rowid',), config_rowid_list, id_colname='config_rowid', unpack_scalars=False)
     return imgsetid_list
@@ -766,7 +766,7 @@ def get_contributor_imgsetids(ibs, config_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/gids/', methods=['GET'])
+# @register_api('/api/contributor/gids/', methods=['GET'])
 def get_contributor_gids(ibs, contrib_rowid_list):
     r"""
     TODO: Template 1_M reverse getter
@@ -788,7 +788,7 @@ def get_contributor_gids(ibs, contrib_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/config_rowid_from_suffix/', methods=['GET'])
+# @register_api('/api/contributor/config/rowid/suffix/', methods=['GET'])
 def get_config_rowid_from_suffix(ibs, cfgsuffix_list):
     r"""
     Gets an algorithm configuration as a string
@@ -797,7 +797,7 @@ def get_config_rowid_from_suffix(ibs, cfgsuffix_list):
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/config_rowid_from_suffix/
+        URL:    /api/contributor/config/rowid/suffix/
 
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -823,7 +823,7 @@ def get_config_rowid_from_suffix(ibs, cfgsuffix_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/config_rowid/', methods=['GET'])
+# @register_api('/api/contributor/config/rowid/', methods=['GET'])
 def get_config_contributor_rowid(ibs, config_rowid_list):
     r"""
     Returns:
@@ -831,7 +831,7 @@ def get_config_contributor_rowid(ibs, config_rowid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/config_rowid/
+        URL:    /api/contributor/config/rowid/
     """
     cfgsuffix_list = ibs.db.get(const.CONFIG_TABLE, ('contributor_rowid',), config_rowid_list)
     return cfgsuffix_list
@@ -839,7 +839,7 @@ def get_config_contributor_rowid(ibs, config_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/config_suffixes/', methods=['GET'])
+# @register_api('/api/contributor/config/suffixes/', methods=['GET'])
 def get_config_suffixes(ibs, config_rowid_list):
     r"""
     Returns:
@@ -847,7 +847,7 @@ def get_config_suffixes(ibs, config_rowid_list):
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/config_suffixes/
+        URL:    /api/contributor/config/suffixes/
     """
     cfgsuffix_list = ibs.db.get(const.CONFIG_TABLE, ('config_suffix',), config_rowid_list)
     return cfgsuffix_list
@@ -855,7 +855,7 @@ def get_config_suffixes(ibs, config_rowid_list):
 
 @register_ibs_method
 @accessor_decors.deleter
-@register_api('/api/contributor/', methods=['DELETE'])
+# @register_api('/api/contributor/', methods=['DELETE'])
 def delete_contributors(ibs, contrib_rowid_list):
     r"""
     deletes contributors from the database and all information associated
@@ -899,7 +899,7 @@ def _get_all_contrib_rowids(ibs):
 
 @register_ibs_method
 @accessor_decors.ider
-@register_api('/api/contributor/valid_rowids/', methods=['GET'])
+# @register_api('/api/contributor/', methods=['GET'])
 def get_valid_contrib_rowids(ibs):
     r"""
     Returns:
@@ -913,7 +913,7 @@ def get_valid_contrib_rowids(ibs):
 
     RESTful:
         Method: GET
-        URL:    /api/contributor/valid_rowids/
+        URL:    /api/contributor/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -930,7 +930,7 @@ def get_valid_contrib_rowids(ibs):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/metadata/value/', methods=['GET'])
+# @register_api('/api/metadata/value/', methods=['GET'])
 def get_metadata_value(ibs, metadata_key_list, db):
     r"""
 
@@ -947,13 +947,13 @@ def get_metadata_value(ibs, metadata_key_list, db):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/metadata/rowid_from_metadata_key/', methods=['GET'])
+# @register_api('/api/metadata/rowid/key/', methods=['GET'])
 def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list, db):
     r"""
 
     RESTful:
         Method: GET
-        URL:    /api/metadata/rowid_from_metadata_key/
+        URL:    /api/metadata/rowid/key/
     """
     db = db[0]  # Unwrap tuple, required by @accessor_decors.getter_1to1 decorator
     params_iter = ((metadata_key,) for metadata_key in metadata_key_list)
@@ -977,7 +977,7 @@ def get_database_version_alias(ibs, db):
 
 @register_ibs_method
 @accessor_decors.ider
-@register_api('/api/core/dbversion/', methods=['GET'])
+@register_api('/api/core/db/version/', methods=['GET'])
 def get_database_version(ibs, db):
     r"""
     Gets the specified database version from the controller
@@ -991,7 +991,7 @@ def get_database_version(ibs, db):
 
 @register_ibs_method
 @accessor_decors.adder
-@register_api('/api/metadata/', methods=['POST'])
+# @register_api('/api/metadata/', methods=['POST'])
 def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
     r"""
     Adds metadata
@@ -1015,7 +1015,7 @@ def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
 
 @register_ibs_method
 @accessor_decors.deleter
-@register_api('/api/config/', methods=['DELETE'])
+# @register_api('/api/config/', methods=['DELETE'])
 def delete_configs(ibs, config_rowid_list):
     r"""
     deletes images from the database that belong to fids
@@ -1181,13 +1181,13 @@ def update_query_cfg(ibs, **kwargs):
 
 @register_ibs_method
 @accessor_decors.ider
-@register_api('/api/config/valid_rowids/', methods=['GET'])
+# @register_api('/api/config/', methods=['GET'])
 def get_valid_configids(ibs):
     r"""
 
     RESTful:
         Method: GET
-        URL:    /api/config/valid_rowids/
+        URL:    /api/config/
     """
     config_rowid_list = ibs.db.get_all_rowids(const.CONFIG_TABLE)
     return config_rowid_list
@@ -1199,10 +1199,6 @@ if __name__ == '__main__':
         python -m ibeis.control.manual_meta_funcs
         python -m ibeis.control.manual_meta_funcs --allexamples
         python -m ibeis.control.manual_meta_funcs --allexamples --noface --nosrc
-
-    RESTful:
-        Method: GET
-        URL:    /api/contributor/query_config_rowid/
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

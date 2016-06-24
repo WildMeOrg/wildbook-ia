@@ -489,6 +489,9 @@ def remote_api_wrapper(func):
     return remote_api_call
 
 
+API_SEEN_SET = set([])
+
+
 def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
     """
     For function calls that resolve to api calls and return json.
@@ -496,11 +499,33 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
     if __name__ == '__main__':
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
-        def register_api(rule, **options):
-            assert rule.endswith('/'), 'An api should always end in a forward-slash'
+        def register_api(rule, __api_plural_check__=True, **options):
+            global API_SEEN_SET
+            assert rule.endswith('/'), 'An API should always end in a forward-slash'
             assert 'methods' in options, 'An api should always have a specified methods list'
-            # if '_' in rule:
-            #     print('CONSIDER RENAMING RULE: %r' % (rule, ))
+            rule_ = rule + ':'.join(options['methods'])
+            assert rule_ not in API_SEEN_SET, 'An API rule has been duplicated'
+            API_SEEN_SET.add(rule_)
+            try:
+                assert 'annotation' not in rule, 'An API rule should use "annot" instead of annotation(s)"'
+                assert 'imgset' not in rule, 'An API should use "imageset" instead of imgset(s)"'
+                assert '_' not in rule, 'An API should never contain an underscore'
+                assert '-' not in rule, 'An API should never contain a hyphen'
+                if __api_plural_check__:
+                    assert 's/' not in rule, 'Use singular (non-plural) URL routes'
+                check_list = [
+                    'annotgroup',
+                    'autogen',
+                    'chip',
+                    'config',
+                    'contributor',
+                    'gar',
+                    'metadata',
+                ]
+                for check in check_list:
+                    assert '/api/%s/' % (check, ) not in rule
+            except:
+                print('CONSIDER RENAMING API RULE: %r' % (rule, ))
 
             # accpet args to flask.route
             def regsiter_closure(func):

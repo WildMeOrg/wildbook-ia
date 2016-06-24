@@ -31,7 +31,7 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 @register_ibs_method
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
-@register_api('/api/detect/random_forest/', methods=['PUT', 'GET'])
+@register_api('/api/detect/randomforest/', methods=['PUT', 'GET'])
 def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
     """
     Runs animal detection in each image. Adds annotations to the database
@@ -50,7 +50,7 @@ def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
 
     RESTful:
         Method: PUT, GET
-        URL:    /api/detect/random_forest/
+        URL:    /api/detect/randomforest/
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -388,7 +388,7 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, **kwargs):
 @register_ibs_method
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
-@register_api('/api/detect/cnn/yolo/exists/', methods=['GET'])
+@register_api('/api/detect/cnn/yolo/exists/', methods=['GET'], __api_plural_check__=False)
 def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
     """
     Checks to see if a detection has been completed.
@@ -487,7 +487,7 @@ def commit_detection_results(ibs, gid_list, results_list, note=None):
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api('/api/detect/species/enabled/', methods=['GET'])
+@register_api('/api/detect/species/enabled/', methods=['GET'], __api_plural_check__=False)
 def has_species_detector(ibs, species_text):
     """
     TODO: extend to use non-constant species
@@ -502,7 +502,7 @@ def has_species_detector(ibs, species_text):
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api('/api/detect/species/', methods=['GET'])
+@register_api('/api/detect/species/', methods=['GET'], __api_plural_check__=False)
 def get_species_with_detectors(ibs):
     """
     RESTful:
@@ -515,7 +515,7 @@ def get_species_with_detectors(ibs):
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api('/api/detect/species/working/', methods=['GET'])
+@register_api('/api/detect/species/working/', methods=['GET'], __api_plural_check__=False)
 def get_working_species(ibs):
     """
     RESTful:

@@ -24,21 +24,21 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api('/api/query/recognition_query_aids/', methods=['GET'])
+@register_api('/api/query/annot/rowid/', methods=['GET'])
 def get_recognition_query_aids(ibs, is_known, species=None):
     """
     DEPCIRATE
 
     RESTful:
         Method: GET
-        URL:    /api/query/recognition_query_aids/
+        URL:    /api/query/annot/rowid/
     """
     qaid_list = ibs.get_valid_aids(is_known=is_known, species=species)
     return qaid_list
 
 
 @register_ibs_method
-@register_api('/api/query/chips/simple_dict/', methods=['GET'])
+@register_api('/api/query/chip/dict/simple/', methods=['GET'])
 def query_chips_simple_dict(ibs, *args, **kwargs):
     r"""
     Runs query_chips, but returns a json compatible dictionary
@@ -48,7 +48,7 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
 
     RESTful:
         Method: GET
-        URL:    /api/query/chips/simple_dict/
+        URL:    /api/query/chip/simple/dict/
 
     SeeAlso:
         query_chips
@@ -92,7 +92,7 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         >>> time.sleep(.5)
         >>> baseurl = 'http://127.0.1.1:5000'
         >>> data = dict(qaid_list=[1])
-        >>> resp = requests.get(baseurl + '/api/query/chips/simple_dict/', data=data)
+        >>> resp = requests.get(baseurl + '/api/query/chip/simple_dict/', data=data)
         >>> print(resp)
         >>> web_instance.terminate()
         >>> json_dict = resp.json()
@@ -105,14 +105,14 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
 
 
 @register_ibs_method
-@register_api('/api/query/chips/dict/', methods=['GET'])
+@register_api('/api/query/chip/dict/', methods=['GET'])
 def query_chips_dict(ibs, *args, **kwargs):
     """
     Runs query_chips, but returns a json compatible dictionary
 
     RESTful:
         Method: GET
-        URL:    /api/query/chips/dict/
+        URL:    /api/query/chip/dict/
     """
     kwargs['return_cm_dict'] = True
     return ibs.query_chips(*args, **kwargs)
@@ -224,7 +224,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
         >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:2]
-        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
+        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuid/', type_='get', aid_list=aids)
         >>> quuid_list = uuid_list[0:1]
         >>> duuid_list = uuid_list
         >>> query_config_dict = {
@@ -278,7 +278,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         >>> ut.exec_funckw(review_graph_match_html, globals())
         >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
         >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:2]
-        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
+        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuid/', type_='get', aid_list=aids)
         >>> quuid_list = uuid_list[0:1]
         >>> duuid_list = uuid_list
         >>> query_config_dict = {
@@ -409,7 +409,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
                          EMBEDDED_JAVASCRIPT=EMBEDDED_JAVASCRIPT)
 
 
-@register_route('/test/review/query/chips/', methods=['GET'])
+@register_route('/test/review/query/chip/', methods=['GET'])
 def review_query_chips_test():
     """
     CommandLine:
@@ -420,11 +420,11 @@ def review_query_chips_test():
         >>> import ibeis
         >>> #web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
         >>> #import webbrowser
-        >>> #webbrowser.open(web_ibs.baseurl + '/test/review/query/chips/?__format__=True')
+        >>> #webbrowser.open(web_ibs.baseurl + '/test/review/query/chip/?__format__=True')
         >>> # DISABLE_DOCTEST
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web(
-        >>>     browser=true, url_suffix='/test/review/query/chips/?__format__=true')
+        >>>     browser=true, url_suffix='/test/review/query/chip/?__format__=true')
     """
     ibs = current_app.ibs
 
@@ -461,7 +461,7 @@ def review_query_chips_test():
 
 
 @register_ibs_method
-@register_api('/test/query/chips/', methods=['GET'])
+@register_api('/test/query/chip/', methods=['GET'])
 def query_chips_test(ibs, **kwargs):
     """
     CommandLine:
@@ -549,7 +549,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
 
 
 @register_ibs_method
-@register_api('/api/query/chips/', methods=['GET'])
+@register_api('/api/query/chip/', methods=['GET'])
 def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
                 use_cache=None, use_bigcache=None, qreq_=None,
                 return_request=False, verbose=pipeline.VERB_PIPELINE,
@@ -585,7 +585,7 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
 
     RESTful:
         Method: PUT
-        URL:    /api/query/chips/
+        URL:    /api/query/chip/
 
     CommandLine:
         python -m ibeis.web.apis_query --test-query_chips
