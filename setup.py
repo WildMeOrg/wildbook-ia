@@ -121,8 +121,8 @@ INSTALL_OPTIONAL = [
     #sudo apt-get  install libgraphviz4 libgraphviz-dev -y
     #sudo apt-get install libgraphviz-dev
     #pip install pygraphviz
-    #sudo pip3 install pygraphviz \
-    #    --install-option="--include-path=/usr/include/graphviz" \
+    #sudo pip3 install pygraphviz
+    #    --install-option="--include-path=/usr/include/graphviz"
     #    --install-option="--library-path=/usr/lib/graphviz/"
     #python -c "import pygraphviz; print(pygraphviz.__file__)"
     #python3 -c "import pygraphviz; print(pygraphviz.__file__)"

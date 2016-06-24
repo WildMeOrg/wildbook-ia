@@ -92,17 +92,15 @@ FIXME:
     Theano
     Lasange
 """
-# FUTURE
-from __future__ import absolute_import, division, print_function
-#-----------------
-# SYSTEM ENTRY POINT
-# NO UTOOL
-# PURE PYTHON
-#-----------------
+from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import dirname, realpath
 import platform
 import sys
 import os
+
+#-----------------
+# SYSTEM ENTRY POINT, NO UTOOL, BARE PYTHON
+#-----------------
 
 
 USAGE = '''
@@ -161,8 +159,16 @@ Register these packages with the python enviroment.
  --- /USAGE ---
 '''
 
-print(USAGE)
+print('''
+IBEIS Image Analysis (IA)
+____ _  _ ___  ____ ____    ____ ____ ___ _  _ ___
+[__  |  | |__] |___ |__/    [__  |___  |  |  | |__]
+___] |__| |    |___ |  \    ___] |___  |  |__| |
+''')
 
+show_usage = len(sys.argv) > 1 and sys.argv[1] in ['--help', '-h']
+if show_usage:
+    print(USAGE)
 
 print('USER = %r' % os.getenv("USER"))
 
@@ -178,10 +184,6 @@ def is_running_as_root():
 if is_running_as_root():
     print('Do not run super_setup.py as root')
     sys.exit(1)
-
-#-----------------
-#  UTOOL PYTHON
-#-----------------
 
 WIN32 = sys.platform.startswith('win32')
 
@@ -204,7 +206,7 @@ assert '--py3' in sys.argv or python_version.startswith('2.7'), \
 pythoncmd = 'python' if WIN32 else 'python2.7'
 
 
-if '--bootstrap' in sys.argv or 'bootstrap' in sys.argv:
+def bootstrap():
     def import_module_from_fpath(module_fpath):
         """ imports module from a file path """
         import platform
@@ -236,12 +238,8 @@ if '--bootstrap' in sys.argv or 'bootstrap' in sys.argv:
         bootstrap.bootstrap_sysreq()
     sys.exit(0)
 
-
-# TODO: Make this prompt for the userid
-def userid_prompt():
-    if False:
-        return {'userid': 'Erotemic', 'permitted_repos': ['pyrf', 'detecttools', 'pydarknet']}
-    return {}
+if '--bootstrap' in sys.argv or 'bootstrap' in sys.argv:
+    bootstrap()
 
 
 #################
@@ -249,16 +247,10 @@ def userid_prompt():
 #################
 
 
-def syscmd(cmdstr):
-    print('RUN> ' + cmdstr)
-    os.system(cmdstr)
-
-try:
-    # HACK IN A WAY TO ENSURE UTOOL
-    print('Checking utool')
-    import utool
-    utool.set_userid(**userid_prompt())  # FIXME
-except Exception:
+def ensure_utool():
+    def syscmd(cmdstr):
+        print('RUN> ' + cmdstr)
+        os.system(cmdstr)
     #UTOOL_BRANCH = ' -b <branch> <remote_repo>'
     UTOOL_BRANCH = 'next'
     UTOOL_REPO = 'https://github.com/Erotemic/utool.git'
@@ -288,252 +280,347 @@ except Exception:
     else:
         sys.exit(1)
 
-
-import utool as ut  # NOQA
+try:
+    # HACK IN A WAY TO ENSURE UTOOL
+    print('Checking utool')
+    import utool as ut
+except Exception:
+    ensure_utool()
 
 #-----------------
 #  UTOOL PYTHON
 #-----------------
 
-ut.init_catch_ctrl_c()
-
-#-----------
-# Third-Party-Libraries
-#-----------
-
-print('[super_setup] Checking third-party-libraries')
-
-FORCE_GUI = ut.get_argflag('--gui')
-print('Run with --nogui flag to force setup without qt')
-
-
-TPL_MODULES_AND_REPOS = [
-    #('cv2',     'https://github.com/Erotemic/opencv.git'),
-    #('cv2',     'https://github.com/Itseez/opencv.git'),
-    ('pyflann', 'https://github.com/Erotemic/flann.git', True),
-    #('yael',    'https://github.com/Erotemic/yael.git'),
-    (('PyQt5', 'PyQt4'),   None, FORCE_GUI)
-]
-
-# TODO: integrate PyQt4 into super_setup.py
-# to access a system PyQt4 from a virtualenv:
-# ln -s /usr/lib/python2.7/dist-packages/PyQt4/ virtualenv/local/lib/python2.7/site-packages/PyQt4
-# ln -s /usr/lib/python2.7/dist-packages/sip*.so virtualenv/local/lib/python2.7/site-packages/
-# ln -s /usr/lib/python2.7/dist-packages/sip*.py virtualenv/local/lib/python2.7/site-packages/
-
-
-def register_custom_build_script(scriptname, script):
-    flag = '--build-' + scriptname
-    print('flag = %r' % (flag,))
-    if ut.get_argflag(flag):
-        print('Requested opencv build')
-        ut.print_code(script, 'bash')
-
-register_custom_build_script('opencv', ut.codeblock(r"""
-    # STARTBLOCK bash
-    cd $CODE_DIR
-    git clone https://github.com/Itseez/opencv.git
-    cd opencv
-    # Get Extras
-    git clone https://github.com/Itseez/opencv_contrib.git
-    mkdir -p build27
-    cd build27
-
-    if [[ "$VIRTUAL_ENV" == ""  ]]; then
-        export LOCAL_PREFIX=/usr/local
-        export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/dist-packages
-    else
-        export LOCAL_PREFIX=$VIRTUAL_ENV/local
-        export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/site-packages
-    fi
-
-    echo "LOCAL_PREFIX = $LOCAL_PREFIX"
-    echo "PYTHON2_PACKAGES_PATH = $PYTHON2_PACKAGES_PATH"
-    # use dist packages on ubuntu. may need to change for other platforms
-    cmake -G "Unix Makefiles" \
-        -D WITH_OPENMP=ON \
-        -D CMAKE_BUILD_TYPE=RELEASE \
-        -D PYTHON2_PACKAGES_PATH=$PYTHON2_PACKAGES_PATH \
-        -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
-        -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
-        ..
-
-    export NCPUS=$(grep -c ^processor /proc/cpuinfo)
-    make -j$NCPUS
-    sudo make install
-    # Hack because cv2 does not want to be installed for some reason
-    cp lib/cv2.so $PYTHON2_PACKAGES_PATH
-    # Test makesure things working
-    python -c "import numpy; print(numpy.__file__)"
-    python -c "import numpy; print(numpy.__version__)"
-    python -c "import cv2; print(cv2.__version__)"
-    python -c "import cv2; print(cv2.__file__)"
-    #python -c "import vtool"
-
-    # Check if we have contrib modules
-    python -c "import cv2; print(cv2.xfeatures2d)"
-    # ENDBLOCK
-    """))
-
-TPL_REPO_URLS = []
-# Test to see if opencv and pyflann have been built
-for nametup, repo_url, required in TPL_MODULES_AND_REPOS:
-    try:
-        # Allow for multiple module aliases
-        if isinstance(nametup, str):
-            nametup = [nametup]
-        module = None
-        for name_ in nametup:
-            try:
-                module = __import__(name_, globals(), locals(), fromlist=[], level=0)
-            except ImportError as ex:
-                pass
-        if module is None:
-            raise ex
-        print('found %s=%r' % (nametup, module,))
-    except ImportError:
-        if repo_url is None:
-            if required:
-                raise AssertionError('FATAL ERROR: Need to manually install %s' % (nametup, ) )
-        else:
-            print('!!! NEED TO BUILD %s=%r' % (nametup, repo_url,))
-            TPL_REPO_URLS.append(repo_url)
-
-
-(TPL_REPO_URLS, TPL_REPO_DIRS) = ut.repo_list(TPL_REPO_URLS, CODE_DIR)
-
-#-----------
-# IBEIS project repos
-#-----------
-_repo_list = [
-    'https://github.com/Erotemic/utool.git',
-    'https://github.com/Erotemic/vtool.git',
-    'https://github.com/Erotemic/dtool.git',
-    'https://github.com/Erotemic/guitool.git',
-    'https://github.com/Erotemic/plottool.git',
-    'https://github.com/bluemellophone/detecttools.git',
-    'https://github.com/bluemellophone/pyrf.git',
-    'https://github.com/bluemellophone/pydarknet.git',
-    'https://github.com/Erotemic/hesaff.git',
-]
-
-# if True or ut.get_argflag('--cnn'):
-_repo_list += [
-    'https://github.com/bluemellophone/ibeis_cnn',
-]
-_repo_list += [
-    'https://github.com/zmjjmz/ibeis-flukematch-module.git'
-]
-
-if ut.get_argflag('--cnn-deps'):
-    # TODO: Integrate properly
-    tpl_repo_urls2 = [
-        'https://github.com/Theano/Theano.git',
-        'git://github.com/lisa-lab/pylearn2.git',
-        'https://github.com/Erotemic/Lasagne.git',
-    ]
-    tpl_repo_dirs2 = ut.ensure_repos(tpl_repo_urls2, checkout_dir=CODE_DIR)
-    ut.setup_develop_repos(tpl_repo_dirs2)
-    """
-    export THEANO_FLAGS="device=cpu,print_active_device=True,enable_initial_driver_test=True"
-
-    set THEANO_FLAGS=device=cpu,print_active_device=True,enable_initial_driver_test=True,print_test_value=True
-
-    python -c "import theano; print(theano.__file__)"
-    python -c "import pylearn2; print(pylearn2.__file__)"
-    python -c "import lasagne; print(lasagne.__file__)"
-
-    python -c "import ibeis_cnn; print(ibeis_cnn.__file__)"
-    """
-    #(repo_urls2, rep_dirs2) = ut.repo_list(tpl_repos2, CODE_DIR)
-
-    #co
-    #git clone
-    #git clone
-    #git clone
-    #cd ~/code/Theano
-    #python setup.py develop
-    #cd ~/code/pylearn2
-    #python setup.py develop
-    #cd ~/code/Lasagne/
-    #python setup.py develop
-
-    # TODO: add to third party
-
-_repo_list += [
-    #'https://github.com/bluemellophone/ibeis_cnn',
-    #'https://github.com/bluemellophone/pybing.git',
-    'https://github.com/Erotemic/ibeis.git',
-    #'https://github.com/aweinstock314/cyth.git',
-    #'https://github.com/hjweide/pygist',
-]
-
-# Non local project repos
-(IBEIS_REPO_URLS, IBEIS_REPO_DIRS) = ut.repo_list(_repo_list, CODE_DIR, forcessh=False)
-
-
-PROJECT_REPO_URLS = IBEIS_REPO_URLS + TPL_REPO_URLS
-PROJECT_REPO_DIRS = IBEIS_REPO_DIRS + TPL_REPO_DIRS
-
-# Set ut global git repos
-ut.set_project_repos(PROJECT_REPO_URLS, PROJECT_REPO_DIRS)
-
 
 def GET_ARGFLAG(arg, *args, **kwargs):
     return arg.lstrip('--') in sys.argv or ut.get_argflag(arg, *args, **kwargs)
 
-
 GET_ARGVAL = ut.get_argval
+
+ut.init_catch_ctrl_c()
+
+
+WITH_CNN = True
+WITH_PYRF = True
+WITH_TPL = True
+WITH_QT = not ut.get_argflag('--no-qt')
+WITH_GUI = not ut.get_argflag('--no-gui')
+WITH_CUSTOM_TPL = True
+WITH_FLUKEMATCH = True
+
+#-----------
+# IBEIS project repos
+#-----------
+ibeis_rman = ut.RepoManager([
+    'https://github.com/Erotemic/utool.git',
+    'https://github.com/Erotemic/vtool.git',
+    'https://github.com/Erotemic/dtool.git',
+    'https://github.com/bluemellophone/detecttools.git',
+], CODE_DIR, label='core')
+
+tpl_rman = ut.RepoManager([], CODE_DIR, label='tpl')
+tpl_rman.add_repo(ut.Repo('https://github.com/Itseez/opencv.git', CODE_DIR, modname='cv2'))
+
+if WITH_GUI:
+    ibeis_rman.add_repos([
+        'https://github.com/Erotemic/plottool.git',
+    ])
+
+    if WITH_QT:
+        ibeis_rman.add_repos([
+            'https://github.com/Erotemic/guitool.git',
+        ])
+        tpl_rman.add_repo(ut.Repo(modname=('PyQt4', 'PyQt5')))
+
+if WITH_CUSTOM_TPL:
+    ibeis_rman.add_repo(ut.Repo('https://github.com/Erotemic/flann.git', CODE_DIR, modname='pyflann'))
+    ibeis_rman.add_repos([
+        'https://github.com/Erotemic/hesaff.git',
+    ])
+
+if WITH_CNN:
+    ibeis_rman.add_repos([
+        'https://github.com/bluemellophone/ibeis_cnn',
+        'https://github.com/bluemellophone/pydarknet.git',
+    ])
+    if WITH_FLUKEMATCH:
+        ibeis_rman.add_repos([
+            'https://github.com/zmjjmz/ibeis-flukematch-module.git'
+        ])
+    # CNN Dependencies
+    tpl_rman.add_repos([
+        'https://github.com/Theano/Theano.git',
+        'https://github.com/lisa-lab/pylearn2.git',
+        'https://github.com/Erotemic/Lasagne.git',
+    ])
+
+if WITH_PYRF:
+    ibeis_rman.add_repos([
+        'https://github.com/bluemellophone/pyrf.git',
+    ])
+
+if False:
+    # Depricated
+    ibeis_rman.add_repos([
+        #'https://github.com/bluemellophone/pybing.git',
+        #'https://github.com/aweinstock314/cyth.git',
+        #'https://github.com/hjweide/pygist',
+    ])
+
+# Add main repo (Must be checked last due to dependency issues)
+ibeis_rman.add_repos([
+    'https://github.com/Erotemic/ibeis.git',
+])
+
+
+#-----------
+# Custom third party build/install scripts
+#-----------
+
+def define_custom_scripts(tpl_rman):
+    if ut.in_virtual_env():
+        fmtdict = {
+            'sys_dist_packages': ut.get_global_dist_packages_dir(),
+            'venv_site_packages': ut.get_site_packages_dir(),
+        }
+        # Allows us to use a system qt install in a virtual environment.
+        tpl_rman['PyQt4'].add_script('system_to_venv', ut.codeblock(
+            r"""
+            # STARTBLOCK bash
+            ln -s {sys_dist_packages}/PyQt4/ {venv_site_packages}/PyQt4
+            ln -s {sys_dist_packages}/sip*.so {venv_site_packages}/
+            ln -s {sys_dist_packages}/sip*.py {venv_site_packages}/
+            # ENDBLOCK bash
+            """)).format(**fmtdict)
+        # TODO: add custom build alternative
+        pass
+    else:
+        pass
+
+    ibeis_rman['pyflann'].add_script('install', ut.codeblock(
+        r'''
+        # STARTBLOCK bash
+        # The pyflann source lives here
+        cd {repo_dir}/src/python
+        # But the setup script is generated during build
+        python {repo_dir}/build/src/python/setup.py develop
+        # ENDBLOCK bash
+        ''').format(repo_dir=ibeis_rman['pyflann'].dpath)
+    )
+
+    # TODO: allow system installation as well
+    tpl_rman['cv2'].add_script('build', ut.codeblock(
+        r"""
+        # STARTBLOCK bash
+        cd $CODE_DIR
+        git clone https://github.com/Itseez/opencv.git
+        cd opencv
+        # Get Extras
+        git clone https://github.com/Itseez/opencv_contrib.git
+        mkdir -p build27
+        cd build27
+
+        if [[ "$VIRTUAL_ENV" == ""  ]]; then
+            export LOCAL_PREFIX=/usr/local
+            export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/dist-packages
+        else
+            export LOCAL_PREFIX=$VIRTUAL_ENV/local
+            export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/site-packages
+        fi
+
+        echo "LOCAL_PREFIX = $LOCAL_PREFIX"
+        echo "PYTHON2_PACKAGES_PATH = $PYTHON2_PACKAGES_PATH"
+        # use dist packages on ubuntu. may need to change for other platforms
+        cmake -G "Unix Makefiles" \
+            -D WITH_OPENMP=ON \
+            -D CMAKE_BUILD_TYPE=RELEASE \
+            -D PYTHON2_PACKAGES_PATH=$PYTHON2_PACKAGES_PATH \
+            -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
+            -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
+            ..
+
+        export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+        make -j$NCPUS
+        # ENDBLOCK
+        """))
+
+    tpl_rman['cv2'].add_script('install', ut.codeblock(
+        r"""
+        # STARTBLOCK bash
+        cd $CODE_DIR
+        sudo make install
+        # Hack because cv2 does not want to be installed for some reason
+        cp lib/cv2.so $PYTHON2_PACKAGES_PATH
+        # Test makesure things working
+        python -c "import numpy; print(numpy.__file__)"
+        python -c "import numpy; print(numpy.__version__)"
+        python -c "import cv2; print(cv2.__version__)"
+        python -c "import cv2; print(cv2.__file__)"
+        #python -c "import vtool"
+
+        # Check if we have contrib modules
+        python -c "import cv2; print(cv2.xfeatures2d)"
+        # ENDBLOCK
+        """)
+    )
+
+#     """
+#     export THEANO_FLAGS="device=cpu,print_active_device=True,enable_initial_driver_test=True"
+#     set THEANO_FLAGS=device=cpu,print_active_device=True,enable_initial_driver_test=True,print_test_value=True
+
+#     python -c "import theano; print(theano.__file__)"
+#     python -c "import pylearn2; print(pylearn2.__file__)"
+#     python -c "import lasagne; print(lasagne.__file__)"
+#     python -c "import ibeis_cnn; print(ibeis_cnn.__file__)"
+#     """
+
+#-----------
+# Verify TPL Dependencies
+#-----------
+
+if 1:
+    for repo in tpl_rman.repos:
+        print('python -c "import {0}; print({0}.__file__)"'.format(repo.modname))
+        print('python -c "import {0}; print({0}.__version__)"'.format(repo.modname))
+
+
+#-----------
+# Execute Commands on Core Repos
+#-----------
+
+print('ibeis_rman = %r' % (ibeis_rman,))
 
 # Commands on global git repos
 if GET_ARGFLAG('--status'):
-    ut.gg_command('git status')
+    ibeis_rman.issue('git status')
     sys.exit(0)
 
-if GET_ARGFLAG('--branch'):
-    ut.gg_command('git branch')
-    sys.exit(0)
+ibeis_rman.ensure()
 
-ut.ensure_project_repos()
+if GET_ARGFLAG('--fix') or GET_ARGFLAG('--check'):
+    missing_dynlib = tpl_rman.check_cpp_build()
+    missing_dynlib += ibeis_rman.check_cpp_build()
+
+    missing_install = tpl_rman.check_installed()
+    missing_install += ibeis_rman.check_installed()
+
+    ibeis_rman.check_importable()
+    tpl_rman.check_importable()
+
+if GET_ARGFLAG('--fix'):
+    print('Trying to fix problems')
+
+    for repo in missing_dynlib:
+        repo.custom_build()
 
 if GET_ARGFLAG('--pull'):
-    ut.gg_command('git pull')
+    ibeis_rman.issue('git pull')
 
+if GET_ARGFLAG('--build'):
+    # Build tpl repos
+    tpl_rman.custom_build()
+    ibeis_rman.custom_build()
+    # Build only IBEIS repos with setup.py
+    _rman = ibeis_rman.only_with_pysetup()
+    _rman.issue('{pythoncmd} setup.py build'.format(**locals()))
+
+# Like install, but better if you are developing
+if GET_ARGFLAG('--develop'):
+    _rman = ibeis_rman.only_with_pysetup()
+    _rman.issue('{pythoncmd} setup.py develop'.format(**locals()),
+                sudo=not ut.in_virtual_env())
+
+if GET_ARGFLAG('--clean'):
+    _rman = ibeis_rman.only_with_pysetup()
+    _rman.issue('{pythoncmd} setup.py clean'.format(**locals()))
+
+if GET_ARGFLAG('--install'):
+    print('WARNING: Dont use install if you are a developer. Use develop instead.')
+    _rman = ibeis_rman.only_with_pysetup()
+    _rman.issue('python setup.py install'.format(**locals()))
+
+if GET_ARGFLAG('--push'):
+    ibeis_rman.issue('git push')
+
+if GET_ARGFLAG('--branch'):
+    ibeis_rman.issue('git branch')
+    sys.exit(0)
 
 if GET_ARGFLAG('--tag-status'):
-    ut.gg_command('git tag')
+    ibeis_rman.issue('git tag')
 
 # Tag everything
 tag_name = GET_ARGVAL('--newtag', type_=str, default=None)
 if tag_name is not None:
-    ut.gg_command('git tag -a "{tag_name}" -m "super_setup autotag {tag_name}"'.format(**locals()))
-    ut.gg_command('git push --tags')
+    ibeis_rman.issue('git tag -a "{tag_name}" -m "super_setup autotag {tag_name}"'.format(**locals()))
+    ibeis_rman.issue('git push --tags')
 
 if GET_ARGFLAG('--bext'):
-    ut.gg_command('{pythoncmd} setup.py build_ext --inplace'.format(**locals()))
+    ibeis_rman.issue('{pythoncmd} setup.py build_ext --inplace'.format(**locals()))
 
-if GET_ARGFLAG('--build'):
-    # Build tpl repos
-    for repo in TPL_REPO_DIRS:
-        ut.util_git.std_build_command(repo)  # Executes {plat}_build.{ext}
-    # Build only IBEIS repos with setup.py
-    ut.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    ut.gg_command('{pythoncmd} setup.py build'.format(**locals()))
 
-if GET_ARGFLAG('--develop'):
-    # Like install, but better if you are developing
-    ut.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    ut.gg_command('{pythoncmd} setup.py develop'.format(**locals()),
-                  sudo=not ut.in_virtual_env())
+commit_msg = GET_ARGVAL('--commit', type_=str, default=None)
+if commit_msg is not None:
+    ibeis_rman.issue('git commit -am "{commit_msg}"'.format(**locals()))
 
-if GET_ARGFLAG('--install'):
-    # Dont use this if you are a developer. Use develop instead.
-    ut.set_project_repos(IBEIS_REPO_URLS, IBEIS_REPO_DIRS)
-    ut.gg_command('python setup.py install'.format(**locals()))
+# Change Branch
+branch_name = GET_ARGVAL('--checkout', type_=str, default=None)
+if branch_name is not None:
+    try:
+        ibeis_rman.issue('git checkout "{branch_name}"'.format(**locals()))
+    except Exception:
+        print('ERROR: Could not checkout branch: %r' % (branch_name, ))
+
+# Creates new branches
+newbranch_name = GET_ARGVAL('--newbranch', type_=str, default=None)
+if newbranch_name is not None:
+    #rman.issue('git stash"'.format(**locals()))
+    ibeis_rman.issue('git checkout -b "{newbranch_name}"'.format(**locals()))
+    ibeis_rman.issue('git push --set-upstream origin {newbranch_name}'.format(**locals()))
+    #rman.issue('git stash pop"'.format(**locals()))
+
+# Creates new branches
+newlocalbranch_name = GET_ARGVAL('--newlocalbranch', type_=str, default=None)
+if newlocalbranch_name is not None:
+    #rman.issue('git stash"'.format(**locals()))
+    ibeis_rman.issue('git checkout -b "{newlocalbranch_name}"'.format(**locals()))
+    #rman.issue('git push --set-upstream origin {newlocalbranch_name}'.format(**locals()))
+    #rman.issue('git stash pop"'.format(**locals()))
+
+# Creates new branches
+mergebranch_name = GET_ARGVAL('--merge', type_=str, default=None)
+if mergebranch_name is not None:
+    ibeis_rman.issue('git merge "{mergebranch_name}"'.format(**locals()))
+
+# Change ownership
+if GET_ARGFLAG('--serverchmod'):
+    ibeis_rman.issue('chmod -R 755 *')
+
+if GET_ARGFLAG('--chown'):
+    # Fixes problems where repos are checked out as root
+    username = os.environ.get('USERNAME', ut.get_argval('--username'))
+    if username is None:
+        username = os.environ.get('USER', None)
+    if username is None:
+        raise AssertionError('cannot find username in commandline or environment vars')
+    usergroup = username
+    ibeis_rman.issue('chown -R {username}:{usergroup} *'.format(**locals()),
+                     sudo=True)
+
+upstream_branch = GET_ARGVAL('--set-upstream', type_=str, default=None)
+if upstream_branch is not None:
+    # git 2.0
+    ibeis_rman.issue('git branch --set-upstream-to=origin/{upstream_branch} {upstream_branch}'.format(**locals()))
+
+
+upstream_push = GET_ARGVAL('--upstream-push', type_=str, default=None)
+if upstream_push is not None:
+    ibeis_rman.issue('git push --set-upstream origin {upstream_push}'.format(**locals()))
+
 
 if GET_ARGFLAG('--test'):
     failures = []
-    for repo_dpath in IBEIS_REPO_DIRS:
+    for repo_dpath in ibeis_rman.repo_dirs:
         # ut.getp_
         mod_dpaths = ut.get_submodules_from_dpath(repo_dpath, recursive=False,
                                                   only_packages=True)
@@ -551,84 +638,18 @@ if GET_ARGFLAG('--test'):
     print('failures = %s' % (ut.repr3(failures),))
     # print('repo_dpath = %r' % (repo_dpath,))
     # print('modules = %r' % (modules,))
-
     # import ibeis
     # print('found ibeis=%r' % (ibeis,))
 
-if GET_ARGFLAG('--push'):
-    ut.gg_command('git push')
 
-
-commit_msg = GET_ARGVAL('--commit', type_=str, default=None)
-if commit_msg is not None:
-    ut.gg_command('git commit -am "{commit_msg}"'.format(**locals()))
-
-if GET_ARGFLAG('--clean'):
-    ut.gg_command('{pythoncmd} setup.py clean'.format(**locals()))
-
-# Change Branch
-branch_name = GET_ARGVAL('--checkout', type_=str, default=None)
-if branch_name is not None:
+if False:
     try:
-        ut.gg_command('git checkout "{branch_name}"'.format(**locals()))
-    except Exception:
-        print('ERROR: Could not checkout branch: %r' % (branch_name, ))
-
-# Creates new branches
-newbranch_name = GET_ARGVAL('--newbranch', type_=str, default=None)
-if newbranch_name is not None:
-    #ut.gg_command('git stash"'.format(**locals()))
-    ut.gg_command('git checkout -b "{newbranch_name}"'.format(**locals()))
-    ut.gg_command('git push --set-upstream origin {newbranch_name}'.format(**locals()))
-    #ut.gg_command('git stash pop"'.format(**locals()))
-
-# Creates new branches
-newlocalbranch_name = GET_ARGVAL('--newlocalbranch', type_=str, default=None)
-if newlocalbranch_name is not None:
-    #ut.gg_command('git stash"'.format(**locals()))
-    ut.gg_command('git checkout -b "{newlocalbranch_name}"'.format(**locals()))
-    #ut.gg_command('git push --set-upstream origin {newlocalbranch_name}'.format(**locals()))
-    #ut.gg_command('git stash pop"'.format(**locals()))
-
-# Creates new branches
-mergebranch_name = GET_ARGVAL('--merge', type_=str, default=None)
-if mergebranch_name is not None:
-    ut.gg_command('git merge "{mergebranch_name}"'.format(**locals()))
-
-#newbranch_name2 = GET_ARGVAL('--newbranch2', type_=str, default=None)
-#if newbranch_name2 is not None:
-#    ut.gg_command('git checkout -b "{newbranch_name2}"'.format(**locals()))
-#    ut.gg_command('git push --set-upstream origin {newbranch_name2}'.format(**locals()))
-
-# Change ownership
-if GET_ARGFLAG('--serverchmod'):
-    ut.gg_command('chmod -R 755 *')
-
-if GET_ARGFLAG('--chown'):
-    # Fixes problems where repos are checked out as root
-    username = os.environ.get('USERNAME', ut.get_argval('--username'))
-    if username is None:
-        username = os.environ.get('USER', None)
-    if username is None:
-        raise AssertionError('cannot find username in commandline or environment vars')
-    usergroup = username
-    ut.gg_command('chown -R {username}:{usergroup} *'.format(**locals()),
-                  sudo=True)
-
-upstream_branch = GET_ARGVAL('--set-upstream', type_=str, default=None)
-if upstream_branch is not None:
-    # git 2.0
-    ut.gg_command('git branch --set-upstream-to=origin/{upstream_branch} {upstream_branch}'.format(**locals()))
-
-
-upstream_push = GET_ARGVAL('--upstream-push', type_=str, default=None)
-if upstream_push is not None:
-    ut.gg_command('git push --set-upstream origin {upstream_push}'.format(**locals()))
-
-
-# General global git command
-gg_cmd = GET_ARGVAL('--gg', None)  # global command
-if gg_cmd is not None:
-    ans = 'yes' if GET_ARGFLAG('-y') else raw_input('Are you sure you want to run: %r on all directories? ' % (gg_cmd,))
-    if ans == 'yes':
-        ut.gg_command(gg_cmd)
+        from six.moves import input
+    except ImportError:
+        input = raw_input
+    # General global git command
+    gg_cmd = GET_ARGVAL('--gg', None)  # global command
+    if gg_cmd is not None:
+        ans = 'yes' if GET_ARGFLAG('-y') else input('Are you sure you want to run: %r on all directories? ' % (gg_cmd,))
+        if ans == 'yes':
+            ibeis_rman.issue(gg_cmd)
