@@ -145,7 +145,7 @@ def find_installed_tomcat(check_unpacked=True, strict=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.wildbook_manager import *  # NOQA
-        >>> check_unpacked = True
+        >>> check_unpacked = False
         >>> strict = False
         >>> tomcat_dpath = find_installed_tomcat(check_unpacked, strict)
         >>> result = ('tomcat_dpath = %s' % (str(tomcat_dpath),))
