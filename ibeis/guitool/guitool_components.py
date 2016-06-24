@@ -908,13 +908,37 @@ class ConfigConfirmWidget(GuitoolWidget):
             self.button_row._guitool_layout.setAlignment(Qt.AlignBottom)
             if options is None:
                 options = ['Confirm']
+                if default is None:
+                    default = options[0]
             def _make_option_clicked(opt):
                 def _wrap():
                     return self.confirm(opt)
                 return _wrap
+
+            self.default_button = None
             for opt in options:
-                self.button_row.addNewButton(opt, clicked=_make_option_clicked(opt))
-            self.button_row.addNewButton('Cancel', clicked=self.cancel)
+                button = self.button_row.addNewButton(opt, clicked=_make_option_clicked(opt))
+                if opt == default:
+                    self.default_button = button
+
+            button = self.button_row.addNewButton('Cancel', clicked=self.cancel)
+            if self.default_button is None:
+                self.default_button = button
+            # button.setDefault(True)
+            # button.setAutoDefault(True)
+            # button.setFocus(Qt.OtherFocusReason)
+            # button.setFocus(Qt.ActiveWindowFocusReason)
+
+            # button.setFocusPolicy(QtCore.Qt.TabFocus)
+            # button.setFocus(True)
+            # QtCore.Qt.TabFocus)
+            # import utool
+            # utool.embed()
+            # button.setFocus(True)
+            # button.
+            button.activateWindow()
+            # import utool
+            # utool.embed()
 
         print_widget_heirarchy(self)
 
@@ -923,6 +947,16 @@ class ConfigConfirmWidget(GuitoolWidget):
         #self.layout().setSizeConstraint(QtGui.QLayout.SetFixedSize)
         #self.resize(668, 530)
         #self.update_state()
+
+    @classmethod
+    def as_dialog(cls, *args, **kwargs):
+        dlg = super(ConfigConfirmWidget, cls).as_dialog(*args, **kwargs)
+        # import utool
+        # utool.embed()
+        # Set focust after creating window
+        dlg.widget.default_button.setFocus(True)
+        return dlg
+        # Set default button
 
     def update_state(self, *args):
         print('*args = %r' % (args,))
