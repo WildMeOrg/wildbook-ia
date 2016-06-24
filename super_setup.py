@@ -504,14 +504,26 @@ if GET_ARGFLAG('--fix') or GET_ARGFLAG('--check'):
     missing_install = tpl_rman.check_installed()
     missing_install += ibeis_rman.check_installed()
 
-    ibeis_rman.check_importable()
-    tpl_rman.check_importable()
+    problems = []
+    problems += ibeis_rman.check_importable()
+    problems += tpl_rman.check_importable()
 
 if GET_ARGFLAG('--fix'):
     print('Trying to fix problems')
 
     for repo in missing_dynlib:
         repo.custom_build()
+
+    for repo, recommended_fix in problems:
+        print('Trying to fix repo = %r' % (repo,))
+        print(' * recommended_fix = %r' % (recommended_fix,))
+        if recommended_fix == 'rebuild':
+            repo.custom_build()
+            print('Can currently only fix one module at a time. Please re-run')
+            sys.exit(1)
+        else:
+            print('Not sure how to fix %r' % (repo,))
+
 
 if GET_ARGFLAG('--pull'):
     ibeis_rman.issue('git pull')
