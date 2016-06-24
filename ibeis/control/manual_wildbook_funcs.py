@@ -25,6 +25,9 @@ CommandLine;
     python -m ibeis startup_wildbook_server
     --show
 
+    # Poll wildbook info
+    python -m ibeis get_wildbook_ia_url
+
     # Login to wildbook (can skip)
     python -m ibeis test_wildbook_login
 
@@ -93,12 +96,16 @@ def get_wildbook_ia_url(ibs, wb_target=None):
     """
     Where does wildbook expect us to be?
 
+    CommandLine:
+        python -m ibeis get_wildbook_ia_url
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.control.manual_wildbook_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> ibs.get_wildbook_ia_url()
+        >>> ia_url = ibs.get_wildbook_ia_url()
+        >>> print('ia_url = %r' % (ia_url,))
     """
     import requests
     wb_url = ibs.get_wildbook_base_url(wb_target)

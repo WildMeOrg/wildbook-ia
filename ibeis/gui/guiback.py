@@ -1157,9 +1157,6 @@ class MainWindowBackend(GUIBACK_BASE):
         ungrouped_gid_list = ibs.get_ungrouped_gids()
         #ungrouped_images = ibs.get_image_instancelist(ungrouped_gid_list)
         # image_list['unixtime']
-        if len(ungrouped_gid_list) == 0:
-            back.user_warning(msg='There are no ungrouped images.')
-            raise guiexcept.UserCancel
 
         existing_imgset_id_list = ibs.get_valid_imgsetids(is_occurrence=True,
                                                           shipped=False,
@@ -1192,6 +1189,10 @@ class MainWindowBackend(GUIBACK_BASE):
         print('reply = %r' % (reply,))
 
         if reply not in options:
+            raise guiexcept.UserCancel
+
+        if len(ungrouped_gid_list) == 0:
+            back.user_warning(msg='There are no ungrouped images.')
             raise guiexcept.UserCancel
 
         seconds_thresh = new_config['seconds_thresh']

@@ -266,26 +266,32 @@ def ensure_wb_mysql():
     """
     print('Execute the following code to install mysql')
     print(ut.codeblock(
-        '''
-        sudo apt-get install mysql-server-5.6
-        sudo apt-get install mysql-common-5.6
-        sudo apt-get install mysql-client-5.6
-
-        mysql -u root -proot
-
-        create user 'ibeiswb'@'localhost' identified by 'somepassword';
-        create database ibeiswbtestdb;
-        grant all privileges on ibeiswbtestdb.* to 'ibeiswb'@'localhost';
+        r'''
+        # STARTBLOCK bash
+        # Install
+        sudo apt-get install mysql-server-5.6 -y
+        sudo apt-get install mysql-common-5.6 -y
+        sudo apt-get install mysql-client-5.6 -y
 
         mysql_config_editor set --login-path=local --host=localhost --user=root --password
+
+        # Initialize
+        mysql --login-path=local -e "create user 'ibeiswb'@'localhost' identified by 'somepassword';"
+        mysql --login-path=local -e "create database ibeiswbtestdb;"
+        mysql --login-path=local -e "grant all privileges on ibeiswbtestdb.* to 'ibeiswb'@'localhost';"
 
         # Reset
         mysql --login-path=local -e "drop database ibeiswbtestdb"
         mysql --login-path=local -e "create database ibeiswbtestdb"
         mysql --login-path=local -e "grant all privileges on ibeiswbtestdb.* to 'ibeiswb'@'localhost'"
 
-        mysql -u root -proot status
-        mysqladmin -u root -proot status
+        # Check if running
+        mysqladmin --login-path=local status
+
+        # mysql --login-path=local -e "status"
+        # mysql -u root -proot status
+        # mysql -u root -proot
+        # ENDBLOCK bash
         '''))
 
 
