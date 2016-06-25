@@ -53,11 +53,14 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         self.ishow_func_list = []
         self.func_list = []
         self.fnum = pt.ensure_fnum(fnum)
-
+        self.fig = None
         autostart = False
         super(ExpandableInteraction, self).__init__(autostart=autostart, **kwargs)
 
     def append_plot(self, func, pnum=None, ishow_func=None, px=None):
+        """
+        Func must take fnum and pnum as inputs
+        """
         if pnum is None:
             if px is not None:
                 if isinstance(px, tuple):
@@ -73,7 +76,26 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
         self.func_list.append(func)
         self.ishow_func_list.append(ishow_func)
 
+    def append_partial(self, func, *args, **kwargs):
+        """
+        Func must take fnum and pnum as inputs
+        """
+        pnum = None
+        if pnum is None:
+            if self._pnumiter is None:
+                pnum = None
+            else:
+                pnum = self._pnumiter()
+        def _partial(fnum=None, pnum=None):
+            pt.figure(fnum=fnum, pnum=pnum)
+            func(*args, **kwargs)
+        self.pnum_list.append(pnum)
+        self.func_list.append(_partial)
+        self.ishow_func_list.append(None)
+
     def show_page(self):
+        if self.fig is None:
+            raise AssertionError('fig is None, did you run interction.start()?')
         import plottool as pt
         fig = ih.begin_interaction('expandable', self.fnum)
         if not any(self.pnum_list) and self.nRows is None and self.nRows is None:

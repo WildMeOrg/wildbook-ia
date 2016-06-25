@@ -1577,6 +1577,7 @@ def ax_absolute_text(x_, y_, txt, ax=None, roffset=None, **kwargs):
         color
 
     """
+    kwargs = kwargs.copy()
     if ax is None:
         ax = gca()
     if 'ha' in kwargs:
@@ -1593,6 +1594,9 @@ def ax_absolute_text(x_, y_, txt, ax=None, roffset=None, **kwargs):
             kwargs['fontproperties'] = font_prop
         else:
             kwargs['fontproperties'] = custom_constants.FONTS.relative
+
+    if 'clip_on' not in kwargs:
+        kwargs['clip_on'] = True
 
     if roffset is not None:
         xroff, yroff = roffset
@@ -2186,12 +2190,33 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
         score_list (list):
         cmap_ (str): defaults to hot
         logscale (bool):
+        cmap_range (tuple): restricts to only a portion of the cmap to avoid extremes
 
     Returns:
         <class '_ast.ListComp'>
 
     SeeAlso:
         python -m plottool.color_funcs --test-show_all_colormaps --show --type "Perceptually Uniform Sequential"
+
+    CommandLine:
+        python -m plottool.draw_func2 scores_to_color --show
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> ut.exec_funckw(pt.scores_to_color, globals())
+        >>> score_list = np.array([-1, -2, 1, 1, 2, 10])
+        >>> # score_list = np.array([0, .1, .11, .12, .13, .8])
+        >>> # score_list = np.linspace(0, 1, 100)
+        >>> cmap_ = 'plasma'
+        >>> colors = pt.scores_to_color(score_list, cmap_)
+        >>> import vtool as vt
+        >>> imgRGB = vt.atleast_nd(np.array(colors)[:, 0:3], 3, tofront=True)
+        >>> imgRGB = imgRGB.astype(np.float32)
+        >>> imgBGR = vt.convert_colorspace(imgRGB, 'BGR', 'RGB')
+        >>> pt.imshow(imgBGR)
+        >>> pt.show_if_requested()
 
     Example:
         >>> from plottool.draw_func2 import *  # NOQA
@@ -2210,8 +2235,21 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
     assert len(score_list.shape) == 1, 'score must be 1d'
     if len(score_list) == 0:
         return []
+
+    def apply_logscale(scores):
+        scores = np.array(scores)
+        above_zero = scores >= 0
+        scores_ = scores.copy()
+        scores_[above_zero] = scores_[above_zero] + 1
+        scores_[~above_zero] = scores_[~above_zero] - 1
+        scores_ = np.log2(scores_)
+        return scores_
+
     if logscale:
-        score_list = np.log2(np.log2(score_list + 2) + 1)
+        # Hack
+        score_list = apply_logscale(score_list)
+        #if loglogscale
+        #score_list = np.log2(np.log2(score_list + 2) + 1)
     #if isinstance(cmap_, six.string_types):
     cmap = plt.get_cmap(cmap_)
     #else:
@@ -2228,6 +2266,8 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
     else:
         min_ = score_range[0]
         max_ = score_range[1]
+        if logscale:
+            min_, max_ = apply_logscale([min_, max_])
     if cmap_range is None:
         cmap_scale_min, cmap_scale_max = 0., 1.
     else:
@@ -2236,7 +2276,8 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
     if extent_ == 0:
         colors = [cmap(.5) for fx in range(len(score_list))]
     else:
-        if logscale:
+        if False and logscale:
+            # hack
             def score2_01(score):
                 return np.log2(
                     1 + cmap_scale_min + cmap_scale_max *
@@ -2389,6 +2430,9 @@ def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None, **kwargs)
         colors (ndarray):
         custom (bool): use custom ticks
 
+    Kwargs:
+        See plt.colorbar
+
     Returns:
         cb : matplotlib colorbar object
 
@@ -2426,7 +2470,7 @@ def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None, **kwargs)
         >>> cmap_ = 'plasma'
         >>> logscale = False
         >>> custom = False
-        >>> reverse_cmap = True
+        >>> reverse_cmap = False
         >>> colors = scores_to_color(scalars, cmap_=cmap_, logscale=logscale,
         >>>                          reverse_cmap=reverse_cmap)
         >>> colors = [pt.lighten_rgb(c, .3) for c in colors]

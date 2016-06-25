@@ -329,8 +329,16 @@ class AbstractInteraction(object):
         else:
             color, hovercolor = u'.88', u'.88'
             #color, hovercolor = u'.45', u'.45'
+        #if isinstance(text, six.text_type):
         new_but = mpl.widgets.Button(
             new_ax, text, color=color, hovercolor=hovercolor)
+        #elif isinstance(text, (list, tuple)):
+        #    labels = [False] * len(text)
+        #    labels[0] = True
+        #    new_but = mpl.widgets.CheckButtons(new_ax, text, labels)
+        #else:
+        #    raise ValueError('bad input')
+
         if callback is not None:
             new_but.on_clicked(callback)
         else:

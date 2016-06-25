@@ -39,7 +39,7 @@ def dump_nx_ondisk(graph, fpath):
     agraph.draw(ut.truepath(fpath))
 
 
-def fix_color(color):
+def fix_hex_color(color):
     if isinstance(color, six.string_types) and color.startswith('#'):
         import matplotlib.colors as colors
         color = colors.hex2color(color[0:7])
@@ -107,15 +107,13 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
     framewidth = kwargs.pop('framewidth', 1.0)
     patch_dict = draw_network2(graph, layout_info, ax, verbose=verbose, **kwargs)
     layout_info.update(patch_dict)
-    ax.grid(False)
-    pt.plt.axis('equal')
-    ax.axesPatch.set_facecolor('white')
+    if kwargs.get('modify_ax', True):
+        ax.grid(False)
+        pt.plt.axis('equal')
+        ax.axesPatch.set_facecolor('white')
+        ax.autoscale()
+        ax.autoscale_view(True, True, True)
     #axes.facecolor
-    #import utool
-    #utool.embed()
-
-    ax.autoscale()
-    ax.autoscale_view(True, True, True)
 
     node_size = layout_info['node']['size']
     node_pos = layout_info['node']['pos']
@@ -799,6 +797,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         'arrow_patch_list': {},
     }
 
+    text_pseudo_objects = []
+
     font_prop = pt.parse_fontkw(**kwargs)
     #print('font_prop = %r' % (font_prop,))
     #print('font_prop.get_name() = %r' % (font_prop.get_name() ,))
@@ -832,10 +832,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         else:
             alpha_ = alpha
 
-        if isinstance(node_color, six.string_types) and node_color.startswith('#'):
-            import matplotlib.colors as colors
-            node_color = colors.hex2color(node_color[0:7])
-            #intcolor = int(node_color.replace('#', '0x'), 16)
+        node_color = fix_hex_color(node_color)
+        #intcolor = int(node_color.replace('#', '0x'), 16)
         node_color = node_color[0:3]
         patch_kw = dict(alpha=alpha_, color=node_color)
         node_shape = nattrs.get('shape', 'ellipse')
@@ -878,8 +876,6 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                     ]
                     patch = mpl.patches.Polygon(newverts_, **patch_kw)
                 else:
-                    # patch = pt.make_bbox(bbox, theta=angle, fill=True,
-                    #                      **patch_kw)
                     patch = mpl.patches.Rectangle(
                         xy_bl, width, height, angle=angle,
                         **patch_kw)
@@ -891,14 +887,16 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
             patch = pt.cartoon_stacked_rects(xy_bl, width, height, **patch_kw)
             patch.xy = xy
+        else:
+            raise NotImplementedError('Unknown node_shape=%r' % (node_shape,))
 
         if True:
+            # Add a frame around the node
             framewidth = nattrs.get('framewidth', 0)
             if framewidth > 0:
                 framecolor = nattrs.get('framecolor', node_color)
-                if isinstance(framecolor, six.string_types) and framecolor.startswith('#'):
-                    import matplotlib.colors as colors
-                    framecolor = colors.hex2color(framecolor[0:7])
+                framecolor = fix_hex_color(framecolor)
+
                 #print('framecolor = %r' % (framecolor,))
                 alpha = 1.0
                 if framecolor is None:
@@ -922,9 +920,10 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         if label is not None:
             #text += ': ' + str(label)
             text = label
-        if hacknode or not using_image:
-            pt.ax_absolute_text(x, y, text, ha='center', va='center',
-                                fontproperties=font_prop)
+        if kwargs.get('node_labels', hacknode or not using_image):
+            text_args = ((x, y, text), dict(ax=ax, ha='center', va='center',
+                                            fontproperties=font_prop))
+            text_pseudo_objects.append(text_args)
         patch_dict['node_patch_dict'][node] = (patch)
 
     def get_default_edge_data(graph, edge):
@@ -962,13 +961,11 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             color = data.get('color', defaultcolor)
             if color is None:
                 color = defaultcolor
-            if isinstance(color, six.string_types) and color.startswith('#'):
-                import matplotlib.colors as colors
-                color = colors.hex2color(color[0:7])
+            color = fix_hex_color(color)
             color = color[0:3]
 
-            layout_info['edge']['ctrl_pts'][edge]
-            layout_info['edge']['start_pt'][edge]
+            #layout_info['edge']['ctrl_pts'][edge]
+            #layout_info['edge']['start_pt'][edge]
 
             offset = 0 if graph.is_directed() else 0
             #color = data.get('color', color)[0:3]
@@ -1038,11 +1035,83 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 pass
 
             lw = data.get('lw', lw)
+            linestyle = 'solid'
+            linestyle = data.get('linestyle', linestyle)
+            hatch = data.get('hatch', '')
+
+            #effects = data.get('stroke', None)
+            from matplotlib import patheffects
+            path_effects = []
+
+            #effects_css = data.get('path_effects', None)
+            #if effects_css is not None:
+            #    print('effects_css = %r' % (effects_css,))
+            #    # Read data similar to Qt Style Sheets / CSS
+            #    from tinycss.css21 import CSS21Parser
+            #    css = effects_css
+            #    #css = 'stroke{ linewith: 3; foreground: r; } shadow{}'
+            #    stylesheet = CSS21Parser().parse_stylesheet(css)
+            #    if stylesheet.errors:
+            #        print('[pt.nx] css errors')
+            #        print(stylesheet.errors)
+            #    path_effects = []
+            #    for rule in stylesheet.rules:
+            #        if rule.selector.as_css() == 'stroke':
+            #            selector = patheffects.withStroke
+            #        elif rule.selector.as_css() == 'shadow':
+            #            selector = patheffects.withSimplePatchShadow
+            #        effectkw = {}
+            #        for decl in rule.declarations:
+            #            if len(decl.value) != 1:
+            #                raise AssertionError(
+            #                    'I dont know css %r' % (decl,))
+            #            strval = decl.value[0].as_css()
+            #            key = decl.name
+            #            val = ut.smart_cast2(strval)
+            #            effectkw[key] = val
+            #        effect = selector(**effectkw)
+            #        path_effects += [effect]
+
+            ## http://matplotlib.org/1.2.1/examples/api/clippath_demo.html
+            if data.get('shadow', None):
+                # offset=(2, -2, shadow_rgbFace='g'))
+                shadowkw = data.get('shadow', None)
+                path_effects += [patheffects.withSimplePatchShadow(**shadowkw)]
+
+            stroke_info = data.get('stroke', None)
+            if stroke_info not in [None, False]:
+                if stroke_info is True:
+                    strokekw = {}
+                elif isinstance(stroke_info, dict):
+                    strokekw = stroke_info.copy()
+                else:
+                    #linewidth=3, foreground='r'
+                    assert False
+                if strokekw is not None:
+                    # Hack to increase lw
+                    strokekw['linewidth'] = lw + strokekw.get('linewidth', 3)
+                    path_effects += [patheffects.withStroke(**strokekw)]
+
+            #for vert, code in path.iter_segments():
+            #    print('code = %r' % (code,))
+            #    print('vert = %r' % (vert,))
+            #    if code == MOVETO:
+            #        pass
+
+            #for verts, code in path.cleaned().iter_segments():
+            #    print('code = %r' % (code,))
+            #    print('verts = %r' % (verts,))
+            #    pass
 
             patch = mpl.patches.PathPatch(path, facecolor='none', lw=lw,
+                                          path_effects=path_effects,
                                           edgecolor=color,
+                                          #facecolor=color,
+                                          linestyle=linestyle,
                                           alpha=alpha,
-                                          joinstyle='bevel')
+                                          joinstyle='bevel',
+                                          hatch=hatch)
+
             if as_directed:
                 if end_pt is not None:
                     dxy = (np.array(end_pt) - other_points[-1])
@@ -1073,9 +1142,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             labelcolor = color  # TODO allow for different colors
 
             labelcolor = data.get('labelcolor', color)
-            if isinstance(color, six.string_types) and labelcolor.startswith('#'):
-                import matplotlib.colors as colors
-                labelcolor = colors.hex2color(color[0:7])
+            labelcolor = fix_hex_color(labelcolor)
             labelcolor = labelcolor[0:3]
 
             if taillabel:
@@ -1128,6 +1195,9 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         if not hacknoedge:
             for patch in patch_dict['edge_patch_dict'].values():
                 ax.add_patch(patch)
+
+    for text_args in text_pseudo_objects:
+        pt.ax_absolute_text(*text_args[0], **text_args[1])
     return patch_dict
 
 
