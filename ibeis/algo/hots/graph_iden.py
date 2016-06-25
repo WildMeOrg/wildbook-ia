@@ -12,6 +12,77 @@ nx.get_node_attrs = nx.get_node_attributes
 print, rrr, profile = ut.inject2(__name__, '[graph_inference]')
 
 
+def _dz(a, b):
+    a = a.tolist() if isinstance(a, np.ndarray) else list(a)
+    b = b.tolist() if isinstance(b, np.ndarray) else list(b)
+    if len(a) == 0 and len(b) == 1:
+        # This introduces a corner case
+        b = []
+    elif len(b) == 1 and len(a) > 1:
+        b = b * len(a)
+    assert len(a) == len(b), 'out of alignment a=%r, b=%r' % (a, b)
+    return dict(zip(a, b))
+
+
+def get_topk_breaking(qreq_, cm_list, top=None):
+    # Construct K-broken graph
+    qaid_list = [cm.qaid for cm in cm_list]
+    edges = []
+    edge_scores = []
+    #top = (infr.qreq_.qparams.K + 1) * 2
+    #top = (infr.qreq_.qparams.K) * 2
+    #top = (qreq_.qparams.K + 2)
+    for count, cm in enumerate(cm_list):
+        score_list = cm.annot_score_list
+        sortx = ut.argsort(score_list)[::-1]
+        score_list = ut.take(score_list, sortx)[:top]
+        daid_list = ut.take(cm.daid_list, sortx)[:top]
+        for score, daid in zip(score_list, daid_list):
+            if daid not in qaid_list:
+                continue
+            edge_scores.append(score)
+            edges.append((cm.qaid, daid))
+
+    # Maybe just K-break graph here?
+    # Condense graph?
+
+    # make symmetric
+    directed_edges = dict(zip(edges, edge_scores))
+    # Find edges that point in both directions
+    undirected_edges = {}
+    for (u, v), w in directed_edges.items():
+        if (v, u) in undirected_edges:
+            undirected_edges[(v, u)] += w
+            undirected_edges[(v, u)] /= 2
+        else:
+            undirected_edges[(u, v)] = w
+    return undirected_edges
+
+
+def estimate_threshold(curve, method=None):
+    """
+        import plottool as pt
+        idx3 = vt.find_elbow_point(curve[idx1:idx2 + 1]) + idx1
+        pt.plot(curve)
+        pt.plot(idx1, curve[idx1], 'bo')
+        pt.plot(idx2, curve[idx2], 'ro')
+        pt.plot(idx3, curve[idx3], 'go')
+    """
+    if len(curve) == 0:
+        return None
+    if method is None:
+        method = 'mean'
+    if method == 'mean':
+        thresh = np.mean(curve)
+    elif method == 'elbow':
+        idx1 = vt.find_elbow_point(curve)
+        idx2 = vt.find_elbow_point(curve[idx1:]) + idx1
+        thresh = curve[idx2]
+    else:
+        raise ValueError('method = %r' % (method,))
+    return thresh
+
+
 @six.add_metaclass(ut.ReloadingMetaclass)
 class InfrModel(ut.NiceRepr):
 
@@ -70,21 +141,41 @@ class InfrModel(ut.NiceRepr):
             model.labeling = np.zeros(model.n_nodes, dtype=np.int32)
 
     def _update_weights(model, thresh=None):
-        int_factor = 100
+        int_factor = 1E2
         edge_weights = np.array(model.edge_weights)
         if thresh is None:
-            thresh = model.estimate_threshold()
+            thresh = model._estimate_threshold()
         else:
             if isinstance(thresh, six.string_types):
-                thresh = model.estimate_threshold(method=thresh)
+                thresh = model._estimate_threshold(method=thresh)
             #np.mean(edge_weights)
-        weights = (edge_weights - thresh) * int_factor
-        weights = weights.astype(np.int32)
-        edges_ = np.array(model.edges).astype(np.int32)
+        if True:
+            # Center and scale weights between -1 and 1
+            centered = (edge_weights - thresh)
+            centered[centered < 0] = (centered[centered < 0] / thresh)
+            centered[centered > 0] = (centered[centered > 0] / (1 - thresh))
+            newprob = (centered + 1) / 2
+            newprob[np.isnan(newprob)] = .5
+            # Apply logit rule
+            # prevent infinity
+            #pad = 1 / (int_factor * 2)
+            pad = 1E6
+            perbprob = (newprob * (1.0 - pad * 2)) + pad
+            weights = vt.logit(perbprob)
+        else:
+            weights = (edge_weights - thresh)
+            # Conv
+            weights[np.isnan(edge_weights)] = 0
+
+        weights = (weights * int_factor).astype(np.int32)
+        edges_ = np.round(model.edges).astype(np.int32)
         edges_ = vt.atleast_nd(edges_, 2)
         edges_.shape = (edges_.shape[0], 2)
         weighted_edges = np.vstack((edges_.T, weights)).T
         weighted_edges = np.ascontiguousarray(weighted_edges)
+        weighted_edges = np.nan_to_num(weighted_edges)
+        # Remove edges with 0 weight as they have no influence
+        weighted_edges = weighted_edges.compress(weighted_edges.T[2] != 0, axis=0)
         # Update internals
         model.thresh = thresh
         model.weighted_edges = weighted_edges
@@ -111,7 +202,7 @@ class InfrModel(ut.NiceRepr):
         extern_node2_new_label = dict(zip(nodes, model.labeling))
         return extern_node2_new_label
 
-    def estimate_threshold(model, method=None):
+    def _estimate_threshold(model, method=None, curve=None):
         """
             import plottool as pt
             idx3 = vt.find_elbow_point(curve[idx1:idx2 + 1]) + idx1
@@ -120,17 +211,22 @@ class InfrModel(ut.NiceRepr):
             pt.plot(idx2, curve[idx2], 'ro')
             pt.plot(idx3, curve[idx3], 'go')
         """
-        if method is None:
-            method = 'mean'
-        curve = sorted(model.edge_weights)
-        if method == 'mean':
-            thresh = np.mean(curve)
-        elif method == 'elbow':
-            idx1 = vt.find_elbow_point(curve)
-            idx2 = vt.find_elbow_point(curve[idx1:]) + idx1
-            thresh = curve[idx2]
-        else:
-            raise ValueError('method = %r' % (method,))
+        if curve is None:
+            isvalid = ~np.isnan(model.edge_weights)
+            curve = sorted(ut.compress(model.edge_weights, isvalid))
+        thresh = estimate_threshold(curve, method)
+        #if len(curve) == 0:
+        #    return 0
+        #if method is None:
+        #    method = 'mean'
+        #if method == 'mean':
+        #    thresh = np.mean(curve)
+        #elif method == 'elbow':
+        #    idx1 = vt.find_elbow_point(curve)
+        #    idx2 = vt.find_elbow_point(curve[idx1:]) + idx1
+        #    thresh = curve[idx2]
+        #else:
+        #    raise ValueError('method = %r' % (method,))
         return thresh
 
     def run_inference(model, thresh=None, n_labels=None, n_iter=5,
@@ -146,26 +242,35 @@ class InfrModel(ut.NiceRepr):
             labeling = np.zeros(model.n_nodes, dtype=np.int32)
         else:
             cutkw = dict(n_iter=n_iter, algorithm=algorithm)
+            if 0:
+                print(ut.code_repr(model.unaries, 'unaries'))
+                print(ut.code_repr(model.weighted_edges, 'weighted_edges'))
+                print(ut.code_repr(model.pairwise_potts, 'pairwise_potts'))
+                print(ut.code_repr(cutkw, 'cutkw'))
             labeling = pygco.cut_from_graph(model.weighted_edges, model.unaries,
                                             model.pairwise_potts, **cutkw)
             model.labeling = labeling
         #print('model.total_energy = %r' % (model.total_energy,))
         return labeling
 
-    def run_inference2(model, min_labels=1, max_labels=5):
+    def run_inference2(model, min_labels=1, max_labels=10):
         cut_params = ut.all_dict_combinations({
-            'n_labels': list(range(min_labels, max_labels + 1)),
+            #'n_labels': list(range(min_labels, max_labels + 1)),
+            #'n_labels': list(range(min_labels, max_labels + 1)),
+            'n_labels': list(range(max_labels, max_labels + 1)),
         })
         cut_energies = []
         cut_labeling = []
         for params in cut_params:
             model.run_inference(**params)
             nrg = model.total_energy
-            complexity = .1 * model.n_nodes * model.thresh * params['n_labels']
+            #complexity = .1 * model.n_nodes * model.thresh * params['n_labels']
+            complexity = 0
             nrg2 = nrg + complexity
+            print('used %d labels' % (len(set(model.labeling))),)
             print('complexity = %r' % (complexity,))
             print('nrg = %r' % (nrg,))
-            print('nrg2 = %r' % (nrg2,))
+            print('nrg + complexity = %r' % (nrg2,))
             cut_energies.append(nrg2)
             cut_labeling.append(model.labeling)
 
@@ -177,6 +282,15 @@ class InfrModel(ut.NiceRepr):
         model.labeling = labeling
         #labeling = model.run_inference(**params)
         return labeling, params
+
+    @staticmethod
+    def weights_as_matrix(weighted_edges):
+        n_labels = weighted_edges.T[0:2].max() + 1
+        mat = np.zeros((n_labels, n_labels))
+        flat_idxs = np.ravel_multi_index(weighted_edges.T[0:2], dims=(n_labels, n_labels))
+        assert ut.isunique(flat_idxs)
+        mat.ravel()[flat_idxs] = weighted_edges.T[2]
+        #mat[tuple(weighted_edges.T[0:2])] = weighted_edges.T[2]
 
     def get_cut_edges(model):
         extern_uv_list = np.array(list(model.graph.edges()))
@@ -197,7 +311,7 @@ class InfrModel(ut.NiceRepr):
 @six.add_metaclass(ut.ReloadingMetaclass)
 class AnnotInference2(object):
 
-    def __init__(infr, ibs, aids, nids, current_nids=None, user_feedback=None):
+    def __init__(infr, ibs, aids, nids, current_nids=None):
         infr.ibs = ibs
         infr.aids = aids
         infr.orig_name_labels = nids
@@ -208,102 +322,59 @@ class AnnotInference2(object):
         assert len(aids) == len(current_nids)
         infr.current_name_labels = current_nids
         infr.graph = None
-        if user_feedback is None:
-            user_feedback = {}
-        infr.user_feedback = {
+        infr._extra_feedback = {
+            'aid1': [],
+            'aid2': [],
+            'p_match': [],
+            'p_nomatch': [],
+            'p_notcomp': [],
+        }
+        #infr._initial_feedback = infr._extra_feedback.copy()
+        infr._initial_feedback = {}
+        infr.initialize_user_feedback()
+        infr.thresh = .5
+
+        #infr._extra_feedback.copy()
+
+    def initialize_user_feedback(infr):
+        ibs = infr.ibs
+        aids = infr.aids
+        rowids1 = ibs.get_annotmatch_rowids_from_aid1(aids)
+        rowids2 = ibs.get_annotmatch_rowids_from_aid2(aids)
+        annotmatch_rowids = ut.unique(ut.flatten(rowids1 + rowids2))
+        aids1 = ibs.get_annotmatch_aid1(annotmatch_rowids)
+        aids2 = ibs.get_annotmatch_aid2(annotmatch_rowids)
+        truth = np.array(ibs.get_annotmatch_truth(annotmatch_rowids))
+        user_feedback = ut.odict([
+            ('aid1', np.array(aids1)),
+            ('aid2', np.array(aids2)),
+            ('p_match', (truth == ibs.const.TRUTH_MATCH).astype(np.float)),
+            ('p_nomatch', (truth == ibs.const.TRUTH_NOT_MATCH).astype(np.float)),
+            ('p_notcomp', (truth == ibs.const.TRUTH_UNKNOWN).astype(np.float)),
+        ])
+        print('user_feedback = %s' % (ut.repr2(user_feedback, nl=1),))
+        infr._initial_feedback = {
             lbl: x.tolist() if isinstance(x, np.ndarray) else x
             for lbl, x in user_feedback.items()
         }
 
-    def add_feedback(infr, aid1, aid2, state):
-        infr.user_feedback['aid1'].append(aid1)
-        infr.user_feedback['aid2'].append(aid2)
-        if state == 'match':
-            infr.user_feedback['p_match'].append(1.0)
-            infr.user_feedback['p_nomatch'].append(0.0)
-            infr.user_feedback['p_notcomp'].append(0.0)
-        elif state == 'nonmatch':
-            infr.user_feedback['p_match'].append(0.0)
-            infr.user_feedback['p_nomatch'].append(1.0)
-            infr.user_feedback['p_notcomp'].append(0.0)
-        #infr.apply_feedback()
+        split_aids_pairs = ibs.filter_aidpairs_by_tags(has_any='SplitCase')
 
-    def get_feedback_probs(infr):
-        user_feedback = ut.map_dict_vals(np.array, infr.user_feedback)
-        print('user_feedback = %r' % (user_feedback,))
+        for aid1, aid2 in split_aids_pairs:
+            infr.add_feedback(aid1, aid2, 'nonmatch')
 
-        aid_pairs = np.vstack([user_feedback['aid1'],
-                               user_feedback['aid2']]).T
-        aid_pairs = vt.atleast_nd(aid_pairs, 2, tofront=True)
-        edge_ids = vt.get_undirected_edge_ids(aid_pairs)
-        unique_ids, groupxs = ut.group_indices(edge_ids)
+        merge_aid_pairs = ibs.filter_aidpairs_by_tags(has_any='JoinCase')
+        for aid1, aid2 in merge_aid_pairs:
+            infr.add_feedback(aid1, aid2, 'match')
 
-        # Resolve duplicate reviews
-        pair_groups = vt.apply_grouping(aid_pairs, groupxs)
-        unique_pairs = ut.take_column(pair_groups, 0)
-
-        p_match = np.array([g[-1] for g in vt.apply_grouping(user_feedback['p_match'], groupxs)])
-        #p_nomatch = [g[-1] for g in vt.apply_grouping(user_feedback['p_nomatch'], groupxs)]
-        p_notcomp = np.array([g[-1] for g in vt.apply_grouping(user_feedback['p_notcomp'], groupxs)])
-
-        p_bg = 0.5  # Needs to be thresh value
-        part1 = p_match * (1 - p_notcomp)
-        part2 = p_bg * p_notcomp
-        p_same = part1 + part2
-        return p_same, unique_pairs
-
-    def apply_feedback(infr):
-        graph = infr.graph
-        user_feedback = ut.map_dict_vals(np.array, infr.user_feedback)
-        print('user_feedback = %r' % (user_feedback,))
-
-        aid_pairs = np.vstack([user_feedback['aid1'],
-                               user_feedback['aid2']]).T
-        aid_pairs = vt.atleast_nd(aid_pairs, 2, tofront=True)
-        edge_ids = vt.get_undirected_edge_ids(aid_pairs)
-        unique_ids, groupxs = ut.group_indices(edge_ids)
-
-        # Resolve duplicate reviews
-        pair_groups = vt.apply_grouping(aid_pairs, groupxs)
-        unique_pairs = ut.take_column(pair_groups, 0)
-
-        p_match = np.array([g[-1] for g in vt.apply_grouping(user_feedback['p_match'], groupxs)])
-        #p_nomatch = [g[-1] for g in vt.apply_grouping(user_feedback['p_nomatch'], groupxs)]
-        p_notcomp = np.array([g[-1] for g in vt.apply_grouping(user_feedback['p_notcomp'], groupxs)])
-
-        p_bg = 0.5  # Needs to be thresh value
-        part1 = p_match * (1 - p_notcomp)
-        part2 = p_bg * p_notcomp
-        p_same = part1 + part2
-
-        unique_pairs = [(u, v) if graph.has_edge(u, v) else (v, u) for u, v in unique_pairs]
-        #flags = [not graph.has_edge(u, v) for u, v in unique_pairs]
-        #for aid1, aid2 in ut.compress(unique_pairs, flags):
-        #    graph.add_edge(aid1, aid2)
-        #nx.set_edge_attrs(graph, 'style',
-        #                  {e: 'invis' if s <= .5 else None for s, e in zip(p_same, unique_pairs)})
-        #nx.set_edge_attrs(graph, 'constraint',
-        #                  {e: s > .5 for s, e in zip(p_same, unique_pairs)})
-
-        for (aid1, aid2), groupx in zip(unique_pairs, groupxs):
-            p_match = user_feedback['p_match'].take(groupx).mean()
-            p_notcomp = user_feedback['p_notcomp'].take(groupx).mean()
-            #p_nomatch = user_feedback['p_nomatch'].take(groupx).mean()
-
-            part1 = p_match * (1 - p_notcomp)
-            part2 = p_bg * p_notcomp
-            p_same = part1 + part2
-
-            if p_same > .5:
-                if not graph.has_edge(aid1, aid2):
-                    if not graph.has_edge(aid2, aid1):
-                        graph.add_edge(aid1, aid2)
-            else:
-                if graph.has_edge(aid1, aid2) or graph.has_edge(aid1, aid2):
-                    graph.remove_edge(aid1, aid2)
+    @property
+    def user_feedback(infr):
+        return ut.dict_union_combine(infr._initial_feedback, infr._extra_feedback)
 
     def initialize_graph(infr):
-        infr.graph = graph = nx.DiGraph()
+        print('Init Graph')
+        #infr.graph = graph = nx.DiGraph()
+        infr.graph = graph = nx.Graph()
         graph.add_nodes_from(infr.aids)
 
         node2_aid = {aid: aid for aid in infr.aids}
@@ -314,11 +385,10 @@ class AnnotInference2(object):
         nx.set_node_attrs(graph, 'aid', node2_aid)
         nx.set_node_attrs(graph, 'name_label', node2_nid)
 
-        infr.ensure_name_labels_are_connected_mst(infr.graph)
-
         infr.initialize_visual_node_attrs()
 
     def initialize_visual_node_attrs(infr):
+        print('Init Visual Attrs')
         import networkx as nx
         #import plottool as pt
         graph = infr.graph
@@ -333,67 +403,94 @@ class AnnotInference2(object):
         #nx.set_node_attrs(graph, 'framecolor', pt.DARK_BLUE)
         nx.set_node_attrs(graph, 'shape', 'rect')
         nx.set_node_attrs(graph, 'image', dict(zip(nodes, imgpath_list)))
-        infr.update_graph_visual_attributes()
 
-    def update_graph_visual_attributes(infr):
-        import plottool as pt
+    def get_colored_edge_weights(infr):
+        # Update color and linewidth based on scores/weight
+        edges = list(infr.graph.edges())
         edge2_weight = nx.get_edge_attrs(infr.graph, 'weight')
+        #edges = list(edge2_weight.keys())
+        weights = np.array(ut.dict_take(edge2_weight, edges, np.nan))
+        if len(weights) > 0:
+            # give nans threshold value
+            weights[np.isnan(weights)] = infr.thresh
+        #weights = weights.compress(is_valid, axis=0)
+        #edges = ut.compress(edges, is_valid)
+        colors = infr.get_colored_weights(weights)
+        #print('!! weights = %r' % (len(weights),))
+        #print('!! edges = %r' % (len(edges),))
+        #print('!! colors = %r' % (len(colors),))
+        return edges, weights, colors
+
+    def get_colored_weights(infr, weights):
+        import plottool as pt
+        pt.rrrr()
+        cmap_ = 'viridis'
+        cmap_ = 'plasma'
+        #cmap_ = pt.plt.get_cmap(cmap_)
+        #colors = pt.scores_to_color(weights, cmap_=cmap_, logscale=True)
+        colors = pt.scores_to_color(weights, cmap_=cmap_, score_range=(0, 1),
+                                    logscale=False)
+        return colors
+
+    def update_graph_visual_attributes(infr, show_cuts=False):
+        print('Update Visual Attrs')
+        import plottool as pt
         #edge2_weight = nx.get_edge_attrs(infr.graph, 'score')
-        edges = list(edge2_weight.keys())
-        edge_weights = np.array(list(edge2_weight.values()))
-        edge_colors = pt.scores_to_color(edge_weights, cmap_='viridis')
-        #import utool
-        #utool.embed()
-        #edge_colors = [pt.color_funcs.ensure_base255(color) for color in edge_colors]
-        #print('edge_colors = %r' % (edge_colors,))
-        nx.set_edge_attrs(infr.graph, 'color', dict(zip(edges, edge_colors)))
-        ut.color_nodes(infr.graph, labelattr='name_label')
+        graph = infr.graph
+        ut.nx_delete_edge_attr(graph, 'style')
+        ut.nx_delete_edge_attr(graph, 'implicit')
+        ut.nx_delete_edge_attr(graph, 'color')
+        ut.nx_delete_edge_attr(graph, 'lw')
+        ut.nx_delete_edge_attr(graph, 'stroke')
 
-    def ensure_name_labels_are_connected_mst(infr, graph):
-        """
-        Use minimum spannning tree to ensure all names are connected
-        """
-        import networkx as nx
-        node2_label = nx.get_node_attrs(graph, 'name_label')
-        label2_nodes = ut.group_items(node2_label.keys(), node2_label.values())
+        # Color nodes by name label
+        ut.color_nodes(graph, labelattr='name_label')
 
-        # TODO: allow mst edges to change
-        mst_edges = nx.get_edge_attrs(graph, '_mst_edge')
-        graph.remove_edges_from(mst_edges.keys())
+        # Update color and linewidth based on scores/weight
+        edges, edge_weights, edge_colors = infr.get_colored_edge_weights()
+        nx.set_edge_attrs(graph, 'color', _dz(edges, edge_colors))
+        maxlw = 5
+        nx.set_edge_attrs(graph, 'lw', _dz(edges, (maxlw * edge_weights + 1)))
 
-        aug_graph = graph.copy().to_undirected()
+        # Mark reviewed edges witha stroke
+        reviewed_states = nx.get_edge_attrs(graph, 'reviewed_state')
+        truth_colors = {'match': pt.TRUE_GREEN, 'nonmatch': pt.FALSE_RED,
+                        'notcomp': pt.UNKNOWN_PURP}
+        edge2_stroke = {
+            edge: {'linewidth': 3, 'foreground': truth_colors[state]}
+            for edge, state in reviewed_states.items()
+        }
+        nx.set_edge_attrs(graph, 'stroke', edge2_stroke)
 
-        # Find that don't exist in the original graph
-        nodes_list = list(label2_nodes.values())
-        unflat_edges = [list(ut.product(nodes, nodes)) for nodes in nodes_list]
-        node_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
-        orig_edges = ut.setdiff_ordered(aug_graph.edges(), mst_edges.keys())
-        new_edges = ut.setdiff_ordered(node_pairs, orig_edges)
+        # Are cuts visible or invisible?
+        edge2_cut = nx.get_edge_attrs(graph, 'is_cut')
+        cut_edges = [edge for edge, cut in edge2_cut.items() if cut]
+        nx.set_edge_attrs(graph, 'implicit', _dz(cut_edges, [True]))
+        if show_cuts:
+            nx.set_edge_attrs(graph, 'linestyle', _dz(cut_edges, ['dashed']))
+        else:
+            # Show the ones we made though
+            show_feedback_cuts = 0
+            if show_feedback_cuts:
+                nonfeedback_cuts = ut.setdiff(cut_edges, reviewed_states.keys())
+                nx.set_edge_attrs(graph, 'style', _dz(nonfeedback_cuts, ['invis']))
+            else:
+                nx.set_edge_attrs(graph, 'style', _dz(cut_edges, ['invis']))
 
-        preweighted_edges = nx.get_edge_attrs(aug_graph, 'weight')
-        orig_edges = ut.setdiff(aug_graph.edges(), list(preweighted_edges.keys()))
+        # Make MST edge have more alpha
+        edge_to_ismst = nx.get_edge_attrs(graph, '_mst_edge')
+        mst_edges = [edge for edge, flag in edge_to_ismst.items() if flag]
+        nx.set_edge_attrs(graph, 'alpha', _dz(mst_edges, [.5]))
 
-        # randomness gets rid of all notdes connecting to one
-        # visually looks better
-        rng = np.random.RandomState(42)
+    def remove_mst_edges(infr):
+        graph = infr.graph
+        edge_to_ismst = nx.get_edge_attrs(graph, '_mst_edge')
+        mst_edges = [edge for edge, flag in edge_to_ismst.items() if flag]
+        graph.remove_edges_from(mst_edges)
 
-        aug_graph.add_edges_from(new_edges)
-        # Ensure the largest possible set of original edges is in the MST
-        nx.set_edge_attributes(aug_graph, 'weight',
-                               dict([(edge, 1.0 + rng.randint(1, 100))
-                                     for edge in new_edges]))
-        nx.set_edge_attributes(aug_graph, 'weight',
-                               dict([(edge, 0.1) for edge in orig_edges]))
-        for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
-            mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
-            for edge in mst_sub_graph.edges():
-                redge = edge[::-1]
-                if not (graph.has_edge(*edge) or graph.has_edge(*redge)):
-                    attr_dict = {'p_comp': 0.0, '_mst_edge': True}
-                    graph.add_edge(*redge, attr_dict=attr_dict)
-        return graph
-
-    def exec_split_check(infr):
+    def exec_vsone_scoring(infr):
+        """ Helper """
+        print('Exec Scoring')
         #from ibeis.algo.hots import graph_iden
         ibs = infr.ibs
         aid_list = infr.aids
@@ -407,132 +504,277 @@ class AnnotInference2(object):
         # TODO: use current nids
         qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
         cm_list = qreq_.execute()
+        vsmany_qreq_ = qreq_
+        vsmany_cms = cm_list
+
+        #infr.cm_list = cm_list
+        #infr.qreq_ = qreq_
+
+        if True:
+            # Post process top vsmany queries with vsone
+            # Execute vsone queries on the best vsmany results
+            undirected_edges = get_topk_breaking(qreq_, vsmany_cms, top=(vsmany_qreq_.qparams.K + 2))
+            parent_rowids = list(undirected_edges.keys())
+            #aids1, aids2 = ut.listT(parent_rowids)
+            qreq_ = ibs.depc.new_request('vsone', [], [], cfgdict={})
+            # Hack to get around default product of qaids
+            cm_list = qreq_.execute(parent_rowids=parent_rowids)
+            #requestclass = ibs.depc.requestclass_dict['vsone']
+            #cm_list = qreq_.execute()
+            return qreq_, cm_list
+        else:
+            return qreq_, cm_list
+
+    def add_feedback(infr, aid1, aid2, state):
+        """ External helepr """
+        infr._extra_feedback['aid1'].append(aid1)
+        infr._extra_feedback['aid2'].append(aid2)
+        if state == 'match':
+            infr._extra_feedback['p_match'].append(1.0)
+            infr._extra_feedback['p_nomatch'].append(0.0)
+            infr._extra_feedback['p_notcomp'].append(0.0)
+        elif state == 'nonmatch':
+            infr._extra_feedback['p_match'].append(0.0)
+            infr._extra_feedback['p_nomatch'].append(1.0)
+            infr._extra_feedback['p_notcomp'].append(0.0)
+
+    def get_feedback_probs(infr):
+        """ Helper """
+        user_feedback = ut.map_dict_vals(np.array, infr.user_feedback)
+        #print('user_feedback = %s' % (ut.repr2(user_feedback, nl=1),))
+
+        aid_pairs = np.vstack([user_feedback['aid1'],
+                               user_feedback['aid2']]).T
+        aid_pairs = vt.atleast_nd(aid_pairs, 2, tofront=True)
+        edge_ids = vt.get_undirected_edge_ids(aid_pairs)
+        unique_ids, groupxs = ut.group_indices(edge_ids)
+
+        # Resolve duplicate reviews
+        pair_groups = vt.apply_grouping(aid_pairs, groupxs)
+        unique_pairs = ut.take_column(pair_groups, 0)
+
+        def rectify(probs, groupxs):
+            grouped_probs = vt.apply_grouping(probs, groupxs)
+            # Choose how to rectify groups
+            #probs = np.array([np.mean(g) for g in grouped_probs])
+            probs = np.array([g[0] for g in grouped_probs])
+            #probs = np.array([g[-1] for g in grouped_probs])
+            return probs
+
+        p_match = rectify(user_feedback['p_match'], groupxs)
+        p_nomatch = rectify(user_feedback['p_nomatch'], groupxs)
+        p_notcomp = rectify(user_feedback['p_notcomp'], groupxs)
+
+        state_probs = np.vstack([p_nomatch, p_match, p_notcomp])
+        #print('state_probs = %s' % (ut.repr2(state_probs),))
+        review_stateid = state_probs.argmax(axis=0)
+        truth_texts = {0: 'nonmatch', 1: 'match', 2: 'notcomp'}
+        review_state = ut.take(truth_texts, review_stateid)
+        #print('review_state = %s' % (ut.repr2(review_state, nl=1),))
+        #print('unique_pairs = %r' % (unique_pairs,))
+
+        p_bg = 0.5  # Needs to be thresh value
+        part1 = p_match * (1 - p_notcomp)
+        part2 = p_bg * p_notcomp
+        p_same_list = part1 + part2
+        return p_same_list, unique_pairs, review_state
+
+    def apply_mst(infr):
+        print('Ensure MST')
+        # Remove old MST edges
+        infr.remove_mst_edges()
+        infr.ensure_mst()
+
+    def ensure_mst(infr):
+        """
+        Use minimum spannning tree to ensure all names are connected
+
+        Needs to be applied after any operation that adds/removes edges
+        """
+        import networkx as nx
+        # Find clusters by labels
+        node2_label = nx.get_node_attrs(infr.graph, 'name_label')
+        label2_nodes = ut.group_items(node2_label.keys(), node2_label.values())
+
+        aug_graph = infr.graph.copy().to_undirected()
+
+        # remove cut edges
+        edge_to_iscut = nx.get_edge_attrs(aug_graph, 'is_cut')
+        cut_edges = [edge for edge, flag in edge_to_iscut.items() if flag]
+        aug_graph.remove_edges_from(cut_edges)
+
+        # Enumerate cliques inside labels
+        nodes_list = list(label2_nodes.values())
+        unflat_edges = [list(ut.product(nodes, nodes)) for nodes in nodes_list]
+        node_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
+
+        # Find set of original (non-mst edges)
+        orig_edges = list(aug_graph.edges())
+        # Candidate MST edges do not exist in the original graph
+        #candidate_mst_edges = ut.setdiff_ordered(node_pairs, orig_edges)
+        candidate_mst_edges = [edge for edge in node_pairs if not aug_graph.has_edge(*edge)]
+
+        #preweighted_edges = nx.get_edge_attrs(aug_graph, 'weight')
+        #orig_edges = ut.setdiff(aug_graph.edges(), list(preweighted_edges.keys()))
+
+        # randomness gets rid of all notdes connecting to one
+        # visually looks better
+        rng = np.random.RandomState(42)
+
+        aug_graph.add_edges_from(candidate_mst_edges)
+        # Weight edges in aug_graph such that existing edges are chosen
+        # to be part of the MST first before suplementary edges.
+        nx.set_edge_attributes(aug_graph, 'weight',
+                               dict([(edge, 0.1) for edge in orig_edges]))
+        nx.set_edge_attributes(aug_graph, 'weight',
+                               dict([(edge, 1.0 + rng.randint(1, 100))
+                                     for edge in candidate_mst_edges]))
+        new_mst_edges = []
+        for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
+            mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
+            for edge in mst_sub_graph.edges():
+                redge = edge[::-1]
+                # Only add if this edge is not in the original graph
+                if not (infr.graph.has_edge(*edge) and infr.graph.has_edge(*redge)):
+                    new_mst_edges.append(redge)
+
+        # Add new MST edges to original graph
+        infr.graph.add_edges_from(new_mst_edges)
+        nx.set_edge_attrs(infr.graph, '_mst_edge', _dz(new_mst_edges, [True]))
+
+    def apply_scores(infr):
+        print('Score edges')
+        qreq_, cm_list = infr.exec_vsone_scoring()
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
-        #infr = graph_iden.AnnotInference(qreq_, cm_list)
-        #infr.initialize_graph_and_model()
-        #print("BUILT SPLIT GRAPH")
-        #return infr
+        undirected_edges = get_topk_breaking(qreq_, cm_list)
 
-    def score_edges(infr):
-        print('score edges')
-        infr.exec_split_check()
-        #import networkx as nx
-        #import itertools
-        cm_list = infr.cm_list
-        qaid_list = [cm.qaid for cm in cm_list]
-
-        # Construct K-broken graph
-        edges = []
-        edge_scores = []
-        #top = (infr.qreq_.qparams.K + 1) * 2
-        #top = (infr.qreq_.qparams.K) * 2
-        top = (infr.qreq_.qparams.K + 2)
-        for count, cm in enumerate(cm_list):
-            score_list = cm.annot_score_list
-            sortx = ut.argsort(score_list)[::-1]
-            score_list = ut.take(score_list, sortx)[:top]
-            daid_list = ut.take(cm.daid_list, sortx)[:top]
-            for score, daid in zip(score_list, daid_list):
-                if daid not in qaid_list:
-                    continue
-                edge_scores.append(score)
-                edges.append((cm.qaid, daid))
-
-        # Maybe just K-break graph here?
-        # Condense graph?
-
-        # make symmetric
-        directed_edges = dict(zip(edges, edge_scores))
-        # Find edges that point in both directions
-        undirected_edges = {}
-        for (u, v), w in directed_edges.items():
-            if (v, u) in undirected_edges:
-                undirected_edges[(v, u)] += w
-                undirected_edges[(v, u)] /= 2
-            else:
-                undirected_edges[(u, v)] = w
-
+        # Do some normalization of scores
         edges = list(undirected_edges.keys())
         edge_scores = np.array(list(undirected_edges.values()))
+        normscores = edge_scores / np.nanmax(edge_scores)
+
+        infr.remove_mst_edges()
 
         # Create match-based graph structure
         infr.graph.add_edges_from(edges)
+        # Remove existing attrs
+        ut.nx_delete_edge_attr(infr.graph, 'score')
+        ut.nx_delete_edge_attr(infr.graph, 'normscores')
+        # Add new attrs
         nx.set_edge_attrs(infr.graph, 'score', dict(zip(edges, edge_scores)))
-        #nx.set_edge_attrs(infr.graph, 'weight', dict(zip(edges, edge_scores)))
+        nx.set_edge_attrs(infr.graph, 'normscores', dict(zip(edges, normscores)))
+        infr.thresh = infr.get_threshold()
 
-        #import scipy.special
-        #a = 1.5
-        #b = 2
-        #p_same = scipy.special.expit(b * edge_scores - a)
-        #confidence = (2 * np.abs(0.5 - p_same)) ** 2
+        infr.ensure_mst()
 
-    def weight_edges(infr):
-        #graph = infr.graph
+    def apply_feedback(infr):
+        """
+        Updates nx graph edge attributes for feedback
+        """
+        print('Apply Feedback')
+        infr.remove_mst_edges()
+
+        ut.nx_delete_edge_attr(infr.graph, 'reviewed_weight')
+        ut.nx_delete_edge_attr(infr.graph, 'reviewed_state')
+        p_same_list, unique_pairs_, review_state = infr.get_feedback_probs()
+        # Put pair orders in context of the graph
+        unique_pairs = [(aid2, aid1) if infr.graph.has_edge(aid2, aid1) else
+                        (aid1, aid2) for (aid1, aid2) in unique_pairs_]
+        # Ensure edges exist
+        for edge in unique_pairs:
+            if not infr.graph.has_edge(*edge):
+                #print('add review edge = %r' % (edge,))
+                infr.graph.add_edge(*edge)
+            #else:
+            #    #print('have edge edge = %r' % (edge,))
+        nx.set_edge_attrs(infr.graph, 'reviewed_state',
+                          _dz(unique_pairs, review_state))
+        nx.set_edge_attrs(infr.graph, 'reviewed_weight',
+                          _dz(unique_pairs, p_same_list))
+
+        infr.ensure_mst()
+
+    def get_threshold(infr):
+        # Only use the normalized scores to estimate a threshold
+        normscores = np.array(nx.get_edge_attrs(infr.graph, 'normscores').values())
+        print('len(normscores) = %r' % (len(normscores),))
+        isvalid = ~np.isnan(normscores)
+        curve = np.sort(normscores[isvalid])
+        thresh = estimate_threshold(curve, method=None)
+        print('[estimate] thresh = %r' % (thresh,))
+        if thresh is None:
+            thresh = .5
+        infr.thresh = thresh
+        return thresh
+
+    def apply_weights(infr):
+        """
+        Combines scores and user feedback into edge weights used in inference.
+        """
+        print('Weight Edges')
         ut.nx_delete_edge_attr(infr.graph, 'weight')
-        ut.nx_delete_edge_attr(infr.graph, 'lw')
-        edge2_score = nx.get_edge_attrs(infr.graph, 'score')
+        # mst not needed. No edges are removed
+
         edges = list(infr.graph.edges())
-        edge_scores = np.array(ut.dict_take(edge2_score, edges))
+        edge2_normscores = nx.get_edge_attrs(infr.graph, 'normscores')
+        normscores = np.array(ut.dict_take(edge2_normscores, edges, np.nan))
 
-        control_points = [
-            (0.0, .001),
-            (3.0, .05),
-            (15.0, .95),
-            (None, .99),
-        ]
-        edge_weights = edge_scores.copy()
-        for (pt1, prob1), (pt2, prob2) in ut.itertwo(control_points):
-            if pt1 is None:
-                pt1 = edge_scores.min()
-            if pt2 is None:
-                pt2 = edge_scores.max() + .0001
-            pt_len = pt2 - pt1
-            prob_len = prob2 - prob1
-            flag = np.logical_and(edge_scores >= pt1, edge_scores < pt2)
-            edge_weights[flag] = (((edge_scores[flag] - pt1) / pt_len) * prob_len) + prob1
+        edge2_reviewed_weight = nx.get_edge_attrs(infr.graph, 'reviewed_weight')
+        reviewed_weights = np.array(ut.dict_take(edge2_reviewed_weight,
+                                                 edges, np.nan))
+        # Combine into weights
+        weights = normscores.copy()
+        has_review = ~np.isnan(reviewed_weights)
+        weights[has_review] = reviewed_weights[has_review]
+        # remove nans
+        is_valid = ~np.isnan(weights)
+        weights = weights.compress(is_valid, axis=0)
+        edges = ut.compress(edges, is_valid)
+        nx.set_edge_attrs(infr.graph, 'weight', _dz(edges, weights))
 
-        nx.set_edge_attrs(infr.graph, 'weight', dict(zip(edges, edge_weights)))
-        p_same, unique_pairs = infr.get_feedback_probs()
-        unique_pairs = [tuple(x.tolist()) for x in unique_pairs]
-        for aid1, aid2 in unique_pairs:
-            if not infr.graph.has_edge(aid1, aid2):
-                infr.graph.add_edge(aid1, aid2)
-        nx.set_edge_attrs(infr.graph, 'weight', dict(zip(unique_pairs, p_same)))
-        nx.set_edge_attrs(infr.graph, 'lw', dict(zip(unique_pairs, [4.0] * len(unique_pairs))))
+    def get_scalars(infr):
+        scalars = {}
+        scalars['reviewed_weight'] = nx.get_edge_attrs(infr.graph,
+                                                       'reviewed_weight').values()
+        scalars['score'] = nx.get_edge_attrs(infr.graph, 'score').values()
+        scalars['normscores'] = nx.get_edge_attrs(infr.graph, 'normscores').values()
+        scalars['weights'] = nx.get_edge_attrs(infr.graph, 'weight').values()
+        return scalars
 
-        """
-        pt.plot(sorted(edge_weights))
-        pt.plot(sorted(vt.norm01(edge_scores)))
-        """
-        edge_weights
-        pass
+    def apply_cuts(infr):
+        # needs to be applied after anything that changes name labels
+        graph = infr.graph
+        ut.nx_delete_edge_attr(graph, 'is_cut')
+        node_to_label = nx.get_node_attrs(graph, 'name_label')
+        edge_to_cut = {(u, v): node_to_label[u] != node_to_label[v]
+                       for (u, v) in graph.edges()}
+        nx.set_edge_attrs(graph, 'is_cut', edge_to_cut)
 
-    def infer_cut(infr, min_labels=1, max_labels=5):
+    def infer_cut(infr, **kwargs):
         from ibeis.algo.hots import graph_iden
-        infr.score_edges()
-        model = graph_iden.InfrModel(infr.graph)
-        infr.model = model
+        print('Infer New Cut / labeling')
+
+        infr.remove_mst_edges()
+        infr.model = graph_iden.InfrModel(infr.graph)
         model = infr.model
-        labeling, params = model.run_inference2(min_labels=min_labels,
-                                                max_labels=max_labels)
+        thresh = infr.get_threshold()
+        #weights = np.array(nx.get_edge_attrs(infr.graph, 'weight').values())
+        #isvalid = ~np.isnan(weights)
+        #curve = np.sort(weights[isvalid])
+        model._update_weights(thresh=thresh)
+        labeling, params = model.run_inference2(max_labels=len(infr.aids))
+        #min_labels=min_labels, max_labels=max_labels)
 
-        graph = infr.graph.copy()
-        nx.set_node_attrs(graph, 'name_label', model.node_to_label)
-        cut_edges = infr.model.get_cut_edges()
+        nx.set_node_attrs(infr.graph, 'name_label', model.node_to_label)
+        infr.apply_cuts()
+        infr.ensure_mst()
 
-        print('cut_edges = %r' % (cut_edges,))
-        nx.set_edge_attrs(graph, 'implicit', {edge: True for edge in cut_edges})
-        nx.set_edge_attrs(graph, 'color', {edge: 'red' for edge in cut_edges})
-        #for (u, v) in cut_edges:
-        #    graph.remove_edge(u, v)
-        infr.ensure_name_labels_are_connected_mst(graph)
-        infr.graph = graph
-        infr.update_graph_visual_attributes()
-        return graph
-
-    def reset_cut(infr):
-        infr.initialize_graph()
+    def apply_all(infr):
+        infr.apply_scores()
+        infr.apply_feedback()
+        infr.apply_weights()
+        infr.infer_cut()
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -840,7 +1082,6 @@ class AnnotInference(object):
             p_same_list = part1 + part2
         else:
             feedback_lookup = {}
-        infr.user_feedback
         needs_review_list = []
         num_top = 4
         for cm, row in zip(cm_list, prob_names):
@@ -875,9 +1116,6 @@ class AnnotInference(object):
                 #confidence = p_same if confidence > thresh else p_diff
                 #tup = (cm.qaid, daid, decision, confidence, raw_score)
                 confidence = (2 * np.abs(0.5 - p_same)) ** 2
-                #if infr.user_feedback is not None:
-                #    import utool
-                #    utool.embed(
                 key = (cm.qaid, daid)
                 fb_idx = feedback_lookup.get(key)
                 if fb_idx is not None:
@@ -975,6 +1213,47 @@ class AnnotInference(object):
             ('_internal_state', None),
         ])
         return inference_dict
+
+
+def piecewise_weighting(infr, normscores, edges):
+    # Old code
+    edge_scores = normscores
+    # Try to put scores in a 0 to 1 range
+    control_points = [
+        (0.0, .001),
+        (3.0, .05),
+        (15.0, .95),
+        (None, .99),
+    ]
+    edge_weights = edge_scores.copy()
+    for (pt1, prob1), (pt2, prob2) in ut.itertwo(control_points):
+        if pt1 is None:
+            pt1 = np.nanmin(edge_scores)
+        if pt2 is None:
+            pt2 = np.nanmax(edge_scores) + .0001
+        pt_len = pt2 - pt1
+        prob_len = prob2 - prob1
+        flag = np.logical_and(edge_scores >= pt1, edge_scores < pt2)
+        edge_weights[flag] = (((edge_scores[flag] - pt1) / pt_len) * prob_len) + prob1
+
+    nx.set_edge_attrs(infr.graph, 'weight', _dz(edges, edge_weights))
+
+    p_same, unique_pairs = infr.get_feedback_probs()
+    unique_pairs = [tuple(x.tolist()) for x in unique_pairs]
+    for aid1, aid2 in unique_pairs:
+        if not infr.graph.has_edge(aid1, aid2):
+            infr.graph.add_edge(aid1, aid2)
+    nx.set_edge_attrs(infr.graph, 'weight', _dz(unique_pairs, p_same))
+    #nx.set_edge_attrs(infr.graph, 'lw', _dz(unique_pairs, [6.0]))
+    """
+    pt.plot(sorted(edge_weights))
+    pt.plot(sorted(vt.norm01(edge_scores)))
+    """
+    #import scipy.special
+    #a = 1.5
+    #b = 2
+    #p_same = scipy.special.expit(b * edge_scores - a)
+    #confidence = (2 * np.abs(0.5 - p_same)) ** 2
 
 
 if __name__ == '__main__':

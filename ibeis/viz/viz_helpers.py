@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
-#from ibeis import constants as const
-from six.moves import zip
-import plottool.draw_func2 as df2
-from plottool import plot_helpers as ph
 import utool as ut
 import vtool.keypoint as ktool
+import plottool.draw_func2 as df2
+from six.moves import zip, map
+from plottool import plot_helpers as ph
 from ibeis.other import ibsfuncs
 from ibeis.control.accessor_decors import getter, getter_vector_output
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_helpers]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[viz_helpers]')
 
 
 NO_LBL_OVERRIDE = ut.get_argval('--no-lbl-override', type_=bool, default=None)
