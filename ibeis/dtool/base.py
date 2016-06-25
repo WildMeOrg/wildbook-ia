@@ -653,6 +653,8 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
             use_cache = not ut.get_argflag('--nocache')
         if parent_rowids is None:
             parent_rowids = request.parent_rowids
+        else:
+            print('given %d specific parent_rowids' % (len(parent_rowids),))
 
         # vsone hack (i,j) same as (j,i)
         if request._symmetric:
