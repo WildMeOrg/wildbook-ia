@@ -661,7 +661,42 @@ class _CoreDependencyCache(object):
                    read_extern=True):
         """
         Gets data using internal ids, which is faster if you have them.
+
+        CommandLine:
+            python -m dtool.depcache_control get_native:0
+            python -m dtool.depcache_control get_native:1
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> # Simple test of get native
+            >>> from ibeis.algo.hots.query_request import *  # NOQA
+            >>> from dtool.example_depcache import *  # NOQA
+            >>> config = {}
+            >>> depc = testdata_depc()
+            >>> tablename = 'keypoint'
+            >>> aids = [1,]
+            >>> tbl_rowids = depc.get_rowids(tablename, aids, config=config)
+            >>> data = depc.get_native(tablename, tbl_rowids)
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.query_request import *  # NOQA
+            >>> from dtool.example_depcache import *  # NOQA
+            >>> depc = testdata_depc()
+            >>> config = {}
+            >>> tablename = 'chip'
+            >>> colnames = extern_colname = 'chip'
+            >>> aids = [1, 2]
+            >>> depc.delete_property(tablename, aids, config=config)
+            >>> # Ensure chip rowids exist then delete external data without
+            >>> # notifying the depcache. This forces the depcache to recover
+            >>> tbl_rowids = chip_rowids = depc.get_rowids(tablename, aids, config=config)
+            >>> data_fpaths = depc.get(tablename, aids, extern_colname, config=config, read_extern=False)
+            >>> ut.remove_file_list(data_fpaths)
+            >>> chips = depc.get_native(tablename, tbl_rowids, extern_colname)
+            >>> print('chips = %r' % (chips,))
         """
+        tbl_rowids = list(tbl_rowids)
         _debug = depc._debug if _debug is None else _debug
         with ut.Indenter('[GetNative %s]' % (tablename,), enabled=_debug):
             if _debug:
@@ -673,10 +708,34 @@ class _CoreDependencyCache(object):
             #with utool.embed_on_exception_context:
             try:
                 prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug,
-                                               read_extern=read_extern)
+                                               read_extern=read_extern,
+                                               delete_on_fail=False)
             except depcache_table.ExternalStorageException:
-                raise
-                #table.get_parent_rowids(tbl_rowids)
+                # This code is a bit rendant and would probably live better elsewhere
+                # Also need to fix issues if more than one column specified
+                extern_uris = table.get_row_data(
+                    tbl_rowids, colnames, _debug=_debug, read_extern=False,
+                    delete_on_fail=True, ensure=False)
+                from os.path import exists
+                error_flags = [exists(uri) for uri in extern_uris]
+                redo_rowids = ut.compress(tbl_rowids, ut.not_list(error_flags))
+                parent_rowids = table.get_parent_rowids(redo_rowids)
+                # config_rowids = table.get_row_cfgid(redo_rowids)
+                configs = table.get_row_configs(redo_rowids)
+                assert ut.allsame(list(map(id, configs))), 'more than one config not yet supported'
+                config = configs[0]
+                num_retries = 2
+                for try_num in range(num_retries):
+                    try:
+                        table.get_rowid(parent_rowids, recompute=True, config=config)
+                    except depcache_table.ExternalStorageException:
+                        if try_num == num_retries - 1:
+                            raise
+
+                # TRY ONE MORE TIME
+                prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug,
+                                               read_extern=read_extern,
+                                               delete_on_fail=False)
         return prop_list
 
     def get_config_history(depc, tablename, root_rowids, config=None):

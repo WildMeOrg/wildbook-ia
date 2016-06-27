@@ -217,8 +217,23 @@ class _TableConfigHelper(object):
         return config_rowids
 
     def get_row_configs(table, rowid_list):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.query_request import *  # NOQA
+            >>> from dtool.example_depcache import *  # NOQA
+            >>> depc = testdata_depc()
+            >>> table = depc['chip']
+            >>> rowid_list = depc.get_rowids('chip', [1, 2], config={})
+            >>> configs = table.get_row_configs(rowid_list)
+        """
         config_rowids = table.get_row_cfgid(rowid_list)
-        return table.get_config_from_rowid(config_rowids)
+        # Only look up the configs that are needed
+        unique_config_rowids, groupxs = ut.group_indices(config_rowids)
+        unique_configs = table.get_config_from_rowid(unique_config_rowids)
+        configs = ut.ungroup_unique(unique_configs, groupxs,
+                                    maxval=len(rowid_list) - 1)
+        return configs
 
     def get_row_cfghashid(table, rowid_list):
         config_rowids = table.get_row_cfgid(rowid_list)
@@ -2073,7 +2088,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
     @profile
     def get_row_data(table, tbl_rowids, colnames=None, _debug=None,
                      read_extern=True, num_retries=1, eager=True,
-                     nInput=None, ensure=True):
+                     nInput=None, ensure=True, delete_on_fail=True):
         r"""
         FIXME: unpacking is confusing with sql controller
         TODO: Clean up and allow for eager=False
@@ -2206,10 +2221,15 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             cache_dpath = table.depc.cache_dpath
             extern_dname = 'extern_' + table.tablename
             extern_dpath = join(cache_dpath, extern_dname)
+            # print('raw_prop_list = %r' % (raw_prop_list,))
 
             ####
             # Read data specified by any external columns
-            prop_listT = list(zip(*raw_prop_list))
+            try:
+                prop_listT = list(zip(*raw_prop_list))
+            except TypeError as ex:
+                ut.printex(ex, 'error on prop_list shape', keys=['raw_prop_list'])
+                raise
             for extern_colx, read_func in extern_resolve_colxs:
                 if _debug:
                     print('[deptbl.get_row_data] read_func = %r' % (read_func,))
@@ -2246,7 +2266,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
                     failed_uris = ut.compress(prop_listT[extern_colx], failed_list)
                     print('Failed to read %s' % (ut.trunc_repr(failed_uris, maxlen=300)))
                     failed_rowids = ut.compress(nonNone_tbl_rowids, failed_list)
-                    table.delete_rows(failed_rowids, delete_extern=None)
+                    if delete_on_fail:
+                        table.delete_rows(failed_rowids, delete_extern=None)
                     raise ExternalStorageException(
                         'Some cached filenames failed to read. '
                         'Need to recompute %d/%d rows' % (sum(failed_list),
