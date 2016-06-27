@@ -458,3 +458,38 @@ def _get_parent_input(depc, tablename, root_rowids, config, ensure=True,
         levels_up=1)
     parent_rowids = depc._get_parent_rowids(table, rowid_dict)
     return parent_rowids
+
+#def get_relevant_subconfigs(depc, tablename, config):
+#    depc._ensure_config(tablename, config)
+#    pass
+
+
+def _get_parent_rowids(depc, table, rowid_dict):
+    # FIXME to handle multiedges correctly
+    parent_rowidsT = ut.dict_take(rowid_dict,
+                                  table.parent_id_tablenames)
+    if table.ismulti:
+        parent_rowids = parent_rowidsT
+    else:
+        parent_rowids = ut.list_transpose(parent_rowidsT)
+    return parent_rowids
+
+
+def _expand_level_rowids(depc, tablename, tablekey, rowid_dict, ensure,
+                         eager, nInput, config, recompute, recompute_all,
+                         _debug):
+    table = depc[tablekey]
+    config_ = depc._ensure_config(tablekey, config)
+    parent_rowids = depc._get_parent_rowids(table, rowid_dict)
+    if _debug:
+        print('   * tablekey = %r' % (tablekey,))
+        print('   * (ensured) config_ = %r' % (config_,))
+        print('   * config_rowid = %r' % (table.get_config_rowid(config_),))
+        print('   * parent_rowids = %s' % (ut.trunc_repr(parent_rowids),))
+    _recompute = recompute_all or (tablekey == tablename and recompute)
+    level_rowids = table.get_rowid(
+        parent_rowids, config=config_, eager=eager, nInput=nInput,
+        ensure=ensure, recompute=_recompute)
+    if _debug:
+        print('   * level_rowids = %s' % (ut.trunc_repr(level_rowids),))
+    return level_rowids

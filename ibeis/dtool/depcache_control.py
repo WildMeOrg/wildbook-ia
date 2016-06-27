@@ -180,12 +180,12 @@ class _CoreDependencyCache(object):
             reg_subprop = SUBPROP_REGISTER[depc.root]
             if ut.VERBOSE:
                 print('[depc.init] Registering %d global preproc funcs' % len(reg_preproc))
-            for args_, kwargs_ in reg_preproc:
-                depc._register_prop(*args_, **kwargs_)
+            for args_, _kwargs in reg_preproc:
+                depc._register_prop(*args_, **_kwargs)
             if ut.VERBOSE:
                 print('[depc.init] Registering %d global subprops ' % len(reg_subprop))
-            for args_, kwargs_ in reg_subprop:
-                depc._register_subprop(*args_, **kwargs_)
+            for args_, _kwargs in reg_subprop:
+                depc._register_subprop(*args_, **_kwargs)
 
         ut.ensuredir(depc.cache_dpath)
 
@@ -320,83 +320,26 @@ class _CoreDependencyCache(object):
             if config_ is None:
                 # Preferable way to get configs with explicit
                 # configs
-                print('**config = %r' % (config,))
+                #print('**config = %r' % (config,))
                 config_ = configclass(**config)
-                print('config_ = %r' % (config_,))
+                #print('config_ = %r' % (config_,))
         return config_
-
-    #def get_relevant_subconfigs(depc, tablename, config):
-    #    depc._ensure_config(tablename, config)
-    #    pass
-
-    def _get_parent_rowids(depc, table, rowid_dict):
-        # FIXME to handle multiedges correctly
-        parent_rowidsT = ut.dict_take(rowid_dict,
-                                      table.parent_id_tablenames)
-        if table.ismulti:
-            parent_rowids = parent_rowidsT
-        else:
-            parent_rowids = ut.list_transpose(parent_rowidsT)
-        return parent_rowids
-
-    def _expand_level_rowids(depc, tablename, tablekey, rowid_dict, ensure,
-                             eager, nInput, config, recompute, recompute_all,
-                             _debug):
-        table = depc[tablekey]
-        config_ = depc._ensure_config(tablekey, config)
-        parent_rowids = depc._get_parent_rowids(table, rowid_dict)
-        if _debug:
-            print('   * tablekey = %r' % (tablekey,))
-            print('   * (ensured) config_ = %r' % (config_,))
-            print('   * config_rowid = %r' % (table.get_config_rowid(config_),))
-            print('   * parent_rowids = %s' % (ut.trunc_repr(parent_rowids),))
-        _recompute = recompute_all or (tablekey == tablename and recompute)
-        level_rowids = table.get_rowid(
-            parent_rowids, config=config_, eager=eager, nInput=nInput,
-            ensure=ensure, recompute=_recompute)
-        if _debug:
-            print('   * level_rowids = %s' % (ut.trunc_repr(level_rowids),))
-        return level_rowids
 
     # -----------------------------
     # STATE GETTERS
 
-    def get_rowids(depc, tablename, input_tuple, **kwargs):
+    def get_parent_rowids(depc, tablename, input_tuple, **kwargs):
         """
-        CommandLine:
-            python -m dtool.depcache_control get_rowids --show
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache2 import *  # NOQA
-            >>> depc = testdata_depc3(True)
-            >>> exec(ut.execstr_funckw(depc.get), globals())
-            >>> kwargs = {}
-            >>> root_rowids = [1, 2, 3]
-            >>> root_rowids2 = [4, 5, 6, 7, 8]
-            >>> root_rowids3 = root_rowids2
-            >>> _debug = True
-            >>> tablename = 'vocab'
-            >>> tablename = 'vocab'
-            >>> tablename = 'labeler'
-            >>> tablename = 'smk_match'
-            >>> input_tuple = (root_rowids, root_rowids2, root_rowids3)
-            >>> #tablename = 'vsone'
-            >>> #input_tuple = (root_rowids, root_rowids)
-            >>> target_table = depc[tablename]
-            >>> inputs = target_table.rootmost_inputs.total_expand()
-            >>> depc.get_rowids(tablename, input_tuple, _debug=True)
-            >>> depc.print_all_tables()
+        Returns the parent rowids needed to get / compute a property of
+        tablename
         """
         _debug = kwargs.get('_debug', False)
         _debug = depc._debug if _debug is None else _debug
-        kwargs_ = kwargs.copy()
-        config = kwargs_.pop('config', {})
-        _recompute = kwargs_.pop('recompute', False)
-        _recompute_all = kwargs_.pop('recompute_all', False)
+        _kwargs = kwargs.copy()
+        config = _kwargs.pop('config', {})
+        _recompute = _kwargs.pop('recompute_all', False)
 
-        with ut.Indenter('[GetRowID-%s]' % (tablename,),
+        with ut.Indenter('[GetParentID-%s]' % (tablename,),
                          enabled=_debug):
             if _debug:
                 print(' * tablename = %r' % (tablename,))
@@ -406,9 +349,10 @@ class _CoreDependencyCache(object):
             exi_inputs = target_table.rootmost_inputs.total_expand()
             if _debug:
                 print(' * exi_inputs=%s' % (exi_inputs,))
-            if isinstance(input_tuple, list):
+            if isinstance(input_tuple, (list, np.ndarray)):
                 input_tuple = (input_tuple,)
-            assert len(exi_inputs) == len(input_tuple), '%d, %d' % (len(exi_inputs), len(input_tuple))
+            assert len(exi_inputs) == len(input_tuple), (
+                '#expected=%d, #got=%d' % (len(exi_inputs), len(input_tuple)))
 
             # rectify input depth
             rectified_input = []
@@ -433,15 +377,10 @@ class _CoreDependencyCache(object):
                 rowid_dict[node] = rowids
 
             compute_edges = exi_inputs.flat_compute_rmi_edges()
-            # TODO: split into get parents and then get nodes
-            #input_nodes, output_edge = compute_edges[4]
             for input_nodes, output_edge in compute_edges:
-                ut.colorprint('output_edge = %r' % (output_edge,), 'yellow')
-                #_expand_level_rowids2
+                #ut.colorprint('output_edge = %r' % (output_edge,), 'yellow')
                 tablekey = output_edge.tablename
                 table = depc[tablekey]
-                # Get table configuration
-                config_ = depc._ensure_config(tablekey, config)
                 # ensure correct ordering to the table
                 input_tablekeys = [n.tablename for n in input_nodes]
                 sortx = ut.list_alignment(table.parent_id_tablenames, input_tablekeys)
@@ -478,21 +417,70 @@ class _CoreDependencyCache(object):
                 parent_rowids = list(zip(*parent_rowids2_))
                 #parent_rowids = list(ut.product(*parent_rowids_))
 
-                recompute = _recompute_all
-                if _recompute and output_edge.tablename == tablename:
-                    recompute = True
+                if output_edge.tablename == tablename:
+                    return parent_rowids
+
+                # Get table configuration
+                config_ = depc._ensure_config(tablekey, config)
 
                 num_tries = 2
                 for try_num in range(num_tries):
                     try:
                         output_rowids = table.get_rowid(parent_rowids, config=config_,
-                                                        recompute=recompute,  **kwargs_)
+                                                        recompute=_recompute,  **_kwargs)
                     except depcache_table.ExternalStorageException:
                         if try_num == num_tries - 1:
                             raise
                 rowid_dict[output_edge] = output_rowids
                 #table.get_model_inputs(table.get_model_uuid(output_rowids)[0])
-            rowids = rowid_dict[output_edge]
+            #rowids = rowid_dict[output_edge]
+
+    def get_rowids(depc, tablename, input_tuple, **kwargs):
+        """
+        Used to get tablename rowids. Ensures rows exist unless ensure=False.
+        rowids uniquely specify parent inputs and a configuration.
+
+        CommandLine:
+            python -m dtool.depcache_control get_rowids --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> depc = testdata_depc3(True)
+            >>> exec(ut.execstr_funckw(depc.get), globals())
+            >>> kwargs = {}
+            >>> root_rowids = [1, 2, 3]
+            >>> root_rowids2 = [4, 5, 6, 7, 8]
+            >>> root_rowids3 = root_rowids2
+            >>> _debug = True
+            >>> tablename = 'smk_match'
+            >>> input_tuple = (root_rowids, root_rowids2, root_rowids3)
+            >>> target_table = depc[tablename]
+            >>> inputs = target_table.rootmost_inputs.total_expand()
+            >>> depc.get_rowids(tablename, input_tuple, _debug=_debug)
+            >>> depc.print_all_tables()
+        """
+        _debug = kwargs.get('_debug', False)
+        _debug = depc._debug if _debug is None else _debug
+        _kwargs = kwargs.copy()
+        config = _kwargs.pop('config', {})
+        _recompute_all = _kwargs.pop('recompute_all', False)
+        recompute = _kwargs.pop('recompute', _recompute_all)
+
+        parent_rowids = depc.get_parent_rowids(tablename, input_tuple, **_kwargs)
+
+        config_ = depc._ensure_config(tablename, config)
+        table = depc[tablename]
+
+        num_tries = 2
+        for try_num in range(num_tries):
+            try:
+                rowids = table.get_rowid(parent_rowids, config=config_,
+                                         recompute=recompute, **_kwargs)
+            except depcache_table.ExternalStorageException:
+                if try_num == num_tries - 1:
+                    raise
         return rowids
 
     @ut.accepts_scalar_input2(argx_list=[1])
@@ -584,9 +572,9 @@ class _CoreDependencyCache(object):
                 # HACK: should be able to not compute rows to get certain properties
                 from os.path import join
                 #recompute_ = recompute or recompute_all
-                parent_rowids = depc._get_parent_input(
-                    tablename, root_rowids, config, ensure=True, _debug=None,
-                    recompute=False, recompute_all=False, eager=True,
+                parent_rowids = depc.get_parent_rowids(
+                    tablename, root_rowids, config=config, ensure=True, _debug=None,
+                    recompute_all=False, eager=True,
                     nInput=None)
                 config_ = depc._ensure_config(tablename, config)
                 if _debug:
@@ -938,6 +926,23 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> import utool as ut
             >>> depc = testdata_depc()
             >>> graph = depc.make_graph(reduced=ut.get_argflag('--reduced'))
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> pt.ensure_pylab_qt4()
+            >>> import networkx as nx
+            >>> #pt.show_nx(nx.dag.transitive_closure(graph))
+            >>> #pt.show_nx(ut.nx_transitive_reduction(graph))
+            >>> pt.show_nx(graph)
+            >>> pt.show_nx(graph, layout='agraph')
+            >>> ut.show_if_requested()
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> import utool as ut
+            >>> depc = testdata_depc()
+            >>> graph = depc.make_graph(reduced=True)
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
             >>> pt.ensure_pylab_qt4()
