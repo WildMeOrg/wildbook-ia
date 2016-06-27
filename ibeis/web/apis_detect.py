@@ -500,7 +500,7 @@ def commit_detection_results_filtered(ibs, gid_list, species_list=None, viewpoin
             if not (viewpoint_list is None or viewpoint in viewpoint_list):
                 continue
             note_ = None if note is None else [note]
-            aid = ibs.add_annots(
+            temp_list = ibs.add_annots(
                 [gid],
                 [bbox],
                 [theta],
@@ -510,8 +510,9 @@ def commit_detection_results_filtered(ibs, gid_list, species_list=None, viewpoin
                 quiet_delete_thumbs=True,
                 skip_cleaning=True
             )
-            aid_list.append(aid)
+            aid = temp_list[0]
             ibs.set_annot_yaw_texts([aid], [viewpoint])
+            aid_list.append(aid)
         aids_list.append(aid_list)
     ibs._clean_species()
     return aids_list
