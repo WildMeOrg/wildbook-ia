@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+    <body>
+        <head>
+            <title>D3 Test Example</title>
+        </head>
+        <body>
+            <p>
+            First test of D3
+            </p>
+            
+        </body>
+    </html>
+
+
+<script src="d3.min.js"></script>
+<style>
+
+.link {
+  stroke: #aaa;
+}
+
+.node text {
+stroke:#333;
+cursos:pointer;
+}
+
+.node rect{
+stroke:#fff;
+stroke-width:3px;
+fill:#555;
+}
+
+.node circle{
+stroke:#fff;
+stroke-width:3px;
+fill:#555;
+}
+
+d3-tip {
+    line-height: 1;
+    color: black;
+}
+</style>
+<body>
+
+<script type='text/javascript' src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"> </script>
+
+<script>
+
+var width = 960,
+    height = 500
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var force = d3.layout.force()
+    .gravity(.05)
+    .distance(100)
+    .charge(-100)
+    .size([width, height]);
+
+//Set up tooltip
+var tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function (d) {
+    return  d.image + "";
+})
+svg.call(tip);
+
+// Add template for arrow endings
+svg.append("defs").selectAll("marker")
+    .data(["suit", "licensing", "resolved"])
+  .enter().append("marker")
+    .attr("id", function(d) { return d; })
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 25)
+    .attr("refY", 0)
+    .attr("markerWidth", 6)
+    .attr("markerHeight", 6)
+    .attr("orient", "auto")
+  .append("path")
+    .attr("d", "M0,-5L10,0L0,5 L10,0 L0, -5")
+    .style("stroke", "#4679BD")
+    .style("opacity", "0.6");
+
+// adjust threshold
+function threshold(thresh) {
+    graph.links.splice(0, graph.links.length);
+		for (var i = 0; i < graphRec.links.length; i++) {
+			if (graphRec.links[i].value > thresh) {graph.links.push(graphRec.links[i]);}
+		}
+    restart();
+}
+// Restart the visualisation after any node and link changes
+function restart() {
+	link = link.data(graph.links);
+	link.exit().remove();
+	link.enter().insert("line", ".node").attr("class", "link");
+	node = node.data(graph.nodes);
+	node.enter().insert("circle", ".cursor").attr("class", "node").attr("r", 5).call(force.drag);
+	force.start();
+}
+
+
+//Read the data from the mis element 
+var mis = document.getElementById('mis').innerHTML;
+graph = JSON.parse(mis);
+
+<!--d3.json("graphFile.json", function(json) {-->
+<!--python -m SimpleHTTPServer 8000-->
+<!--d3.json("http://localhost:8000/graphFile.json", function(json) {-->
+d3.json("http://localhost:8000/graph.json", function(json) {
+  force
+      .nodes(json.nodes)
+      .links(json.links)
+      .start();
+
+  var link = svg.selectAll(".link")
+      .data(json.links)
+    .enter().append("line")
+      .attr("class", "link")
+    .style("marker-end",  "url(#suit)") // Modified line 
+    .style("stroke-width", function(d) { return Math.sqrt(d.weight); });
+
+  var node = svg.selectAll(".node")
+      .data(json.nodes)
+    .enter().append("g")
+      .attr("class", "node")
+      .call(force.drag)
+     .on('mouseover', tip.show) //Added
+     .on('mouseout', tip.hide); //Added 
+
+  //node.append("circle")
+  //    .style("fill", function(d) { return d.color; }) 
+  //   .attr("r","10");
+
+  node.append("rect")
+      .style("fill", function(d) { return d.color; }) 
+      .attr("width","20")
+      .attr("height","20");
+
+  node.append("text")
+      .attr("dx", 12)
+      .attr("dy", ".35em")
+      .text(function(d) { return d.label });
+
+  force.on("tick", function() {
+    link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  });
+});
+
+</script>

@@ -794,6 +794,40 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
     return self
 
 
+def test_web_graphs(self, infr):
+    """
+    https://plot.ly/python/
+
+    http://bokeh.pydata.org/en/latest/
+
+    pip install bokeh
+
+    Notes:
+        http://www.coppelia.io/2014/07/an-a-to-z-of-extra-features-for-the-d3-force-layout/
+        http://andrewmellor.co.uk/blog/articles/2014/12/14/d3-networks/
+        pip install plotly  # eww need to sign up and get a key
+        http://igraph.org/
+    """
+    import mpld3
+    import plottool as pt
+    fig = pt.gcf()
+    mpld3.save_html(fig, open('fig.html', 'w'))
+    mpld3.save_json(fig, open('fig.json', 'w'))
+
+    # http://andrewmellor.co.uk/blog/articles/2014/12/14/d3-networks/
+    from networkx.readwrite import json_graph
+
+    G = infr.graph
+    data = json_graph.node_link_data(G)
+    json_text = ut.to_json(data, pretty=True)
+    ut.writeto('graph.json', json_text)
+    ut.editfile('graph.json')
+
+    ut.startfile('d3_example.html')
+    # d3_location = ut.grab_zipped_url('https://github.com/d3/d3/releases/download/v3.5.17/d3.zip')
+    # python -m SimpleHTTPServer 8000
+
+
 if __name__ == '__main__':
     """
     CommandLine:
