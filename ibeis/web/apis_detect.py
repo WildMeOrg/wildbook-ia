@@ -499,13 +499,14 @@ def commit_detection_results_filtered(ibs, gid_list, species_list=None, viewpoin
                 continue
             if not (viewpoint_list is None or viewpoint in viewpoint_list):
                 continue
+            note_ = None if note is None else [note]
             aid = ibs.add_annots(
                 [gid],
                 [bbox],
                 [theta],
                 [species],
                 detect_confidence_list=[conf],
-                notes_list=[note],
+                notes_list=note_,
                 quiet_delete_thumbs=True,
                 skip_cleaning=True
             )
