@@ -31,6 +31,21 @@
   text-align: center;
 }
 
+.col-custom-span-2
+{
+  width: 100%;
+}
+
+.col-custom-span-2:first-child
+{
+  margin-left: -48%;
+}
+
+.col-custom-span-2:last-child
+{
+  margin-right: -47%;
+}
+
 .col-custom-span-3
 {
   width: 50%;

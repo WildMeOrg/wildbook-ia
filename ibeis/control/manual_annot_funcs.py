@@ -3283,6 +3283,35 @@ def set_annot_reviewed(ibs, aid_list, reviewed_list):
     ibs.db.set(const.ANNOTATION_TABLE, ('annot_toggle_reviewed',), val_list, id_iter)
 
 
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/annot/multiple/', methods=['GET'])
+def get_annot_multiple(ibs, aid_list):
+    r"""
+    RESTful:
+        Method: GET
+        URL:    /api/annot/multiple/
+    """
+    flag_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_toggle_multiple',), aid_list)
+    return flag_list
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/annot/mutiple/', methods=['PUT'])
+def set_annot_multiple(ibs, aid_list, flag_list):
+    r"""
+    Sets the annot all instances found bit
+
+    RESTful:
+        Method: PUT
+        URL:    /api/annot/multiple/
+    """
+    id_iter = ((aid,) for aid in aid_list)
+    val_list = ((flag,) for flag in flag_list)
+    ibs.db.set(const.ANNOTATION_TABLE, ('annot_toggle_multiple',), val_list, id_iter)
+
+
 #==========
 # Testdata
 #==========

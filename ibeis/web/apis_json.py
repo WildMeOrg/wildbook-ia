@@ -898,6 +898,12 @@ def get_annot_reviewed_json(ibs, annot_uuid_list, **kwargs):
     return ibs.get_annot_reviewed(aid_list, **kwargs)
 
 
+@register_api('/api/annot/multiple/json/', methods=['GET'])
+def get_annot_multiple_json(ibs, annot_uuid_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_multiple(aid_list, **kwargs)
+
+
 @register_api('/api/annot/age/months/json/', methods=['GET'], __api_plural_check__=False)
 def get_annot_age_months_est_json(ibs, annot_uuid_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)

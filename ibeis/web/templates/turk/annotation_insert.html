@@ -25,11 +25,32 @@
       <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-up"              ></span></div>
       <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-left rotate-45"    ></span></div>
     </div>
+    <br/>
 
-    <br/>
-    Quality: <span id="ia-quality-label-value"></span> | Label: <span id="ia-quality-label-text"></span>
-    <br/>
-    <input id="ia-annotation-quality" type="range" name="ia-quality-value" value="{% if quality_value %}{{ quality_value }}{% else %}3{% endif %}" min="1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+    <div class="row">
+      <div class="col-lg-6 col-md-6 col-sm-6">
+        Quality: <span id="ia-quality-label-value"></span> | Label: <span id="ia-quality-label-text"></span>
+        <input id="ia-annotation-quality" type="range" name="ia-quality-value" value="{% if quality_value %}{{ quality_value }}{% else %}3{% endif %}" min="1" max="2" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <div class="row-custom-expand">
+          <div class="col-custom-span col-custom-span-2">
+            <span class="glyphicon glyphicon-remove"></span>
+          </div>
+          <div class="col-custom-span col-custom-span-2">
+            <span class="glyphicon glyphicon-ok"></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 col-md-6 col-sm-6">
+          <div class="checkbox pull-right">
+            <label>
+              <input id="ia-annotation-multiple" name="ia-multiple-value" type="checkbox" {% if multiple_value %}checked{% endif %}> Multiple animals in image
+            </label>
+          </div>
+
+      </div>
+    </div>
+
+<!--
     <div class="row-custom-expand" style="height: 50px;">
       <div class="col-custom-span col-custom-span-5">
         <span class="glyphicon glyphicon-star"></span>
@@ -57,6 +78,7 @@
         <span class="glyphicon glyphicon-star" style="top: 26px; right: 28px;"></span>
       </div>
     </div>
+-->
     <br/>
     {% if previous %}
       <a class="btn btn-default pull-left" id="ia-turk-previous" href="{{ url_for('turk_annotation') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&aid={{ previous }}">Previous {{ previous }}</a>

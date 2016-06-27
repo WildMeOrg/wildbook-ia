@@ -301,7 +301,7 @@ rrrr = reload_subs
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
 __version__ = VERSION_CURRENT
-__version__ = '1.5.3'
+__version__ = '1.5.4'
 
 if __version__ != VERSION_CURRENT:
     raise AssertionError(

@@ -250,9 +250,17 @@ def submit_annotation():
             quality = int(request.form['ia-quality-value'])
         except ValueError:
             quality = int(float(request.form['ia-quality-value']))
+        if quality == 1:
+            quality = 2
+        elif quality == 2:
+            quality = 4
+        else:
+            raise ValueError('quality must be 1 or 2')
         ibs.set_annot_qualities([aid], [quality])
+        multiple = 1 if 'ia-multiple-value' in request.form else 0
+        ibs.set_annot_multiple([aid], [multiple])
         ibs.set_annot_reviewed([aid], [1])
-        print('[web] turk_id: %s, aid: %d, yaw: %d, quality: %d' % (turk_id, aid, yaw, quality))
+        print('[web] turk_id: %s, aid: %d, yaw: %d, quality: %d, multiple: %r' % (turk_id, aid, yaw, quality, multiple))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:

@@ -1387,6 +1387,13 @@ def update_1_5_3(db, ibs=None):
     ))
 
 
+def update_1_5_4(db, ibs=None):
+    # Add reviewed flag to annotations
+    db.modify_table(const.ANNOTATION_TABLE, (
+        (14, 'annot_toggle_multiple',        'INTEGER DEFAULT 0', None),
+    ))
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1429,6 +1436,7 @@ VALID_VERSIONS = ut.odict([
     ('1.5.1',    (None,                 update_1_5_1,       None                )),
     ('1.5.2',    (None,                 update_1_5_2,       post_1_5_2          )),
     ('1.5.3',    (None,                 update_1_5_3,       None                )),
+    ('1.5.4',    (None,                 update_1_5_4,       None                )),
 ])
 """
 SeeAlso:

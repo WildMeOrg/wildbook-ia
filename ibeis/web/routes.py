@@ -762,8 +762,11 @@ def turk_annotation():
         quality_value = ibs.get_annot_qualities(aid)
         if quality_value == -1:
             quality_value = None
-        if quality_value == 0:
+        elif quality_value > 2:
+            quality_value = 2
+        elif quality_value <= 2:
             quality_value = 1
+        multiple_value = ibs.get_annot_multiple(aid) == 1
     else:
         gid       = None
         gpath     = None
@@ -771,6 +774,7 @@ def turk_annotation():
         species   = None
         viewpoint_value = None
         quality_value = None
+        multiple_value = None
 
     imagesettext = ibs.get_imageset_text(imgsetid)
 
@@ -795,6 +799,7 @@ def turk_annotation():
                          aid=aid,
                          viewpoint_value=viewpoint_value,
                          quality_value=quality_value,
+                         multiple_value=multiple_value,
                          image_path=gpath,
                          image_src=image_src,
                          previous=previous,

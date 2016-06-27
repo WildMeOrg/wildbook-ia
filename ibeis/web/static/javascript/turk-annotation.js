@@ -20,11 +20,13 @@ function update_label()
   $("#ia-viewpoint-label-text").html(viewpoint_strs[value]);
 
   var quality_strs = [];
-  quality_strs[5] = 'Excellent';
-  quality_strs[4] = 'Good';
-  quality_strs[3] = 'OK';
-  quality_strs[2] = 'Poor';
-  quality_strs[1] = 'Junk';
+  // quality_strs[5] = 'Excellent';
+  // quality_strs[4] = 'Good';
+  // quality_strs[3] = 'OK';
+  // quality_strs[2] = 'Poor';
+  // quality_strs[1] = 'Junk';
+  quality_strs[2] = 'Good';
+  quality_strs[1] = 'Poor';
 
   value = parseFloat( $("#ia-annotation-quality").val() );
   $("#ia-quality-label-value").html(value);
@@ -95,22 +97,27 @@ $(window).keydown(function(event) {
     }
     else if(key == 69)
     {
-      // E key pressed, 3 starts
-      $("#ia-annotation-quality").val(3);
-      update_label();
+      $('#ia-annotation-multiple').trigger('click');
     }
-    else if(key == 82)
-    {
-      // R key pressed, 4 stars
-      $("#ia-annotation-quality").val(4);
-      update_label();
-    }
-    else if(key == 84)
-    {
-      // T key pressed, 5 stars
-      $("#ia-annotation-quality").val(5);
-      update_label();
-    }
+    // else if(key == 69)
+    // {
+    //   $('#ia-annotation-multiple').trigger('click');
+    //   E key pressed, 3 starts
+    //   $("#ia-annotation-quality").val(3);
+    //   update_label();
+    // }
+    // else if(key == 82)
+    // {
+    //   // R key pressed, 4 stars
+    //   $("#ia-annotation-quality").val(4);
+    //   update_label();
+    // }
+    // else if(key == 84)
+    // {
+    //   // T key pressed, 5 stars
+    //   $("#ia-annotation-quality").val(5);
+    //   update_label();
+    // }
     // else if(key == 85)
     // {
     //   // U key pressed, select Unspecified Animal in selection box
