@@ -329,20 +329,41 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.base import *  # NOQA
-            >>> from dtool.example_depcache import DummyVsManyConfig
+            >>> from dtool.example_depcache import DummyKptsConfig
             >>> from six.moves import cPickle as pickle
-            >>> cfg = DummyVsManyConfig()
+            >>> cfg = DummyKptsConfig()
             >>> ser = pickle.dumps(cfg)
             >>> cfg2 = pickle.loads(ser)
             >>> assert cfg == cfg2
             >>> assert cfg is not cfg2
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.base import *  # NOQA
+            >>> from dtool.example_depcache import DummyVsManyConfig
+            >>> from six.moves import cPickle as pickle
+            >>> cfg = DummyVsManyConfig()
+            >>> state = cfg.__getstate__()
+            >>> cfg2 = DummyVsManyConfig()
+            >>> serialized = pickle.dumps(cfg)
+            >>> unserialized = pickle.loads(serialized)
+            >>> assert cfg == unserialized
+            >>> assert cfg is not unserialized
         """
-        return cfg.asdict()
-        #return cfg.__dict__
+        #import dtool
+        #_dict = cfg.asdict()
+        #_dict2 = {}
+        #for key, val in _dict.items():
+        #    if isinstance(val, dtool.Config):
+        #        val = val.asdict()
+        #    _dict2[key] = val
+        #return {'dtool.Config': _dict2}
+        return cfg.__dict__
 
     def __setstate__(cfg, state):
-        cfg.initialize_params()
-        cfg.update(**state)
+        cfg.__dict__.update(**state)
+        #cfg.initialize_params()
+        #cfg.update(**state)
 
     #@classmethod
     #def static_config_name(cls):

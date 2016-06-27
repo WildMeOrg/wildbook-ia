@@ -1877,28 +1877,20 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             list: rowid_list
 
         CommandLine:
-            python -m dtool.depcache_table --exec-get_rowid
+         -m dtool.depcache_table --exec-get_rowid
 
         Example5:
             >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> # Test get behavior for multi (model) tables
-            >>> depc = testdata_depc()
-            >>> #table = depc['multitest']
-            >>> table = depc['chip']
+            >>> from dtool.example_depcache2 import testdata_depc3
+            >>> depc = testdata_depc3()
+            >>> table = depc['labeler']
             >>> exec(ut.execstr_funckw(table.get_rowid), globals())
             >>> config = table.configclass()
             >>> _debug = True
-            >>> #depc.get_rowids('chip', [1, 2, 3, 4, 5])
-            >>> #depc.get_rowids('spam', [2, 3])
             >>> parent_rowids = list(zip([1, None, None, 2]))
-            >>> #parent_rowids = [((1, 2, 3, 4), 3, (1, 2,), 1), (None, None, None, 1),
-            >>> #                 ((1, 2, 3, 4, 5), None, (1, 2,), 1), ((1, 2,), 1, (2, 3,), 1)]
             >>> rowids = table.get_rowid(parent_rowids, config=config, _debug=_debug)
             >>> result = ('rowids = %r' % (rowids,))
-            >>> #indexer = table.get_row_data(rowids)
-            >>> #print('indexer = %r' % (indexer,))
             >>> print(result)
             rowids = [1, None, None, 2]
         """
@@ -2083,12 +2075,13 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
                      read_extern=True, extra_tries=1, eager=True,
                      nInput=None, ensure=True):
         r"""
-        colnames = ('mask', 'size')
         FIXME: unpacking is confusing with sql controller
         TODO: Clean up and allow for eager=False
 
+        colnames = ('mask', 'size')
+
         CommandLine:
-            python -m dtool.depcache_table --exec-get_row_data
+            python -m dtool.depcache_table --test-get_row_data
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -2107,7 +2100,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             >>>               extra_tries=extra_tries, _debug=_debug)
             >>> prop_list = table.get_row_data(tbl_rowids, colnames, **kwargs)
             >>> prop_list0 = ut.take_column(prop_list, [0, 1, 2]) # take small data
-            >>> print(ut.repr2(prop_list0, nl=1))
+            >>> result = (ut.repr2(prop_list0, nl=1))
+            >>> print(result)
             [
                 [372, (545, 372), 'chip_chip_id=1_pyrappzicqoskdjq.png'],
                 [2453, (1707, 2453), 'chip_chip_id=2_pyrappzicqoskdjq.png'],

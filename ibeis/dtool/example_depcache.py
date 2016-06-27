@@ -329,7 +329,7 @@ def testdata_depc(fname=None):
         qaids = qaids
 
         sver_on = config.dummy_sver_cfg['sver_on']
-        kpts_list = depc.get_property('keypoint', qaids)  # NOQA
+        kpts_list = depc.get_property('keypoint', list(qaids))  # NOQA
         #dummy_preproc_kpts
         for qaid in qaids:
             dnid_list = [1, 1, 2, 2]
@@ -633,7 +633,7 @@ def dummy_example_depcacahe():
     print('---------- 222 -----------')
 
     cfgdict = {'sver_on': False}
-    req = depc.new_request('vsmany', root_rowids, root_rowids, cfgdict)
+    req = depc.new_request('vsmany', root_rowids, [root_rowids], cfgdict)
     req.execute()
 
     print('---------- 333 -----------')
