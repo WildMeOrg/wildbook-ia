@@ -95,10 +95,10 @@ $(window).keydown(function(event) {
       $("#ia-annotation-quality").val(2);
       update_label();
     }
-    else if(key == 69)
-    {
-      $('#ia-annotation-multiple').trigger('click');
-    }
+    // else if(key == 69)
+    // {
+    //   $('#ia-annotation-multiple').trigger('click');
+    // }
     // else if(key == 69)
     // {
     //   $('#ia-annotation-multiple').trigger('click');

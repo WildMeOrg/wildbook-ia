@@ -760,10 +760,8 @@ def turk_annotation():
         species   = ibs.get_annot_species_texts(aid)
         viewpoint_value = appf.convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
         quality_value = ibs.get_annot_qualities(aid)
-        if quality_value == -1:
-            # quality_value = None
-            # USE GOOD AS DEFAULT
-            quality_value = 2
+        if quality_value in [-1, None]:
+            quality_value = None
         elif quality_value > 2:
             quality_value = 2
         elif quality_value <= 2:
