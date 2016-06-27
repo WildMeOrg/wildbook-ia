@@ -500,6 +500,7 @@ def commit_detection_results_filtered(ibs, gid_list, species_list=None, viewpoin
             if not (viewpoint_list is None or viewpoint in viewpoint_list):
                 continue
             note_ = None if note is None else [note]
+            ut.embed()
             aid = ibs.add_annots(
                 [gid],
                 [bbox],
