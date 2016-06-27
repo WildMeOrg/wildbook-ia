@@ -486,6 +486,37 @@ def commit_detection_results(ibs, gid_list, results_list, note=None):
 
 
 @register_ibs_method
+def commit_detection_results_filtered(ibs, gid_list, species_list=None, viewpoint_list=None, note=None):
+    depc = ibs.depc_image
+    results_list = depc.get_property('detections', gid_list, None)
+    zipped_list = zip(gid_list, results_list)
+    aids_list = []
+    for gid, (score, bbox_list, theta_list, species_list, viewpoint_list, conf_list) in zipped_list:
+        aid_list = []
+        result_list = zip(bbox_list, theta_list, species_list, viewpoint_list, conf_list)
+        for bbox, theta, species, viewpoint, conf in result_list:
+            if not (species_list is None or species in species_list):
+                continue
+            if not (viewpoint_list is None or viewpoint in viewpoint_list):
+                continue
+            aid = ibs.add_annots(
+                [gid],
+                [bbox],
+                [theta],
+                [species],
+                detect_confidence_list=[conf],
+                notes_list=[note],
+                quiet_delete_thumbs=True,
+                skip_cleaning=True
+            )
+            aid_list.append(aid)
+        ibs.set_annot_yaw_texts(aid_list, viewpoint_list)
+        aids_list.append(aid_list)
+    ibs._clean_species()
+    return aids_list
+
+
+@register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/detect/species/enabled/', methods=['GET'], __api_plural_check__=False)
 def has_species_detector(ibs, species_text):
