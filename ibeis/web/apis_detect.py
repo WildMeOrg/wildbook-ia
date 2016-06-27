@@ -486,7 +486,7 @@ def commit_detection_results(ibs, gid_list, results_list, note=None):
 
 
 @register_ibs_method
-def commit_detection_results_filtered(ibs, gid_list, species_list=None, viewpoint_list=None, note=None):
+def commit_detection_results_filtered(ibs, gid_list, filter_species_list=None, filter_viewpoint_list=None, note=None):
     depc = ibs.depc_image
     results_list = depc.get_property('detections', gid_list, None)
     zipped_list = zip(gid_list, results_list)
@@ -495,9 +495,9 @@ def commit_detection_results_filtered(ibs, gid_list, species_list=None, viewpoin
         aid_list = []
         result_list = zip(bbox_list, theta_list, species_list, viewpoint_list, conf_list)
         for bbox, theta, species, viewpoint, conf in result_list:
-            if not (species_list is None or species in species_list):
+            if not (filter_species_list is None or species in filter_species_list):
                 continue
-            if not (viewpoint_list is None or viewpoint in viewpoint_list):
+            if not (filter_viewpoint_list is None or viewpoint in filter_viewpoint_list):
                 continue
             note_ = None if note is None else [note]
             temp_list = ibs.add_annots(
