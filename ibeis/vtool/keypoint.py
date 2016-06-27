@@ -155,11 +155,53 @@ LOC_DIMS   = np.array([XDIM, YDIM])
 SHAPE_DIMS = np.array([SCAX_DIM, SKEW_DIM, SCAY_DIM])
 
 
-def get_grid_kpts(wh=(300, 300), wh_stride=(50, 50), scale=20, dtype=np.float32, **kwargs):
-    """ Returns a regular grid of keypoints """
+def get_grid_kpts(wh=(300, 300), wh_stride=None, scale=20, wh_num=None,
+                  dtype=np.float32, **kwargs):
+    """ Returns a regular grid of keypoints
+
+    Args:
+        wh (tuple): (default = (300, 300))
+        wh_stride (tuple): stride of keypoints (defaults to (50, 50))
+        scale (int): (default = 20)
+        wh_num (tuple): desired number of keypoints in x and y direction.
+            (incompatible with stride).
+        dtype (type): (default = <type 'numpy.float32'>)
+
+    Returns:
+        ndarray[float32_t, ndim=2]: kpts -  keypoints
+
+    CommandLine:
+        python -m vtool.keypoint get_grid_kpts --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> wh = (300, 300)
+        >>> wh_stride = None
+        >>> scale = 20
+        >>> wh_num = (3, 3)
+        >>> dtype = np.float32
+        >>> kpts = get_grid_kpts(wh, wh_num=wh_num, dtype=dtype)
+        >>> assert len(kpts) == np.prod(wh_num)
+        >>> result = ('kpts = %s' % (ut.repr2(kpts.shape),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.show_kpts(kpts)
+        >>> pt.dark_background()
+        >>> ut.show_if_requested()
+    """
     (w, h) = wh
-    (wstride, hstride) = wh_stride
     padding = scale * 1.5
+    inner_width = w - 2 * padding
+    inner_height = h - 2 * padding
+    if wh_num is not None:
+        #assert wh_stride is None, 'cannot specify both stride and wh_num'
+        nx, ny = wh_num
+        wh_stride = (inner_width / nx, inner_height / ny)
+    elif wh_stride is None:
+        wh_stride = (50, 50)
+    (wstride, hstride) = wh_stride
     xbasis = np.arange(padding, (w - padding), wstride)
     ybasis = np.arange(padding, (h - padding), hstride)
     xs_grid, ys_grid = np.meshgrid(xbasis, ybasis)

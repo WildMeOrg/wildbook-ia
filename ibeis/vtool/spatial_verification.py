@@ -60,14 +60,6 @@ except Exception as ex:
 
 VERBOSE_SVER = ut.get_argflag('--verb-sver')
 
-"""
-#if CYTH
-#ctypedef np.float64_t SV_DTYPE
-SV_DTYPE = np.float64
-cdef np.float64_t TAU
-#endif
-"""
-
 SV_DTYPE = np.float64
 INDEX_DTYPE = np.int32
 TAU = 2 * np.pi  # tauday.org
@@ -111,19 +103,6 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
         http://dip.sun.ac.za/~stefan/TW793/attach/notes/homography_estimation.pdf
         http://szeliski.org/Book/drafts/SzeliskiBook_20100903_draft.pdf Page 317
         http://vision.ece.ucsb.edu/~zuliani/Research/RANSAC/docs/RANSAC4Dummies.pdf page 53
-
-    Cyth:
-        #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
-        #if CYTH
-        #CYTH_PARAM_TYPES:
-            np.ndarray[np.float64_t, ndim=2] xy1_mn
-            np.ndarray[np.float64_t, ndim=2] xy2_mn
-            np.ndarray[np.float64_t, ndim=1] x1_mn, y1_mn,  x2_mn, y2_mn
-            np.ndarray[np.float64_t, ndim=2] Mx9
-        cdef:
-            Py_ssize_t num_pts
-            Py_ssize_t ix
-        #endif
     """
     x1_mn = xy1_mn[0]
     y1_mn = xy1_mn[1]
@@ -132,25 +111,6 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     num_pts = x1_mn.shape[0]
     #Mx9 = np.zeros((2 * num_pts, 9), dtype=SV_DTYPE)
     Mx9 = np.empty((2 * num_pts, 9), dtype=SV_DTYPE)
-    """
-    #if CYTH
-    for ix in range(num_pts):  # Loop over inliers
-        # Concatenate all 2x9 matrices into an Mx9 matrix
-        Mx9[ix * 2, 3]  = -x1_mn[ix]
-        Mx9[ix * 2, 4]  = -y1_mn[ix]
-        Mx9[ix * 2, 5]  = -1.0
-        Mx9[ix * 2, 6]  = y2_mn[ix] * x1_mn[ix]
-        Mx9[ix * 2, 7]  = y2_mn[ix] * y1_mn[ix]
-        Mx9[ix * 2, 8]  = y2_mn[ix]
-
-        Mx9[ix * 2 + 1, 0] = x1_mn[ix]
-        Mx9[ix * 2 + 1, 1] = y1_mn[ix]
-        Mx9[ix * 2 + 1, 2] = -1.0
-        Mx9[ix * 2 + 1, 6] = -x2_mn[ix] * x1_mn[ix]
-        Mx9[ix * 2 + 1, 7] = -x2_mn[ix] * y1_mn[ix]
-        Mx9[ix * 2 + 1, 8] = -x2_mn[ix]
-    #else
-    """
     for ix in range(num_pts):  # Loop over inliers
         # Concatenate all 2x9 matrices into an Mx9 matrix
         u2        = x2_mn[ix]
@@ -163,11 +123,43 @@ def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
         (p, q, r) = (-u2 * x1, -u2 * y1, -u2)
         Mx9[ix * 2]     = (0, 0, 0, d, e, f, g, h, i)
         Mx9[ix * 2 + 1] = (j, k, l, 0, 0, 0, p, q, r)
-    "#endif"
     return Mx9
 
 
 def try_svd(M):
+    """
+    CommandLine:
+        python -m vtool.spatial_verification try_svd
+
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> from vtool.spatial_verification import *  # NOQA
+        >>> import vtool.tests.dummy as dummy
+        >>> rng = np.random.RandomState(42)
+        >>> num = 1000
+        >>> xy1_mn = rng.randn(2, num)
+        >>> xy2_mn = rng.randn(2, num)
+        >>> M = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
+        >>> print('M.shape = %r' % (M.shape,))
+        >>> USV = npl.svd(M, full_matrices=True, compute_uv=True)
+        >>> USV = try_svd(M)
+
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> from vtool.spatial_verification import *  # NOQA
+        >>> import vtool.tests.dummy as dummy
+        >>> num = np.ceil(np.sqrt(2000))
+        >>> kpts1, kpts2 = dummy.get_dummy_kpts_pair(wh_num=(num, num))
+        >>> xy1_mn = ktool.get_xys(kpts1).astype(np.float64)
+        >>> xy2_mn = ktool.get_xys(kpts2).astype(np.float64)
+        >>> M = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
+        >>> print('M.shape = %r' % (M.shape,))
+        >>> USV = npl.svd(M, full_matrices=True, compute_uv=True)
+        >>> USV = try_svd(M)
+    """
+    #if M.shape[0] > 2500:
+    #    # hack to prevent bug in lapack
+    #    M = M[:2500]
     try:
         USV = npl.svd(M, full_matrices=True, compute_uv=True)
     except MemoryError as ex:
@@ -215,12 +207,6 @@ def build_affine_lstsqrs_Mx6(xy1_man, xy2_man):
 
     References:
         https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf page 22
-
-    Ignore;
-        (U, S, V) = npl.svd(Mx6, full_matrices=True, compute_uv=True)
-        a = V[-6]  # Hack for Cython.wraparound(False)
-        a.reshape(2, 3)
-        A = np.vstack((a[0:3], a[3:6], (0, 0, 1)))
     """
     x1_mn = xy1_man[0]
     y1_mn = xy1_man[1]
@@ -380,19 +366,8 @@ def compute_homog(xy1_mn, xy2_mn):
         [[  9.22e-01  -2.50e-01   2.75e+01]
          [ -2.04e-01   8.79e-01  -7.94e+00]
          [ -1.82e-04  -5.99e-04   1.00e+00]]
-
-    Cyth:
-        #CYTH_RETURNS np.ndarray[np.float64_t, ndim=2]
-        #CYTH_PARAM_TYPES:
-            np.ndarray[np.float64_t, ndim=2] xy1_mn
-            np.ndarray[np.float64_t, ndim=2] xy2_mn
-        #if CYTH
-        cdef:
-            np.ndarray[np.float64_t, ndim=2] Mx9
-        #endif
     """
     # Solve for the nullspace of the Mx9 matrix (solves least squares)
-    #Mx9 = build_lstsqrs_Mx9_cyth(xy1_mn, xy2_mn)  # NOQA  # TODO: re-enable
     Mx9 = build_lstsqrs_Mx9(xy1_mn, xy2_mn)
     U, S, V = try_svd(Mx9)
     # Rearange the nullspace into a homography
@@ -478,32 +453,6 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         >>> print(result)
         +%q&%je52nlyli5&
 
-    Cyth:
-        #if CYTH
-        #CYTH_PARAM_TYPES:
-            np.ndarray[np.float64_t, ndim=2] Aff
-            np.ndarray[np.float64_t, ndim=3] invVR1s_m
-            np.ndarray[np.float64_t, ndim=2] xy2_m
-            np.ndarray[np.float64_t, ndim=1] det2_m
-            np.ndarray[np.float64_t, ndim=1] ori2_m
-            np.float64_t xy_thresh_sqrd
-            np.float64_t scale_thresh_sqrd
-            np.float64_t ori_thresh
-        cdef:
-            np.ndarray[np.float64_t, ndim=3] invVR1s_mt
-            np.ndarray[np.float64_t, ndim=2] _xy1_mt
-            np.ndarray[np.float64_t, ndim=1] _det1_mt
-            np.ndarray[np.float64_t, ndim=1] _ori1_mt
-            np.ndarray[np.float64_t, ndim=1] xy_err
-            np.ndarray[np.float64_t, ndim=1] scale_err
-            np.ndarray[np.uint8_t, ndim=1, cast=True] xy_inliers_flag
-            np.ndarray[np.uint8_t, ndim=1, cast=True] scale_inliers_flag
-            np.ndarray[np.uint8_t, ndim=1, cast=True] ori_inliers_flag
-            np.ndarray[np.uint8_t, ndim=1, cast=True] hypo_inliers_flag
-            tuple hypo_errors
-            np.ndarray[np.int_t, ndim=1] hypo_inliers
-        #endif
-
     Timeit:
         %timeit xy_err < xy_thresh_sqrd
         %timeit np.less(xy_err, xy_thresh_sqrd)
@@ -574,33 +523,6 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
         >>> result = ut.hashstr(output)
         >>> print(result)
         89kz8nh6p+66t!+u
-
-
-    Cyth:
-        #if CYTH
-        #CYTH_PARAM_TYPES:
-            np.ndarray[np.float64_t, ndim=2] kpts1
-            np.ndarray[np.float64_t, ndim=2] kpts2
-            np.ndarray[np.int32_t, ndim=2] fm
-            np.float64_t xy_thresh_sqrd
-            np.float64_t scale_thresh_sqrd
-            np.float64_t ori_thresh
-        cdef:
-            np.ndarray[np.float64_t, ndim=2] kpts1_m
-            np.ndarray[np.float64_t, ndim=2] kpts2_m
-            np.ndarray[np.float64_t, ndim=3] invVR1s_m
-            np.ndarray[np.float64_t, ndim=3] V1s_m
-            np.ndarray[np.float64_t, ndim=3] invVR2s_m
-            np.ndarray[np.float64_t, ndim=3] Aff_mats
-            np.ndarray[np.float64_t, ndim=2] xy2_m
-            np.ndarray[np.float64_t, ndim=1] det2_m
-            np.ndarray[np.float64_t, ndim=1] ori2_m
-            np.ndarray[np.float64_t, ndim=2] Aff
-            tuple tup
-            list inliers_and_errors_list
-            list errors_list
-        #endif
-
 
     Ignore::
         from vtool.spatial_verification import *  # NOQA

@@ -369,8 +369,8 @@ def get_dummy_xy(seed=0):
     return xy
 
 
-def get_dummy_kpts_pair(wh_stride=(30, 30)):
-    _kw0 = dict(wh_stride=wh_stride, dtype=np.float64)
+def get_dummy_kpts_pair(wh_stride=(30, 30), wh_num=None):
+    _kw0 = dict(wh_stride=wh_stride, dtype=np.float64, wh_num=wh_num)
     _kw1 = dict(seed=12, damping=1.2, **_kw0)
     _kw2 = dict(seed=24, damping=1.6, **_kw0)
     kpts1 = perterbed_grid_kpts(**_kw1)
