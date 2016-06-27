@@ -807,13 +807,12 @@ def test_web_graphs(self, infr):
         http://andrewmellor.co.uk/blog/articles/2014/12/14/d3-networks/
         pip install plotly  # eww need to sign up and get a key
         http://igraph.org/
-    """
     import mpld3
-    import plottool as pt
-    fig = pt.gcf()
     mpld3.save_html(fig, open('fig.html', 'w'))
     mpld3.save_json(fig, open('fig.json', 'w'))
-
+    fig = pt.gcf()
+    """
+    #import plottool as pt
     # http://andrewmellor.co.uk/blog/articles/2014/12/14/d3-networks/
     from networkx.readwrite import json_graph
 
@@ -826,6 +825,40 @@ def test_web_graphs(self, infr):
     ut.startfile('d3_example.html')
     # d3_location = ut.grab_zipped_url('https://github.com/d3/d3/releases/download/v3.5.17/d3.zip')
     # python -m SimpleHTTPServer 8000
+
+
+def test_with_qt():
+    import sys
+    from PyQt4 import QtCore, QtGui, QtWebKit
+    from os.path import join, dirname
+    import ibeis.viz
+
+    class Browser(QtWebKit.QWebView):
+
+        def __init__(self):
+            super(Browser, self).__init__()
+            self.loadFinished.connect(self._result_available)
+
+        def _result_available(self, ok):
+            pass
+            #frame = self.page().mainFrame()
+            #print(unicode(frame.toHtml()).encode('utf-8'))
+
+    app = QtGui.QApplication(sys.argv)
+
+    view = Browser()
+    view.show()
+    path = join(dirname(ibeis.viz.__file__), 'd3_example.html')
+    view.load(QtCore.QUrl(path))
+    view.page().settings().setAttribute(
+        QtWebKit.QWebSettings.DeveloperExtrasEnabled, True
+    )
+
+    insp = QtWebKit.QWebInspector()
+    insp.setPage(view.page())
+    insp.show()
+
+    app.exec_()
 
 
 if __name__ == '__main__':

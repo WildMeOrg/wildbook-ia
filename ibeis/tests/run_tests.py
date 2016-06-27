@@ -141,6 +141,29 @@ def run_tests():
     else:
         doctest_modname_list = doctest_modname_list_
 
+    coverage = ut.get_argflag(('--coverage', '--cov',))
+    if coverage:
+        import coverage
+        cov = coverage.Coverage(source=doctest_modname_list)
+        cov.start()
+        print('Starting coverage')
+
+        exclude_lines = [
+            'pragma: no cover',
+            'def __repr__',
+            'if self.debug:',
+            'if settings.DEBUG',
+            'raise AssertionError',
+            'raise NotImplementedError',
+            'if 0:',
+            'if ut.VERBOSE',
+            'if _debug:',
+            'if __name__ == .__main__.:',
+            'print(.*)',
+        ]
+        for line in exclude_lines:
+            cov.exclude(line)
+
     doctest_modname_list2 = []
     for modname in doctest_modname_list:
         try:
@@ -155,6 +178,15 @@ def run_tests():
     module_list = [sys.modules[name] for name in doctest_modname_list2]
 
     nPass, nTotal, failed_cmd_list = ut.doctest_module_list(module_list)
+
+    if coverage:
+        print('Stoping coverage')
+        cov.stop()
+        print('Saving coverage')
+        cov.save()
+        print('Generating coverage html report')
+        cov.html_report()
+
     if nPass != nTotal:
         return 1
     else:

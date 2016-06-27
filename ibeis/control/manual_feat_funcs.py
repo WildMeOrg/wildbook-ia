@@ -66,9 +66,26 @@ def delete_annot_feats(ibs, aid_list, config2_=None):
 
 @register_ibs_method
 @getter_1to1
-def get_annot_feat_rowids(ibs, aid_list, ensure=True, eager=True, nInput=None, config2_=None, extra_tries=1):
+def get_annot_feat_rowids(ibs, aid_list, ensure=True, eager=True, nInput=None,
+                          config2_=None, num_retries=1):
+    """
+    CommandLine:
+        python -m ibeis.control.manual_feat_funcs get_annot_feat_rowids --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.query_request import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aids = ibs.get_valid_aids()[0:3]
+        >>> config2_ = {}
+        >>> ibs.delete_annot_feats(aids, config2_=config2_)  # Remove the chips
+        >>> ut.remove_file_list(ibs.get_annot_chip_fpath(aids, config2_=config2_))
+        >>> qfids = qreq_.ibs.get_annot_feat_rowids(qaids, ensure=True, config2_=config2_)
+    """
     return ibs.depc_annot.get_rowids('feat', aid_list, config=config2_,
-                                     ensure=ensure, eager=eager)
+                                     ensure=ensure, eager=eager,
+                                     num_retries=num_retries)
 
 
 @register_ibs_method
@@ -155,7 +172,7 @@ def get_annot_vecs(ibs, aid_list, ensure=True, eager=True, nInput=None,
 @register_ibs_method
 @getter_1to1
 def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
-                        config2_=None):
+                        config2_=None, _debug=False):
     """
     Args:
         aid_list (list):
@@ -176,15 +193,23 @@ def get_annot_num_feats(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:3]
         >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
-        >>> nFeats_list = get_annot_num_feats(ibs, aid_list, ensure=True, config2_=config2_)
+        >>> nFeats_list = get_annot_num_feats(ibs, aid_list, ensure=True, config2_=config2_, _debug=True)
         >>> print('nFeats_list = %r' % (nFeats_list,))
         >>> assert len(nFeats_list) == 3
         >>> ut.assert_inbounds(nFeats_list[0], 1200, 1258)
         >>> ut.assert_inbounds(nFeats_list[1],  900,  922)
         >>> ut.assert_inbounds(nFeats_list[2], 1300, 1343)
+
+    Ignore:
+        depc = ibs.depc_annot
+        tablename = 'feat'
+        input_rowids = aid_list
+        colnames = 'num_feats'
+        config = config2_
+
     """
     return ibs.depc_annot.get('feat', aid_list, 'num_feats', config=config2_,
-                              ensure=ensure, eager=eager)
+                              ensure=ensure, eager=eager, _debug=_debug)
 
 
 def testdata_ibs():

@@ -542,6 +542,12 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
     SeeAlso:
         python -m ibeis_cnn --tf generate_species_background_mask --show --db PZ_Master1 --aid 9970
 
+    Ignore:
+        input_tuple = aid_list
+        tablename = 'probchip'
+        config = full_config
+        rowid_kw = dict(config=config)
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_annots import *  # NOQA
@@ -1071,7 +1077,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
         >>> #ibs, aid_list = ibeis.testdata_aids('wd_peter2', 'timectrl:pername=2,view=left,view_ext=0,exclude_reference=True')
         >>> ibs, aid_list = ibeis.testdata_aids('testdb2', 'default:')
         >>> _, aids = ut.items_sorted_by_value(ut.group_items(aid_list, ibs.get_annot_occurrence_text(aid_list)), key=len)[-1]
-        >>> aid_list = aids
+        >>> aid_list = aids[0:4]
         >>> depc = ibs.depc_annot
         >>> request = depc.new_request('vsone', aid_list, aid_list, {'resize_dim': 'width', 'dim_size': 450})
         >>> config = request.config
