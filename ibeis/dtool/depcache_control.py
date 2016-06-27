@@ -293,7 +293,7 @@ class _CoreDependencyCache(object):
 
         return dependency_levels
 
-    def _ensure_config(depc, tablekey, config):
+    def _ensure_config(depc, tablekey, config, _debug=False):
         """
         Creates a full table configuration with all defaults using config
 
@@ -320,9 +320,11 @@ class _CoreDependencyCache(object):
             if config_ is None:
                 # Preferable way to get configs with explicit
                 # configs
-                #print('**config = %r' % (config,))
+                if _debug:
+                    print(' **config = %r' % (config,))
                 config_ = configclass(**config)
-                #print('config_ = %r' % (config_,))
+                if _debug:
+                    print(' config_ = %r' % (config_,))
         return config_
 
     # -----------------------------
@@ -333,24 +335,37 @@ class _CoreDependencyCache(object):
         Returns the parent rowids needed to get / compute a property of
         tablename
         """
+        target_tablename = tablename
         _debug = kwargs.get('_debug', False)
         _debug = depc._debug if _debug is None else _debug
         _kwargs = kwargs.copy()
         config = _kwargs.pop('config', {})
+        num_retries = _kwargs.pop('num_retries', 1)
+
         _recompute = _kwargs.pop('recompute_all', False)
 
-        with ut.Indenter('[GetParentID-%s]' % (tablename,),
+        with ut.Indenter('[GetParentID-%s]' % (target_tablename,),
                          enabled=_debug):
             if _debug:
-                print(' * tablename = %r' % (tablename,))
+                print(ut.color_text('Enter get_parent_rowids', 'turquoise'))
+                print(' * target_tablename = %r' % (target_tablename,))
                 print(' * input_tuple=%s' % (ut.trunc_repr(input_tuple),))
                 print(' * config = %r' % (config,))
-            target_table = depc[tablename]
+            target_table = depc[target_tablename]
             exi_inputs = target_table.rootmost_inputs.total_expand()
             if _debug:
                 print(' * exi_inputs=%s' % (exi_inputs,))
+
             if isinstance(input_tuple, (list, np.ndarray)):
                 input_tuple = (input_tuple,)
+            if len(exi_inputs) == 1:
+                # HACK: for simple case where we only need one parent
+                if isinstance(input_tuple, (tuple,)):
+                    if len(input_tuple) == 0:
+                        input_tuple = []
+                    elif len(input_tuple) > 1:
+                        if not ut.isiterable(input_tuple[0]):
+                            input_tuple = (input_tuple,)
             assert len(exi_inputs) == len(input_tuple), (
                 '#expected=%d, #got=%d' % (len(exi_inputs), len(input_tuple)))
 
@@ -377,7 +392,11 @@ class _CoreDependencyCache(object):
                 rowid_dict[node] = rowids
 
             compute_edges = exi_inputs.flat_compute_rmi_edges()
+            if _debug:
+                print(' * compute_edges=%s' % (ut.repr2(compute_edges, nl=2),))
             for input_nodes, output_edge in compute_edges:
+                if _debug:
+                    print(' * COMPUTING EDGE %r -- %r' % (input_nodes, output_edge))
                 #ut.colorprint('output_edge = %r' % (output_edge,), 'yellow')
                 tablekey = output_edge.tablename
                 table = depc[tablekey]
@@ -414,34 +433,37 @@ class _CoreDependencyCache(object):
                 rowlens = list(map(len, parent_rowids_))
                 maxlen = max(rowlens)
                 parent_rowids2_ = [r * maxlen if len(r) == 1 else r for r in parent_rowids_]
-                parent_rowids = list(zip(*parent_rowids2_))
-                #parent_rowids = list(ut.product(*parent_rowids_))
+                _parent_rowids = list(zip(*parent_rowids2_))
+                #_parent_rowids = list(ut.product(*parent_rowids_))
 
-                if output_edge.tablename == tablename:
-                    return parent_rowids
+                if output_edge.tablename == target_tablename:
+                    # We are only computing up to the parents of the table here.
+                    parent_rowids = _parent_rowids
+                    break
 
                 # Get table configuration
-                config_ = depc._ensure_config(tablekey, config)
+                config_ = depc._ensure_config(tablekey, config, _debug)
 
-                num_tries = 2
-                for try_num in range(num_tries):
+                for try_num in range(num_retries):
                     try:
-                        output_rowids = table.get_rowid(parent_rowids, config=config_,
+                        output_rowids = table.get_rowid(_parent_rowids, config=config_,
                                                         recompute=_recompute,  **_kwargs)
                     except depcache_table.ExternalStorageException:
-                        if try_num == num_tries - 1:
+                        if try_num == num_retries - 1:
                             raise
                 rowid_dict[output_edge] = output_rowids
                 #table.get_model_inputs(table.get_model_uuid(output_rowids)[0])
             #rowids = rowid_dict[output_edge]
+            return parent_rowids
 
-    def get_rowids(depc, tablename, input_tuple, **kwargs):
+    def get_rowids(depc, tablename, input_tuple, **rowid_kw):
         """
         Used to get tablename rowids. Ensures rows exist unless ensure=False.
         rowids uniquely specify parent inputs and a configuration.
 
         CommandLine:
             python -m dtool.depcache_control get_rowids --show
+            python -m dtool.depcache_control get_rowids:1
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -460,27 +482,46 @@ class _CoreDependencyCache(object):
             >>> inputs = target_table.rootmost_inputs.total_expand()
             >>> depc.get_rowids(tablename, input_tuple, _debug=_debug)
             >>> depc.print_all_tables()
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> # Test external / ensure getters
+            >>> from ibeis.algo.hots.query_request import *  # NOQA
+            >>> from dtool.example_depcache import *  # NOQA
+            >>> import ibeis
+            >>> config = {}
+            >>> depc = testdata_depc()
+            >>> aids = [1,]
+            >>> depc.delete_property('keypoint', aids, config=config)
+            >>> chip_fpaths = depc.get('chip', aids, 'chip', config=config, read_extern=False)
+            >>> ut.remove_file_list(chip_fpaths)
+            >>> rowids = depc.get_rowids('keypoint', aids, ensure=True, config=config)
+            >>> print('rowids = %r' % (rowids,))
         """
-        _debug = kwargs.get('_debug', False)
+        target_tablename = tablename
+        _debug = rowid_kw.get('_debug', False)
         _debug = depc._debug if _debug is None else _debug
-        _kwargs = kwargs.copy()
+        _kwargs = rowid_kw.copy()
         config = _kwargs.pop('config', {})
         _recompute_all = _kwargs.pop('recompute_all', False)
         recompute = _kwargs.pop('recompute', _recompute_all)
+        num_retries = _kwargs.pop('num_retries', 1)
+        table = depc[target_tablename]
 
-        parent_rowids = depc.get_parent_rowids(tablename, input_tuple, **_kwargs)
+        parent_rowids = depc.get_parent_rowids(target_tablename, input_tuple,
+                                               config=config, **_kwargs)
 
-        config_ = depc._ensure_config(tablename, config)
-        table = depc[tablename]
+        with ut.Indenter('[GetRowId-%s]' % (target_tablename,),
+                         enabled=_debug):
+            config_ = depc._ensure_config(target_tablename, config, _debug)
 
-        num_tries = 2
-        for try_num in range(num_tries):
-            try:
-                rowids = table.get_rowid(parent_rowids, config=config_,
-                                         recompute=recompute, **_kwargs)
-            except depcache_table.ExternalStorageException:
-                if try_num == num_tries - 1:
-                    raise
+            for try_num in range(num_retries):
+                try:
+                    rowids = table.get_rowid(parent_rowids, config=config_,
+                                             recompute=recompute, **_kwargs)
+                except depcache_table.ExternalStorageException:
+                    if try_num == num_retries - 1:
+                        raise
         return rowids
 
     @ut.accepts_scalar_input2(argx_list=[1])
@@ -588,22 +629,24 @@ class _CoreDependencyCache(object):
                 fpath_list = [join(extern_dpath, fname) for fname in fname_list]
                 return fpath_list
 
+            rowid_kw = dict(config=config, ensure=ensure, eager=eager,
+                            recompute=recompute, recompute_all=recompute_all,
+                            nInput=nInput, _debug=_debug)
+
+            rowdata_kw = dict(read_extern=read_extern, _debug=_debug,
+                              num_retries=num_retries, eager=eager,
+                              ensure=ensure, nInput=nInput)
+
+            input_tuple = root_rowids
+
             for trynum in range(num_retries + 1):
                 try:
+                    table = depc[tablename]
                     # Vectorized get of properties
-                    tbl_rowids = depc.get_rowids(tablename, root_rowids,
-                                                 config=config, ensure=ensure,
-                                                 _debug=_debug, eager=eager,
-                                                 recompute=recompute,
-                                                 recompute_all=recompute_all,
-                                                 nInput=nInput)
+                    tbl_rowids = depc.get_rowids(tablename, input_tuple, **rowid_kw)
                     if _debug:
                         print('[depc.get] tbl_rowids = %s' % (ut.trunc_repr(tbl_rowids),))
-                    table = depc[tablename]
-                    prop_list = table.get_row_data(tbl_rowids, colnames,
-                                                   read_extern=read_extern,
-                                                   _debug=_debug, eager=eager,
-                                                   ensure=ensure, nInput=nInput)
+                    prop_list = table.get_row_data(tbl_rowids, colnames, **rowdata_kw)
                 except depcache_table.ExternalStorageException:
                     print('!!* Hit ExternalStorageException')
                     if trynum == num_retries:
@@ -626,8 +669,14 @@ class _CoreDependencyCache(object):
                 print(' * colnames = %r' % (colnames,))
                 print(' * tbl_rowids=%s' % (ut.trunc_repr(tbl_rowids)))
             table = depc[tablename]
-            prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug,
-                                           read_extern=read_extern)
+            #import utool
+            #with utool.embed_on_exception_context:
+            try:
+                prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug,
+                                               read_extern=read_extern)
+            except depcache_table.ExternalStorageException:
+                raise
+                #table.get_parent_rowids(tbl_rowids)
         return prop_list
 
     def get_config_history(depc, tablename, root_rowids, config=None):

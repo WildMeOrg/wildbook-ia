@@ -292,6 +292,13 @@ def testdata_depc(fname=None):
         print('config = %r' % (config,))
         adapt_shape = config['adapt_shape']
         print('[preproc] Computing kpts')
+
+        ut.assert_all_not_None(chip_rowids, 'chip_rowids')
+        # This is in here to attempt to trigger a failure of the chips dont
+        # exist and the feature cache is called.
+        chip_fpath_list = depc.get_native('chip', chip_rowids, 'chip', read_extern=False)
+        print('computing featurse from chip_fpath_list = %r' % (chip_fpath_list,))
+
         for rowid in chip_rowids:
             if adapt_shape:
                 kpts = np.zeros((7 + rowid, 6)) + rowid

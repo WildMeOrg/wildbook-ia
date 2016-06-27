@@ -2072,7 +2072,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
 
     @profile
     def get_row_data(table, tbl_rowids, colnames=None, _debug=None,
-                     read_extern=True, extra_tries=1, eager=True,
+                     read_extern=True, num_retries=1, eager=True,
                      nInput=None, ensure=True):
         r"""
         FIXME: unpacking is confusing with sql controller
@@ -2095,9 +2095,9 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             >>> colnames = ('size_1', 'size', 'chip' + EXTERN_SUFFIX, 'chip')
             >>> _debug = True
             >>> read_extern = True
-            >>> extra_tries = 1
+            >>> num_retries = 1
             >>> kwargs = dict(read_extern=read_extern,
-            >>>               extra_tries=extra_tries, _debug=_debug)
+            >>>               num_retries=num_retries, _debug=_debug)
             >>> prop_list = table.get_row_data(tbl_rowids, colnames, **kwargs)
             >>> prop_list0 = ut.take_column(prop_list, [0, 1, 2]) # take small data
             >>> result = (ut.repr2(prop_list0, nl=1))
@@ -2229,10 +2229,10 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
                             data = uri_full
                     except Exception as ex:
                         ut.printex(ex, 'failed to load external data',
-                                   iswarning=(extra_tries > 0),
-                                   keys=['extra_tries', 'uri', 'uri_full',
+                                   iswarning=(num_retries > 0),
+                                   keys=['num_retries', 'uri', 'uri_full',
                                          (exists, 'uri_full'), 'read_func'])
-                        if extra_tries == 0:
+                        if num_retries == 0:
                             raise
                         failed_list.append(True)
                         data = None
