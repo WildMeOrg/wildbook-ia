@@ -358,6 +358,19 @@ class _CoreDependencyCache(object):
             print('   * level_rowids = %s' % (ut.trunc_repr(level_rowids),))
         return level_rowids
 
+    def _get_parent_input(depc, tablename, root_rowids, config, ensure=True,
+                          _debug=None, recompute=False, recompute_all=False,
+                          eager=True, nInput=None):
+        # Get ancestor rowids that are descendants of root
+        table = depc[tablename]
+        rowid_dict = depc.get_all_descendant_rowids(
+            tablename, root_rowids, config=config, ensure=ensure,
+            eager=eager, nInput=nInput, recompute=recompute,
+            recompute_all=recompute_all, _debug=ut.countdown_flag(_debug),
+            levels_up=1)
+        parent_rowids = depc._get_parent_rowids(table, rowid_dict)
+        return parent_rowids
+
     # -----------------------------
     # STATE GETTERS
 
@@ -660,8 +673,7 @@ class _CoreDependencyCache(object):
 
     def get_ancestor_rowids(depc, tablename, native_rowids, ancestor_tablename=None):
         """
-        ancestor_tablename = depc.root; native_rowids = cid_list;
-        tablename = const.CHIP_TABLE
+        ancestor_tablename = depc.root; native_rowids = cid_list; tablename = const.CHIP_TABLE
         """
         if ancestor_tablename is None:
             ancestor_tablename = depc.root
