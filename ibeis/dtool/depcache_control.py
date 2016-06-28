@@ -734,6 +734,32 @@ class _CoreDependencyCache(object):
         return depc[tablename].get_config_history(tbl_rowids)
 
     def get_root_rowids(depc, tablename, native_rowids):
+        r"""
+        Args:
+            tablename (str):
+            native_rowids (list):
+
+        Returns:
+            list:
+
+        CommandLine:
+            python -m dtool.depcache_control get_root_rowids --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.example_depcache import *  # NOQA
+            >>> depc = testdata_depc()
+            >>> config1 = {'adapt_shape': False}
+            >>> config2 = {'adapt_shape': True}
+            >>> root_rowids = [2, 3, 5, 7]
+            >>> native_rowids1 = depc.get_rowids('keypoint', root_rowids, config=config1)
+            >>> native_rowids2 = depc.get_rowids('keypoint', root_rowids, config=config2)
+            >>> ancestor_rowids1 = list(depc.get_root_rowids('keypoint', native_rowids1))
+            >>> ancestor_rowids2 = list(depc.get_root_rowids('keypoint', native_rowids2))
+            >>> assert native_rowids1 != native_rowids2, 'should have different native rowids'
+            >>> assert ancestor_rowids1 == root_rowids, 'should have same root'
+            >>> assert ancestor_rowids2 == root_rowids, 'should have same root'
+        """
         return depc.get_ancestor_rowids(tablename, native_rowids, depc.root)
 
     def get_ancestor_rowids(depc, tablename, native_rowids, ancestor_tablename=None):
