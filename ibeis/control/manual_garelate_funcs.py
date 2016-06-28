@@ -43,7 +43,7 @@ FEATWEIGHT_ROWID = 'featweight_rowid'
 
 
 @register_ibs_method
-@register_api('/api/gar/', methods=['GET'])
+# @register_api('/api/gar/', methods=['GET'])
 def _get_all_gar_rowids(ibs):
     """ all_gar_rowids <- gar.get_all_rowids()
 
@@ -66,7 +66,7 @@ def _get_all_gar_rowids(ibs):
 
 
 @register_ibs_method
-@register_api('/api/gar/', methods=['POST'])
+# @register_api('/api/gar/', methods=['POST'])
 def add_gar(ibs, annotgroup_rowid_list, aid_list):
     """
     Returns:
@@ -94,7 +94,7 @@ def add_gar(ibs, annotgroup_rowid_list, aid_list):
 
 
 @register_ibs_method
-@register_api('/api/gar/', methods=['DELETE'])
+# @register_api('/api/gar/', methods=['DELETE'])
 def delete_gar(ibs, gar_rowid_list, config2_=None):
     """ gar.delete(gar_rowid_list)
 
@@ -136,7 +136,7 @@ def delete_gar(ibs, gar_rowid_list, config2_=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/gar/annot_rowid/', methods=['GET'])
+# @register_api('/api/gar/annot/rowid/', methods=['GET'])
 def get_gar_aid(ibs, gar_rowid_list, eager=True, nInput=None):
     """ aid_list <- gar.aid[gar_rowid_list]
 
@@ -171,7 +171,7 @@ def get_gar_aid(ibs, gar_rowid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/gar/annotgroup_rowid/', methods=['GET'])
+# @register_api('/api/gar/annotgroup/rowid/', methods=['GET'])
 def get_gar_annotgroup_rowid(ibs, gar_rowid_list, eager=True, nInput=None):
     """ annotgroup_rowid_list <- gar.annotgroup_rowid[gar_rowid_list]
 

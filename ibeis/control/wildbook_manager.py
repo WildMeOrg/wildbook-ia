@@ -84,7 +84,7 @@ def find_tomcat(verbose=ut.NOT_QUIET):
         if ut.WIN32:
             dpath_list = ['C:/Program Files (x86)', 'C:/Program Files']
         elif ut.DARWIN:
-            dpath_list = ['/Library'] + dpath_list
+            dpath_list = ['/Library']  # + dpath_list
         else:
             dpath_list = ['/var/lib', '/usr/share', '/opt', '/lib']
     return_path = ut.search_candidate_paths(

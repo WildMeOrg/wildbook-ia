@@ -1512,6 +1512,17 @@ def labeler_train(ibs):
 
 
 @register_ibs_method
+def qualifier_train(ibs):
+    from ibeis_cnn.ingest_ibeis import get_cnn_qualifier_training_images
+    from ibeis.algo.detect.qualifier.qualifier import train_qualifier
+    data_path = join(ibs.get_cachedir(), 'extracted')
+    get_cnn_qualifier_training_images(ibs, data_path)
+    output_path = join(ibs.get_cachedir(), 'training', 'qualifier')
+    model_path = train_qualifier(output_path, source_path=data_path)
+    return model_path
+
+
+@register_ibs_method
 def detector_train(ibs):
     results = ibs.localizer_train()
     localizer_weight_path, localizer_config_path, localizer_class_path = results

@@ -625,8 +625,8 @@ def turk_detection():
     previous = request.args.get('previous', None)
     finished = gid is None
     review = 'review' in request.args.keys()
-    display_instructions = request.cookies.get('detection_instructions_seen', 1) == 0
-    display_species_examples = False  # request.cookies.get('detection_example_species_seen', 0) == 0
+    display_instructions = request.cookies.get('ia-detection_instructions_seen', 1) == 0
+    display_species_examples = False  # request.cookies.get('ia-detection_example_species_seen', 0) == 0
     if not finished:
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
         image = ibs.get_images(gid)
@@ -751,19 +751,23 @@ def turk_annotation():
 
     review = 'review' in request.args.keys()
     finished = aid is None
-    display_instructions = request.cookies.get('annotation_instructions_seen', 1) == 0
+    display_instructions = request.cookies.get('ia-annotation_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
         image     = vt.imread(gpath)
         image_src = appf.embed_image_html(image)
+        # image_src = routes_ajax.annotation_src(aid)
         species   = ibs.get_annot_species_texts(aid)
         viewpoint_value = appf.convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
         quality_value = ibs.get_annot_qualities(aid)
-        if quality_value == -1:
+        if quality_value in [-1, None]:
             quality_value = None
-        if quality_value == 0:
+        elif quality_value > 2:
+            quality_value = 2
+        elif quality_value <= 2:
             quality_value = 1
+        multiple_value = ibs.get_annot_multiple(aid) == 1
     else:
         gid       = None
         gpath     = None
@@ -771,6 +775,7 @@ def turk_annotation():
         species   = None
         viewpoint_value = None
         quality_value = None
+        multiple_value = None
 
     imagesettext = ibs.get_imageset_text(imgsetid)
 
@@ -786,6 +791,7 @@ def turk_annotation():
     species_list = zip(species_nice_list, species_text_list, species_selected_list)
     species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
 
+    callback_url = url_for('submit_annotation')
     return appf.template('turk', 'annotation',
                          imgsetid=imgsetid,
                          src_ag=src_ag,
@@ -794,6 +800,7 @@ def turk_annotation():
                          aid=aid,
                          viewpoint_value=viewpoint_value,
                          quality_value=quality_value,
+                         multiple_value=multiple_value,
                          image_path=gpath,
                          image_src=image_src,
                          previous=previous,
@@ -802,7 +809,60 @@ def turk_annotation():
                          progress=progress,
                          finished=finished,
                          display_instructions=display_instructions,
+                         callback_url=callback_url,
+                         callback_method='POST',
+                         EMBEDDED_CSS=None,
+                         EMBEDDED_JAVASCRIPT=None,
                          review=review)
+
+
+@register_route('/turk/annotation/dynamic/', methods=['GET'])
+def turk_annotation_dynamic():
+    ibs = current_app.ibs
+    aid = request.args.get('aid', None)
+    imgsetid = request.args.get('imgsetid', None)
+
+    review = 'review' in request.args.keys()
+    gid       = ibs.get_annot_gids(aid)
+    gpath     = ibs.get_annot_chip_fpath(aid)
+    image     = vt.imread(gpath)
+    image_src = appf.embed_image_html(image)
+    species   = ibs.get_annot_species_texts(aid)
+    viewpoint_value = appf.convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
+    quality_value = ibs.get_annot_qualities(aid)
+    if quality_value == -1:
+        quality_value = None
+    if quality_value == 0:
+        quality_value = 1
+
+    species_rowids = ibs._get_all_species_rowids()
+    species_nice_list = ibs.get_species_nice(species_rowids)
+
+    combined_list = sorted(zip(species_nice_list, species_rowids))
+    species_nice_list = [ combined[0] for combined in combined_list ]
+    species_rowids = [ combined[1] for combined in combined_list ]
+
+    species_text_list = ibs.get_species_texts(species_rowids)
+    species_selected_list = [ species == species_ for species_ in species_text_list ]
+    species_list = zip(species_nice_list, species_text_list, species_selected_list)
+    species_list = [ ('Unspecified', const.UNKNOWN, True) ] + species_list
+
+    callback_url = url_for('submit_annotation')
+    return appf.template('turk', 'annotation_dynamic',
+                         imgsetid=imgsetid,
+                         gid=gid,
+                         aid=aid,
+                         viewpoint_value=viewpoint_value,
+                         quality_value=quality_value,
+                         image_path=gpath,
+                         image_src=image_src,
+                         species_list=species_list,
+                         callback_url=callback_url,
+                         callback_method='POST',
+                         EMBEDDED_CSS=None,
+                         EMBEDDED_JAVASCRIPT=None,
+                         review=review,
+                         __wrapper__=False)
 
 
 @register_route('/turk/viewpoint/', methods=['GET'])
@@ -827,7 +887,7 @@ def turk_viewpoint():
     value = appf.convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
     review = 'review' in request.args.keys()
     finished = aid is None
-    display_instructions = request.cookies.get('viewpoint_instructions_seen', 1) == 0
+    display_instructions = request.cookies.get('ia-viewpoint_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
@@ -915,7 +975,7 @@ def turk_quality():
         value = 1
     review = 'review' in request.args.keys()
     finished = aid is None
-    display_instructions = request.cookies.get('quality_instructions_seen', 1) == 0
+    display_instructions = request.cookies.get('ia-quality_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
@@ -994,7 +1054,7 @@ def turk_additional():
 
     review = 'review' in request.args.keys()
     finished = aid is None
-    display_instructions = request.cookies.get('additional_instructions_seen', 1) == 0
+    display_instructions = request.cookies.get('ia-additional_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)

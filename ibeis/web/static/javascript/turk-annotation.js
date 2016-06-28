@@ -10,25 +10,27 @@ function update_label()
   viewpoint_strs[270] = 'Front';
   viewpoint_strs[315] = 'Front-Left';
 
-  value = parseFloat( $("#slider-viewpoint").val() );
+  value = parseFloat( $("#ia-annotation-viewpoint").val() );
   radians_sub = (value / 360.0) * 2.0;
-  $("#viewpoint-label-degrees").html(value);
-  $("#viewpoint-label-radians1").html((radians_sub * Math.PI).toFixed(4));
-  $("#viewpoint-label-radians2").html((radians_sub).toFixed(4));
+  $("#ia-viewpoint-label-degrees").html(value);
+  $("#ia-viewpoint-label-radians1").html((radians_sub * Math.PI).toFixed(4));
+  $("#ia-viewpoint-label-radians2").html((radians_sub).toFixed(4));
   value = Math.round(value / 45.0) * 45;
   if(value == 360) value = 0;
-  $("#viewpoint-label-text").html(viewpoint_strs[value]);
+  $("#ia-viewpoint-label-text").html(viewpoint_strs[value]);
 
   var quality_strs = [];
-  quality_strs[5] = 'Excellent';
-  quality_strs[4] = 'Good';
-  quality_strs[3] = 'OK';
-  quality_strs[2] = 'Poor';
-  quality_strs[1] = 'Junk';
+  // quality_strs[5] = 'Excellent';
+  // quality_strs[4] = 'Good';
+  // quality_strs[3] = 'OK';
+  // quality_strs[2] = 'Poor';
+  // quality_strs[1] = 'Junk';
+  quality_strs[2] = 'Good';
+  quality_strs[1] = 'Poor';
 
-  value = parseFloat( $("#slider-quality").val() );
-  $("#quality-label-value").html(value);
-  $("#quality-label-text").html(quality_strs[value]);
+  value = parseFloat( $("#ia-annotation-quality").val() );
+  $("#ia-quality-label-value").html(value);
+  $("#ia-quality-label-text").html(quality_strs[value]);
 }
 
 function add_species()
@@ -64,53 +66,58 @@ $(window).keydown(function(event) {
     if(key == 13)
     {
       // Enter key pressed, submit form as accept
-      $('input#turk-submit-accept').click();
+      $('input#ia-turk-submit-accept').click();
     }
     else if(key == 32)
     {
       // Space key pressed, submit form as delete
-      $('input#turk-submit-delete').click();
+      $('input#ia-turk-submit-delete').click();
     }
     // else if(key == 76)
     // {
     //   // L key pressed, submit form as left
-    //   $('input#turk-submit-left').click();
+    //   $('input#ia-turk-submit-left').click();
     // }
     // else if(key == 82)
     // {
     //   // R key pressed, submit form as right
-    //   $('input#turk-submit-right').click();
+    //   $('input#ia-turk-submit-right').click();
     // }
     else if(key == 81)
     {
       // Q key pressed, 1 star
-      $("#slider-quality").val(1);
+      $("#ia-annotation-quality").val(1);
       update_label();
     }
     else if(key == 87)
     {
       // W key pressed, 2 stars
-      $("#slider-quality").val(2);
+      $("#ia-annotation-quality").val(2);
       update_label();
     }
     else if(key == 69)
     {
-      // E key pressed, 3 starts
-      $("#slider-quality").val(3);
-      update_label();
+      $('#ia-annotation-multiple').trigger('click');
     }
-    else if(key == 82)
-    {
-      // R key pressed, 4 stars
-      $("#slider-quality").val(4);
-      update_label();
-    }
-    else if(key == 84)
-    {
-      // T key pressed, 5 stars
-      $("#slider-quality").val(5);
-      update_label();
-    }
+    // else if(key == 69)
+    // {
+    //   $('#ia-annotation-multiple').trigger('click');
+    //   E key pressed, 3 starts
+    //   $("#ia-annotation-quality").val(3);
+    //   update_label();
+    // }
+    // else if(key == 82)
+    // {
+    //   // R key pressed, 4 stars
+    //   $("#ia-annotation-quality").val(4);
+    //   update_label();
+    // }
+    // else if(key == 84)
+    // {
+    //   // T key pressed, 5 stars
+    //   $("#ia-annotation-quality").val(5);
+    //   update_label();
+    // }
     // else if(key == 85)
     // {
     //   // U key pressed, select Unspecified Animal in selection box
@@ -119,7 +126,7 @@ $(window).keydown(function(event) {
     else if(key == 80)
     {
       // P key pressed, follow previous link
-      $('a#turk-previous')[0].click();
+      $('a#ia-turk-previous')[0].click();
     }
     else if(49 <= key && key <= 56)
     {
@@ -134,7 +141,7 @@ $(window).keydown(function(event) {
       // 56 == numeric key 8
       // 57 == numeric key 9
       value = key - 49; // offset by 49 so that the number one is the value of 0
-      $("#slider-viewpoint").val(value * 45); // multiply number by 45 degrees
+      $("#ia-annotation-viewpoint").val(value * 45); // multiply number by 45 degrees
       update_label();
     }
     else if(97 <= key && key <= 104)
@@ -150,7 +157,7 @@ $(window).keydown(function(event) {
       // 104 == number pad key 8
       // 105 == number pad key 9
       value = key - 97; // offset by 97 so that the number one is the value of 0
-      $("#slider-viewpoint").val(value * 45); // multiply number by 45 degrees
+      $("#ia-annotation-viewpoint").val(value * 45); // multiply number by 45 degrees
       update_label();
     }
   }

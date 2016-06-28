@@ -121,7 +121,7 @@ def get_wildbook_ia_url(ibs, wb_target=None):
 
 
 @register_ibs_method
-@register_api('/api/wildbook/signal_annot_name_changes/', methods=['PUT'])
+@register_api('/api/wildbook/signal/annot/name/', methods=['PUT'])
 def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
                                        dryrun=False):
     r"""
@@ -224,7 +224,7 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
 
 
 @register_ibs_method
-@register_api('/api/wildbook/signal_imgsetid_list/', methods=['PUT'])
+@register_api('/api/wildbook/signal/imageset/', methods=['PUT'])
 def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
                                   set_shipped_flag=True,
                                   open_url_on_complete=True,
@@ -239,7 +239,7 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
 
     RESTful:
         Method: PUT
-        URL:    /api/wildbook/signal_imgsetid_list/
+        URL:    /api/wildbook/signal/imageset/
 
     Ignore:
         cd $CODE_DIR/Wildbook/tmp
@@ -332,7 +332,7 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
             ('ImageSet imgsetid=%r cannot be shipped becuase '
              'annotation(s) %r have not been named') % (imgsetid, unnamed_aid_list, ))
 
-    ## Call Wildbook url to signal update
+    # Call Wildbook url to signal update
     print('[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = %r to wildbook' % (
         imgsetid_list, ))
 

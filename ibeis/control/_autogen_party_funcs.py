@@ -68,7 +68,7 @@ def _get_all_party_rowids(ibs):
 
 
 @register_ibs_method
-@register_api('/api/autogen/', methods=['POST'])
+# @register_api('/api/autogen/', methods=['POST'])
 def add_party(ibs, party_tag_list):
     r"""
     Returns:
@@ -96,7 +96,7 @@ def add_party(ibs, party_tag_list):
 
 
 @register_ibs_method
-@register_api('/api/autogen/party_rowid_from_superkey/', methods=['GET'])
+# @register_api('/api/autogen/party/rowid/superkey/', methods=['GET'])
 def get_party_rowid_from_superkey(ibs, party_tag_list, eager=True, nInput=None):
     r"""
     party_rowid_list <- party[party_tag_list]
@@ -125,7 +125,7 @@ def get_party_rowid_from_superkey(ibs, party_tag_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@register_api('/api/autogen/party_tag/', methods=['GET'])
+# @register_api('/api/autogen/party/tag/', methods=['GET'])
 def get_party_tag(ibs, party_rowid_list, eager=True, nInput=None):
     r"""
     party_tag_list <- party.party_tag[party_rowid_list]
@@ -145,7 +145,7 @@ def get_party_tag(ibs, party_rowid_list, eager=True, nInput=None):
 
     RESTful:
         Method: GET
-        URL:    /api/autogen/party_tag/
+        URL:    /api/autogen/party/tag/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -168,10 +168,6 @@ if __name__ == '__main__':
     CommandLine:
         python -m ibeis.control._autogen_party_funcs
         python -m ibeis.control._autogen_party_funcs --allexamples
-
-    RESTful:
-        Method: GET
-        URL:    /api/autogen/party_tag/
     """
     import multiprocessing
     multiprocessing.freeze_support()
