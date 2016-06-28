@@ -1988,8 +1988,12 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             rowid_list_ = table._get_rowid(parent_ids_, config=config,
                                            eager=True, nInput=None)
             needs_recompute_rowids = ut.filter_Nones(rowid_list_)
-            table._recompute_and_store(needs_recompute_rowids)
-            #table.delete_rows(rowid_list_)
+            try:
+                table._recompute_and_store(needs_recompute_rowids)
+            except Exception:
+                # If the config changes, there is nothing we can do.
+                # We have to delete the rows.
+                table.delete_rows(rowid_list_)
         if ensure or recompute:
             # Compute properties if they do not exist
             for try_num in range(num_retries):
@@ -2392,7 +2396,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             # Evaulate just to ensure storage
             ut.evaluate_generator(dirty_params_iter)
 
-    def _recompute_and_store(table, tbl_rowids):
+    def _recompute_and_store(table, tbl_rowids, config=None):
         assert STORE_CFGDICT
         print('Recomputing external data')
         if len(tbl_rowids) == 0:
@@ -2401,8 +2405,13 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         #configs = table.get_row_configs(tbl_rowids)
         #assert ut.allsame(list(map(id, configs))), 'more than one config not yet supported'
         # TODO; groupby config
-        config_rowids = table.get_row_cfgid(tbl_rowids)
-        unique_cfgids, groupxs = ut.group_indices(config_rowids)
+
+        if config is None:
+            config_rowids = table.get_row_cfgid(tbl_rowids)
+            unique_cfgids, groupxs = ut.group_indices(config_rowids)
+        else:
+            # This is incredibly hacky.
+            pass
 
         colnames = table.computable_colnames()
 
