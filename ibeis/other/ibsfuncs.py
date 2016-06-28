@@ -5644,7 +5644,7 @@ def _clean_species(ibs):
     if ut.VERBOSE:
         print('[_clean_species] Cleaning...')
     from ibeis.species import species_mapping
-    if ut.get_argflag('--readonly-mode'):
+    if ibs.readonly:
         # SUPER HACK
         return
     if ibs is not None:
@@ -5654,7 +5654,8 @@ def _clean_species(ibs):
         species_rowid_list = ibs._get_all_species_rowids()
         species_text_list = ibs.get_species_texts(species_rowid_list)
         species_nice_list = ibs.get_species_nice(species_rowid_list)
-        for rowid, text, nice in zip(species_rowid_list, species_text_list, species_nice_list):
+        species_code_list = ibs.get_species_codes(species_rowid_list)
+        for rowid, text, nice, code in zip(species_rowid_list, species_text_list, species_nice_list, species_code_list):
             if text in species_mapping:
                 species_code, species_nice = species_mapping[text]
             elif text is None or text.strip() in ['_', const.UNKNOWN, 'none', 'None', '']:
@@ -5672,8 +5673,9 @@ def _clean_species(ibs):
                     assert len(species_code) > 0 and len(species_nice) > 0
             else:
                 continue
-            ibs._set_species_nice([rowid], [species_nice])
-            ibs._set_species_code([rowid], [species_code])
+            if nice != species_nice or code != species_code:
+                ibs._set_species_nice([rowid], [species_nice])
+                ibs._set_species_code([rowid], [species_code])
 
 
 @register_ibs_method
