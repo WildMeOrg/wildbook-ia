@@ -174,11 +174,10 @@ def get_turk_annot_args(is_reviewed_func):
     group_review_flag = src_ag is not None and dst_ag is not None
     if not group_review_flag:
         print('NOT GROUP_REVIEW')
+        # gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+        # aid_list = ut.flatten(ibs.get_image_aids(gid_list))
         with ut.Timer():
-            gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-        with ut.Timer():
-            aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-        with ut.Timer():
+            aid_list = ibs.get_valid_aids()
             reviewed_list = is_reviewed_func(ibs, aid_list)
     else:
         print('GROUP_REVIEW')
