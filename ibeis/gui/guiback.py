@@ -2144,6 +2144,9 @@ class MainWindowBackend(GUIBACK_BASE):
                                           'cached query results?')):
             return
         ut.delete(back.ibs.qresdir)
+        ut.delete(back.ibs.bigcachedir)
+        ut.ensuredir(back.ibs.qresdir)
+        ut.ensuredir(back.ibs.bigcachedir)
 
     @blocking_slot()
     def dev_reload(back):
