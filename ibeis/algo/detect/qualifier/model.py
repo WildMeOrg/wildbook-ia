@@ -60,9 +60,9 @@ def augmentation_wrapper(X_list, y_list):
         # Reshape
         X = X.reshape(X_list[index].shape)
         # Show image
-        canvas = np.hstack((X_list[index], X))
-        cv2.imshow('%s' % (y, ), canvas)
-        cv2.waitKey(0)
+        # canvas = np.hstack((X_list[index], X))
+        # cv2.imshow('%s' % (y, ), canvas)
+        # cv2.waitKey(0)
         # Save
         X_list[index] = X
         y_list[index] = y
@@ -73,7 +73,7 @@ class Qualifier_Model(JPCNN_Auto_Model):
     def __init__(model, *args, **kwargs):
         super(Qualifier_Model, model).__init__(*args, **kwargs)
 
-    def augmentation(model, X_list, y_list=None, train=True, parallel=False):
+    def augmentation(model, X_list, y_list=None, train=True, parallel=True):
         if not parallel:
             return augmentation_wrapper(X_list, y_list)
         # Run in paralell
