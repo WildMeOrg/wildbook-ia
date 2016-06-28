@@ -125,7 +125,7 @@ class Qualifier_Model(JPCNN_Auto_Model):
 
         l_conv0 = _lasagne.Conv2DLayer(
             l_in,
-            num_filters=64,
+            num_filters=16,
             filter_size=(11, 11),
             stride=(2, 2),
             pad=0 if _lasagne.USING_GPU else 9,
@@ -148,7 +148,7 @@ class Qualifier_Model(JPCNN_Auto_Model):
 
         l_conv1 = _lasagne.Conv2DLayer(
             l_nonlinear0,
-            num_filters=32,
+            num_filters=16,
             filter_size=(5, 5),
             stride=(1, 1),
             # pad=2,
@@ -182,7 +182,7 @@ class Qualifier_Model(JPCNN_Auto_Model):
 
         l_conv2 = _lasagne.Conv2DLayer(
             l_dropout1,
-            num_filters=128,
+            num_filters=32,
             filter_size=(3, 3),
             stride=(1, 1),
             pad=1,
@@ -205,7 +205,7 @@ class Qualifier_Model(JPCNN_Auto_Model):
 
         l_conv3 = _lasagne.Conv2DLayer(
             l_nonlinear2,
-            num_filters=64,
+            num_filters=32,
             filter_size=(3, 3),
             stride=(1, 1),
             pad=1,
@@ -239,7 +239,7 @@ class Qualifier_Model(JPCNN_Auto_Model):
 
         l_conv6 = _lasagne.Conv2DLayer(
             l_dropout3,
-            num_filters=256,
+            num_filters=64,
             filter_size=(3, 3),
             stride=(1, 1),
             pad=1,
@@ -259,7 +259,7 @@ class Qualifier_Model(JPCNN_Auto_Model):
 
         l_conv7 = _lasagne.Conv2DLayer(
             l_nonlinear6,
-            num_filters=128,
+            num_filters=64,
             filter_size=(3, 3),
             stride=(1, 1),
             pad=1,
@@ -290,7 +290,7 @@ class Qualifier_Model(JPCNN_Auto_Model):
 
         l_conv12 = _lasagne.Conv2DLayer(
             l_dropout7,
-            num_filters=256,
+            num_filters=64,
             filter_size=(3, 3),
             stride=(1, 1),
             pad=1,
@@ -310,7 +310,7 @@ class Qualifier_Model(JPCNN_Auto_Model):
 
         l_conv13 = _lasagne.Conv2DLayer(
             l_nonlinear12,
-            num_filters=256,
+            num_filters=64,
             filter_size=(3, 3),
             stride=(1, 1),
             pad=1,
@@ -330,7 +330,7 @@ class Qualifier_Model(JPCNN_Auto_Model):
 
         l_conv14 = _lasagne.Conv2DLayer(
             l_nonlinear13,
-            num_filters=128,
+            num_filters=64,
             filter_size=(3, 3),
             stride=(1, 1),
             pad=1,
@@ -380,7 +380,7 @@ class Qualifier_Model(JPCNN_Auto_Model):
 
         l_hidden1 = _lasagne.layers.DenseLayer(
             l_dropout15,
-            num_units=768,
+            num_units=256,
             nonlinearity=_lasagne.nonlinearities.linear,
             # nonlinearity=_lasagne.nonlinearities.rectify,
             # W=_lasagne.init.Orthogonal('relu'),
@@ -408,7 +408,7 @@ class Qualifier_Model(JPCNN_Auto_Model):
 
         l_hidden2 = _lasagne.layers.DenseLayer(
             l_dropout,
-            num_units=768,
+            num_units=256,
             nonlinearity=_lasagne.nonlinearities.linear,
             # nonlinearity=_lasagne.nonlinearities.rectify,
             # W=_lasagne.init.Orthogonal('relu'),
