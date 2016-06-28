@@ -96,9 +96,9 @@ def train_qualifier(output_path, **kwargs):
     net = JPCNN_Network(model, data)
     model_path = net.train(
         output_path,
-        train_learning_rate=0.005,
-        train_batch_size=64,
-        train_max_epochs=64,
+        train_learning_rate=0.01,
+        train_batch_size=128,
+        train_max_epochs=128,
         train_mini_batch_augment=False,
     )
     return model_path
