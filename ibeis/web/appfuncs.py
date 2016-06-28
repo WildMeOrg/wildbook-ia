@@ -163,53 +163,57 @@ def get_turk_annot_args(is_reviewed_func):
     def _ensureid(_id):
         return None if _id == 'None' or _id == '' else int(_id)
 
-    with ut.Timer():
-        imgsetid = request.args.get('imgsetid', '')
-        src_ag = request.args.get('src_ag', '')
-        dst_ag = request.args.get('dst_ag', '')
+    imgsetid = request.args.get('imgsetid', '')
+    src_ag = request.args.get('src_ag', '')
+    dst_ag = request.args.get('dst_ag', '')
 
-        imgsetid = _ensureid(imgsetid)
-        src_ag = _ensureid(src_ag)
-        dst_ag = _ensureid(dst_ag)
+    imgsetid = _ensureid(imgsetid)
+    src_ag = _ensureid(src_ag)
+    dst_ag = _ensureid(dst_ag)
 
-    with ut.Timer():
-        group_review_flag = src_ag is not None and dst_ag is not None
-        if not group_review_flag:
+    group_review_flag = src_ag is not None and dst_ag is not None
+    if not group_review_flag:
+        print('NOT GROUP_REVIEW')
+        with ut.Timer():
             gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+        with ut.Timer():
             aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        with ut.Timer():
             reviewed_list = is_reviewed_func(ibs, aid_list)
-        else:
+    else:
+        print('GROUP_REVIEW')
+        with ut.Timer():
             src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
             dst_gar_rowid_list = ibs.get_annotgroup_gar_rowids(dst_ag)
+        with ut.Timer():
             src_aid_list = ibs.get_gar_aid(src_gar_rowid_list)
             dst_aid_list = ibs.get_gar_aid(dst_gar_rowid_list)
             aid_list = src_aid_list
+        with ut.Timer():
             reviewed_list = [ src_aid in dst_aid_list for src_aid in src_aid_list ]
 
-    with ut.Timer():
-        try:
-            progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
-        except ZeroDivisionError:
-            progress = '0.00'
-        aid = request.args.get('aid', '')
-        if len(aid) > 0:
-            aid = int(aid)
+    try:
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
+    except ZeroDivisionError:
+        progress = '0.00'
+    aid = request.args.get('aid', '')
+    if len(aid) > 0:
+        aid = int(aid)
+    else:
+        aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
+        if len(aid_list_) == 0:
+            aid = None
         else:
-            aid_list_ = ut.filterfalse_items(aid_list, reviewed_list)
-            if len(aid_list_) == 0:
-                aid = None
+            if group_review_flag:
+                aid = aid_list_[0]
             else:
-                if group_review_flag:
-                    aid = aid_list_[0]
-                else:
-                    aid = random.choice(aid_list_)
+                aid = random.choice(aid_list_)
 
-    with ut.Timer():
-        previous = request.args.get('previous', None)
+    previous = request.args.get('previous', None)
 
-        print('aid = %r' % (aid,))
-        #print(ut.dict_str(ibs.get_annot_info(aid)))
-        print(ut.obj_str(ibs.get_annot_info(aid, default=True, nl=True)))
+    print('aid = %r' % (aid,))
+    #print(ut.dict_str(ibs.get_annot_info(aid)))
+    print(ut.obj_str(ibs.get_annot_info(aid, default=True, nl=True)))
     return aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous
 
 
