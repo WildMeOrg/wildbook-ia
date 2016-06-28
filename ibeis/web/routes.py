@@ -755,8 +755,9 @@ def turk_annotation():
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
-        image     = vt.imread(gpath)
-        image_src = appf.embed_image_html(image)
+        # image     = vt.imread(gpath)
+        # image_src = appf.embed_image_html(image)
+        image_src = routes_ajax.annotation_src(aid)
         species   = ibs.get_annot_species_texts(aid)
         viewpoint_value = appf.convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
         quality_value = ibs.get_annot_qualities(aid)
