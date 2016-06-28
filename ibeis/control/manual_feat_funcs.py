@@ -81,7 +81,7 @@ def get_annot_feat_rowids(ibs, aid_list, ensure=True, eager=True, nInput=None,
         >>> config2_ = {}
         >>> ibs.delete_annot_feats(aids, config2_=config2_)  # Remove the chips
         >>> ut.remove_file_list(ibs.get_annot_chip_fpath(aids, config2_=config2_))
-        >>> qfids = qreq_.ibs.get_annot_feat_rowids(qaids, ensure=True, config2_=config2_)
+        >>> qfids = ibs.get_annot_feat_rowids(aids, ensure=True, config2_=config2_)
     """
     return ibs.depc_annot.get_rowids('feat', aid_list, config=config2_,
                                      ensure=ensure, eager=eager,
