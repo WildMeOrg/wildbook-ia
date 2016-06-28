@@ -332,7 +332,7 @@ class SQLDatabaseController(object):
         # metadata field it is only necessary to append to this list.
         if readonly is None:
             # HACK
-            readonly = ut.get_argflag('--readonly-mode')
+            readonly = ut.get_argflag(('--readonly-mode', '--read-only', '--readonly'))
 
         db._tablenames = None
         db.readonly = readonly
