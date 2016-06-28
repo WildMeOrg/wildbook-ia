@@ -48,7 +48,7 @@ register_preproc = register_preprocs['image']
 class ThumbnailConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('draw_annots', True, hideif=True),
-        ut.ParamInfo('thumbsize', None, type_=int, hideif=None),
+        ut.ParamInfo('thumbsize', None, type_=None, hideif=None),
         ut.ParamInfo('ext', '.png', hideif='.png'),
         ut.ParamInfo('force_serial', False, hideif=False),
     ]
@@ -484,7 +484,7 @@ def compute_detections(depc, gid_list, config=None):
         >>> # dbdir = '/media/danger/GGR/GGR-IBEIS-TEST/'
         >>> # ibs = ibeis.opendb(dbdir=dbdir)
         >>> depc = ibs.depc_image
-        >>> gid_list = ibs.get_valid_gids()[0:10]
+        >>> gid_list = ibs.get_valid_gids()[0:2]
         >>> depc.delete_property('detections', gid_list)
         >>> detects = depc.get_property('detections', gid_list, None)
         >>> print(detects)

@@ -1378,6 +1378,45 @@ class MainWindowBackend(GUIBACK_BASE):
             back.user_info(msg='Detection has finished.')
 
     @blocking_slot()
+    def special_filter_annots(back):
+        """
+        CommandLine:
+            python -m ibeis.gui.guiback special_filter_annots --show
+
+        Example:
+            >>> # GUI_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> import ibeis
+            >>> main_locals = ibeis.main(defaultdb='testdb1')
+            >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
+            >>> ut.exec_funckw(back.special_filter_annots, globals())
+            >>> back.special_filter_annots()
+            >>> back.cleanup()
+            >>> ut.quit_if_noshow()
+        """
+        import dtool
+        from ibeis.init import filter_annots
+        filter_kw = filter_annots.get_default_annot_filter_form()
+        config = dtool.Config.from_dict(filter_kw)
+        options = [
+            'Accept',
+        ]
+        reply, new_config = back.user_option(
+            title='Run Detection Confirmation',
+            msg=ut.codeblock(
+                '''
+                Pick annots.
+                ''') ,
+            config=config,
+            options=options,
+            default=options[0],
+        )
+        print('reply = %r' % (reply,))
+
+        if reply not in options:
+            raise guiexcept.UserCancel
+
+    @blocking_slot()
     def compute_queries(back, refresh=True, daids_mode=None,
                         query_is_known=None, qaid_list=None,
                         use_prioritized_name_subset=False,

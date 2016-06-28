@@ -56,7 +56,15 @@ INDEPENDENT_DEFAULTS = {
     'min_numfeat'         : None,
     # minimum number of features detected by default config
     'max_numfeat'         : None,
+    'reviewed'            : None,
 }
+
+INDEPENDENT_DEFAULTS_PARAMS = [
+    ut.ParamInfo('reviewed', None, valid_values=[True, False, None]),
+    ut.ParamInfo('minqual', None, valid_values=[None, 'junk', 'poor', 'ok',
+                                                'good', 'excellent']),
+    ut.ParamInfo('view', None),
+]
 
 
 # HACK
