@@ -73,7 +73,7 @@ class Qualifier_Model(JPCNN_Auto_Model):
     def __init__(model, *args, **kwargs):
         super(Qualifier_Model, model).__init__(*args, **kwargs)
 
-    def augmentation(model, X_list, y_list=None, train=True, parallel=True):
+    def augmentation(model, X_list, y_list=None, train=True, parallel=False):
         if not parallel:
             return augmentation_wrapper(X_list, y_list)
         # Run in paralell
