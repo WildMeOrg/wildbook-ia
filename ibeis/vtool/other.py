@@ -452,7 +452,7 @@ def argsort_records(arrays, reverse=False):
         >>> result = ('sortx = %s' % (str(sortx),))
         >>> print('lxsrt = %s' % (np.lexsort(arrays[::-1]),))
         >>> print(result)
-        sortx = [ 1  2  0  5  4  3  6  7  8]
+        sortx = [1 2 0 5 4 3 6 7 8]
     """
     sorting_records = np.rec.fromarrays(arrays)
     sort_stride = (-reverse * 2) + 1

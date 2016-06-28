@@ -416,6 +416,9 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     """
     Critical section code. Inner loop of _test_hypothesis_inliers
 
+    Returns:
+        tuple: hypo_inliers, hypo_errors
+
     CommandLine:
         python -m vtool.spatial_verification --test-_test_hypothesis_inliers
 
@@ -449,9 +452,10 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         >>> det2_m = ktool.get_sqrd_scales(kpts2_m)
         >>> ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
         >>> output = _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
-        >>> result = ut.hashstr(output)
+        >>> hypo_inliers, hypo_errors = output
+        >>> result = 'nInliers=%r hash=%s' % (len(hypo_inliers), ut.hashstr(output))
         >>> print(result)
-        +%q&%je52nlyli5&
+        nInliers=1 hash=2n3&8bzj5tnxoba@
 
     Timeit:
         %timeit xy_err < xy_thresh_sqrd
@@ -499,10 +503,14 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
     We transform from chip1 -> chip2
     The determinants are squared keypoint scales
 
-    FROM PERDOCH 2009::
-        H = inv(Aj).dot(Rj.T).dot(Ri).dot(Ai)
-        H = inv(Aj).dot(Ai)
-        The input invVs = perdoch.invA's
+    Returns:
+        tuple: aff_inliers_list, aff_errors_list, Aff_mats
+
+    Notes:
+        FROM PERDOCH 2009::
+            H = inv(Aj).dot(Rj.T).dot(Ri).dot(Ai)
+            H = inv(Aj).dot(Ai)
+            The input invVs = perdoch.invA's
 
     CommandLine:
         python -m vtool.spatial_verification --test-get_affine_inliers
@@ -520,9 +528,10 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
         >>> ori_thresh = ktool.KPTS_DTYPE(TAU / 4)
         >>> output = get_affine_inliers(kpts1, kpts2, fm, fs, xy_thresh_sqrd,
         >>>                             scale_thresh_sqrd, ori_thresh)
-        >>> result = ut.hashstr(output)
+        >>> aff_inliers_list, aff_errors_list, Aff_mats = output
+        >>> result = 'nInliers=%r hash=%s' % (len(aff_inliers_list), ut.hashstr(output))
         >>> print(result)
-        89kz8nh6p+66t!+u
+        nInliers=9 hash=0@m0u1@bp+nzccxo
 
     Ignore::
         from vtool.spatial_verification import *  # NOQA
