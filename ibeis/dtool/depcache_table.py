@@ -1816,8 +1816,11 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
                         parent_table = table.depc[parname]
                         ut.take_column(parent_ids_, x)
                         rowid_list = ut.take_column(parent_ids_, x)
-                        parent_history = parent_table.get_config_history(rowid_list)
-                        print('parent_history = %r' % (parent_history,))
+                        try:
+                            parent_history = parent_table.get_config_history(rowid_list)
+                            print('parent_history = %r' % (parent_history,))
+                        except KeyError:
+                            print('[depcache_table] WARNING: config history is having troubles... says Jon')
 
                 gen = table._chunk_compute_dirty_rows(dirty_parent_ids,
                                                       dirty_preproc_args,
