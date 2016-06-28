@@ -420,7 +420,7 @@ class SQLDatabaseController(object):
         """
         try:
             orig_table_kw = db.get_table_autogen_dict(METADATA_TABLE)
-        except lite.OperationalError:
+        except (lite.OperationalError, NameError):
             orig_table_kw = None
 
         meta_table_kw = ut.odict([
