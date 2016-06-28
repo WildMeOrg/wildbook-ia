@@ -418,17 +418,31 @@ class SQLDatabaseController(object):
         We need this to be done every time so that the update code works
         correctly.
         """
-        db.add_table(METADATA_TABLE, (
-            ('metadata_rowid',               'INTEGER PRIMARY KEY'),
-            ('metadata_key',                 'TEXT'),
-            ('metadata_value',               'TEXT'),
-        ),
-            superkeys=[('metadata_key',)],
-            # IMPORTANT: Yes, we want this line to be tabbed over for the
-            # schema auto-generation
-            docstr='''
-        The table that stores permanently all of the metadata about the
-        database (tables, etc)''')
+        try:
+            orig_table_kw = db.get_table_autogen_dict(METADATA_TABLE)
+        except lite.OperationalError:
+            orig_table_kw = None
+
+        meta_table_kw = ut.odict([
+            (u'tablename', METADATA_TABLE),
+            (u'coldef_list',  [
+                (u'metadata_rowid',               u'INTEGER PRIMARY KEY'),
+                (u'metadata_key',                 'TEXT'),
+                (u'metadata_value',               'TEXT'),
+            ]),
+            (u'docstr', u'''
+                  The table that stores permanently all of the metadata about the
+                  database (tables, etc)'''),
+            (u'superkeys', [(u'metadata_key',)]),
+            (u'dependson', None),
+        ])
+        if meta_table_kw != orig_table_kw:
+            # Don't execute a write operation if we don't have to
+            db.add_table(**meta_table_kw)
+        #METADATA_TABLE,
+        #    superkeys=[('metadata_key',)],
+        # IMPORTANT: Yes, we want this line to be tabbed over for the
+        # schema auto-generation
         # Ensure that a version number exists
         db.get_db_version(ensure=True)
 
@@ -748,6 +762,23 @@ class SQLDatabaseController(object):
             id_colname (str): column to be used as the search key (default: rowid)
             eager (bool): use eager evaluation
             unpack_scalars (bool): default True
+
+        CommandLine:
+            python -m dtool.sql_control get --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> depc.clear_all()
+            >>> rowids = depc.get_rowids('notch', [1, 2, 3])
+            >>> table = depc['notch']
+            >>> db = table.db
+            >>> table.print_csv()
+            >>> # Break things to test set
+            >>> colnames = ('dummy_annot_rowid',)
+            >>> got_data = db.get('notch', colnames, id_iter=rowids)
+            >>> assert got_data == [1, 2, 3]
         """
         if VERBOSE_SQL:
             print('[sql]' + ut.get_caller_name(list(range(1, 4))) + ' db.get(%r, %r, ...)' %
@@ -766,9 +797,31 @@ class SQLDatabaseController(object):
 
     def set(db, tblname, colnames, val_iter, id_iter, id_colname='rowid',
             duplicate_behavior='error', **kwargs):
-        """ setter
+        """
+        setter
 
-        TODO: Test
+        CommandLine:
+            python -m dtool.sql_control set --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> depc.clear_all()
+            >>> rowids = depc.get_rowids('notch', [1, 2, 3])
+            >>> table = depc['notch']
+            >>> db = table.db
+            >>> table.print_csv()
+            >>> # Break things to test set
+            >>> colnames = ('dummy_annot_rowid',)
+            >>> val_iter = [9003, 9001, 9002]
+            >>> orig_data = db.get('notch', colnames, id_iter=rowids)
+            >>> db.set('notch', colnames, val_iter, id_iter=rowids)
+            >>> new_data = db.get('notch', colnames, id_iter=rowids)
+            >>> assert new_data == val_iter
+            >>> assert new_data != orig_data
+            >>> table.print_csv()
+            >>> depc.clear_all()
         """
         assert isinstance(colnames, tuple)
         #if isinstance(colnames, six.string_types):
@@ -827,7 +880,9 @@ class SQLDatabaseController(object):
                                              params_iter=params_iter, **kwargs)
 
     def delete(db, tblname, id_list, id_colname='rowid', **kwargs):
-        """ deleter. USE delete_rowids instead """
+        """
+        deleter. USE delete_rowids instead
+        """
         fmtdict = {
             'tblname'   : tblname,
             'rowid_str' : (id_colname + '=?'),
@@ -2393,7 +2448,7 @@ class SQLDatabaseController(object):
             old_rowids_to_new_roids = dict(zip(valid_old_rowid_list, new_rowid_list))  # NOQA
             #tablename_to_rowidmap[tablename] = old_rowids_to_new_roids
 
-    def get_table_csv(db, tablename, exclude_columns=[], params_iter=None, andwhere_colnames=None):
+    def get_table_csv(db, tablename, exclude_columns=[], params_iter=None, andwhere_colnames=None, truncate=False):
         """ Conveinience: Converts a tablename to csv format
 
         Args:
@@ -2410,12 +2465,16 @@ class SQLDatabaseController(object):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> depc.clear_all()
+            >>> rowids = depc.get_rowids('notch', [1, 2, 3])
+            >>> table = depc['notch']
+            >>> db = table.db
             >>> ut.exec_funckw(db.get_table_csv, globals())
-            >>> exclude_columns = []
-            >>> csv_table = db.get_table_csv(tablename, exclude_columns)
-            >>> # verify results
-            >>> result = str(csv_table)
-            >>> print(result)
+            >>> tablename = 'notch'
+            >>> csv_table = db.get_table_csv(tablename, exclude_columns, truncate=True)
+            >>> print(csv_table)
         """
         #=None, column_list=[], header='', column_type=None
         column_list, column_names = db.get_table_column_data(tablename,
@@ -2425,12 +2484,16 @@ class SQLDatabaseController(object):
         # remove column prefix for more compact csvs
         column_lbls = [name.replace(tablename[:-1] + '_', '') for name in column_names]
         header = db.get_table_csv_header(tablename)
+        #truncate = True
+        if truncate:
+            column_list = [[ut.trunc_repr(col) for col in column] for column in column_list]
+
         csv_table = ut.make_csv_table(column_list, column_lbls, header, comma_repl=';')
         #csv_table = ut.make_csv_table(column_list, column_lbls, header, comma_repl='<comma>')
         return csv_table
 
-    def print_table_csv(db, tablename, exclude_columns=[]):
-        print(db.get_table_csv(tablename, exclude_columns=exclude_columns))
+    def print_table_csv(db, tablename, exclude_columns=[], truncate=False):
+        print(db.get_table_csv(tablename, exclude_columns=exclude_columns, truncate=truncate))
 
     def get_table_csv_header(db, tablename):
         column_nametypes = zip(db.get_column_names(tablename), db.get_column_types(tablename))

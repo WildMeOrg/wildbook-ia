@@ -340,7 +340,6 @@ class _CoreDependencyCache(object):
         _debug = depc._debug if _debug is None else _debug
         _kwargs = kwargs.copy()
         config = _kwargs.pop('config', {})
-        num_retries = _kwargs.pop('num_retries', 1)
 
         _recompute = _kwargs.pop('recompute_all', False)
 
@@ -444,13 +443,8 @@ class _CoreDependencyCache(object):
                 # Get table configuration
                 config_ = depc._ensure_config(tablekey, config, _debug)
 
-                for try_num in range(num_retries):
-                    try:
-                        output_rowids = table.get_rowid(_parent_rowids, config=config_,
-                                                        recompute=_recompute,  **_kwargs)
-                    except depcache_table.ExternalStorageException:
-                        if try_num == num_retries - 1:
-                            raise
+                output_rowids = table.get_rowid(_parent_rowids, config=config_,
+                                                recompute=_recompute,  **_kwargs)
                 rowid_dict[output_edge] = output_rowids
                 #table.get_model_inputs(table.get_model_uuid(output_rowids)[0])
             #rowids = rowid_dict[output_edge]
@@ -486,9 +480,7 @@ class _CoreDependencyCache(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> # Test external / ensure getters
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> from dtool.example_depcache import *  # NOQA
-            >>> import ibeis
             >>> config = {}
             >>> depc = testdata_depc()
             >>> aids = [1,]
@@ -497,6 +489,20 @@ class _CoreDependencyCache(object):
             >>> ut.remove_file_list(chip_fpaths)
             >>> rowids = depc.get_rowids('keypoint', aids, ensure=True, config=config)
             >>> print('rowids = %r' % (rowids,))
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.example_depcache import *  # NOQA
+            >>> depc = testdata_depc()
+            >>> depc.clear_all()
+            >>> root_rowids = [1, 2]
+            >>> config = {}
+            >>> # Recompute the first few, make sure the rowids do not change
+            >>> _ = depc.get_rowids('chip', root_rowids + [3], config=config)
+            >>> assert _ == [1, 2, 3]
+            >>> initial_rowids = depc.get_rowids('chip', root_rowids, config=config)
+            >>> recomp_rowids = depc.get_rowids('chip', root_rowids, config=config, recompute=True)
+            >>> assert recomp_rowids == initial_rowids, 'rowids should not change due to recompute'
         """
         target_tablename = tablename
         _debug = rowid_kw.get('_debug', False)
@@ -505,7 +511,6 @@ class _CoreDependencyCache(object):
         config = _kwargs.pop('config', {})
         _recompute_all = _kwargs.pop('recompute_all', False)
         recompute = _kwargs.pop('recompute', _recompute_all)
-        num_retries = _kwargs.pop('num_retries', 1)
         table = depc[target_tablename]
 
         parent_rowids = depc.get_parent_rowids(target_tablename, input_tuple,
@@ -514,14 +519,8 @@ class _CoreDependencyCache(object):
         with ut.Indenter('[GetRowId-%s]' % (target_tablename,),
                          enabled=_debug):
             config_ = depc._ensure_config(target_tablename, config, _debug)
-
-            for try_num in range(num_retries):
-                try:
-                    rowids = table.get_rowid(parent_rowids, config=config_,
-                                             recompute=recompute, **_kwargs)
-                except depcache_table.ExternalStorageException:
-                    if try_num == num_retries - 1:
-                        raise
+            rowids = table.get_rowid(parent_rowids, config=config_,
+                                     recompute=recompute, **_kwargs)
         return rowids
 
     @ut.accepts_scalar_input2(argx_list=[1])
@@ -529,7 +528,7 @@ class _CoreDependencyCache(object):
             ensure=True, _debug=None, recompute=False, recompute_all=False,
             eager=True, nInput=None, read_extern=True, onthefly=False,
             num_retries=1, hack_paths=False):
-        """
+        r"""
         Access dependant properties the primary objects using primary ids.
 
         Gets the data in `colnames` of `tablename` that correspond to
@@ -669,7 +668,6 @@ class _CoreDependencyCache(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> # Simple test of get native
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> from dtool.example_depcache import *  # NOQA
             >>> config = {}
             >>> depc = testdata_depc()
@@ -680,7 +678,6 @@ class _CoreDependencyCache(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> from dtool.example_depcache import *  # NOQA
             >>> depc = testdata_depc()
             >>> config = {}
@@ -706,50 +703,35 @@ class _CoreDependencyCache(object):
             table = depc[tablename]
             #import utool
             #with utool.embed_on_exception_context:
-            try:
-                prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug,
-                                               read_extern=read_extern,
-                                               delete_on_fail=False)
-            except depcache_table.ExternalStorageException:
-                # This code is a bit rendant and would probably live better elsewhere
-                # Also need to fix issues if more than one column specified
-                extern_uris = table.get_row_data(
-                    tbl_rowids, colnames, _debug=_debug, read_extern=False,
-                    delete_on_fail=True, ensure=False)
-                from os.path import exists
-                error_flags = [exists(uri) for uri in extern_uris]
-                redo_rowids = ut.compress(tbl_rowids, ut.not_list(error_flags))
-                parent_rowids = table.get_parent_rowids(redo_rowids)
-                # config_rowids = table.get_row_cfgid(redo_rowids)
-                configs = table.get_row_configs(redo_rowids)
-                assert ut.allsame(list(map(id, configs))), 'more than one config not yet supported'
-                config = configs[0]
-                num_retries = 2
-                for try_num in range(num_retries):
-                    try:
-                        table.get_rowid(parent_rowids, recompute=True, config=config)
-                    except depcache_table.ExternalStorageException:
-                        if try_num == num_retries - 1:
-                            raise
+            #try:
+            prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug,
+                                           read_extern=read_extern)
+            #except depcache_table.ExternalStorageException:
+            #    # This code is a bit rendant and would probably live better elsewhere
+            #    # Also need to fix issues if more than one column specified
+            #    extern_uris = table.get_row_data(
+            #        tbl_rowids, colnames, _debug=_debug, read_extern=False,
+            #        delete_on_fail=True, ensure=False)
+            #    from os.path import exists
+            #    error_flags = [exists(uri) for uri in extern_uris]
+            #    redo_rowids = ut.compress(tbl_rowids, ut.not_list(error_flags))
+            #    parent_rowids = table.get_parent_rowids(redo_rowids)
+            #    # config_rowids = table.get_row_cfgid(redo_rowids)
+            #    configs = table.get_row_configs(redo_rowids)
+            #    assert ut.allsame(list(map(id, configs))), 'more than one config not yet supported'
+            #    config = configs[0]
+            #    table.get_rowid(parent_rowids, recompute=True, config=config)
 
-                # TRY ONE MORE TIME
-                prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug,
-                                               read_extern=read_extern,
-                                               delete_on_fail=False)
+            #    # TRY ONE MORE TIME
+            #    prop_list = table.get_row_data(tbl_rowids, colnames, _debug=_debug,
+            #                                   read_extern=read_extern,
+            #                                   delete_on_fail=False)
         return prop_list
 
     def get_config_history(depc, tablename, root_rowids, config=None):
         # Vectorized get of properties
         tbl_rowids = depc.get_rowids(tablename, root_rowids, config=config)
         return depc[tablename].get_config_history(tbl_rowids)
-
-    def new_request(depc, tablename, qaids, daids, cfgdict=None):
-        """ creates a request for data that can be executed later """
-        print('[depc] NEW %s request' % (tablename,))
-        requestclass = depc.requestclass_dict[tablename]
-        request = requestclass.new(depc, qaids, daids, cfgdict,
-                                   tablename=tablename)
-        return request
 
     def get_root_rowids(depc, tablename, native_rowids):
         return depc.get_ancestor_rowids(tablename, native_rowids, depc.root)
@@ -765,8 +747,13 @@ class _CoreDependencyCache(object):
         ancestor_rowids = table.get_ancestor_rowids(native_rowids, ancestor_tablename)
         return ancestor_rowids
 
-    get_native_property = get_native
-    get_property = get
+    def new_request(depc, tablename, qaids, daids, cfgdict=None):
+        """ creates a request for data that can be executed later """
+        print('[depc] NEW %s request' % (tablename,))
+        requestclass = depc.requestclass_dict[tablename]
+        request = requestclass.new(depc, qaids, daids, cfgdict,
+                                   tablename=tablename)
+        return request
 
     # -----------------------------
     # STATE MODIFIERS
@@ -783,87 +770,6 @@ class _CoreDependencyCache(object):
         table = depc[tablename]
         num_deleted = table.delete_rows(rowid_list)
         return num_deleted
-
-    def delete_root(depc, root_rowids, _debug=False):
-        r"""
-        Deletes all properties of a root object.
-        (with a default config)
-
-        FIXME: make this work for all configs
-
-        Args:
-            root_rowids (list):
-
-        CommandLine:
-            python -m dtool.depcache_control delete_root --show
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> exec(ut.execstr_funckw(depc.delete_root), globals())
-            >>> root_rowids = [1]
-            >>> depc.delete_root(root_rowids, _debug=0)
-            >>> depc.get('fgweight', [1])
-            >>> depc.delete_root(root_rowids, _debug=0)
-        """
-        graph = depc.make_graph(implicit=False)
-        # hack
-        # check to make sure child does not have another parent
-        children = [child for child in graph.succ[depc.root_tablename]
-                    if sum([len(e) for e in graph.pred[child].values()]) == 1]
-        for tablename in children:
-            depc.delete_property(tablename, root_rowids, _debug=_debug)
-
-    def notify_root_changed(depc, root_rowids, prop):
-        """
-        this is where we are notified that a "registered" root property has
-        changed.
-        """
-        print('[depc] notified that columns (%s) for (%d) row(s) were modified' %
-              (prop, len(root_rowids),))
-        # for key in tables_depending_on(prop)
-        #depc.delete_property(key, root_rowids)
-        # TODO: check which properties were invalidated by this prop
-        # TODO; remove invalidated properties
-        #depc.delete_root(root_rowids)
-        pass
-
-    def clear_all(depc):
-        print('Clearning all cached data in %r' % (depc,))
-        for table in depc.cachetable_dict.values():
-            table.clear_table()
-
-    def make_root_info_uuid(depc, root_rowids, info_props):
-        """
-        Creates a uuid that depends on certain properties of the root object.
-        This is used for implicit cache invalidation because, if those
-        properties change then this uuid also changes.
-
-        The depcache needs to know about stateful properties of dynamic root
-        objects in order to correctly compute their hashes.
-
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> root_rowids = ibs._get_all_aids()
-        >>> depc = ibs.depc_annot
-        >>> info_props = ['image_uuid', 'verts', 'theta']
-        >>> info_props = ['image_uuid', 'verts', 'theta', 'name', 'species', 'yaw']
-        """
-        getters = ut.dict_take(depc.root_getters, info_props)
-        infotup_list = zip(*[getter(root_rowids) for getter in getters])
-        info_uuid_list = [ut.augment_uuid(*tup) for tup in infotup_list]
-        return info_uuid_list
-
-    def get_uuids(depc, tablename, root_rowids, config=None):
-        """
-        # TODO: Make uuids for dependant object based on root uuid and path of
-        # construction.
-        """
-        if tablename == depc.root:
-            uuid_list = depc.get_root_uuid(root_rowids)
-        return uuid_list
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -1244,6 +1150,89 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     @property
     def root(depc):
         return depc.root_tablename
+
+    def delete_root(depc, root_rowids, _debug=False):
+        r"""
+        Deletes all properties of a root object.
+        (with a default config)
+
+        FIXME: make this work for all configs
+
+        Args:
+            root_rowids (list):
+
+        CommandLine:
+            python -m dtool.depcache_control delete_root --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> exec(ut.execstr_funckw(depc.delete_root), globals())
+            >>> root_rowids = [1]
+            >>> depc.delete_root(root_rowids, _debug=0)
+            >>> depc.get('fgweight', [1])
+            >>> depc.delete_root(root_rowids, _debug=0)
+        """
+        graph = depc.make_graph(implicit=False)
+        # hack
+        # check to make sure child does not have another parent
+        children = [child for child in graph.succ[depc.root_tablename]
+                    if sum([len(e) for e in graph.pred[child].values()]) == 1]
+        for tablename in children:
+            depc.delete_property(tablename, root_rowids, _debug=_debug)
+
+    def notify_root_changed(depc, root_rowids, prop):
+        """
+        this is where we are notified that a "registered" root property has
+        changed.
+        """
+        print('[depc] notified that columns (%s) for (%d) row(s) were modified' %
+              (prop, len(root_rowids),))
+        # for key in tables_depending_on(prop)
+        #depc.delete_property(key, root_rowids)
+        # TODO: check which properties were invalidated by this prop
+        # TODO; remove invalidated properties
+        #depc.delete_root(root_rowids)
+        pass
+
+    def clear_all(depc):
+        print('Clearning all cached data in %r' % (depc,))
+        for table in depc.cachetable_dict.values():
+            table.clear_table()
+
+    def make_root_info_uuid(depc, root_rowids, info_props):
+        """
+        Creates a uuid that depends on certain properties of the root object.
+        This is used for implicit cache invalidation because, if those
+        properties change then this uuid also changes.
+
+        The depcache needs to know about stateful properties of dynamic root
+        objects in order to correctly compute their hashes.
+
+        >>> #ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> root_rowids = ibs._get_all_aids()
+        >>> depc = ibs.depc_annot
+        >>> info_props = ['image_uuid', 'verts', 'theta']
+        >>> info_props = ['image_uuid', 'verts', 'theta', 'name', 'species', 'yaw']
+        """
+        getters = ut.dict_take(depc.root_getters, info_props)
+        infotup_list = zip(*[getter(root_rowids) for getter in getters])
+        info_uuid_list = [ut.augment_uuid(*tup) for tup in infotup_list]
+        return info_uuid_list
+
+    def get_uuids(depc, tablename, root_rowids, config=None):
+        """
+        # TODO: Make uuids for dependant object based on root uuid and path of
+        # construction.
+        """
+        if tablename == depc.root:
+            uuid_list = depc.get_root_uuid(root_rowids)
+        return uuid_list
+
+    get_native_property = _CoreDependencyCache.get_native
+    get_property = _CoreDependencyCache.get
 
 
 if __name__ == '__main__':
