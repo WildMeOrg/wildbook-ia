@@ -282,6 +282,8 @@ else:
     __STR__ = str
 
 
+# TODO: rename to same / different
+# add add match, nonmatch, notcomp
 TRUTH_UNKNOWN = 2
 TRUTH_MATCH = 1
 TRUTH_NOT_MATCH = 0

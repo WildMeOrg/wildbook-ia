@@ -44,7 +44,7 @@ NEW_DEPC = True
 @accessor_decors.getter_1to1
 # register_api('/api/chip/fpath/', methods=['GET'])
 def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None,
-                         check_external_storage=False, extra_tries=0):
+                         check_external_storage=False, num_retries=1):
     r"""
     Returns the cached chip uri based off of the current
     configuration.
@@ -56,14 +56,14 @@ def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None,
         Method: GET
         URL:    /api/chip/fpath/
     """
-    import dtool
-    try:
-        return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
-                                  ensure=ensure, read_extern=False)
-    except dtool.ExternalStorageException:
-        # TODO; this check might go in dtool itself
-        return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
-                                  ensure=ensure, read_extern=False)
+    #import dtool
+    #try:
+    return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
+                              ensure=ensure, read_extern=False)
+    #except dtool.ExternalStorageException:
+    #    # TODO; this check might go in dtool itself
+    #    return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
+    #                              ensure=ensure, read_extern=False)
 
 
 @register_ibs_method
@@ -331,9 +331,9 @@ def delete_annot_chips(ibs, aid_list, config2_=None):
 #        >>> # But trying it again will work.
 #        >>> assert not any([ut.checkpath(cfpath) for cfpath in cfpath_list2])
 #        >>> try:
-#        >>>     fids1 = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, extra_tries=0)
+#        >>>     fids1 = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, num_retries=0)
 #        >>> except controller_inject.ExternalStorageException:
-#        >>>     fids1 = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, extra_tries=0)
+#        >>>     fids1 = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, num_retries=0)
 #        >>> else:
 #        >>>     assert False, 'Should have gotten external storage execpetion'
 #        >>> print(result)

@@ -115,7 +115,7 @@ def precfg(ibs, acfg_name_list, test_cfg_name_list):
                     qreq_.lazy_preload(verbose=verbose)
                     flag = True
                 if ut.get_argflag('--preload-chip'):
-                    qreq_.ensure_chips(verbose=verbose, extra_tries=1)
+                    qreq_.ensure_chips(verbose=verbose, num_retries=1)
                     flag = True
                 if ut.get_argflag('--preload-feat'):
                     qreq_.ensure_features(verbose=verbose)

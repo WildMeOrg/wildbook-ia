@@ -48,7 +48,7 @@ register_preproc = register_preprocs['image']
 class ThumbnailConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('draw_annots', True, hideif=True),
-        ut.ParamInfo('thumbsize', None, hideif=None),
+        ut.ParamInfo('thumbsize', None, type_=int, hideif=None),
         ut.ParamInfo('ext', '.png', hideif='.png'),
         ut.ParamInfo('force_serial', False, hideif=False),
     ]
