@@ -72,6 +72,8 @@ class ConfigValueDelegate(QtGui.QStyledItemDelegate):
         leafNode = index.internalPointer()
         if (VERBOSE_CONFIG and False):
             print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
+            leafNode.print_tree()
+            # print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
         if leafNode.is_combo:
             #print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
             #painter.save()
@@ -153,27 +155,28 @@ class ConfigValueDelegate(QtGui.QStyledItemDelegate):
 
             #style.drawPrimitive(QtGui.QStyle.PE_PanelButtonBevel, opt, painter)
             # Do I need to draw sub controls?
-            style.drawControl(element, opt, painter)
             style.drawComplexControl(control, opt, painter)
+            style.drawControl(element, opt, painter)
             #self.drawDisplay(painter, opt, opt.rect, opt.currentText)
             #self.drawFocus(painter, opt, opt.rect)
             #QtGui.QItemDelegate
             #painter.restore()
             #return super(ConfigValueDelegate, self).paint(painter, option, index)
-        #elif leafNode is not None and leafNode.type_ is int:
-        #    curent_value = six.text_type(index.model().data(index))
-        #    # fill style options with item data
-        #    style = QtGui.QApplication.style()
-        #    opt = QtGui.QStyleOptionSpinBox()
-        #    opt.currentText = curent_value
-        #    opt.rect = option.rect
-        #    #opt.editable = False
-        #    if leafNode.qt_is_editable():
-        #        opt.state |= style.State_Enabled
-        #    element = QtGui.QStyle.CE_ItemViewItem
-        #    control = QtGui.QStyle.CC_SpinBox
-        #    style.drawControl(element, opt, painter)
-        #    style.drawComplexControl(control, opt, painter)
+        elif False and (leafNode is not None and leafNode.type_ is int):
+            curent_value = six.text_type(index.model().data(index))
+            # fill style options with item data
+            style = QtGui.QApplication.style()
+            opt = QtGui.QStyleOptionSpinBox()
+            # opt.currentText doesn't exist for SpinBox
+            opt.currentText = curent_value  #
+            opt.rect = option.rect
+            #opt.editable = False
+            if leafNode.qt_is_editable():
+                opt.state |= style.State_Enabled
+            element = QtGui.QStyle.CE_ItemViewItem
+            control = QtGui.QStyle.CC_SpinBox
+            style.drawComplexControl(control, opt, painter)
+            style.drawControl(element, opt, painter)
         else:
             return super(ConfigValueDelegate, self).paint(painter, option, index)
 
@@ -559,6 +562,9 @@ class ConfigNodeWrapper(ut.NiceRepr):
         return self.parent
 
     def qt_is_editable(self):
+        """
+        Really means able to change value.
+        """
         if self.is_leaf():
             enabled = self.param_info.is_enabled(self.parent.config)
         else:
@@ -594,7 +600,13 @@ class ConfigNodeWrapper(ut.NiceRepr):
             raise Exception('[Pref.qtleaf] Cannot set root preference')
         if self.qt_is_editable():
             new_val = '[Pref.qtleaf] BadThingsHappenedInPref'
-            new_val = ut.smart_cast(qvar, self.type_)
+            try:
+                type_ = self.type_
+                new_val = ut.smart_cast(qvar, type_)
+            except Exception as ex:
+                ut.printex(ex, keys=['qvar', 'type_'])
+                raise
+
             if VERBOSE_CONFIG:
                 print('[Wrapper] new_val=%r' % new_val)
                 # print('[Wrapper] type(new_val)=%r' % type(new_val))
@@ -730,6 +742,8 @@ def newConfigWidget(config, user_mode=False):
         >>>         ut.ParamInfo('str_option', 'hello'),
         >>>         ut.ParamInfo('int_option', 42),
         >>>         ut.ParamInfo('float_option', 42.),
+        >>>         ut.ParamInfo('none_option', None),
+        >>>         ut.ParamInfo('none_combo_option', None, valid_values=[None, True, False]),
         >>>         ut.ParamInfo('combo_option', 'up', valid_values=['up', 'down', 'strange', 'charm', 'top', 'bottom']),
         >>>         ut.ParamInfo('bool_option', False),
         >>>         ut.ParamInfo('hidden_str', 'foobar', hideif=lambda cfg: not cfg['bool_option']),
