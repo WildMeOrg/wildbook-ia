@@ -25,7 +25,7 @@ def augmentation_wrapper(X_list, y_list):
         X_Lab = cv2.cvtColor(X, cv2.COLOR_BGR2LAB)
         X_L = X_Lab[:, :, 0].astype(dtype=np.float32)
         # margin = np.min([np.min(X_L), 255.0 - np.max(X_L), 64.0])
-        margin = 128.0
+        margin = 32.0
         exposure = random.uniform(-margin, margin)
         X_L += exposure
         X_L = np.around(X_L)
@@ -35,8 +35,8 @@ def augmentation_wrapper(X_list, y_list):
         X = cv2.cvtColor(X_Lab, cv2.COLOR_LAB2BGR)
         # Rotate and Scale
         h, w, c = X.shape
-        degree = random.randint(-30, 30)
-        scale = random.uniform(0.80, 1.25)
+        degree = random.randint(-10, 10)
+        scale = random.uniform(0.80, 1.10)
         padding = np.sqrt((w) ** 2 / 4 - 2 * (w) ** 2 / 16)
         padding /= scale
         padding = int(np.ceil(padding))
@@ -55,7 +55,7 @@ def augmentation_wrapper(X_list, y_list):
             X = cv2.flip(X, 1)
         # Blur
         if y == 'good' and random.uniform(0.0, 1.0) <= 0.1:
-            X = cv2.blur(X, (7, 7))
+            X = cv2.blur(X, (5, 5))
             y = 'poor'
         # Reshape
         X = X.reshape(X_list[index].shape)
