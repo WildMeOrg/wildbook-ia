@@ -176,20 +176,23 @@ def get_turk_annot_args(is_reviewed_func):
         print('NOT GROUP_REVIEW')
         # gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
         # aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+
         with ut.Timer():
             aid_list = ibs.get_valid_aids()
+            unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
+            sort_list = zip(unixtime_list, aid_list)
+            sort_list = sorted(sort_list)
+            half = len(sort_list) // 2
+            aid_list = sort_list[:half]
+            aid_list = [_[1] for _ in aid_list]
             reviewed_list = is_reviewed_func(ibs, aid_list)
     else:
-        print('GROUP_REVIEW')
-        with ut.Timer():
-            src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
-            dst_gar_rowid_list = ibs.get_annotgroup_gar_rowids(dst_ag)
-        with ut.Timer():
-            src_aid_list = ibs.get_gar_aid(src_gar_rowid_list)
-            dst_aid_list = ibs.get_gar_aid(dst_gar_rowid_list)
-            aid_list = src_aid_list
-        with ut.Timer():
-            reviewed_list = [ src_aid in dst_aid_list for src_aid in src_aid_list ]
+        src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
+        dst_gar_rowid_list = ibs.get_annotgroup_gar_rowids(dst_ag)
+        src_aid_list = ibs.get_gar_aid(src_gar_rowid_list)
+        dst_aid_list = ibs.get_gar_aid(dst_gar_rowid_list)
+        aid_list = src_aid_list
+        reviewed_list = [ src_aid in dst_aid_list for src_aid in src_aid_list ]
 
     try:
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
