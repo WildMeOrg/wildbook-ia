@@ -4647,35 +4647,55 @@ def _stat_str(dict_, multi=False, precision=2, **kwargs):
     return str_
 
 
+@register_ibs_method
+def make_property_stats_dict(ibs, aid_list, prop_getter, key_order):
+    annot_prop_list = prop_getter(aid_list)
+    prop2_aids = ut.group_items(aid_list, annot_prop_list)
+    assert set(key_order) >= set(annot_prop_list), (
+        'bad keys: ' + str(set(annot_prop_list) - set(key_order)))
+    prop2_nAnnots = ut.odict([
+        (key, len(prop2_aids.get(key, []))) for key in key_order])
+    # Filter 0's
+    prop2_nAnnots = ut.odict([
+        (key, val) for key, val in prop2_nAnnots.items() if val != 0])
+    return prop2_nAnnots
+
+
 # Quality and Viewpoint Stats
 @register_ibs_method
 def get_annot_qual_stats(ibs, aid_list):
-    annot_qualtext_list = ibs.get_annot_quality_texts(aid_list)
-    qualtext2_aids = ut.group_items(aid_list, annot_qualtext_list)
-    qual_keys = list(const.QUALITY_TEXT_TO_INT.keys())
-    assert set(qual_keys) >= set(qualtext2_aids), (
-        'bad keys: ' + str(set(qualtext2_aids) - set(qual_keys)))
-    qualtext2_nAnnots = ut.odict([(key, len(qualtext2_aids.get(key, []))) for key in qual_keys])
-    # Filter 0's
-    qualtext2_nAnnots = {key: val for key, val in six.iteritems(qualtext2_nAnnots) if val != 0}
+    key_order = list(const.QUALITY_TEXT_TO_INT.keys())
+    prop_getter = ibs.get_annot_quality_texts
+    qualtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
+    #annot_qualtext_list = ibs.get_annot_quality_texts(aid_list)
+    #qualtext2_aids = ut.group_items(aid_list, annot_qualtext_list)
+    #qual_keys = list(const.QUALITY_TEXT_TO_INT.keys())
+    #assert set(qual_keys) >= set(qualtext2_aids), (
+    #    'bad keys: ' + str(set(qualtext2_aids) - set(qual_keys)))
+    #qualtext2_nAnnots = ut.odict([(key, len(qualtext2_aids.get(key, []))) for key in qual_keys])
+    ## Filter 0's
+    #qualtext2_nAnnots = {key: val for key, val in six.iteritems(qualtext2_nAnnots) if val != 0}
     return qualtext2_nAnnots
 
 
 @register_ibs_method
 def get_annot_yaw_stats(ibs, aid_list):
-    annot_yawtext_list = ibs.get_annot_yaw_texts(aid_list)
-    yawtext2_aids = ut.group_items(aid_list, annot_yawtext_list)
+    key_order = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+    prop_getter = ibs.get_annot_yaw_texts
+    yawtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
+    #annot_yawtext_list = ibs.get_annot_yaw_texts(aid_list)
+    #yawtext2_aids = ut.group_items(aid_list, annot_yawtext_list)
     # Order keys
-    yaw_keys = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
-    assert set(yaw_keys) >= set(annot_yawtext_list), (
-        'bad keys: ' + str(set(annot_yawtext_list) - set(yaw_keys)))
-    yawtext2_nAnnots = ut.odict(
-        [(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
-    # Filter 0's
-    yawtext2_nAnnots = {
-        const.YAWALIAS.get(key, key): val
-        for key, val in six.iteritems(yawtext2_nAnnots) if val != 0
-    }
+    #yaw_keys = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+    #assert set(yaw_keys) >= set(annot_yawtext_list), (
+    #    'bad keys: ' + str(set(annot_yawtext_list) - set(yaw_keys)))
+    #yawtext2_nAnnots = ut.odict(
+    #    [(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
+    ## Filter 0's
+    #yawtext2_nAnnots = {
+    #    const.YAWALIAS.get(key, key): val
+    #    for key, val in six.iteritems(yawtext2_nAnnots) if val != 0
+    #}
     #yawtext2_nAnnots = {key: val for key, val in six.iteritems(yawtext2_nAnnots) if val != 0}
     return yawtext2_nAnnots
 
@@ -4920,6 +4940,10 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
 
     #if kwargs.pop('per_vp', False):
     if kwargs.pop('per_vp', True or forceall):
+        keyval_list += [(prefix + 'per_vp',
+                         statwrap(ibs.get_annot_yaw_stats(aids)))]
+
+    if kwargs.pop('per_multiple', True or forceall):
         keyval_list += [(prefix + 'per_vp',
                          statwrap(ibs.get_annot_yaw_stats(aids)))]
 

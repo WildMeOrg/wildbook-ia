@@ -186,6 +186,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             cfg['minqual'] = 'good'
             cfg['reviewed'] = True
             cfg['multiple'] = False
+            cfg['species'] = 'zebra_grevys'
             cfg['require_viewpoint'] = True
             cfg['view'] = 'right,frontright,backright'
 
@@ -193,7 +194,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
         cfg_size_policy = (QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
 
-        user_mode = True
+        user_mode = 0
 
         from guitool import PrefWidget2
         self.editQueryConfig = PrefWidget2.newConfigWidget(self.qcfg, user_mode=user_mode)

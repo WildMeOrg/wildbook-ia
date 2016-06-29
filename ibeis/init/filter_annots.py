@@ -836,10 +836,14 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
             avail_aids = ibs.filter_aids_without_timestamps(avail_aids)
         avail_aids = sorted(avail_aids)
 
-    metadata = ut.LazyDict(
-        species=lambda: expand_species(ibs, aidcfg['species'], None))
+    cfg_species = aidcfg.get('species')
+    if isinstance(cfg_species, six.string_types) and cfg_species.lower() == 'none':
+        cfg_species = None
 
-    if aidcfg.get('species') is not None:
+    metadata = ut.LazyDict(
+        species=lambda: expand_species(ibs, cfg_species, None))
+
+    if cfg_species is not None:
         species = metadata['species']
         with VerbosityContext('species', species=species):
             avail_aids = ibs.filter_aids_to_species(avail_aids, species)
