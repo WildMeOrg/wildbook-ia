@@ -4648,9 +4648,11 @@ def _stat_str(dict_, multi=False, precision=2, **kwargs):
 
 
 @register_ibs_method
-def make_property_stats_dict(ibs, aid_list, prop_getter, key_order):
+def make_property_stats_dict(ibs, aid_list, prop_getter, key_order=None):
     annot_prop_list = prop_getter(aid_list)
     prop2_aids = ut.group_items(aid_list, annot_prop_list)
+    if key_order is None:
+        key_order = set(annot_prop_list)
     assert set(key_order) >= set(annot_prop_list), (
         'bad keys: ' + str(set(annot_prop_list) - set(key_order)))
     prop2_nAnnots = ut.odict([
@@ -4944,8 +4946,9 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
                          statwrap(ibs.get_annot_yaw_stats(aids)))]
 
     if kwargs.pop('per_multiple', True or forceall):
-        keyval_list += [(prefix + 'per_vp',
-                         statwrap(ibs.get_annot_yaw_stats(aids)))]
+        keyval_list += [(prefix + 'per_multiple',
+                         statwrap(
+                             ibs.make_property_stats_dict(aids, ibs.get_annot_multiple)))]
 
     # information about overlapping viewpoints
     if kwargs.pop('per_name_vpedge', False or forceall):

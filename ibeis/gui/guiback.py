@@ -181,6 +181,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.info_cfg['species_hist'] = True
         self.info_cfg['per_vp'] = True
         self.info_cfg['per_qual'] = True
+        self.info_cfg['per_multiple'] = True
 
         for cfg in [self.qcfg, self.dcfg]:
             cfg['minqual'] = 'good'
