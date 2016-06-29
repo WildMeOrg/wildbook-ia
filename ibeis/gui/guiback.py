@@ -27,7 +27,7 @@ import traceback  # NOQA
 import guitool
 import utool as ut
 from guitool import slot_, signal_, cast_from_qt
-from guitool.__PYQT__ import QtCore
+from guitool.__PYQT__ import QtCore, QtGui
 from ibeis import constants as const
 from ibeis.other import ibsfuncs
 from ibeis import sysres
@@ -49,6 +49,104 @@ VERBOSE = ut.VERBOSE
 WEB_URL = '127.0.0.1'
 WEB_PORT = 5000
 WEB_DOMAIN = '%s:%s' % (WEB_URL, WEB_PORT, )
+
+
+class CustomAnnotCfgSelector(guitool.GuitoolWidget):
+    """
+    CommandLine:
+        python -m ibeis.gui.guiback special_filter_annots --show
+    """
+    closed = QtCore.pyqtSignal()
+
+    def __init__(self, back):
+        super(CustomAnnotCfgSelector, self).__init__()
+        self.back = back
+
+        self.qaids = None
+
+        from ibeis.expt import annotation_configs
+        import dtool
+        class TmpAnnotConfig(dtool.Config):
+            _param_info_list = annotation_configs.INDEPENDENT_DEFAULTS_PARAMS
+        self.qcfg = TmpAnnotConfig()
+        self.dcfg = TmpAnnotConfig()
+        self.setWindowTitle('Custom Annot Selector')
+
+        from guitool import PrefWidget2
+
+        self.editQueryConfig = PrefWidget2.newConfigWidget(self.qcfg, user_mode=True)
+        self.editQueryConfig.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        self.editDataConfig = PrefWidget2.newConfigWidget(self.qcfg, user_mode=True)
+        self.editDataConfig.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+
+        #main_layout = QtGui.QGridLayout()
+        #main_layout.setVerticalSpacing(0)
+        #main_layout.setContentsMargins(0, 0, 0, 0)
+        #self.setLayout(QtGui.QVBoxLayout())
+        #layout = self.layout()
+
+        annot_hframe = self.newHWidget()
+        query_vframe = annot_hframe.newVWidget()
+        query_vframe.addWidget(QtGui.QLabel('Query Config'))
+        query_vframe.addWidget(self.editQueryConfig)
+
+        data_vframe = annot_hframe.newVWidget()
+        data_vframe.addWidget(QtGui.QLabel('Data Config'))
+        data_vframe.addWidget(self.editDataConfig)
+
+        #layout.addWidget(query_frame)
+        #layout.addWidget(QtGui.QLabel('Query Config'), 0, 0, 1, 1, QtCore.Qt.AlignCenter)
+        #layout.addWidget(self.editQueryConfig, 1, 0, 1, 1)
+        #layout.addWidget(QtGui.QLabel('Data Config'), 0, 2, 1, 1, QtCore.Qt.AlignCenter)
+        #layout.addWidget(self.editDataConfig, 1, 2, 1, 1)
+
+        button_bar = self.newHWidget()
+        self.update_button = QtGui.QPushButton('Update')
+        self.update_button.clicked.connect(self.update)
+        button_bar.addWidget(self.update_button)
+        #layout.addWidget(self.update_button, 3, 2, 1, 1)
+        #layout.addWidget(self.editQueryConfig)
+        #layout.addWidget(self.editDataConfig)
+
+    def update(self):
+        print('update')
+        ibs = self.back.ibs
+        #import utool
+        #utool.embed()
+        self.qcfg
+        self.qaids = ibs.sample_annots_general(**self.qcfg)
+        #print('self.qaids = %r' % (self.qaids,))
+        ibs.print_annot_stats(self.qaids, prefix='q')
+
+    def closeEvent(self, event):
+        event.accept()
+        self.closed.emit()
+
+    @classmethod
+    def as_dialog(cls, back=None, **kwargs):
+        dlg = QtGui.QDialog(back.front)
+        widget = cls(back, **kwargs)
+        dlg.widget = widget
+        dlg.vlayout = QtGui.QVBoxLayout(dlg)
+        dlg.vlayout.addWidget(widget)
+        widget.closed.connect(dlg.close)
+        dlg.setWindowTitle(widget.windowTitle())
+        return dlg
+
+        #options = [
+        #    'Accept',
+        #]
+        #reply, new_config = back.user_option(
+        #    title='Run Detection Confirmation',
+        #    msg=ut.codeblock(
+        #        '''
+        #        Pick annots.
+        #        ''') ,
+        #    config=config,
+        #    options=options,
+        #    default=options[0],
+        #)
+        #print('reply = %r' % (reply,))
 
 
 class NewDatabaseWidget(guitool.GuitoolWidget):
@@ -1393,27 +1491,20 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> back.special_filter_annots()
             >>> back.cleanup()
             >>> ut.quit_if_noshow()
+            >>> import guitool
+            >>> #guitool.ensure_qapp()  # must be ensured before any embeding
+            >>> import plottool as pt
+            >>> guitool.qtapp_loop(qwin=back)
         """
-        import dtool
-        from ibeis.init import filter_annots
-        filter_kw = filter_annots.get_default_annot_filter_form()
-        config = dtool.Config.from_dict(filter_kw)
-        options = [
-            'Accept',
-        ]
-        reply, new_config = back.user_option(
-            title='Run Detection Confirmation',
-            msg=ut.codeblock(
-                '''
-                Pick annots.
-                ''') ,
-            config=config,
-            options=options,
-            default=options[0],
-        )
-        print('reply = %r' % (reply,))
+        #from ibeis.init import filter_annots
+        #filter_kw = filter_annots.get_default_annot_filter_form()
+        wgt = CustomAnnotCfgSelector
+        dlg = wgt.as_dialog(back)
+        dlg.show()
+        dlg.exec_()
 
-        if reply not in options:
+        if True:
+            #reply not in options:
             raise guiexcept.UserCancel
 
     @blocking_slot()
