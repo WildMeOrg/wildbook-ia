@@ -1704,7 +1704,7 @@ class MainWindowBackend(GUIBACK_BASE):
         #from ibeis.init import filter_annots
         #filter_kw = filter_annots.get_default_annot_filter_form()
 
-        back.custom_query_widget = CustomAnnotCfgSelector(back)
+        back.custom_query_widget = CustomAnnotCfgSelector(back.ibs)
         back.custom_query_widget.show()
         back.custom_query_widget.update()
 
