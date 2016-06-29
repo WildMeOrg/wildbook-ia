@@ -755,10 +755,10 @@ class QueryRequest(object):
     #@ut.memoize
     def get_data_hashid(qreq_):
         daids = qreq_.get_external_daids()
-        try:
-            assert len(daids) > 0, 'QRequest not populated. len(daids)=0'
-        except AssertionError as ex:
-            ut.printex(ex, iswarning=True)
+        #try:
+        #    assert len(daids) > 0, 'QRequest not populated. len(daids)=0'
+        #except AssertionError as ex:
+        #    ut.printex(ex, iswarning=True)
         # TODO: SYSTEM : semantic should only be used if name scoring is on
         data_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(
             daids, prefix='D')
@@ -780,7 +780,7 @@ class QueryRequest(object):
             >>> print(result)
         """
         qaids = qreq_.get_external_qaids()
-        assert len(qaids) > 0, 'QRequest not populated. len(qaids)=0'
+        #assert len(qaids) > 0, 'QRequest not populated. len(qaids)=0'
         # TODO: SYSTEM : semantic should only be used if name scoring is on
         query_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(
             qaids, prefix='Q')
