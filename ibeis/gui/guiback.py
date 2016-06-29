@@ -51,72 +51,345 @@ WEB_PORT = 5000
 WEB_DOMAIN = '%s:%s' % (WEB_URL, WEB_PORT, )
 
 
+def backreport(func):
+    """
+    reports errors on backend functions
+    should be around every function by default
+    """
+    def backreport_wrapper(back, *args, **kwargs):
+        try:
+            result = func(back, *args, **kwargs)
+        except guiexcept.UserCancel as ex:
+            print('handling user cancel')
+            return None
+        except Exception as ex:
+            #error_msg = "Error caught while performing function. \n %r" % ex
+            error_msg = 'Error: %s' % (ex,)
+            import traceback  # NOQA
+            detailed_msg = traceback.format_exc()
+            guitool.msgbox(title="Error Catch!", msg=error_msg, detailed_msg=detailed_msg)
+            raise
+        return result
+    backreport_wrapper = ut.preserve_sig(backreport_wrapper, func)
+    return backreport_wrapper
+
+
+def backblock(func):
+    """ BLOCKING DECORATOR
+    TODO: This decorator has to be specific to either front or back. Is there a
+    way to make it more general?
+    """
+    @functools.wraps(func)
+    #@guitool.checks_qt_error
+    @backreport
+    def bacblock_wrapper(back, *args, **kwargs):
+        _wasBlocked_ = back.front.blockSignals(True)
+        try:
+            result = func(back, *args, **kwargs)
+        except Exception:
+            #error_msg = "Error caught while performing function. \n %r" % ex
+            #guitool.msgbox(title="Error Catch!", msg=error_msg)
+            raise
+        finally:
+            back.front.blockSignals(_wasBlocked_)
+        return result
+    bacblock_wrapper = ut.preserve_sig(bacblock_wrapper, func)
+    return bacblock_wrapper
+
+
+def blocking_slot(*types_):
+    """
+    A blocking slot accepts the types which are passed to QtCore.pyqtSlot.
+    In addition it also causes the gui frontend to block signals while
+    the decorated function is processing.
+    """
+    def wrap_bslot(func):
+        @slot_(*types_)
+        @backblock
+        @functools.wraps(func)
+        def wrapped_bslot(*args, **kwargs):
+            #printDBG('[back*] ' + ut.func_str(func))
+            #printDBG('[back*] ' + ut.func_str(func, args, kwargs))
+            result = func(*args, **kwargs)
+            sys.stdout.flush()
+            return result
+        #printDBG('blocking slot: %r, types=%r' % (wrapped_bslot.__name__, types_))
+        wrapped_bslot = ut.preserve_sig(wrapped_bslot, func)
+        return wrapped_bslot
+    return wrap_bslot
+
+
 class CustomAnnotCfgSelector(guitool.GuitoolWidget):
     """
+    Args:
+        self (?):
+        back (?):
+
     CommandLine:
+        python -m ibeis.gui.guiback CustomAnnotCfgSelector --show
         python -m ibeis.gui.guiback special_filter_annots --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.gui.guiback import *  # NOQA
+        >>> import ibeis
+        >>> import guitool as gt
+        >>> guitool.ensure_qtapp()
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> self = CustomAnnotCfgSelector(ibs)
+        >>> self.show()
+        >>> self.update()
+        >>> ut.quit_if_noshow()
+        >>> gt.qtapp_loop(qwin=self, freq=10)
     """
     closed = QtCore.pyqtSignal()
 
-    def __init__(self, back):
+    def __init__(self, ibs):
         super(CustomAnnotCfgSelector, self).__init__()
-        self.back = back
+        self.ibs = ibs
 
         self.qaids = None
+        self.accept_flag = False
 
         from ibeis.expt import annotation_configs
         import dtool
         class TmpAnnotConfig(dtool.Config):
             _param_info_list = annotation_configs.INDEPENDENT_DEFAULTS_PARAMS
+
+        class TmpPipelineConfig(dtool.Config):
+            _param_info_list = [
+                ut.ParamInfo('K', ibs.cfg.query_cfg.nn_cfg.K),
+                ut.ParamInfo('Knorm', ibs.cfg.query_cfg.nn_cfg.Knorm),
+                #ut.ParamInfo('AI', True),
+            ]
+
         self.qcfg = TmpAnnotConfig()
         self.dcfg = TmpAnnotConfig()
+
+        self.pcfg = TmpPipelineConfig()
+        self.review_cfg = dtool.Config.from_dict({
+            'filter_reviewed': True,
+            'ranks_lt': 2,
+        })
+
+        for cfg in [self.qcfg, self.dcfg]:
+            cfg['minqual'] = 'ok'
+            cfg['reviewed'] = True
+
         self.setWindowTitle('Custom Annot Selector')
 
-        from guitool import PrefWidget2
+        cfg_size_policy = (QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
 
-        self.editQueryConfig = PrefWidget2.newConfigWidget(self.qcfg, user_mode=True)
-        self.editQueryConfig.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        self.editDataConfig = PrefWidget2.newConfigWidget(self.qcfg, user_mode=True)
-        self.editDataConfig.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        from guitool import PrefWidget2
+        self.editQueryConfig = PrefWidget2.newConfigWidget(self.qcfg, user_mode=False)
+        self.editQueryConfig.setSizePolicy(*cfg_size_policy)
+
+        self.editDataConfig = PrefWidget2.newConfigWidget(self.dcfg, user_mode=False)
+        self.editDataConfig.setSizePolicy(*cfg_size_policy)
+
+        self.editPipeConfig = PrefWidget2.newConfigWidget(self.pcfg, user_mode=False)
+        self.editPipeConfig.setSizePolicy(*cfg_size_policy)
+
+        self.editReviewConfig = PrefWidget2.newConfigWidget(self.review_cfg, user_mode=False)
+        self.editReviewConfig.setSizePolicy(*cfg_size_policy)
+
+        self.editQueryConfig.data_changed.connect(self.on_acfg_changed)
+        self.editDataConfig.data_changed.connect(self.on_acfg_changed)
 
         #main_layout = QtGui.QGridLayout()
         #main_layout.setVerticalSpacing(0)
         #main_layout.setContentsMargins(0, 0, 0, 0)
         #self.setLayout(QtGui.QVBoxLayout())
         #layout = self.layout()
+        from guitool.__PYQT__.QtCore import Qt
 
-        annot_hframe = self.newHWidget()
-        query_vframe = annot_hframe.newVWidget()
+        splitter = self.addNewSplitter(orientation=Qt.Vertical)
+        #splitter = QtGui.QSplitter(Qt.Vertical)
+        #self.layout().addWidget(splitter)
+
+        acfg_hframe = splitter.newWidget(orientation=Qt.Horizontal)
+
+        query_vframe = acfg_hframe.newVWidget()
         query_vframe.addWidget(QtGui.QLabel('Query Config'))
         query_vframe.addWidget(self.editQueryConfig)
 
-        data_vframe = annot_hframe.newVWidget()
+        data_vframe = acfg_hframe.newVWidget()
         data_vframe.addWidget(QtGui.QLabel('Data Config'))
         data_vframe.addWidget(self.editDataConfig)
+        #data_vframe.setVisible(False)
 
-        #layout.addWidget(query_frame)
-        #layout.addWidget(QtGui.QLabel('Query Config'), 0, 0, 1, 1, QtCore.Qt.AlignCenter)
-        #layout.addWidget(self.editQueryConfig, 1, 0, 1, 1)
-        #layout.addWidget(QtGui.QLabel('Data Config'), 0, 2, 1, 1, QtCore.Qt.AlignCenter)
-        #layout.addWidget(self.editDataConfig, 1, 2, 1, 1)
+        pcfg_hframe = splitter.newWidget(orientation=Qt.Horizontal)
+        pipe_vframe = pcfg_hframe.newVWidget()
+        pipe_vframe.addWidget(QtGui.QLabel('Pipeline Config'))
+        pipe_vframe.addWidget(self.editPipeConfig)
+
+        review_vframe = pcfg_hframe.newVWidget()
+        review_vframe.addWidget(QtGui.QLabel('Review Config'))
+        review_vframe.addWidget(self.editReviewConfig)
+
+        stats_vwidget = splitter.newWidget(orientation=Qt.Vertical)
+        stats_vwidget.addWidget(QtGui.QLabel('Expanded Annot Info'))
+        self.qstats = QtGui.QTextEdit()
+        self.qstats.setReadOnly(True)
+        stats_vwidget.addWidget(self.qstats)
+        #self.layout().addWidget(self.qstats)
 
         button_bar = self.newHWidget()
-        self.update_button = QtGui.QPushButton('Update')
-        self.update_button.clicked.connect(self.update)
-        button_bar.addWidget(self.update_button)
+
+        update_button = QtGui.QPushButton('Update Configs')
+        update_button.clicked.connect(self.update)
+        button_bar.addWidget(update_button)
+
+        self.accept_button = QtGui.QPushButton('Execute Query')
+        self.accept_button.pressed.connect(self.execute_query)
+        button_bar.addWidget(self.accept_button)
+
+        testlog = QtGui.QPushButton('TestLog')
+        testlog.pressed.connect(self.log_query)
+        button_bar.addWidget(testlog)
+
+        self.progbar = guitool.newProgressBar(self, visible=False)
+        self.addWidget(self.progbar)
         #layout.addWidget(self.update_button, 3, 2, 1, 1)
         #layout.addWidget(self.editQueryConfig)
         #layout.addWidget(self.editDataConfig)
 
+    @backreport
+    def progress_context(self, title='working'):
+        """
+        Displays progress during a task
+        """
+        class ProgressContext(object):
+            def __init__(ctx, title, progbar):
+                ctx.progbar = progbar
+                ctx.title = title
+
+            @property
+            def prog_hook(ctx):
+                return ctx.progbar.utool_prog_hook
+
+            def set_progress(ctx, count, total):
+                ctx.prog_hook.set_progress(count, total)
+
+            def __enter__(ctx):
+                ctx.progbar.setVisible(True)
+                ctx.progbar.setWindowTitle(ctx.title)
+                ctx.prog_hook.lbl = ctx.title
+                ctx.progbar.utool_prog_hook.set_progress(0)
+                # Doesn't seem to work correctly
+                #progbar.utool_prog_hook.show_indefinite_progress()
+                ctx.progbar.utool_prog_hook.force_event_update()
+                return ctx
+
+            def __exit__(ctx, type_, value, trace):
+                ctx.progbar.setVisible(False)
+                if trace is not None:
+                    if VERBOSE:
+                        print('[back] Error in context manager!: ' + str(value))
+                    return False  # return a falsey value on error
+        return ProgressContext(title, self.progbar)
+
+    def on_acfg_changed(self):
+        self.acfg_needs_update = True
+        print('detected change')
+
+    @property
+    def acfg(self):
+        acfg =  {'qcfg': self.qcfg.asdict(), 'dcfg': self.dcfg.asdict()}
+        return acfg
+
+    def log_query(self, qreq_=None, test=True):
+        dbdir = self.ibs.get_dbdir()
+        expt_dir = ut.ensuredir(ut.unixjoin(dbdir, 'SPECIAL_GGR_EXPT_LOGS'))
+        ut.vd(expt_dir)
+
+        if qreq_ is None and test:
+            ibs = self.ibs
+            qreq_ = ibs.new_query_request(self.qaids, self.daids,
+                                          cfgdict=self.pcfg)
+
+        ts = ut.get_timestamp(isutc=True, timezone=True)
+
+        expt_long_fpath = ut.unixjoin(expt_dir, 'long_expt_%s_%s.json' % (self.ibs.dbname, ts))
+        expt_short_fpath = ut.unixjoin(expt_dir, 'short_expt_%s_%s.json' % (self.ibs.dbname, ts))
+
+        query_info = ut.odict([
+            ('computer', ut.get_computer_name()),
+            ('timestamp', ts),
+            ('pcfg', self.pcfg.asdict()),
+            ('acfg', self.acfg),
+            ('review_cfg', self.review_cfg.asdict()),
+            ('expanded_aids', (self.qaids, self.daids)),
+            ('expanded_uuids', (ibs.get_annot_uuids(self.qaids), ibs.get_annot_uuids(self.daids))),
+            ('qreq_cfgstr', qreq_.get_cfgstr(with_input=True)),
+            ('qparams', qreq_.qparams),
+            ('qvuuid_hash', qreq_.ibs.get_annot_hashid_visual_uuid(self.qaids, prefix='Q')),
+            ('dvuuid_hash', qreq_.ibs.get_annot_hashid_visual_uuid(self.daids, prefix='D')),
+            ('qsuuid_hash', qreq_.ibs.get_annot_hashid_semantic_uuid(self.qaids, prefix='Q')),
+            ('dsuuid_hash', qreq_.ibs.get_annot_hashid_semantic_uuid(self.daids, prefix='D')),
+        ])
+
+        if test:
+            print('expt_long_fpath = %r' % (expt_long_fpath,))
+            print('expt_short_fpath = %r' % (expt_short_fpath,))
+            print('query_info = %s' % (ut.to_json(query_info, pretty=1),))
+
+        else:
+            ut.save_json(expt_long_fpath, query_info)
+            del query_info['expanded_aids']
+            del query_info['qparams']
+            ut.save_json(expt_short_fpath, query_info, pretty=1)
+
+    @backreport
+    @slot_()
+    def execute_query(self):
+        print('accept')
+        assert not self.acfg_needs_update, 'NEED TO UPDATE ACFG BEFORE EXECUTING'
+        self.accept_flag = True
+
+        from ibeis.gui import inspect_gui
+        ibs = self.ibs
+
+        qreq_ = ibs.new_query_request(self.qaids, self.daids,
+                                      cfgdict=self.pcfg)
+
+        self.log_query(qreq_, test=False)
+
+        with self.progress_context('Querying') as ctx:
+            cm_list = ibs.query_chips(qreq_=qreq_, prog_hook=ctx.prog_hook)
+
+        qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list, qreq_=qreq_,
+                                                  **self.review_cfg)
+        self.qres_wgt = qres_wgt
+        qres_wgt.show()
+        qres_wgt.raise_()
+
     def update(self):
-        print('update')
-        ibs = self.back.ibs
-        #import utool
-        #utool.embed()
-        self.qcfg
-        self.qaids = ibs.sample_annots_general(**self.qcfg)
-        #print('self.qaids = %r' % (self.qaids,))
-        ibs.print_annot_stats(self.qaids, prefix='q')
+        with self.progress_context('Updating') as ctx:  # NOQA
+            print('update')
+            ibs = self.ibs
+            #import utool
+            #utool.embed()
+
+            ctx.set_progress(1, 4)
+            self.qaids = ibs.sample_annots_general(**self.qcfg)
+            ctx.set_progress(2, 4)
+            self.daids = ibs.sample_annots_general(**self.dcfg)
+            ctx.set_progress(3, 4)
+
+            #aid_stats_dict = ibs.get_annot_stats_dict(self.qaids, prefix=prefix)
+            statskw = dict(per_enc=False, per_vp=False, enc_per_name=False)
+            stats_dict, _ = ibs.get_annotconfig_stats(self.qaids, self.daids, **statskw)
+            stats_str = (ut.dict_str(stats_dict, strvals=True))
+            #print(stats_str)
+            self.qstats.setPlainText(stats_str)
+            ctx.set_progress(4, 4)
+            print('update is done')
+        self.acfg_needs_update = False
+
+    @property
+    def expanded_aids(self):
+        return (self.qaids, self.daids)
 
     def closeEvent(self, event):
         event.accept()
@@ -125,7 +398,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
     @classmethod
     def as_dialog(cls, back=None, **kwargs):
         dlg = QtGui.QDialog(back.front)
-        widget = cls(back, **kwargs)
+        widget = cls(back.ibs, **kwargs)
         dlg.widget = widget
         dlg.vlayout = QtGui.QVBoxLayout(dlg)
         dlg.vlayout.addWidget(widget)
@@ -275,74 +548,6 @@ class NewDatabaseWidget(guitool.GuitoolWidget):
         print('Cancel')
         ut.colorprint('Cancel', 'yellow')
         self.close()
-
-
-def backreport(func):
-    """
-    reports errors on backend functions
-    should be around every function by default
-    """
-    def backreport_wrapper(back, *args, **kwargs):
-        try:
-            result = func(back, *args, **kwargs)
-        except guiexcept.UserCancel as ex:
-            print('handling user cancel')
-            return None
-        except Exception as ex:
-            #error_msg = "Error caught while performing function. \n %r" % ex
-            error_msg = 'Error: %s' % (ex,)
-            import traceback  # NOQA
-            detailed_msg = traceback.format_exc()
-            guitool.msgbox(title="Error Catch!", msg=error_msg, detailed_msg=detailed_msg)
-            raise
-        return result
-    backreport_wrapper = ut.preserve_sig(backreport_wrapper, func)
-    return backreport_wrapper
-
-
-def backblock(func):
-    """ BLOCKING DECORATOR
-    TODO: This decorator has to be specific to either front or back. Is there a
-    way to make it more general?
-    """
-    @functools.wraps(func)
-    #@guitool.checks_qt_error
-    @backreport
-    def bacblock_wrapper(back, *args, **kwargs):
-        _wasBlocked_ = back.front.blockSignals(True)
-        try:
-            result = func(back, *args, **kwargs)
-        except Exception:
-            #error_msg = "Error caught while performing function. \n %r" % ex
-            #guitool.msgbox(title="Error Catch!", msg=error_msg)
-            raise
-        finally:
-            back.front.blockSignals(_wasBlocked_)
-        return result
-    bacblock_wrapper = ut.preserve_sig(bacblock_wrapper, func)
-    return bacblock_wrapper
-
-
-def blocking_slot(*types_):
-    """
-    A blocking slot accepts the types which are passed to QtCore.pyqtSlot.
-    In addition it also causes the gui frontend to block signals while
-    the decorated function is processing.
-    """
-    def wrap_bslot(func):
-        @slot_(*types_)
-        @backblock
-        @functools.wraps(func)
-        def wrapped_bslot(*args, **kwargs):
-            #printDBG('[back*] ' + ut.func_str(func))
-            #printDBG('[back*] ' + ut.func_str(func, args, kwargs))
-            result = func(*args, **kwargs)
-            sys.stdout.flush()
-            return result
-        #printDBG('blocking slot: %r, types=%r' % (wrapped_bslot.__name__, types_))
-        wrapped_bslot = ut.preserve_sig(wrapped_bslot, func)
-        return wrapped_bslot
-    return wrap_bslot
 
 
 #------------------------
@@ -1498,14 +1703,25 @@ class MainWindowBackend(GUIBACK_BASE):
         """
         #from ibeis.init import filter_annots
         #filter_kw = filter_annots.get_default_annot_filter_form()
-        wgt = CustomAnnotCfgSelector
-        dlg = wgt.as_dialog(back)
-        dlg.show()
-        dlg.exec_()
 
-        if True:
-            #reply not in options:
-            raise guiexcept.UserCancel
+        back.custom_query_widget = CustomAnnotCfgSelector(back)
+        back.custom_query_widget.show()
+        back.custom_query_widget.update()
+
+        #dlg = wgt.as_dialog(back)
+        #dlg.show()
+        #dlg.exec_()
+
+        #import utool
+        #utool.embed()
+        #wgt.qaids
+        #wgt.daids
+
+        #if not wgt.accept_flag:
+        #    #reply not in options:
+        #    raise guiexcept.UserCancel
+
+        #back.compute_queries(qaid_list=wgt.qaids, daid_list=back.daids)
 
     @blocking_slot()
     def compute_queries(back, refresh=True, daids_mode=None,

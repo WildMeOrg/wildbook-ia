@@ -565,6 +565,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ibswgt.batch_vsexemplar_query_button,
                 ibswgt.reviewed_button,
             ],
+            [
+                _NEWBUT(
+                    'SHOW SPECIAL GGR ID WIDGET',
+                    # ibswgt.back.special_query_funcs['intra_occurrence'],
+                    back.special_filter_annots,
+                    bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color),
+                    fgcolor=(0, 0, 0),
+                    # fontkw=advanced_fontkw
+                    fontkw=primary_fontkw
+                )
+            ]
             # [
             # _NEWLBL('Species Selector: ', align='right', fontkw=primary_fontkw),
             # ibswgt.species_combo,

@@ -364,6 +364,7 @@ class QueryResultsWidget(APIItemWidget):
                  name_scoring=False, qreq_=None, **kwargs):
 
         assert not isinstance(cm_list, dict)
+        assert qreq_ is not None, 'must specify qreq_'
 
         if ut.VERBOSE:
             print('[qres_wgt] Init QueryResultsWidget')

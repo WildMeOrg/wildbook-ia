@@ -63,7 +63,7 @@ INDEPENDENT_DEFAULTS_PARAMS = [
     ut.ParamInfo('reviewed', None, valid_values=[True, False, None]),
     ut.ParamInfo('minqual', None, valid_values=[None, 'junk', 'poor', 'ok',
                                                 'good', 'excellent']),
-    ut.ParamInfo('view', None),
+    #ut.ParamInfo('view', None),
 ]
 
 
