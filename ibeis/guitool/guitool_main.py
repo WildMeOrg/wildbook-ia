@@ -56,7 +56,7 @@ def ensure_qtapp():
         if not QUIET:
             print('[guitool] Init new QApplication')
         QAPP = GuitoolApplication(sys.argv)
-        #QAPP.setStyle('plastique')
+        QAPP.setStyle('plastique')
         #QAPP.setStyle('windows')
         #QAPP.setStyle('cleanlooks')
         #QAPP.setStyle('motif')

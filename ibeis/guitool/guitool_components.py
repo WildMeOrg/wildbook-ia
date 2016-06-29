@@ -42,16 +42,17 @@ def newSizePolicy(widget,
     return sizePolicy
 
 
-def newSplitter(widget, orientation=Qt.Horizontal, verticalStretch=1):
+def newSplitter(widget=None, orientation=Qt.Horizontal, verticalStretch=1):
     """
     input: widget - the central widget
     """
-    hsplitter = QtGui.QSplitter(orientation, widget)
-    # This line makes the hsplitter resize with the widget
-    sizePolicy = newSizePolicy(hsplitter, verticalStretch=verticalStretch)
-    hsplitter.setSizePolicy(sizePolicy)
-    setattr(hsplitter, '_guitool_sizepolicy', sizePolicy)
-    return hsplitter
+    splitter = QtGui.QSplitter(orientation, widget)
+    _inject_new_widget_methods(splitter)
+    # This line makes the splitter resize with the widget
+    sizePolicy = newSizePolicy(splitter, verticalStretch=verticalStretch)
+    splitter.setSizePolicy(sizePolicy)
+    setattr(splitter, '_guitool_sizepolicy', sizePolicy)
+    return splitter
 
 
 def newTabWidget(parent, horizontalStretch=1):
@@ -139,6 +140,11 @@ class ProgressHooks(QtCore.QObject):
         use signals and slots to connect to the progress bar
         still doesn't work correctly even with signals and slots, probably
           need to do task function in another thread
+
+        if False:
+            for x in ut.ProgIter(ut.expensive_task_gen(40000), nTotal=40000,
+                                 prog_hook=ctx.prog_hook):
+                pass
 
     References:
         http://stackoverflow.com/questions/19442443/busy-indication-with-pyqt-progress-bar
@@ -610,6 +616,35 @@ def newFrame(*args):
     return QtGui.QFrame()
 
 
+def _inject_new_widget_methods(self):
+    """ helper for guitool widgets """
+    import guitool as gt
+    # Black magic
+    guitype_list = ['Widget', 'Button', 'LineEdit', 'ComboBox', 'Label',
+                    'Spoiler', 'Frame', 'Splitter']
+    # Creates addNewWidget and newWidget
+    for guitype in guitype_list:
+        if hasattr(gt, 'new' + guitype):
+            newfunc = getattr(gt, 'new' + guitype)
+            ut.inject_func_as_method(self, newfunc, 'new' + guitype)
+        else:
+            newfunc = getattr(gt, guitype)
+        addnew_func = _addnew_factory(self, newfunc)
+        ut.inject_func_as_method(self, addnew_func, 'addNew' + guitype)
+    # Above code is the same as saying
+    #     self.newButton = ut.partial(newButton, self)
+    #     self.newWidget = ut.partial(newWidget, self)
+    #     ... etc
+
+
+def _addnew_factory(self, newfunc):
+    """ helper for guitool widgets """
+    def _addnew(self, *args, **kwargs):
+        new_widget = newfunc(self, *args, **kwargs)
+        return self.addWidget(new_widget)
+    return _addnew
+
+
 #class GuitoolWidget(QtGui.QWidget):
 class GuitoolWidget(WIDGET_BASE):
     """
@@ -637,24 +672,6 @@ class GuitoolWidget(WIDGET_BASE):
     """
     closed = QtCore.pyqtSignal()
 
-    def _inject_new_widget_methods(self):
-        import guitool as gt
-        # Black magic
-        guitype_list = ['Widget', 'Button', 'LineEdit', 'ComboBox', 'Label', 'Spoiler', 'Frame']
-        # Creates addNewWidget and newWidget
-        for guitype in guitype_list:
-            if hasattr(gt, 'new' + guitype):
-                newfunc = getattr(gt, 'new' + guitype)
-                ut.inject_func_as_method(self, newfunc, 'new' + guitype)
-            else:
-                newfunc = getattr(gt, guitype)
-            addnew_func = self._addnew_factory(newfunc)
-            ut.inject_func_as_method(self, addnew_func, 'addNew' + guitype)
-        # Above code is the same as saying
-        #     self.newButton = ut.partial(newButton, self)
-        #     self.newWidget = ut.partial(newWidget, self)
-        #     ... etc
-
     def __init__(self, parent=None, orientation=Qt.Vertical,
                  verticalSizePolicy=QSizePolicy.Expanding,
                  horizontalSizePolicy=QSizePolicy.Expanding,
@@ -677,7 +694,7 @@ class GuitoolWidget(WIDGET_BASE):
         #layout.setAlignment(Qt.AlignBottom)
         #self.addWidget = self._guitool_layout.addWidget
         #self.addLayout = self._guitool_layout.addLayout
-        self._inject_new_widget_methods()
+        _inject_new_widget_methods(self)
         self.initialize(**kwargs)
 
         if DEBUG_WIDGET:
@@ -724,12 +741,6 @@ class GuitoolWidget(WIDGET_BASE):
     #def addNewWidget(self, *args, **kwargs):
     #    new_widget = self.newWidget(*args, **kwargs)
     #    return self.addWidget(new_widget)
-
-    def _addnew_factory(self, newfunc):
-        def _addnew(self, *args, **kwargs):
-            new_widget = newfunc(self, *args, **kwargs)
-            return self.addWidget(new_widget)
-        return _addnew
 
     def closeEvent(self, event):
         event.accept()

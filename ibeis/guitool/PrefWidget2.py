@@ -14,7 +14,6 @@ from guitool.__PYQT__ import QVariantHack
 from guitool.__PYQT__.QtCore import Qt, QAbstractItemModel, QModelIndex, QObject
 from guitool.__PYQT__.QtGui import QWidget
 from guitool.__PYQT__ import _fromUtf8, _encoding, _translate  # NOQA
-from guitool import qtype
 import utool as ut
 ut.noinject(__name__, '[PrefWidget2]', DEBUG=False)
 
@@ -42,9 +41,87 @@ def qindexstr(index):
     return 'QIndex(%r, %r)' % (index.row(), index.column())
 
 
-#class ConfigValueDelegate(QtGui.QItemDelegate):
-class ConfigValueDelegate(QtGui.QStyledItemDelegate):
+"""
+Notes:
+    Combo Junmk
+    # fill style options with item data
+    #style = QtCore.QCoreApplication.instance().style()
+    #opt.rect.setWidth(400)
+    #print('opt.rect = %r' % (opt.rect,))
+    #style.State style.StateFlag style.State_NoChange style.State_Sibling
+    #style.State_Active style.State_FocusAtBorder style.State_None
+    #style.State_Small style.State_AutoRaise style.State_HasFocus
+    #style.State_Off style.State_Sunken style.State_Bottom
+    #style.State_Horizontal style.State_On style.State_Top
+    #style.State_Children style.State_Item style.State_Open
+    #style.State_UpArrow style.State_DownArrow
+    #style.State_KeyboardFocusChange style.State_Raised style.State_Window
+    #style.State_Editing style.State_Mini style.State_ReadOnly
+    #style.State_Enabled style.State_MouseOver style.State_Selected
 
+    #opt.state |= style.State_Raised
+    #opt.state |= style.State_UpArrow
+    #opt.state |= style.State_AutoRaise
+    #opt.state |= style.State_Active
+    #opt.state |= style.State_Editing
+    #opt.state |= style.State_Enabled
+    #opt.state |= style.State_On
+    #opt.state |= style.State_Open
+    #opt.state |= style.State_HasFocus
+    #opt.state |= style.State_FocusAtBorder
+    #opt.state |= style.State_Selected
+
+    #painter.drawText(option.rect, Qt.AlignLeft, "FOOBAR")
+    #print('opt.state = %r' % (opt.state,))
+
+    #else:
+        #opt.state = style.State_Enabled | style.State_Active
+
+    #self.initStyleOption(opt)
+
+    #'currentIcon': <PyQt4.QtGui.QIcon object at 0x7fb19681b8a0>,
+    #'currentText': '',
+    #'direction': 0,
+    #'editable': False,
+    #'frame': True,
+    #'iconSize': PyQt4.QtCore.QSize(-1, -1),
+    #'palette': <PyQt4.QtGui.QPalette object at 0x7fb1959666e0>,
+    #'popupRect': PyQt4.QtCore.QRect(),
+    #'rect': PyQt4.QtCore.QRect(),
+    #'state': <PyQt4.QtGui.State object at 0x7fb195966848>,
+    #'activeSubControls': <PyQt4.QtGui.SubControls object at 0x7fb195966578>,
+    #'subControls': <PyQt4.QtGui.SubControls object at 0x7fb1959668c0>,
+
+    #opt.subControls = QtGui.QStyle.SC_All
+    #print('QtGui.QStyle.SC_All = %r' % (QtGui.QStyle.SC_All,))
+    #print('opt.subControls = %r' % (opt.subControls,))
+
+    # draw item data as ComboBox
+    #element = QtGui.QStyle.CE_ItemViewItem
+    #QtGui.QStyle.SC_ComboBoxArrow
+    #QtGui.QStyle.SC_ComboBoxEditField
+    #QtGui.QStyle.SC_ComboBoxFrame
+    #QtGui.QStyle.SC_ComboBoxListBoxPopup
+
+    #style.drawPrimitive(QtGui.QStyle.PE_PanelButtonBevel, opt, painter)
+    # Do I need to draw sub controls?
+
+    #painter.save()
+    #painter.restore()
+
+    #self.drawDisplay(painter, opt, opt.rect, opt.currentText)
+    #self.drawFocus(painter, opt, opt.rect)
+    #QtGui.QItemDelegate
+    #painter.restore()
+    #return super(ConfigValueDelegate, self).paint(painter, option, index)
+"""
+
+#DELEGATE_BASE = QtGui.QStyledItemDelegate
+#DELEGATE_BASE = QtGui.QAbstractItemDelegate
+DELEGATE_BASE = QtGui.QItemDelegate
+
+
+class ConfigValueDelegate(DELEGATE_BASE):
     """
     A delegate that decides what the editor should be for each row in a
     specific column
@@ -78,90 +155,22 @@ class ConfigValueDelegate(QtGui.QStyledItemDelegate):
             #print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
             #painter.save()
             curent_value = six.text_type(index.model().data(index))
-            # fill style options with item data
-            app = QtCore.QCoreApplication.instance()
-            #print('app = %r' % (app,))
-            #print('style = %r' % (style,))
-            style = app.style()
-            #style = QtGui.QApplication.style()
+            style = QtGui.QApplication.style()
             opt = QtGui.QStyleOptionComboBox()
             opt.currentText = curent_value
             opt.rect = option.rect
-            #opt.rect.setWidth(400)
-            #print('opt.rect = %r' % (opt.rect,))
             opt.editable = False
-
-            #style.State style.StateFlag style.State_NoChange style.State_Sibling
-            #style.State_Active style.State_FocusAtBorder style.State_None
-            #style.State_Small style.State_AutoRaise style.State_HasFocus
-            #style.State_Off style.State_Sunken style.State_Bottom
-            #style.State_Horizontal style.State_On style.State_Top
-            #style.State_Children style.State_Item style.State_Open
-            #style.State_UpArrow style.State_DownArrow
-            #style.State_KeyboardFocusChange style.State_Raised style.State_Window
-            #style.State_Editing style.State_Mini style.State_ReadOnly
-            #style.State_Enabled style.State_MouseOver style.State_Selected
-
-            #opt.state |= style.State_Raised
-            #opt.state |= style.State_UpArrow
-            #opt.state |= style.State_AutoRaise
-            #opt.state |= style.State_Active
-            #opt.state |= style.State_Editing
-            #opt.state |= style.State_Enabled
-            #opt.state |= style.State_On
-            #opt.state |= style.State_Open
-            #opt.state |= style.State_HasFocus
-            #opt.state |= style.State_FocusAtBorder
-            #opt.state |= style.State_Selected
-
-            #painter.drawText(option.rect, Qt.AlignLeft, "FOOBAR")
-            #print('opt.state = %r' % (opt.state,))
 
             if leafNode.qt_is_editable():
                 opt.state |= style.State_On
                 opt.state |= style.State_Enabled
                 opt.state = style.State_Enabled | style.State_Active
-            #else:
-                #opt.state = style.State_Enabled | style.State_Active
 
-            #self.initStyleOption(opt)
-
-            #'currentIcon': <PyQt4.QtGui.QIcon object at 0x7fb19681b8a0>,
-            #'currentText': '',
-            #'direction': 0,
-            #'editable': False,
-            #'frame': True,
-            #'iconSize': PyQt4.QtCore.QSize(-1, -1),
-            #'palette': <PyQt4.QtGui.QPalette object at 0x7fb1959666e0>,
-            #'popupRect': PyQt4.QtCore.QRect(),
-            #'rect': PyQt4.QtCore.QRect(),
-            #'state': <PyQt4.QtGui.State object at 0x7fb195966848>,
-            #'activeSubControls': <PyQt4.QtGui.SubControls object at 0x7fb195966578>,
-            #'subControls': <PyQt4.QtGui.SubControls object at 0x7fb1959668c0>,
-
-            opt.subControls = QtGui.QStyle.SC_All
-            #print('QtGui.QStyle.SC_All = %r' % (QtGui.QStyle.SC_All,))
-            #print('opt.subControls = %r' % (opt.subControls,))
-
-            # draw item data as ComboBox
-            #element = QtGui.QStyle.CE_ItemViewItem
             element = QtGui.QStyle.CE_ComboBoxLabel
             control = QtGui.QStyle.CC_ComboBox
 
-            #QtGui.QStyle.SC_ComboBoxArrow
-            #QtGui.QStyle.SC_ComboBoxEditField
-            #QtGui.QStyle.SC_ComboBoxFrame
-            #QtGui.QStyle.SC_ComboBoxListBoxPopup
-
-            #style.drawPrimitive(QtGui.QStyle.PE_PanelButtonBevel, opt, painter)
-            # Do I need to draw sub controls?
             style.drawComplexControl(control, opt, painter)
             style.drawControl(element, opt, painter)
-            #self.drawDisplay(painter, opt, opt.rect, opt.currentText)
-            #self.drawFocus(painter, opt, opt.rect)
-            #QtGui.QItemDelegate
-            #painter.restore()
-            #return super(ConfigValueDelegate, self).paint(painter, option, index)
         elif False and (leafNode is not None and leafNode.type_ is int):
             curent_value = six.text_type(index.model().data(index))
             # fill style options with item data
@@ -183,7 +192,8 @@ class ConfigValueDelegate(QtGui.QStyledItemDelegate):
     #def sizeHint(self, option, index):
     #    size_hint = super(ConfigValueDelegate, self).sizeHint(option, index)
     #    print('size_hint = %r' % (size_hint,))
-    #    size_hint = QtCore.QSize(50, 21)
+    #    #size_hint = QtCore.QSize(50, 21)
+    #    size_hint = QtCore.QSize(40, 30)
     #    print('size_hint = %r' % (size_hint,))
     #    return size_hint
 
@@ -318,16 +328,18 @@ class QConfigModel(QAbstractItemModel):
             return QVariantHack()
         # Specify CheckState Role:
         flags = self.flags(qtindex)
-        if role == Qt.CheckStateRole:
-            if flags & Qt.ItemIsUserCheckable:
-                data = self.index2Pref(qtindex).qt_get_data(qtindex.column())
-                return Qt.Checked if data else Qt.Unchecked
+        if role == Qt.CheckStateRole and flags & Qt.ItemIsUserCheckable:
+            data = self.index2Pref(qtindex).qt_get_data(qtindex.column())
+            return Qt.Checked if data else Qt.Unchecked
+        #elif role == QtCore.Qt.SizeHintRole:
+        #    #return QtCore.QSize(40, 30)
+        #    return QVariantHack()
         if role != Qt.DisplayRole and role != Qt.EditRole:
             return QVariantHack()
         nodePref = self.index2Pref(qtindex)
         data = nodePref.qt_get_data(qtindex.column())
         if isinstance(data, float):
-            var = qtype.locale_float(data, 6)
+            var = QtCore.QLocale().toString(float(data), format='g', precision=6)
         else:
             var = data
         return str(var)
@@ -624,6 +636,8 @@ class EditConfigWidget(QWidget):
     """
     Widget to edit a dtool.Config object
     """
+    data_changed = QtCore.pyqtSignal()
+
     def __init__(self, rootNode, user_mode=False):
         super(EditConfigWidget, self).__init__()
         self.user_mode = user_mode
@@ -707,6 +721,11 @@ class EditConfigWidget(QWidget):
             for row in range(model.rowCount()):
                 index  = model.index(row, column)
                 view.openPersistentEditor(index)
+
+        self.config_model.dataChanged.connect(self._on_change)
+
+    def _on_change(self, top_left, bottom_right):
+        self.data_changed.emit()
 
     def default_config(self):
         print('Defaulting')
