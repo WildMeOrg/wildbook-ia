@@ -37,6 +37,10 @@ INDEPENDENT_DEFAULTS_PARAM_INFO = [
     ut.ParamInfo('minqual', None, valid_values=[None, 'junk', 'poor', 'ok',
                                                 'good', 'excellent']),
     ut.ParamInfo('multiple', None, valid_values=[True, False, None]),
+    ut.ParamInfo('species', None),
+    ut.ParamInfo('view', None),  # TODO: allow for lists
+    ut.ParamInfo('require_quality', None, valid_values=[True, False, None]),
+    ut.ParamInfo('require_viewpoint', None, valid_values=[True, False, None]),
     #ut.ParamInfo('view', None),
 ]
 
@@ -44,18 +48,18 @@ INDEPENDENT_DEFAULTS_PARAM_INFO = [
 # THese filters are orderless
 INDEPENDENT_DEFAULTS = {
     #'species'             : 'primary',  # specify the species
-    'species'             : None,
+    #'species'             : None,
     # Timedelta Params
     'require_timestamp'   : None,
     'contrib_contains'    : None,
     # Quality Params
-    'require_quality'     : None,  # if True unknown qualities are removed
+    #'require_quality'     : None,  # if True unknown qualities are removed
     #'minqual'             : 'poor',
     'minqual'             : None,
     'been_adjusted'       : None,  # HACK PARAM
     # Viewpoint params
-    'require_viewpoint'   : None,
-    'view'                : None,
+    #'require_viewpoint'   : None,
+    #'view'                : None,
     'view_ext'            : 0,      # num viewpoints to extend in dir1 and dir2
     'view_ext1'           : None,   # num viewpoints to extend in dir1
     'view_ext2'           : None,   # num viewpoints to extend in dir2

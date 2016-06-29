@@ -2490,7 +2490,7 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0,
     Given a viewpoint returns the acceptable viewpoints around it
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> yaw_text_list = ['left', 'right', 'back', 'front']
         >>> towards = 'front'
@@ -2499,8 +2499,9 @@ def get_extended_viewpoints(base_yaw_text, towards='front', num1=0,
         >>> include_base = False
         >>> extended_yaws_list = [get_extended_viewpoints(base_yaw_text, towards, num1, num2, include_base)
         >>>                       for base_yaw_text in yaw_text_list]
-        >>> result = ('extended_yaws_list = %s' % (ut.list_str(extended_yaws_list),))
+        >>> result = ('extended_yaws_list = %s' % (ut.repr2(extended_yaws_list),))
         >>> print(result)
+        extended_yaws_list = [['frontleft'], ['frontright'], ['backleft'], ['frontleft']]
     """
     import vtool as vt
     ori1 = const.VIEWTEXT_TO_YAW_RADIANS[base_yaw_text]
@@ -3752,12 +3753,14 @@ def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True):
         >>> result = ('yaw_flags = %s' % (str(yaw_flags),))
         >>> print(result)
     """
-    assert isinstance(valid_yaws, (set, list, tuple)), 'valid_yaws is not a container'
+    assert valid_yaws is None or isinstance(valid_yaws, (set, list, tuple)), 'valid_yaws is not a container'
     yaw_list = ibs.get_annot_yaw_texts(aid_list)
     if unknown_ok:
-        yaw_flags  = (yaw is None or yaw in valid_yaws for yaw in yaw_list)
+        yaw_flags  = (yaw is None or (valid_yaws is None or yaw in valid_yaws)
+                      for yaw in yaw_list)
     else:
-        yaw_flags  = (yaw is not None and yaw in valid_yaws for yaw in yaw_list)
+        yaw_flags  = (yaw is not None and (valid_yaws is None or yaw in valid_yaws)
+                      for yaw in yaw_list)
     yaw_flags = list(yaw_flags)
     return yaw_flags
 
@@ -5076,7 +5079,21 @@ def print_annotconfig_stats(ibs, qaids, daids, **kwargs):
 
 
 @register_ibs_method
-def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwargs):
+def parse_annot_config_stats_filter_kws(ibs):
+    #kwkeys = ibs.parse_annot_stats_filter_kws() + ['combined', 'combo_gt_info', 'combo_enc_info', 'combo_dists']
+    kwkeys1 = ibs.parse_annot_stats_filter_kws()
+    kwkeys2 = list(ut.get_func_kwargs(ibs.get_annotconfig_stats).keys())
+    if 'verbose' in kwkeys2:
+        kwkeys2.remove('verbose')
+    kwkeys = ut.unique(kwkeys1 + kwkeys2)
+    return kwkeys
+
+
+@register_ibs_method
+def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
+                          combo_gt_info=True, combo_enc_info=True,
+                          combo_dists=True,
+                          **kwargs):
     r"""
     Gets statistics about a query / database set of annotations
 
@@ -5217,29 +5234,39 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False, **kwa
                                                            **kwargs)),
             ]
 
-        annotconfig_stats_strs_list1 += [
-            ('num_unmatchable_queries', len(unmatchable_queries)),
-            ('num_matchable_queries', len(matchable_queries)),
-            #('num_qnids', (len(qnids))),
-            #('num_dnids', (len(dnids))),
-            ('num_enc_intersect', (len(enc_intersect))),
-            ('num_name_intersect', (len(common_nids))),
-        ]
+        if combo_gt_info:
+            annotconfig_stats_strs_list1 += [
+                ('num_unmatchable_queries', len(unmatchable_queries)),
+                ('num_matchable_queries', len(matchable_queries)),
+            ]
 
-        annotconfig_stats_strs_list2 += [
-            # Number of aids per name for everything in the database
-            #('per_name_', _stat_str(all_daid_per_name_stats)),
-            # Number of aids in each name that should match to a query
-            # (not quite sure how to phrase what this is)
-            ('per_name_genuine', _stat_str(genuine_daid_per_name_stats)),
-            # Number of aids in each name that should not match to any query
-            # (not quite sure how to phrase what this is)
-            ('per_name_imposter', _stat_str(imposter_daid_per_name_stats)),
-            # Distances between a query and its groundtruth
-            ('viewdist', _stat_str(gt_viewdist_stats)),
-            #('qualdist', _stat_str(gt_qualdist_stats)),
-            ('hourdist', _stat_str(gt_hourdelta_stats, precision=4)),
-        ]
+        if combo_enc_info:
+            annotconfig_stats_strs_list1 += [
+                #('num_qnids', (len(qnids))),
+                #('num_dnids', (len(dnids))),
+                ('num_enc_intersect', (len(enc_intersect))),
+                ('num_name_intersect', (len(common_nids))),
+            ]
+
+        if combo_gt_info:
+            annotconfig_stats_strs_list2 += [
+                # Number of aids per name for everything in the database
+                #('per_name_', _stat_str(all_daid_per_name_stats)),
+                # Number of aids in each name that should match to a query
+                # (not quite sure how to phrase what this is)
+                ('per_name_genuine', _stat_str(genuine_daid_per_name_stats)),
+                # Number of aids in each name that should not match to any query
+                # (not quite sure how to phrase what this is)
+                ('per_name_imposter', _stat_str(imposter_daid_per_name_stats)),
+            ]
+
+        if combo_dists:
+            annotconfig_stats_strs_list2 += [
+                # Distances between a query and its groundtruth
+                ('viewdist', _stat_str(gt_viewdist_stats)),
+                #('qualdist', _stat_str(gt_qualdist_stats)),
+                ('hourdist', _stat_str(gt_hourdelta_stats, precision=4)),
+            ]
 
         annotconfig_stats_strs1 = ut.odict(annotconfig_stats_strs_list1)
         annotconfig_stats_strs2 = ut.odict(annotconfig_stats_strs_list2)

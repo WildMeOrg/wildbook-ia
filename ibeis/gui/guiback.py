@@ -160,6 +160,9 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             _param_info_list = [
                 ut.ParamInfo('K', ibs.cfg.query_cfg.nn_cfg.K),
                 ut.ParamInfo('Knorm', ibs.cfg.query_cfg.nn_cfg.Knorm),
+                #ibs.cfg.query_cfg.nn_cfg.lookup_paraminfo('Knorm'),
+                ibs.cfg.query_cfg.nnweight_cfg.lookup_paraminfo('normalizer_rule'),
+                #ut.ParamInfo('normalizer_rule', ibs.cfg.query_cfg.nnweight_cfg.normalizer_rule),
                 #ut.ParamInfo('AI', True),
             ]
 
@@ -172,34 +175,41 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             'ranks_lt': 2,
         })
         self.info_cfg = dtool.Config.from_dict({
-            key: False for key in ibs.parse_annot_stats_filter_kws()
+            key: False for key in ibs.parse_annot_config_stats_filter_kws()
         })
 
+        self.info_cfg['species_hist'] = True
+        self.info_cfg['per_vp'] = True
+        self.info_cfg['per_qual'] = True
+
         for cfg in [self.qcfg, self.dcfg]:
-            cfg['minqual'] = 'ok'
+            cfg['minqual'] = 'good'
             cfg['reviewed'] = True
             cfg['multiple'] = False
+            cfg['require_viewpoint'] = True
 
         self.setWindowTitle('Custom Annot Selector')
 
         cfg_size_policy = (QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
 
+        user_mode = True
+
         from guitool import PrefWidget2
-        self.editQueryConfig = PrefWidget2.newConfigWidget(self.qcfg, user_mode=False)
+        self.editQueryConfig = PrefWidget2.newConfigWidget(self.qcfg, user_mode=user_mode)
         self.editQueryConfig.setSizePolicy(*cfg_size_policy)
         self.editQueryConfig.data_changed.connect(self.on_acfg_changed)
 
-        self.editDataConfig = PrefWidget2.newConfigWidget(self.dcfg, user_mode=False)
+        self.editDataConfig = PrefWidget2.newConfigWidget(self.dcfg, user_mode=user_mode)
         self.editDataConfig.setSizePolicy(*cfg_size_policy)
         self.editDataConfig.data_changed.connect(self.on_acfg_changed)
 
-        self.editPipeConfig = PrefWidget2.newConfigWidget(self.pcfg, user_mode=False)
+        self.editPipeConfig = PrefWidget2.newConfigWidget(self.pcfg, user_mode=user_mode)
         self.editPipeConfig.setSizePolicy(*cfg_size_policy)
 
-        self.editReviewConfig = PrefWidget2.newConfigWidget(self.review_cfg, user_mode=False)
+        self.editReviewConfig = PrefWidget2.newConfigWidget(self.review_cfg, user_mode=user_mode)
         self.editReviewConfig.setSizePolicy(*cfg_size_policy)
 
-        self.editInfoConfig = PrefWidget2.newConfigWidget(self.info_cfg, user_mode=False)
+        self.editInfoConfig = PrefWidget2.newConfigWidget(self.info_cfg, user_mode=user_mode)
         self.editInfoConfig.setSizePolicy(*cfg_size_policy)
 
         #main_layout = QtGui.QGridLayout()
@@ -340,6 +350,8 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         ])
 
         if test:
+            del query_info['expanded_aids']
+            del query_info['qparams']
             print('expt_long_fpath = %r' % (expt_long_fpath,))
             print('expt_short_fpath = %r' % (expt_short_fpath,))
             print('query_info = %s' % (ut.to_json(query_info, pretty=1),))

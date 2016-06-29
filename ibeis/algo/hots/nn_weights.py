@@ -215,16 +215,18 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
     Returns:
         list: weights_list
 
+    CommandLine:
+        python -m ibeis.algo.hots.nn_weights nn_normalized_weight --show
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> from ibeis.algo.hots import nn_weights
         >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> normweight_fn = lnbnn_fn
-        >>> weights_list1, normk_list1 = nn_weights.nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
+        >>> weights_list1, normk_list1 = nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
         >>> weights1 = weights_list1[0]
-        >>> nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT['lnbnn']
+        >>> nn_normonly_weight = NN_WEIGHT_FUNC_DICT['lnbnn']
         >>> weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
@@ -233,13 +235,12 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> from ibeis.algo.hots import nn_weights
         >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> normweight_fn = ratio_fn
-        >>> weights_list1, normk_list1 = nn_weights.nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
+        >>> weights_list1, normk_list1 = nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
         >>> weights1 = weights_list1[0]
-        >>> nn_normonly_weight = nn_weights.NN_WEIGHT_FUNC_DICT['ratio']
+        >>> nn_normonly_weight = NN_WEIGHT_FUNC_DICT['ratio']
         >>> weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
@@ -264,6 +265,21 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
 def get_normk(qreq_, qaid, qfx2_idx, Knorm, normalizer_rule):
     """
     Get positions of the LNBNN/ratio tests normalizers
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+        >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name', 'dim_size': 450, 'resize_dim': 'area'}
+        >>> tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
+        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> (qfx2_idx, qfx2_dist) = nns_list[0]
+        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> K = qreq_.qparams.K
+        >>> Knorm = qreq_.qparams.Knorm
+        >>> qfx2_normk1 = get_normk(qreq_, qaid, qfx2_idx, Knorm, 'last')
+        >>> qfx2_normk2 = get_normk(qreq_, qaid, qfx2_idx, Knorm, 'name')
+        >>> assert np.all(qfx2_normk1 == Knorm + K)
+        >>> assert np.all(qfx2_normk2 <= Knorm + K) and np.all(qfx2_normk2 > K)
     """
     K = len(qfx2_idx.T) - Knorm
     assert K > 0, 'K=%r cannot be 0' % (K,)

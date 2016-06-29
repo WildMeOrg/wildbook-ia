@@ -150,6 +150,13 @@ def make_config_metaclass():
     def get_cfgstr(cfg, **kwargs):
         return ''.join(cfg.get_cfgstr_list(**kwargs))
 
+    @_register
+    def lookup_paraminfo(cfg, key):
+        for pi in cfg.get_param_info_list():
+            if pi.varname == key:
+                return pi
+        raise KeyError('no such param info (in the old config)')
+
     class ConfigMetaclass(type):
         """
         Defines extra methods for Configs

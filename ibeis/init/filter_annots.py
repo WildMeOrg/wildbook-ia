@@ -890,20 +890,64 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
             view = ibsfuncs.get_primary_species_viewpoint(metadata['species'], 1)
         else:
             view = aidcfg['view']
-        view_ext1 = (aidcfg['view_ext']
-                     if aidcfg['view_ext1'] is None else
-                     aidcfg['view_ext1'])
-        view_ext2 = (aidcfg['view_ext']
-                     if aidcfg['view_ext2'] is None else
-                     aidcfg['view_ext2'])
-        valid_yaws = ibsfuncs.get_extended_viewpoints(
-            view, num1=view_ext1, num2=view_ext2)
-        unknown_ok = not aidcfg['require_viewpoint']
-        with VerbosityContext('view', 'require_viewpoint', 'view_ext',
-                              'view_ext1', 'view_ext2', valid_yaws=valid_yaws):
-            avail_aids = ibs.filter_aids_to_viewpoint(
-                avail_aids, valid_yaws, unknown_ok=unknown_ok)
-        avail_aids = sorted(avail_aids)
+        if isinstance(view, six.string_types) and view.lower() == 'none':
+            view = None
+        OLD = False
+        if OLD:
+            view_ext1 = (aidcfg['view_ext']
+                         if aidcfg['view_ext1'] is None else
+                         aidcfg['view_ext1'])
+            view_ext2 = (aidcfg['view_ext']
+                         if aidcfg['view_ext2'] is None else
+                         aidcfg['view_ext2'])
+            valid_yaws = ibsfuncs.get_extended_viewpoints(
+                view, num1=view_ext1, num2=view_ext2)
+            unknown_ok = not aidcfg['require_viewpoint']
+            with VerbosityContext('view', 'require_viewpoint', 'view_ext',
+                                  'view_ext1', 'view_ext2', valid_yaws=valid_yaws):
+                avail_aids = ibs.filter_aids_to_viewpoint(
+                    avail_aids, valid_yaws, unknown_ok=unknown_ok)
+            avail_aids = sorted(avail_aids)
+        else:
+            def rectify_view(vstr):
+                # FIXME: I stopped implementing the += stuff
+                vstr_num = vstr.lower()
+                num = 0
+                if not vstr_num.endswith('1'):
+                    vstr = vstr_num
+                else:
+                    if '+' in vstr:
+                        vstr, numstr = vstr_num.split('+')
+                        num = int(numstr)
+                    if '-' in vstr:
+                        vstr, numstr = vstr_num.split('+')
+                        num = -int(numstr)
+                assert num == 0, 'cant do += yet'
+                if vstr == 'primary':
+                    return ibsfuncs.get_primary_species_viewpoint(metadata['species'])
+                for yawtxt, other_yawtxt in ibs.const.YAWALIAS.items():
+                    other_yawtxt = ut.ensure_iterable(other_yawtxt)
+                    if vstr == yawtxt.lower():
+                        return yawtxt
+                    for x in other_yawtxt:
+                        if vstr == x.lower():
+                            return yawtxt
+                raise ValueError('unknown viewpoint vstr=%r' % (vstr,))
+
+            if view is None:
+                valid_yaw_txts = None
+            else:
+                valid_yaw_txts = [
+                    rectify_view(vstr)
+                    for vstr in ut.smart_cast(view, list)
+                ]
+            unknown_ok = not aidcfg['require_viewpoint']
+            yaw_flags = ibs.get_viewpoint_filterflags(
+                avail_aids, valid_yaw_txts, unknown_ok=unknown_ok)
+            yaw_flags = list(yaw_flags)
+            with VerbosityContext('view', 'require_viewpoint', 'view_ext',
+                                  'view_ext1', 'view_ext2', valid_yaws=valid_yaw_txts):
+                avail_aids = ut.compress(avail_aids, yaw_flags)
 
     if aidcfg.get('exclude_view') is not None:
         raise NotImplementedError('view tag resolution of exclude_view')
