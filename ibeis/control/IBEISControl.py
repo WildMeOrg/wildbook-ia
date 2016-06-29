@@ -267,7 +267,10 @@ class IBEISController(BASE_CLASS):
         #ibs.allow_override = 'override+warn'
         ibs.allow_override = True
         if force_serial is None:
-            force_serial = not ut.in_main_process()
+            if ut.get_argflag(('--utool-force-serial', '--force-serial', '--serial')):
+                force_serial = True
+            else:
+                force_serial = not ut.in_main_process()
         ibs.force_serial = force_serial
         # observer_weakref_list keeps track of the guibacks connected to this
         # controller
