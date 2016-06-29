@@ -172,7 +172,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.pcfg = TmpPipelineConfig()
         self.review_cfg = dtool.Config.from_dict({
             'filter_reviewed': True,
-            'ranks_lt': 2,
+            'ranks_lt': 1,
         })
         self.info_cfg = dtool.Config.from_dict({
             key: False for key in ibs.parse_annot_config_stats_filter_kws()
@@ -187,6 +187,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             cfg['reviewed'] = True
             cfg['multiple'] = False
             cfg['require_viewpoint'] = True
+            cfg['view'] = 'right,frontright,backright'
 
         self.setWindowTitle('Custom Annot Selector')
 
