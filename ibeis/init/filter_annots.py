@@ -824,6 +824,13 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
             avail_aids = ut.compress(avail_aids, is_valid)
         avail_aids = sorted(avail_aids)
 
+    if aidcfg.get('multiple') is not None:
+        flags = ibs.get_annot_multiple(avail_aids)
+        is_valid = [flag == aidcfg['multiple'] for flag in flags]
+        with VerbosityContext('multiple'):
+            avail_aids = ut.compress(avail_aids, is_valid)
+        avail_aids = sorted(avail_aids)
+
     if aidcfg.get('require_timestamp') is True:
         with VerbosityContext('require_timestamp'):
             avail_aids = ibs.filter_aids_without_timestamps(avail_aids)

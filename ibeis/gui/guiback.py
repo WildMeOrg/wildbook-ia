@@ -175,6 +175,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         for cfg in [self.qcfg, self.dcfg]:
             cfg['minqual'] = 'ok'
             cfg['reviewed'] = True
+            cfg['multiple'] = False
 
         self.setWindowTitle('Custom Annot Selector')
 
@@ -333,6 +334,8 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             print('expt_long_fpath = %r' % (expt_long_fpath,))
             print('expt_short_fpath = %r' % (expt_short_fpath,))
             print('query_info = %s' % (ut.to_json(query_info, pretty=1),))
+            import utool
+            utool.embed()
 
         else:
             ut.save_json(expt_long_fpath, query_info)
