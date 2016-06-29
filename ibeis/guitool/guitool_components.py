@@ -718,6 +718,9 @@ class GuitoolWidget(WIDGET_BASE):
     def newHWidget(self, **kwargs):
         return self.addNewWidget(orientation=Qt.Horizontal, **kwargs)
 
+    def newVWidget(self, **kwargs):
+        return self.addNewWidget(orientation=Qt.Vertical, **kwargs)
+
     #def addNewWidget(self, *args, **kwargs):
     #    new_widget = self.newWidget(*args, **kwargs)
     #    return self.addWidget(new_widget)
