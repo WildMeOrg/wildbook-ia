@@ -303,9 +303,9 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         dbdir = self.ibs.get_dbdir()
         expt_dir = ut.ensuredir(ut.unixjoin(dbdir, 'SPECIAL_GGR_EXPT_LOGS'))
         ut.vd(expt_dir)
+        ibs = self.ibs
 
         if qreq_ is None and test:
-            ibs = self.ibs
             qreq_ = ibs.new_query_request(self.qaids, self.daids,
                                           cfgdict=self.pcfg)
 

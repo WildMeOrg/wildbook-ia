@@ -653,6 +653,8 @@ def ingest_testdb1(dbname):
         ibs.set_annot_notes(aid_list[0:1], ['aid 1 and 2 are correct matches'])
         ibs.set_annot_notes(aid_list[6:7], ['very simple image to debug feature detector'])
         ibs.set_annot_notes(aid_list[7:8], ['standard test image'])
+        ibs.set_annot_reviewed(aid_list[::2], [True] * len(aid_list[::2]))
+        ibs.set_annot_multiple(aid_list[::2], [False] * len(aid_list[::2]))
 
         # Set some randomish gps flags that are within nnp
         unixtime_list = ibs.get_image_unixtime(gid_list)

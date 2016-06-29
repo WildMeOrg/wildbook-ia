@@ -4816,6 +4816,12 @@ def group_prop_edges(prop2_nid2_aids, prop_basis, size=2, wrap=True):
     return edge2_nid2_aids
 
 
+@register_ibs_method
+def parse_annot_stats_filter_kws(ibs):
+    kwkeys = ut.parse_func_kwarg_keys(ibs.get_annot_stats_dict)
+    return kwkeys
+
+
 # Indepdentent query / database stats
 @register_ibs_method
 def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwargs):
