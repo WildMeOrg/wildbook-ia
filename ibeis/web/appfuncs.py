@@ -183,7 +183,9 @@ def get_turk_annot_args(is_reviewed_func):
             sort_list = zip(unixtime_list, aid_list)
             sort_list = sorted(sort_list)
             half = len(sort_list) // 2
+            print(len(aid_list))
             aid_list = sort_list[:half]
+            print(len(aid_list))
             aid_list = [_[1] for _ in aid_list]
             reviewed_list = is_reviewed_func(ibs, aid_list)
     else:
