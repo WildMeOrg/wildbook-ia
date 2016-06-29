@@ -154,7 +154,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         from ibeis.expt import annotation_configs
         import dtool
         class TmpAnnotConfig(dtool.Config):
-            _param_info_list = annotation_configs.INDEPENDENT_DEFAULTS_PARAMS
+            _param_info_list = annotation_configs.INDEPENDENT_DEFAULTS_PARAM_INFO
 
         class TmpPipelineConfig(dtool.Config):
             _param_info_list = [
@@ -171,6 +171,9 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             'filter_reviewed': True,
             'ranks_lt': 2,
         })
+        self.info_cfg = dtool.Config.from_dict({
+            key: False for key in ibs.parse_annot_stats_filter_kws()
+        })
 
         for cfg in [self.qcfg, self.dcfg]:
             cfg['minqual'] = 'ok'
@@ -184,9 +187,11 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         from guitool import PrefWidget2
         self.editQueryConfig = PrefWidget2.newConfigWidget(self.qcfg, user_mode=False)
         self.editQueryConfig.setSizePolicy(*cfg_size_policy)
+        self.editQueryConfig.data_changed.connect(self.on_acfg_changed)
 
         self.editDataConfig = PrefWidget2.newConfigWidget(self.dcfg, user_mode=False)
         self.editDataConfig.setSizePolicy(*cfg_size_policy)
+        self.editDataConfig.data_changed.connect(self.on_acfg_changed)
 
         self.editPipeConfig = PrefWidget2.newConfigWidget(self.pcfg, user_mode=False)
         self.editPipeConfig.setSizePolicy(*cfg_size_policy)
@@ -194,8 +199,8 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.editReviewConfig = PrefWidget2.newConfigWidget(self.review_cfg, user_mode=False)
         self.editReviewConfig.setSizePolicy(*cfg_size_policy)
 
-        self.editQueryConfig.data_changed.connect(self.on_acfg_changed)
-        self.editDataConfig.data_changed.connect(self.on_acfg_changed)
+        self.editInfoConfig = PrefWidget2.newConfigWidget(self.info_cfg, user_mode=False)
+        self.editInfoConfig.setSizePolicy(*cfg_size_policy)
 
         #main_layout = QtGui.QGridLayout()
         #main_layout.setVerticalSpacing(0)
@@ -228,8 +233,12 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         review_vframe.addWidget(QtGui.QLabel('Review Config'))
         review_vframe.addWidget(self.editReviewConfig)
 
+        info_vframe = pcfg_hframe.newVWidget()
+        info_vframe.addWidget(QtGui.QLabel('Info Config'))
+        info_vframe.addWidget(self.editInfoConfig)
+
         stats_vwidget = splitter.newWidget(orientation=Qt.Vertical)
-        stats_vwidget.addWidget(QtGui.QLabel('Expanded Annot Info'))
+        stats_vwidget.addWidget(QtGui.QLabel('Expanded Annot Info (Info Config Changes Display)'))
         self.qstats = QtGui.QTextEdit()
         self.qstats.setReadOnly(True)
         stats_vwidget.addWidget(self.qstats)
@@ -381,7 +390,8 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             ctx.set_progress(3, 4)
 
             #aid_stats_dict = ibs.get_annot_stats_dict(self.qaids, prefix=prefix)
-            statskw = dict(per_enc=False, per_vp=False, enc_per_name=False)
+            #statskw = dict(per_enc=False, per_vp=False, enc_per_name=False)
+            statskw = self.info_cfg
             stats_dict, _ = ibs.get_annotconfig_stats(self.qaids, self.daids, **statskw)
             stats_str = (ut.dict_str(stats_dict, strvals=True))
             #print(stats_str)

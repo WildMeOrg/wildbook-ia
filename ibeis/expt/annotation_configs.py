@@ -32,6 +32,14 @@ OTHER_DEFAULTS = {
     'joinme'    : None,
 }
 
+INDEPENDENT_DEFAULTS_PARAM_INFO = [
+    ut.ParamInfo('reviewed', None, valid_values=[True, False, None]),
+    ut.ParamInfo('minqual', None, valid_values=[None, 'junk', 'poor', 'ok',
+                                                'good', 'excellent']),
+    ut.ParamInfo('multiple', None, valid_values=[True, False, None]),
+    #ut.ParamInfo('view', None),
+]
+
 # Defaults for the independent filter
 # THese filters are orderless
 INDEPENDENT_DEFAULTS = {
@@ -57,15 +65,11 @@ INDEPENDENT_DEFAULTS = {
     # minimum number of features detected by default config
     'max_numfeat'         : None,
     'reviewed'            : None,
+    'multiple'            : None,
 }
 
-INDEPENDENT_DEFAULTS_PARAMS = [
-    ut.ParamInfo('reviewed', None, valid_values=[True, False, None]),
-    ut.ParamInfo('minqual', None, valid_values=[None, 'junk', 'poor', 'ok',
-                                                'good', 'excellent']),
-    ut.ParamInfo('multiple', None, valid_values=[True, False, None]),
-    #ut.ParamInfo('view', None),
-]
+for pi in INDEPENDENT_DEFAULTS_PARAM_INFO:
+    INDEPENDENT_DEFAULTS[pi.varname] = pi.default
 
 
 # HACK
