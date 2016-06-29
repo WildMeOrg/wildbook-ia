@@ -476,7 +476,8 @@ class ConfigNodeWrapper(ut.NiceRepr):
         if self.is_leaf():
             strlist += [
                 indent + '┃     value = %r' % (self.value,),
-                indent + '┃     default = %r' % (self.default,),
+                indent + '┃     original = %r' % (self.original,),
+                indent + '┃     default = %r' % (self.param_info.default,),
             ]
         if verbose:
             strlist += [
@@ -519,15 +520,22 @@ class ConfigNodeWrapper(ut.NiceRepr):
             # Populate leaf
             self.value = self.config
             # Mark original value
-            self.default = self.value
+            self.original = self.value
             self.children = None
 
     def _reset_to_default(self):
         if self.is_leaf():
-            self.value = self.default
+            self.set_value(self.param_info.default)
         else:
             for child in self.children:
                 child._reset_to_default()
+
+    def _reset_to_original(self):
+        if self.is_leaf():
+            self.set_value(self.original)
+        else:
+            for child in self.children:
+                child._reset_to_original()
 
     def iter_children(self):
         if self.children is None:
@@ -566,6 +574,13 @@ class ConfigNodeWrapper(ut.NiceRepr):
 
     def is_leaf(self):
         return self.children is None
+
+    def set_value(self, new_val):
+        assert self.is_leaf(), 'can only set leaf values'
+        # Update internals
+        self.value = new_val
+        # Update externals
+        self.parent.config[self.name] = new_val
 
     def qt_child(self, row):
         return self.children[row]
@@ -606,8 +621,7 @@ class ConfigNodeWrapper(ut.NiceRepr):
         """
         if VERBOSE_CONFIG:
             print('[Wrapper] Attempting to set data')
-        if not self.is_leaf():
-            raise Exception(' must be a leaf')
+        assert self.is_leaf(), 'must be a leaf'
         if self.parent is None:
             raise Exception('[Pref.qtleaf] Cannot set root preference')
         if self.qt_is_editable():
@@ -625,8 +639,7 @@ class ConfigNodeWrapper(ut.NiceRepr):
                 # print('L____ [config.qt_set_leaf_data]')
             # TODO Add ability to set a callback function when certain
             # preferences are changed.
-            self.value = new_val
-            self.parent.config[self.name] = new_val
+            self.set_value(new_val)
         if VERBOSE_CONFIG:
             print('[Wrapper] Accepted new value.')
         return True
@@ -655,9 +668,13 @@ class EditConfigWidget(QWidget):
         self.vbox.addWidget(self.tree_view)
 
         self.hbox = QtGui.QHBoxLayout()
-        self.default_but = gt.newButton(self, 'Defaults', clicked=self.default_config)
+        self.default_but = gt.newButton(self, 'Defaults', clicked=self.reset_to_default)
         self.default_but.setStyleSheet('QToolButton { border: none; }')
         self.hbox.addWidget(self.default_but)
+
+        self.orig_but = gt.newButton(self, 'Original', clicked=self.reset_to_original)
+        self.orig_but.setStyleSheet('QToolButton { border: none; }')
+        self.hbox.addWidget(self.orig_but)
 
         if not self.user_mode:
             self.print_internals = gt.newButton(self, 'Print Internals',
@@ -727,9 +744,14 @@ class EditConfigWidget(QWidget):
     def _on_change(self, top_left, bottom_right):
         self.data_changed.emit()
 
-    def default_config(self):
+    def reset_to_default(self):
         print('Defaulting')
         self.rootNode._reset_to_default()
+        self.refresh_layout()
+
+    def reset_to_original(self):
+        print('Defaulting')
+        self.rootNode._reset_to_original()
         self.refresh_layout()
 
     def print_internals(self):
