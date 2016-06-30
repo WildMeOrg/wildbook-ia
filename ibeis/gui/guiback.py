@@ -376,6 +376,15 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             data['short_path'].append(short_fpath)
             data['fname'].append(basename(long_fpath))
             short_info = ut.load_json(short_fpath)
+            # Fix old formats
+            if 'expanded_uuids' in short_info:
+                quuids, duuids = short_info['expanded_uuids']
+                data['num_qaids'] = len(quuids)
+                data['num_daids'] = len(duuids)
+                del short_info['expanded_uuids']
+                if 'expanded_aids' in short_info:
+                    del short_info['expanded_aids']
+                ut.save_json(short_fpath, short_info)
             data['num_qaids'].append(short_info.get('num_qaids', '?'))
             data['num_daids'].append(short_info.get('num_daids', '?'))
         return data
