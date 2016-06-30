@@ -748,11 +748,13 @@ class EditConfigWidget(QWidget):
         print('Defaulting')
         self.rootNode._reset_to_default()
         self.refresh_layout()
+        self.data_changed.emit()
 
     def reset_to_original(self):
         print('Defaulting')
         self.rootNode._reset_to_original()
         self.refresh_layout()
+        self.data_changed.emit()
 
     def print_internals(self):
         print('Print Internals')

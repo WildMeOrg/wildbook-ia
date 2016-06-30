@@ -30,11 +30,15 @@ ALIGN_DICT = {
 def newSizePolicy(widget,
                   verticalSizePolicy=QSizePolicy.Expanding,
                   horizontalSizePolicy=QSizePolicy.Expanding,
-                  horizontalStretch=0,
-                  verticalStretch=0):
+                  horizontalStretch=None,
+                  verticalStretch=None):
     """
     input: widget - the central widget
     """
+    if verticalStretch is None:
+        verticalStretch = 0
+    if horizontalStretch is None:
+        horizontalStretch = 0
     sizePolicy = QSizePolicy(horizontalSizePolicy, verticalSizePolicy)
     sizePolicy.setHorizontalStretch(horizontalStretch)
     sizePolicy.setVerticalStretch(verticalStretch)
@@ -616,21 +620,51 @@ def newFrame(*args):
     return QtGui.QFrame()
 
 
+def _make_new_widget_func(widget_cls):
+    def new_widget_maker(*args, **kwargs):
+        kwargs = kwargs.copy()
+        verticalStretch = kwargs.pop('verticalStretch', 1)
+        widget = widget_cls(*args, **kwargs)
+        _inject_new_widget_methods(widget)
+        # This line makes the widget resize with the widget
+        sizePolicy = newSizePolicy(widget, verticalStretch=verticalStretch)
+        widget.setSizePolicy(sizePolicy)
+        setattr(widget, '_guitool_sizepolicy', sizePolicy)
+        return widget
+    return new_widget_maker
+
+
+def _make_add_new_widget():
+    def addWidget(self, widget, *args, **kwargs):
+        self.layout().addWidget(widget, *args, **kwargs)
+        return widget
+    return addWidget
+
+
 def _inject_new_widget_methods(self):
     """ helper for guitool widgets """
     import guitool as gt
     # Black magic
-    guitype_list = ['Widget', 'Button', 'LineEdit', 'ComboBox', 'Label',
-                    'Spoiler', 'Frame', 'Splitter']
+    guitype_list = [
+        'Widget', 'Button', 'LineEdit', 'ComboBox', 'Label', 'Spoiler',
+        'Frame', 'Splitter', ('TabWidget', QtGui.QTabWidget) ]
     # Creates addNewWidget and newWidget
     for guitype in guitype_list:
-        if hasattr(gt, 'new' + guitype):
-            newfunc = getattr(gt, 'new' + guitype)
-            ut.inject_func_as_method(self, newfunc, 'new' + guitype)
+        if isinstance(guitype, tuple):
+            guitype, widget_cls = guitype
+            newfunc = _make_new_widget_func(widget_cls)
         else:
-            newfunc = getattr(gt, guitype)
+            if hasattr(gt, 'new' + guitype):
+                newfunc = getattr(gt, 'new' + guitype)
+                ut.inject_func_as_method(self, newfunc, 'new' + guitype)
+            else:
+                newfunc = getattr(gt, guitype)
         addnew_func = _addnew_factory(self, newfunc)
         ut.inject_func_as_method(self, addnew_func, 'addNew' + guitype)
+
+    if not hasattr(self, 'addWidget'):
+        addWidget = _make_add_new_widget()
+        ut.inject_func_as_method(self, addWidget, 'addWidget')
     # Above code is the same as saying
     #     self.newButton = ut.partial(newButton, self)
     #     self.newWidget = ut.partial(newWidget, self)
@@ -641,7 +675,8 @@ def _addnew_factory(self, newfunc):
     """ helper for guitool widgets """
     def _addnew(self, *args, **kwargs):
         new_widget = newfunc(self, *args, **kwargs)
-        return self.addWidget(new_widget)
+        self.addWidget(new_widget)
+        return new_widget
     return _addnew
 
 
@@ -728,9 +763,10 @@ class GuitoolWidget(WIDGET_BASE):
     def addLayout(self, *args, **kwargs):
         return self._guitool_layout.addLayout(*args, **kwargs)
 
-    def addWidget(self, widget, *args, **kwargs):
-        self._guitool_layout.addWidget(widget, *args, **kwargs)
-        return widget
+    #def addWidget(self, widget, *args, **kwargs):
+    #    #self._guitool_layout.addWidget(widget, *args, **kwargs)
+    #    self.layout().addWidget(widget, *args, **kwargs)
+    #    return widget
 
     def newHWidget(self, **kwargs):
         return self.addNewWidget(orientation=Qt.Horizontal, **kwargs)

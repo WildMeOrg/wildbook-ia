@@ -16,12 +16,13 @@ import functools
 import utool as ut
 #from .api_thumb_delegate import APIThumbDelegate
 import numpy as np
+from guitool import api_tree_node as _atn
 #profile = lambda func: func
 #printDBG = lambda *args: None
 # UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS
 # DO NOT INJECT THEM IN GUITOOL
 #(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[APIItemModel]', DEBUG=False)
-ut.noinject(__name__, '[APIItemModel]', DEBUG=False)
+ut.noinject(__name__, '[APIItemModel]')
 
 #raise ImportError('refused to import guitool')
 
@@ -30,21 +31,6 @@ profile = ut.profile
 API_MODEL_BASE = QtCore.QAbstractItemModel
 
 VERBOSE = ut.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
-
-
-try:
-    # TODO Cyth should take care of this stuff
-    # also, it should be a function level import not module?
-    #if not ut.get_argflag('--nocyth'):
-    if ut.get_argflag('--cyth'):
-        from guitool import api_tree_node_cython as _atn
-    else:
-        raise ImportError('')
-    #print('[guitool] cython ON')
-except ImportError:
-    #print('[guitool] cython OFF')
-    # TODO: Cython should be wrapped in parent module
-    from guitool import api_tree_node as _atn
 
 
 class ChangeLayoutContext(object):
