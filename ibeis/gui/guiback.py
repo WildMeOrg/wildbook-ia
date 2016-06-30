@@ -379,12 +379,19 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             # Fix old formats
             if 'expanded_uuids' in short_info:
                 quuids, duuids = short_info['expanded_uuids']
-                data['num_qaids'] = len(quuids)
-                data['num_daids'] = len(duuids)
+                short_info['num_qaids'] = len(quuids)
+                short_info['num_daids'] = len(duuids)
                 del short_info['expanded_uuids']
                 if 'expanded_aids' in short_info:
                     del short_info['expanded_aids']
                 ut.save_json(short_fpath, short_info)
+            if 'num_daids' not in short_info:
+                long_info = ut.load_json(long_fpath)
+                quuids, duuids = long_info['expanded_uuids']
+                short_info['num_qaids'] = len(quuids)
+                short_info['num_daids'] = len(duuids)
+                ut.save_json(short_fpath, short_info)
+
             data['num_qaids'].append(short_info.get('num_qaids', '?'))
             data['num_daids'].append(short_info.get('num_daids', '?'))
         return data
