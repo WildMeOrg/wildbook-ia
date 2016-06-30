@@ -41,8 +41,7 @@ from ibeis.viz import interact
 from os.path import exists, join, dirname, normpath
 from plottool import fig_presenter
 from six.moves import zip
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[back]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[back]')
 
 VERBOSE = ut.VERBOSE
 
@@ -108,12 +107,9 @@ def blocking_slot(*types_):
         @backblock
         @functools.wraps(func)
         def wrapped_bslot(*args, **kwargs):
-            #printDBG('[back*] ' + ut.func_str(func))
-            #printDBG('[back*] ' + ut.func_str(func, args, kwargs))
             result = func(*args, **kwargs)
             sys.stdout.flush()
             return result
-        #printDBG('blocking slot: %r, types=%r' % (wrapped_bslot.__name__, types_))
         wrapped_bslot = ut.preserve_sig(wrapped_bslot, func)
         return wrapped_bslot
     return wrap_bslot
@@ -187,33 +183,30 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             cfg['minqual'] = 'good'
             cfg['reviewed'] = True
             cfg['multiple'] = False
-            cfg['species'] = 'zebra_grevys'
+            #from ibeis.other import ibsfuncs
+            cfg['species'] = self.ibs.get_primary_database_species()
             cfg['require_viewpoint'] = True
-            cfg['view'] = 'right,frontright,backright'
+            cfg['view'] = ibsfuncs.get_primary_species_viewpoint(cfg['species'])
+            #'right,frontright,backright'
 
         self.setWindowTitle('Custom Annot Selector')
 
         cfg_size_policy = (QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
 
-        user_mode = 0
+        def new_confg_widget(cfg, on_changed=None):
+            user_mode = 0
+            from guitool import PrefWidget2
+            cfg_widget = PrefWidget2.newConfigWidget(cfg, user_mode=user_mode)
+            cfg_widget.setSizePolicy(*cfg_size_policy)
+            if on_changed is not None:
+                cfg_widget.data_changed.connect(on_changed)
+            return cfg_widget
 
-        from guitool import PrefWidget2
-        self.editQueryConfig = PrefWidget2.newConfigWidget(self.qcfg, user_mode=user_mode)
-        self.editQueryConfig.setSizePolicy(*cfg_size_policy)
-        self.editQueryConfig.data_changed.connect(self.on_acfg_changed)
-
-        self.editDataConfig = PrefWidget2.newConfigWidget(self.dcfg, user_mode=user_mode)
-        self.editDataConfig.setSizePolicy(*cfg_size_policy)
-        self.editDataConfig.data_changed.connect(self.on_acfg_changed)
-
-        self.editPipeConfig = PrefWidget2.newConfigWidget(self.pcfg, user_mode=user_mode)
-        self.editPipeConfig.setSizePolicy(*cfg_size_policy)
-
-        self.editReviewConfig = PrefWidget2.newConfigWidget(self.review_cfg, user_mode=user_mode)
-        self.editReviewConfig.setSizePolicy(*cfg_size_policy)
-
-        self.editInfoConfig = PrefWidget2.newConfigWidget(self.info_cfg, user_mode=user_mode)
-        self.editInfoConfig.setSizePolicy(*cfg_size_policy)
+        self.editQueryConfig = new_confg_widget(self.qcfg, self.on_acfg_changed)
+        self.editDataConfig = new_confg_widget(self.dcfg, self.on_acfg_changed)
+        self.editPipeConfig = new_confg_widget(self.pcfg)
+        self.editReviewConfig = new_confg_widget(self.review_cfg)
+        self.editInfoConfig = new_confg_widget(self.info_cfg)
 
         #main_layout = QtGui.QGridLayout()
         #main_layout.setVerticalSpacing(0)
@@ -222,7 +215,29 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         #layout = self.layout()
         from guitool.__PYQT__.QtCore import Qt
 
-        splitter = self.addNewSplitter(orientation=Qt.Vertical)
+        #splitter1 = self.addNewSplitter(orientation=Qt.Vertical)
+
+        tab_widget = self.addNewTabWidget(verticalStretch=1)
+        tab1 = QtGui.QTabWidget()
+        tab2 = QtGui.QTabWidget()
+        tab_widget.addTab(tab1, 'Custom Query')
+        tab_widget.addTab(tab2, 'Saved Queries')
+
+        tab1.setLayout(QtGui.QVBoxLayout())
+        tab2.setLayout(QtGui.QVBoxLayout())
+        tab_widget.setSizePolicy(*cfg_size_policy)
+        tab1.setSizePolicy(*cfg_size_policy)
+        tab2.setSizePolicy(*cfg_size_policy)
+        guitool.guitool_components._inject_new_widget_methods(tab1)
+        guitool.guitool_components._inject_new_widget_methods(tab2)
+
+        table = self.saved_queries = QtGui.QTableWidget(5, 3)
+        table.doubleClicked.connect(self.on_table_doubleclick)
+        tab2.addWidget(self.saved_queries)
+        self.populate_table()
+
+        splitter = tab1.addNewSplitter(orientation=Qt.Vertical)
+        #tab1.layout().addWidget(splitter)
         #splitter = QtGui.QSplitter(Qt.Vertical)
         #self.layout().addWidget(splitter)
 
@@ -250,22 +265,27 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         info_vframe.addWidget(QtGui.QLabel('Info Config'))
         info_vframe.addWidget(self.editInfoConfig)
 
-        stats_vwidget = splitter.newWidget(orientation=Qt.Vertical)
+        #stats_vwidget = splitter.newWidget(orientation=Qt.Vertical)
+        stats_vwidget = splitter.newWidget(orientation=Qt.Vertical, verticalStretch=1)
         stats_vwidget.addWidget(QtGui.QLabel('Expanded Annot Info (Info Config Changes Display)'))
         self.qstats = QtGui.QTextEdit()
         self.qstats.setReadOnly(True)
         stats_vwidget.addWidget(self.qstats)
+        # Hack a copy for tab2
+        self.qstats2 = QtGui.QTextEdit()
+        self.qstats2.setReadOnly(True)
+        tab2.addWidget(self.qstats2)
         #self.layout().addWidget(self.qstats)
 
         button_bar = self.newHWidget()
 
-        update_button = QtGui.QPushButton('Update Configs')
+        update_button = QtGui.QPushButton('Apply New Config')
         update_button.clicked.connect(self.update)
         button_bar.addWidget(update_button)
 
-        self.accept_button = QtGui.QPushButton('Execute Query')
-        self.accept_button.pressed.connect(self.execute_query)
-        button_bar.addWidget(self.accept_button)
+        self.execute_button = QtGui.QPushButton('Execute New Query')
+        self.execute_button.pressed.connect(self.execute_query)
+        button_bar.addWidget(self.execute_button)
 
         testlog = QtGui.QPushButton('TestLog')
         testlog.pressed.connect(self.log_query)
@@ -276,6 +296,30 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         #layout.addWidget(self.update_button, 3, 2, 1, 1)
         #layout.addWidget(self.editQueryConfig)
         #layout.addWidget(self.editDataConfig)
+
+    def sizeHint(self):
+        return QtCore.QSize(600, 960)
+
+    def populate_table(self):
+        #data = {'col1': ['1','2','3'], 'col2':['4','5','6'], 'col3':['7','8','9']}
+        print('Updating saved query table')
+        from guitool.__PYQT__.QtCore import Qt
+        self.table_data = self.get_saved_queries()
+        data = ut.dict_subset(self.table_data, ['fname', 'num_qaids', 'num_daids'])
+        horHeaders = []
+        table = self.saved_queries
+        self.saved_queries.setColumnCount(len(data))
+        for n, key in enumerate(sorted(data.keys())):
+            horHeaders.append(key)
+            if n == 0:
+                self.saved_queries.setRowCount(len(data[key]))
+            for m, item in enumerate(data[key]):
+                newitem = QtGui.QTableWidgetItem(str(item))
+                table.setItem(m, n, newitem)
+                newitem.setFlags(newitem.flags() ^ Qt.ItemIsEditable)
+        table.setHorizontalHeaderLabels(horHeaders)
+        table.resizeColumnsToContents()
+        table.resizeRowsToContents()
 
     @backreport
     def progress_context(self, title='working'):
@@ -321,9 +365,61 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         acfg =  {'qcfg': self.qcfg.asdict(), 'dcfg': self.dcfg.asdict()}
         return acfg
 
-    def log_query(self, qreq_=None, test=True):
+    def get_saved_queries(self):
+        expt_dir = self.expt_dir()
+        prev_queries = ut.glob(expt_dir, 'long_*.json')
+        data = ut.ddict(list)
+        from os.path import basename
+        for long_fpath in prev_queries:
+            short_fpath = long_fpath.replace('long', 'short')
+            data['long_path'].append(long_fpath)
+            data['short_path'].append(short_fpath)
+            data['fname'].append(basename(long_fpath))
+            short_info = ut.load_json(short_fpath)
+            data['num_qaids'].append(short_info.get('num_qaids', '?'))
+            data['num_daids'].append(short_info.get('num_daids', '?'))
+        return data
+
+    def on_table_doubleclick(self, index):
+        #print('index = %r' % (index,))
+        row = index.row()
+        self.load_previous_query(row)
+
+    def load_previous_query(self, row):
+        print('loading previous query')
+        long_fpath = self.table_data['long_path'][row]
+        short_fpath = self.table_data['short_path'][row]
+
+        query_info = ut.load_json(long_fpath)
+        query_info_short_text = ut.load_text(short_fpath)
+
+        self.query_info = query_info
+
+        quuids, duuids = query_info['expanded_uuids']
+        ibs = self.ibs
+        self.daids = ibs.get_annot_aids_from_uuid(quuids)
+        self.qaids = ibs.get_annot_aids_from_uuid(duuids)
+
+        self.pcfg.update(**self.query_info['pcfg'])
+
+        statskw = self.info_cfg
+        stats_dict, _ = ibs.get_annotconfig_stats(self.qaids, self.daids, verbose=False, **statskw)
+        stats_str = (ut.dict_str(stats_dict, strvals=True))
+
+        text = '\nSAVED MANIFEST INFO:' + query_info_short_text + '\n' +  stats_str
+        self.qstats.setPlainText(text)
+        self.qstats2.setPlainText(text)
+        print(text)
+        print('...loaded previous query')
+        self.execute_button.setText('Re-Execute Saved Query')
+
+    def expt_dir(self):
         dbdir = self.ibs.get_dbdir()
         expt_dir = ut.ensuredir(ut.unixjoin(dbdir, 'SPECIAL_GGR_EXPT_LOGS'))
+        return expt_dir
+
+    def log_query(self, qreq_=None, test=True):
+        expt_dir = self.expt_dir()
         ut.vd(expt_dir)
         ibs = self.ibs
 
@@ -339,6 +435,8 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         query_info = ut.odict([
             ('computer', ut.get_computer_name()),
             ('timestamp', ts),
+            ('num_qaids', len(self.qaids)),
+            ('num_daids', len(self.daids)),
             ('pcfg', self.pcfg.asdict()),
             ('acfg', self.acfg),
             ('review_cfg', self.review_cfg.asdict()),
@@ -354,15 +452,16 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
         if test:
             del query_info['expanded_aids']
+            del query_info['expanded_uuids']
             del query_info['qparams']
             print('expt_long_fpath = %r' % (expt_long_fpath,))
             print('expt_short_fpath = %r' % (expt_short_fpath,))
             print('query_info = %s' % (ut.to_json(query_info, pretty=1),))
             import utool
             utool.embed()
-
         else:
             ut.save_json(expt_long_fpath, query_info)
+            del query_info['expanded_uuids']
             del query_info['expanded_aids']
             del query_info['qparams']
             ut.save_json(expt_short_fpath, query_info, pretty=1)
@@ -371,7 +470,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
     @slot_()
     def execute_query(self):
         print('accept')
-        assert not self.acfg_needs_update, 'NEED TO UPDATE ACFG BEFORE EXECUTING'
+        assert not self.acfg_needs_update, 'NEED TO APPLY ACFG/PCFG BEFORE EXECUTING'
         self.accept_flag = True
 
         from ibeis.gui import inspect_gui
@@ -380,7 +479,9 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         qreq_ = ibs.new_query_request(self.qaids, self.daids,
                                       cfgdict=self.pcfg)
 
-        self.log_query(qreq_, test=False)
+        if self.query_info is None:
+            # Dont log on a re-executed query
+            self.log_query(qreq_, test=False)
 
         with self.progress_context('Querying') as ctx:
             cm_list = ibs.query_chips(qreq_=qreq_, prog_hook=ctx.prog_hook)
@@ -390,13 +491,16 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.qres_wgt = qres_wgt
         qres_wgt.show()
         qres_wgt.raise_()
+        print('Showing query results')
+        if self.query_info is None:
+            self.populate_table()
 
     def update(self):
         with self.progress_context('Updating') as ctx:  # NOQA
             print('update')
             ibs = self.ibs
-            #import utool
-            #utool.embed()
+            # Discard the loaded query info
+            self.query_info = None
 
             ctx.set_progress(1, 4)
             self.qaids = ibs.sample_annots_general(**self.qcfg)
@@ -407,12 +511,14 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             #aid_stats_dict = ibs.get_annot_stats_dict(self.qaids, prefix=prefix)
             #statskw = dict(per_enc=False, per_vp=False, enc_per_name=False)
             statskw = self.info_cfg
-            stats_dict, _ = ibs.get_annotconfig_stats(self.qaids, self.daids, **statskw)
+            stats_dict, _ = ibs.get_annotconfig_stats(self.qaids, self.daids, verbose=False, **statskw)
             stats_str = (ut.dict_str(stats_dict, strvals=True))
-            #print(stats_str)
+            print(stats_str)
             self.qstats.setPlainText(stats_str)
+            self.qstats2.setPlainText(stats_str)
             ctx.set_progress(4, 4)
             print('update is done')
+            self.execute_button.setText('Execute New Query')
         self.acfg_needs_update = False
 
     @property
@@ -2791,7 +2897,6 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] import_images_from_dir')
         if dir_ is None:
             dir_ = guitool.select_directory('Select directory with images in it', directory=defaultdir)
-        #printDBG('[back] dir=%r' % dir_)
         if dir_ is None:
             return
         gpath_list = ut.list_images(dir_, fullpath=True, recursive=True)

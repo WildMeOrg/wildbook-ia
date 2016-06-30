@@ -797,68 +797,6 @@ def get_reviewed_status_bgrole(ibs, aid_pair):
     return truth_color
 
 
-def test_inspect_matches(ibs, qaid_list, daid_list):
-    """
-
-    Args:
-        ibs       (IBEISController):
-        qaid_list (list): query annotation id list
-        daid_list (list): database annotation id list
-
-    Returns:
-        dict: locals_
-
-    CommandLine:
-        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
-        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show --nodelete
-        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --cmd
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.gui.inspect_gui import *  # NOQA
-        >>> import ibeis
-        >>> import guitool
-        >>> ibs = ibeis.opendb(db='PZ_MTEST')
-        >>> assert ibs.dbname == 'PZ_MTEST', 'do not use on a real database'
-        >>> ut.remove_files_in_dir(ibs.get_match_thumbdir())
-        >>> qaid_list = ibs.get_valid_aids()[0:5]
-        >>> daid_list = ibs.get_valid_aids()  # [0:20]
-        >>> if not ut.get_argflag('--nodelete'):
-        >>>     ibs.delete_annotmatch(ibs._get_all_annotmatch_rowids())
-        >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
-        >>> main_execstr = ibeis.main_loop(main_locals)
-        >>> ut.quit_if_noshow()
-        >>> # TODO: add in qwin to main loop
-        >>> guitool.qtapp_loop(qwin=main_locals['qres_wgt'])
-        >>> print(main_execstr)
-        >>> exec(main_execstr)
-    """
-    from ibeis.gui import inspect_gui
-    qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict={
-        'sv_on': False, 'augment_queryside_hack': True})
-    cm_list = qreq_.execute()
-    tblname = ''
-    name_scoring = False
-    ranks_lt = 10000
-    # This is where you create the result widigt
-    guitool.ensure_qapp()
-    print('[inspect_matches] make_qres_widget')
-    #ut.view_directory(ibs.get_match_thumbdir())
-    qres_wgt = inspect_gui.QueryResultsWidget(
-        ibs, cm_list, ranks_lt=ranks_lt, qreq_=qreq_, filter_reviewed=False,
-        filter_duplicate_namepair_matches=True)
-    print('[inspect_matches] show')
-    qres_wgt.show()
-    print('[inspect_matches] raise')
-    qres_wgt.raise_()
-    print('</inspect_matches>')
-    # simulate double click
-    #qres_wgt._on_click(qres_wgt.model.index(2, 2))
-    #qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
-    locals_ =  locals()
-    return locals_
-
-
 def get_match_thumb_fname(cm, daid, qreq_):
     """
     CommandLine:
@@ -1196,7 +1134,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
             cm = qaid2_cm[qaid]
             assert cm.qaid == qaid, 'aids do not aggree'
 
-            #OLD = True
+            OLD = True
             OLD = False
 
             if OLD:
@@ -1516,6 +1454,68 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
 
     candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)
     return candidate_matches
+
+
+def test_inspect_matches(ibs, qaid_list, daid_list):
+    """
+
+    Args:
+        ibs       (IBEISController):
+        qaid_list (list): query annotation id list
+        daid_list (list): database annotation id list
+
+    Returns:
+        dict: locals_
+
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show --nodelete
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --cmd
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> import guitool
+        >>> ibs = ibeis.opendb(db='PZ_MTEST')
+        >>> assert ibs.dbname == 'PZ_MTEST', 'do not use on a real database'
+        >>> ut.remove_files_in_dir(ibs.get_match_thumbdir())
+        >>> qaid_list = ibs.get_valid_aids()  #[0:5]
+        >>> daid_list = ibs.get_valid_aids()  # [0:20]
+        >>> if not ut.get_argflag('--nodelete'):
+        >>>     ibs.delete_annotmatch(ibs._get_all_annotmatch_rowids())
+        >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
+        >>> main_execstr = ibeis.main_loop(main_locals)
+        >>> ut.quit_if_noshow()
+        >>> # TODO: add in qwin to main loop
+        >>> guitool.qtapp_loop(qwin=main_locals['qres_wgt'])
+        >>> print(main_execstr)
+        >>> exec(main_execstr)
+    """
+    from ibeis.gui import inspect_gui
+    qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict={
+        'sv_on': False, 'augment_queryside_hack': True})
+    cm_list = qreq_.execute()
+    tblname = ''
+    name_scoring = False
+    ranks_lt = 10000
+    # This is where you create the result widigt
+    guitool.ensure_qapp()
+    print('[inspect_matches] make_qres_widget')
+    #ut.view_directory(ibs.get_match_thumbdir())
+    qres_wgt = inspect_gui.QueryResultsWidget(
+        ibs, cm_list, ranks_lt=ranks_lt, qreq_=qreq_, filter_reviewed=False,
+        filter_duplicate_namepair_matches=True)
+    print('[inspect_matches] show')
+    qres_wgt.show()
+    print('[inspect_matches] raise')
+    qres_wgt.raise_()
+    print('</inspect_matches>')
+    # simulate double click
+    #qres_wgt._on_click(qres_wgt.model.index(2, 2))
+    #qres_wgt._on_doubleclick(qres_wgt.model.index(2, 0))
+    locals_ =  locals()
+    return locals_
 
 
 if __name__ == '__main__':
