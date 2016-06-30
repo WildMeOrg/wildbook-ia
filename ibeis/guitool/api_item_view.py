@@ -142,6 +142,10 @@ def infer_delegates(view, **headers):
                 print('[view] colx=%r is a BUTTON' % colx)
             button_delegate = api_button_delegate.APIButtonDelegate(view)
             view.setItemDelegateForColumn(colx, button_delegate)
+        elif isinstance(coltype, QtGui.QAbstractItemDelegate):
+            if VERBOSE:
+                print('[view] colx=%r is a CUSTOM DELEGATE' % colx)
+            view.setItemDelegateForColumn(colx, coltype)
         else:
             if VERBOSE:
                 print('[view] colx=%r does not have a delgate' % colx)

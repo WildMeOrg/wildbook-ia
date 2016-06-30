@@ -168,13 +168,18 @@ class APIThumbDelegate(DELEGATE_BASE):
             data = data.toPyObject()
         if data is None:
             return None
+        if isinstance(data, dict):
+            # HACK FOR DIFFERENT TYPE OF THUMB DATA
+            return data
         assert isinstance(data, tuple), (
             'data=%r is %r. should be a thumbtup' % (data, type(data)))
         thumbtup = data
         #(thumb_path, img_path, bbox_list) = thumbtup
         return thumbtup
 
-    def spawn_thumb_creation_thread(dgt, thumb_path, img_path, img_size, qtindex, view, offset, bbox_list, theta_list):
+    def spawn_thumb_creation_thread(dgt, thumb_path, img_path, img_size,
+                                    qtindex, view, offset, bbox_list,
+                                    theta_list):
         if VERBOSE_THUMB:
             print('[ThumbDelegate] Spawning thumbnail creation thread')
         thumbsize = dgt.get_thumb_size()
@@ -210,9 +215,18 @@ class APIThumbDelegate(DELEGATE_BASE):
                 if VERBOSE_THUMB:
                     print('[thumb_delegate] no data')
                 return
-            (thumb_path, img_path, img_size, bbox_list, theta_list) = data
-            invalid = (thumb_path is None or img_path is None or bbox_list is None or img_size is None)
-            if invalid:
+            thumbtup_mode = isinstance(data, tuple)
+            thumbdat_mode = isinstance(data, dict)
+            if thumbtup_mode:
+                (thumb_path, img_path, img_size, bbox_list, theta_list) = data
+                invalid = (thumb_path is None or img_path is None or bbox_list is
+                           None or img_size is None)
+                if invalid:
+                    print('[thumb_delegate] something is wrong')
+                    return
+            elif thumbdat_mode:
+                thumb_path = data['fpath']
+            else:
                 print('[thumb_delegate] something is wrong')
                 return
         except AssertionError as ex:
@@ -224,14 +238,40 @@ class APIThumbDelegate(DELEGATE_BASE):
             return None
 
         if not exists(thumb_path):
-            if not exists(img_path):
-                if VERBOSE_THUMB:
-                    print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED: %r' % (img_path,))
+            if thumbtup_mode:
+                if not exists(img_path):
+                    if VERBOSE_THUMB:
+                        print('[ThumbDelegate] SOURCE IMAGE NOT COMPUTED: %r' %
+                              (img_path,))
+                    return None
+                dgt.spawn_thumb_creation_thread(
+                    thumb_path, img_path, img_size, qtindex, view, offset,
+                    bbox_list, theta_list)
                 return None
-            dgt.spawn_thumb_creation_thread(
-                thumb_path, img_path, img_size, qtindex, view, offset,
-                bbox_list, theta_list)
-            return None
+            elif thumbdat_mode:
+                thumbdat = data
+                thread_func = thumbdat['thread_func']
+                main_func = thumbdat['main_func']
+                #kwargs = data['kwargs']
+                #func(*args, **kwargs)
+                #print('data = %r' % (data,))
+                #print('newdata not computed')
+                # SPAWN
+                if VERBOSE_THUMB:
+                    print('[ThumbDelegate] Spawning thumbnail creation thread')
+                args = main_func()
+                thumb_creation_thread = ThumbnailCreationThread2(
+                    thread_func, args, qtindex, view, offset
+                )
+                #register_thread(thumb_path, thumb_creation_thread)
+                # Initialize threadcount
+                if dgt.pool is None:
+                    #dgt.pool = QtCore.QThreadPool()
+                    #dgt.pool.setMaxThreadCount(MAX_NUM_THUMB_THREADS)
+                    dgt.pool = QtCore.QThreadPool.globalInstance()
+                dgt.pool.start(thumb_creation_thread)
+                # print('[ThumbDelegate] Waiting to compute')
+                return None
         else:
             # thumb is computed return the path
             return thumb_path
@@ -424,6 +464,43 @@ def make_thread_thumb(img_path, dsize, new_verts_list):
 RUNNABLE_BASE = QtCore.QRunnable
 
 
+class ThumbnailCreationThread2(RUNNABLE_BASE):
+    """
+    Helper to compute thumbnails concurrently
+
+    References:
+        TODO:
+        http://stackoverflow.com/questions/6783194/background-thread-with-qthread-in-pyqt
+    """
+
+    def __init__(thread, thread_func, args, qtindex, view, offset):
+        RUNNABLE_BASE.__init__(thread)
+        thread.thread_func = thread_func
+        thread.args = args
+        thread.qtindex = qtindex
+        thread.offset = offset
+        thread.view = view
+
+    def thumb_would_not_be_visible(thread):
+        return view_would_not_be_visible(thread.view, thread.offset)
+
+    def _run(thread):
+        """ Compute thumbnail in a different thread """
+        if thread.thumb_would_not_be_visible():
+            return
+        #func = thread.thumbdat['func']
+        thread.thread_func(thread.thumb_would_not_be_visible, *thread.args)
+        #func(check_func=thread.thumb_would_not_be_visible)
+        thread.qtindex.model().dataChanged.emit(thread.qtindex, thread.qtindex)
+
+    def run(thread):
+        try:
+            thread._run()
+        except Exception as ex:
+            ut.printex(ex, 'thread failed', tb=True)
+            #raise
+
+
 class ThumbnailCreationThread(RUNNABLE_BASE):
     """
     Helper to compute thumbnails concurrently
@@ -562,7 +639,9 @@ def simple_thumbnail_widget():
     col_setter_dict = {}
     editable_colnames = []
     sortby = 'rowid'
-    get_thumb_size = lambda: 128  # NOQA
+    def get_thumb_size():
+        return 128
+    #get_thumb_size = lambda: 128  # NOQA
     col_width_dict = {}
     col_bgrole_dict = {}
 
