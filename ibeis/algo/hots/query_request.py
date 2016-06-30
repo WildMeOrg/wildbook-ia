@@ -840,7 +840,7 @@ class QueryRequest(object):
             >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
             >>> daids = ibs.get_valid_aids(species=species)
             >>> qaids = ibs.get_valid_aids(species=species)
-            >>> qreq_ = ibs.new_query_request(qaids, daids)
+            >>> qreq_ = ibs.new_query_request(qaids, daids, cfgdict={'fgw_thresh': .3})
             >>> with_input = True
             >>> cfgstr = qreq_.get_cfgstr(with_input)
             >>> result = ('cfgstr = %s' % (str(cfgstr),))

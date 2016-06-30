@@ -23,6 +23,7 @@ SEED2 = 42
 if ut.is_developer():
     USE_ACFG_CACHE = not ut.get_argflag(('--nocache-annot', '--nocache-aid',
                                          '--nocache')) and ut.USE_CACHE
+    USE_ACFG_CACHE = False
 else:
     USE_ACFG_CACHE = False
 

@@ -373,6 +373,7 @@ class FlannConfig(ConfigBase):
         flann_cfg.centers_init = 'random'
         flann_cfg.cb_index = .4
         flann_cfg.branching = 64
+        flann_cfg.fgw_thresh = None
         flann_cfg.update(**kwargs)
 
     def get_flann_params(flann_cfg):
@@ -398,6 +399,9 @@ class FlannConfig(ConfigBase):
             flann_cfgstrs += ['%s' % flann_cfg.algorithm]
         else:
             flann_cfgstrs += ['%s' % flann_cfg.algorithm]
+        if flann_cfg.fgw_thresh is not None:
+            # HACK FOR GGR
+            flann_cfgstrs += ['_fgwthrsh=%s' % flann_cfg.fgw_thresh]
         #flann_cfgstrs += ['checks=%r' % flann_cfg.checks]
         flann_cfgstrs += [')']
         return flann_cfgstrs
