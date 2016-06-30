@@ -53,12 +53,18 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, config2_=None, ensure=True):
 
 
 @getter_vector_output
-def get_chips(ibs, aid_list, in_image=False, config2_=None):
+def get_chips(ibs, aid_list, in_image=False, config2_=None, as_fpath=False):
     #print('config2_ = %r' % (config2_,))
-    if in_image:
-        return ibs.get_annot_images(aid_list)
+    if as_fpath:
+        if in_image:
+            return ibs.get_annot_image_paths(aid_list)
+        else:
+            return ibs.get_annot_chip_fpath(aid_list, config2_=config2_)
     else:
-        return ibs.get_annot_chips(aid_list, config2_=config2_)
+        if in_image:
+            return ibs.get_annot_images(aid_list)
+        else:
+            return ibs.get_annot_chips(aid_list, config2_=config2_)
 
 
 @getter_vector_output

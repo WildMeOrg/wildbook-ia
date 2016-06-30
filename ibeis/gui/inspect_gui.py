@@ -821,8 +821,9 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         >>> import guitool
         >>> ibs = ibeis.opendb(db='PZ_MTEST')
         >>> assert ibs.dbname == 'PZ_MTEST', 'do not use on a real database'
+        >>> ut.remove_files_in_dir(ibs.get_match_thumbdir())
         >>> qaid_list = ibs.get_valid_aids()[0:5]
-        >>> daid_list = ibs.get_valid_aids()[0:20]
+        >>> daid_list = ibs.get_valid_aids()  # [0:20]
         >>> if not ut.get_argflag('--nodelete'):
         >>>     ibs.delete_annotmatch(ibs._get_all_annotmatch_rowids())
         >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
@@ -834,11 +835,12 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         >>> exec(main_execstr)
     """
     from ibeis.gui import inspect_gui
-    qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict={'augment_queryside_hack': True})
+    qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict={
+        'sv_on': False, 'augment_queryside_hack': True})
     cm_list = qreq_.execute()
     tblname = ''
     name_scoring = False
-    ranks_lt = 5
+    ranks_lt = 10000
     # This is where you create the result widigt
     guitool.ensure_qapp()
     print('[inspect_matches] make_qres_widget')
@@ -915,11 +917,162 @@ def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
     else:
         # TODO: just draw the image at the correct thumbnail size
         # TODO: draw without matplotlib?
+        #with ut.Timer('render-1'):
         fpath = cm.imwrite_single_annotmatch(
             qreq_, daid, fpath=match_thumb_fpath_, saveax=True, fnum=32,
             notitle=True, verbose=False)
+        #with ut.Timer('render-2'):
+        #    img = cm.render_single_annotmatch(qreq_, daid, fnum=32, notitle=True, dpi=30)
+        #    cv2.imwrite(match_thumb_fpath_, img)
+        #    fpath = match_thumb_fpath_
+        #with ut.Timer('render-3'):
+        #fpath = match_thumb_fpath_
+        #render_config = {
+        #    'dpi'              : 60,
+        #    'draw_fmatches'    : True,
+        #    #'vert'             : view_orientation == 'vertical',
+        #    'show_aidstr'      : False,
+        #    'show_name'        : False,
+        #    'show_exemplar'    : False,
+        #    'show_num_gt'      : False,
+        #    'show_timedelta'   : False,
+        #    'show_name_rank'   : False,
+        #    'show_score'       : False,
+        #    'show_annot_score' : False,
+        #    'show_name_score'  : False,
+        #    'draw_lbl'         : False,
+        #    'draw_border'      : False,
+        #}
+        #cm.imwrite_single_annotmatch2(qreq_, daid, fpath, fnum=32, notitle=True, **render_config)
+        #print('fpath = %r' % (fpath,))
         match_thumbtup_cache[match_thumb_fpath_] = fpath
     return fpath
+
+
+def make_ensure_match_img_nosql_func(qreq_, cm, daid):
+    r"""
+    CommandLine:
+        python -m ibeis.gui.inspect_gui --test-ensure_match_img --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> ibs = qreq_.ibs
+        >>> daid = cm.get_top_aids()[0]
+        >>> match_thumbtup_cache = {}
+        >>> # execute function
+        >>> match_thumb_fpath_ = ensure_match_img(qreq_.ibs, cm, daid, qreq_, match_thumbtup_cache)
+        >>> # verify results
+        >>> result = str(match_thumb_fpath_)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> ut.startfile(match_thumb_fpath_, quote=True)
+    """
+    #import ibeis.viz
+    from ibeis.viz import viz_matches
+    import cv2
+    import io
+    import plottool as pt
+    import vtool as vt
+    import matplotlib as mpl
+    aid1 = cm.qaid
+    aid2 = daid
+
+    ibs = qreq_.ibs
+    resize_factor = .5
+
+    match_thumbdir = ibs.get_match_thumbdir()
+    match_thumb_fname = get_match_thumb_fname(cm, daid, qreq_)
+    fpath = ut.unixjoin(match_thumbdir, match_thumb_fname)
+
+    def main_thread_load():
+        # This gets executed in the main thread and collects data
+        # from sql
+        rchip1_fpath, rchip2_fpath, kpts1, kpts2 = viz_matches._get_annot_pair_info(
+            ibs, aid1, aid2, qreq_, draw_fmatches=True, as_fpath=True)
+        return rchip1_fpath, rchip2_fpath, kpts1, kpts2
+
+    def nosql_draw(check_func, rchip1_fpath, rchip2_fpath, kpts1, kpts2):
+        # This gets executed in the child thread and does drawing async style
+        #from matplotlib.backends.backend_pdf import FigureCanvasPdf as FigureCanvas
+        #from matplotlib.backends.backend_pdf import Figure
+        #from matplotlib.backends.backend_svg import FigureCanvas
+        #from matplotlib.backends.backend_svg import Figure
+        from matplotlib.backends.backend_agg import FigureCanvas
+        from matplotlib.backends.backend_agg import Figure
+
+        kpts1_ = vt.offset_kpts(kpts1, (0, 0), (resize_factor, resize_factor))
+        kpts2_ = vt.offset_kpts(kpts2, (0, 0), (resize_factor, resize_factor))
+
+        #from matplotlib.figure import Figure
+        if check_func is not None and check_func():
+            return
+
+        rchip1 = vt.imread(rchip1_fpath)
+        rchip1 = vt.resize_image_by_scale(rchip1, resize_factor)
+        if check_func is not None and check_func():
+            return
+        rchip2 = vt.imread(rchip2_fpath)
+        rchip2 = vt.resize_image_by_scale(rchip2, resize_factor)
+        if check_func is not None and check_func():
+            return
+
+        idx = cm.daid2_idx[daid]
+        fm   = cm.fm_list[idx]
+        fsv  = None if cm.fsv_list is None else cm.fsv_list[idx]
+        fs   = None if fsv is None else fsv.prod(axis=1)
+
+        was_interactive = mpl.is_interactive()
+        if was_interactive:
+            mpl.interactive(False)
+        #fnum = 32
+        fig = Figure()
+        canvas = FigureCanvas(fig)  # NOQA
+        #fig.clf()
+        ax = fig.add_subplot(1, 1, 1)
+        if check_func is not None and check_func():
+            return
+        #fig = pt.plt.figure(fnum)
+        #H1 = np.eye(3)
+        #H2 = np.eye(3)
+        #H1[0, 0] = .5
+        #H1[1, 1] = .5
+        #H2[0, 0] = .5
+        #H2[1, 1] = .5
+        ax, xywh1, xywh2 = pt.show_chipmatch2(rchip1, rchip2, kpts1_, kpts2_, fm,
+                                              fs=fs, colorbar_=False, ax=ax)
+        if check_func is not None and check_func():
+            return
+        savekw = {
+            'dpi' : 60,
+        }
+        axes_extents = pt.extract_axes_extents(fig)
+        #assert len(axes_extents) == 1, 'more than one axes'
+        extent = axes_extents[0]
+        with io.BytesIO() as stream:
+            # This call takes 23% - 15% of the time depending on settings
+            fig.savefig(stream, bbox_inches=extent, **savekw)
+            stream.seek(0)
+            data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+        if check_func is not None and check_func():
+            return
+        pt.plt.close(fig)
+        image = cv2.imdecode(data, 1)
+        thumbsize = 221
+        max_dsize = (thumbsize, thumbsize)
+        dsize, sx, sy = vt.resized_clamped_thumb_dims(vt.get_size(image), max_dsize)
+        if check_func is not None and check_func():
+            return
+        image = vt.resize(image, dsize)
+        vt.imwrite(fpath, image)
+        if check_func is not None and check_func():
+            return
+        #fig.savefig(fpath, bbox_inches=extent, **savekw)
+    #match_thumbtup_cache[match_thumb_fpath_] = fpath
+    return fpath, nosql_draw, main_thread_load
 
 
 def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
@@ -1034,7 +1187,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         'name': 60,
     }
 
-    USE_MATCH_THUMBS = True
+    USE_MATCH_THUMBS = 1
     if USE_MATCH_THUMBS:
 
         def get_match_thumbtup(ibs, qaid2_cm, qaids, daids, index, qreq_=None,
@@ -1043,18 +1196,38 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
             qaid = qaids[index]
             cm = qaid2_cm[qaid]
             assert cm.qaid == qaid, 'aids do not aggree'
-            #cm = cm_list[qaid]
-            fpath = ensure_match_img(ibs, cm, daid, qreq_=qreq_,
-                                     match_thumbtup_cache=match_thumbtup_cache)
-            if isinstance(thumbsize, int):
-                thumbsize = (thumbsize, thumbsize)
-            thumbtup = (ut.augpath(fpath, 'thumb_%d,%d' % thumbsize), fpath, thumbsize,
-                        [], [])
-            return thumbtup
+
+            #OLD = True
+            OLD = False
+
+            if OLD:
+                fpath = ensure_match_img(ibs, cm, daid, qreq_=qreq_,
+                                         match_thumbtup_cache=match_thumbtup_cache)
+                if isinstance(thumbsize, int):
+                    thumbsize = (thumbsize, thumbsize)
+                thumbtup = (ut.augpath(fpath, 'thumb_%d,%d' % thumbsize), fpath, thumbsize,
+                            [], [])
+                return thumbtup
+            else:
+                # Hacky new way of drawing
+                fpath, func, func2 = make_ensure_match_img_nosql_func(qreq_, cm, daid)
+                #match_thumbdir = ibs.get_match_thumbdir()
+                #match_thumb_fname = get_match_thumb_fname(cm, daid, qreq_)
+                #fpath = ut.unixjoin(match_thumbdir, match_thumb_fname)
+                thumbdat = {
+                    'fpath': fpath,
+                    'thread_func': func,
+                    'main_func': func2,
+                    #'args': (ibs, cm, daid),
+                    #'kwargs': dict(qreq_=qreq_,
+                    #               match_thumbtup_cache=match_thumbtup_cache)
+                }
+                return thumbdat
 
         col_name_list.insert(col_name_list.index(RES_THUMB_TEXT) + 1,
                              MATCH_THUMB_TEXT)
         col_types_dict[MATCH_THUMB_TEXT] = 'PIXMAP'
+        #col_types_dict[MATCH_THUMB_TEXT] = CustomMatchThumbDelegate
         qaid2_cm = {cm.qaid: cm for cm in cm_list}
         get_match_thumbtup_ = partial(get_match_thumbtup, ibs, qaid2_cm,
                                       qaids, daids, qreq_=qreq_,
