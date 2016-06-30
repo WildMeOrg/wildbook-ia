@@ -169,6 +169,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.review_cfg = dtool.Config.from_dict({
             'filter_reviewed': True,
             'ranks_lt': 1,
+            'hack_dont_run': False,
         })
         self.info_cfg = dtool.Config.from_dict({
             key: False for key in ibs.parse_annot_config_stats_filter_kws()
@@ -497,6 +498,10 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         qreq_ = ibs.new_query_request(self.qaids, self.daids,
                                       cfgdict=self.pcfg)
 
+        review_cfg = self.review_cfg.asdict().copy()
+        if review_cfg.pop('hack_dont_run'):
+            print('HACK NOT RUNNING')
+
         if self.query_info is None:
             # Dont log on a re-executed query
             self.log_query(qreq_, test=False)
@@ -505,7 +510,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             cm_list = ibs.query_chips(qreq_=qreq_, prog_hook=ctx.prog_hook)
 
         qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list, qreq_=qreq_,
-                                                  **self.review_cfg)
+                                                  **review_cfg)
         self.qres_wgt = qres_wgt
         qres_wgt.show()
         qres_wgt.raise_()
