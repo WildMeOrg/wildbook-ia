@@ -179,14 +179,14 @@ def get_turk_annot_args(is_reviewed_func):
 
         with ut.Timer():
             aid_list = ibs.get_valid_aids()
-            unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
-            sort_list = zip(unixtime_list, aid_list)
-            sort_list = sorted(sort_list)
-            half = len(sort_list) // 2
-            print(len(aid_list))
-            aid_list = sort_list[:half]
-            print(len(aid_list))
-            aid_list = [_[1] for _ in aid_list]
+            # unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
+            # sort_list = zip(unixtime_list, aid_list)
+            # sort_list = sorted(sort_list)
+            # half = len(sort_list) // 2
+            # print(len(aid_list))
+            # aid_list = sort_list[:half]
+            # print(len(aid_list))
+            # aid_list = [_[1] for _ in aid_list]
             reviewed_list = is_reviewed_func(ibs, aid_list)
     else:
         src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
