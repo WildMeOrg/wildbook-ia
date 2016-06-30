@@ -4924,6 +4924,16 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
             (prefix + 'hashid',
              ibs.get_annot_hashid_semantic_uuid(aids, prefix=prefix.upper()))]
 
+    if kwargs.pop('hashid_visual', False or forceall):
+        keyval_list += [
+            (prefix + 'hashid_visual',
+             ibs.get_annot_hashid_visual_uuid(aids, prefix=prefix.upper()))]
+
+    if kwargs.pop('hashid_uuid', False or forceall):
+        keyval_list += [
+            (prefix + 'hashid_uuid',
+             ibs.get_annot_hashid_uuid(aids, prefix=prefix.upper()))]
+
     if kwargs.pop('per_name', True or forceall):
         keyval_list += [
             (prefix + 'per_name',

@@ -178,6 +178,9 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.info_cfg['species_hist'] = True
         self.info_cfg['per_vp'] = True
         self.info_cfg['per_qual'] = True
+        self.info_cfg['hashid'] = True
+        self.info_cfg['hashid_visual'] = True
+        self.info_cfg['hashid_uuid'] = True
         self.info_cfg['per_multiple'] = True
 
         for cfg in [self.qcfg, self.dcfg]:
@@ -501,6 +504,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         review_cfg = self.review_cfg.asdict().copy()
         if review_cfg.pop('hack_dont_run'):
             print('HACK NOT RUNNING')
+            return
 
         if self.query_info is None:
             # Dont log on a re-executed query
