@@ -351,7 +351,7 @@ def set_annot_pair_as_reviewed(ibs, aid1, aid2):
 
 @register_ibs_method
 def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
-                                     on_nontrivial_merge=None):
+                                     on_nontrivial_merge=None, logger=None):
     """
     Safe way to perform links. Errors on invalid operations.
 
@@ -391,6 +391,19 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
             print('... names = %r' % (ibs.get_name_texts(nid_list)))
         assert len(aid_list) == len(nid_list), 'list must correspond'
         if not dryrun:
+            if logger is not None:
+                log = logger.info
+                previous_names = ibs.get_annot_names(aid_list)
+                new_names = ibs.get_name_texts(nid_list)
+                annot_uuids = ibs.get_annot_uuids(aid_list)
+                annot_uuid_pair = ibs.get_annot_uuids((aid1, aid2))
+                log((
+                    'REVIEWED AS TRUE: annot_uuid_pair=%r'
+                    'Changing annot names of %d annot_uuids=%r '
+                    'from previous_names=%r to new_names=%r' ) % (
+                        annot_uuid_pair, len(annot_uuids), annot_uuids,
+                        previous_names, new_names))
+
             ibs.set_annot_name_rowids(aid_list, nid_list)
             ibs.set_annot_pair_as_reviewed(aid1, aid2)
         # Return the new annots in this name
@@ -407,6 +420,10 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
         #if truth != ibs.const.TRUTH_MATCH:
         status = None
         ibs.set_annot_pair_as_reviewed(aid1, aid2)
+        if logger is not None:
+            log = logger.info
+            annot_uuid_pair = ibs.get_annot_uuids((aid1, aid2))
+            log('REVIEWED AS TRUE: annot_uuid_pair=%r. (no change)' % annot_uuid_pair)
     else:
         isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
         if isunknown1 and isunknown2:
@@ -423,7 +440,8 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
                     raise Exception('no function is set up to handle nontrivial merges!')
                 else:
                     on_nontrivial_merge(ibs, aid1, aid2)
-            status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2] * len(aid1_and_groundtruth))
+            status =  _set_annot_name_rowids(aid1_and_groundtruth, [nid2] *
+                                             len(aid1_and_groundtruth))
         elif isunknown2 and not isunknown1:
             print('...match unknown2 into known1')
             status =  _set_annot_name_rowids([aid2], [nid1])
@@ -436,7 +454,8 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
 
 
 @register_ibs_method
-def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False, on_nontrivial_split=None):
+def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
+                                     on_nontrivial_split=None, logger=None):
     """
     TODO: ELEVATE THIS FUNCTION
 
@@ -465,6 +484,18 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False, on_nontrivia
     def _set_annot_name_rowids(aid_list, nid_list):
         print('... _set_annot_name_rowids(%r, %r)' % (aid_list, nid_list))
         if not dryrun:
+            if logger is not None:
+                log = logger.info
+                previous_names = ibs.get_annot_names(aid_list)
+                new_names = ibs.get_name_texts(nid_list)
+                annot_uuids = ibs.get_annot_uuids(aid_list)
+                annot_uuid_pair = ibs.get_annot_uuids((aid1, aid2))
+                log((
+                    'REVIEWED AS FALSE: annot_uuid_pair=%r'
+                    'Changing annot names of %d annot_uuids=%r '
+                    'from previous_names=%r to new_names=%r' ) % (
+                        annot_uuid_pair, len(annot_uuids), annot_uuids,
+                        previous_names, new_names))
             ibs.set_annot_name_rowids(aid_list, nid_list)
             ibs.set_annot_pair_as_reviewed(aid1, aid2)
     nid1, nid2 = ibs.get_annot_name_rowids([aid1, aid2])
@@ -491,6 +522,10 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False, on_nontrivia
             print('...nonmatch known1 and known2... nothing to do (yet)')
             ibs.set_annot_pair_as_reviewed(aid1, aid2)
             status = None
+            if logger is not None:
+                log = logger.info
+                annot_uuid_pair = ibs.get_annot_uuids((aid1, aid2))
+                log('REVIEWED AS FALSE: annot_uuid_pair=%r. (no change)' % annot_uuid_pair)
         elif isunknown2 and not isunknown1:
             print('...nonmatch unknown2 -> newname and known1')
             next_nids = ibs.make_next_nids(num=1)

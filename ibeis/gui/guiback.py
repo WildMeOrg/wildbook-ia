@@ -366,8 +366,8 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         return acfg
 
     def get_saved_queries(self):
-        expt_dir = self.expt_dir()
-        prev_queries = ut.glob(expt_dir, 'long_*.json')
+        expt_query_dir = self.expt_query_dir()
+        prev_queries = ut.glob(expt_query_dir, 'long_*.json')
         data = ut.ddict(list)
         from os.path import basename
         for long_fpath in prev_queries:
@@ -429,14 +429,16 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         print('...loaded previous query')
         self.execute_button.setText('Re-Execute Saved Query')
 
-    def expt_dir(self):
+    def expt_query_dir(self):
+        #dbdir = self.ibs.get_dbdir()
         dbdir = self.ibs.get_dbdir()
         expt_dir = ut.ensuredir(ut.unixjoin(dbdir, 'SPECIAL_GGR_EXPT_LOGS'))
-        return expt_dir
+        expt_query_dir = ut.ensuredir(ut.unixjoin(expt_dir, 'saved_queries'))
+        return expt_query_dir
 
     def log_query(self, qreq_=None, test=True):
-        expt_dir = self.expt_dir()
-        ut.vd(expt_dir)
+        expt_query_dir = self.expt_query_dir()
+        ut.vd(expt_query_dir)
         ibs = self.ibs
 
         if qreq_ is None and test:
@@ -445,8 +447,8 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
         ts = ut.get_timestamp(isutc=True, timezone=True)
 
-        expt_long_fpath = ut.unixjoin(expt_dir, 'long_expt_%s_%s.json' % (self.ibs.dbname, ts))
-        expt_short_fpath = ut.unixjoin(expt_dir, 'short_expt_%s_%s.json' % (self.ibs.dbname, ts))
+        expt_long_fpath = ut.unixjoin(expt_query_dir, 'long_expt_%s_%s.json' % (self.ibs.dbname, ts))
+        expt_short_fpath = ut.unixjoin(expt_query_dir, 'short_expt_%s_%s.json' % (self.ibs.dbname, ts))
 
         query_info = ut.odict([
             ('computer', ut.get_computer_name()),

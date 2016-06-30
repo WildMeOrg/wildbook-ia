@@ -50,6 +50,9 @@ ANNOTMATCH_PROPS_OTHER = [
     'BadShoulder',  # gf is a bad shoulder match
     'BadTail',  # gf is a bad tail match
     'TimeDeltaError',
+
+    # These annots have almost the same information
+    'NearDuplicate'
 ]
 
 OLD_ANNOTMATCH_PROPS = [
@@ -701,6 +704,7 @@ def set_annotmatch_prop(ibs, prop, annotmatch_rowids, flags):
     """
     hacky setter for dynamic properties of annotmatches using notes table
     """
+    print('[ibs] set_annotmatch_prop prop=%s for %d pairs' % (prop, len(annotmatch_rowids)))
     if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:
         setter = getattr(ibs, 'set_annotmatch_is_' + prop.lower())
         return setter(annotmatch_rowids, flags)
