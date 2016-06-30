@@ -570,6 +570,23 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
     return widget
 
 
+def newFrame(*args, **kwargs):
+    kwargs = kwargs.copy()
+    widget = QtGui.QFrame()
+    orientation = kwargs.get('orientation', None)
+    if orientation is None:
+        orientation = Qt.Vertical
+    if orientation == Qt.Vertical:
+        layout = QtGui.QVBoxLayout(widget)
+    elif orientation == Qt.Horizontal:
+        layout = QtGui.QHBoxLayout(widget)
+    else:
+        raise NotImplementedError('orientation')
+    widget.setLayout(layout)
+    _inject_new_widget_methods(widget)
+    return widget
+
+
 def newWidget(parent=None, orientation=Qt.Vertical,
               verticalSizePolicy=QSizePolicy.Expanding,
               horizontalSizePolicy=QSizePolicy.Expanding,
@@ -614,10 +631,6 @@ def newWidget(parent=None, orientation=Qt.Vertical,
     #    widget.addWidget = layout.addWidget
     #    widget.addChildWidget = layout.addChildWidget
     return widget
-
-
-def newFrame(*args):
-    return QtGui.QFrame()
 
 
 def _make_new_widget_func(widget_cls):

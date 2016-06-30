@@ -49,7 +49,8 @@ def simple_api_item_widget():
     col_setter_dict = {}
     editable_colnames = []
     sortby = 'col1'
-    get_thumb_size = lambda: 128  # HACK
+    def get_thumb_size():
+        return 128  # HACK
     col_width_dict = {}
     col_bgrole_dict = {}
 
@@ -197,7 +198,8 @@ class CustomAPI(object):
         ider_ = self.col_ider_list[column]
         if ider_ is None:
             return row
-        iderfunc = lambda func_: func_(row)
+        def iderfunc(func_):
+            return func_(row)
         return ut.uinput_1to1(iderfunc, ider_)
 
     def get(self, column, row, **kwargs):
