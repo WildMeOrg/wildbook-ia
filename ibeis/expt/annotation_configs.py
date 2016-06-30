@@ -97,11 +97,17 @@ INTRAGROUP_DEFAULTS = {
 }
 INDEPENDENT_DEFAULTS.update(INTRAGROUP_DEFAULTS)  # hack
 
+SUBINDEX_DEFAULTS_PARAM_INFO = [
+    ut.ParamInfo('index', None),
+]
+
 SUBINDEX_DEFAULTS = {
     # Final indexing
     'shuffle'             : False,  # randomize order before indexing
-    'index'               : None,   # choose only a subset
+    #'index'               : None,   # choose only a subset
 }
+for pi in SUBINDEX_DEFAULTS_PARAM_INFO:
+    SUBINDEX_DEFAULTS[pi.varname] = pi.default
 
 SAMPLE_DEFAULTS = {
     'sample_size'         : None,

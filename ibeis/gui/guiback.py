@@ -150,7 +150,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         from ibeis.expt import annotation_configs
         import dtool
         class TmpAnnotConfig(dtool.Config):
-            _param_info_list = annotation_configs.INDEPENDENT_DEFAULTS_PARAM_INFO
+            _param_info_list = annotation_configs.INDEPENDENT_DEFAULTS_PARAM_INFO + annotation_configs.SUBINDEX_DEFAULTS_PARAM_INFO
 
         class TmpPipelineConfig(dtool.Config):
             _param_info_list = [
@@ -388,13 +388,13 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
                 del short_info['expanded_uuids']
                 if 'expanded_aids' in short_info:
                     del short_info['expanded_aids']
-                ut.save_json(short_fpath, short_info)
+                ut.save_json(short_fpath, short_info, pretty=True)
             if 'num_daids' not in short_info:
                 long_info = ut.load_json(long_fpath)
                 quuids, duuids = long_info['expanded_uuids']
                 short_info['num_qaids'] = len(quuids)
                 short_info['num_daids'] = len(duuids)
-                ut.save_json(short_fpath, short_info)
+                ut.save_json(short_fpath, short_info, pretty=True)
 
             data['num_qaids'].append(short_info.get('num_qaids', '?'))
             data['num_daids'].append(short_info.get('num_daids', '?'))
