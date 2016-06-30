@@ -24,11 +24,10 @@ from plottool import fig_presenter
 import guitool
 import numpy as np
 import six
-import utool
 #from ibeis import constants as const
 import utool as ut
 from ibeis.gui import guiexcept
-(print, rrr, profile) = utool.inject2(__name__, '[inspect_gui]')
+(print, rrr, profile) = ut.inject2(__name__, '[inspect_gui]')
 
 
 MATCHED_STATUS_TEXT  = 'Matched'
@@ -385,7 +384,7 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.show_new = True
         qres_wgt.show_join = True
         qres_wgt.show_split = True
-        qres_wgt.tt = utool.tic()
+        qres_wgt.tt = ut.tic()
         # Set results data
         if USE_FILTER_PROXY:
             qres_wgt.add_checkboxes(qres_wgt.show_new, qres_wgt.show_join,
@@ -530,7 +529,7 @@ class QueryResultsWidget(APIItemWidget):
         print('[qres_wgt] _on_pressed: ')
         def _check_for_double_click(qres_wgt, qtindex):
             threshold = 0.20  # seconds
-            distance = utool.toc(qres_wgt.tt)
+            distance = ut.toc(qres_wgt.tt)
             #print('Pressed %r' % (distance,))
             col = qtindex.column()
             model = qtindex.model()
@@ -542,7 +541,7 @@ class QueryResultsWidget(APIItemWidget):
                 else:
                     #qres_wgt.view.doubleClicked.emit(qtindex)
                     qres_wgt._on_doubleclick(qtindex)
-            qres_wgt.tt = utool.tic()
+            qres_wgt.tt = ut.tic()
         _check_for_double_click(qres_wgt, qtindex)
         pass
 
@@ -746,8 +745,8 @@ def get_match_status(ibs, aid_pair):
     should follow the same paradigm, but CustomAPI will have to change.
     """
     aid1, aid2 = aid_pair
-    assert not utool.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
-    assert not utool.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+    assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
+    assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
     #text  = ibsfuncs.vsstr(aid1, aid2)
     text = ibs.get_match_text(aid1, aid2)
     if text is None:
@@ -762,8 +761,8 @@ def get_reviewed_status(ibs, aid_pair):
     should follow the same paradigm, but CustomAPI will have to change.
     """
     aid1, aid2 = aid_pair
-    assert not utool.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
-    assert not utool.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+    assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
+    assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
     #text  = ibsfuncs.vsstr(aid1, aid2)
     annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
     return 'Yes' if annotmach_reviewed else 'No'
@@ -1462,7 +1461,6 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         ranks_stack.append(ranks)
 
     # Stack them into a giant array
-    # utool.embed()
     qaid_arr  = np.hstack(qaids_stack)
     daid_arr  = np.hstack(daids_stack)
     score_arr = np.hstack(scores_stack)
