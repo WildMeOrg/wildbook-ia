@@ -67,10 +67,12 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> import vtool as vt
         >>> imgBGR = vt.get_star_patch(jitter=True)
         >>> H = np.array([[1, 0, 0], [.5, 2, 0], [0, 0, 1]])
-        >>> H = None
+        >>> H = np.array([[.5, 0, 0], [0, .5, 0], [0, 0, 1]])
+        >>> #H = None
         >>> TAU = 2 * np.pi
         >>> kpts_ = vt.make_test_image_keypoints(imgBGR, scale=.5, skew=2, theta=TAU / 8.0)
         >>> scale_factor=1.0
+        >>> #offset=(0.0, -4.0)
         >>> offset=(0.0, 0.0)
         >>> rotation=0.0
         >>> ell=True

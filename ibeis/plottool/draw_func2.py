@@ -2568,7 +2568,8 @@ def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None, **kwargs)
 
 def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
                 color_list=None, scale_factor=1, lw=1.4, line_alpha=.35,
-                H1=None, H2=None, scale_factor1=None, scale_factor2=None, **kwargs):
+                H1=None, H2=None, scale_factor1=None, scale_factor2=None,
+                ax=None, **kwargs):
     import vtool as vt
     if scale_factor1 is None:
         scale_factor1 = 1.0, 1.0
@@ -2579,7 +2580,8 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
         assert kpts1.shape == kpts2.shape, 'bad shape'
     if len(fm) == 0:
         return
-    ax = gca()
+    if ax is None:
+        ax = gca()
     woff, hoff = kpts2_offset
     # Draw line collection
     kpts1_m = kpts1[fm[:, 0]].T
@@ -2712,7 +2714,7 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
                ell=True, pts=False, rect=False, eig=False, ori=False,
                pts_size=2, ell_alpha=.6, ell_linewidth=1.5,
                ell_color=None, pts_color=ORANGE, color_list=None, pts_alpha=1.0,
-               siftkw={}, H=None, weights=None, cmap_='hot', **kwargs):
+               siftkw={}, H=None, weights=None, cmap_='hot', ax=None, **kwargs):
     """
     thin wrapper around mpl_keypoint.draw_keypoints
 
@@ -2778,7 +2780,8 @@ def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
     except AssertionError as ex:
         ut.printex(ex)
         return
-    ax = gca()
+    if ax is None:
+        ax = gca()
     if color_list is None and weights is not None:
         # hack to turn into a color map
         color_list = scores_to_color(weights, cmap_=cmap_, reverse_cmap=False)
@@ -3126,7 +3129,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
                     fm_norm=None, title=None,
                     vert=None, fnum=None, pnum=None, heatmap=False,
                     draw_fmatch=True, darken=DARKEN, H1=None, H2=None,
-                    sel_fm=[], **kwargs):
+                    sel_fm=[], ax=None, **kwargs):
     """
     Draws two chips and the feature matches between them. feature matches
     kpts1 and kpts2 use the (x,y,a,c,d)
@@ -3152,7 +3155,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         python -m plottool.draw_func2 --test-show_chipmatch2 --show
 
     Example:
-        >>> # DISABLE_DOCTEST (TODO REMOVE IBEIS DOCTEST)
+        >>> # DISABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
         >>> import plottool as pt
         >>> import vtool as vt
@@ -3174,10 +3177,13 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         >>> H1 = np.array([[ -4.68815126e-01,   7.80306795e-02,  -2.23674587e+01],
         ...                [  4.54394231e-02,  -7.67438835e-01,   5.92158624e+01],
         ...                [  2.12918867e-04,  -8.64851418e-05,  -6.21472492e-01]])
-        >>> H1 = None
         >>> H2 = None
+        >>> H_half = np.array([[.2, 0, 0], [0, .2, 0], [0, 0, 1]])
+        >>> #H1 = None
+        >>> H1 = H_half
+        >>> H2 = H_half
         >>> # execute function
-        >>> result = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, H1=H1, H2=H2, fm=fm, line_alpha=[1, .1, .1, .1], lw=10, ell_linewidth=5)
+        >>> result = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, H1=H1, H2=H2, fm=fm, line_alpha=[1, .3, .3, .3], lw=10, ell_linewidth=5)
         >>> # verify results
         >>> print(result)
         >>> pt.show_if_requested()
@@ -3198,39 +3204,66 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         #>>> kpts1, kpts2 = ibs.get_annot_kpts((aid1, aid2))
     """
     if ut.VERBOSE:
-        print('[df2] show_chipmatch2() fnum=%r, pnum=%r' % (fnum, pnum))
+        print('[df2] show_chipmatch2() fnum=%r, pnum=%r, ax=%r' % (fnum, pnum, ax))
     wh1 = vt.get_size(rchip1)
     wh2 = vt.get_size(rchip2)
+    # Test if the image should be smaller
+    #def test_homography_is_smaller(H, wh):
+    #    w, h = wh
+    #    corners = np.array(vt.verts_from_bbox([0, 0, w, h]))
+    #    tl, tr, br, bl = corners
+    #    corners_t = vt.linalg.transform_points_with_homography(H, corners.T)
+    #    flag = np.all(corners_t <= br[:, None]) and np.all(corners_t >= tl[:, None])
+    #    new_wh = np.round(corners_t[:, 2]).astype(np.int)
+    #    #print('wh = %r' % (wh,))
+    #    #print('flag = %r' % (flag,))
+    #    #print('new_wh = %r' % (new_wh,))
+    #    if not flag:
+    #        new_wh = wh
+    #    return flag, new_wh
+    if True:  # if H1 is None and H2 is not None or H2 is None and H1 is not None:
+        # We are warping one chip into the space of the other
+        dsize1 = wh2
+        dsize2 = wh1
+    #else:
+    #    if H1 is not None:
+    #        _, wh1 = test_homography_is_smaller(H1, wh1)
+    #    if H2 is not None:
+    #        _, wh2 = test_homography_is_smaller(H2, wh2)
+    #    # We are doing funky things
+    #    print('funky')
+    #    dsize1 = wh1
+    #    dsize2 = wh2
     # Warp if homography is specified
-    rchip1_ = vt.warpHomog(rchip1, H1, wh2) if H1 is not None else rchip1
-    rchip2_ = vt.warpHomog(rchip2, H2, wh1) if H2 is not None else rchip2
+    rchip1_ = vt.warpHomog(rchip1, H1, dsize1) if H1 is not None else rchip1
+    rchip2_ = vt.warpHomog(rchip2, H2, dsize2) if H2 is not None else rchip2
     # get matching keypoints + offset
-    (h1, w1) = rchip1_.shape[0:2]  # get chip (h, w) dimensions
-    (h2, w2) = rchip2_.shape[0:2]
+    (w1, h1) = vt.get_size(rchip1_)
+    (w2, h2) = vt.get_size(rchip2_)
     # Stack the compared chips
     match_img, offset_tup, sf_tup = vt.stack_images(rchip1_, rchip2_, vert, return_sf=True)
     (woff, hoff) = offset_tup[1]
     xywh1 = (0, 0, w1, h1)
     xywh2 = (woff, hoff, w2, h2)
     # Show the stacked chips
-    fig, ax = imshow(match_img, title=title, fnum=fnum, pnum=pnum, heatmap=heatmap, darken=darken)
+    fig, ax = imshow(match_img, title=title, fnum=fnum, pnum=pnum, ax=ax,
+                     heatmap=heatmap, darken=darken)
     # Overlay feature match nnotations
     if draw_fmatch and kpts1 is not None and kpts2 is not None:
         plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs, fm_norm=fm_norm, H1=H1,
-                    H2=H2, **kwargs)
+                    H2=H2, ax=ax, **kwargs)
         if len(sel_fm) > 0:
             # Draw any selected matches in blue
             sm_kw = dict(rect=True, colors=BLUE)
-            plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, **sm_kw)
+            plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, ax=ax, **sm_kw)
     return ax, xywh1, xywh2
 
 
 # plot feature match
-def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None, lbl2=None,
-                fnum=None, pnum=None, rect=False, colorbar_=True,
-                draw_border=False, cmap=None, H1=None, H2=None,
-                scale_factor1=None, scale_factor2=None,
-                **kwargs):
+def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None,
+                lbl1=None, lbl2=None, fnum=None, pnum=None, rect=False,
+                colorbar_=True, draw_border=False, cmap=None, H1=None, H2=None,
+                scale_factor1=None, scale_factor2=None, ax=None, **kwargs):
     """
     Overlays the matching features over chips that were previously plotted.
 
@@ -3317,11 +3350,11 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None
         all_args = dict(ell=False, pts=pts, pts_color=GREEN, pts_size=2,
                         ell_alpha=ell_alpha, rect=rect)
         all_args.update(kwargs)
-        draw_kpts2(kpts1, offset=offset1, H=H1, **all_args)
-        draw_kpts2(kpts2, offset=offset2, H=H2, **all_args)
+        draw_kpts2(kpts1, offset=offset1, H=H1, ax=ax, **all_args)
+        draw_kpts2(kpts2, offset=offset2, H=H2, ax=ax, **all_args)
     if draw_border:
-        draw_bbox(xywh1, bbox_color=BLACK, draw_arrow=False)
-        draw_bbox(xywh2, bbox_color=BLACK, draw_arrow=False)
+        draw_bbox(xywh1, bbox_color=BLACK, ax=ax, draw_arrow=False)
+        draw_bbox(xywh2, bbox_color=BLACK, ax=ax, draw_arrow=False)
 
     if nMatch > 0:
         # draw lines and ellipses and points
@@ -3341,9 +3374,10 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None
             if kpts1 is not None:
                 draw_kpts2(kpts1[fxs1], offset=offset1,
                            scale_factor=scale_factor1, rect=rect, H=H1,
+                           ax=ax,
                            **_kwargs)
             draw_kpts2(kpts2[fxs2], offset=offset2, scale_factor=scale_factor2,
-                       rect=rect, H=H2, **_kwargs)
+                       ax=ax, rect=rect, H=H2, **_kwargs)
 
         def _drawlines(**_kwargs):
             _kwargs.update(kwargs)
@@ -3351,7 +3385,7 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None
                         kpts2_offset=offset2,
                         scale_factor1=scale_factor1,
                         scale_factor2=scale_factor2,
-                        H1=H1, H2=H2, **_kwargs)
+                        H1=H1, H2=H2, ax=ax, **_kwargs)
             if fm_norm is not None:
                 # NORMALIZING MATCHES IF GIVEN
                 _kwargs_norm = _kwargs.copy()
@@ -3361,7 +3395,7 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None, lbl1=None
                 _kwargs_norm['color_list'] = colors
                 draw_lines2(kpts1, kpts2, fm_norm, fs, kpts2_offset=offset2,
                             H1=H1, H2=H2, scale_factor1=scale_factor1,
-                            scale_factor2=scale_factor2, **_kwargs_norm)
+                            scale_factor2=scale_factor2, ax=ax, **_kwargs_norm)
 
         if ell:
             _drawkpts(pts=False, ell=True, color_list=colors)
