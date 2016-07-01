@@ -882,7 +882,8 @@ def get_reviewed_status(ibs, aid_pair):
     assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
     #text  = ibsfuncs.vsstr(aid1, aid2)
     annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
-    return 'Yes' if annotmach_reviewed else 'No'
+    text = 'Yes' if annotmach_reviewed > 0 else 'No'
+    return text + '(%r)' % (annotmach_reviewed,)
     #text = ibs.get_match_text(aid1, aid2)
     #if text is None:
     #    raise AssertionError('impossible state inspect_gui')
