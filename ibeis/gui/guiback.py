@@ -292,6 +292,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
         gt.fix_child_attr_heirarchy(self, 'setSpacing', 0)
         gt.fix_child_attr_heirarchy(self, 'setMargin', 2)
+        self.cfg_needs_update = True
         #layout.addWidget(self.update_button, 3, 2, 1, 1)
         #layout.addWidget(self.editQueryConfig)
         #layout.addWidget(self.editDataConfig)
@@ -313,7 +314,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         table = self.saved_queries
         self.saved_queries.setColumnCount(len(data))
         print('Populating table')
-        for n, key in enumerate(horHeaders):
+        for n, key in ut.ProgIter(enumerate(horHeaders), lbl='pop table'):
             if n == 0:
                 self.saved_queries.setRowCount(len(data[key]))
             for m, item in enumerate(data[key]):
@@ -535,7 +536,26 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
     @slot_()
     def execute_query(self):
         print('accept')
-        assert not self.cfg_needs_update, 'NEED TO APPLY ACFG/PCFG BEFORE EXECUTING'
+        #assert not self.cfg_needs_update, 'NEED TO APPLY ACFG/PCFG BEFORE EXECUTING'
+        if self.cfg_needs_update:
+            options = ['Apply now and continue', 'Apply now and wait']
+            import guitool as gt
+            reply = gt.user_option(
+                msg=ut.codeblock(
+                    '''
+                    Information display is out of date. You should apply the
+                    modified configuration before you continue.
+                    '''),
+                options=options
+            )
+
+            if reply == options[0]:
+                self.apply_new_config()
+            elif reply == options[1]:
+                self.apply_new_config()
+                raise guiexcept.UserCancel()
+            else:
+                raise guiexcept.UserCancel()
         self.accept_flag = True
         from ibeis.gui import inspect_gui
 

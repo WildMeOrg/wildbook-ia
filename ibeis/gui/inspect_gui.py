@@ -429,7 +429,6 @@ class QueryResultsWidget(APIItemWidget):
 
         # LOG ALL CHANGES MADE TO NAMES
         import logging
-        ut.vd(review_log_dir)
         # create logger with 'spam_application'
         logger = logging.getLogger('query_review')
         logger.setLevel(logging.DEBUG)
@@ -735,8 +734,8 @@ class QueryResultsWidget(APIItemWidget):
                     merge_name = ibs.get_name_texts(merge_nid)
                     annot_uuids = ibs.get_annot_uuids(aids)
                     log('START GROUP %d' % (count,))
-                    log('GROUP BASED ON %d ANNOT_PAIRS WITH SCORE ABOVE (thresh=%r)' % (thresh,))
-                    log('(uuid_pairs=%r)' % (len(thresh_uuid_pairs), thresh_uuid_pairs))
+                    log('GROUP BASED ON %d ANNOT_PAIRS WITH SCORE ABOVE (thresh=%r)' % (len(thresh_uuid_pairs), thresh,))
+                    log('(uuid_pairs=%r)' % (thresh_uuid_pairs))
                     log('CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)' % (
                         len(annot_uuids), annot_uuids, previous_names, type_, merge_name))
                     log('ADDITIONAL CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)' % (
