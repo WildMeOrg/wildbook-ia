@@ -146,9 +146,12 @@ def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
 SHOW_TEXT = ut.get_argflag('--progtext')
 
 
-class ProgressHooks(QtCore.QObject):
+class ProgressHooks(QtCore.QObject, ut.NiceRepr):
     """
-    hooks into utool.ProgressIterator
+    hooks into utool.ProgressIterator.
+
+    A hook represents a fraction of a progress step.
+    Hooks can be divided recursively
 
     TODO:
         use signals and slots to connect to the progress bar
@@ -162,8 +165,38 @@ class ProgressHooks(QtCore.QObject):
 
     References:
         http://stackoverflow.com/questions/19442443/busy-indication-with-pyqt-progress-bar
+
+    Args:
+        proghook (?):
+        progressBar (?):
+        substep_min (int): (default = 0)
+        substep_size (int): (default = 1)
+        level (int): (default = 0)
+
+    CommandLine:
+        python -m guitool.guitool_components ProgressHooks --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> import guitool as gt
+        >>> app = gt.ensure_qtapp()[0]
+        >>> parent = newWidget()
+        >>> parent.show()
+        >>> parent.resize(600, 40)
+        >>> progbar = newProgressBar(parent, visible=True)
+        >>> proghook = progbar.utool_prog_hook
+        >>> proghook.lbl = 'first-label'
+        >>> proghook.set_progress(0, 1, 'custom-label')
+        >>> subhooks = proghook.make_substep_hooks(2)
+        >>> for hook in subhooks:
+        >>>     print(hook.substep_min)
+        >>> app.processEvents()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
     """
-    set_progress_signal = QtCore.pyqtSignal(int, int)
+    progress_changed_signal = QtCore.pyqtSignal(float, str)
     show_indefinite_progress_signal = QtCore.pyqtSignal()
 
     def __init__(proghook, progressBar, substep_min=0, substep_size=1, level=0):
@@ -172,13 +205,26 @@ class ProgressHooks(QtCore.QObject):
         proghook.substep_min = substep_min
         proghook.substep_size = substep_size
         proghook.count = 0
-        proghook.nTotal = None
+        proghook.nTotal = 1
         proghook.progiter = None
-        proghook.lbl = ''
+        proghook.lbl = 'prog'
         proghook.level = level
         proghook.child_hook_gen = None
-        proghook.set_progress_signal.connect(proghook.set_progress_slot)
+        proghook.progress_changed_signal.connect(proghook.on_progress_changed)
         proghook.show_indefinite_progress_signal.connect(proghook.show_indefinite_progress_slot)
+
+    def __nice__(proghook):
+        return '(' + proghook.lbl + ', %r, %r)' % proghook.global_extent()
+
+    def global_extent(proghook):
+        min_ = proghook.substep_min
+        max_ = min_ + proghook.substep_size
+        return (min_, max_)
+
+    def register_progiter(proghook, progiter):
+        proghook.progiter = weakref.ref(progiter)
+        proghook.nTotal = proghook.progiter().nTotal
+        proghook.lbl = proghook.progiter().lbl
 
     def initialize_subhooks(proghook, num_child_subhooks):
         proghook.child_hook_gen = iter(proghook.make_substep_hooks(num_child_subhooks))
@@ -186,24 +232,28 @@ class ProgressHooks(QtCore.QObject):
     def next_subhook(proghook):
         return six.next(proghook.child_hook_gen)
 
-    def register_progiter(proghook, progiter):
-        proghook.progiter = weakref.ref(progiter)
-        proghook.nTotal = proghook.progiter().nTotal
-        proghook.lbl = proghook.progiter().lbl
-
     def make_substep_hooks(proghook, num_substeps):
         """ make hooks that take up a fraction of this hooks step size.
             substep sizes are all fractional
         """
-        step_min = ((proghook.progiter().count - 1) / proghook.nTotal) * proghook.substep_size  + proghook.substep_min
-        step_size = (1.0 / proghook.nTotal) * proghook.substep_size
+        if proghook.progiter is None:
+            count = proghook.count
+            nTotal = proghook.nTotal
+            if nTotal is None:
+                nTotal = 100
+        else:
+            count = proghook.progiter().count
+            nTotal = proghook.nTotal
+
+        step_min = ((count - 1) / nTotal) * proghook.substep_size  + proghook.substep_min
+        step_size = (1.0 / nTotal) * proghook.substep_size
 
         substep_size = step_size / num_substeps
         substep_min_list = [(step * substep_size) + step_min for step in range(num_substeps)]
 
         DEBUG = False
         if DEBUG:
-            with ut.Indenter(' ' * 4 * proghook.level):
+            with ut.Indenter(' ' * 4 * nTotal):
                 print('\n')
                 print('+____<NEW SUBSTEPS>____')
                 print('Making %d substeps for proghook.lbl = %s' % (num_substeps, proghook.lbl,))
@@ -217,6 +267,58 @@ class ProgressHooks(QtCore.QObject):
         subhook_list = [ProgressHooks(proghook.progressBarRef(), substep_min, substep_size, proghook.level + 1)
                         for substep_min in substep_min_list]
         return subhook_list
+
+    def set_progress(proghook, count, nTotal=None, lbl=None):
+        if nTotal is None:
+            nTotal = proghook.nTotal
+            if nTotal is None:
+                nTotal = 100
+        else:
+            proghook.nTotal = nTotal
+        proghook.count = count
+        if lbl is not None:
+            proghook.lbl = lbl
+        global_fraction = proghook.global_progress()
+        proghook.progress_changed_signal.emit(global_fraction, proghook.lbl)
+        #proghook.set_progress_slot(count, nTotal)
+
+    def __call__(proghook, count, nTotal=None, lbl=None):
+        proghook.set_progress(count, nTotal, lbl)
+
+    def local_progress(proghook):
+        """ percent done of this subhook """
+        nTotal = proghook.nTotal
+        count = proghook.count
+        local_fraction = (count) / nTotal
+        return local_fraction
+
+    def global_progress(proghook):
+        """ percent done of entire process """
+        local_fraction = proghook.local_progress()
+        substep_size = proghook.substep_size
+        substep_min = proghook.substep_min
+        global_fraction = substep_min + (local_fraction * substep_size)
+        return global_fraction
+
+    @QtCore.pyqtSlot(float, str)
+    def on_progress_changed(proghook, global_fraction, lbl):
+        if SHOW_TEXT:
+            resolution = 75
+            num_full = int(round(global_fraction * resolution))
+            num_empty = resolution - num_full
+            print('\n')
+            print('[' + '#' * num_full + '.' * num_empty + '] %7.3f%%' % (global_fraction * 100))
+            print('\n')
+        progbar = proghook.progressBarRef()
+        progbar.setRange(0, 10000)
+        progbar.setMinimum(0)
+        progbar.setMaximum(10000)
+        value = int(round(progbar.maximum() * global_fraction))
+        progbar.setFormat(lbl + ' %p%')
+        progbar.setValue(value)
+        #progbar.setProperty('value', value)
+        # major hack
+        proghook.force_event_update()
 
     @QtCore.pyqtSlot()
     def show_indefinite_progress_slot(proghook):
@@ -234,63 +336,6 @@ class ProgressHooks(QtCore.QObject):
         import guitool
         qtapp = guitool.get_qtapp()
         qtapp.processEvents()
-
-    def set_progress(proghook, count, nTotal=None):
-        if nTotal is None:
-            nTotal = proghook.nTotal
-        else:
-            proghook.nTotal = nTotal
-        if nTotal is None:
-            nTotal = 100
-        proghook.set_progress_signal.emit(count, nTotal)
-
-    @QtCore.pyqtSlot(int, int)
-    def set_progress_slot(proghook, count, nTotal=None):
-        if nTotal is None:
-            nTotal = proghook.nTotal
-        else:
-            proghook.nTotal = nTotal
-        proghook.count = count
-        local_fraction = (count) / nTotal
-        global_fraction = (local_fraction * proghook.substep_size) + proghook.substep_min
-        DEBUG = False
-
-        if DEBUG:
-            with ut.Indenter(' ' * 4 * proghook.level):
-                print('\n')
-                print('+-----------')
-                print('proghook.substep_min = %.3f' % (proghook.substep_min,))
-                print('proghook.lbl = %r' % (proghook.lbl,))
-                print('proghook.substep_size = %.3f' % (proghook.substep_size,))
-                print('global_fraction = %.3f' % (global_fraction,))
-                print('local_fraction = %.3f' % (local_fraction,))
-                print('L___________')
-        if SHOW_TEXT:
-            resolution = 75
-            num_full = int(round(global_fraction * resolution))
-            num_empty = resolution - num_full
-            print('\n')
-            print('[' + '#' * num_full + '.' * num_empty + '] %7.3f%%' % (global_fraction * 100))
-            print('\n')
-        #assert local_fraction <= 1.0
-        #assert global_fraction <= 1.0
-        progbar = proghook.progressBarRef()
-        progbar.setRange(0, 10000)
-        progbar.setMinimum(0)
-        progbar.setMaximum(10000)
-        value = int(round(progbar.maximum() * global_fraction))
-        progbar.setFormat(proghook.lbl + ' %p%')
-        progbar.setValue(value)
-        #progbar.setProperty('value', value)
-        # major hack
-        proghook.force_event_update()
-        #import guitool
-        #qtapp = guitool.get_qtapp()
-        #qtapp.processEvents()
-
-    def __call__(proghook, count, nTotal=None):
-        proghook.set_progress(count, nTotal)
-        #proghook.set_progress_slot(count, nTotal)
 
 
 def newProgressBar(parent, visible=True, verticalStretch=1):
@@ -754,7 +799,7 @@ class GuitoolWidget(WIDGET_BASE):
             layout = QtGui.QHBoxLayout(self)
         else:
             raise NotImplementedError('orientation')
-        layout.setSpacing(0)
+        #layout.setSpacing(0)
         self.setLayout(layout)
         self._guitool_layout = layout
         #layout.setAlignment(Qt.AlignBottom)
