@@ -167,8 +167,7 @@ class ProgressHooks(QtCore.QObject, ut.NiceRepr):
         http://stackoverflow.com/questions/19442443/busy-indication-with-pyqt-progress-bar
 
     Args:
-        proghook (?):
-        progressBar (?):
+        progbar (Qt.QProgressBar):
         substep_min (int): (default = 0)
         substep_size (int): (default = 1)
         level (int): (default = 0)
@@ -186,11 +185,19 @@ class ProgressHooks(QtCore.QObject, ut.NiceRepr):
         >>> parent.resize(600, 40)
         >>> progbar = newProgressBar(parent, visible=True)
         >>> proghook = progbar.utool_prog_hook
-        >>> proghook.lbl = 'first-label'
-        >>> proghook.set_progress(0, 1, 'custom-label')
-        >>> subhooks = proghook.make_substep_hooks(2)
-        >>> for hook in subhooks:
-        >>>     print(hook.substep_min)
+        >>> subhooks = proghook.subdivide_hooks(num=4)
+        >>> hook = subhooks[0]
+        >>> hook(0, 2)
+        >>> hook(1, 2)
+        >>> substep_hooks = proghook.make_substep_hooks(num=4)
+        >>>
+        >>> hook(2, 2)
+        >>> subhook2 = subhooks[1]
+        >>> subsubhooks = subhook2.subdivide_hooks(num=2)
+        >>> subsubhooks[0](0, 3)
+        >>> subsubhooks[0](1, 3)
+        >>> subsubhooks[0](2, 3, 'special part')
+        >>> subsubhooks[0](3, 3, 'other part')
         >>> app.processEvents()
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -199,11 +206,13 @@ class ProgressHooks(QtCore.QObject, ut.NiceRepr):
     progress_changed_signal = QtCore.pyqtSignal(float, str)
     show_indefinite_progress_signal = QtCore.pyqtSignal()
 
-    def __init__(proghook, progressBar, substep_min=0, substep_size=1, level=0):
+    def __init__(proghook, progbar, global_min=0, global_max=1, level=0):
         super(ProgressHooks, proghook).__init__()
-        proghook.progressBarRef = weakref.ref(progressBar)
-        proghook.substep_min = substep_min
-        proghook.substep_size = substep_size
+        proghook.progressBarRef = weakref.ref(progbar)
+        proghook.global_min = global_min
+        proghook.global_max = global_max
+        #proghook.substep_min = substep_min
+        #proghook.substep_size = substep_size
         proghook.count = 0
         proghook.nTotal = 1
         proghook.progiter = None
@@ -214,59 +223,112 @@ class ProgressHooks(QtCore.QObject, ut.NiceRepr):
         proghook.show_indefinite_progress_signal.connect(proghook.show_indefinite_progress_slot)
 
     def __nice__(proghook):
-        return '(' + proghook.lbl + ', %r, %r)' % proghook.global_extent()
+        return '(' + proghook.lbl + ', %r, %r)' % proghook.global_bounds()
+
+    def global_bounds(proghook):
+        min_ = proghook.global_min
+        max_ = proghook.global_max
+        return (min_, max_)
 
     def global_extent(proghook):
-        min_ = proghook.substep_min
-        max_ = min_ + proghook.substep_size
-        return (min_, max_)
+        min_, max_ = proghook.global_bounds()
+        return max_ - min_
 
     def register_progiter(proghook, progiter):
         proghook.progiter = weakref.ref(progiter)
         proghook.nTotal = proghook.progiter().nTotal
         proghook.lbl = proghook.progiter().lbl
 
-    def initialize_subhooks(proghook, num_child_subhooks):
-        proghook.child_hook_gen = iter(proghook.make_substep_hooks(num_child_subhooks))
+    def initialize_subhooks(proghook, num=None, spacing=None):
+        subhooks = proghook.make_substep_hooks(num, spacing)
+        proghook.child_hook_gen = iter(subhooks)
 
     def next_subhook(proghook):
         return six.next(proghook.child_hook_gen)
 
-    def make_substep_hooks(proghook, num_substeps):
-        """ make hooks that take up a fraction of this hooks step size.
-            substep sizes are all fractional
+    def subdivide_hooks(proghook, num=None, spacing=None):
         """
+        Branches this hook into several new leafs.
+        Only progress leafs are used to indicate global progress.
+        """
+        if num is None:
+            num = len(spacing) - 1
+        if spacing is None:
+            # Assume uniform sub iterators
+            import numpy as np
+            spacing = np.linspace(0, 1, num + 1)
+
+        #min_, max_ = proghook.global_bounds()
+        extent = proghook.global_extent()
+        global_spacing = proghook.global_min + (spacing * extent)
+        sub_min_list = global_spacing[:-1]
+        sub_max_list = global_spacing[1:]
+
+        progbar = proghook.progressBarRef()
+        subhook_list = [ProgressHooks(progbar, min_, max_, proghook.level + 1)
+                        for min_, max_ in zip(sub_min_list, sub_max_list)]
+        return subhook_list
+
+    def make_substep_hooks(proghook, num=None, spacing=None):
+        """
+        This takes into account your current position, and gives you only
+        enough subhooks to complete a single step.
+
+        Need to know current count, stepsize, and total number of steps in this
+        subhook.
+        """
+        if num is None:
+            num = len(spacing) - 1
+        if spacing is None:
+            # Assume uniform sub iterators
+            import numpy as np
+            spacing = np.linspace(0, 1, num + 1)
+
         if proghook.progiter is None:
             count = proghook.count
-            nTotal = proghook.nTotal
-            if nTotal is None:
-                nTotal = 100
         else:
             count = proghook.progiter().count
-            nTotal = proghook.nTotal
+        nTotal = proghook.nTotal
 
-        step_min = ((count - 1) / nTotal) * proghook.substep_size  + proghook.substep_min
-        step_size = (1.0 / nTotal) * proghook.substep_size
+        #min_, max_ = proghook.global_bounds()
+        extent = proghook.global_extent()
 
-        substep_size = step_size / num_substeps
-        substep_min_list = [(step * substep_size) + step_min for step in range(num_substeps)]
+        local_stepsize = nTotal / count
+        step_extent =
 
-        DEBUG = False
-        if DEBUG:
-            with ut.Indenter(' ' * 4 * nTotal):
-                print('\n')
-                print('+____<NEW SUBSTEPS>____')
-                print('Making %d substeps for proghook.lbl = %s' % (num_substeps, proghook.lbl,))
-                print(' * step_min         = %.2f' % (step_min,))
-                print(' * step_size        = %.2f' % (step_size,))
-                print(' * substep_size     = %.2f' % (substep_size,))
-                print(' * substep_min_list = %r' % (substep_min_list,))
-                print(r'L____</NEW SUBSTEPS>____')
-                print('\n')
+        global_spacing = proghook.global_min + (spacing * extent)
+        sub_min_list = global_spacing[:-1]
+        sub_max_list = global_spacing[1:]
 
-        subhook_list = [ProgressHooks(proghook.progressBarRef(), substep_min, substep_size, proghook.level + 1)
-                        for substep_min in substep_min_list]
+        proghook.nTotal / proghook.global_extent()
+
+        progbar = proghook.progressBarRef()
+        subhook_list = [ProgressHooks(progbar, min_, max_, proghook.level + 1)
+                        for min_, max_ in zip(sub_min_list, sub_max_list)]
         return subhook_list
+
+        #subhook_list = [ProgressHooks(proghook.progressBarRef(), substep_min, substep_size, proghook.level + 1)
+        #                for substep_min in substep_min_list]
+        #return subhook_list
+
+        #step_min = ((count - 1) / nTotal) * proghook.substep_size  + proghook.substep_min
+        #step_size = (1.0 / nTotal) * proghook.substep_size
+
+        #substep_size = step_size / num_substeps
+        #substep_min_list = [(step * substep_size) + step_min for step in range(num_substeps)]
+
+        #DEBUG = False
+        #if DEBUG:
+        #    with ut.Indenter(' ' * 4 * nTotal):
+        #        print('\n')
+        #        print('+____<NEW SUBSTEPS>____')
+        #        print('Making %d substeps for proghook.lbl = %s' % (num_substeps, proghook.lbl,))
+        #        print(' * step_min         = %.2f' % (step_min,))
+        #        print(' * step_size        = %.2f' % (step_size,))
+        #        print(' * substep_size     = %.2f' % (substep_size,))
+        #        print(' * substep_min_list = %r' % (substep_min_list,))
+        #        print(r'L____</NEW SUBSTEPS>____')
+        #        print('\n')
 
     def set_progress(proghook, count, nTotal=None, lbl=None):
         if nTotal is None:
@@ -295,9 +357,9 @@ class ProgressHooks(QtCore.QObject, ut.NiceRepr):
     def global_progress(proghook):
         """ percent done of entire process """
         local_fraction = proghook.local_progress()
-        substep_size = proghook.substep_size
-        substep_min = proghook.substep_min
-        global_fraction = substep_min + (local_fraction * substep_size)
+        extent = proghook.global_extent()
+        global_min = proghook.global_min
+        global_fraction = global_min + (local_fraction * extent)
         return global_fraction
 
     @QtCore.pyqtSlot(float, str)
@@ -386,12 +448,12 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         >>> parent = None
         >>> visible = True
         >>> verticalStretch = 1
-        >>> def complex_tasks(proghook):
+        >>> def complex_tasks(hook):
         ...     progkw = dict(freq=1, backspace=False, autoadjust=False)
         ...     num = 800
-        ...     for x in ut.ProgressIter(range(4), lbl='TASK', prog_hook=proghook, **progkw):
+        ...     for x in ut.ProgressIter(range(4), lbl='TASK', prog_hook=hook, **progkw):
         ...         ut.get_nth_prime_bruteforce(num)
-        ...         subhooks = proghook.make_substep_hooks(2)
+        ...         subhooks = hook.make_substep_hooks(2)
         ...         for task1 in ut.ProgressIter(range(2), lbl='task1.1', prog_hook=subhooks[0], **progkw):
         ...             ut.get_nth_prime_bruteforce(num)
         ...             subsubhooks = subhooks[0].make_substep_hooks(3)
@@ -405,7 +467,8 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         ...             ut.get_nth_prime_bruteforce(num)
         >>> # hook into utool progress iter
         >>> progressBar = newProgressBar(parent, visible, verticalStretch)
-        >>> complex_tasks(progressBar.utool_prog_hook)
+        >>> hook = progressBar.utool_prog_hook
+        >>> complex_tasks(hook)
         >>> # verify results
         >>> ut.quit_if_noshow()
         >>> guitool.qtapp_loop(freq=10)
