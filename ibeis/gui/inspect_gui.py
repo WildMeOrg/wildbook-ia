@@ -908,7 +908,7 @@ def get_reviewed_status_bgrole(ibs, aid_pair):
     if annotmach_reviewed == 0:
         lighten_amount = .9
     elif annotmach_reviewed == 2:
-        lighten_amount = .5
+        lighten_amount = .7
     else:
         lighten_amount = .35
     truth_color = vh.get_truth_color(truth, base255=True,

@@ -1913,6 +1913,7 @@ class MainWindowBackend(GUIBACK_BASE):
         Results are either vs-exemplar or intra-imageset
 
         CommandLine:
+            ./reset_dbs.py && ./main.py --query 1 -y
             ./main.py --query 1 -y
             python -m ibeis --query 1 -y
             python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y
