@@ -1854,7 +1854,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         back.custom_query_widget = CustomAnnotCfgSelector(back.ibs)
         back.custom_query_widget.show()
-        back.custom_query_widget.apply_new_config()
+        # back.custom_query_widget.apply_new_config()
 
         #dlg = wgt.as_dialog(back)
         #dlg.show()
