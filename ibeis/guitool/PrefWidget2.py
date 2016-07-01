@@ -537,6 +537,15 @@ class ConfigNodeWrapper(ut.NiceRepr):
             for child in self.children:
                 child._reset_to_original()
 
+    def _set_to_external(self, cfg):
+        if self.is_leaf():
+            self.set_value(cfg)
+        else:
+            for child in self.children:
+                if child.name in cfg:
+                    child_cfg = cfg[child.name]
+                    child._set_to_external(child_cfg)
+
     def iter_children(self):
         if self.children is None:
             raise StopIteration()
@@ -577,6 +586,9 @@ class ConfigNodeWrapper(ut.NiceRepr):
 
     def set_value(self, new_val):
         assert self.is_leaf(), 'can only set leaf values'
+        # hack
+        if isinstance(new_val, six.string_types) and new_val.lower() == 'none':
+            new_val = None
         # Update internals
         self.value = new_val
         # Update externals
@@ -753,6 +765,12 @@ class EditConfigWidget(QWidget):
     def reset_to_original(self):
         print('Defaulting')
         self.rootNode._reset_to_original()
+        self.refresh_layout()
+        self.data_changed.emit()
+
+    def set_to_external(self, cfg):
+        print('Setting to external')
+        self.rootNode._set_to_external(cfg)
         self.refresh_layout()
         self.data_changed.emit()
 

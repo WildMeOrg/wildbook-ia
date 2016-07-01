@@ -59,11 +59,21 @@ def newSplitter(widget=None, orientation=Qt.Horizontal, verticalStretch=1):
     return splitter
 
 
-def newTabWidget(parent, horizontalStretch=1):
+def newTabWidget(parent, horizontalStretch=1, verticalStretch=1):
     tabwgt = QtGui.QTabWidget(parent)
-    sizePolicy = newSizePolicy(tabwgt, horizontalStretch=horizontalStretch)
+    sizePolicy = newSizePolicy(tabwgt, horizontalStretch=horizontalStretch,
+                               verticalStretch=verticalStretch)
     tabwgt.setSizePolicy(sizePolicy)
     setattr(tabwgt, '_guitool_sizepolicy', sizePolicy)
+
+    def addNewTab(self, name):
+        tab = QtGui.QTabWidget()
+        self.addTab(tab, name)
+        tab.setLayout(QtGui.QVBoxLayout())
+        # tab.setSizePolicy(*cfg_size_policy)
+        _inject_new_widget_methods(tab)
+        return tab
+    ut.inject_func_as_method(tabwgt, addNewTab)
     return tabwgt
 
 
@@ -647,20 +657,13 @@ def _make_new_widget_func(widget_cls):
     return new_widget_maker
 
 
-def _make_add_new_widget():
-    def addWidget(self, widget, *args, **kwargs):
-        self.layout().addWidget(widget, *args, **kwargs)
-        return widget
-    return addWidget
-
-
 def _inject_new_widget_methods(self):
     """ helper for guitool widgets """
     import guitool as gt
     # Black magic
     guitype_list = [
         'Widget', 'Button', 'LineEdit', 'ComboBox', 'Label', 'Spoiler',
-        'Frame', 'Splitter', ('TabWidget', QtGui.QTabWidget) ]
+        'Frame', 'Splitter', 'TabWidget']
     # Creates addNewWidget and newWidget
     for guitype in guitype_list:
         if isinstance(guitype, tuple):
@@ -676,8 +679,21 @@ def _inject_new_widget_methods(self):
         ut.inject_func_as_method(self, addnew_func, 'addNew' + guitype)
 
     if not hasattr(self, 'addWidget'):
-        addWidget = _make_add_new_widget()
-        ut.inject_func_as_method(self, addWidget, 'addWidget')
+        def _make_add_new_widgets():
+            def addWidget(self, widget, *args, **kwargs):
+                self.layout().addWidget(widget, *args, **kwargs)
+                return widget
+
+            def newHWidget(self, **kwargs):
+                return self.addNewWidget(orientation=Qt.Horizontal, **kwargs)
+
+            def newVWidget(self, **kwargs):
+                return self.addNewWidget(orientation=Qt.Vertical, **kwargs)
+            return addWidget, newVWidget, newHWidget
+        for func  in _make_add_new_widgets():
+            ut.inject_func_as_method(self, func, ut.get_funcname(func))
+
+    ut.inject_func_as_method(self, print_widget_heirarchy)
     # Above code is the same as saying
     #     self.newButton = ut.partial(newButton, self)
     #     self.newWidget = ut.partial(newWidget, self)
@@ -738,6 +754,8 @@ class GuitoolWidget(WIDGET_BASE):
             layout = QtGui.QHBoxLayout(self)
         else:
             raise NotImplementedError('orientation')
+        layout.setSpacing(0)
+        self.setLayout(layout)
         self._guitool_layout = layout
         #layout.setAlignment(Qt.AlignBottom)
         #self.addWidget = self._guitool_layout.addWidget
@@ -781,12 +799,6 @@ class GuitoolWidget(WIDGET_BASE):
     #    self.layout().addWidget(widget, *args, **kwargs)
     #    return widget
 
-    def newHWidget(self, **kwargs):
-        return self.addNewWidget(orientation=Qt.Horizontal, **kwargs)
-
-    def newVWidget(self, **kwargs):
-        return self.addNewWidget(orientation=Qt.Vertical, **kwargs)
-
     #def addNewWidget(self, *args, **kwargs):
     #    new_widget = self.newWidget(*args, **kwargs)
     #    return self.addWidget(new_widget)
@@ -823,39 +835,70 @@ def get_nested_attr(obj, attr):
     return current
 
 
-def walk_widget_heirarchy(obj, level=0):
+def walk_widget_heirarchy(obj, **kwargs):
+    default_attrs = [
+        'sizePolicy'
+        'widgetResizable'
+        'maximumHeight'
+        'minimumHeight'
+        'alignment'
+        'spacing',
+    ]
+    attrs = kwargs.get('attrs', None)
+    max_depth = kwargs.get('max_depth', None)
+    skip = kwargs.get('skip', False)
+    level = kwargs.get('level', 0)
+
+    if attrs is None:
+        attrs = default_attrs
+    else:
+        attrs = ut.ensure_iterable(attrs)
+
     children = obj.children()
     lines = []
     info = str(ut.type_str(obj.__class__)).replace('PyQt4', '') + ' - ' + repr(obj.objectName())
     #print(info)
     lines.append(info)
-    if hasattr(obj, 'sizePolicy'):
-        val = obj.sizePolicy().verticalPolicy()
-        hval = obj.sizePolicy().horizontalPolicy()
-        lines.append('  * verticalSizePolicy   = %r' % prop_text_map('QtGui.QSizePolicy', val))
-        lines.append('  * horizontalSizePolicy = %r' % prop_text_map('QtGui.QSizePolicy', hval))
-    for attr in [
-        'widgetResizable',
-        'maximumHeight',
-        'minimumHeight',
-        #'alignment'
-    ]:
-        try:
-            val = get_nested_attr(obj, attr + '()')
-            lines.append('  * %s = %r' % (attr, prop_text_map(attr, val)))
-        except AttributeError:
-            pass
-
+    for attr in attrs:
+        if attr == 'sizePolicy' and hasattr(obj, 'sizePolicy'):
+            vval = prop_text_map('QtGui.QSizePolicy', obj.sizePolicy().verticalPolicy())
+            hval = prop_text_map('QtGui.QSizePolicy', obj.sizePolicy().horizontalPolicy())
+            lines.append('  * verticalSizePolicy   = %r' % vval)
+            lines.append('  * horizontalSizePolicy = %r' % hval)
+        else:
+            try:
+                val = get_nested_attr(obj, attr + '()')
+                lines.append('  * %s = %r' % (attr, prop_text_map(attr, val)))
+            except AttributeError:
+                pass
+    if skip and len(lines) == 1:
+        lines = []
     #if hasattr(obj, 'alignment'):
     #    val = obj.alignment()
     #    lines.append('  * widgetResizable = %r' % prop_text_map('widgetResizable', val))
     lines = [ut.indent(line, ' ' * level * 4) for line in lines]
-    for child in children:
-        child_info = walk_widget_heirarchy(child, level + 1)
-        lines.extend(child_info)
+    next_level = level + 1
+    kwargs = kwargs.copy()
+    kwargs['level'] = level + 1
+    if max_depth is None or next_level <= max_depth:
+        for child in children:
+            child_info = walk_widget_heirarchy(child, **kwargs)
+            lines.extend(child_info)
     return lines
-#ut.fix_embed_globals()
-#print('\n'.join(walk_widget_heirarchy(obj)))
+
+
+def print_widget_heirarchy(obj, *args, **kwargs):
+    lines = walk_widget_heirarchy(obj, *args, **kwargs)
+    text = '\n'.join(lines)
+    print(text)
+
+
+def fix_child_attr_heirarchy(obj, attr, val):
+    if hasattr(obj, attr):
+        getattr(obj, attr)(val)
+        # obj.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+    for child in obj.children():
+        fix_child_attr_heirarchy(child, attr, val)
 
 
 def fix_child_size_heirarchy(obj, pol):
@@ -863,10 +906,6 @@ def fix_child_size_heirarchy(obj, pol):
         obj.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
     for child in obj.children():
         fix_child_size_heirarchy(child, pol)
-
-
-def print_widget_heirarchy(obj):
-    print('\n'.join(walk_widget_heirarchy(obj)))
 
 
 class ConfigConfirmWidget(GuitoolWidget):
@@ -1003,7 +1042,7 @@ class ConfigConfirmWidget(GuitoolWidget):
             # import utool
             # utool.embed()
 
-        print_widget_heirarchy(self)
+        self.print_widget_heirarchy()
 
         #self.layout().setAlignment(Qt.AlignBottom)
         self.layout().setAlignment(Qt.AlignTop)
@@ -1132,7 +1171,7 @@ class ConfigConfirmWidget(GuitoolWidget):
         self.close()
 
 
-def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
+def newButton(parent=None, text='', clicked=None, pressed=None, qicon=None, visible=True,
               enabled=True, bgcolor=None, fgcolor=None, fontkw={},
               shrink_to_text=False):
     """ wrapper around QtGui.QPushButton
@@ -1188,10 +1227,13 @@ def newButton(parent=None, text='', clicked=None, qicon=None, visible=True,
     but_kwargs = {
         'parent': parent
     }
+    enabled = False
     if clicked is not None:
         but_kwargs['clicked'] = clicked
-    else:
-        enabled = False
+        enabled = True
+    if pressed is not None:
+        but_kwargs['pressed'] = pressed
+        enabled = True
     if qicon is not None:
         but_args = [qicon] + but_args
     button = QtGui.QPushButton(*but_args, **but_kwargs)
@@ -1491,7 +1533,7 @@ class Spoiler(WIDGET_BASE):
         >>> # spoiler = widget1.addNewSpoiler(title='spoiler title')
         >>> #contentLayout = widget2.layout()
         >>> spoiler.setContentLayout(child_widget)
-        >>> print_widget_heirarchy(widget1)
+        >>> widget1.print_widget_heirarchy()
         >>> #widget1.setStyleSheet("background-color: rgb(255,0,0); margin:5px; border:1px solid rgb(0, 255, 0); ")
         >>> widget1.layout().setAlignment(Qt.AlignBottom)
         >>> widget1.show()
