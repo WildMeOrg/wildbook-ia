@@ -818,6 +818,13 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                 avail_aids, invert=not aidcfg['is_known'])
         avail_aids = sorted(avail_aids)
 
+    if aidcfg.get('is_exemplar') is not None:
+        flags = ibs.get_annot_exemplar_flags(avail_aids)
+        is_valid = [flag == aidcfg['is_exemplar'] for flag in flags]
+        with VerbosityContext('is_exemplar'):
+            avail_aids = ut.compress(avail_aids, is_valid)
+        avail_aids = sorted(avail_aids)
+
     if aidcfg.get('reviewed') is not None:
         flags = ibs.get_annot_reviewed(avail_aids)
         is_valid = [flag == aidcfg['reviewed'] for flag in flags]

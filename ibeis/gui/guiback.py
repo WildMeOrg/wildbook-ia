@@ -117,15 +117,11 @@ def blocking_slot(*types_):
 
 class CustomAnnotCfgSelector(guitool.GuitoolWidget):
     """
-    Args:
-        self (?):
-        back (?):
-
     CommandLine:
         python -m ibeis.gui.guiback CustomAnnotCfgSelector --show
         python -m ibeis.gui.guiback CustomAnnotCfgSelector --show --db PZ_MTEST
         python -m ibeis.gui.guiback CustomAnnotCfgSelector --show --debugwidget
-        python -m ibeis.gui.guiback special_filter_annots --show
+        python -m ibeis.gui.guiback show_advanced_id_interface --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -142,8 +138,6 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
-    closed = QtCore.pyqtSignal()
-
     def __init__(self, ibs):
         from ibeis.expt import annotation_configs
         import dtool
@@ -490,7 +484,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
     def log_query(self, qreq_=None, test=True):
         expt_query_dir = self.expt_query_dir()
-        ut.vd(expt_query_dir)
+        # ut.vd(expt_query_dir)
         ibs = self.ibs
 
         if qreq_ is None and test:
@@ -588,17 +582,6 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         #print('index = %r' % (index,))
         row = index.row()
         self.load_previous_query(row)
-
-    @classmethod
-    def as_dialog(cls, back=None, **kwargs):
-        dlg = QtGui.QDialog(back.front)
-        widget = cls(back.ibs, **kwargs)
-        dlg.widget = widget
-        dlg.vlayout = QtGui.QVBoxLayout(dlg)
-        dlg.vlayout.addWidget(widget)
-        widget.closed.connect(dlg.close)
-        dlg.setWindowTitle(widget.windowTitle())
-        return dlg
 
 
 class NewDatabaseWidget(guitool.GuitoolWidget):
@@ -1860,10 +1843,10 @@ class MainWindowBackend(GUIBACK_BASE):
             back.user_info(msg='Detection has finished.')
 
     @blocking_slot()
-    def special_filter_annots(back):
+    def show_advanced_id_interface(back):
         """
         CommandLine:
-            python -m ibeis.gui.guiback special_filter_annots --show
+            python -m ibeis.gui.guiback show_advanced_id_interface --show
 
         Example:
             >>> # GUI_DOCTEST
@@ -1871,8 +1854,8 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> import ibeis
             >>> main_locals = ibeis.main(defaultdb='testdb1')
             >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
-            >>> ut.exec_funckw(back.special_filter_annots, globals())
-            >>> back.special_filter_annots()
+            >>> ut.exec_funckw(back.show_advanced_id_interface, globals())
+            >>> back.show_advanced_id_interface()
             >>> back.cleanup()
             >>> ut.quit_if_noshow()
             >>> import guitool

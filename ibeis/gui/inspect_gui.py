@@ -429,6 +429,7 @@ class QueryResultsWidget(APIItemWidget):
 
         # LOG ALL CHANGES MADE TO NAMES
         import logging
+        # ut.vd(review_log_dir)
         # create logger with 'spam_application'
         logger = logging.getLogger('query_review')
         logger.setLevel(logging.DEBUG)

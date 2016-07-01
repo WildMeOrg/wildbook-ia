@@ -41,6 +41,7 @@ INDEPENDENT_DEFAULTS_PARAM_INFO = [
     ut.ParamInfo('view', None),  # TODO: allow for lists
     ut.ParamInfo('require_quality', None, valid_values=[True, False, None]),
     ut.ParamInfo('require_viewpoint', None, valid_values=[True, False, None]),
+    ut.ParamInfo('is_exemplar', None, valid_values=[True, False, None]),
     #ut.ParamInfo('view', None),
 ]
 

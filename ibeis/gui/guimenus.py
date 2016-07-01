@@ -189,6 +189,12 @@ def setup_actions_menu(mainwin, back):
     )
     menu.addSeparator()  # ---------
     menu.newAction(
+        name='actionAdvancedID',
+        text='Advanced ID Interface',
+        slot_fn=back.show_advanced_id_interface,
+        shortcut='Ctrl+G',
+    )
+    menu.newAction(
         name='actionRunMergeChecks',
         text='Run Merge Checks (Exemplars vs Exemplars)',
         slot_fn=back.run_merge_checks)

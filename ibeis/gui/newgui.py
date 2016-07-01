@@ -567,9 +567,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ],
             [
                 _NEWBUT(
-                    'SHOW SPECIAL GGR ID WIDGET',
+                    'Advanced ID Interface',
                     # ibswgt.back.special_query_funcs['intra_occurrence'],
-                    back.special_filter_annots,
+                    back.show_advanced_id_interface,
                     bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color),
                     fgcolor=(0, 0, 0),
                     # fontkw=advanced_fontkw
