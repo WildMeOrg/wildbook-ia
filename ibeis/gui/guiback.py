@@ -2455,6 +2455,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         commit step
         """
+        back.start_web_server_parallel(browser=False)
         imgsetid = back.get_selected_imgsetid()
         if back.contains_special_imagesets([imgsetid]) or imgsetid is None:
             back.user_warning(msg=ut.codeblock(
@@ -2526,6 +2527,7 @@ class MainWindowBackend(GUIBACK_BASE):
                 back.front.update_tables([gh.IMAGESET_TABLE])
 
     def send_unshipped_processed_imagesets(back, refresh=True):
+        back.start_web_server_parallel(browser=False)
         processed_set = set(back.ibs.get_valid_imgsetids(processed=True))
         shipped_set = set(back.ibs.get_valid_imgsetids(shipped=True))
         imgsetid_list = list(processed_set - shipped_set)
