@@ -1917,6 +1917,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         CommandLine:
             ./reset_dbs.py && ./main.py --query 1 -y
+            ./reset_dbs.py --reset-mtest && ./main.py --query 1 -y --db PZ_MTEST --progtext
             ./main.py --query 1 -y
             python -m ibeis --query 1 -y
             python -m ibeis --query 1:119 --db PZ_MTEST --nocache-query --nocache-nnmid -y

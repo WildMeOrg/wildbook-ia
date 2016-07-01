@@ -873,7 +873,7 @@ class QueryRequest(object):
     # --- Lazy Loading ---
 
     @profile
-    def lazy_preload(qreq_, verbose=ut.NOT_QUIET):
+    def lazy_preload(qreq_, prog_hook=None, verbose=ut.NOT_QUIET):
         """
         feature weights and normalizers should be loaded before vsone queries
         are issued. They do not depened only on qparams
@@ -882,20 +882,30 @@ class QueryRequest(object):
         """
         if verbose:
             print('[qreq] lazy preloading')
-        #if qreq_.prog_hook is not None:
-        #    qreq_.prog_hook.initialize_subhooks(5)
-        #    hook = qreq_.prog_hook.next_subhook()
-        #    hook.set_progress(1, 4, lbl='preloading features')
-        #    hook.set_progress(1, 4, lbl='preloading features')
-        #import utool
-        #utool.embed()
-        qreq_.ensure_features(verbose=verbose)
+        if prog_hook is not None:
+            prog_hook.initialize_subhooks(4)
+
+        subhook = None if prog_hook is None else prog_hook.next_subhook()
+        qreq_.ensure_features(verbose=verbose, prog_hook=subhook)
+
+        subhook = None if prog_hook is None else prog_hook.next_subhook()
+        if subhook is not None:
+            subhook(0, 1, 'preload featweights')
         if qreq_.qparams.fg_on is True:
             qreq_.ensure_featweights(verbose=verbose)
+
+        subhook = None if prog_hook is None else prog_hook.next_subhook()
+        if subhook is not None:
+            subhook(0, 1, 'finishing preload')
         if qreq_.qparams.score_normalization is True:
             qreq_.load_score_normalizer(verbose=verbose)
+
         if qreq_.qparams.use_external_distinctiveness:
             qreq_.load_distinctiveness_normalizer(verbose=verbose)
+
+        subhook = None if prog_hook is None else prog_hook.next_subhook()
+        if subhook is not None:
+            subhook(0, 1, 'finished preload')
         #if hook is not None:
         #    hook.set_progress(4, 4, lbl='preloading features')
 
@@ -964,7 +974,7 @@ class QueryRequest(object):
             config2_=qreq_.extern_data_config2, **externgetkw)
 
     @profile
-    def ensure_features(qreq_, verbose=ut.NOT_QUIET):
+    def ensure_features(qreq_, verbose=ut.NOT_QUIET, prog_hook=None):
         r""" ensure features are computed
         Args:
             verbose (bool):  verbosity flag(default = True)
@@ -989,14 +999,22 @@ class QueryRequest(object):
         #with ut.EmbedOnException():
         if verbose:
             print('[qreq] ensure_features')
+        if prog_hook is not None:
+            prog_hook(0, 3, 'ensure features')
         external_qaids = qreq_.get_external_qaids()
         external_daids = qreq_.get_external_daids()
+        if prog_hook is not None:
+            prog_hook(1, 3, 'ensure query features')
         qfids = qreq_.ibs.get_annot_feat_rowids(  # NOQA
             external_qaids, ensure=True,
             config2_=qreq_.extern_query_config2)
+        if prog_hook is not None:
+            prog_hook(2, 3, 'ensure database features')
         dfids = qreq_.ibs.get_annot_feat_rowids(  # NOQA
             external_daids, ensure=True,
             config2_=qreq_.extern_data_config2)
+        if prog_hook is not None:
+            prog_hook(3, 3, 'computed features')
         if ut.DEBUG2:
             qkpts = qreq_.ibs.get_annot_kpts(
                 external_qaids, ensure=False,
@@ -1058,10 +1076,6 @@ class QueryRequest(object):
         if not force and qreq_.indexer is not None:
             return False
         else:
-            #if qreq_.prog_hook is not None:
-            #    qreq_.prog_hook.initialize_subhooks(5)
-            #    hook = qreq_.prog_hook.next_subhook()
-            #    hook.set_progress(1, 4, lbl='building indexer')
             index_method = qreq_.qparams.index_method
             if index_method == 'single':
                 # TODO: SYSTEM updatable indexer

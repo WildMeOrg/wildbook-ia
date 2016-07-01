@@ -334,7 +334,13 @@ def execute_query2(ibs, qreq_, verbose, save_qcache, batch_size=None):
     Breaks up query request into several subrequests
     to process "more efficiently" and safer as well.
     """
-    qreq_.lazy_preload(verbose=verbose and ut.NOT_QUIET)
+    if qreq_.prog_hook is not None:
+        preload_hook, query_hook = qreq_.prog_hook.subdivide(spacing=[0, .2, .8])
+        preload_hook(0, lbl='preloading')
+        qreq_.prog_hook = query_hook
+    else:
+        preload_hook = None
+    qreq_.lazy_preload(prog_hook=preload_hook, verbose=verbose and ut.NOT_QUIET)
     all_qaids = qreq_.qaids
     print('len(missed_qaids) = %r' % (len(all_qaids),))
     qaid2_cm = {}
