@@ -459,14 +459,12 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         # major hack
         import guitool
         qtapp = guitool.get_qtapp()
-        print('Force process events')
-        print('qtapp = %r' % (qtapp,))
         flag = QtCore.QEventLoop.ExcludeUserInputEvents
         return_status = qtapp.processEvents(flag)
-        print('(1)return_status = %r' % (return_status,))
+        #print('(1)return_status = %r' % (return_status,))
         if not return_status:
             return_status = qtapp.processEvents(flag)
-            print('(2)return_status = %r' % (return_status,))
+            #print('(2)return_status = %r' % (return_status,))
 
 
 def newProgressBar(parent, visible=True, verticalStretch=1):
