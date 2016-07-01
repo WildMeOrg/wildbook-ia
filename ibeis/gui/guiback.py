@@ -296,6 +296,8 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         #layout.addWidget(self.editQueryConfig)
         #layout.addWidget(self.editDataConfig)
         self.populate_table()
+
+    def onstart(self):
         if self.saved_queries.rowCount() > 0:
             self.load_previous_query(self.saved_queries.rowCount() - 1)
 
@@ -1883,6 +1885,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         back.custom_query_widget = CustomAnnotCfgSelector(back.ibs)
         back.custom_query_widget.show()
+        back.custom_query_widget.onstart()
         # back.custom_query_widget.apply_new_config()
         #dlg = wgt.as_dialog(back)
         #dlg.show()
