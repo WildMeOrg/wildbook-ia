@@ -227,12 +227,12 @@ class ProgressHooks(QtCore.QObject, ut.NiceRepr):
     @property
     def count(proghook):
         progiter = None
-        if proghook.progiter is None:
+        if proghook.progiter is not None:
             progiter = proghook.progiter()
-        if progiter is None:
-            count = proghook._count
-        else:
+        if progiter is  not None:
             count = progiter.count
+        else:
+            count = proghook._count
         return count
 
     def global_bounds(proghook):
@@ -297,9 +297,14 @@ class ProgressHooks(QtCore.QObject, ut.NiceRepr):
 
         #min_, max_ = proghook.global_bounds()
         step_extent_local = 1 / nTotal
-        assert proghook.count < nTotal, 'already finished this subhook'
+        #assert proghook.count < nTotal, 'already finished this subhook'
+        if proghook.count >= nTotal:
+            # HACK
+            count = nTotal - 1
+        else:
+            count = proghook.count - 1
         step_extent_global = step_extent_local * proghook.global_extent()
-        step_min = proghook.count * step_extent_global + proghook.global_min
+        step_min = count * step_extent_global + proghook.global_min
         global_spacing = step_min + (spacing * step_extent_global)
         sub_min_list = global_spacing[:-1]
         sub_max_list = global_spacing[1:]
