@@ -208,9 +208,9 @@ def get_varied_acfg_labels(acfg_list, mainkey='_cfgname', checkname=False):
     """
     #print(ut.list_str(varied_acfg_list, nl=2))
     for acfg in acfg_list:
-        assert acfg['qcfg'][mainkey] == acfg['dcfg'][mainkey], (
+        assert acfg['qcfg'].get(mainkey, '') == acfg['dcfg'].get(mainkey, ''), (
             'should be the same for now')
-    cfgname_list = [acfg['qcfg'][mainkey] for acfg in acfg_list]
+    cfgname_list = [acfg['qcfg'].get(mainkey, '') for acfg in acfg_list]
     if checkname and ut.allsame(cfgname_list):
         cfgname_list = [None] * len(cfgname_list)
 

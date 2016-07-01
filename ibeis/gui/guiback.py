@@ -302,6 +302,22 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         import utool
         utool.embed()
 
+    def make_commandline_str(self):
+        from ibeis.expt import experiment_helpers
+        from ibeis.expt import annotation_configs
+        cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(
+            ['default:'], ibs=self.ibs)
+        default_pcfg = dict(pipecfg_list[0].parse_items())
+        # Hackish ways to get cmdline string
+        p = ut.get_cfg_lbl(self.pcfg.asdict(), name='default', default_cfg=default_pcfg)
+        a = 'default' + annotation_configs.get_varied_acfg_labels([self.acfg, annotation_configs.default])[0]
+        dbdir = self.ibs.get_dbdir()
+        ibeis_part = ['python', '-m', 'ibeis']
+        data_part = ['--dbdir', dbdir, '-a', a, '-t', p]
+        cmd_parts = ibeis_part + ['draw_rank_cdf'] + data_part + ['--show']
+        cmdstr = ' '.join(cmd_parts)
+        return cmdstr
+
     def populate_table(self):
         #data = {'col1': ['1','2','3'], 'col2':['4','5','6'], 'col3':['7','8','9']}
         print('Updating saved query table')
@@ -402,12 +418,18 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
     def update_config_info(self, extra=None):
         ibs = self.ibs
+        from ibeis.algo.Config import QueryConfig
+        # use defaults instead of back's ibs.cfg
+        query_cfg = QueryConfig()
         self.qreq_ = self.ibs.new_query_request(self.qaids, self.daids,
-                                                cfgdict=self.pcfg)
+                                                cfgdict=self.pcfg,
+                                                query_cfg=query_cfg)
         qreq_ = self.qreq_
         stats_dict, _ = ibs.get_annotconfig_stats(
             qreq_.qaids, qreq_.daids, verbose=False, **self.info_cfg)
+        cmdstr = self.make_commandline_str()
         stat_parts = ut.filter_Nones([
+            cmdstr,
             extra,
             'pipe_cfgstr=%s' % (self.qreq_.get_cfgstr(with_data=False)),
             ut.dict_str(stats_dict, strvals=True)
@@ -457,30 +479,38 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
     def load_previous_query(self, row):
         print('loading previous query')
-        long_fpath = self.table_data['long_path'][row]
-        short_fpath = self.table_data['short_path'][row]
+        print('apply_new_config')
+        with self.progress_context('Loading') as ctx:  # NOQA
+            ctx.set_total(5)
+            ctx.set_progress(0)
+            long_fpath = self.table_data['long_path'][row]
+            short_fpath = self.table_data['short_path'][row]
 
-        query_info = ut.load_json(long_fpath)
-        query_info_short_text = ut.load_text(short_fpath)
+            query_info = ut.load_json(long_fpath)
+            query_info_short_text = ut.load_text(short_fpath)
+            ctx.set_progress(1)
 
-        self.query_info = query_info
+            self.query_info = query_info
 
-        quuids, duuids = query_info['expanded_uuids']
-        ibs = self.ibs
-        self.qaids = ibs.get_annot_aids_from_uuid(quuids)
-        self.daids = ibs.get_annot_aids_from_uuid(duuids)
+            quuids, duuids = query_info['expanded_uuids']
+            ibs = self.ibs
+            self.qaids = ibs.get_annot_aids_from_uuid(quuids)
+            ctx.set_progress(2)
+            self.daids = ibs.get_annot_aids_from_uuid(duuids)
+            ctx.set_progress(3)
 
-        self.editPipeConfig.set_to_external(self.query_info['pcfg'])
-        self.editQueryConfig.set_to_external(self.query_info['acfg']['qcfg'])
-        self.editDataConfig.set_to_external(self.query_info['acfg']['dcfg'])
-        # self.pcfg.update(**)
-        # TODO: Update acfg as well.
+            self.editPipeConfig.set_to_external(self.query_info['pcfg'])
+            self.editQueryConfig.set_to_external(self.query_info['acfg']['qcfg'])
+            self.editDataConfig.set_to_external(self.query_info['acfg']['dcfg'])
+            # self.pcfg.update(**)
+            # TODO: Update acfg as well.
 
-        self.update_config_info('SAVED MANIFEST INFO:' + query_info_short_text)
-        print('...loaded previous query')
-        self.execute_button.setText('Re-Execute Saved Query')
-        # need to do this or block signals from editPipeConfig
-        self.cfg_needs_update = False
+            self.update_config_info('SAVED MANIFEST INFO:' + query_info_short_text)
+            print('...loaded previous query')
+            self.execute_button.setText('Re-Execute Saved Query')
+            # need to do this or block signals from editPipeConfig
+            self.cfg_needs_update = False
+            ctx.set_progress(5)
 
     def log_query(self, qreq_=None, test=True):
         expt_query_dir = self.expt_query_dir()
@@ -488,8 +518,11 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         ibs = self.ibs
 
         if qreq_ is None and test:
-            qreq_ = ibs.new_query_request(self.qaids, self.daids,
-                                          cfgdict=self.pcfg)
+            from ibeis.algo.Config import QueryConfig
+            query_cfg = QueryConfig()
+            qreq_ = self.ibs.new_query_request(self.qaids, self.daids,
+                                               cfgdict=self.pcfg,
+                                               query_cfg=query_cfg)
 
         ts = ut.get_timestamp(isutc=True, timezone=True)
 
@@ -1868,6 +1901,10 @@ class MainWindowBackend(GUIBACK_BASE):
 
         back.custom_query_widget = CustomAnnotCfgSelector(back.ibs)
         back.custom_query_widget.show()
+        import guitool as gt
+        app = gt.get_qtapp()
+        app.processEvents()
+        app.processEvents()
         back.custom_query_widget.onstart()
         # back.custom_query_widget.apply_new_config()
         #dlg = wgt.as_dialog(back)
