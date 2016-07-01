@@ -447,10 +447,10 @@ class QueryResultsWidget(APIItemWidget):
         logger.addHandler(ch)
 
         qres_wgt.logger = logger
-        logger.info('Starting Query Result Review')
-        logger.info('There are (len(cm_list) = %d) chip match objects to review' % (len(cm_list),))
-        logger.info('There are (nRows=%d) of pairs shown to review' % (qres_wgt.qres_api.nRows,))
-        logger.info('Query Request cfgstr = %s' % (qres_wgt.qreq_.get_cfgstr(with_input=True),))
+        logger.info('START QUERY_RESULT_REVIEW')
+        logger.info('NUM CHIP_MATCH OBJECTS (len(cm_list)=%d)' % (len(cm_list),))
+        logger.info('NUM PAIRS TO REVIEW (nRows=%d)' % (qres_wgt.qres_api.nRows,))
+        logger.info('PARENT QUERY REQUEST (cfgstr=%s)' % (qres_wgt.qreq_.get_cfgstr(with_input=True),))
 
     def set_query_results(qres_wgt, ibs, cm_list, name_scoring=False,
                           qreq_=None, **kwargs):
@@ -704,14 +704,15 @@ class QueryResultsWidget(APIItemWidget):
                 # then the chosen point will be used as the threshold. Then
                 # the graph cut algorithm will be applied.
                 log = qres_wgt.logger.info
-                log('MASS THRESHOLD MARK AS TRUE: %d groups as the same based on thresh=%r' % (
+                log('START MASS_THRESHOLD_MERGE')
+                log('num_groups=%d thresh=%r' % (
                     len(dbside_groups), thresh,))
                 for count, subgraph in enumerate(dbside_groups):
                     thresh_aid_pairs = [
                         edge for edge, flag in
                         nx.get_edge_attributes(graph, 'user_thresh_match').items()
                         if flag]
-                    thersh_uuid_pairs = ibs.unflat_map(ibs.get_annot_uuids, thresh_aid_pairs)
+                    thresh_uuid_pairs = ibs.unflat_map(ibs.get_annot_uuids, thresh_aid_pairs)
                     aids = list(subgraph.nodes())
                     nids = ibs.get_annot_name_rowids(aids)
                     flags = ut.not_list(ibs.is_aid_unknown(aids))
@@ -733,15 +734,17 @@ class QueryResultsWidget(APIItemWidget):
 
                     merge_name = ibs.get_name_texts(merge_nid)
                     annot_uuids = ibs.get_annot_uuids(aids)
-                    log('Making groups based on %d annot pairs that scored above a threshold, thersh_uuid_pairs=%r' % (len(thersh_uuid_pairs), thersh_uuid_pairs))
-                    log('Grouping %d annot_uuids=%r with previous_names=%r into %s merge_name=%r' % (
+                    log('START GROUP %d' % (count,))
+                    log('GROUP BASED ON %d ANNOT_PAIRS WITH SCORE ABOVE (thresh=%r)' % (thresh,))
+                    log('(uuid_pairs=%r)' % (len(thresh_uuid_pairs), thresh_uuid_pairs))
+                    log('CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)' % (
                         len(annot_uuids), annot_uuids, previous_names, type_, merge_name))
-
-                    log('This changes an additional %d annot_uuids=%r with previous_names=%r into %s merge_name=%r' % (
+                    log('ADDITIONAL CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)' % (
                         len(other_auuids), other_auuids, other_previous_names, type_, merge_name))
+                    log('END GROUP %d' % (count,))
                     new_nids = [merge_nid] * len(aids)
                     ibs.set_annot_name_rowids(aids, new_nids)
-                log('FINISHED MASS THRESHOLD MARK')
+                log('END MASS_THRESHOLD_MERGE')
 
             #ibs.get_annotmatch_truth(am_rowids)
         else:
@@ -817,7 +820,7 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
             else:
                 log = print
             annot_uuid_pair = ibs.get_annot_uuids((aid1, aid2))
-            log('FLAG SPLIT CASE: annot_uuid_pair=%r' % annot_uuid_pair)
+            log('FLAG SplitCase: (annot_uuid_pair=%r)' % annot_uuid_pair)
             am_rowid = ibs.add_annotmatch([aid1], [aid2])[0]
             ibs.set_annotmatch_prop(prop, [am_rowid], [True])
         elif reply == options[1]:
@@ -1146,6 +1149,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         >>> qres_api = make_qres_api(qreq_.ibs, cm_list, ranks_lt, name_scoring, qreq_=qreq_)
         >>> print('qres_api = %r' % (qres_api,))
     """
+    # TODO: Add in timedelta to column info
     if ut.VERBOSE:
         print('[inspect] make_qres_api')
     #ibs.cfg.other_cfg.ranks_lt = 2
