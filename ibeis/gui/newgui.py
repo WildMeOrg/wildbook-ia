@@ -421,7 +421,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Other components
         ibswgt.outputLog   = guitool.newOutputLog(ibswgt, pointSize=8,
                                                   visible=WITH_GUILOG, verticalStretch=6)
-        ibswgt.progressBar = guitool.newProgressBar(ibswgt, visible=False, verticalStretch=1)
+        ibswgt.progbar = guitool.newProgressBar(ibswgt, visible=False, verticalStretch=1)
         # New widget has black magic (for implicit layouts) in it
         ibswgt.status_wgt  = guitool.newWidget(ibswgt, Qt.Vertical,
                                                verticalStretch=6,
@@ -601,7 +601,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.hsplitter.addWidget(ibswgt._table_tab_wgt)
         # Horizontal Lower
         ibswgt.status_wgt.addWidget(ibswgt.outputLog)
-        ibswgt.status_wgt.addWidget(ibswgt.progressBar)
         # Add control widgets (import, group, species selector, etc...)
         ibswgt.control_layout_list = []
         for control_widgets in ibswgt.control_widget_lists:
@@ -614,6 +613,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.status_wgt.addLayout(ibswgt.selectionStatusLayout)
         for widget in ibswgt.status_widget_list:
             ibswgt.selectionStatusLayout.addWidget(widget)
+        ibswgt.status_wgt.addWidget(ibswgt.progbar)
 
     def changing_models_gen(ibswgt, tblnames=None):
         """
