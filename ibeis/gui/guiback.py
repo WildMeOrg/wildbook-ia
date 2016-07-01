@@ -228,7 +228,6 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         table = self.saved_queries = QtGui.QTableWidget()
         table.doubleClicked.connect(self.on_table_doubleclick)
         tab2.addWidget(self.saved_queries)
-        self.populate_table()
 
         splitter = tab1.addNewSplitter(orientation=Qt.Vertical)
 
@@ -296,6 +295,9 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         #layout.addWidget(self.update_button, 3, 2, 1, 1)
         #layout.addWidget(self.editQueryConfig)
         #layout.addWidget(self.editDataConfig)
+        self.populate_table()
+        if self.saved_queries.rowCount() > 0:
+            self.load_previous_query(self.saved_queries.rowCount() - 1)
 
     def sizeHint(self):
         return QtCore.QSize(900, 960)

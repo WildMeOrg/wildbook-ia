@@ -133,7 +133,7 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
     aids2 = ut.get_list_column(aid_pairs, 1)
 
     if only_reviewed_matches:
-        annotmatch_rowids = ibs.get_annotmatch_rowid_from_superkey(aids1, aids2)
+        annotmatch_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
         annotmatch_rowids = ut.filter_Nones(annotmatch_rowids)
         aids1 = ibs.get_annotmatch_aid1(annotmatch_rowids)
         aids2 = ibs.get_annotmatch_aid2(annotmatch_rowids)
@@ -653,9 +653,9 @@ class AnnotGraphInteraction(AbstractInteraction):
         if len(self.selected_aids) == 2:
             ibs = self.infr.ibs
             aid1, aid2 = self.selected_aids
-            _rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])
+            _rowid = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])
             if _rowid is None:
-                _rowid = ibs.get_annotmatch_rowid_from_superkey([aid2], [aid1])
+                _rowid = ibs.get_annotmatch_rowid_from_undirected_superkey([aid2], [aid1])
             rowid = _rowid  # NOQA
 
     @ut.debug_function_exceptions

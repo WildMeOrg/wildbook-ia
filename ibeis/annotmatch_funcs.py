@@ -311,6 +311,37 @@ def get_annotmatch_subgraph(ibs):
 
 
 @register_ibs_method
+def get_annotmatch_rowid_from_undirected_superkey(ibs, aids1, aids2):
+    # The directed nature of this makes a few things difficult and may cause
+    # odd behavior
+    am_rowids = ibs.get_annotmatch_rowid_from_superkey(aids1, aids2)
+    idxs = ut.where([r is None for r in am_rowids])
+    # Check which ones are None
+    aids1_ = ut.take(aids1, idxs)
+    aids2_ = ut.take(aids2, idxs)
+    am_rowids_ = ibs.get_annotmatch_rowid_from_superkey(aids2_, aids1_)
+    # Use the other rowid if found
+    for idx, rowid in zip(idxs, am_rowids_):
+        am_rowids[idx] = rowid
+    return am_rowids
+
+
+@register_ibs_method
+def add_annotmatch_undirected(ibs, aids1, aids2):
+    am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+    idxs = ut.where([r is None for r in am_rowids])
+    # Check which ones are None
+    aids1_ = ut.take(aids1, idxs)
+    aids2_ = ut.take(aids2, idxs)
+    # Create anything that is None
+    am_rowids_ = ibs.add_annotmatch(aids2_, aids1_)
+    # Use the other rowid if found
+    for idx, rowid in zip(idxs, am_rowids_):
+        am_rowids[idx] = rowid
+    return am_rowids
+
+
+@register_ibs_method
 def set_annot_pair_as_reviewed(ibs, aid1, aid2):
     """ denote that this match was reviewed and keep whatever status it is given """
     isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
@@ -320,8 +351,8 @@ def set_annot_pair_as_reviewed(ibs, aid1, aid2):
         nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
         truth = ibs.const.TRUTH_MATCH if (nid1 == nid2) else ibs.const.TRUTH_NOT_MATCH
 
-    #annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]
-    annotmatch_rowids = ibs.add_annotmatch([aid1], [aid2])
+    #annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])[0]
+    annotmatch_rowids = ibs.add_annotmatch_undirected([aid1], [aid2])
     ibs.set_annotmatch_reviewed(annotmatch_rowids, [True])
 
     # Old functionality, remove. Reviewing should not set truth
@@ -340,7 +371,7 @@ def set_annot_pair_as_reviewed(ibs, aid1, aid2):
 
 #@register_ibs_method
 #def add_or_update_annotmatch(ibs, aid1, aid2, truth, confidence):
-#    annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])[0]
+#    annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])[0]
 #    # TODO: sql add or update?
 #    if annotmatch_rowid is not None:
 #        ibs.set_annotmatch_truth([annotmatch_rowid], [truth])
@@ -663,7 +694,7 @@ def get_annot_pair_truth(ibs, aid1_list, aid2_list):
     """
     CAREFUL: uses annot match table for truth, so only works if reviews have happend
     """
-    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_superkey(aid1_list, aid2_list)
+    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_undirected_superkey(aid1_list, aid2_list)
     annotmatch_truth_list = ibs.get_annotmatch_truth(annotmatch_rowid_list)
     return annotmatch_truth_list
 
@@ -699,13 +730,15 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
         >>> print(result)
         104
     """
-    annotmatch_truth_list1 = ibs.get_annot_pair_truth(aid1_list, aid2_list)
-    annotmatch_truth_list2 = ibs.get_annot_pair_truth(aid2_list, aid1_list)
-    annotmatch_truth_list = ut.or_lists(
-        ut.flag_not_None_items(annotmatch_truth_list1),
-        ut.flag_not_None_items(annotmatch_truth_list2))
+    am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aid1_list, aid2_list)
+    return ibs.get_annotmatch_reviewed(am_rowids)
+    #annotmatch_truth_list1 = ibs.get_annot_pair_truth(aid1_list, aid2_list)
+    #annotmatch_truth_list2 = ibs.get_annot_pair_truth(aid2_list, aid1_list)
+    #annotmatch_truth_list = ut.or_lists(
+    #    ut.flag_not_None_items(annotmatch_truth_list1),
+    #    ut.flag_not_None_items(annotmatch_truth_list2))
     #annotmatch_reviewed_list = [truth is not None for truth in annotmatch_truth_list]
-    return annotmatch_truth_list
+    #return annotmatch_truth_list
 
 
 def review_tagged_splits():

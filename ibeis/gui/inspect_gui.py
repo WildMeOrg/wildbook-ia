@@ -229,7 +229,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
 
     with_match_tags = True
     if with_match_tags:
-        annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(
+        annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey(
             [aid1], [aid2])[0]
 
         if annotmatch_rowid is None:
@@ -257,7 +257,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             if ut.VERBOSE:
                 print('[SETTING] Clicked set prop=%r to val=%r' %
                       (prop, toggle_val,))
-            am_rowid = ibs.add_annotmatch([aid1], [aid2])[0]
+            am_rowid = ibs.add_annotmatch_undirected([aid1], [aid2])[0]
             if ut.VERBOSE:
                 print('[SETTING] aid1, aid2 = %r, %r' % (aid1, aid2,))
                 print('[SETTING] annotmatch_rowid = %r' % (am_rowid,))
@@ -636,7 +636,7 @@ class QueryResultsWidget(APIItemWidget):
     def get_annotmatch_rowid_from_qtindex(qres_wgt, qtindex):
         qaid, daid = qres_wgt.get_aidpair_from_qtindex(qtindex)
         ibs = qres_wgt.ibs
-        annotmatch_rowid_list = ibs.add_annotmatch([qaid], [daid])
+        annotmatch_rowid_list = ibs.add_annotmatch_undirected([qaid], [daid])
         return annotmatch_rowid_list
 
     def show_match_at_qtindex(qres_wgt, qtindex):
@@ -652,33 +652,34 @@ class QueryResultsWidget(APIItemWidget):
         selected_qtindex_list = qres_wgt.selectedRows()
         if len(selected_qtindex_list) == 1:
             qtindex = selected_qtindex_list[0]
-            aid1, aid2 = qres_wgt.get_aidpair_from_qtindex(qtindex)
+            #aid1, aid2 = qres_wgt.get_aidpair_from_qtindex(qtindex)
             thresh  = qtindex.model().get_header_data('score', qtindex)
             print('thresh = %r' % (thresh,))
 
             rows = qres_wgt.qres_api.ider()
             scores_ = qres_wgt.qres_api.get(qres_wgt.qres_api.col_name_list.index('score'), rows)
             valid_rows = ut.compress(rows, scores_ >= thresh)
-            aid1 = qres_wgt.qres_api.get(qres_wgt.qres_api.col_name_list.index('qaid'), valid_rows)
-            aid2 = qres_wgt.qres_api.get(qres_wgt.qres_api.col_name_list.index('aid'), valid_rows)
+            aids1 = qres_wgt.qres_api.get(qres_wgt.qres_api.col_name_list.index('qaid'), valid_rows)
+            aids2 = qres_wgt.qres_api.get(qres_wgt.qres_api.col_name_list.index('aid'), valid_rows)
             #ibs = qres_wgt.ibs
             ibs = qres_wgt.ibs
-            am_rowids = ibs.get_annotmatch_rowid_from_superkey(aid1, aid2)
+            am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
             reviewed = ibs.get_annotmatch_reviewed(am_rowids)
             unreviewed = ut.not_list(reviewed)
 
             valid_rows = ut.compress(valid_rows, unreviewed)
-            aid1 = ut.compress(aid1, unreviewed)
-            aid2 = ut.compress(aid2, unreviewed)
+            aids1 = ut.compress(aids1, unreviewed)
+            aids2 = ut.compress(aids2, unreviewed)
 
             import networkx as nx
             graph = nx.Graph()
-            graph.add_edges_from(list(zip(aid1, aid2)), {'user_thresh_match': True})
+            graph.add_edges_from(list(zip(aids1, aids2)), {'user_thresh_match': True})
             review_groups = list(nx.connected_component_subgraphs(graph))
 
             changing_aids = list(graph.nodes())
             nids = ibs.get_annot_nids(changing_aids)
-            for nid, aids in ut.group_items(changing_aids, nids).items():
+            nid2_aids = ut.group_items(changing_aids, nids)
+            for nid, aids in nid2_aids.items():
                 # Connect all original names in the database to denote merges
                 for u, v in ut.itertwo(aids):
                     graph.add_edge(u, v)
@@ -688,13 +689,14 @@ class QueryResultsWidget(APIItemWidget):
                 'Accept',
                 #'Review More'
             ]
-
-            reply = guitool.user_option(msg=ut.codeblock(
+            msg = ut.codeblock(
                 '''
-                This will group %d annotations into %d groups within the matching interface.
-                This will induce a database grouping of %d names.
-                ''') % (len(changing_aids), len(review_groups), len(dbside_groups))
-                , options=options)
+                There are %d names and %d annotations in this mass review set.
+                Mass review has discovered %d internal groups.
+                Accepting will induce a database grouping of %d names.
+                ''') % (len(nid2_aids), len(changing_aids), len(review_groups), len(dbside_groups))
+
+            reply = guitool.user_option(msg=msg, options=options)
 
             if reply == options[0]:
                 # This is not the smartest way to group names.
@@ -703,6 +705,7 @@ class QueryResultsWidget(APIItemWidget):
                 # then the chosen point will be used as the threshold. Then
                 # the graph cut algorithm will be applied.
                 logger = qres_wgt.logger
+                logger.debug(msg)
                 logger.info('START MASS_THRESHOLD_MERGE')
                 logger.info('num_groups=%d thresh=%r' % (
                     len(dbside_groups), thresh,))
@@ -738,7 +741,7 @@ class QueryResultsWidget(APIItemWidget):
                     # with a different code to denote that it was a MASS review
                     aid1_list = ut.take_column(thresh_aid_pairs, 0)
                     aid2_list = ut.take_column(thresh_aid_pairs, 1)
-                    am_rowids = ibs.add_annotmatch(aid1_list, aid2_list)
+                    am_rowids = ibs.add_annotmatch_undirected(aid1_list, aid2_list)
                     MASS_REVIEW_CODE = 2
                     ibs.set_annotmatch_reviewed(am_rowids, [MASS_REVIEW_CODE] * len(am_rowids))
 
@@ -830,7 +833,7 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
                 log = print
             annot_uuid_pair = ibs.get_annot_uuids((aid1, aid2))
             log('FLAG SplitCase: (annot_uuid_pair=%r)' % annot_uuid_pair)
-            am_rowid = ibs.add_annotmatch([aid1], [aid2])[0]
+            am_rowid = ibs.add_annotmatch_undirected([aid1], [aid2])[0]
             ibs.set_annotmatch_prop(prop, [am_rowid], [True])
         elif reply == options[1]:
             review_match(ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)
@@ -902,7 +905,12 @@ def get_reviewed_status_bgrole(ibs, aid_pair):
     annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
     #truth = ibs.get_annot_pair_truth([aid1], [aid2])[0]
     #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
-    lighten_amount = .35 if annotmach_reviewed else .9
+    if annotmach_reviewed == 0:
+        lighten_amount = .9
+    elif annotmach_reviewed == 2:
+        lighten_amount = .5
+    else:
+        lighten_amount = .35
     truth_color = vh.get_truth_color(truth, base255=True,
                                      lighten_amount=lighten_amount)
     #truth = ibs.get_match_truth(aid1, aid2)
@@ -1329,7 +1337,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
             colname_getter = getattr(ibs, 'get_annotmatch_' + colname)
             def getter_wrapper(aidpair):
                 qaid, daid = aidpair
-                annotmatch_rowid_list = ibs.add_annotmatch([qaid], [daid])
+                annotmatch_rowid_list = ibs.add_annotmatch_undirected([qaid], [daid])
                 value_list = colname_getter(annotmatch_rowid_list)
                 value = value_list[0]
                 return value if value is not None else False
@@ -1340,14 +1348,14 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
             colname_setter = getattr(ibs, 'set_annotmatch_' + colname)
             def setter_wrapper(aidpair, value):
                 qaid, daid = aidpair
-                annotmatch_rowid_list = ibs.add_annotmatch([qaid], [daid])
+                annotmatch_rowid_list = ibs.add_annotmatch_undirected([qaid], [daid])
                 value_list = [value]
                 return colname_setter(annotmatch_rowid_list, value_list)
             ut.set_funcname(setter_wrapper, 'setter_wrapper_' + colname)
             return setter_wrapper
 
         for colname in boolean_annotmatch_columns:
-            #annotmatch_rowid_list = ibs.add_annotmatch(qaids, daids)
+            #annotmatch_rowid_list = ibs.add_annotmatch_undirected(qaids, daids)
             #col_name_list.append(colname)
             col_name_list.insert(col_name_list.index('qname'), colname)
             #rank
