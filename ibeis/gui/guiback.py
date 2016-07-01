@@ -314,7 +314,6 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.saved_queries.setColumnCount(len(data))
         print('Populating table')
         for n, key in enumerate(horHeaders):
-            horHeaders.append(key)
             if n == 0:
                 self.saved_queries.setRowCount(len(data[key]))
             for m, item in enumerate(data[key]):
