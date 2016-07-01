@@ -311,81 +311,81 @@ def get_imageset_annot_uuids_json(ibs, imageset_uuid_list):
 
 
 @register_api('/api/imageset/occurrence/json/', methods=['GET'])
-def get_imageset_isoccurrence_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_isoccurrence_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_isoccurrence(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_isoccurrence(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/num/annot/reviewed/json/', methods=['GET'])
-def get_imageset_num_annots_reviewed_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_num_annots_reviewed_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_num_annots_reviewed(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_num_annots_reviewed(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/num/image/reviewed/json/', methods=['GET'])
-def get_imageset_num_imgs_reviewed_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_num_imgs_reviewed_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_num_imgs_reviewed(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_num_imgs_reviewed(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/num/name/exemplar/json/', methods=['GET'])
-def get_imageset_num_names_with_exemplar_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_num_names_with_exemplar_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_num_names_with_exemplar(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_num_names_with_exemplar(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/num/image/json/', methods=['GET'])
-def get_imageset_num_gids_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_num_gids_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_num_gids(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_num_gids(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/num/annot/json/', methods=['GET'])
-def get_imageset_num_aids_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_num_aids_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_num_aids(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_num_aids(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/annot/rowid/json/', methods=['GET'])
-def get_imageset_aids_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_aids_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_aids(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_aids(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/image/rowid/json/', methods=['GET'])
-def get_imageset_gids_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_gids_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_gids(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_gids(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/image/uuid/json/', methods=['GET'])
-def get_imageset_image_uuids_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_image_uuids_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_image_uuids(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_image_uuids(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/name/rowid/json/', methods=['GET'])
-def get_imageset_nids_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_nids_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_nids(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_nids(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/name/uuid/json/', methods=['GET'])
-def get_imageset_name_uuids_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_name_uuids_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_name_uuids(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_name_uuids(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/text/json/', methods=['GET'])
-def get_imageset_text_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_text_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_text(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_text(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/rowid/uuid/json/', methods=['GET'])
-def get_imageset_imgsetids_from_uuid_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_imgsetids_from_uuid_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_imgsetids_from_uuid(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_imgsetids_from_uuid(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/rowid/text/json/', methods=['GET'])
@@ -395,69 +395,69 @@ def get_imageset_imgsetids_from_text_json(ibs, imageset_uuid_list, **kwargs):
 
 
 @register_api('/api/imageset/note/json/', methods=['GET'])
-def get_imageset_note_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_note_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_note(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_note(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/time/posix/end/json/', methods=['GET'])
-def get_imageset_end_time_posix_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_end_time_posix_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_end_time_posix(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_end_time_posix(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/gps/lat/json/', methods=['GET'], __api_plural_check__=False)
-def get_imageset_gps_lats_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_gps_lats_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_gps_lats(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_gps_lats(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/gps/lon/json/', methods=['GET'], __api_plural_check__=False)
-def get_imageset_gps_lons_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_gps_lons_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_gps_lons(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_gps_lons(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/processed/json/', methods=['GET'])
-def get_imageset_processed_flags_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_processed_flags_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_processed_flags(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_processed_flags(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/shipped/json/', methods=['GET'])
-def get_imageset_shipped_flags_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_shipped_flags_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_shipped_flags(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_shipped_flags(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/time/posix/start/json/', methods=['GET'])
-def get_imageset_start_time_posix_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_start_time_posix_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_start_time_posix(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_start_time_posix(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/duration/json/', methods=['GET'])
-def get_imageset_duration_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_duration_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_duration(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_duration(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/smart/waypoint/json/', methods=['GET'])
-def get_imageset_smart_waypoint_ids_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_smart_waypoint_ids_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_smart_waypoint_ids(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_smart_waypoint_ids(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/smart/xml/file/name/json/', methods=['GET'])
-def get_imageset_smart_xml_fnames_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_smart_xml_fnames_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_smart_xml_fnames(ibs, imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_smart_xml_fnames(ibs, imageset_rowid_list)
 
 
 @register_api('/api/imageset/smart/xml/file/content/json/', methods=['GET'])
-def get_imageset_smart_xml_contents_json(ibs, imageset_uuid_list, **kwargs):
+def get_imageset_smart_xml_contents_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    return ibs.get_imageset_smart_xml_contents(imageset_rowid_list, **kwargs)
+    return ibs.get_imageset_smart_xml_contents(imageset_rowid_list)
 
 
 @register_api('/api/image/json/<uuid>/', methods=['GET'])
@@ -486,153 +486,153 @@ def get_image_uuids_with_annot_uuids(ibs, gid_list=None):
 
 
 @register_api('/api/image/rowid/uuid/json/', methods=['GET'])
-def get_image_gids_from_uuid_json(ibs, image_uuid_list, **kwargs):
+def get_image_gids_from_uuid_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_gids_from_uuid(gid_list, **kwargs)
+    return ibs.get_image_gids_from_uuid(gid_list)
 
 
 @register_api('/api/image/uri/json/', methods=['GET'])
-def get_image_uris_json(ibs, image_uuid_list, **kwargs):
+def get_image_uris_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_uris(gid_list, **kwargs)
+    return ibs.get_image_uris(gid_list)
 
 
 @register_api('/api/image/uri/original/json/', methods=['GET'])
-def get_image_uris_original_json(ibs, image_uuid_list, **kwargs):
+def get_image_uris_original_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_uris_original(gid_list, **kwargs)
+    return ibs.get_image_uris_original(gid_list)
 
 
 @register_api('/api/image/file/path/json/', methods=['GET'])
-def get_image_paths_json(ibs, image_uuid_list, **kwargs):
+def get_image_paths_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_paths(gid_list, **kwargs)
+    return ibs.get_image_paths(gid_list)
 
 
 @register_api('/api/image/file/name/json/', methods=['GET'])
-def get_image_gnames_json(ibs, image_uuid_list, **kwargs):
+def get_image_gnames_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_gnames(gid_list, **kwargs)
+    return ibs.get_image_gnames(gid_list)
 
 
 @register_api('/api/image/size/json/', methods=['GET'])
-def get_image_sizes_json(ibs, image_uuid_list, **kwargs):
+def get_image_sizes_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_sizes(gid_list, **kwargs)
+    return ibs.get_image_sizes(gid_list)
 
 
 @register_api('/api/image/width/json/', methods=['GET'])
-def get_image_widths_json(ibs, image_uuid_list, **kwargs):
+def get_image_widths_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_widths(gid_list, **kwargs)
+    return ibs.get_image_widths(gid_list)
 
 
 @register_api('/api/image/height/json/', methods=['GET'])
-def get_image_heights_json(ibs, image_uuid_list, **kwargs):
+def get_image_heights_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_heights(gid_list, **kwargs)
+    return ibs.get_image_heights(gid_list)
 
 
 @register_api('/api/image/gps/json/', methods=['GET'], __api_plural_check__=False)
-def get_image_gps_json(ibs, image_uuid_list, **kwargs):
+def get_image_gps_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_gps(gid_list, **kwargs)
+    return ibs.get_image_gps(gid_list)
 
 
 @register_api('/api/image/lat/json/', methods=['GET'])
-def get_image_lat_json(ibs, image_uuid_list, **kwargs):
+def get_image_lat_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_lat(gid_list, **kwargs)
+    return ibs.get_image_lat(gid_list)
 
 
 @register_api('/api/image/lon/json/', methods=['GET'])
-def get_image_lon_json(ibs, image_uuid_list, **kwargs):
+def get_image_lon_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_lon(gid_list, **kwargs)
+    return ibs.get_image_lon(gid_list)
 
 
 @register_api('/api/image/orientation/json/', methods=['GET'])
-def get_image_orientation_json(ibs, image_uuid_list, **kwargs):
+def get_image_orientation_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_orientation(gid_list, **kwargs)
+    return ibs.get_image_orientation(gid_list)
 
 
 @register_api('/api/image/orientation/str/json/', methods=['GET'])
-def get_image_orientation_str_json(ibs, image_uuid_list, **kwargs):
+def get_image_orientation_str_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_orientation_str(gid_list, **kwargs)
+    return ibs.get_image_orientation_str(gid_list)
 
 
 @register_api('/api/image/reviewed/json/', methods=['GET'])
-def get_image_reviewed_json(ibs, image_uuid_list, **kwargs):
+def get_image_reviewed_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_reviewed(gid_list, **kwargs)
+    return ibs.get_image_reviewed(gid_list)
 
 
 @register_api('/api/image/detect/confidence/json/', methods=['GET'])
-def get_image_detect_confidence_json(ibs, image_uuid_list, **kwargs):
+def get_image_detect_confidence_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_detect_confidence(gid_list, **kwargs)
+    return ibs.get_image_detect_confidence(gid_list)
 
 
 @register_api('/api/image/note/json/', methods=['GET'])
-def get_image_notes_json(ibs, image_uuid_list, **kwargs):
+def get_image_notes_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_notes(gid_list, **kwargs)
+    return ibs.get_image_notes(gid_list)
 
 
 @register_api('/api/image/name/rowid/json/', methods=['GET'])
-def get_image_nids_json(ibs, image_uuid_list, **kwargs):
+def get_image_nids_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_nids(gid_list, **kwargs)
+    return ibs.get_image_nids(gid_list)
 
 
 @register_api('/api/image/name/uuid/json/', methods=['GET'])
-def get_image_name_uuids_json(ibs, image_uuid_list, **kwargs):
+def get_image_name_uuids_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_name_uuids(gid_list, **kwargs)
+    return ibs.get_image_name_uuids(gid_list)
 
 
 @register_api('/api/image/species/rowid/json/', methods=['GET'], __api_plural_check__=False)
-def get_image_species_rowids_json(ibs, image_uuid_list, **kwargs):
+def get_image_species_rowids_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_species_rowids(gid_list, **kwargs)
+    return ibs.get_image_species_rowids(gid_list)
 
 
 @register_api('/api/image/species/uuid/json/', methods=['GET'], __api_plural_check__=False)
-def get_image_species_uuids_json(ibs, image_uuid_list, **kwargs):
+def get_image_species_uuids_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_species_uuids(gid_list, **kwargs)
+    return ibs.get_image_species_uuids(gid_list)
 
 
 @register_api('/api/image/imageset/rowid/json/', methods=['GET'])
-def get_image_imgsetids_json(ibs, image_uuid_list, **kwargs):
+def get_image_imgsetids_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_imgsetids(gid_list, **kwargs)
+    return ibs.get_image_imgsetids(gid_list)
 
 
 @register_api('/api/image/imageset/uuid/json/', methods=['GET'])
-def get_image_imgset_uuids_json(ibs, image_uuid_list, **kwargs):
+def get_image_imgset_uuids_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_imgset_uuids(gid_list, **kwargs)
+    return ibs.get_image_imgset_uuids(gid_list)
 
 
 @register_api('/api/image/imageset/text/json/', methods=['GET'])
-def get_image_imagesettext_json(ibs, image_uuid_list, **kwargs):
+def get_image_imagesettext_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_imagesettext(gid_list, **kwargs)
+    return ibs.get_image_imagesettext(gid_list)
 
 
 @register_api('/api/image/annot/rowid/json/', methods=['GET'])
-def get_image_aids_json(ibs, image_uuid_list, **kwargs):
+def get_image_aids_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_aids(gid_list, **kwargs)
+    return ibs.get_image_aids(gid_list)
 
 
 @register_api('/api/image/annot/uuid/json/', methods=['GET'])
-def get_image_annot_uuids_json(ibs, image_uuid_list, **kwargs):
+def get_image_annot_uuids_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_annot_uuids(gid_list, **kwargs)
+    return ibs.get_image_annot_uuids(gid_list)
 
 
 @register_api('/api/image/annot/rowid/species/json/', methods=['GET'], __api_plural_check__=False)
@@ -648,15 +648,15 @@ def get_image_annot_uuids_of_species_json(ibs, image_uuid_list, **kwargs):
 
 
 @register_api('/api/image/num/annot/json/', methods=['GET'])
-def get_image_num_annotations_json(ibs, image_uuid_list, **kwargs):
+def get_image_num_annotations_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_num_annotations(gid_list, **kwargs)
+    return ibs.get_image_num_annotations(gid_list)
 
 
 @register_api('/api/image/unixtime/json/', methods=['GET'])
-def get_image_unixtimes_json(ibs, image_uuid_list, **kwargs):
+def get_image_unixtimes_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    return ibs.get_image_unixtime(gid_list, **kwargs)
+    return ibs.get_image_unixtime(gid_list)
 
 
 @register_api('/api/image/timedelta/posix/json/', methods=['GET'])
@@ -684,14 +684,14 @@ def annotation_src_api_json(ibs, uuid=None):
 
 
 @register_api('/api/annot/rowid/uuid/json/', methods=['GET'])
-def get_annot_aids_from_uuid_json(ibs, annot_uuid_list, **kwargs):
-    return ibs.get_annot_aids_from_uuid(annot_uuid_list, **kwargs)
+def get_annot_aids_from_uuid_json(ibs, annot_uuid_list):
+    return ibs.get_annot_aids_from_uuid(annot_uuid_list)
 
 
 @register_api('/api/annot/image/rowid/json/', methods=['GET'])
-def get_annot_gids_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_gids_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_gids(aid_list, **kwargs)
+    return ibs.get_annot_gids(aid_list)
 
 
 @register_api('/api/annot/uuid/hashid/json/', methods=['GET'])
@@ -714,51 +714,51 @@ def set_exemplars_from_quality_and_viewpoint_json(ibs, annot_uuid_list,
 
 
 @register_api('/api/annot/bbox/json/', methods=['GET'])
-def get_annot_bboxes_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_bboxes_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_bboxes(aid_list, **kwargs)
+    return ibs.get_annot_bboxes(aid_list)
 
 
 @register_api('/api/annot/detect/confidence/json/', methods=['GET'])
-def get_annot_detect_confidence_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_detect_confidence_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_detect_confidence(aid_list, **kwargs)
+    return ibs.get_annot_detect_confidence(aid_list)
 
 
 @register_api('/api/annot/exemplar/json/', methods=['GET'])
-def get_annot_exemplar_flags_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_exemplar_flags_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_exemplar_flags(aid_list, **kwargs)
+    return ibs.get_annot_exemplar_flags(aid_list)
 
 
 @register_api('/api/annot/theta/json/', methods=['GET'])
-def get_annot_thetas_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_thetas_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_thetas(aid_list, **kwargs)
+    return ibs.get_annot_thetas(aid_list)
 
 
 @register_api('/api/annot/vert/json/', methods=['GET'])
-def get_annot_verts_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_verts_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_verts(aid_list, **kwargs)
+    return ibs.get_annot_verts(aid_list)
 
 
 @register_api('/api/annot/vert/rotated/json/', methods=['GET'])
-def get_annot_rotated_verts_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_rotated_verts_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_rotated_verts(aid_list, **kwargs)
+    return ibs.get_annot_rotated_verts(aid_list)
 
 
 @register_api('/api/annot/yaw/json/', methods=['GET'])
-def get_annot_yaws_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_yaws_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_yaws(aid_list, **kwargs)
+    return ibs.get_annot_yaws(aid_list)
 
 
 @register_api('/api/annot/num/vert/json/', methods=['GET'])
-def get_annot_num_verts_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_num_verts_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_num_verts(aid_list, **kwargs)
+    return ibs.get_annot_num_verts(aid_list)
 
 
 @register_api('/api/annot/name/rowid/json/', methods=['GET'])
@@ -775,88 +775,88 @@ def get_annot_name_rowids_json(ibs, annot_uuid_list, **kwargs):
 
 
 @register_api('/api/annot/name/text/json/', methods=['GET'])
-def get_annot_name_texts_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_name_texts_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_name_texts(aid_list, **kwargs)
+    return ibs.get_annot_name_texts(aid_list)
 
 
 @register_api('/api/annot/note/json/', methods=['GET'])
-def get_annot_notes_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_notes_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_notes(aid_list, **kwargs)
+    return ibs.get_annot_notes(aid_list)
 
 
 @register_api('/api/annot/species/json/', methods=['GET'], __api_plural_check__=False)
-def get_annot_species_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_species_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_species(aid_list, **kwargs)
+    return ibs.get_annot_species(aid_list)
 
 
 @register_api('/api/annot/species/rowid/json/', methods=['GET'], __api_plural_check__=False)
-def get_annot_species_rowids_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_species_rowids_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_species_rowids(aid_list, **kwargs)
+    return ibs.get_annot_species_rowids(aid_list)
 
 
 @register_api('/api/annot/species/uuid/json/', methods=['GET'], __api_plural_check__=False)
-def get_annot_species_uuids_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_species_uuids_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_species_uuids(aid_list, **kwargs)
+    return ibs.get_annot_species_uuids(aid_list)
 
 
 @register_api('/api/annot/species/text/json/', methods=['GET'], __api_plural_check__=False)
-def get_annot_species_texts_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_species_texts_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_species_texts(aid_list, **kwargs)
+    return ibs.get_annot_species_texts(aid_list)
 
 
 @register_api('/api/annot/imageset/rowid/json/', methods=['GET'])
-def get_annot_imgsetids_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_imgsetids_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_imgsetids(aid_list, **kwargs)
+    return ibs.get_annot_imgsetids(aid_list)
 
 
 @register_api('/api/annot/imageset/uuid/json/', methods=['GET'])
-def get_annot_imgset_uuids_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_imgset_uuids_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_imgset_uuids(aid_list, **kwargs)
+    return ibs.get_annot_imgset_uuids(aid_list)
 
 
 @register_api('/api/annot/imageset/text/json/', methods=['GET'])
-def get_annot_image_set_texts_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_image_set_texts_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_image_set_texts(aid_list, **kwargs)
+    return ibs.get_annot_image_set_texts(aid_list)
 
 
 @register_api('/api/annot/image/name/json/', methods=['GET'])
-def get_annot_image_names_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_image_names_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_image_names(aid_list, **kwargs)
+    return ibs.get_annot_image_names(aid_list)
 
 
 @register_api('/api/annot/image/unixtime/json/', methods=['GET'])
-def get_annot_image_unixtimes_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_image_unixtimes_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_image_unixtimes(aid_list, **kwargs)
+    return ibs.get_annot_image_unixtimes(aid_list)
 
 
 @register_api('/api/annot/image/gps/json/', methods=['GET'], __api_plural_check__=False)
-def get_annot_image_gps_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_image_gps_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_image_gps(aid_list, **kwargs)
+    return ibs.get_annot_image_gps(aid_list)
 
 
 @register_api('/api/annot/image/file/path/json/', methods=['GET'])
-def get_annot_image_paths_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_image_paths_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_image_paths(aid_list, **kwargs)
+    return ibs.get_annot_image_paths(aid_list)
 
 
 @register_api('/api/annot/image/uuid/json/', methods=['GET'])
-def get_annot_image_uuids_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_image_uuids_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     image_uuid_list = [
-        None if aid is None else ibs.get_annot_image_uuids(aid, **kwargs)
+        None if aid is None else ibs.get_annot_image_uuids(aid)
         for aid in aid_list
     ]
     return image_uuid_list
@@ -869,15 +869,15 @@ def get_annot_qualities_json(ibs, annot_uuid_list, **kwargs):
 
 
 @register_api('/api/annot/quality/text/json/', methods=['GET'])
-def get_annot_quality_texts_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_quality_texts_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_quality_texts(aid_list, **kwargs)
+    return ibs.get_annot_quality_texts(aid_list)
 
 
 @register_api('/api/annot/yaw/text/json/', methods=['GET'])
-def get_annot_yaw_texts_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_yaw_texts_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_yaw_texts(aid_list, **kwargs)
+    return ibs.get_annot_yaw_texts(aid_list)
 
 
 @register_api('/api/annot/sex/json/', methods=['GET'])
@@ -887,15 +887,15 @@ def get_annot_sex_json(ibs, annot_uuid_list, **kwargs):
 
 
 @register_api('/api/annot/sex/text/json/', methods=['GET'])
-def get_annot_sex_texts_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_sex_texts_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_sex_texts(aid_list, **kwargs)
+    return ibs.get_annot_sex_texts(aid_list)
 
 
 @register_api('/api/annot/reviewed/json/', methods=['GET'])
-def get_annot_reviewed_json(ibs, annot_uuid_list, **kwargs):
+def get_annot_reviewed_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_reviewed(aid_list, **kwargs)
+    return ibs.get_annot_reviewed(aid_list)
 
 
 @register_api('/api/annot/multiple/json/', methods=['GET'])
@@ -974,9 +974,9 @@ def get_name_annot_uuids_json(ibs, name_uuid_list, **kwargs):
 
 
 @register_api('/api/name/annot/rowid/exemplar/json/', methods=['GET'])
-def get_name_exemplar_aids_json(ibs, name_uuid_list, **kwargs):
+def get_name_exemplar_aids_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
-    return ibs.get_name_exemplar_aids(ibs, nid_list, **kwargs)
+    return ibs.get_name_exemplar_aids(ibs, nid_list)
 
 
 @register_api('/api/name/annot/uuid/exemplar/json/', methods=['GET'])
@@ -986,33 +986,33 @@ def get_name_exemplar_name_uuids_json(ibs, name_uuid_list, **kwargs):
 
 
 @register_api('/api/name/image/rowid/json/', methods=['GET'])
-def get_name_gids_json(ibs, name_uuid_list, **kwargs):
+def get_name_gids_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
-    return ibs.get_name_gids(ibs, nid_list, **kwargs)
+    return ibs.get_name_gids(ibs, nid_list)
 
 
 @register_api('/api/name/image/uuid/json/', methods=['GET'])
-def get_name_image_uuids_json(ibs, name_uuid_list, **kwargs):
+def get_name_image_uuids_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
-    return ibs.get_name_image_uuids(ibs, nid_list, **kwargs)
+    return ibs.get_name_image_uuids(ibs, nid_list)
 
 
 @register_api('/api/name/note/json/', methods=['GET'])
-def get_name_notes_json(ibs, name_uuid_list, **kwargs):
+def get_name_notes_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
-    return ibs.get_name_notes(ibs, nid_list, **kwargs)
+    return ibs.get_name_notes(ibs, nid_list)
 
 
 @register_api('/api/name/num/annot/json/', methods=['GET'])
-def get_name_num_annotations_json(ibs, name_uuid_list, **kwargs):
+def get_name_num_annotations_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
-    return ibs.get_name_num_annotations(ibs, nid_list, **kwargs)
+    return ibs.get_name_num_annotations(ibs, nid_list)
 
 
 @register_api('/api/name/num/annot/exemplar/json/', methods=['GET'])
-def get_name_num_exemplar_annotations_json(ibs, name_uuid_list, **kwargs):
+def get_name_num_exemplar_annotations_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
-    return ibs.get_name_num_exemplar_annotations(ibs, nid_list, **kwargs)
+    return ibs.get_name_num_exemplar_annotations(ibs, nid_list)
 
 
 @register_api('/api/name/temp/json/', methods=['GET'])
@@ -1022,9 +1022,9 @@ def get_name_temp_flag_json(ibs, name_uuid_list, **kwargs):
 
 
 @register_api('/api/name/alias/text/json/', methods=['GET'], __api_plural_check__=False)
-def get_name_alias_texts_json(ibs, name_uuid_list, **kwargs):
+def get_name_alias_texts_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
-    return ibs.get_name_alias_texts(ibs, nid_list, **kwargs)
+    return ibs.get_name_alias_texts(ibs, nid_list)
 
 
 @register_api('/api/name/text/json/', methods=['GET'])
@@ -1058,27 +1058,27 @@ def get_name_sex_text_json(ibs, name_uuid_list, **kwargs):
 
 
 @register_api('/api/name/age/months/min/json/', methods=['GET'], __api_plural_check__=False)
-def get_name_age_months_est_min_json(ibs, name_uuid_list, **kwargs):
+def get_name_age_months_est_min_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
-    return ibs.get_name_age_months_est_min(ibs, nid_list, **kwargs)
+    return ibs.get_name_age_months_est_min(ibs, nid_list)
 
 
 @register_api('/api/name/age/months/max/json/', methods=['GET'], __api_plural_check__=False)
-def get_name_age_months_est_max_json(ibs, name_uuid_list, **kwargs):
+def get_name_age_months_est_max_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
-    return ibs.get_name_age_months_est_max(ibs, nid_list, **kwargs)
+    return ibs.get_name_age_months_est_max(ibs, nid_list)
 
 
 @register_api('/api/name/imageset/rowid/json/', methods=['GET'])
-def get_name_imgsetids_json(ibs, name_uuid_list, **kwargs):
+def get_name_imgsetids_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
-    return ibs.get_name_imgsetids(ibs, nid_list, **kwargs)
+    return ibs.get_name_imgsetids(ibs, nid_list)
 
 
 @register_api('/api/name/imageset/uuid/json/', methods=['GET'])
-def get_name_imgset_uuids_json(ibs, name_uuid_list, **kwargs):
+def get_name_imgset_uuids_json(ibs, name_uuid_list):
     nid_list = ibs.get_name_rowids_from_uuid(name_uuid_list)
-    return ibs.get_name_imgset_uuids(ibs, nid_list, **kwargs)
+    return ibs.get_name_imgset_uuids(ibs, nid_list)
 
 
 @register_api('/api/species/json/', methods=['GET'], __api_plural_check__=False)
@@ -1094,33 +1094,33 @@ def get_species_rowids_from_text_json(ibs, species_uuid_list, **kwargs):
 
 
 @register_api('/api/species/rowid/uuid/json/', methods=['GET'], __api_plural_check__=False)
-def get_species_rowids_from_uuids_json(ibs, species_uuid_list, **kwargs):
+def get_species_rowids_from_uuids_json(ibs, species_uuid_list):
     species_rowid_list = ibs.get_species_rowids_from_uuids(species_uuid_list)
-    return ibs.get_species_rowids_from_uuids(ibs, species_rowid_list, **kwargs)
+    return ibs.get_species_rowids_from_uuids(ibs, species_rowid_list)
 
 
 @register_api('/api/species/text/json/', methods=['GET'], __api_plural_check__=False)
-def get_species_texts_json(ibs, species_uuid_list, **kwargs):
+def get_species_texts_json(ibs, species_uuid_list):
     species_rowid_list = ibs.get_species_rowids_from_uuids(species_uuid_list)
-    return ibs.get_species_texts(ibs, species_rowid_list, **kwargs)
+    return ibs.get_species_texts(ibs, species_rowid_list)
 
 
 @register_api('/api/species/nice/json/', methods=['GET'], __api_plural_check__=False)
-def get_species_nice_json(ibs, species_uuid_list, **kwargs):
+def get_species_nice_json(ibs, species_uuid_list):
     species_rowid_list = ibs.get_species_rowids_from_uuids(species_uuid_list)
-    return ibs.get_species_nice(ibs, species_rowid_list, **kwargs)
+    return ibs.get_species_nice(ibs, species_rowid_list)
 
 
 @register_api('/api/species/code/json/', methods=['GET'], __api_plural_check__=False)
-def get_species_codes_json(ibs, species_uuid_list, **kwargs):
+def get_species_codes_json(ibs, species_uuid_list):
     species_rowid_list = ibs.get_species_rowids_from_uuids(species_uuid_list)
-    return ibs.get_species_codes(ibs, species_rowid_list, **kwargs)
+    return ibs.get_species_codes(ibs, species_rowid_list)
 
 
 @register_api('/api/species/note/json/', methods=['GET'], __api_plural_check__=False)
-def get_species_notes_json(ibs, species_uuid_list, **kwargs):
+def get_species_notes_json(ibs, species_uuid_list):
     species_rowid_list = ibs.get_species_rowids_from_uuids(species_uuid_list)
-    return ibs.get_species_notes(ibs, species_rowid_list, **kwargs)
+    return ibs.get_species_notes(ibs, species_rowid_list)
 
 
 @register_api('/chaos/imageset/', methods=['GET', 'POST'], __api_plural_check__=False)
