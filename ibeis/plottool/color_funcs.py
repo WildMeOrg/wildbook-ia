@@ -192,11 +192,8 @@ def adjust_hsv_of_rgb255(rgb255, *args, **kwargs):
         >>>     color_list = [to_base01(rgb), to_base01(new_rgb)]
         >>>     testshow_colors(color_list)
     """
-    print('rgb255 = %r' % (rgb255,))
     rgb = to_base01(rgb255)
-    print('rgb = %r' % (rgb,))
     new_rgb = adjust_hsv_of_rgb(rgb, *args, **kwargs)
-    print('new_rgb = %r' % (new_rgb,))
     new_rgb255 = to_base255(new_rgb)
     return new_rgb255
 
