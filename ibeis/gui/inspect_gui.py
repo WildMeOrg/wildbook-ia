@@ -1498,7 +1498,6 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
     if len(cm_list) == 0:
         return ([], [], [], [])
 
-
     for cm in cm_list:
         if isinstance(cm, chip_match.ChipMatch):
             daids  = cm.get_top_aids(ntop=ranks_lt)

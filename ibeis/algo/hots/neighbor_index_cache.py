@@ -286,7 +286,7 @@ def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True, force_rebuil
     daid_list = qreq_.get_internal_daids()
     if not hasattr(qreq_.qparams, 'use_augmented_indexer'):
         qreq_.qparams.use_augmented_indexer = True
-    if qreq_.qparams.use_augmented_indexer:
+    if False and qreq_.qparams.use_augmented_indexer:
         nnindexer = request_augmented_ibeis_nnindexer(qreq_, daid_list,
                                                       verbose=verbose,
                                                       use_memcache=use_memcache,
