@@ -906,7 +906,7 @@ def get_reviewed_status_bgrole(ibs, aid_pair):
     annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
     #truth = ibs.get_annot_pair_truth([aid1], [aid2])[0]
     #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
-    if annotmach_reviewed == 0:
+    if annotmach_reviewed == 0 or annotmach_reviewed is None:
         lighten_amount = .9
     elif annotmach_reviewed == 2:
         lighten_amount = .7
