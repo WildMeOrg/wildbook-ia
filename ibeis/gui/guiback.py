@@ -1859,20 +1859,12 @@ class MainWindowBackend(GUIBACK_BASE):
         back.custom_query_widget = CustomAnnotCfgSelector(back.ibs)
         back.custom_query_widget.show()
         # back.custom_query_widget.apply_new_config()
-
         #dlg = wgt.as_dialog(back)
         #dlg.show()
         #dlg.exec_()
-
-        #import utool
-        #utool.embed()
-        #wgt.qaids
-        #wgt.daids
-
         #if not wgt.accept_flag:
         #    #reply not in options:
         #    raise guiexcept.UserCancel
-
         #back.compute_queries(qaid_list=wgt.qaids, daid_list=back.daids)
 
     @blocking_slot()
@@ -1981,30 +1973,36 @@ class MainWindowBackend(GUIBACK_BASE):
                                                          review_cfg=review_cfg)
         print('cfgdict = %r' % (cfgdict,))
 
+        progbar = back.front.progbar
+        progbar.setVisible(True)
+        progbar.setWindowTitle('Initialize query')
+        prog_hook = progbar.utool_prog_hook
+        #progbar = guitool.newProgressBar(None)  # back.front)
+        # Doesn't seem to work correctly
+        #prog_hook.show_indefinite_progress()
+        prog_hook.force_event_update()
+        prog_hook.set_progress(0)
+        progbar.setWindowTitle('Start query')
+        #import utool
+        #utool.embed()
+
         query_results = {}
-        for key, (qaids, daids) in species2_expanded_aids.items():
+        for key, (qaids, daids) in ut.ProgressIter(species2_expanded_aids.items(),
+                                                   prog_hook=prog_hook):
+            progbar.setWindowTitle('Initialize %r query' % (key,))
             qreq_ = back.ibs.new_query_request(qaids, daids,
                                                cfgdict=cfgdict)
-            #if not ut.WIN32:
-            #    progbar = guitool.newProgressBar(back.mainwin)
-            #else:
-            progbar = guitool.newProgressBar(None)  # back.front)
-            progbar.setWindowTitle('querying')
-            progbar.utool_prog_hook.set_progress(0)
-            # Doesn't seem to work correctly
-            #progbar.utool_prog_hook.show_indefinite_progress()
-            progbar.utool_prog_hook.force_event_update()
-            cm_list = back.ibs.query_chips(qreq_=qreq_,
-                                           prog_hook=progbar.utool_prog_hook)
+            prog_hook.initialize_subhooks(1)
+            subhook = prog_hook.next_subhook()
+            cm_list = back.ibs.query_chips(qreq_=qreq_, prog_hook=subhook)
             query_results[key] = (cm_list, qreq_)
-            progbar.close()
-            del progbar
 
             # HACK IN IMAGESET INFO
             if daids_mode == const.INTRA_OCCUR_KEY:
                 for cm in cm_list:
                     #if cm is not None:
                     cm.imgsetid = imgsetid
+        back.front.progbar.setVisible(False)
 
         print('[back] About to finish compute_queries: imgsetid=%r' % (imgsetid,))
         for key in query_results.keys():
