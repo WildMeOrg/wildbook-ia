@@ -702,9 +702,9 @@ class QueryResultsWidget(APIItemWidget):
                 # the new graph name inference algorithm.
                 # then the chosen point will be used as the threshold. Then
                 # the graph cut algorithm will be applied.
-                log = qres_wgt.logger.info
-                log('START MASS_THRESHOLD_MERGE')
-                log('num_groups=%d thresh=%r' % (
+                logger = qres_wgt.logger
+                logger.info('START MASS_THRESHOLD_MERGE')
+                logger.info('num_groups=%d thresh=%r' % (
                     len(dbside_groups), thresh,))
                 for count, subgraph in enumerate(dbside_groups):
                     thresh_aid_pairs = [
@@ -733,17 +733,18 @@ class QueryResultsWidget(APIItemWidget):
 
                     merge_name = ibs.get_name_texts(merge_nid)
                     annot_uuids = ibs.get_annot_uuids(aids)
-                    log('START GROUP %d' % (count,))
-                    log('GROUP BASED ON %d ANNOT_PAIRS WITH SCORE ABOVE (thresh=%r)' % (len(thresh_uuid_pairs), thresh,))
-                    log('(uuid_pairs=%r)' % (thresh_uuid_pairs))
-                    log('CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)' % (
+                    logger.info('START GROUP %d' % (count,))
+                    logger.info('GROUP BASED ON %d ANNOT_PAIRS WITH SCORE ABOVE (thresh=%r)' % (len(thresh_uuid_pairs), thresh,))
+                    logger.debug('(uuid_pairs=%r)' % (thresh_uuid_pairs))
+                    logger.debug('(merge_name=%r)' % (merge_name))
+                    logger.debug('CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)' % (
                         len(annot_uuids), annot_uuids, previous_names, type_, merge_name))
-                    log('ADDITIONAL CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)' % (
+                    logger.debug('ADDITIONAL CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)' % (
                         len(other_auuids), other_auuids, other_previous_names, type_, merge_name))
-                    log('END GROUP %d' % (count,))
+                    logger.info('END GROUP %d' % (count,))
                     new_nids = [merge_nid] * len(aids)
                     ibs.set_annot_name_rowids(aids, new_nids)
-                log('END MASS_THRESHOLD_MERGE')
+                logger.info('END MASS_THRESHOLD_MERGE')
 
             #ibs.get_annotmatch_truth(am_rowids)
         else:
