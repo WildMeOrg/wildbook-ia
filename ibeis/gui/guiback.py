@@ -308,11 +308,11 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         print('Updating saved query table')
         from guitool.__PYQT__.QtCore import Qt
         self.table_data = self.get_saved_queries()
-        data = ut.dict_subset(self.table_data, ['fname', 'num_qaids', 'num_daids'])
-        horHeaders = []
+        horHeaders = ['fname', 'num_qaids', 'num_daids']
+        data = self.table_data
         table = self.saved_queries
         self.saved_queries.setColumnCount(len(data))
-        for n, key in enumerate(sorted(data.keys())):
+        for n, key in enumerate(horHeaders):
             horHeaders.append(key)
             if n == 0:
                 self.saved_queries.setRowCount(len(data[key]))
@@ -427,7 +427,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         prev_queries = ut.glob(expt_query_dir, 'long_*.json')
         data = ut.ddict(list)
         from os.path import basename
-        for long_fpath in prev_queries:
+        for long_fpath in sorted(prev_queries):
             short_fpath = long_fpath.replace('long', 'short')
             data['long_path'].append(long_fpath)
             data['short_path'].append(short_fpath)
