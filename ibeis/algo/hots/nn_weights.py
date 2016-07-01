@@ -10,6 +10,8 @@ from six.moves import zip, range, map  # NOQA
 print, rrr, profile = ut.inject2(__name__, '[nnweight]')
 
 """
+FIXME: qfx2_ no longer applies due to fgw_thresh. Need to change names in this file
+
 TODO: replace testdata_pre_weight_neighbors with
 
         >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
@@ -76,10 +78,10 @@ def const_match_weighter(nns_list, nnvalid0_list, qreq_):
     # Subtract Knorm from size instead
     Knorm = qreq_.qparams.Knorm
 
-    for nns in (nns_list):
-        (qfx2_idx, qfx2_dist) = nns
-        qfx2_constvote = np.ones((len(qfx2_idx), len(qfx2_idx.T) - Knorm), dtype=np.float)
-        constvote_weight_list.append(qfx2_constvote)
+    for nns in nns_list:
+        (neighb_idx, neighb_dist) = nns
+        neighb_constvote = np.ones((len(neighb_idx), len(neighb_idx.T) - Knorm), dtype=np.float)
+        constvote_weight_list.append(neighb_constvote)
     return constvote_weight_list
 
 
@@ -100,8 +102,8 @@ def borda_match_weighter(nns_list, nnvalid0_list, qreq_):
     K = qreq_.qparams.K
     _branks = np.arange(1, K + 1, dtype=np.float)[::-1]
     bordavote_weight_list = [
-        np.tile(_branks, (len(qfx2_idx), 1))
-        for (qfx2_idx, qfx2_dist) in nns_list
+        np.tile(_branks, (len(neighb_idx), 1))
+        for (neighb_idx, neighb_dist) in nns_list
     ]
     return bordavote_weight_list
 
@@ -125,19 +127,18 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
     """
     Knorm = qreq_.qparams.Knorm
     cos_weight_list = []
-    qaid_list = qreq_.get_internal_qaids()
     qconfig2_ = qreq_.get_internal_query_config2()
     # Database feature index to chip index
-    for qaid, nns in zip(qaid_list, nns_list):
-        (qfx2_idx, qfx2_dist) = nns
-        qfx2_qvec = qreq_.ibs.get_annot_vecs(qaid, config2_=qconfig2_)[np.newaxis, :, :]
+    for nns in nns_list:
+        qfx2_qvec = qreq_.ibs.get_annot_vecs(nns.qaid, config2_=qconfig2_)
+        qvecs = qfx2_qvec.take(nns.qfx_list, axis=0)
         # database forground weights
         # avoid using K due to its more dynamic nature by using -Knorm
-        qfx2_dvec = qreq_.indexer.get_nn_vecs(qfx2_idx.T[:-Knorm])
+        neighb_dvec = qreq_.indexer.get_nn_vecs(nns.neighb_idxs.T[:-Knorm])
         # Component-wise dot product + selectivity function
         alpha = 3.0
-        qfx2_cosweight = scoring.sift_selectivity_score(qfx2_qvec, qfx2_dvec, alpha)
-        cos_weight_list.append(qfx2_cosweight)
+        neighb_cosweight = scoring.sift_selectivity_score(qvecs[np.newaxis, :, :], neighb_dvec, alpha)
+        cos_weight_list.append(neighb_cosweight)
     return cos_weight_list
 
 
@@ -160,19 +161,18 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
         >>> print('fgvotes_list = %r' % (fgvotes_list,))
     """
     Knorm = qreq_.qparams.Knorm
-    qaid_list = qreq_.get_internal_qaids()
     config2_ = qreq_.get_internal_query_config2()
     # Database feature index to chip index
     fgvotes_list = []
-    for qaid, nns in zip(qaid_list, nns_list):
-        (qfx2_idx, qfx2_dist) = nns
+    for nn in nns_list:
         # database forground weights
-        qfx2_dfgw = qreq_.indexer.get_nn_fgws(qfx2_idx.T[0:-Knorm].T)
+        neighb_dfgws = qreq_.indexer.get_nn_fgws(nn.neighb_idxs.T[0:-Knorm].T)
         # query forground weights
-        qfx2_qfgw = qreq_.ibs.get_annot_fgweights([qaid], ensure=False, config2_=config2_)[0]
-        # feature match forground weight
-        qfx2_fgvote_weight = np.sqrt(qfx2_qfgw[:, None] * qfx2_dfgw)
-        fgvotes_list.append(qfx2_fgvote_weight)
+        qfx2_qfgw = qreq_.ibs.get_annot_fgweights([nn.qaid], ensure=False, config2_=config2_)[0]
+        qfgws = qfx2_qfgw.take(nn.qfx_list, axis=0)
+        # feature match forground weight is geometric mean
+        neighb_fgvote_weight = np.sqrt(qfgws[:, None] * neighb_dfgws)
+        fgvotes_list.append(neighb_fgvote_weight)
     return fgvotes_list
 
 
@@ -188,10 +188,12 @@ def distinctiveness_match_weighter(qreq_):
         >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', codename='vsone_dist_extern_distinctiveness')
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
     """
+    raise NotImplementedError('Not finished')
     dstcnvs_normer = qreq_.dstcnvs_normer
     assert dstcnvs_normer is not None
     qaid_list = qreq_.get_external_qaids()
     vecs_list = qreq_.ibs.get_annot_vecs(qaid_list, config2_=qreq_.get_internal_query_config2())
+    # TODO: need to filter on nn.fxs_list if features were threshed away
     dstcvs_list = []
     for vecs in vecs_list:
         qfx2_vec = vecs
@@ -208,7 +210,7 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
 
     Args:
         normweight_fn (func): chosen weight function e.g. lnbnn
-        nns_list (dict): query descriptor nearest neighbors and distances. (qfx2_nnx, qfx2_dist)
+        nns_list (dict): query descriptor nearest neighbors and distances.
         nnvalid0_list (list): list of neighbors preflagged as valid
         qreq_ (QueryRequest): hyper-parameters
 
@@ -251,18 +253,18 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
     # Database feature index to chip index
     qaid_list = qreq_.get_internal_qaids()
     normk_list = [
-        get_normk(qreq_, qaid, qfx2_idx, Knorm, normalizer_rule)
-        for qaid, (qfx2_idx, qfx2_dist) in zip(qaid_list, nns_list)
+        get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
+        for qaid, (neighb_idx, neighb_dist) in zip(qaid_list, nns_list)
     ]
     weight_list = [
         apply_normweight(
-            normweight_fn, qfx2_normk, qfx2_idx, qfx2_dist, Knorm)
-        for qfx2_normk, (qfx2_idx, qfx2_dist) in zip(normk_list, nns_list)
+            normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm)
+        for neighb_normk, (neighb_idx, neighb_dist) in zip(normk_list, nns_list)
     ]
     return weight_list, normk_list
 
 
-def get_normk(qreq_, qaid, qfx2_idx, Knorm, normalizer_rule):
+def get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule):
     """
     Get positions of the LNBNN/ratio tests normalizers
 
@@ -272,43 +274,43 @@ def get_normk(qreq_, qaid, qfx2_idx, Knorm, normalizer_rule):
         >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name', 'dim_size': 450, 'resize_dim': 'area'}
         >>> tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
-        >>> (qfx2_idx, qfx2_dist) = nns_list[0]
+        >>> (neighb_idx, neighb_dist) = nns_list[0]
         >>> qaid = qreq_.get_external_qaids()[0]
         >>> K = qreq_.qparams.K
         >>> Knorm = qreq_.qparams.Knorm
-        >>> qfx2_normk1 = get_normk(qreq_, qaid, qfx2_idx, Knorm, 'last')
-        >>> qfx2_normk2 = get_normk(qreq_, qaid, qfx2_idx, Knorm, 'name')
-        >>> assert np.all(qfx2_normk1 == Knorm + K)
-        >>> assert np.all(qfx2_normk2 <= Knorm + K) and np.all(qfx2_normk2 > K)
+        >>> neighb_normk1 = get_normk(qreq_, qaid, neighb_idx, Knorm, 'last')
+        >>> neighb_normk2 = get_normk(qreq_, qaid, neighb_idx, Knorm, 'name')
+        >>> assert np.all(neighb_normk1 == Knorm + K)
+        >>> assert np.all(neighb_normk2 <= Knorm + K) and np.all(neighb_normk2 > K)
     """
-    K = len(qfx2_idx.T) - Knorm
+    K = len(neighb_idx.T) - Knorm
     assert K > 0, 'K=%r cannot be 0' % (K,)
-    # qfx2_nndist = qfx2_dist.T[0:K].T
+    # neighb_nndist = neighb_dist.T[0:K].T
     if normalizer_rule == 'last':
-        qfx2_normk = np.zeros(len(qfx2_idx), hstypes.FK_DTYPE) + (K + Knorm - 1)
+        neighb_normk = np.zeros(len(neighb_idx), hstypes.FK_DTYPE) + (K + Knorm - 1)
     elif normalizer_rule == 'name':
-        qfx2_normk = get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx)
+        neighb_normk = get_name_normalizers(qaid, qreq_, Knorm, neighb_idx)
     elif normalizer_rule == 'external':
         pass
     else:
         raise NotImplementedError('[nn_weights] no normalizer_rule=%r' % normalizer_rule)
-    return qfx2_normk
+    return neighb_normk
 
 
-def apply_normweight(normweight_fn, qfx2_normk, qfx2_idx, qfx2_dist, Knorm):
+def apply_normweight(normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm):
     r"""
     helper applies the normalized weight function to one query annotation
 
     Args:
         normweight_fn (func):  chosen weight function e.g. lnbnn
         qaid (int):  query annotation id
-        qfx2_idx (ndarray[int32_t, ndims=2]):  mapping from query feature index to db neighbor index
-        qfx2_dist (ndarray):  mapping from query feature index to dist
+        neighb_idx (ndarray[int32_t, ndims=2]):  mapping from query feature index to db neighbor index
+        neighb_dist (ndarray):  mapping from query feature index to dist
         Knorm (int):
         qreq_ (QueryRequest):  query request object with hyper-parameters
 
     Returns:
-        ndarray: qfx2_normweight
+        ndarray: neighb_normweight
 
     CommandLine:
         python -m ibeis.algo.hots.nn_weights --test-apply_normweight
@@ -324,24 +326,24 @@ def apply_normweight(normweight_fn, qfx2_normk, qfx2_idx, qfx2_dist, Knorm):
         >>> Knorm = qreq_.qparams.Knorm
         >>> normweight_fn = lnbnn_fn
         >>> normalizer_rule  = qreq_.qparams.normalizer_rule
-        >>> (qfx2_idx, qfx2_dist) = nns_list[0]
-        >>> qfx2_normk = get_normk(qreq_, qaid, qfx2_idx, Knorm, normalizer_rule)
-        >>> qfx2_normweight = nn_weights.apply_normweight(
-        >>>   normweight_fn, qfx2_normk, qfx2_idx, qfx2_dist, Knorm)
-        >>> ut.assert_inbounds(qfx2_normweight.sum(), 600, 950)
+        >>> (neighb_idx, neighb_dist) = nns_list[0]
+        >>> neighb_normk = get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
+        >>> neighb_normweight = nn_weights.apply_normweight(
+        >>>   normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm)
+        >>> ut.assert_inbounds(neighb_normweight.sum(), 600, 950)
     """
-    K = len(qfx2_idx.T) - Knorm
-    qfx2_normdist = np.array(
-        [dists[normk] for (dists, normk) in zip(qfx2_dist, qfx2_normk)])
-    qfx2_normdist.shape = (len(qfx2_idx), 1)
-    qfx2_nndist = qfx2_dist.T[0:K].T
-    vdist = qfx2_nndist    # voting distance
-    ndist = qfx2_normdist  # normalizer distance
-    qfx2_normweight = normweight_fn(vdist, ndist)
-    return qfx2_normweight
+    K = len(neighb_idx.T) - Knorm
+    neighb_normdist = np.array(
+        [dists[normk] for (dists, normk) in zip(neighb_dist, neighb_normk)])
+    neighb_normdist.shape = (len(neighb_idx), 1)
+    neighb_nndist = neighb_dist.T[0:K].T
+    vdist = neighb_nndist    # voting distance
+    ndist = neighb_normdist  # normalizer distance
+    neighb_normweight = normweight_fn(vdist, ndist)
+    return neighb_normweight
 
 
-def get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx):
+def get_name_normalizers(qaid, qreq_, Knorm, neighb_idx):
     r"""
     helper normalizers for 'name' normalizer_rule
 
@@ -349,10 +351,10 @@ def get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx):
         qaid (int): query annotation id
         qreq_ (QueryRequest): hyper-parameters
         Knorm (int):
-        qfx2_idx (ndarray):
+        neighb_idx (ndarray):
 
     Returns:
-        ndarray : qfx2_normk
+        ndarray : neighb_normk
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -362,31 +364,31 @@ def get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx):
         >>> tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> Knorm = qreq_.qparams.Knorm
-        >>> (qfx2_idx, qfx2_dist) = nns_list[0]
+        >>> (neighb_idx, neighb_dist) = nns_list[0]
         >>> qaid = qreq_.get_external_qaids()[0]
-        >>> qfx2_normk = get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx)
+        >>> neighb_normk = get_name_normalizers(qaid, qreq_, Knorm, neighb_idx)
     """
     assert Knorm == qreq_.qparams.Knorm, 'inconsistency in qparams'
     # Get the top names you do not want your normalizer to be from
     qnid = qreq_.ibs.get_annot_name_rowids(qaid)
-    K = len(qfx2_idx.T) - Knorm
+    K = len(neighb_idx.T) - Knorm
     assert K > 0, 'K cannot be 0'
     # Get the 0th - Kth matching neighbors
-    qfx2_topidx = qfx2_idx.T[0:K].T
+    neighb_topidx = neighb_idx.T[0:K].T
     # Get tke Kth - KNth normalizing neighbors
-    qfx2_normidx = qfx2_idx.T[-Knorm:].T
+    neighb_normidx = neighb_idx.T[-Knorm:].T
     # Apply temporary uniquish name
-    qfx2_topaid  = qreq_.indexer.get_nn_aids(qfx2_topidx)
-    qfx2_normaid = qreq_.indexer.get_nn_aids(qfx2_normidx)
-    qfx2_topnid  = qreq_.ibs.get_annot_name_rowids(qfx2_topaid)
-    qfx2_normnid = qreq_.ibs.get_annot_name_rowids(qfx2_normaid)
+    neighb_topaid  = qreq_.indexer.get_nn_aids(neighb_topidx)
+    neighb_normaid = qreq_.indexer.get_nn_aids(neighb_normidx)
+    neighb_topnid  = qreq_.ibs.get_annot_name_rowids(neighb_topaid)
+    neighb_normnid = qreq_.ibs.get_annot_name_rowids(neighb_normaid)
     # Inspect the potential normalizers
-    qfx2_selnorm = mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid)
-    qfx2_normk = qfx2_selnorm + (K + Knorm)  # convert form negative to pos indexes
-    return qfx2_normk
+    neighb_selnorm = mark_name_valid_normalizers(qnid, neighb_topnid, neighb_normnid)
+    neighb_normk = neighb_selnorm + (K + Knorm)  # convert form negative to pos indexes
+    return neighb_normk
 
 
-def mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid):
+def mark_name_valid_normalizers(qnid, neighb_topnid, neighb_normnid):
     r"""
     Helper func that allows matches only to the first result for a name
 
@@ -398,12 +400,12 @@ def mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid):
     its feature's candidate matching set.
 
     Args:
-        qfx2_topnid (ndarray): marks the names a feature matches
-        qfx2_normnid (ndarray): marks the names of the feature normalizers
+        neighb_topnid (ndarray): marks the names a feature matches
+        neighb_normnid (ndarray): marks the names of the feature normalizers
         qnid (int): query name id
 
     Returns:
-        qfx2_selnorm - index of the selected normalizer for each query feature
+        neighb_selnorm - index of the selected normalizer for each query feature
 
     CommandLine:
         python -m ibeis.algo.hots.nn_weights --exec-mark_name_valid_normalizers
@@ -412,7 +414,7 @@ def mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
         >>> qnid = 1
-        >>> qfx2_topnid = np.array([[1, 1, 1, 1, 1],
+        >>> neighb_topnid = np.array([[1, 1, 1, 1, 1],
         ...                         [1, 2, 1, 1, 1],
         ...                         [1, 2, 2, 3, 1],
         ...                         [5, 8, 9, 8, 8],
@@ -420,7 +422,7 @@ def mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid):
         ...                         [6, 6, 9, 6, 8],
         ...                         [5, 8, 6, 6, 6],
         ...                         [1, 2, 8, 6, 6]], dtype=np.int32)
-        >>> qfx2_normnid = np.array([[ 1, 1, 1],
+        >>> neighb_normnid = np.array([[ 1, 1, 1],
         ...                          [ 2, 3, 1],
         ...                          [ 2, 3, 1],
         ...                          [ 6, 6, 6],
@@ -428,30 +430,30 @@ def mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid):
         ...                          [ 2, 6, 6],
         ...                          [ 6, 6, 1],
         ...                          [ 4, 4, 9]], dtype=np.int32)
-        >>> qfx2_selnorm = mark_name_valid_normalizers(qnid, qfx2_topnid, qfx2_normnid)
-        >>> K = len(qfx2_topnid.T)
-        >>> Knorm = len(qfx2_normnid.T)
-        >>> qfx2_normk_ = qfx2_selnorm + (Knorm)  # convert form negative to pos indexes
-        >>> result = str(qfx2_normk_)
+        >>> neighb_selnorm = mark_name_valid_normalizers(qnid, neighb_topnid, neighb_normnid)
+        >>> K = len(neighb_topnid.T)
+        >>> Knorm = len(neighb_normnid.T)
+        >>> neighb_normk_ = neighb_selnorm + (Knorm)  # convert form negative to pos indexes
+        >>> result = str(neighb_normk_)
         >>> print(result)
         [2 1 2 0 0 0 2 0]
 
     Ignore:
-        print(ut.doctest_repr(qfx2_normnid, 'qfx2_normnid', verbose=False))
-        print(ut.doctest_repr(qfx2_topnid, 'qfx2_topnid', verbose=False))
+        print(ut.doctest_repr(neighb_normnid, 'neighb_normnid', verbose=False))
+        print(ut.doctest_repr(neighb_topnid, 'neighb_topnid', verbose=False))
     """
-    # TODO?: warn if any([np.any(flags) for flags in qfx2_invalid]), (
+    # TODO?: warn if any([np.any(flags) for flags in neighb_invalid]), (
     #    'Normalizers are potential matches. Increase Knorm')
-    qfx2_valid = np.logical_and.reduce([col1[:, None] != qfx2_normnid
-                                        for col1 in qfx2_topnid.T])
+    neighb_valid = np.logical_and.reduce([col1[:, None] != neighb_normnid
+                                          for col1 in neighb_topnid.T])
     # Mark self as invalid, if given that information
-    qfx2_valid = np.logical_and(qfx2_normnid != qnid, qfx2_valid)
+    neighb_valid = np.logical_and(neighb_normnid != qnid, neighb_valid)
     # For each query feature find its best normalizer (using negative indices)
-    Knorm = qfx2_normnid.shape[1]
-    qfx2_validxs = [np.nonzero(normrow)[0] for normrow in qfx2_valid]
-    qfx2_selnorm = np.array([validxs[0] - Knorm if len(validxs) != 0 else -1
-                             for validxs in qfx2_validxs], hstypes.FK_DTYPE)
-    return qfx2_selnorm
+    Knorm = neighb_normnid.shape[1]
+    neighb_validxs = [np.nonzero(normrow)[0] for normrow in neighb_valid]
+    neighb_selnorm = np.array([validxs[0] - Knorm if len(validxs) != 0 else -1
+                               for validxs in neighb_validxs], hstypes.FK_DTYPE)
+    return neighb_selnorm
 
 
 @_register_nn_normalized_weight_func

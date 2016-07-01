@@ -399,7 +399,7 @@ class FlannConfig(ConfigBase):
             flann_cfgstrs += ['%s' % flann_cfg.algorithm]
         else:
             flann_cfgstrs += ['%s' % flann_cfg.algorithm]
-        if flann_cfg.fgw_thresh is not None:
+        if flann_cfg.fgw_thresh is not None and flann_cfg.fgw_thresh > 0:
             # HACK FOR GGR
             flann_cfgstrs += ['_fgwthrsh=%s' % flann_cfg.fgw_thresh]
         #flann_cfgstrs += ['checks=%r' % flann_cfg.checks]

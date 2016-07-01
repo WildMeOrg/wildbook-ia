@@ -1900,8 +1900,8 @@ class ChipMatch(_ChipMatchVisualization,
             for fxs_list in filtnorm_fxs
         ]
 
-        assert len(filtnorm_aids) == len(fsv_col_lbls), 'bad normer'
-        assert len(filtnorm_fxs) == len(fsv_col_lbls), 'bad normer'
+        # assert len(filtnorm_aids) == len(fsv_col_lbls), 'bad normer %r %r' % (len(filtnorm_aids), len(fsv_col_lbls))
+        # assert len(filtnorm_fxs) == len(fsv_col_lbls), 'bad normer %r %r' % (len(filtnorm_aids), len(fsv_col_lbls))
 
         cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list,
                  fsv_col_lbls=fsv_col_lbls, filtnorm_aids=filtnorm_aids,
