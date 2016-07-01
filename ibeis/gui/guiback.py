@@ -1981,7 +1981,7 @@ class MainWindowBackend(GUIBACK_BASE):
         # Doesn't seem to work correctly
         #prog_hook.show_indefinite_progress()
         prog_hook.force_event_update()
-        prog_hook.set_progress(0)
+        #prog_hook.set_progress(0)
         progbar.setWindowTitle('Start query')
         #import utool
         #utool.embed()
@@ -2097,15 +2097,20 @@ class MainWindowBackend(GUIBACK_BASE):
             options = [
                 'Start ID',
             ]
-            reply, new_config = back.user_option(
-                title='Begin %s ID' % (query_title,),
-                msg=msg_str,
-                config=config,
-                options=options,
-                default=options[0],
-                detailed_msg=detailed_msg,
-            )
-            print('reply = %r' % (reply,))
+
+            if ut.get_argflag(('--yes', '-y')):
+                reply = options[0]
+                new_config = config
+            else:
+                reply, new_config = back.user_option(
+                    title='Begin %s ID' % (query_title,),
+                    msg=msg_str,
+                    config=config,
+                    options=options,
+                    default=options[0],
+                    detailed_msg=detailed_msg,
+                )
+                print('reply = %r' % (reply,))
             updated_config = new_config.asdict()
             updated_review_cfg = ut.dict_subset(updated_config, review_config.keys())
             ut.delete_dict_keys(updated_config, review_config.keys())

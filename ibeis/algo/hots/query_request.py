@@ -882,6 +882,13 @@ class QueryRequest(object):
         """
         if verbose:
             print('[qreq] lazy preloading')
+        #if qreq_.prog_hook is not None:
+        #    qreq_.prog_hook.initialize_subhooks(5)
+        #    hook = qreq_.prog_hook.next_subhook()
+        #    hook.set_progress(1, 4, lbl='preloading features')
+        #    hook.set_progress(1, 4, lbl='preloading features')
+        #import utool
+        #utool.embed()
         qreq_.ensure_features(verbose=verbose)
         if qreq_.qparams.fg_on is True:
             qreq_.ensure_featweights(verbose=verbose)
@@ -889,6 +896,8 @@ class QueryRequest(object):
             qreq_.load_score_normalizer(verbose=verbose)
         if qreq_.qparams.use_external_distinctiveness:
             qreq_.load_distinctiveness_normalizer(verbose=verbose)
+        #if hook is not None:
+        #    hook.set_progress(4, 4, lbl='preloading features')
 
     @profile
     def lazy_load(qreq_, verbose=ut.NOT_QUIET):
@@ -1049,6 +1058,10 @@ class QueryRequest(object):
         if not force and qreq_.indexer is not None:
             return False
         else:
+            #if qreq_.prog_hook is not None:
+            #    qreq_.prog_hook.initialize_subhooks(5)
+            #    hook = qreq_.prog_hook.next_subhook()
+            #    hook.set_progress(1, 4, lbl='building indexer')
             index_method = qreq_.qparams.index_method
             if index_method == 'single':
                 # TODO: SYSTEM updatable indexer
@@ -1063,6 +1076,8 @@ class QueryRequest(object):
                     qreq_, verbose=verbose)
             else:
                 raise AssertionError('uknown index_method=%r' % (index_method,))
+            #if qreq_.prog_hook is not None:
+            #    hook.set_progress(4, 4, lbl='building indexer')
             qreq_.indexer = indexer
             return True
 
