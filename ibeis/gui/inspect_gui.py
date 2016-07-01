@@ -733,6 +733,15 @@ class QueryResultsWidget(APIItemWidget):
 
                     merge_name = ibs.get_name_texts(merge_nid)
                     annot_uuids = ibs.get_annot_uuids(aids)
+                    ###
+                    # Set as reviewed (so we dont see them again), but mark it
+                    # with a different code to denote that it was a MASS review
+                    aid1_list = ut.take_column(thresh_aid_pairs, 0)
+                    aid2_list = ut.take_column(thresh_aid_pairs, 1)
+                    am_rowids = ibs.add_annotmatch(aid1_list, aid2_list)
+                    MASS_REVIEW_CODE = 2
+                    ibs.set_annotmatch_reviewed(am_rowids, [MASS_REVIEW_CODE] * len(am_rowids))
+
                     logger.info('START GROUP %d' % (count,))
                     logger.info('GROUP BASED ON %d ANNOT_PAIRS WITH SCORE ABOVE (thresh=%r)' % (len(thresh_uuid_pairs), thresh,))
                     logger.debug('(uuid_pairs=%r)' % (thresh_uuid_pairs))
