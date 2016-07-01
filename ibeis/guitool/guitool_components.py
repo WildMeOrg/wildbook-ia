@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import six
-from six.moves import map, range
+from six.moves import map, range  # NOQA
 from guitool.__PYQT__ import QtCore, QtGui
 from guitool.__PYQT__.QtGui import QSizePolicy
 from guitool.__PYQT__.QtCore import Qt
@@ -189,8 +189,7 @@ class ProgressHooks(QtCore.QObject, ut.NiceRepr):
         >>> hook = subhooks[0]
         >>> hook(0, 2)
         >>> hook(1, 2)
-        >>> substep_hooks = proghook.make_substep_hooks(num=4)
-        >>>
+        >>> substep_hooks = hook.make_substep_hooks(num=4)
         >>> hook(2, 2)
         >>> subhook2 = subhooks[1]
         >>> subsubhooks = subhook2.subdivide_hooks(num=2)
@@ -213,7 +212,7 @@ class ProgressHooks(QtCore.QObject, ut.NiceRepr):
         proghook.global_max = global_max
         #proghook.substep_min = substep_min
         #proghook.substep_size = substep_size
-        proghook.count = 0
+        proghook._count = 0
         proghook.nTotal = 1
         proghook.progiter = None
         proghook.lbl = 'prog'
@@ -224,6 +223,17 @@ class ProgressHooks(QtCore.QObject, ut.NiceRepr):
 
     def __nice__(proghook):
         return '(' + proghook.lbl + ', %r, %r)' % proghook.global_bounds()
+
+    @property
+    def count(proghook):
+        progiter = None
+        if proghook.progiter is None:
+            progiter = proghook.progiter()
+        if progiter is None:
+            count = proghook._count
+        else:
+            count = progiter.count
+        return count
 
     def global_bounds(proghook):
         min_ = proghook.global_min
@@ -283,20 +293,14 @@ class ProgressHooks(QtCore.QObject, ut.NiceRepr):
             # Assume uniform sub iterators
             import numpy as np
             spacing = np.linspace(0, 1, num + 1)
-
-        if proghook.progiter is None:
-            count = proghook.count
-        else:
-            count = proghook.progiter().count
         nTotal = proghook.nTotal
 
         #min_, max_ = proghook.global_bounds()
-        extent = proghook.global_extent()
-
-        local_stepsize = nTotal / count
-        step_extent =
-
-        global_spacing = proghook.global_min + (spacing * extent)
+        step_extent_local = 1 / nTotal
+        assert proghook.count < nTotal, 'already finished this subhook'
+        step_extent_global = step_extent_local * proghook.global_extent()
+        step_min = proghook.count * step_extent_global + proghook.global_min
+        global_spacing = step_min + (spacing * step_extent_global)
         sub_min_list = global_spacing[:-1]
         sub_max_list = global_spacing[1:]
 
@@ -337,7 +341,7 @@ class ProgressHooks(QtCore.QObject, ut.NiceRepr):
                 nTotal = 100
         else:
             proghook.nTotal = nTotal
-        proghook.count = count
+        proghook._count = count
         if lbl is not None:
             proghook.lbl = lbl
         global_fraction = proghook.global_progress()
@@ -449,22 +453,22 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         >>> visible = True
         >>> verticalStretch = 1
         >>> def complex_tasks(hook):
-        ...     progkw = dict(freq=1, backspace=False, autoadjust=False)
-        ...     num = 800
-        ...     for x in ut.ProgressIter(range(4), lbl='TASK', prog_hook=hook, **progkw):
-        ...         ut.get_nth_prime_bruteforce(num)
-        ...         subhooks = hook.make_substep_hooks(2)
-        ...         for task1 in ut.ProgressIter(range(2), lbl='task1.1', prog_hook=subhooks[0], **progkw):
-        ...             ut.get_nth_prime_bruteforce(num)
-        ...             subsubhooks = subhooks[0].make_substep_hooks(3)
-        ...             for task1 in ut.ProgressIter(range(7), lbl='task1.1.1', prog_hook=subsubhooks[0], **progkw):
-        ...                 ut.get_nth_prime_bruteforce(num)
-        ...             for task1 in ut.ProgressIter(range(11), lbl='task1.1.2', prog_hook=subsubhooks[1], **progkw):
-        ...                 ut.get_nth_prime_bruteforce(num)
-        ...             for task1 in ut.ProgressIter(range(3), lbl='task1.1.3', prog_hook=subsubhooks[2], **progkw):
-        ...                 ut.get_nth_prime_bruteforce(num)
-        ...         for task2 in ut.ProgressIter(range(10), lbl='task1.2', prog_hook=subhooks[1], **progkw):
-        ...             ut.get_nth_prime_bruteforce(num)
+        >>>     progkw = dict(freq=1, backspace=False, autoadjust=False)
+        >>>     num = 800
+        >>>     for x in ut.ProgressIter(range(4), lbl='TASK', prog_hook=hook, **progkw):
+        >>>         ut.get_nth_prime_bruteforce(num)
+        >>>         subhook1, subhook2 = hook.make_substep_hooks(2)
+        >>>         for task1 in ut.ProgressIter(range(2), lbl='task1.1', prog_hook=subhook1, **progkw):
+        >>>             ut.get_nth_prime_bruteforce(num)
+        >>>             subsubhooks = subhook1.make_substep_hooks(3)
+        >>>             for task1 in ut.ProgressIter(range(7), lbl='task1.1.1', prog_hook=subsubhooks[0], **progkw):
+        >>>                 ut.get_nth_prime_bruteforce(num)
+        >>>             for task1 in ut.ProgressIter(range(11), lbl='task1.1.2', prog_hook=subsubhooks[1], **progkw):
+        >>>                 ut.get_nth_prime_bruteforce(num)
+        >>>             for task1 in ut.ProgressIter(range(3), lbl='task1.1.3', prog_hook=subsubhooks[2], **progkw):
+        >>>                 ut.get_nth_prime_bruteforce(num)
+        >>>         for task2 in ut.ProgressIter(range(10), lbl='task1.2', prog_hook=subhook2, **progkw):
+        >>>             ut.get_nth_prime_bruteforce(num)
         >>> # hook into utool progress iter
         >>> progressBar = newProgressBar(parent, visible, verticalStretch)
         >>> hook = progressBar.utool_prog_hook
