@@ -319,10 +319,6 @@ def get_imageset_isoccurrence_json(ibs, imageset_uuid_list):
 @register_api('/api/imageset/num/annot/reviewed/json/', methods=['GET'])
 def get_imageset_num_annots_reviewed_json(ibs, imageset_uuid_list):
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
-    print(ibs)
-    print(imageset_uuid_list)
-    print(imageset_rowid_list)
-    ut.embed()
     return ibs.get_imageset_num_annots_reviewed(imageset_rowid_list)
 
 
