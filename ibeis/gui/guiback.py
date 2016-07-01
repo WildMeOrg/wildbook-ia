@@ -2443,7 +2443,6 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def commit_to_wb_step(back, refresh=True):
-        back.start_web_server_parallel(browser=False)
         """
         Step 6) Commit
 
@@ -2451,6 +2450,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         commit step
         """
+        back.start_web_server_parallel(browser=False)
         imgsetid = back.get_selected_imgsetid()
         if back.contains_special_imagesets([imgsetid]) or imgsetid is None:
             back.user_warning(msg=ut.codeblock(
