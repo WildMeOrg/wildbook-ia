@@ -473,6 +473,8 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.update_config_info('SAVED MANIFEST INFO:' + query_info_short_text)
         print('...loaded previous query')
         self.execute_button.setText('Re-Execute Saved Query')
+        # need to do this or block signals from editPipeConfig
+        self.cfg_needs_update = False
 
     def log_query(self, qreq_=None, test=True):
         expt_query_dir = self.expt_query_dir()
