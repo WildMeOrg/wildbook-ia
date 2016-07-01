@@ -464,8 +464,8 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
         quuids, duuids = query_info['expanded_uuids']
         ibs = self.ibs
-        self.daids = ibs.get_annot_aids_from_uuid(quuids)
-        self.qaids = ibs.get_annot_aids_from_uuid(duuids)
+        self.qaids = ibs.get_annot_aids_from_uuid(quuids)
+        self.daids = ibs.get_annot_aids_from_uuid(duuids)
 
         self.editPipeConfig.set_to_external(self.query_info['pcfg'])
         # self.pcfg.update(**)
