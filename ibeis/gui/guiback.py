@@ -2445,6 +2445,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def commit_to_wb_step(back, refresh=True):
+        back.start_web_server_parallel(browser=False)
         """
         Step 6) Commit
 
@@ -2523,6 +2524,7 @@ class MainWindowBackend(GUIBACK_BASE):
                 back.front.update_tables([gh.IMAGESET_TABLE])
 
     def send_unshipped_processed_imagesets(back, refresh=True):
+        back.start_web_server_parallel(browser=False)
         processed_set = set(back.ibs.get_valid_imgsetids(processed=True))
         shipped_set = set(back.ibs.get_valid_imgsetids(shipped=True))
         imgsetid_list = list(processed_set - shipped_set)
