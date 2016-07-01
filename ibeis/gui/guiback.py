@@ -168,6 +168,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
                 #ibs.cfg.query_cfg.nn_cfg.lookup_paraminfo('Knorm'),
                 ibs.cfg.query_cfg.nnweight_cfg.lookup_paraminfo('normalizer_rule'),
                 ut.ParamInfo('fgw_thresh', ibs.cfg.query_cfg.flann_cfg.fgw_thresh, type_=float),
+                ut.ParamInfo('augment_queryside_hack', ibs.cfg.query_cfg.augment_queryside_hack),
                 #ut.ParamInfo('normalizer_rule', ibs.cfg.query_cfg.nnweight_cfg.normalizer_rule),
                 #ut.ParamInfo('AI', True),
             ]
@@ -468,7 +469,10 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.daids = ibs.get_annot_aids_from_uuid(duuids)
 
         self.editPipeConfig.set_to_external(self.query_info['pcfg'])
+        self.editQueryConfig.set_to_external(self.query_info['acfg']['qcfg'])
+        self.editDataConfig.set_to_external(self.query_info['acfg']['dcfg'])
         # self.pcfg.update(**)
+        # TODO: Update acfg as well.
 
         self.update_config_info('SAVED MANIFEST INFO:' + query_info_short_text)
         print('...loaded previous query')
