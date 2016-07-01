@@ -312,6 +312,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         data = self.table_data
         table = self.saved_queries
         self.saved_queries.setColumnCount(len(data))
+        print('Populating table')
         for n, key in enumerate(horHeaders):
             horHeaders.append(key)
             if n == 0:
@@ -323,6 +324,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         table.setHorizontalHeaderLabels(horHeaders)
         table.resizeColumnsToContents()
         table.resizeRowsToContents()
+        print('Finished populating table')
 
     @backreport
     def progress_context(self, title='working'):
@@ -423,6 +425,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         return (self.qaids, self.daids)
 
     def get_saved_queries(self):
+        print('Reading saved queries')
         expt_query_dir = self.expt_query_dir()
         prev_queries = ut.glob(expt_query_dir, 'long_*.json')
         data = ut.ddict(list)
@@ -451,6 +454,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
             data['num_qaids'].append(short_info.get('num_qaids', '?'))
             data['num_daids'].append(short_info.get('num_daids', '?'))
+        print('Finished reading saved queries')
         return data
 
     def load_previous_query(self, row):
