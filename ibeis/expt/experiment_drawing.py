@@ -706,7 +706,7 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
 def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
                   do_per_annot=True, draw_icon=True,
                   numranks=5, kind='cmc', cdfzoom=True):
-                  # numranks=3, kind='bar', cdfzoom=False):
+    # numranks=3, kind='bar', cdfzoom=False):
     r"""
     Args:
         ibs (ibeis.IBEISController):  ibeis controller object
