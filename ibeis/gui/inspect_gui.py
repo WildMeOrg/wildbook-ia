@@ -1196,8 +1196,8 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         'score',
         REVIEWED_STATUS_TEXT,
         MATCHED_STATUS_TEXT,
-        'querythumb',
-        RES_THUMB_TEXT,
+        # 'querythumb',
+        # RES_THUMB_TEXT,
         'qaid',
         'aid',
         'rank',
@@ -1213,8 +1213,8 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         #('review',     'BUTTON'),
         (MATCHED_STATUS_TEXT, str),
         (REVIEWED_STATUS_TEXT, str),
-        ('querythumb', 'PIXMAP'),
-        (RES_THUMB_TEXT,   'PIXMAP'),
+        # ('querythumb', 'PIXMAP'),
+        # (RES_THUMB_TEXT,   'PIXMAP'),
         ('qname',      str),
         ('name',       str),
         ('score',      float),
@@ -1232,8 +1232,8 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         #('review',     lambda rowid: get_buttontup),
         (MATCHED_STATUS_TEXT,  partial(get_match_status, ibs)),
         (REVIEWED_STATUS_TEXT,  partial(get_reviewed_status, ibs)),
-        ('querythumb', ibs.get_annot_chip_thumbtup),
-        (RES_THUMB_TEXT,   ibs.get_annot_chip_thumbtup),
+        # ('querythumb', ibs.get_annot_chip_thumbtup),
+        # (RES_THUMB_TEXT,   ibs.get_annot_chip_thumbtup),
         ('qname',      ibs.get_annot_names),
         ('name',       ibs.get_annot_names),
         ('score',      np.array(scores)),
@@ -1293,8 +1293,9 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
                 }
                 return thumbdat
 
-        col_name_list.insert(col_name_list.index(RES_THUMB_TEXT) + 1,
-                             MATCH_THUMB_TEXT)
+        # col_name_list.insert(col_name_list.index(RES_THUMB_TEXT) + 1,
+        #                      MATCH_THUMB_TEXT)
+        col_name_list.insert(3, MATCH_THUMB_TEXT)
         col_types_dict[MATCH_THUMB_TEXT] = 'PIXMAP'
         #col_types_dict[MATCH_THUMB_TEXT] = CustomMatchThumbDelegate
         qaid2_cm = {cm.qaid: cm for cm in cm_list}
@@ -1314,8 +1315,8 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         REVIEWED_STATUS_TEXT    : ('qaid', 'aid'),
         #'d_nGt'      : ('aid'),
         #'q_nGt'      : ('qaid'),
-        'querythumb' : ('qaid'),
-        'ResThumb'   : ('aid'),
+        # 'querythumb' : ('qaid'),
+        # 'ResThumb'   : ('aid'),
         'qname'      : ('qaid'),
         'name'       : ('aid'),
     }
@@ -1324,52 +1325,6 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         'name': ibs.set_annot_names
     }
     editable_colnames =  ['truth', 'notes', 'qname', 'name', 'opt']
-
-    USE_BOOLS = False
-    if USE_BOOLS:
-        # DEPRICATED use tag funcs
-        boolean_annotmatch_columns = [
-            'is_hard',
-            'is_nondistinct',
-            'is_scenerymatch',
-            'is_photobomb',
-        ]
-
-        def make_annotmatch_boolean_getter_wrapper(ibs, colname):
-            colname_getter = getattr(ibs, 'get_annotmatch_' + colname)
-            def getter_wrapper(aidpair):
-                qaid, daid = aidpair
-                annotmatch_rowid_list = ibs.add_annotmatch_undirected([qaid], [daid])
-                value_list = colname_getter(annotmatch_rowid_list)
-                value = value_list[0]
-                return value if value is not None else False
-            ut.set_funcname(getter_wrapper, 'getter_wrapper_' + colname)
-            return getter_wrapper
-
-        def make_annotmatch_boolean_setter_wrapper(ibs, colname):
-            colname_setter = getattr(ibs, 'set_annotmatch_' + colname)
-            def setter_wrapper(aidpair, value):
-                qaid, daid = aidpair
-                annotmatch_rowid_list = ibs.add_annotmatch_undirected([qaid], [daid])
-                value_list = [value]
-                return colname_setter(annotmatch_rowid_list, value_list)
-            ut.set_funcname(setter_wrapper, 'setter_wrapper_' + colname)
-            return setter_wrapper
-
-        for colname in boolean_annotmatch_columns:
-            #annotmatch_rowid_list = ibs.add_annotmatch_undirected(qaids, daids)
-            #col_name_list.append(colname)
-            col_name_list.insert(col_name_list.index('qname'), colname)
-            #rank
-            #col_ider_dict[colname] = annotmatch_rowid_list
-            col_ider_dict[colname] = ('qaid', 'aid')
-            col_types_dict[colname] = bool
-            col_getter_dict[colname] = make_annotmatch_boolean_getter_wrapper(
-                ibs, colname)
-            col_setter_dict[colname] = make_annotmatch_boolean_setter_wrapper(
-                ibs, colname)
-            col_width_dict[colname] = 70
-            editable_colnames.append(colname)
 
     sortby = 'score'
 
