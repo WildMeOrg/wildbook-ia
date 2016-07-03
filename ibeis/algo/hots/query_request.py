@@ -117,7 +117,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         PZ_MTEST_DSUUIDS((5)kmptegpfuwaibfvt)
 
     Ignore:
-        # This is supposed to be the begginings of the code to transition the
+        # This is supposed to be the beginings of the code to transition the
         # pipeline configuration into the new minimal dict based structure that
         # supports different configs for query and database annotations.
         dcfg = qreq_.get_external_data_config2()

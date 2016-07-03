@@ -3170,6 +3170,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
     if aid_list is None:
         aid_list = ibs.get_valid_aids(imgsetid=imgsetid)
     HACK = ibs.cfg.other_cfg.enable_custom_filter
+    assert not HACK, 'enable_custom_filter is no longer supported'
     #True
     if not HACK:
         new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
@@ -3781,6 +3782,7 @@ def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
 def get_annot_custom_filterflags(ibs, aid_list):
     if not ibs.cfg.other_cfg.enable_custom_filter:
         return [True] * len(aid_list)
+    assert not ibs.cfg.other_cfg.enable_custom_filter, 'enable_custom_filter is no longer supported'
     #minqual = const.QUALITY_TEXT_TO_INT['poor']
     minqual = 'ok'
     #valid_yaws = {'left', 'frontleft', 'backleft'}
@@ -3817,6 +3819,7 @@ def filter_aids_custom(ibs, aid_list):
     """
     if not ibs.cfg.other_cfg.enable_custom_filter:
         return aid_list
+    assert not ibs.cfg.other_cfg.enable_custom_filter, 'enable_custom_filter is no longer supported'
     flags_list = ibs.get_annot_custom_filterflags(aid_list)
     aid_list_ = list(ut.iter_compress(aid_list, flags_list))
     #aid_list_ = list(ut.compress(aid_list, flags_list))

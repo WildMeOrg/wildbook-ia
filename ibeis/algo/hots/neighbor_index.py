@@ -26,18 +26,22 @@ NOCACHE_FLANN = ut.get_argflag('--nocache-flann') and USE_HOTSPOTTER_CACHE
 
 def get_support_data(qreq_, daid_list):
     """
+
+    CommandLine:
+        python -m ibeis.algo.hots.neighbor_index get_support_data --show
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
         >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', p='default:fgw_thresh=.9', a='default:size=2')
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', p='default:fgw_thresh=.9,maxscale_thresh=10', a='default:size=2')
         >>> daid_list = qreq_.daids
         >>> tup  = get_support_data(qreq_, daid_list)
         >>> vecs_list, fgws_list, fxs_list = tup
         >>> assert all([np.all(fgws > .9) for fgws in fgws_list])
         >>> result = ut.depth_profile(tup)
         >>> print('depth_profile = %r' % (result,))
-        depth_profile = [[(780, 128), (1245, 128)], [780, 1245], [780, 1245]]
+        depth_profile = [[(83, 128), (129, 128)], [83, 129], [83, 129]]
     """
     config2_ = qreq_.get_internal_data_config2()
     vecs_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=config2_)
@@ -46,10 +50,23 @@ def get_support_data(qreq_, daid_list):
     # <HACK:featweight>
     #hack to get  feature weights. returns None if feature weights are turned
     #off in config settings
+
+    if config2_.minscale_thresh is not None or config2_.maxscale_thresh is not None:
+        min_ = -np.inf if config2_.minscale_thresh is None else config2_.minscale_thresh
+        max_ = np.inf if config2_.maxscale_thresh is None else config2_.maxscale_thresh
+        kpts_list = qreq_.ibs.get_annot_kpts(daid_list, config2_=config2_)
+        # kpts_list = vt.ziptake(kpts_list, fxs_list, axis=0)  # not needed for first filter
+        scales_list = [vt.get_scales(kpts) for kpts in kpts_list]
+        # Remove data under the threshold
+        flags_list = [np.logical_and(scales >= min_, scales <= max_) for scales in scales_list]
+        vecs_list = vt.zipcompress(vecs_list, flags_list, axis=0)
+        fxs_list = vt.zipcompress(fxs_list, flags_list, axis=0)
+
     if qreq_.qparams.fg_on:
         fgws_list = qreq_.ibs.get_annot_fgweights(
             daid_list, config2_=config2_, ensure=True)
-        assert list(map(len, fgws_list)) == list(map(len, vecs_list)), 'bad corresponding vecs'
+        fgws_list = vt.ziptake(fgws_list, fxs_list, axis=0)
+        # assert list(map(len, fgws_list)) == list(map(len, vecs_list)), 'bad corresponding vecs'
         if config2_.fgw_thresh is not None and config2_.fgw_thresh > 0:
             flags_list = [fgws > config2_.fgw_thresh for fgws in fgws_list]
             # Remove data under the threshold

@@ -507,15 +507,26 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, single_name_
     qvecs_list = qreq_.ibs.get_annot_vecs(
         internal_qaids, config2_=config2_)
 
+    qfxs_list = [np.arange(len(qvecs)) for qvecs in qvecs_list]
+
     if config2_.fgw_thresh is not None:
         qfgw_list = qreq_.ibs.get_annot_fgweights(
             internal_qaids, config2_=config2_)
         fgw_thresh = config2_.fgw_thresh
         flags_list = [fgws >= fgw_thresh for fgws in qfgw_list]
-        qfxs_list = [np.where(flags)[0] for flags in flags_list]
+        qfxs_list = vt.zipcompress(qfxs_list, flags_list, axis=0)
         qvecs_list = vt.zipcompress(qvecs_list, flags_list, axis=0)
-    else:
-        qfxs_list = [np.arange(len(qvecs)) for qvecs in qvecs_list]
+
+    if config2_.minscale_thresh is not None or config2_.maxscale_thresh is not None:
+        min_ = -np.inf if config2_.minscale_thresh is None else config2_.minscale_thresh
+        max_ = np.inf if config2_.maxscale_thresh is None else config2_.maxscale_thresh
+        qkpts_list = qreq_.ibs.get_annot_kpts(internal_qaids, config2_=config2_)
+        # kpts_list = vt.ziptake(kpts_list, fxs_list, axis=0)  # not needed for first filter
+        scales_list = [vt.get_scales(kpts) for kpts in qkpts_list]
+        # Remove data under the threshold
+        flags_list = [np.logical_and(scales >= min_, scales <= max_) for scales in scales_list]
+        qvecs_list = vt.zipcompress(qvecs_list, flags_list, axis=0)
+        qfxs_list = vt.zipcompress(qfxs_list, flags_list, axis=0)
 
     if verbose:
         if len(internal_qaids) == 1:
