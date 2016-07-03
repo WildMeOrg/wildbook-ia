@@ -1247,7 +1247,7 @@ class ConfigConfirmWidget(GuitoolWidget):
             # import utool
             # utool.embed()
 
-        self.print_widget_heirarchy()
+        # self.print_widget_heirarchy()
 
         #self.layout().setAlignment(Qt.AlignBottom)
         self.layout().setAlignment(Qt.AlignTop)
