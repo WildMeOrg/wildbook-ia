@@ -520,6 +520,9 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         # ut.vd(expt_query_dir)
         ibs = self.ibs
 
+        # TODO: Save the BIGCACHE file to the log, this allows
+        # us to re-load that query even if its slightly invalid
+
         if qreq_ is None and test:
             from ibeis.algo.Config import QueryConfig
             query_cfg = QueryConfig()
