@@ -523,8 +523,8 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, single_name_
 
     if config2_.fgw_thresh is not None:
         qfgw_list = qreq_.ibs.get_annot_fgweights(
-            internal_qaids, config2_=config2_, axis=0)
-        qfgw_list = vt.ziptake(qfgw_list, qfxs_list)
+            internal_qaids, config2_=config2_)
+        qfgw_list = vt.ziptake(qfgw_list, qfxs_list, axis=0)
         fgw_thresh = config2_.fgw_thresh
         flags_list = [fgws >= fgw_thresh for fgws in qfgw_list]
         qfxs_list = vt.zipcompress(qfxs_list, flags_list, axis=0)
