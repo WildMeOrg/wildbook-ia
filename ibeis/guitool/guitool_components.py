@@ -819,28 +819,42 @@ def newWidget(parent=None, *args, **kwargs):
     return widget
 
 
-def _make_new_widget_func(widget_cls):
-    def new_widget_maker(*args, **kwargs):
-        kwargs = kwargs.copy()
-        verticalStretch = kwargs.pop('verticalStretch', 1)
-        widget = widget_cls(*args, **kwargs)
-        _inject_new_widget_methods(widget)
-        # This line makes the widget resize with the widget
-        sizePolicy = newSizePolicy(widget, verticalStretch=verticalStretch)
-        widget.setSizePolicy(sizePolicy)
-        setattr(widget, '_guitool_sizepolicy', sizePolicy)
-        return widget
-    return new_widget_maker
-
-
 def _inject_new_widget_methods(self):
     """ helper for guitool widgets """
     import guitool as gt
+    from guitool import PrefWidget2
+    # Creates addNewWidget and newWidget
+    def _make_new_widget_func(widget_cls):
+        def new_widget_maker(*args, **kwargs):
+            kwargs = kwargs.copy()
+            verticalStretch = kwargs.pop('verticalStretch', 1)
+            widget = widget_cls(*args, **kwargs)
+            _inject_new_widget_methods(widget)
+            # This line makes the widget resize with the widget
+            sizePolicy = newSizePolicy(widget, verticalStretch=verticalStretch)
+            widget.setSizePolicy(sizePolicy)
+            setattr(widget, '_guitool_sizepolicy', sizePolicy)
+            return widget
+        return new_widget_maker
+
+    def _addnew_factory(self, newfunc):
+        """ helper for addNew guitool widgets """
+        def _addnew(self, *args, **kwargs):
+            kwargs = kwargs.copy()
+            name = kwargs.pop('name', None)
+            new_widget = newfunc(self, *args, **kwargs)
+            self.addWidget(new_widget)
+            if name is not None:
+                new_widget.setObjectName(name)
+            return new_widget
+        return _addnew
+
     # Black magic
     guitype_list = [
         'Widget', 'Button', 'LineEdit', 'ComboBox', 'Label', 'Spoiler',
-        'Frame', 'Splitter', 'TabWidget', 'ProgressBar']
-    # Creates addNewWidget and newWidget
+        'Frame', 'Splitter', 'TabWidget', 'ProgressBar',
+        ('EditConfigWidget', PrefWidget2.EditConfigWidget)
+    ]
     for guitype in guitype_list:
         if isinstance(guitype, tuple):
             guitype, widget_cls = guitype
@@ -874,19 +888,6 @@ def _inject_new_widget_methods(self):
     #     self.newButton = ut.partial(newButton, self)
     #     self.newWidget = ut.partial(newWidget, self)
     #     ... etc
-
-
-def _addnew_factory(self, newfunc):
-    """ helper for guitool widgets """
-    def _addnew(self, *args, **kwargs):
-        kwargs = kwargs.copy()
-        name = kwargs.pop('name', None)
-        new_widget = newfunc(self, *args, **kwargs)
-        self.addWidget(new_widget)
-        if name is not None:
-            new_widget.setObjectName(name)
-        return new_widget
-    return _addnew
 
 
 #class GuitoolWidget(QtWidgets.QWidget):
@@ -1158,7 +1159,7 @@ class ConfigConfirmWidget(GuitoolWidget):
             layout.addWidget(msg_widget)
 
         if 1 and config is not None:
-            self.editConfig = PrefWidget2.newConfigWidget(self.config, user_mode=True)
+            self.editConfig = PrefWidget2.EditConfigWidget(config=self.config, user_mode=True)
             #if not ut.get_argflag('--nospoiler'):
             self.spoiler = Spoiler(self, title='Advanced Configuration')
             #self.spoiler.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,

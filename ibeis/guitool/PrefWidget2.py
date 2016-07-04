@@ -2,7 +2,7 @@
 """
 
 python -m guitool.guitool_components ConfigConfirmWidget --show
-python -m guitool.PrefWidget2 newConfigWidget --show --verbconf
+python -m guitool.PrefWidget2 EditConfigWidget --show --verbconf
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -127,8 +127,8 @@ class ConfigValueDelegate(DELEGATE_BASE):
     specific column
 
     CommandLine:
-        python -m guitool.PrefWidget2 newConfigWidget --show
-        python -m guitool.PrefWidget2 newConfigWidget --show --verbconf
+        python -m guitool.PrefWidget2 EditConfigWidget --show
+        python -m guitool.PrefWidget2 EditConfigWidget --show --verbconf
 
     References:
         http://stackoverflow.com/questions/28037126/how-to-use-qcombobox-as-delegate-with-qtableview
@@ -660,16 +660,53 @@ class ConfigNodeWrapper(ut.NiceRepr):
 class EditConfigWidget(QtWidgets.QWidget):
     """
     Widget to edit a dtool.Config object
+
+    Args:
+        config (dtool.Config):
+
+    CommandLine:
+        python -m guitool.PrefWidget2 EditConfigWidget --show
+        python -m guitool.PrefWidget2 EditConfigWidget --show --verbconf
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.PrefWidget2 import *  # NOQA
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
+        >>> import dtool
+        >>> class ExampleConfig(dtool.Config):
+        >>>     _param_info_list = [
+        >>>         ut.ParamInfo('str_option', 'hello'),
+        >>>         ut.ParamInfo('int_option', 42),
+        >>>         ut.ParamInfo('float_option', 42.),
+        >>>         ut.ParamInfo('none_option', None),
+        >>>         ut.ParamInfo('none_combo_option', None, valid_values=[None, True, False]),
+        >>>         ut.ParamInfo('combo_option', 'up', valid_values=['up', 'down', 'strange', 'charm', 'top', 'bottom']),
+        >>>         ut.ParamInfo('bool_option', False),
+        >>>         ut.ParamInfo('hidden_str', 'foobar', hideif=lambda cfg: not cfg['bool_option']),
+        >>>         ut.ParamInfo('hidden_combo', 'one', valid_values=['oneA', 'twoB', 'threeC'], hideif=lambda cfg: not cfg['bool_option']),
+        >>>     ]
+        >>> config = ExampleConfig()
+        >>> widget = EditConfigWidget(config=config)
+        >>> widget.rootNode.print_tree()
+        >>> from plottool import fig_presenter
+        >>> fig_presenter.register_qt4_win(widget)
+        >>> widget.show()
+        >>> ut.quit_if_noshow()
+        >>> guitool.qtapp_loop(qwin=widget, freq=10)
     """
     data_changed = QtCore.pyqtSignal()
 
-    def __init__(self, rootNode, user_mode=False):
-        super(EditConfigWidget, self).__init__()
+    def __init__(self, parent=None, config=None, user_mode=False, changed=None):
+        super(EditConfigWidget, self).__init__(parent)
+        rootNode = ConfigNodeWrapper('root', config)
         self.user_mode = user_mode
         self.init_layout()
         self.rootNode = rootNode
         self.config_model = QConfigModel(self, rootNode=rootNode)
         self.init_mvc()
+        if changed is not None:
+            self.data_changed.connect(changed)
 
     def init_layout(self):
         import guitool as gt
@@ -786,47 +823,6 @@ class EditConfigWidget(QtWidgets.QWidget):
     def refresh_layout(self):
         self.config_model.layoutAboutToBeChanged.emit()
         self.config_model.layoutChanged.emit()
-
-
-def newConfigWidget(config, user_mode=False):
-    r"""
-    Args:
-        config (dtool.Config):
-
-    CommandLine:
-        python -m guitool.PrefWidget2 newConfigWidget --show
-        python -m guitool.PrefWidget2 newConfigWidget --show --verbconf
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from guitool.PrefWidget2 import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qtapp()
-        >>> import dtool
-        >>> class ExampleConfig(dtool.Config):
-        >>>     _param_info_list = [
-        >>>         ut.ParamInfo('str_option', 'hello'),
-        >>>         ut.ParamInfo('int_option', 42),
-        >>>         ut.ParamInfo('float_option', 42.),
-        >>>         ut.ParamInfo('none_option', None),
-        >>>         ut.ParamInfo('none_combo_option', None, valid_values=[None, True, False]),
-        >>>         ut.ParamInfo('combo_option', 'up', valid_values=['up', 'down', 'strange', 'charm', 'top', 'bottom']),
-        >>>         ut.ParamInfo('bool_option', False),
-        >>>         ut.ParamInfo('hidden_str', 'foobar', hideif=lambda cfg: not cfg['bool_option']),
-        >>>         ut.ParamInfo('hidden_combo', 'one', valid_values=['oneA', 'twoB', 'threeC'], hideif=lambda cfg: not cfg['bool_option']),
-        >>>     ]
-        >>> config = ExampleConfig()
-        >>> widget = newConfigWidget(config)
-        >>> widget.rootNode.print_tree()
-        >>> from plottool import fig_presenter
-        >>> fig_presenter.register_qt4_win(widget)
-        >>> widget.show()
-        >>> ut.quit_if_noshow()
-        >>> guitool.qtapp_loop(qwin=widget, freq=10)
-    """
-    rootNode = ConfigNodeWrapper('root', config)
-    widget = EditConfigWidget(rootNode, user_mode=user_mode)
-    return widget
 
 
 if __name__ == '__main__':
