@@ -6,10 +6,14 @@ import utool as ut
 import numpy as np
 try:
     import guitool
-    from guitool.__PYQT__ import QtGui
+    from guitool.__PYQT__ import QtWidgets
 except ImportError:
     try:
-        from PyQt4 import QtGui
+        from PyQt4 import QtGui as QtWidgets
+    except ImportError:
+        pass
+    try:
+        from PyQt5 import QtWidgets  # NOQA
     except ImportError:
         pass
     print('Warning: guitool did not import correctly')
@@ -70,7 +74,7 @@ def get_resolution_info(monitor_num=0):
         >>> print('info = %s' % (ut.repr2(info, nl=True),))
     """
     ensure_app_is_running()
-    desktop = QtGui.QDesktopWidget()
+    desktop = QtWidgets.QDesktopWidget()
     screen = desktop.screen(monitor_num)
     ppi_x = screen.logicalDpiX()
     ppi_y = screen.logicalDpiY()
@@ -117,7 +121,7 @@ def get_monitor_geom(monitor_num=0):
         >>> print(result)
     """
     ensure_app_is_running()
-    desktop = QtGui.QDesktopWidget()
+    desktop = QtWidgets.QDesktopWidget()
     rect = desktop.availableGeometry(screen=monitor_num)
     geom = (rect.x(), rect.y(), rect.width(), rect.height())
     return geom
@@ -126,7 +130,7 @@ def get_monitor_geom(monitor_num=0):
 def get_monitor_geometries():
     ensure_app_is_running()
     monitor_geometries = {}
-    desktop = QtGui.QDesktopWidget()
+    desktop = QtWidgets.QDesktopWidget()
     for screenx in range(desktop.numScreens()):
         rect = desktop.availableGeometry(screen=screenx)
         geom = (rect.x(), rect.y(), rect.width(), rect.height())

@@ -57,7 +57,7 @@ def get_geometry(fnum):
 
 #def get_screen_info():
 #    # TODO Move dependency to guitool
-#    desktop = QtGui.QDesktopWidget()
+#    desktop = QtWidgets.QDesktopWidget()
 #    mask = desktop.mask()  # NOQA
 #    layout_direction = desktop.layoutDirection()  # NOQA
 #    screen_number = desktop.screenNumber()  # NOQA
@@ -65,7 +65,7 @@ def get_geometry(fnum):
 #    num_screens = desktop.screenCount()  # NOQA
 #    avail_rect = desktop.availableGeometry()  # NOQA
 #    screen_rect = desktop.screenGeometry()  # NOQA
-#    QtGui.QDesktopWidget().availableGeometry().center()  # NOQA
+#    QtWidgets.QDesktopWidget().availableGeometry().center()  # NOQA
 #    normal_geometry = desktop.normalGeometry()  # NOQA
 
 
@@ -117,7 +117,7 @@ def get_main_win_base():
         try:
             ut.printex(ex, 'warning', '[fig_presenter]')
             #from guitool.__PYQT__ import QtGui
-            QMainWin = mpl.backends.backend_qt4.QtGui.QMainWindow
+            QMainWin = mpl.backends.backend_qt4.QtWidgets.QMainWindow
         except Exception as ex1:
             ut.printex(ex1, 'warning', '[fig_presenter]')
             QMainWin = object
@@ -170,8 +170,8 @@ def all_figures_tile(max_rows=None,
     for ix, win in enumerate(all_wins):
         isqt4_mpl = isinstance(win, QMainWin)
         from guitool.__PYQT__ import QtGui
-        isqt4_back = isinstance(win, QtGui.QMainWindow)
-        isqt4_widget = isinstance(win, QtGui.QWidget)
+        isqt4_back = isinstance(win, QtWidgets.QMainWindow)
+        isqt4_widget = isinstance(win, QtWidgets.QWidget)
         (x, y, w, h) = valid_positions[ix]
         #printDBG('tile %d-th win: xywh=%r' % (ix, (x, y, w, h)))
         if not isqt4_mpl and not isqt4_back and not isqt4_widget:

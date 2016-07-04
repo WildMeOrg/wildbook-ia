@@ -213,7 +213,7 @@ def impaint_mask2(img, init_mask=None):
         import time
         from guitool.__PYQT__ import QtGui
         while pntr.is_running:
-            QtGui.qApp.processEvents()
+            QtWidgets.qApp.processEvents()
             time.sleep(0.05)
         #plt.show()
     print('Finished interaction')
