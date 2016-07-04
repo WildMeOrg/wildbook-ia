@@ -380,7 +380,7 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.OLD_CLICK_BEHAVIOR = False
 
         #qres_wgt.altkey_shortcut =
-        #QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ALT), qres_wgt,
+        #QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.ALT), qres_wgt,
         #                qres_wgt.on_alt_pressed,
         #                context=QtCore..Qt.WidgetShortcut)
         qres_wgt.button_list = None
@@ -888,8 +888,15 @@ def get_reviewed_status(ibs, aid_pair):
     assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
     #text  = ibsfuncs.vsstr(aid1, aid2)
     annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
-    text = 'Yes' if annotmach_reviewed > 0 else 'No'
-    return text + '(%r)' % (annotmach_reviewed,)
+    if annotmach_reviewed is None:
+        text = 'Unreviewed'
+    elif annotmach_reviewed == 2:
+        text = 'Auto-reviewed'
+    elif annotmach_reviewed == 1:
+        text = 'User-reviewed'
+    else:
+        text = '??? unknown mode %r' % (annotmach_reviewed,)
+    return text
     #text = ibs.get_match_text(aid1, aid2)
     #if text is None:
     #    raise AssertionError('impossible state inspect_gui')

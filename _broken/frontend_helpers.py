@@ -34,7 +34,7 @@ def _new_size_policy(widget,
     other describes its vertical size policy. It also contains a flag to
     indicate whether the height and width of its preferred size are related.
     """
-    sizePolicy = QtGui.QSizePolicy(hpolicy, vpolicy)
+    sizePolicy = QtWidgets.QSizePolicy(hpolicy, vpolicy)
     sizePolicy.setHorizontalStretch(hstretch)
     sizePolicy.setVerticalStretch(vstretch)
     sizePolicy.setHeightForWidth(widget.sizePolicy().hasHeightForWidth())
@@ -42,7 +42,7 @@ def _new_size_policy(widget,
 
 
 def _new_gridLayout(parent, _numtrick=[0]):
-    gridLayout = QtGui.QGridLayout(parent)
+    gridLayout = QtWidgets.QGridLayout(parent)
     _numtrick[0] += 1  # NOQA
     next_gridname = _fromUtf8('gridLayout_' + str(_numtrick[0]))
     gridLayout.setObjectName(next_gridname)
@@ -109,7 +109,7 @@ def initMainWidget(front, name, size=(500, 300), title=''):
 
 
 def newCentralLayout(front):
-    centralwidget = QtGui.QWidget(front)
+    centralwidget = QtWidgets.QWidget(front)
     centralwidget.setObjectName(_fromUtf8('centralwidget'))
     verticalLayout = _new_verticalLayout(centralwidget)
     front.setCentralWidget(centralwidget)
@@ -126,7 +126,7 @@ def newVerticalSplitter(centralwidget, verticalLayout, name='splitter'):
 
 def newMenubar(front, name):
     """ Defines the menubar on top of the main widget """
-    menubar = QtGui.QMenuBar(front)
+    menubar = QtWidgets.QMenuBar(front)
     menubar.setGeometry(QtCore.QRect(0, 0, 1013, 23))
     menubar.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
     menubar.setDefaultUp(False)
@@ -138,7 +138,7 @@ def newMenubar(front, name):
 
 def newMenu(front, menubar, name, text):
     """ Defines each menu category in the menubar """
-    menu = QtGui.QMenu(menubar)
+    menu = QtWidgets.QMenu(menubar)
     menu.setObjectName(_fromUtf8(name))
     __define_retranslatable2(front, menu, 'setTitle', text)
     @__define_postsetup(name, front)
@@ -152,7 +152,7 @@ def newMenu(front, menubar, name, text):
 
 
 def newTable(front, parent, tblname):
-    table = QtGui.QTableWidget(parent)
+    table = QtWidgets.QTableWidget(parent)
     table.setDragEnabled(False)
     table.setSortingEnabled(True)
     table.setObjectName(_fromUtf8(tblname))
@@ -164,7 +164,7 @@ def newTable(front, parent, tblname):
 # TABS TABS TABS
 
 def newTabWidget(front, parent, name, vstretch=10):
-    tabWidget = QtGui.QTabWidget(parent)
+    tabWidget = QtWidgets.QTabWidget(parent)
     sizePolicy = _new_size_policy(tabWidget, vstretch=vstretch)
     tabWidget.setSizePolicy(sizePolicy)
     tabWidget.setMinimumSize(QtCore.QSize(0, 0))
@@ -179,7 +179,7 @@ def newTabWidget(front, parent, name, vstretch=10):
 
 def newTabbedView(front, tabWidget, viewname, text):
     """ ANY TAB IS A VIEW WITH AN OBJECT IN IT """
-    view = QtGui.QWidget()
+    view = QtWidgets.QWidget()
     view.setObjectName(_fromUtf8(viewname))
     gridLayout     = _new_gridLayout(view)
     verticalLayout = _new_verticalLayout()

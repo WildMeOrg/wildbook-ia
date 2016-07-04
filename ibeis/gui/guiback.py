@@ -131,7 +131,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         >>> guitool.ensure_qtapp()
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> self = CustomAnnotCfgSelector(ibs)
-        >>> rect = gt.QtGui.QDesktopWidget().availableGeometry(screen=0)
+        >>> rect = gt.QtWidgets.QDesktopWidget().availableGeometry(screen=0)
         >>> self.move(rect.x(), rect.y())
         >>> self.show()
         >>> self.apply_new_config()
@@ -202,7 +202,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
         self.setWindowTitle('Custom Annot Selector')
 
-        cfg_size_policy = (QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        cfg_size_policy = (QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         def new_confg_widget(cfg, on_changed=None):
             user_mode = 0
@@ -222,7 +222,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         tab1 = tabwgt.addNewTab('Custom Query')
         tab2 = tabwgt.addNewTab('Saved Queries')
 
-        table = self.saved_queries = QtGui.QTableWidget()
+        table = self.saved_queries = QtWidgets.QTableWidget()
         table.doubleClicked.connect(self.on_table_doubleclick)
         tab2.addWidget(self.saved_queries)
 
@@ -335,7 +335,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             if n == 0:
                 self.saved_queries.setRowCount(len(data[key]))
             for m, item in enumerate(data[key]):
-                newitem = QtGui.QTableWidgetItem(str(item))
+                newitem = QtWidgets.QTableWidgetItem(str(item))
                 table.setItem(m, n, newitem)
                 newitem.setFlags(newitem.flags() ^ Qt.ItemIsEditable)
         table.setHorizontalHeaderLabels(horHeaders)

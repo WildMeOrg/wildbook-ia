@@ -193,9 +193,9 @@ class ImageSetView(QtWidgets.QTableView):
         view.parent()._add_imageset_tab(imageset_id, imageset_name)
 
 
-class TabWidget(QtGui.QTabWidget):
+class TabWidget(QtWidgets.QTabWidget):
     def __init__(widget, parent=None):
-        QtGui.QTabWidget.__init__(widget, parent)
+        QtWidgets.QTabWidget.__init__(widget, parent)
         widget.setTabsClosable(True)
         if sys.platform.startswith('darwin'):
             tab_height = 21
@@ -225,7 +225,7 @@ class TabWidget(QtGui.QTabWidget):
     def _add_imageset_tab(widget, imageset_id, imageset_name):
         if imageset_id not in widget.imageset_id_list:
             tab_name = str(imageset_id) + ' - ' + str(imageset_name)
-            widget.addTab(QtGui.QWidget(), tab_name)
+            widget.addTab(QtWidgets.QWidget(), tab_name)
 
             widget.imageset_id_list.append(imageset_id)
             index = len(widget.imageset_id_list) - 1
@@ -241,10 +241,10 @@ class TabWidget(QtGui.QTabWidget):
                 widget.setTabText(index, imageset_name)
 
 
-class DummyWidget(QtGui.QWidget):
+class DummyWidget(QtWidgets.QWidget):
     ''' Test Main Window '''
     def __init__(widget, parent=None):
-        QtGui.QWidget.__init__(widget, parent)
+        QtWidgets.QWidget.__init__(widget, parent)
         widget.vlayout = QtWidgets.QVBoxLayout(widget)
 
         col_name_list, col_type_list, col_edit_list, col_nice_list, db = create_databse()

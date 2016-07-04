@@ -106,7 +106,7 @@ def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
         >>> ut.show_if_requested()
     """
     from ibeis.control import _autogen_annotmatch_funcs
-    if force_method != 2 and (nInput < 128 or (force_method == 1)):
+    if (force_method is None or force_method != 2) and (nInput < 128 or (force_method == 1)):
         colnames = (_autogen_annotmatch_funcs.ANNOTMATCH_ROWID,)
         # FIXME: col_rowid is not correct
         params_iter = zip(aid2_list)
@@ -187,7 +187,7 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None, force
     if nInput is None:
         nInput = len(aid_list)
 
-    if force_method != 2 and (nInput < 256 or (force_method == 1)):
+    if (force_method is None or force_method != 2) and (nInput < 256 or (force_method == 1)):
         rowids1 = ibs.get_annotmatch_rowids_from_aid1(aid_list)
         # This one is slow because aid2 is the second part of the index
         rowids2 = ibs.get_annotmatch_rowids_from_aid2(aid_list)

@@ -13,7 +13,7 @@
 #print, print_, printDBG, rrr, profile = utool.inject(__name__, '[newgui]')
 
 
-#IBEIS_WIDGET_BASE = QtGui.QWidget
+#IBEIS_WIDGET_BASE = QtWidgets.QWidget
 
 
 ##############################

@@ -38,7 +38,7 @@ def setup_dummy_menus():
     #import unittest
     import guitool
     guitool.ensure_qapp()  # must be ensured before any embeding
-    mainwin = guitool.QtGui.QMainWindow()
+    mainwin = guitool.QtWidgets.QMainWindow()
     back = DummyBack()
     import mock
     mainwin.expand_names_tree = mock.Mock

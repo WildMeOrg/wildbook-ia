@@ -353,7 +353,7 @@ def setup_main_layout(ui, front, back):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    front = QtGui.QMainWindow()
+    front = QtWidgets.QMainWindow()
     front.ui = Ui_mainSkel()
     front.ui.setupUi(front)
     front.show()

@@ -97,7 +97,7 @@ class APITabWidget(QtWidgets.QTabWidget):
     #    print('Set %r current Index: %r ' % (tblname, index))
     #    #model = tabwgt.ibswgt.models[tblname]
     #    #with ChangeLayoutContext([model]):
-    #    #    QtGui.QTabWidget.setCurrentIndex(tabwgt, index)
+    #    #    QtWidgets.QTabWidget.setCurrentIndex(tabwgt, index)
 
 
 class ImagesetTabWidget(QtWidgets.QTabWidget):
