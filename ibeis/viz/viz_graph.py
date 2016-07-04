@@ -486,7 +486,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         import guitool
         guitool.ensure_qtapp()
         from guitool import PrefWidget2
-        self.widget = PrefWidget2.newConfigWidget(self.config)
+        self.widget = PrefWidget2.EditConfigWidget(config=self.config)
         self.widget.show()
         #dlg = guitool.ConfigConfirmWidget.as_dialog(None,
         #                                            title='Confirm Import Images',

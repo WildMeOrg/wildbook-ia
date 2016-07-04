@@ -181,6 +181,10 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.info_cfg = dtool.Config.from_dict({
             key: False for key in ibs.parse_annot_config_stats_filter_kws()
         })
+        self.exemplar_cfg = dtool.Config.from_dict({
+            #'imgsetid': None,
+            'exemplars_per_view': ibs.cfg.other_cfg.exemplars_per_view,
+        })
 
         self.info_cfg['species_hist'] = True
         self.info_cfg['per_vp'] = True
@@ -202,21 +206,21 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
         self.setWindowTitle('Custom Annot Selector')
 
-        cfg_size_policy = (QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        #cfg_size_policy = (QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
-        def new_confg_widget(cfg, on_changed=None):
+        def new_confg_widget(cfg, changed=None):
             user_mode = 0
-            cfg_widget = PrefWidget2.newConfigWidget(cfg, user_mode=user_mode)
-            cfg_widget.setSizePolicy(*cfg_size_policy)
-            if on_changed is not None:
-                cfg_widget.data_changed.connect(on_changed)
+            cfg_widget = PrefWidget2.EditConfigWidget(
+                config=cfg, user_mode=user_mode, parent=self, changed=changed)
+            #cfg_widget.setSizePolicy(*cfg_size_policy)
             return cfg_widget
 
-        self.editQueryConfig = new_confg_widget(self.qcfg, self.on_cfg_changed)
-        self.editDataConfig = new_confg_widget(self.dcfg, self.on_cfg_changed)
-        self.editPipeConfig = new_confg_widget(self.pcfg, self.on_cfg_changed)
+        self.editQueryConfig = new_confg_widget(self.qcfg, changed=self.on_cfg_changed)
+        self.editDataConfig = new_confg_widget(self.dcfg, changed=self.on_cfg_changed)
+        self.editPipeConfig = new_confg_widget(self.pcfg, changed=self.on_cfg_changed)
         self.editReviewConfig = new_confg_widget(self.review_cfg)
         self.editInfoConfig = new_confg_widget(self.info_cfg)
+        #self.editExemplarConfig = new_confg_widget(self.exemplar_cfg, changed=self.on_cfg_changed)
 
         tabwgt = self.addNewTabWidget(verticalStretch=1)
         tab1 = tabwgt.addNewTab('Custom Query')
@@ -238,6 +242,12 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         data_vframe.addWidget(QtWidgets.QLabel('Data Config'))
         data_vframe.addWidget(self.editDataConfig)
         #data_vframe.setVisible(False)
+
+        info_vframe = acfg_hframe.newVWidget()
+        info_vframe.addNewLabel('Exemplar Config')
+        self.editExemplarConfig = info_vframe.addNewEditConfigWidget(
+            config=self.exemplar_cfg, changed=self.on_cfg_changed)
+        info_vframe.addNewButton('Set Exemplars', pressed=self.set_exemplars)
 
         pcfg_hframe = splitter.newWidget(orientation=Qt.Horizontal)
         pipe_vframe = pcfg_hframe.newVWidget()
@@ -293,6 +303,12 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         #layout.addWidget(self.editQueryConfig)
         #layout.addWidget(self.editDataConfig)
         self.populate_table()
+
+    def set_exemplars(self):
+        print('set exemplars')
+        ibs = self.ibs
+        print('self.exemplar_cfg = %r' % (self.exemplar_cfg,))
+        ibs.set_exemplars_from_quality_and_viewpoint(**self.exemplar_cfg)
 
     def onstart(self):
         if self.saved_queries.rowCount() > 0:
