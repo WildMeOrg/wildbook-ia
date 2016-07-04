@@ -518,7 +518,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                                                       verticalStretch=1,
                                                       name='progbar')
 
-        ibswgt.vsplitter.print_widget_heirarchy(max_depth=4)
+        #ibswgt.vsplitter.print_widget_heirarchy(max_depth=4)
 
     def _connect_signals_and_slots(ibswgt):
         print('[newgui] _connect_signals_and_slots')
