@@ -15,8 +15,7 @@ signal_ = QtCore.pyqtSignal
 # SLOT DECORATOR
 def slot_(*types):  # This is called at wrap time to get args
     """
-    wrapper around pyqtslot decorator
-    *args = types
+    wrapper around pyqtslot decorator keep original function info
     """
     def pyqtSlotWrapper(func):
         #printDBG('[GUITOOL._SLOT] Wrapping: %r' % func.__name__)

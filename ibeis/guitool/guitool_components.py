@@ -610,13 +610,14 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
 
 def newOutputLog(parent, pointSize=6, visible=True, verticalStretch=1):
     from guitool.guitool_misc import QLoggedOutput
-    outputLog = QLoggedOutput(parent)
+    outputLog = QLoggedOutput(parent, visible=visible)
     sizePolicy = newSizePolicy(outputLog,
                                #verticalSizePolicy=QSizePolicy.Preferred,
                                verticalStretch=verticalStretch)
     outputLog.setSizePolicy(sizePolicy)
     outputLog.setAcceptRichText(False)
-    outputLog.setVisible(visible)
+    outputLog.setReadOnly(True)
+    #outputLog.setVisible(visible)
     #outputLog.setFontPointSize(8)
     outputLog.setFont(newFont('Courier New', pointSize))
     setattr(outputLog, '_guitool_sizepolicy', sizePolicy)
@@ -802,10 +803,7 @@ def newFrame(*args, **kwargs):
     return widget
 
 
-def newWidget(parent=None, orientation=Qt.Vertical,
-              verticalSizePolicy=QtWidgets.QSizePolicy.Expanding,
-              horizontalSizePolicy=QtWidgets.QSizePolicy.Expanding,
-              verticalStretch=1, special_layout=None):
+def newWidget(parent=None, *args, **kwargs):
     r"""
     Args:
         parent (QWidget):
@@ -815,36 +813,9 @@ def newWidget(parent=None, orientation=Qt.Vertical,
         verticalStretch (int): (default = 1)
 
     Returns:
-        QWidget: widget
+        GuitoolWidget: widget
     """
-    #widget = QtWidgets.QWidget(parent)
-    #if special_layout is None:
-    widget = GuitoolWidget(parent, orientation, verticalSizePolicy,
-                           horizontalSizePolicy, verticalStretch)
-    #sizePolicy = newSizePolicy(widget,
-    #                           horizontalSizePolicy=horizontalSizePolicy,
-    #                           verticalSizePolicy=verticalSizePolicy,
-    #                           verticalStretch=verticalStretch)
-    #widget.setSizePolicy(sizePolicy)
-    #if orientation == Qt.Vertical:
-    #    layout = QtWidgets.QVBoxLayout(widget)
-    #elif orientation == Qt.Horizontal:
-    #    layout = QtWidgets.QHBoxLayout(widget)
-    #else:
-    #    raise NotImplementedError('orientation')
-    ## Black magic
-    #widget._guitool_layout = layout
-    #widget.addWidget = widget._guitool_layout.addWidget
-    #widget.addLayout = widget._guitool_layout.addLayout
-    #setattr(widget, '_guitool_sizepolicy', sizePolicy)
-    #elif special_layout == 'form':
-    #    import utool
-    #    utool.embed()
-    #    layout = QtGui.QFormLayout(widget)
-    #    widget.addItem = layout.addItem
-    #    widget.addRow = layout.addRow
-    #    widget.addWidget = layout.addWidget
-    #    widget.addChildWidget = layout.addChildWidget
+    widget = GuitoolWidget(parent, *args, **kwargs)
     return widget
 
 
@@ -868,7 +839,7 @@ def _inject_new_widget_methods(self):
     # Black magic
     guitype_list = [
         'Widget', 'Button', 'LineEdit', 'ComboBox', 'Label', 'Spoiler',
-        'Frame', 'Splitter', 'TabWidget']
+        'Frame', 'Splitter', 'TabWidget', 'ProgressBar']
     # Creates addNewWidget and newWidget
     for guitype in guitype_list:
         if isinstance(guitype, tuple):
@@ -908,8 +879,12 @@ def _inject_new_widget_methods(self):
 def _addnew_factory(self, newfunc):
     """ helper for guitool widgets """
     def _addnew(self, *args, **kwargs):
+        kwargs = kwargs.copy()
+        name = kwargs.pop('name', None)
         new_widget = newfunc(self, *args, **kwargs)
         self.addWidget(new_widget)
+        if name is not None:
+            new_widget.setObjectName(name)
         return new_widget
     return _addnew
 
@@ -944,9 +919,11 @@ class GuitoolWidget(WIDGET_BASE):
     def __init__(self, parent=None, orientation=Qt.Vertical,
                  verticalSizePolicy=QtWidgets.QSizePolicy.Expanding,
                  horizontalSizePolicy=QtWidgets.QSizePolicy.Expanding,
-                 verticalStretch=0, **kwargs):
+                 verticalStretch=0, spacing=None, margin=None, name=None, **kwargs):
         super(GuitoolWidget, self).__init__(parent)
 
+        if name is not None:
+            self.setObjectName(name)
         #sizePolicy = newSizePolicy(self,
         #                           horizontalSizePolicy=horizontalSizePolicy,
         #                           verticalSizePolicy=verticalSizePolicy,
@@ -959,7 +936,12 @@ class GuitoolWidget(WIDGET_BASE):
             layout = QtWidgets.QHBoxLayout(self)
         else:
             raise NotImplementedError('orientation')
-        #layout.setSpacing(0)
+        if spacing is not None:
+            layout.setSpacing(spacing)
+            print('spacing = %r' % (spacing,))
+        if margin is not None:
+            layout.setMargin(margin)
+            print('margin = %r' % (margin,))
         self.setLayout(layout)
         self._guitool_layout = layout
         #layout.setAlignment(Qt.AlignBottom)
@@ -1048,6 +1030,7 @@ def walk_widget_heirarchy(obj, **kwargs):
         'minimumHeight'
         'alignment'
         'spacing',
+        'margin',
     ]
     attrs = kwargs.get('attrs', None)
     max_depth = kwargs.get('max_depth', None)

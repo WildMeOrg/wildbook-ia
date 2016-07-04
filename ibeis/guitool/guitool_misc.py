@@ -13,9 +13,6 @@ from guitool import guitool_main
 import utool as ut
 ut.noinject(__name__, '[guitool.misc]', DEBUG=False)
 
-WITH_GUILOG = utool.get_argflag('--guilog')
-#WITH_GUILOG = not utool.get_argflag('--noguilog')
-
 
 def find_used_chars(name_list):
     """ Move to guitool """
@@ -121,11 +118,25 @@ class GUILoggingHandler(logging.StreamHandler):
 
 
 class QLoggedOutput(QtWidgets.QTextEdit):
-    def __init__(self, parent=None):
-        QtWidgets.QTextEdit.__init__(self, parent)
-        if WITH_GUILOG:
-            self.logging_handler = GUILoggingHandler(self.gui_write)
-            utool.add_logging_handler(self.logging_handler)
+    def __init__(self, parent=None, visible=True):
+        super(QLoggedOutput, self).__init__(parent)
+        #QtWidgets.QTextEdit.__init__(self, parent)
+        self.setAcceptRichText(False)
+        self.setReadOnly(True)
+        self.setVisible(visible)
+        self.logging_handler = None
+        if visible:
+            self._initialize_handler()
+
+    def setVisible(self, flag):
+        if flag and self.logging_handler is None:
+            # Make sure handler is initialized on first go
+            self._initialize_handler()
+        super(QLoggedOutput, self).setVisible(flag)
+
+    def _initialize_handler(self):
+        self.logging_handler = GUILoggingHandler(self.gui_write)
+        utool.add_logging_handler(self.logging_handler)
 
     @slot_(str)
     def gui_write(outputEdit, msg_):
