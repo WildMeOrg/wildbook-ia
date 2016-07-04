@@ -60,14 +60,14 @@ def newSplitter(widget=None, orientation=Qt.Horizontal, verticalStretch=1):
 
 
 def newTabWidget(parent, horizontalStretch=1, verticalStretch=1):
-    tabwgt = QtGui.QTabWidget(parent)
+    tabwgt = QtWidgets.QTabWidget(parent)
     sizePolicy = newSizePolicy(tabwgt, horizontalStretch=horizontalStretch,
                                verticalStretch=verticalStretch)
     tabwgt.setSizePolicy(sizePolicy)
     setattr(tabwgt, '_guitool_sizepolicy', sizePolicy)
 
     def addNewTab(self, name):
-        tab = QtGui.QTabWidget()
+        tab = QtWidgets.QTabWidget()
         self.addTab(tab, name)
         tab.setLayout(QtWidgets.QVBoxLayout())
         # tab.setSizePolicy(*cfg_size_policy)
@@ -787,7 +787,7 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
 
 def newFrame(*args, **kwargs):
     kwargs = kwargs.copy()
-    widget = QtGui.QFrame()
+    widget = QtWidgets.QFrame()
     orientation = kwargs.get('orientation', None)
     if orientation is None:
         orientation = Qt.Vertical
@@ -817,7 +817,7 @@ def newWidget(parent=None, orientation=Qt.Vertical,
     Returns:
         QWidget: widget
     """
-    #widget = QtGui.QWidget(parent)
+    #widget = QtWidgets.QWidget(parent)
     #if special_layout is None:
     widget = GuitoolWidget(parent, orientation, verticalSizePolicy,
                            horizontalSizePolicy, verticalStretch)
@@ -914,7 +914,7 @@ def _addnew_factory(self, newfunc):
     return _addnew
 
 
-#class GuitoolWidget(QtGui.QWidget):
+#class GuitoolWidget(QtWidgets.QWidget):
 class GuitoolWidget(WIDGET_BASE):
     """
     CommandLine:
@@ -976,7 +976,7 @@ class GuitoolWidget(WIDGET_BASE):
     @classmethod
     def as_dialog(cls, parent=None, **kwargs):
         widget = cls(**kwargs)
-        dlg = QtGui.QDialog(parent)
+        dlg = QtWidgets.QDialog(parent)
         #dlg.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         #dlg.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         #dlg.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
@@ -1251,7 +1251,7 @@ class ConfigConfirmWidget(GuitoolWidget):
 
         #self.layout().setAlignment(Qt.AlignBottom)
         self.layout().setAlignment(Qt.AlignTop)
-        #self.layout().setSizeConstraint(QtGui.QLayout.SetFixedSize)
+        #self.layout().setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
         #self.resize(668, 530)
         #self.update_state()
 
@@ -1471,7 +1471,7 @@ def get_widget_text_width(widget):
 
 def newComboBox(parent=None, options=None, changed=None, default=None, visible=True,
                 enabled=True, bgcolor=None, fgcolor=None, fontkw={}):
-    """ wrapper around QtGui.QComboBox
+    """ wrapper around QtWidgets.QComboBox
 
     Args:
         parent (None):
@@ -1490,7 +1490,7 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
         bold (bool):
 
     Returns:
-        QtGui.QComboBox: combo
+        QtWidgets.QComboBox: combo
 
     CommandLine:
         python -m guitool.guitool_components --test-newComboBox --show
@@ -1518,9 +1518,9 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
     options_ = [opt if flag else (str(opt), opt)
                 for flag, opt in zip(flags, options)]
 
-    class CustomComboBox(QtGui.QComboBox):
+    class CustomComboBox(QtWidgets.QComboBox):
         def __init__(combo, parent=None, default=None, options_=None, changed=None):
-            QtGui.QComboBox.__init__(combo, parent)
+            QtWidgets.QComboBox.__init__(combo, parent)
             combo.ibswgt = parent
             combo.options_ = options_
             combo.changed = changed
@@ -1599,11 +1599,11 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
 
 def newCheckBox(parent=None, text='', changed=None, checked=False, visible=True,
                 enabled=True, bgcolor=None, fgcolor=None):
-    """ wrapper around QtGui.QCheckBox
+    """ wrapper around QtWidgets.QCheckBox
     """
-    class CustomCheckBox(QtGui.QCheckBox):
+    class CustomCheckBox(QtWidgets.QCheckBox):
         def __init__(check, text='', parent=None, checked=False, changed=None):
-            QtGui.QComboBox.__init__(check, text, parent=parent)
+            QtWidgets.QComboBox.__init__(check, text, parent=parent)
             check.ibswgt = parent
             check.changed = changed
             if checked:
@@ -1664,7 +1664,7 @@ def make_style_sheet(bgcolor=None, fgcolor=None):
         return None
 
 #def make_qstyle():
-#    style_factory = QtGui.QStyleFactory()
+#    style_factory = QtWidgets.QStyleFactory()
 #    style = style_factory.create('cleanlooks')
 #    #app_style = QtGui.Q Application.style()
 
@@ -1799,9 +1799,9 @@ class Spoiler(WIDGET_BASE):
         toggleButton.setChecked(self.checked)
         toggleButton.clicked.connect(self.toggle_spoiler)
 
-        self.headerLine = QtGui.QFrame()
-        self.headerLine.setFrameShape(QtGui.QFrame.HLine)
-        self.headerLine.setFrameShadow(QtGui.QFrame.Sunken)
+        self.headerLine = QtWidgets.QFrame()
+        self.headerLine.setFrameShape(QtWidgets.QFrame.HLine)
+        self.headerLine.setFrameShadow(QtWidgets.QFrame.Sunken)
         if self.change_policy:
             self.headerLine.setSizePolicy(self._header_size_policy_states[self.checked])
         else:
@@ -1809,7 +1809,7 @@ class Spoiler(WIDGET_BASE):
 
         if False:
             if contentWidget is None:
-                self.contentWidget = QtGui.QScrollArea()
+                self.contentWidget = QtWidgets.QScrollArea()
                 self.contentWidget.setStyleSheet('QScrollArea { background-color: white; border: none; }')
                 if self.change_policy:
                     self.contentWidget.setSizePolicy(self._scroll_size_policy_states[self.checked])
@@ -1842,7 +1842,7 @@ class Spoiler(WIDGET_BASE):
         #self.toggle_finished = self.toggleAnimation.finished
 
         # don't waste space
-        self.mainLayout = QtGui.QGridLayout()
+        self.mainLayout = QtWidgets.QGridLayout()
         #self.mainLayout = QtWidgets.QVBoxLayout()
         mainLayout = self.mainLayout
         mainLayout.setVerticalSpacing(0)

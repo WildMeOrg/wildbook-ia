@@ -92,18 +92,18 @@ Notes:
     #'activeSubControls': <PyQt4.QtGui.SubControls object at 0x7fb195966578>,
     #'subControls': <PyQt4.QtGui.SubControls object at 0x7fb1959668c0>,
 
-    #opt.subControls = QtGui.QStyle.SC_All
-    #print('QtGui.QStyle.SC_All = %r' % (QtGui.QStyle.SC_All,))
+    #opt.subControls = QtWidgets.QStyle.SC_All
+    #print('QtWidgets.QStyle.SC_All = %r' % (QtWidgets.QStyle.SC_All,))
     #print('opt.subControls = %r' % (opt.subControls,))
 
     # draw item data as ComboBox
-    #element = QtGui.QStyle.CE_ItemViewItem
-    #QtGui.QStyle.SC_ComboBoxArrow
-    #QtGui.QStyle.SC_ComboBoxEditField
-    #QtGui.QStyle.SC_ComboBoxFrame
-    #QtGui.QStyle.SC_ComboBoxListBoxPopup
+    #element = QtWidgets.QStyle.CE_ItemViewItem
+    #QtWidgets.QStyle.SC_ComboBoxArrow
+    #QtWidgets.QStyle.SC_ComboBoxEditField
+    #QtWidgets.QStyle.SC_ComboBoxFrame
+    #QtWidgets.QStyle.SC_ComboBoxListBoxPopup
 
-    #style.drawPrimitive(QtGui.QStyle.PE_PanelButtonBevel, opt, painter)
+    #style.drawPrimitive(QtWidgets.QStyle.PE_PanelButtonBevel, opt, painter)
     # Do I need to draw sub controls?
 
     #painter.save()
@@ -116,7 +116,7 @@ Notes:
     #return super(ConfigValueDelegate, self).paint(painter, option, index)
 """
 
-#DELEGATE_BASE = QtGui.QStyledItemDelegate
+#DELEGATE_BASE = QtWidgets.QStyledItemDelegate
 #DELEGATE_BASE = QtWidgets.QAbstractItemDelegate
 DELEGATE_BASE = QtWidgets.QItemDelegate
 
@@ -156,7 +156,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
             #painter.save()
             curent_value = six.text_type(index.model().data(index))
             style = QtWidgets.QApplication.style()
-            opt = QtGui.QStyleOptionComboBox()
+            opt = QtWidgets.QStyleOptionComboBox()
             opt.currentText = curent_value
             opt.rect = option.rect
             opt.editable = False
@@ -166,8 +166,8 @@ class ConfigValueDelegate(DELEGATE_BASE):
                 opt.state |= style.State_Enabled
                 opt.state = style.State_Enabled | style.State_Active
 
-            element = QtGui.QStyle.CE_ComboBoxLabel
-            control = QtGui.QStyle.CC_ComboBox
+            element = QtWidgets.QStyle.CE_ComboBoxLabel
+            control = QtWidgets.QStyle.CC_ComboBox
 
             style.drawComplexControl(control, opt, painter)
             style.drawControl(element, opt, painter)
@@ -175,15 +175,15 @@ class ConfigValueDelegate(DELEGATE_BASE):
             curent_value = six.text_type(index.model().data(index))
             # fill style options with item data
             style = QtWidgets.QApplication.style()
-            opt = QtGui.QStyleOptionSpinBox()
+            opt = QtWidgets.QStyleOptionSpinBox()
             # opt.currentText doesn't exist for SpinBox
             opt.currentText = curent_value  #
             opt.rect = option.rect
             #opt.editable = False
             if leafNode.qt_is_editable():
                 opt.state |= style.State_Enabled
-            element = QtGui.QStyle.CE_ItemViewItem
-            control = QtGui.QStyle.CC_SpinBox
+            element = QtWidgets.QStyle.CE_ItemViewItem
+            control = QtWidgets.QStyle.CC_SpinBox
             style.drawComplexControl(control, opt, painter)
             style.drawControl(element, opt, painter)
         else:
@@ -216,7 +216,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
             editor.setAutoFillBackground(True)
             return editor
         elif leafNode is not None and leafNode.type_ is float:
-            editor = QtGui.QDoubleSpinBox(parent)
+            editor = QtWidgets.QDoubleSpinBox(parent)
             # TODO: min / max
             if False:
                 editor.setMinimum(0.0)
@@ -227,7 +227,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
             return editor
         elif leafNode is not None and leafNode.type_ is int:
             # TODO: Find a way for the user to enter a None into int boxes
-            editor = QtGui.QSpinBox(parent)
+            editor = QtWidgets.QSpinBox(parent)
             editor.setMinimum(-int(2 ** 29))
             editor.setMaximum(int(2 ** 29))
             if False:
@@ -694,14 +694,14 @@ class EditConfigWidget(QtWidgets.QWidget):
             self.hbox.addWidget(self.print_internals)
         self.vbox.addLayout(self.hbox)
         self.setWindowTitle(_translate('self', 'Edit Config Widget', None))
-        #self.tree_view.setSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
-        #self.tree_view.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.Preferred)
-        #self.tree_view.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
-        #                             QtGui.QSizePolicy.MinimumExpanding)
+        #self.tree_view.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        #self.tree_view.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
+        #self.tree_view.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
+        #                             QtWidgets.QSizePolicy.MinimumExpanding)
         # FIXME: http://doc.qt.io/qt-5/qsizepolicy.html
-        #self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.Preferred)
-        #self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
-        #                   QtGui.QSizePolicy.MinimumExpanding)
+        #self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
+        #self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
+        #                   QtWidgets.QSizePolicy.MinimumExpanding)
         if 0 or False:
             # debug code
             self.setStyleSheet("background-color: rgb(255,0,0); margin:5px; border:1px solid rgb(0, 255, 0); ")
@@ -724,10 +724,10 @@ class EditConfigWidget(QtWidgets.QWidget):
         #view_header.setDefaultSectionSize(250)
         #self.tree_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.tree_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        #view_header.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
-        #                          QtGui.QSizePolicy.MinimumExpanding)
-        #view_header.setSizePolicy(QtGui.QSizePolicy.Preferred,
-        #                          QtGui.QSizePolicy.Preferred)
+        #view_header.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
+        #                          QtWidgets.QSizePolicy.MinimumExpanding)
+        #view_header.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+        #                          QtWidgets.QSizePolicy.Preferred)
         self.tree_view.resizeColumnToContents(0)
         self.tree_view.resizeColumnToContents(1)
         #self.tree_view.setAnimated(True)

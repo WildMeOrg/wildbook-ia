@@ -23,18 +23,18 @@ def rgb_to_qbrush(rgb):
 def paint_button(painter, option, text='button', pressed=True, bgcolor=None,
                  fgcolor=None, clicked=None, button=None, view=None):
     #http://www.qtcentre.org/archive/index.php/t-31029.html
-    opt = QtGui.QStyleOptionButton()
+    opt = QtWidgets.QStyleOptionButton()
     opt.text = text
     opt.rect = option.rect
     opt.palette = option.palette
     if pressed:
-        opt.state = QtGui.QStyle.State_Enabled | QtGui.QStyle.State_Sunken
+        opt.state = QtWidgets.QStyle.State_Enabled | QtWidgets.QStyle.State_Sunken
     else:
-        opt.state = QtGui.QStyle.State_Enabled | QtGui.QStyle.State_Raised
+        opt.state = QtWidgets.QStyle.State_Enabled | QtWidgets.QStyle.State_Raised
 
     #style = QtGui.Q Application.style()
     style = button.style()
-    style.drawControl(QtGui.QStyle.CE_PushButton, opt, painter, button)
+    style.drawControl(QtWidgets.QStyle.CE_PushButton, opt, painter, button)
 
 
 class APIButtonDelegate(DELEGATE_BASE):
@@ -132,7 +132,7 @@ class APIButtonDelegate(DELEGATE_BASE):
 
 
 ## graveyard:
-#    #opt = QtGui.QStyleOptionViewItemV4(option)
+#    #opt = QtWidgets.QStyleOptionViewItemV4(option)
 #    #opt.initFrom(button)
 #    #painter.drawRect(option.rect)
 #    #print(style)

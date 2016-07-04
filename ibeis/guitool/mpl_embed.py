@@ -66,8 +66,8 @@ class QtAbstractMplInteraction(BASE):
         BASE.__init__(self, fig)
         self.setParent(parent)
 
-        BASE.setSizePolicy(self, QtGui.QSizePolicy.Expanding,
-                           QtGui.QSizePolicy.Expanding)
+        BASE.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding,
+                           QtWidgets.QSizePolicy.Expanding)
         BASE.updateGeometry(self)
         self.fig = fig
 
@@ -84,7 +84,7 @@ class QtAbstractMplInteraction(BASE):
         #self.buttonStart.setDisabled(True)
         self._running = True
         while self._running:
-            QtGui.qApp.processEvents()
+            QtWidgets.qApp.processEvents()
             time.sleep(0.05)
         #self.buttonStart.setDisabled(False)
 

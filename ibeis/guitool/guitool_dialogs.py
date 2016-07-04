@@ -158,7 +158,7 @@ def user_input(parent=None, msg='msg', title='user_input'):
         >>> result = str(dpath)
         >>> print(result)
     """
-    reply, ok = QtGui.QInputDialog.getText(parent, title, msg)
+    reply, ok = QtWidgets.QInputDialog.getText(parent, title, msg)
     if not ok:
         return None
     return str(reply)
@@ -446,9 +446,9 @@ def build_nested_qmenu(widget, context_options, name=None):
         http://pyqt.sourceforge.net/Docs/PyQt4/qkeysequence.html
     """
     if name is None:
-        menu = QtGui.QMenu(widget)
+        menu = QtWidgets.QMenu(widget)
     else:
-        menu = QtGui.QMenu(name, widget)
+        menu = QtWidgets.QMenu(name, widget)
     action_list = []
     for option_tup in context_options:
         if len(option_tup) == 2:
@@ -538,7 +538,7 @@ def popup_menu(widget, pos, context_options):
         >>> else:
         ...    (selection, actions) = popup_menu(widget, pos, context_options)
     """
-    #menu = QtGui.QMenu(widget)
+    #menu = QtWidgets.QMenu(widget)
     #actions = [menu.addAction(opt, ut.tracefunc(func)) for (opt, func) in context_options]
     menu, action_list = build_nested_qmenu(widget, context_options)
     #actions = [menu.addAction(opt, func) for (opt, func) in context_options]
@@ -581,7 +581,7 @@ def _enforce_scope(qobj, scoped_obj, scope_title='_scope_list'):
 
 
 def _cacheReply(msgbox):
-    dontPrompt = QtGui.QCheckBox('dont ask me again', parent=msgbox)
+    dontPrompt = QtWidgets.QCheckBox('dont ask me again', parent=msgbox)
     dontPrompt.blockSignals(True)
     msgbox.addButton(dontPrompt, QtWidgets.QMessageBox.ActionRole)
     return dontPrompt

@@ -7,7 +7,7 @@ ut.noinject(__name__, '[api_timestamp_delegate]', DEBUG=False)
 
 
 DELEGATE_BASE = QtWidgets.QItemDelegate
-#DELEGATE_BASE = QtGui.QStyledItemDelegate
+#DELEGATE_BASE = QtWidgets.QStyledItemDelegate
 
 
 class APITimestampDelegate(DELEGATE_BASE):

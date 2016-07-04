@@ -274,7 +274,7 @@ class ColumnListTableWidget(QtWidgets.QWidget):
                  col_edit_list=None, display_indices=False,
                  col_sort_index=None, parent=None):
         super(ColumnListTableWidget, cltw).__init__(parent)
-        # QtGui.QWidget.__init__(cltw, parent)
+        # QtWidgets.QWidget.__init__(cltw, parent)
         # Create vertical layout for the table to go into
         cltw.vert_layout = QtWidgets.QVBoxLayout(cltw)
         # Instansiate the AbstractItemModel

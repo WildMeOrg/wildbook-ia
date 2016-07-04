@@ -18,7 +18,7 @@ class APIDelegate(QtWidgets.QItemDelegate):
 class ImageDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, parent):
         print(dir(self))
-        QtGui.QStyledItemDelegate.__init__(self, parent)
+        QtWidgets.QStyledItemDelegate.__init__(self, parent)
 
     def paint(self, painter, option, index):
 
@@ -42,7 +42,7 @@ class ComboDelegate(APIDelegate):
         APIDelegate.__init__(self, parent)
 
     def createEditor(self, parent, option, index):
-        combo = QtGui.QComboBox(parent)
+        combo = QtWidgets.QComboBox(parent)
         combo.addItems(['option1', 'option2', 'option3'])
         #self.connect(combo.currentIndexChanged, self.currentIndexChanged)
         # FIXME: Change to newstyle signal slot
