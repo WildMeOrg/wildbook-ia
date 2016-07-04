@@ -423,7 +423,7 @@ class AnnotInference2(object):
 
     def get_colored_weights(infr, weights):
         import plottool as pt
-        pt.rrrr()
+        #pt.rrrr()
         cmap_ = 'viridis'
         cmap_ = 'plasma'
         #cmap_ = pt.plt.get_cmap(cmap_)

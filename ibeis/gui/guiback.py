@@ -26,6 +26,7 @@ import functools
 import traceback  # NOQA
 import guitool
 import utool as ut
+import guitool as gt
 from guitool import slot_, signal_, cast_from_qt
 from guitool.__PYQT__ import QtCore, QtGui, QtWidgets
 from ibeis import constants as const
@@ -290,7 +291,6 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
         self.progbar = guitool.newProgressBar(self, visible=False)
         self.addWidget(self.progbar)
-        import guitool as gt
 
         gt.fix_child_attr_heirarchy(self, 'setSpacing', 0)
         gt.fix_child_attr_heirarchy(self, 'setMargin', 2)
@@ -1279,7 +1279,6 @@ class MainWindowBackend(GUIBACK_BASE):
             raise NotImplementedError('no select cm implemented')
             back.sel_sel_qres = sel_cm
 
-    #@backblock
     def select_imgsetid(back, imgsetid=None, **kwargs):
         """ Table Click -> Result Table """
         imgsetid = cast_from_qt(imgsetid)
@@ -1290,7 +1289,6 @@ class MainWindowBackend(GUIBACK_BASE):
         print(prefix + '[back] select imageset imgsetid=%r' % (imgsetid))
         back._set_selection(sel_imgsetids=imgsetid, **kwargs)
 
-    #@backblock
     def select_gid(back, gid, imgsetid=None, show=True, sel_aids=None, fnum=None, web=False, **kwargs):
         r"""
         Table Click -> Image Table
@@ -1329,12 +1327,10 @@ class MainWindowBackend(GUIBACK_BASE):
         if show:
             back.show_image(gid, sel_aids=sel_aids, fnum=fnum, web=web)
 
-    #@backblock
     def select_gid_from_aid(back, aid, imgsetid=None, show=True, web=False):
         gid = back.ibs.get_annot_gids(aid)
         back.select_gid(gid, imgsetid=imgsetid, show=show, web=web, sel_aids=[aid])
 
-    #@backblock
     def select_aid(back, aid, imgsetid=None, show=True, show_annotation=True, web=False, **kwargs):
         """ Table Click -> Chip Table """
         print('[back] select aid=%r, imgsetid=%r' % (aid, imgsetid))
@@ -1948,7 +1944,6 @@ class MainWindowBackend(GUIBACK_BASE):
 
         back.custom_query_widget = CustomAnnotCfgSelector(back.ibs)
         back.custom_query_widget.show()
-        import guitool as gt
         app = gt.get_qtapp()
         app.processEvents()
         app.processEvents()
