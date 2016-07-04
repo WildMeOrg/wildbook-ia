@@ -1,42 +1,19 @@
-from __future__ import absolute_import, division, print_function
-# FIXME: from guitool import __PYQT__
 # flake8:noqa
-#print('__pyqt5__1')
-# Wrapper around PyQt4/5
-
-#raise ImportError('Cannot Import Qt')
-
+from __future__ import absolute_import, division, print_function
 import utool as ut
-ut.noinject(__name__, '[guitool.__PYQT__]')
+ut.noinject(__name__, '[__PYQT__.__init__]')
+from . import _internal
 
-try:
-    import sip
-    # http://stackoverflow.com/questions/21217399/pyqt4-qtcore-qvariant-object-instead-of-a-string
-    sip.setapi('QVariant', 2)
-    sip.setapi('QString', 2)
-    sip.setapi('QTextStream', 2)
-    sip.setapi('QTime', 2)
-    sip.setapi('QUrl', 2)
-    sip.setapi('QDate', 2)
-    sip.setapi('QDateTime', 2)
-    if hasattr(sip, 'setdestroyonexit'):
-        sip.setdestroyonexit(False)  # This prevents a crash on windows
-except ValueError as ex:
-    print('Warning: Value Error: %s' % str(ex))
-    pass
+if _internal.GUITOOL_PYQT_VERSION == 4:
+    from PyQt4 import *
+elif _internal.GUITOOL_PYQT_VERSION == 5:
+    from PyQt5 import *
+else:
+    raise ValueError('Unknown version of PyQt')
 
-
-from PyQt4 import *
-"""
-import __PYQT__
-from __PYQT__ import QtCore
-from __PYQT__ import QtGui
-from __PYQT__ import QtTest
-from __PYQT__.QtCore import Qt
-from __PYQT__.QtGui import QSizePolicy
-"""
 from . import QtCore
 from . import QtGui
+from . import QtWidgets  # just a clone of QtGui in PyQt4
 
 
 def QVariantHack(*args):
@@ -63,5 +40,4 @@ try:
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
-
 #print('__pyqt5__2')

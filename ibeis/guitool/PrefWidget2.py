@@ -673,13 +673,13 @@ class EditConfigWidget(QWidget):
 
     def init_layout(self):
         import guitool as gt
-        self.vbox = QtGui.QVBoxLayout(self)
+        self.vbox = QtWidgets.QVBoxLayout(self)
         self.tree_view = QtGui.QTreeView(self)
         self.delegate = ConfigValueDelegate(self.tree_view)
         self.tree_view.setItemDelegateForColumn(1, self.delegate)
         self.vbox.addWidget(self.tree_view)
 
-        self.hbox = QtGui.QHBoxLayout()
+        self.hbox = QtWidgets.QHBoxLayout()
         self.default_but = gt.newButton(self, 'Defaults', clicked=self.reset_to_default)
         self.default_but.setStyleSheet('QToolButton { border: none; }')
         self.hbox.addWidget(self.default_but)

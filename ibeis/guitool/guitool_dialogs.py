@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import map
 from guitool.__PYQT__ import QtCore, QtGui  # NOQA
+from guitool.__PYQT__ import QtWidgets  # NOQA
 from guitool.__PYQT__.QtCore import Qt
 import os
 from os.path import dirname
@@ -180,7 +181,7 @@ def user_question(msg):
 
 
 def newFileDialog(directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True):
-    qdlg = QtGui.QFileDialog()
+    qdlg = QtWidgets.QFileDialog()
     sidebar_urls = qdlg.sidebarUrls()[:]
     if use_sidebar_cwd:
         sidebar_urls.append(QtCore.QUrl.fromLocalFile(os.getcwd()))
@@ -312,7 +313,7 @@ def select_files(caption='Select Files:', directory=None, name_filter=None,
     #print(caption)
     if directory is None:
         directory = _guitool_cache_read(SELDIR_CACHEID, default='.')
-    #qdlg = QtGui.QFileDialog()
+    #qdlg = QtWidgets.QFileDialog()
     qdlg = newFileDialog(directory, other_sidebar_dpaths=[], use_sidebar_cwd=True)
     if single_file:
         qfile_list = [qdlg.getOpenFileName(caption=caption, directory=directory, filter=name_filter)]
@@ -342,11 +343,11 @@ def _newMsgBox(msg='', title='', parent=None, options=None, cache_reply=False, r
     if resizable:
         msgbox = ResizableMessageBox(parent)
     else:
-        msgbox = QtGui.QMessageBox(parent)
+        msgbox = QtWidgets.QMessageBox(parent)
     #msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-    #std_buts = QtGui.QMessageBox.Close
-    #std_buts = QtGui.QMessageBox.NoButton
-    std_buts = QtGui.QMessageBox.Cancel
+    #std_buts = QtWidgets.QMessageBox.Close
+    #std_buts = QtWidgets.QMessageBox.NoButton
+    std_buts = QtWidgets.QMessageBox.Cancel
     msgbox.setStandardButtons(std_buts)
     msgbox.setWindowTitle(title)
     msgbox.setText(msg)
@@ -354,7 +355,7 @@ def _newMsgBox(msg='', title='', parent=None, options=None, cache_reply=False, r
     return msgbox
 
 
-class ResizableMessageBox(QtGui.QMessageBox):
+class ResizableMessageBox(QtWidgets.QMessageBox):
     """
     References:
         http://stackoverflow.com/questions/2655354/how-to-allow-resizing-of-qmessagebox-in-pyqt4
@@ -379,7 +380,7 @@ class ResizableMessageBox(QtGui.QMessageBox):
             self.setMaximumHeight(16777215)
             self.setMinimumWidth(0)
             self.setMaximumWidth(16777215)
-            self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+            self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
             textEdit = self.findChild(QtGui.QTextEdit)
             if textEdit is not None:
@@ -387,7 +388,7 @@ class ResizableMessageBox(QtGui.QMessageBox):
                 textEdit.setMaximumHeight(16777215)
                 textEdit.setMinimumWidth(0)
                 textEdit.setMaximumWidth(16777215)
-                textEdit.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+                textEdit.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         except RuntimeError as ex:
             if ut.VERBOSE:
                 msg = 'Closing seems to cause C++ errors. Unsure how to fix properly.'

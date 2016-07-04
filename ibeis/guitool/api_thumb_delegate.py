@@ -5,6 +5,7 @@ CommandLine:
 """
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui, QtCore
+from guitool.__PYQT__ import QtWidgets  # NOQA
 #import cv2  # NOQA
 #import numpy as np
 #import time
@@ -121,7 +122,7 @@ def unregister_thread(key):
     del RUNNING_CREATION_THREADS[key]
 
 
-DELEGATE_BASE = QtGui.QItemDelegate
+DELEGATE_BASE = QtWidgets.QItemDelegate
 
 
 class APIThumbDelegate(DELEGATE_BASE):
@@ -151,6 +152,58 @@ class APIThumbDelegate(DELEGATE_BASE):
         else:
             dgt.get_thumb_size = get_thumb_size  # 256
         dgt.last_thumbsize = None
+
+    def paint(dgt, painter, option, qtindex):
+        """
+        TODO: prevent recursive paint
+        """
+        view = dgt.parent()
+        offset = view.verticalOffset() + option.rect.y()
+        # Check if still in viewport
+        if view_would_not_be_visible(view, offset):
+            return None
+        try:
+            thumb_path = dgt.get_thumb_path_if_exists(view, offset, qtindex)
+            if thumb_path is not None:
+                # Check if still in viewport
+                if view_would_not_be_visible(view, offset):
+                    return None
+                # Read the precomputed thumbnail
+                qimg = read_thumb_as_qimg(thumb_path)
+                width, height = qimg.width(), qimg.height()
+                # Adjust the cell size to fit the image
+                dgt.adjust_thumb_cell_size(qtindex, width, height)
+                # Check if still in viewport
+                if view_would_not_be_visible(view, offset):
+                    return None
+                # Paint image on an item in some view
+                painter.save()
+                painter.setClipRect(option.rect)
+                painter.translate(option.rect.x(), option.rect.y())
+                painter.drawImage(QtCore.QRectF(0, 0, width, height), qimg)
+                painter.restore()
+        except Exception as ex:
+            print('Error in APIThumbDelegate')
+            ut.printex(ex, 'Error in APIThumbDelegate')
+            painter.save()
+            painter.restore()
+
+    def sizeHint(dgt, option, qtindex):
+        view = dgt.parent()
+        offset = view.verticalOffset() + option.rect.y()
+        try:
+            thumb_path = dgt.get_thumb_path_if_exists(view, offset, qtindex)
+            if thumb_path is not None:
+                # Read the precomputed thumbnail
+                width, height = read_thumb_size(thumb_path)
+                return QtCore.QSize(width, height)
+            else:
+                #print("[APIThumbDelegate] Name not found")
+                return QtCore.QSize()
+        except Exception as ex:
+            print("Error in APIThumbDelegate")
+            ut.printex(ex, 'Error in APIThumbDelegate', tb=True)
+            return QtCore.QSize()
 
     def get_model_data(dgt, qtindex):
         """
@@ -311,78 +364,21 @@ class APIThumbDelegate(DELEGATE_BASE):
             col_height = view.rowHeight(qtindex)
             # TODO: finishme
 
-    def paint(dgt, painter, option, qtindex):
-        """
-        TODO: prevent recursive paint
-        """
-        view = dgt.parent()
-        offset = view.verticalOffset() + option.rect.y()
-        # Check if still in viewport
-        if view_would_not_be_visible(view, offset):
-            return None
-        try:
-            thumb_path = dgt.get_thumb_path_if_exists(view, offset, qtindex)
-            if thumb_path is not None:
-                # Check if still in viewport
-                if view_would_not_be_visible(view, offset):
-                    return None
-                # Read the precomputed thumbnail
-                qimg = read_thumb_as_qimg(thumb_path)
-                width, height = qimg.width(), qimg.height()
-                # Adjust the cell size to fit the image
-                dgt.adjust_thumb_cell_size(qtindex, width, height)
-                # Check if still in viewport
-                if view_would_not_be_visible(view, offset):
-                    return None
-                # Paint image on an item in some view
-                painter.save()
-                painter.setClipRect(option.rect)
-                painter.translate(option.rect.x(), option.rect.y())
-                painter.drawImage(QtCore.QRectF(0, 0, width, height), qimg)
-                painter.restore()
-        except Exception as ex:
-            # PSA: Always report errors on Exceptions!
-            print('Error in APIThumbDelegate')
-            ut.printex(ex, 'Error in APIThumbDelegate')
-            painter.save()
-            painter.restore()
-
-    def sizeHint(dgt, option, qtindex):
-        view = dgt.parent()
-        offset = view.verticalOffset() + option.rect.y()
-        try:
-            thumb_path = dgt.get_thumb_path_if_exists(view, offset, qtindex)
-            if thumb_path is not None:
-                # Read the precomputed thumbnail
-                width, height = read_thumb_size(thumb_path)
-                return QtCore.QSize(width, height)
-            else:
-                #print("[APIThumbDelegate] Name not found")
-                return QtCore.QSize()
-        except Exception as ex:
-            print("Error in APIThumbDelegate")
-            ut.printex(ex, 'Error in APIThumbDelegate', tb=True)
-            return QtCore.QSize()
-
 
 def view_would_not_be_visible(view, offset):
+    """
+    Check if the current scroll position is far beyond the
+    scroll position when this was initially requested.
+    """
     viewport = view.viewport()
     height = viewport.size().height()
     height_offset = view.verticalOffset()
     current_offset = height_offset + height // 2
-    # Check if the current scroll position is far beyond the
-    # scroll position when this was initially requested.
     return abs(current_offset - offset) >= height
 
 
 def get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size):
     r"""
-    Args:
-        bbox_list (list):
-        theta_list (list):
-        thumbsize (?):
-        img_size (?):
-
     CommandLine:
         python -m guitool.api_thumb_delegate --test-get_thread_thumb_info
 
@@ -411,13 +407,7 @@ def get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size):
 
 def make_thread_thumb(img_path, dsize, new_verts_list):
     r"""
-    Args:
-        img_path (?):
-        dsize (tuple):  width, height
-        new_verts_list (list):
-
-    Returns:
-        ?: thumb
+    Makes thumbnail with overlay. Called in thead
 
     CommandLine:
         python -m guitool.api_thumb_delegate --test-make_thread_thumb --show
@@ -466,11 +456,8 @@ RUNNABLE_BASE = QtCore.QRunnable
 
 class ThumbnailCreationThread2(RUNNABLE_BASE):
     """
-    Helper to compute thumbnails concurrently
-
-    References:
-        TODO:
-        http://stackoverflow.com/questions/6783194/background-thread-with-qthread-in-pyqt
+    HACK
+    TODO: http://stackoverflow.com/questions/6783194/background-thread-with-qthread-in-pyqt
     """
 
     def __init__(thread, thread_func, args, qtindex, view, offset):
@@ -510,7 +497,8 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         http://stackoverflow.com/questions/6783194/background-thread-with-qthread-in-pyqt
     """
 
-    def __init__(thread, thumb_path, img_path, img_size, thumbsize, qtindex, view, offset, bbox_list, theta_list):
+    def __init__(thread, thumb_path, img_path, img_size, thumbsize, qtindex,
+                 view, offset, bbox_list, theta_list):
         RUNNABLE_BASE.__init__(thread)
         thread.thumb_path = thumb_path
         thread.img_path = img_path
@@ -571,7 +559,7 @@ def simple_thumbnail_widget():
     Very simple example to test thumbnails
 
     CommandLine:
-        python -m guitool.api_thumb_delegate --test-simple_thumbnail_widget  --show
+        python -m guitool.api_thumb_delegate --test-simple_thumbnail_widget  --show --verbthumb
         python -m guitool.api_thumb_delegate --test-simple_thumbnail_widget  --show --tb
 
     Example:
@@ -597,8 +585,26 @@ def simple_thumbnail_widget():
     import vtool as vt
     from os.path import join
 
+    #imgname_list = sorted(ut.TESTIMG_URL_DICT.keys())
+    imgname_list = ['carl.jpg', 'lena.png', 'patsy.jpg']
+    imgname_list += ['doesnotexist.jpg']
+
+    num_imgs = list(range(len(imgname_list)))
+    # num_imgs = list(range(500))
+
+    def thread_func(would_be, id_):
+        from vtool.fontdemo import get_text_test_img
+        get_text_test_img(id_)
+
     def thumb_getter(id_, thumbsize=128):
         """ Thumb getters must conform to thumbtup structure """
+
+        if id_ not in imgname_list:
+            return {
+                'fpath': id_ + '.jpg',
+                'thread_func': thread_func,
+                'main_func': lambda : (id_,),
+            }
         #print(id_)
         if id_ == 'doesnotexist.jpg':
             return None
@@ -623,14 +629,15 @@ def simple_thumbnail_widget():
         return thumbtup
         #return None
 
-    #imgname_list = sorted(ut.TESTIMG_URL_DICT.keys())
-    imgname_list = ['carl.jpg', 'lena.png', 'patsy.jpg']
-
-    imgname_list += ['doesnotexist.jpg']
+    def imgname_getter(rowid):
+        if rowid < len(imgname_list):
+            return imgname_list[rowid]
+        else:
+            return str(rowid)
 
     col_getter_dict = {
-        'rowid': list(range(len(imgname_list))),
-        'image_name': imgname_list,
+        'rowid': num_imgs,
+        'image_name': imgname_getter,
         'thumb': thumb_getter
     }
     col_ider_dict = {

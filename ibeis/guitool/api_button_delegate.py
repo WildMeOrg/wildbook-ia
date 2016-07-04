@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui, QtCore  # NOQA
+from guitool.__PYQT__ import QtWidgets  # NOQA
 from guitool import guitool_components
 import utool
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APIButtonWidget]', DEBUG=False)
@@ -8,7 +9,7 @@ ut.noinject(__name__, '[api_button_delegate]', DEBUG=False)
 
 
 #DELEGATE_BASE = QtGui.QItemDelegate
-DELEGATE_BASE = QtGui.QStyledItemDelegate
+DELEGATE_BASE = QtWidgets.QStyledItemDelegate
 
 
 def rgb_to_qcolor(rgb):

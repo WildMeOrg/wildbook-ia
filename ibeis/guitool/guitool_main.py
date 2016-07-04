@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 #import atexit
 import sys
 from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtWidgets  # NOQA
 from guitool.__PYQT__.QtCore import pyqtRemoveInputHook
 import utool
 #print, print_, printDBG, rrr, profile = utool.inject(__name__, '[guitool]', DEBUG=False)
@@ -21,7 +22,7 @@ def get_qtapp():
     return QAPP
 
 
-class GuitoolApplication(QtGui.QApplication):
+class GuitoolApplication(QtWidgets.QApplication):
     """
     http://codeprogress.com/python/libraries/pyqt/showPyQTExample.php?index=378&key=QApplicationKeyPressGlobally
     """

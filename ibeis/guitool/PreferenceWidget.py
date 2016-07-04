@@ -293,14 +293,14 @@ class Ui_editPrefSkel(object):
         editPrefSkel.setObjectName(_fromUtf8('editPrefSkel'))
         editPrefSkel.resize(668, 530)
         # Add Pane for TreeView
-        self.verticalLayout = QtGui.QVBoxLayout(editPrefSkel)
+        self.verticalLayout = QtWidgets.QVBoxLayout(editPrefSkel)
         self.verticalLayout.setObjectName(_fromUtf8('verticalLayout'))
         # The TreeView for QAbstractItemModel to attach to
         self.prefTreeView = QtGui.QTreeView(editPrefSkel)
         self.prefTreeView.setObjectName(_fromUtf8('prefTreeView'))
         self.verticalLayout.addWidget(self.prefTreeView)
         # Add Pane for buttons
-        self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8('horizontalLayout'))
         #
         #self.redrawBUT = QtGui.QPushButton(editPrefSkel)

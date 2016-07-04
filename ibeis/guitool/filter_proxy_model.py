@@ -6,7 +6,10 @@ import utool
 utool.noinject(__name__, '[APIItemView]', DEBUG=False)
 
 #BASE_CLASS = QtGui.QAbstractProxyModel
-BASE_CLASS = QtGui.QSortFilterProxyModel
+try:
+    BASE_CLASS = QtGui.QSortFilterProxyModel
+except Exception:
+    BASE_CLASS = QtCore.QIdentityProxyModel
 # BASE_CLASS = QtGui.QIdentityProxyModel
 
 

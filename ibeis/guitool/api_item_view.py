@@ -4,6 +4,7 @@ provides common methods for api_tree_view and api_table_view
 """
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui
+from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__.QtCore import Qt
 import functools
 from guitool import qtype
@@ -26,7 +27,7 @@ VERBOSE_QT = ut.get_argflag(('--verbose-qt', '--verbqt'))
 VERBOSE_ITEM_VIEW = ut.get_argflag(('--verbose-item-view'))
 VERBOSE = utool.VERBOSE or VERBOSE_QT or VERBOSE_ITEM_VIEW
 
-API_VIEW_BASE = QtGui.QAbstractItemView
+API_VIEW_BASE = QtWidgets.QAbstractItemView
 ABSTRACT_VIEW_INJECT_KEY = ('QtGui.QAbstractItemView', 'guitool')
 register_view_method = utool.make_class_method_decorator(ABSTRACT_VIEW_INJECT_KEY, __name__)
 
@@ -87,6 +88,10 @@ def _init_itemview_behavior(view):
     # view.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
     # view.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
     view.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+
+    # uniformRowHeights
+    view.setVerticalScrollMode(QtGui.QAbstractItemView.ScrollPerItem)
+    view.setVerticalScrollMode(QtGui.QAbstractItemView.ScrollPerPixel)
 
     # Allow sorting by column
     view.setSortingEnabled(True)

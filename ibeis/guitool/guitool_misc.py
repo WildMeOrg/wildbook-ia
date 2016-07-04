@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtWidgets  # NOQA
 # Python
 import six
 from six.moves import range
@@ -119,7 +120,7 @@ class GUILoggingHandler(logging.StreamHandler):
             self.handleError(record)
 
 
-class QLoggedOutput(QtGui.QTextEdit):
+class QLoggedOutput(QtWidgets.QTextEdit):
     def __init__(self, parent=None):
         QtGui.QTextEdit.__init__(self, parent)
         if WITH_GUILOG:

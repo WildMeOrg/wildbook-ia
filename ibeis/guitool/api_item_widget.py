@@ -4,6 +4,7 @@ terms of development time)
 """
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui, QtCore
+from guitool.__PYQT__ import QtWidgets
 from guitool.api_item_model import APIItemModel
 from guitool.api_table_view import APITableView
 #from guitool import guitool_components as comp
@@ -11,10 +12,10 @@ from functools import partial
 from six.moves import range
 import utool as ut
 import six
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[APIItemWidget]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[APIItemWidget]')
 
 
-WIDGET_BASE = QtGui.QWidget
+WIDGET_BASE = QtWidgets.QWidget
 
 VERBOSE_ITEM_WIDGET = ut.get_argflag(('--verbose-item-widget', '--verbiw')) or ut.VERBOSE
 
@@ -159,26 +160,34 @@ class CustomAPI(object):
         self.nCols = len(self.col_getter_list)
         self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME
         # Init iders to default and then overwite based on dict inputs
-        self.col_ider_list = ut.alloc_nones(self.nCols)
+        self.col_ider_list = [None] * self.nCols  # ut.alloc_nones(self.nCols)
+        # for colname, ider_colnames in six.iteritems(col_ider_dict):
+        # import utool
+        # utool.embed()
+        colname2_colx = ut.make_index_lookup(self.col_name_list)
         for colname, ider_colnames in six.iteritems(col_ider_dict):
+            if colname not in colname2_colx:
+                continue
+            # for colname in self.col_name_list:
+            ider_colnames = col_ider_dict[colname]
             try:
-                col = self.col_name_list.index(colname)
+                colx = colname2_colx[colname]
                 # Col iders might have tuple input
                 ider_cols = ut.uinput_1to1(self.col_name_list.index, ider_colnames)
-                col_ider  = ut.uinput_1to1(lambda c: partial(self.get, c), ider_cols)
-                self.col_ider_list[col] = col_ider
+                col_ider  = ut.uinput_1to1(lambda c: ut.partial(self.get, c), ider_cols)
+                self.col_ider_list[colx] = col_ider
                 del col_ider
                 del ider_cols
-                del col
+                del colx
                 del colname
             except Exception as ex:
-                ut.printex(ex, keys=['colname', 'ider_colnames', 'col', 'col_ider', 'ider_cols'])
+                ut.printex(ex, keys=['colname', 'ider_colnames', 'colx', 'col_ider', 'ider_cols'])
                 raise
         # Init setters to data, and then overwrite based on dict inputs
         self.col_setter_list = list(self.col_getter_list)
         for colname, col_setter in six.iteritems(col_setter_dict):
-            col = self.col_name_list.index(colname)
-            self.col_setter_list[col] = col_setter
+            colx = colname2_colx[colname]
+            self.col_setter_list[colx] = col_setter
         # Init bgrole_getters to None, and then overwrite based on dict inputs
         self.col_bgrole_getter_list = [col_bgrole_dict.get(colname, None) for colname in self.col_name_list]
         # Mark edtiable columns
@@ -280,7 +289,7 @@ class APIItemWidget(WIDGET_BASE):
                  tblnice='APIItemWidget'):
         WIDGET_BASE.__init__(widget, parent)
         # Create vertical layout for the table to go into
-        widget.vert_layout = QtGui.QVBoxLayout(widget)
+        widget.vert_layout = QtWidgets.QVBoxLayout(widget)
         # Create a ColumnListTableView for the AbstractItemModel
         widget.view = view_class(parent=widget)
         # Instantiate the AbstractItemModel

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtWidgets
 from guitool.guitool_decorators import signal_, slot_
 import utool
 #from guitool import guitool_components
@@ -15,7 +16,7 @@ from guitool import api_item_view
 # AbstractItemView::scrollTo
 # AbstractItemView::keyboardSearch
 
-API_VIEW_BASE = QtGui.QTreeView
+API_VIEW_BASE = QtWidgets.QTreeView
 #API_VIEW_BASE = QtGui.QAbstractItemView
 
 

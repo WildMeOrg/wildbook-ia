@@ -1,16 +1,16 @@
 # DEPRICATE?
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__.QtCore import Qt
 from guitool.guitool_delegates import ComboDelegate, ButtonDelegate
 from guitool import qtype
 from six.moves import range, map
 import utool
-(print, print_, printDBG, rrr, profile) = utool.inject(
-    __name__, '[guitbls]', DEBUG=False)
+(print, rrr, profile) = utool.inject2(__name__, '[guitbls]')
 
 
-class ColumnListTableView(QtGui.QTableView):
+class ColumnListTableView(QtWidgets.QTableView):
     """ Table View for an AbstractItemModel """
     def __init__(view, *args, **kwargs):
         super(ColumnListTableView, view).__init__(*args, **kwargs)
@@ -267,15 +267,16 @@ class ColumnListItemModel(QtCore.QAbstractTableModel):
             return Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable
 
 
-class ColumnListTableWidget(QtGui.QWidget):
+class ColumnListTableWidget(QtWidgets.QWidget):
     """ ColumnList Table Main Widget """
     def __init__(cltw, col_data_list=None, col_name_list=None,
                  niceheader_list=None, col_type_list=None,
                  col_edit_list=None, display_indices=False,
                  col_sort_index=None, parent=None):
-        QtGui.QWidget.__init__(cltw, parent)
+        super(ColumnListTableWidget, cltw).__init__(parent)
+        # QtGui.QWidget.__init__(cltw, parent)
         # Create vertical layout for the table to go into
-        cltw.vert_layout = QtGui.QVBoxLayout(cltw)
+        cltw.vert_layout = QtWidgets.QVBoxLayout(cltw)
         # Instansiate the AbstractItemModel
         cltw.model = ColumnListItemModel(parent=cltw)
         # Create a ColumnListTableView for the AbstractItemModel

@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtWidgets
 import utool as ut
 ut.noinject(__name__, '[guitool.delegates]', DEBUG=False)
 
 
-class APIDelegate(QtGui.QItemDelegate):
+class APIDelegate(QtWidgets.QItemDelegate):
     is_persistant_editable = True
     def __init__(self, parent):
         QtGui.QItemDelegate.__init__(self, parent)
@@ -14,7 +15,7 @@ class APIDelegate(QtGui.QItemDelegate):
         return QtCore.QSize(50, 50)
 
 
-class ImageDelegate(QtGui.QStyledItemDelegate):
+class ImageDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, parent):
         print(dir(self))
         QtGui.QStyledItemDelegate.__init__(self, parent)

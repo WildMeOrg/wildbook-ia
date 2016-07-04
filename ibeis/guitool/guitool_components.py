@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import six
 from six.moves import map, range  # NOQA
 from guitool.__PYQT__ import QtCore, QtGui
-from guitool.__PYQT__.QtGui import QSizePolicy
+from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__.QtCore import Qt
 import functools
 import utool
@@ -15,9 +15,9 @@ import weakref
 DEBUG_WIDGET = ut.get_argflag('--debugwidget')
 
 if DEBUG_WIDGET:
-    WIDGET_BASE = QtGui.QFrame
+    WIDGET_BASE = QtWidgets.QFrame
 else:
-    WIDGET_BASE = QtGui.QWidget
+    WIDGET_BASE = QtWidgets.QWidget
 
 ALIGN_DICT = {
     'center': Qt.AlignCenter,
@@ -28,8 +28,8 @@ ALIGN_DICT = {
 
 
 def newSizePolicy(widget,
-                  verticalSizePolicy=QSizePolicy.Expanding,
-                  horizontalSizePolicy=QSizePolicy.Expanding,
+                  verticalSizePolicy=QtWidgets.QSizePolicy.Expanding,
+                  horizontalSizePolicy=QtWidgets.QSizePolicy.Expanding,
                   horizontalStretch=None,
                   verticalStretch=None):
     """
@@ -39,7 +39,7 @@ def newSizePolicy(widget,
         verticalStretch = 0
     if horizontalStretch is None:
         horizontalStretch = 0
-    sizePolicy = QSizePolicy(horizontalSizePolicy, verticalSizePolicy)
+    sizePolicy = QtWidgets.QSizePolicy(horizontalSizePolicy, verticalSizePolicy)
     sizePolicy.setHorizontalStretch(horizontalStretch)
     sizePolicy.setVerticalStretch(verticalStretch)
     #sizePolicy.setHeightForWidth(widget.sizePolicy().hasHeightForWidth())
@@ -50,7 +50,7 @@ def newSplitter(widget=None, orientation=Qt.Horizontal, verticalStretch=1):
     """
     input: widget - the central widget
     """
-    splitter = QtGui.QSplitter(orientation, widget)
+    splitter = QtWidgets.QSplitter(orientation, widget)
     _inject_new_widget_methods(splitter)
     # This line makes the splitter resize with the widget
     sizePolicy = newSizePolicy(splitter, verticalStretch=verticalStretch)
@@ -69,7 +69,7 @@ def newTabWidget(parent, horizontalStretch=1, verticalStretch=1):
     def addNewTab(self, name):
         tab = QtGui.QTabWidget()
         self.addTab(tab, name)
-        tab.setLayout(QtGui.QVBoxLayout())
+        tab.setLayout(QtWidgets.QVBoxLayout())
         # tab.setSizePolicy(*cfg_size_policy)
         _inject_new_widget_methods(tab)
         return tab
@@ -79,7 +79,7 @@ def newTabWidget(parent, horizontalStretch=1, verticalStretch=1):
 
 def newMenubar(widget):
     """ Defines the menubar on top of the main widget """
-    menubar = QtGui.QMenuBar(widget)
+    menubar = QtWidgets.QMenuBar(widget)
     menubar.setGeometry(QtCore.QRect(0, 0, 1013, 23))
     menubar.setContextMenuPolicy(Qt.DefaultContextMenu)
     menubar.setDefaultUp(False)
@@ -94,7 +94,7 @@ def newQPoint(x, y):
 
 def newMenu(widget, menubar, name, text):
     """ Defines each menu category in the menubar """
-    menu = QtGui.QMenu(menubar)
+    menu = QtWidgets.QMenu(menubar)
     menu.setObjectName(name)
     menu.setTitle(text)
     # Define a custom newAction function for the menu
@@ -123,7 +123,7 @@ def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
     if hasattr(front, action_name):
         raise Exception('menu action already defined')
     # Create new action
-    action = QtGui.QAction(front)
+    action = QtWidgets.QAction(front)
     setattr(front, action_name, action)
     action.setEnabled(enabled)
     action.setShortcutContext(QtCore.Qt.ApplicationShortcut)
@@ -580,7 +580,7 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
     """
     progressBar = QtGui.QProgressBar(parent)
     sizePolicy = newSizePolicy(progressBar,
-                               verticalSizePolicy=QSizePolicy.Maximum,
+                               verticalSizePolicy=QtWidgets.QSizePolicy.Maximum,
                                verticalStretch=verticalStretch)
     progressBar.setSizePolicy(sizePolicy)
     progressBar.setMaximum(10000)
@@ -686,7 +686,7 @@ def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}):
     return label
 
 
-class ResizableTextEdit(QtGui.QTextEdit):
+class ResizableTextEdit(QtWidgets.QTextEdit):
     """
     http://stackoverflow.com/questions/3050537/resizing-qts-qtextedit-to-match-text-height-maximumviewportsize
     """
@@ -707,7 +707,7 @@ def newTextEdit(parent=None, label=None, visible=None, label_pos='above',
     #if fit_to_text:
     #outputEdit = ResizableTextEdit(parent)
     #else:
-    outputEdit = QtGui.QTextEdit(parent)
+    outputEdit = QtWidgets.QTextEdit(parent)
     sizePolicy = newSizePolicy(outputEdit, verticalStretch=1)
     outputEdit.setSizePolicy(sizePolicy)
     outputEdit.setAcceptRichText(False)
@@ -761,7 +761,7 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
         readOnly = editable
     widget = QtGui.QLineEdit(parent)
     sizePolicy = newSizePolicy(widget,
-                               verticalSizePolicy=QSizePolicy.Fixed,
+                               verticalSizePolicy=QtWidgets.QSizePolicy.Fixed,
                                verticalStretch=verticalStretch)
     widget.setSizePolicy(sizePolicy)
     if text is not None:
@@ -792,9 +792,9 @@ def newFrame(*args, **kwargs):
     if orientation is None:
         orientation = Qt.Vertical
     if orientation == Qt.Vertical:
-        layout = QtGui.QVBoxLayout(widget)
+        layout = QtWidgets.QVBoxLayout(widget)
     elif orientation == Qt.Horizontal:
-        layout = QtGui.QHBoxLayout(widget)
+        layout = QtWidgets.QHBoxLayout(widget)
     else:
         raise NotImplementedError('orientation')
     widget.setLayout(layout)
@@ -803,8 +803,8 @@ def newFrame(*args, **kwargs):
 
 
 def newWidget(parent=None, orientation=Qt.Vertical,
-              verticalSizePolicy=QSizePolicy.Expanding,
-              horizontalSizePolicy=QSizePolicy.Expanding,
+              verticalSizePolicy=QtWidgets.QSizePolicy.Expanding,
+              horizontalSizePolicy=QtWidgets.QSizePolicy.Expanding,
               verticalStretch=1, special_layout=None):
     r"""
     Args:
@@ -827,9 +827,9 @@ def newWidget(parent=None, orientation=Qt.Vertical,
     #                           verticalStretch=verticalStretch)
     #widget.setSizePolicy(sizePolicy)
     #if orientation == Qt.Vertical:
-    #    layout = QtGui.QVBoxLayout(widget)
+    #    layout = QtWidgets.QVBoxLayout(widget)
     #elif orientation == Qt.Horizontal:
-    #    layout = QtGui.QHBoxLayout(widget)
+    #    layout = QtWidgets.QHBoxLayout(widget)
     #else:
     #    raise NotImplementedError('orientation')
     ## Black magic
@@ -942,8 +942,8 @@ class GuitoolWidget(WIDGET_BASE):
     closed = QtCore.pyqtSignal()
 
     def __init__(self, parent=None, orientation=Qt.Vertical,
-                 verticalSizePolicy=QSizePolicy.Expanding,
-                 horizontalSizePolicy=QSizePolicy.Expanding,
+                 verticalSizePolicy=QtWidgets.QSizePolicy.Expanding,
+                 horizontalSizePolicy=QtWidgets.QSizePolicy.Expanding,
                  verticalStretch=0, **kwargs):
         super(GuitoolWidget, self).__init__(parent)
 
@@ -954,9 +954,9 @@ class GuitoolWidget(WIDGET_BASE):
         #self.setSizePolicy(sizePolicy)
         #setattr(self, '_guitool_sizepolicy', sizePolicy)
         if orientation == Qt.Vertical:
-            layout = QtGui.QVBoxLayout(self)
+            layout = QtWidgets.QVBoxLayout(self)
         elif orientation == Qt.Horizontal:
-            layout = QtGui.QHBoxLayout(self)
+            layout = QtWidgets.QHBoxLayout(self)
         else:
             raise NotImplementedError('orientation')
         #layout.setSpacing(0)
@@ -977,12 +977,12 @@ class GuitoolWidget(WIDGET_BASE):
     def as_dialog(cls, parent=None, **kwargs):
         widget = cls(**kwargs)
         dlg = QtGui.QDialog(parent)
-        #dlg.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        #dlg.setSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
-        #dlg.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
-        #widget.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
+        #dlg.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        #dlg.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        #dlg.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        #widget.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         dlg.widget = widget
-        dlg.vlayout = QtGui.QVBoxLayout(dlg)
+        dlg.vlayout = QtWidgets.QVBoxLayout(dlg)
         #dlg.vlayout.setAlignment(Qt.AlignBottom)
         dlg.vlayout.addWidget(widget)
         widget.closed.connect(dlg.close)
@@ -1014,8 +1014,8 @@ class GuitoolWidget(WIDGET_BASE):
 
 
 def prop_text_map(prop, val):
-    if prop == 'QtGui.QSizePolicy':
-        pol_info = {eval('QtGui.QSizePolicy.' + key): key for key in
+    if prop == 'QtWidgets.QSizePolicy':
+        pol_info = {eval('QtWidgets.QSizePolicy.' + key): key for key in
                     ['Fixed', 'Minimum', 'Maximum', 'Preferred', 'Expanding',
                      'MinimumExpanding', 'Ignored', ]}
         return pol_info[val]
@@ -1066,8 +1066,8 @@ def walk_widget_heirarchy(obj, **kwargs):
     lines.append(info)
     for attr in attrs:
         if attr == 'sizePolicy' and hasattr(obj, 'sizePolicy'):
-            vval = prop_text_map('QtGui.QSizePolicy', obj.sizePolicy().verticalPolicy())
-            hval = prop_text_map('QtGui.QSizePolicy', obj.sizePolicy().horizontalPolicy())
+            vval = prop_text_map('QtWidgets.QSizePolicy', obj.sizePolicy().verticalPolicy())
+            hval = prop_text_map('QtWidgets.QSizePolicy', obj.sizePolicy().horizontalPolicy())
             lines.append('  * verticalSizePolicy   = %r' % vval)
             lines.append('  * horizontalSizePolicy = %r' % hval)
         else:
@@ -1101,14 +1101,14 @@ def print_widget_heirarchy(obj, *args, **kwargs):
 def fix_child_attr_heirarchy(obj, attr, val):
     if hasattr(obj, attr):
         getattr(obj, attr)(val)
-        # obj.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        # obj.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
     for child in obj.children():
         fix_child_attr_heirarchy(child, attr, val)
 
 
 def fix_child_size_heirarchy(obj, pol):
     if hasattr(obj, 'sizePolicy'):
-        obj.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        obj.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
     for child in obj.children():
         fix_child_size_heirarchy(child, pol)
 
@@ -1147,8 +1147,8 @@ class ConfigConfirmWidget(GuitoolWidget):
     def __init__(self, *args, **kwargs):
         # FIXME: http://doc.qt.io/qt-5/qsizepolicy.html
         #kwargs['horizontalSizePolicy'] = QSizePolicy.Minimum
-        kwargs['horizontalSizePolicy'] = QSizePolicy.Expanding
-        kwargs['verticalSizePolicy'] = QSizePolicy.Expanding
+        kwargs['horizontalSizePolicy'] = QtWidgets.QSizePolicy.Expanding
+        kwargs['verticalSizePolicy'] = QtWidgets.QSizePolicy.Expanding
         super(ConfigConfirmWidget, self).__init__(*args, **kwargs)
 
     def initialize(self, title, msg, config, options=None, default=None, detailed_msg=None):
@@ -1168,22 +1168,22 @@ class ConfigConfirmWidget(GuitoolWidget):
             #msg_widget = newTextEdit(self, text=msg, align='left', editable=False, fit_to_text=True)
             msg_widget.setObjectName('msg_widget')
             #msg_widget = self.addNewLabel(msg, align='left')
-            #msg_widget.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred,
+            #msg_widget.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred,
             #                                       verticalStretch=1))
             print(msg_widget.sizeHint())
-            msg_widget.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Expanding,
-                                                   QtGui.QSizePolicy.Maximum,
+            msg_widget.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                                   QtWidgets.QSizePolicy.Maximum,
                                                    verticalStretch=1))
-            #msg_widget.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Preferred,
-            #QtGui.QSizePolicy.Expanding, #verticalStretch=1))
+            #msg_widget.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Preferred,
+            #QtWidgets.QSizePolicy.Expanding, #verticalStretch=1))
             layout.addWidget(msg_widget)
 
         if 1 and config is not None:
             self.editConfig = PrefWidget2.newConfigWidget(self.config, user_mode=True)
             #if not ut.get_argflag('--nospoiler'):
             self.spoiler = Spoiler(self, title='Advanced Configuration')
-            #self.spoiler.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Expanding,
-            #                                         QtGui.QSizePolicy.Preferred,
+            #self.spoiler.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,
+            #                                         QtWidgets.QSizePolicy.Preferred,
             #                                         verticalStretch=0))
             self.spoiler.setObjectName('spoiler')
             self.spoiler.setContentLayout(self.editConfig)
@@ -1198,8 +1198,8 @@ class ConfigConfirmWidget(GuitoolWidget):
             detailed_msg_widget = newTextEdit(text=detailed_msg, editable=False)
             detailed_msg_widget.setObjectName('detailed_msg_widget')
             self.spoiler2 = Spoiler(self, title='Details')
-            #self.spoiler2.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Expanding,
-            #                                          QtGui.QSizePolicy.Preferred,
+            #self.spoiler2.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,
+            #                                          QtWidgets.QSizePolicy.Preferred,
             #                                          verticalStretch=0))
             self.spoiler2.setObjectName('spoiler2')
             self.spoiler2.setContentLayout(detailed_msg_widget)
@@ -1210,8 +1210,8 @@ class ConfigConfirmWidget(GuitoolWidget):
         if 1:
             self.button_row = self.newHWidget(verticalStretch=1000)
             self.button_row.setObjectName('button_row')
-            self.button_row.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Expanding,
-                                                        QtGui.QSizePolicy.Maximum))
+            self.button_row.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                                        QtWidgets.QSizePolicy.Maximum))
             self.button_row._guitool_layout.setAlignment(Qt.AlignBottom)
             if options is None:
                 options = ['Confirm']
@@ -1725,16 +1725,16 @@ class Spoiler(WIDGET_BASE):
         >>> #top = widget1.addNewFrame()
         >>> #top._guitool_layout.addWidget(spoiler)
         >>> detailed_msg = 'Foo\nbar'
-        >>> child_widget = QtGui.QTextEdit()
+        >>> child_widget = QtWidgets.QTextEdit()
         >>> #child_widget.setWordWrap(True)
         >>> #child_widget = QtGui.QPushButton()
         >>> child_widget.setObjectName('child_widget')
         >>> child_widget.setText(ut.lorium_ipsum() * 10)
-        >>> #vbox = QtGui.QVBoxLayout()
+        >>> #vbox = QtWidgets.QVBoxLayout()
         >>> #vbox.setContentsMargins(0, 0, 0, 0)
         >>> #vbox.addWidget(child_widget)
-        >>> #child_widget.setSizePolicy(newSizePolicy(QtGui.QSizePolicy.Ignored,
-        >>> #                                         QtGui.QSizePolicy.Ignored))
+        >>> #child_widget.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Ignored,
+        >>> #                                         QtWidgets.QSizePolicy.Ignored))
         >>> # spoiler = widget1.addNewSpoiler(title='spoiler title')
         >>> #contentLayout = widget2.layout()
         >>> spoiler.setContentLayout(child_widget)
@@ -1763,22 +1763,22 @@ class Spoiler(WIDGET_BASE):
         self.change_policy = False
         #:
         self._header_size_policy_states = {
-            #False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed),
-            #False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Maximum),
-            False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum),
-            True: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding),
+            #False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed),
+            #False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum),
+            False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum),
+            True: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding),
         }
         self._self_size_policy = {
-            #False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed),
-            #False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Maximum),
-            False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum),
-            True: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding),
+            #False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed),
+            #False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum),
+            False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum),
+            True: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding),
         }
         self._scroll_size_policy_states = {
-            #False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed),
-            False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding),
-            #False: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding),
-            True: newSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding),
+            #False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed),
+            False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding),
+            #False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding),
+            True: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding),
         }
         if not self.change_policy:
             del self._header_size_policy_states[True]
@@ -1843,7 +1843,7 @@ class Spoiler(WIDGET_BASE):
 
         # don't waste space
         self.mainLayout = QtGui.QGridLayout()
-        #self.mainLayout = QtGui.QVBoxLayout()
+        #self.mainLayout = QtWidgets.QVBoxLayout()
         mainLayout = self.mainLayout
         mainLayout.setVerticalSpacing(0)
         mainLayout.setContentsMargins(0, 0, 0, 0)

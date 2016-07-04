@@ -1,10 +1,11 @@
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtWidgets
 from guitool import api_item_view
 from guitool.guitool_decorators import signal_, slot_
 import utool
 
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[APITableView]', DEBUG=False)
+(print, rrr, profile) = utool.inject2(__name__, '[APITableView]', DEBUG=False)
 
 
 # If you need to set the selected index try:
@@ -12,7 +13,7 @@ import utool
 # AbstractItemView::scrollTo
 # AbstractItemView::keyboardSearch
 
-API_VIEW_BASE = QtGui.QTableView
+API_VIEW_BASE = QtWidgets.QTableView
 #API_VIEW_BASE = QtGui.QAbstractItemView
 
 

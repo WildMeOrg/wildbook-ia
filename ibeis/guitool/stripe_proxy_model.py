@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtWidgets  # NOQA
 from guitool.__PYQT__.QtCore import Qt
 import math
 import utool
@@ -9,7 +10,11 @@ utool.noinject(__name__, '[StripProxyModel]', DEBUG=False)
 
 #STRIPE_PROXY_BASE = QtGui.QAbstractProxyModel
 #STRIPE_PROXY_BASE = QtGui.QSortFilterProxyModel
-STRIPE_PROXY_BASE = QtGui.QIdentityProxyModel
+try:
+    STRIPE_PROXY_BASE = QtGui.QIdentityProxyModel
+except Exception:
+    STRIPE_PROXY_BASE = QtCore.QIdentityProxyModel
+
 STRIP_PROXY_META_CLASS = utool.makeForwardingMetaclass(
     lambda self: self.sourceModel(),
     ['_set_context_id',
