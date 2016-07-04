@@ -37,6 +37,7 @@ from plottool import interact_keypoints
 from plottool import interact_multi_image
 from plottool import interactions
 from plottool import interact_impaint
+#from plottool import abstract_iteraction
 
 
 # TODO utoolify this
@@ -52,6 +53,7 @@ IMPORT_TUPLES = [
     ('interact_multi_image', None),
     ('interact_keypoints', None),
     ('interact_matches', None),
+    #('abstract_iteraction', None),
     ('nx_helpers', None),
 ]
 

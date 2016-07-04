@@ -6,15 +6,15 @@ Known Interactions that use AbstractInteraction:
     ibeis.NameInteraction
 """
 from __future__ import absolute_import, division, print_function
-from plottool import plot_helpers as ph
-from plottool import interact_helpers as ih
 import six
 import re
 import utool as ut
-import plottool.draw_func2 as df2
-from plottool import fig_presenter
 import matplotlib as mpl
 ut.noinject(__name__, '[abstract_iteract]')
+import plottool.draw_func2 as df2  # NOQA
+from plottool import fig_presenter  # NOQA
+from plottool import plot_helpers as ph  # NOQA
+from plottool import interact_helpers as ih  # NOQA
 
 #(print, print_, printDBG, rrr, profile) = utool.inject(__name__,
 #'[abstract_iteract]')
