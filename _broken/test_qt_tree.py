@@ -39,7 +39,7 @@
 #    def _init_components(ibswgt):
 #        """ Defines gui components """
 #        # Layout
-#        ibswgt.vlayout = QtGui.QVBoxLayout(ibswgt)
+#        ibswgt.vlayout = QtWidgets.QVBoxLayout(ibswgt)
 #        # Create models and views
 #        #ibswgt.view = IBEISTableView(parent=ibswgt)
 #        ibswgt.view = IBEISTreeView(parent=ibswgt)

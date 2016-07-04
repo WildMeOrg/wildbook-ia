@@ -89,7 +89,7 @@ def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
     # Use command line dbdir unless user specifies it
     if dbdir is None:
         ibs = None
-        ut.printWARN('[main!] WARNING args.dbdir is None')
+        print('[main!] WARNING: args.dbdir is None')
     else:
         kwargs = kwargs.copy()
         request_dbversion = kwargs.pop('request_dbversion', None)

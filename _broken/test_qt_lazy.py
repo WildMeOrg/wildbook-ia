@@ -245,7 +245,7 @@ class DummyWidget(QtGui.QWidget):
     ''' Test Main Window '''
     def __init__(widget, parent=None):
         QtGui.QWidget.__init__(widget, parent)
-        widget.vlayout = QtGui.QVBoxLayout(widget)
+        widget.vlayout = QtWidgets.QVBoxLayout(widget)
 
         col_name_list, col_type_list, col_edit_list, col_nice_list, db = create_databse()
         widget._image_model = ImageModelSQL(col_name_list, col_type_list, col_edit_list, col_nice_list, db, parent=widget)
@@ -256,7 +256,7 @@ class DummyWidget(QtGui.QWidget):
         col_type_list = [str, int]
         col_edit_list = [True, False]
 
-        #splitter = QtGui.QSplitter(centralwidget)
+        #splitter = QtWidgets.QSplitter(centralwidget)
         #splitter.setOrientation(QtCore.Qt.Vertical)
 
         widget._imageset_model = ImageSetModelSQL(col_name_list, col_type_list, col_edit_list, db, parent=widget)

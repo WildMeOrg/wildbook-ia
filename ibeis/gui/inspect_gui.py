@@ -481,7 +481,10 @@ class QueryResultsWidget(APIItemWidget):
         horizontal_header = qres_wgt.view.horizontalHeader()
         for col, width in six.iteritems(qres_wgt.qres_api.col_width_dict):
             #horizontal_header.defaultSectionSize()
-            index = qres_wgt.qres_api.col_name_list.index(col)
+            try:
+                index = qres_wgt.qres_api.col_name_list.index(col)
+            except ValueError:
+                pass
             horizontal_header.resizeSection(index, width)
 
     @guitool.slot_()
@@ -1115,7 +1118,8 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
         if check_func is not None and check_func():
             return
         savekw = {
-            'dpi' : 60,
+            # 'dpi' : 60,
+            'dpi' : 80,
         }
         axes_extents = pt.extract_axes_extents(fig)
         #assert len(axes_extents) == 1, 'more than one axes'
@@ -1188,7 +1192,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     # Get extra info
     (qaids, daids, scores, ranks) = candidate_matches
 
-    RES_THUMB_TEXT = 'ResThumb'
+    RES_THUMB_TEXT = 'ResThumb'  # NOQA
     MATCH_THUMB_TEXT = 'MatchThumb'
 
     col_name_list = [
@@ -1213,8 +1217,8 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         #('review',     'BUTTON'),
         (MATCHED_STATUS_TEXT, str),
         (REVIEWED_STATUS_TEXT, str),
-        # ('querythumb', 'PIXMAP'),
-        # (RES_THUMB_TEXT,   'PIXMAP'),
+        ('querythumb', 'PIXMAP'),
+        (RES_THUMB_TEXT,   'PIXMAP'),
         ('qname',      str),
         ('name',       str),
         ('score',      float),
@@ -1232,8 +1236,8 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         #('review',     lambda rowid: get_buttontup),
         (MATCHED_STATUS_TEXT,  partial(get_match_status, ibs)),
         (REVIEWED_STATUS_TEXT,  partial(get_reviewed_status, ibs)),
-        # ('querythumb', ibs.get_annot_chip_thumbtup),
-        # (RES_THUMB_TEXT,   ibs.get_annot_chip_thumbtup),
+        ('querythumb', ibs.get_annot_chip_thumbtup),
+        (RES_THUMB_TEXT,   ibs.get_annot_chip_thumbtup),
         ('qname',      ibs.get_annot_names),
         ('name',       ibs.get_annot_names),
         ('score',      np.array(scores)),
@@ -1293,9 +1297,8 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
                 }
                 return thumbdat
 
-        # col_name_list.insert(col_name_list.index(RES_THUMB_TEXT) + 1,
-        #                      MATCH_THUMB_TEXT)
-        col_name_list.insert(3, MATCH_THUMB_TEXT)
+        col_name_list.insert(col_name_list.index('qaid'),
+                             MATCH_THUMB_TEXT)
         col_types_dict[MATCH_THUMB_TEXT] = 'PIXMAP'
         #col_types_dict[MATCH_THUMB_TEXT] = CustomMatchThumbDelegate
         qaid2_cm = {cm.qaid: cm for cm in cm_list}
@@ -1315,8 +1318,8 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         REVIEWED_STATUS_TEXT    : ('qaid', 'aid'),
         #'d_nGt'      : ('aid'),
         #'q_nGt'      : ('qaid'),
-        # 'querythumb' : ('qaid'),
-        # 'ResThumb'   : ('aid'),
+        'querythumb' : ('qaid'),
+        'ResThumb'   : ('aid'),
         'qname'      : ('qaid'),
         'name'       : ('aid'),
     }
@@ -1548,7 +1551,7 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
     return candidate_matches
 
 
-def test_inspect_matches(ibs, qaid_list, daid_list):
+def test_inspect_matches(qreq_):
     """
 
     Args:
@@ -1561,7 +1564,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
 
     CommandLine:
         python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
-        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show --nodelete
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show --fresh-inspect
         python -m ibeis.gui.inspect_gui --test-test_inspect_matches --cmd
 
     Example:
@@ -1569,14 +1572,15 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
         >>> import guitool
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> assert ibs.dbname in ['PZ_MTEST', 'testdb1'], 'do not use on a real database'
-        >>> qaid_list = ibs.get_valid_aids()  #[0:5]
-        >>> daid_list = ibs.get_valid_aids()  # [0:20]
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default:qindex=0:5,dindex=0:20', t='default:SV=False,AQH=True')
+        >>> assert qreq_.ibs.dbname in ['PZ_MTEST', 'testdb1'], 'do not use on a real database'
+        >>> #ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> #qaid_list = ibs.get_valid_aids()[0:5]
+        >>> #daid_list = ibs.get_valid_aids()[0:20]
         >>> if ut.get_argflag('--fresh-inspect'):
         >>>     #ut.remove_files_in_dir(ibs.get_match_thumbdir())
         >>>     ibs.delete_annotmatch(ibs._get_all_annotmatch_rowids())
-        >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
+        >>> main_locals = test_inspect_matches(qreq_)
         >>> main_execstr = ibeis.main_loop(main_locals)
         >>> ut.quit_if_noshow()
         >>> # TODO: add in qwin to main loop
@@ -1585,8 +1589,8 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         >>> exec(main_execstr)
     """
     from ibeis.gui import inspect_gui
-    qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict={
-        'sv_on': False, 'augment_queryside_hack': True})
+    # qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict={
+    #     'sv_on': False, 'augment_queryside_hack': True})
     cm_list = qreq_.execute()
     tblname = ''
     name_scoring = False
@@ -1596,8 +1600,8 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     print('[inspect_matches] make_qres_widget')
     #ut.view_directory(ibs.get_match_thumbdir())
     qres_wgt = inspect_gui.QueryResultsWidget(
-        ibs, cm_list, ranks_lt=ranks_lt, qreq_=qreq_, filter_reviewed=False,
-        filter_duplicate_namepair_matches=False)
+        qreq_.ibs, cm_list, ranks_lt=ranks_lt, qreq_=qreq_,
+        filter_reviewed=False, filter_duplicate_namepair_matches=False)
     print('[inspect_matches] show')
     qres_wgt.show()
     print('[inspect_matches] raise')

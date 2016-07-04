@@ -199,11 +199,16 @@ print('[super_setup] code_dir: %r' % CODE_DIR)
 python_version = platform.python_version()
 
 # We only support python 2.7
-assert '--py3' in sys.argv or python_version.startswith('2.7'), \
-    'IBEIS currently needs python 2.7,  Instead got python=%r' % python_version
+PY3 = '--py3' in sys.argv
+assert PY3  or python_version.startswith('2.7'), \
+    'IBEIS currently supports python 2.7,  Instead got python=%r. use --py3 to override' % python_version
 
 # Default to python 2.7. Windows is werid
-pythoncmd = 'python' if WIN32 else 'python2.7'
+
+if PY3:
+    pythoncmd = 'python3'
+else:
+    pythoncmd = 'python' if WIN32 else 'python2.7'
 
 
 def bootstrap():
@@ -384,18 +389,35 @@ def define_custom_scripts(tpl_rman):
             'venv_site_packages': ut.get_site_packages_dir(),
         }
         # Allows us to use a system qt install in a virtual environment.
-        tpl_rman['PyQt4'].add_script('system_to_venv', ut.codeblock(
+        system_to_venv = ut.codeblock(
             r"""
             # STARTBLOCK bash
             ln -s {sys_dist_packages}/PyQt4/ {venv_site_packages}/PyQt4
             ln -s {sys_dist_packages}/sip*.so {venv_site_packages}/
             ln -s {sys_dist_packages}/sip*.py {venv_site_packages}/
             # ENDBLOCK bash
-            """)).format(**fmtdict)
+            """).format(**fmtdict)
+        tpl_rman['PyQt4'].add_script('system_to_venv', system_to_venv)
         # TODO: add custom build alternative
         pass
     else:
         pass
+    """
+    # http://stackoverflow.com/questions/18042919/how-to-install-pyqt5-on-a-new-virtualenv-and-work-on-an-idle
+    pip install vext.pyqt5
+    sudo apt-get install pyqt5-dev
+    sudo apt-get install python3-pyqt5
+    python
+    python -c "import sip; print('[test] Python can import sip')"
+    python -c "import sip; print('sip.__file__=%r' % (sip.__file__,))"
+    python -c "import sip; print('sip.SIP_VERSION=%r' % (sip.SIP_VERSION,))"
+    python -c "import sip; print('sip.SIP_VERSION_STR=%r' % (sip.SIP_VERSION_STR,))"
+
+    ln -s /usr/lib/python3/dist-packages/PyQt5/ /home/joncrall/venv3/lib/python3.4/site-packages/PyQt5
+    ln -s /usr/lib/python3/dist-packages/sip*.so /home/joncrall/venv3/lib/python3.4/site-packages/
+    ln -s /usr/lib/python3/dist-packages/sip*.py /home/joncrall/venv3/lib/python3.4/site-packages/
+
+    """
 
     ibeis_rman['pyflann'].add_script('install', ut.codeblock(
         r'''
@@ -408,56 +430,98 @@ def define_custom_scripts(tpl_rman):
         ''').format(repo_dir=ibeis_rman['pyflann'].dpath)
     )
 
-    # TODO: allow system installation as well
-    tpl_rman['cv2'].add_script('build', ut.codeblock(
-        r"""
-        # STARTBLOCK bash
-        cd $CODE_DIR
-        git clone https://github.com/Itseez/opencv.git
-        cd opencv
-        # Get Extras
-        git clone https://github.com/Itseez/opencv_contrib.git
-        mkdir -p build27
-        cd build27
+    if PY3:
+        tpl_rman['cv2'].add_script('build', ut.codeblock(
+            r"""
+            # STARTBLOCK bash
+            cd $CODE_DIR
+            git clone https://github.com/Itseez/opencv.git
+            cd opencv
+            # Get Extras
+            git clone https://github.com/Itseez/opencv_contrib.git
+            mkdir -p build34
+            cd build34
 
-        if [[ "$VIRTUAL_ENV" == ""  ]]; then
-            export LOCAL_PREFIX=/usr/local
-            export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/dist-packages
-        else
-            export LOCAL_PREFIX=$VIRTUAL_ENV/local
-            export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/site-packages
-        fi
+            if [[ "$VIRTUAL_ENV" == ""  ]]; then
+                export LOCAL_PREFIX=/usr/local
+                export PYTHON3_PACKAGES_PATH=$LOCAL_PREFIX/lib/python3.4/dist-packages
+                export _SUDO="sudo"
+            else
+                export LOCAL_PREFIX=$VIRTUAL_ENV/local
+                export PYTHON3_PACKAGES_PATH=$LOCAL_PREFIX/lib/python3.4/site-packages
+                export _SUDO=""
+            fi
 
-        echo "LOCAL_PREFIX = $LOCAL_PREFIX"
-        echo "PYTHON2_PACKAGES_PATH = $PYTHON2_PACKAGES_PATH"
-        # use dist packages on ubuntu. may need to change for other platforms
-        cmake -G "Unix Makefiles" \
-            -D WITH_OPENMP=ON \
-            -D CMAKE_BUILD_TYPE=RELEASE \
-            -D PYTHON2_PACKAGES_PATH=$PYTHON2_PACKAGES_PATH \
-            -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
-            -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
-            ..
+            echo "LOCAL_PREFIX = $LOCAL_PREFIX"
+            echo "PYTHON3_PACKAGES_PATH = $PYTHON3_PACKAGES_PATH"
+            # use dist packages on ubuntu. may need to change for other platforms
+            cmake -G "Unix Makefiles" \
+                -D WITH_OPENMP=ON \
+                -D CMAKE_BUILD_TYPE=RELEASE \
+                -D BUILD_opencv_python2=Off \
+                -D BUILD_opencv_python3=On \
+                -D PYTHON3_PACKAGES_PATH=$PYTHON3_PACKAGES_PATH \
+                -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
+                -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
+                ..
+            export PYTHON_PACKAGES_PATH=$PYTHON3_PACKAGES_PATH
 
-        export NCPUS=$(grep -c ^processor /proc/cpuinfo)
-        make -j$NCPUS
-        # ENDBLOCK
-        """))
+            export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+            make -j$NCPUS
+            # ENDBLOCK
+            """))
+    else:
+        # TODO: allow system installation as well
+        tpl_rman['cv2'].add_script('build', ut.codeblock(
+            r"""
+            # STARTBLOCK bash
+            cd $CODE_DIR
+            git clone https://github.com/Itseez/opencv.git
+            cd opencv
+            # Get Extras
+            git clone https://github.com/Itseez/opencv_contrib.git
+            mkdir -p build27
+            cd build27
+
+            if [[ "$VIRTUAL_ENV" == ""  ]]; then
+                export LOCAL_PREFIX=/usr/local
+                export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/dist-packages
+                export _SUDO="sudo"
+            else
+                export LOCAL_PREFIX=$VIRTUAL_ENV/local
+                export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/site-packages
+                export _SUDO=""
+            fi
+            export PYTHON_PACKAGES_PATH=$PYTHON2_PACKAGES_PATH
+
+            echo "LOCAL_PREFIX = $LOCAL_PREFIX"
+            echo "PYTHON2_PACKAGES_PATH = $PYTHON2_PACKAGES_PATH"
+            # use dist packages on ubuntu. may need to change for other platforms
+            cmake -G "Unix Makefiles" \
+                -D WITH_OPENMP=ON \
+                -D CMAKE_BUILD_TYPE=RELEASE \
+                -D PYTHON2_PACKAGES_PATH=$PYTHON2_PACKAGES_PATH \
+                -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
+                -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
+                ..
+
+            export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+            make -j$NCPUS
+            # ENDBLOCK
+            """))
 
     tpl_rman['cv2'].add_script('install', ut.codeblock(
         r"""
         # STARTBLOCK bash
-        cd $CODE_DIR
-        sudo make install
+        $_SUDO make install
         # Hack because cv2 does not want to be installed for some reason
-        cp lib/cv2.so $PYTHON2_PACKAGES_PATH
+        cp lib/cv2.so $PYTHON_PACKAGES_PATH
         # Test makesure things working
         python -c "import numpy; print(numpy.__file__)"
         python -c "import numpy; print(numpy.__version__)"
         python -c "import cv2; print(cv2.__version__)"
         python -c "import cv2; print(cv2.__file__)"
         #python -c "import vtool"
-
         # Check if we have contrib modules
         python -c "import cv2; print(cv2.xfeatures2d)"
         # ENDBLOCK
@@ -468,10 +532,14 @@ def define_custom_scripts(tpl_rman):
 #     export THEANO_FLAGS="device=cpu,print_active_device=True,enable_initial_driver_test=True"
 #     set THEANO_FLAGS=device=cpu,print_active_device=True,enable_initial_driver_test=True,print_test_value=True
 
+#     python -c "import pydot; print(pydot.__file__)"
+#     python -c "import pydot; print(pydot.__version__)"
+#     python -c "import pydot; print(pydot.find_graphviz())"
 #     python -c "import theano; print(theano.__file__)"
 #     python -c "import pylearn2; print(pylearn2.__file__)"
 #     python -c "import lasagne; print(lasagne.__file__)"
 #     python -c "import ibeis_cnn; print(ibeis_cnn.__file__)"
+#     python -c "import detecttools; print(detecttools.__file__)"
 #     """
 
 #-----------

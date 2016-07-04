@@ -21,8 +21,9 @@ import sys
 from ibeis import constants as const
 import functools
 from guitool.__PYQT__ import QtGui, QtCore
+from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__.QtCore import Qt
-from guitool.__PYQT__.QtGui import QSizePolicy
+from guitool.__PYQT__.QtWidgets import QSizePolicy
 from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext, BlockContext  # NOQA
 from ibeis.other import ibsfuncs
 from ibeis.gui import guiheaders as gh
@@ -61,14 +62,14 @@ view.selectRow(row)
 #############################
 
 
-class APITabWidget(QtGui.QTabWidget):
+class APITabWidget(QtWidgets.QTabWidget):
     """
     Holds the table-tabs
 
     use setCurrentIndex to change the selection
     """
     def __init__(tabwgt, parent=None, horizontalStretch=1):
-        QtGui.QTabWidget.__init__(tabwgt, parent)
+        QtWidgets.QTabWidget.__init__(tabwgt, parent)
         tabwgt.ibswgt = parent
         tabwgt._sizePolicy = guitool.newSizePolicy(
             tabwgt, horizontalStretch=horizontalStretch)
@@ -99,12 +100,12 @@ class APITabWidget(QtGui.QTabWidget):
     #    #    QtGui.QTabWidget.setCurrentIndex(tabwgt, index)
 
 
-class ImagesetTabWidget(QtGui.QTabWidget):
+class ImagesetTabWidget(QtWidgets.QTabWidget):
     """
     Handles the super-tabs for the imagesets that hold the table-tabs
     """
     def __init__(imageset_tabwgt, parent=None, horizontalStretch=1):
-        QtGui.QTabWidget.__init__(imageset_tabwgt, parent)
+        QtWidgets.QTabWidget.__init__(imageset_tabwgt, parent)
         imageset_tabwgt.ibswgt = parent
         imageset_tabwgt.setTabsClosable(True)
         imageset_tabwgt.setMaximumSize(9999, guitool.get_cplat_tab_height())
@@ -162,7 +163,7 @@ class ImagesetTabWidget(QtGui.QTabWidget):
         print('[_add_imageset_tab] imgsetid=%r, imagesettext=%r' % (imgsetid, imagesettext))
         if imgsetid not in imageset_tabwgt.imgsetid_list:
             tab_name = str(imagesettext)
-            imageset_tabwgt.addTab(QtGui.QWidget(), tab_name)
+            imageset_tabwgt.addTab(QtWidgets.QWidget(), tab_name)
 
             imageset_tabwgt.imgsetid_list.append(imgsetid)
             index = len(imageset_tabwgt.imgsetid_list) - 1
@@ -183,13 +184,16 @@ class ImagesetTabWidget(QtGui.QTabWidget):
 #############################
 
 
-class IBEISMainWindow(QtGui.QMainWindow):
+class IBEISMainWindow(QtWidgets.QMainWindow):
     quitSignal = signal_()
     dropSignal = signal_(list)
     def __init__(mainwin, back=None, ibs=None, parent=None):
-        QtGui.QMainWindow.__init__(mainwin, parent)
+        QtWidgets.QMainWindow.__init__(mainwin, parent)
         # Menus
-        mainwin.setUnifiedTitleAndToolBarOnMac(False)
+        try:
+            mainwin.setUnifiedTitleAndToolBarOnMac(False)
+        except AttributeError as ex:
+            ut.printex(ex, 'setUnifiedTitleAndToolBarOnMac is not working', iswarning=True)
         guimenus.setup_menus(mainwin, back)
         # Central Widget
         mainwin.ibswgt = IBEISGuiWidget(back=back, ibs=ibs, parent=mainwin)
@@ -236,7 +240,7 @@ class IBEISMainWindow(QtGui.QMainWindow):
 #############################
 
 
-IBEIS_WIDGET_BASE = QtGui.QWidget
+IBEIS_WIDGET_BASE = QtWidgets.QWidget
 
 
 class IBEISGuiWidget(IBEIS_WIDGET_BASE):
@@ -311,7 +315,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # CONNECT HOOK TO GET NUM ROWS
             tblview.rows_updated.connect(ibswgt.on_rows_updated)
 
-    @slot_(QtGui.QItemSelection, QtGui.QItemSelection)
+    @slot_(QtCore.QItemSelection, QtCore.QItemSelection)
     def update_selection(ibswgt, selected, deselected):
         """
         Quirky behavior: if you select two columns in a row and then unselect
@@ -330,7 +334,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ...     view.selectAll()
             >>> selmodel = view.selectionModel()
             >>> selected = selmodel.selection()
-            >>> deselected = QtGui.QItemSelection()
+            >>> deselected = QtCore.QItemSelection()
             >>> # verify results
             >>> print(result)
 
@@ -391,7 +395,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def _init_components(ibswgt):
         """ Defines gui components """
         # Layout
-        ibswgt.vlayout = QtGui.QVBoxLayout(ibswgt)
+        ibswgt.vlayout = QtWidgets.QVBoxLayout(ibswgt)
         #ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
         ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
         ibswgt.vsplitter = guitool.newSplitter(ibswgt, Qt.Vertical)
@@ -604,12 +608,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Add control widgets (import, group, species selector, etc...)
         ibswgt.control_layout_list = []
         for control_widgets in ibswgt.control_widget_lists:
-            ibswgt.control_layout_list.append(QtGui.QHBoxLayout(ibswgt))
+            ibswgt.control_layout_list.append(QtWidgets.QHBoxLayout(ibswgt))
             ibswgt.status_wgt.addLayout(ibswgt.control_layout_list[-1])
             for widget in control_widgets:
                 ibswgt.control_layout_list[-1].addWidget(widget)
         # Add selected ids status widget
-        ibswgt.selectionStatusLayout = QtGui.QHBoxLayout(ibswgt)
+        ibswgt.selectionStatusLayout = QtWidgets.QHBoxLayout(ibswgt)
         ibswgt.status_wgt.addLayout(ibswgt.selectionStatusLayout)
         for widget in ibswgt.status_widget_list:
             ibswgt.selectionStatusLayout.addWidget(widget)

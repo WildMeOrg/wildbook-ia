@@ -51,7 +51,7 @@ def _new_gridLayout(parent, _numtrick=[0]):
 
 def _new_verticalLayout(parent=None, _numtrick=[0]):
     _numtrick[0] += 1  # NOQA
-    verticalLayout = QtGui.QVBoxLayout() if parent is None else QtGui.QVBoxLayout(parent)
+    verticalLayout = QtWidgets.QVBoxLayout() if parent is None else QtWidgets.QVBoxLayout(parent)
     next_vlname = _fromUtf8('verticalLayout' + str(_numtrick[0]))
     verticalLayout.setObjectName(next_vlname)
     return verticalLayout
@@ -117,7 +117,7 @@ def newCentralLayout(front):
 
 
 def newVerticalSplitter(centralwidget, verticalLayout, name='splitter'):
-    splitter = QtGui.QSplitter(centralwidget)
+    splitter = QtWidgets.QSplitter(centralwidget)
     splitter.setOrientation(QtCore.Qt.Vertical)
     splitter.setObjectName(_fromUtf8(name))
     verticalLayout.addWidget(splitter)
