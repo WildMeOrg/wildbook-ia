@@ -938,10 +938,8 @@ class GuitoolWidget(WIDGET_BASE):
             raise NotImplementedError('orientation')
         if spacing is not None:
             layout.setSpacing(spacing)
-            print('spacing = %r' % (spacing,))
         if margin is not None:
             layout.setMargin(margin)
-            print('margin = %r' % (margin,))
         self.setLayout(layout)
         self._guitool_layout = layout
         #layout.setAlignment(Qt.AlignBottom)
@@ -1045,7 +1043,6 @@ def walk_widget_heirarchy(obj, **kwargs):
     children = obj.children()
     lines = []
     info = str(ut.type_str(obj.__class__)).replace('PyQt4', '') + ' - ' + repr(obj.objectName())
-    #print(info)
     lines.append(info)
     for attr in attrs:
         if attr == 'sizePolicy' and hasattr(obj, 'sizePolicy'):
@@ -1153,7 +1150,6 @@ class ConfigConfirmWidget(GuitoolWidget):
             #msg_widget = self.addNewLabel(msg, align='left')
             #msg_widget.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred,
             #                                       verticalStretch=1))
-            print(msg_widget.sizeHint())
             msg_widget.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,
                                                    QtWidgets.QSizePolicy.Maximum,
                                                    verticalStretch=1))
@@ -1660,7 +1656,6 @@ def getAvailableFonts():
 
 def layoutSplitter(splitter):
     old_sizes = splitter.sizes()
-    print(old_sizes)
     phi = utool.get_phi()
     total = sum(old_sizes)
     ratio = 1 / phi
@@ -1671,8 +1666,6 @@ def layoutSplitter(splitter):
         sizes.append(new_size)
     sizes.append(total)
     splitter.setSizes(sizes)
-    print(sizes)
-    print('===')
 
 
 def msg_event(title, msg):
