@@ -396,13 +396,21 @@ class QueryResultsWidget(APIItemWidget):
         lbl = QtWidgets.QLabel('\'T\' marks as correct match. \'F\' marks as incorrect match. Alt brings up context menu. Double click a row to inspect matches.')
         from guitool.__PYQT__.QtCore import Qt
         qres_wgt.layout().setSpacing(0)
-        bottom_bar = guitool.newFrame(qres_wgt, orientation=Qt.Horizontal)
+        qres_wgt.layout().setMargin(0)
+        bottom_bar = guitool.newWidget(qres_wgt, orientation=Qt.Horizontal, spacing=0, margin=0)
         bottom_bar.layout().setSpacing(0)
+        bottom_bar.layout().setMargin(0)
         #import utool
         #utool.embed()
         qres_wgt.layout().addWidget(bottom_bar)
         bottom_bar.addWidget(lbl)
         bottom_bar.addNewButton('Mark all above as correct', clicked=qres_wgt.mark_unreviewed_above_score_as_correct)
+        bottom_bar.addNewButton('Hide Reviewed', clicked=qres_wgt.hide_reviewed)
+
+        qres_wgt.name_scoring = name_scoring
+        qres_wgt.cm_list = cm_list
+        qres_wgt.qreq_ = qreq_
+        qres_wgt.kwargs = kwargs
 
         qres_wgt.set_query_results(ibs, cm_list, name_scoring=name_scoring,
                                    qreq_=qreq_, **kwargs)
@@ -458,7 +466,7 @@ class QueryResultsWidget(APIItemWidget):
                           qreq_=None, **kwargs):
         print('[qres_wgt] set_query_results()')
         tblnice = 'Query Results: ' + kwargs.get('query_title', '')
-        ut.util_dict.delete_dict_keys(kwargs, ['query_title'])
+        ut.delete_dict_keys(kwargs, ['query_title'])
 
         qres_wgt.ibs = ibs
         qres_wgt.qaid2_cm = dict([(cm.qaid, cm) for cm in cm_list])
@@ -653,6 +661,14 @@ class QueryResultsWidget(APIItemWidget):
             qres_wgt.qreq_, daid, mode=0)
         fig = match_interaction.fig
         fig_presenter.bring_to_front(fig)
+
+    def hide_reviewed(qres_wgt):
+        print('hide_reviewed')
+        # Really just reloads the widget
+        qreq_ = qres_wgt.qreq_
+        qres_wgt.set_query_results(qreq_.ibs, qres_wgt.cm_list,
+                                   name_scoring=qres_wgt.name_scoring,
+                                   qreq_=qres_wgt.qreq_, **qres_wgt.kwargs)
 
     def mark_unreviewed_above_score_as_correct(qres_wgt):
         selected_qtindex_list = qres_wgt.selectedRows()
@@ -1583,9 +1599,7 @@ def test_inspect_matches(qreq_):
         >>> import guitool
         >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default:qindex=0:5,dindex=0:20', t='default:SV=False,AQH=True')
         >>> assert qreq_.ibs.dbname in ['PZ_MTEST', 'testdb1'], 'do not use on a real database'
-        >>> #ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> #qaid_list = ibs.get_valid_aids()[0:5]
-        >>> #daid_list = ibs.get_valid_aids()[0:20]
+        >>> ibs = qreq_.ibs
         >>> if ut.get_argflag('--fresh-inspect'):
         >>>     #ut.remove_files_in_dir(ibs.get_match_thumbdir())
         >>>     ibs.delete_annotmatch(ibs._get_all_annotmatch_rowids())
@@ -1610,7 +1624,7 @@ def test_inspect_matches(qreq_):
     #ut.view_directory(ibs.get_match_thumbdir())
     qres_wgt = inspect_gui.QueryResultsWidget(
         qreq_.ibs, cm_list, ranks_lt=ranks_lt, qreq_=qreq_,
-        filter_reviewed=False, filter_duplicate_namepair_matches=False)
+        filter_reviewed=True, filter_duplicate_namepair_matches=False)
     print('[inspect_matches] show')
     qres_wgt.show()
     print('[inspect_matches] raise')
