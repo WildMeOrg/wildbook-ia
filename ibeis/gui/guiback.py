@@ -12,7 +12,7 @@ TODO:
 
 Notes:
     LAYOUT TERMS;
-        Content Margins;
+        Margins / Content Margins;
            - space around the widgets in the layout
         Spacing
            - space between widges in the layout
@@ -278,15 +278,11 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
         button_bar = self.newHWidget()
 
-        update_button = QtWidgets.QPushButton('Apply New Config')
-        update_button.clicked.connect(self.apply_new_config)
-        button_bar.addWidget(update_button)
+        self.update_button = button_bar.addNewButton('Apply New Config', pressed=self.apply_new_config)
+        self.execute_button = button_bar.addNewButton('Execute New Query', pressed=self.execute_query)
+        self.load_bc_button = button_bar.addNewButton('Load Cached Query', pressed=self.load_bc)
 
-        self.execute_button = QtWidgets.QPushButton('Execute New Query')
-        self.execute_button.pressed.connect(self.execute_query)
-        button_bar.addWidget(self.execute_button)
-
-        button_bar.addNewButton('TestLog', pressed=self.log_query)
+        #button_bar.addNewButton('TestLog', pressed=self.log_query)
         button_bar.addNewButton('Embed', pressed=self.embed)
         # testlog = QtWidgets.QPushButton('TestLog')
         # testlog.pressed.connect(self.log_query)
@@ -299,6 +295,9 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         gt.fix_child_attr_heirarchy(self, 'setSpacing', 0)
         gt.fix_child_attr_heirarchy(self, 'setMargin', 2)
         self.cfg_needs_update = True
+        self.bc_info = None
+        self.load_bc_button.setEnabled(self.bc_info is not None)
+        self.load_bc_button.setDisabled(self.bc_info is None)
         #layout.addWidget(self.update_button, 3, 2, 1, 1)
         #layout.addWidget(self.editQueryConfig)
         #layout.addWidget(self.editDataConfig)
@@ -342,7 +341,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         print('Updating saved query table')
         from guitool.__PYQT__.QtCore import Qt
         self.table_data = self.get_saved_queries()
-        horHeaders = ['fname', 'num_qaids', 'num_daids']
+        horHeaders = ['fname', 'num_qaids', 'num_daids', 'has_bc']
         data = self.table_data
         table = self.saved_queries
         self.saved_queries.setColumnCount(len(data))
@@ -434,6 +433,9 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             ctx.set_progress(5)
         print('apply_new_config is done')
         self.cfg_needs_update = False
+        self.bc_info = None
+        self.load_bc_button.setEnabled(self.bc_info is not None)
+        self.load_bc_button.setDisabled(self.bc_info is None)
 
     def update_config_info(self, extra=None):
         ibs = self.ibs
@@ -493,6 +495,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
             data['num_qaids'].append(short_info.get('num_qaids', '?'))
             data['num_daids'].append(short_info.get('num_daids', '?'))
+            data['has_bc'].append('bc_info' in short_info)
         print('Finished reading saved queries')
         return data
 
@@ -508,6 +511,10 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             query_info = ut.load_json(long_fpath)
             query_info_short_text = ut.load_text(short_fpath)
             ctx.set_progress(1)
+
+            self.bc_info = query_info.get('bc_info')
+            self.load_bc_button.setEnabled(self.bc_info is not None)
+            self.load_bc_button.setDisabled(self.bc_info is None)
 
             self.query_info = query_info
 
@@ -553,6 +560,8 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         expt_short_fpath = ut.unixjoin(expt_query_dir, 'short_expt_%s_%s.json'
                                        % (self.ibs.dbname, ts))
 
+        bc_info = qreq_.get_bigcache_info()
+
         query_info = ut.odict([
             ('computer', ut.get_computer_name()),
             ('timestamp', ts),
@@ -569,6 +578,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             ('dvuuid_hash', qreq_.ibs.get_annot_hashid_visual_uuid(self.daids, prefix='D')),
             ('qsuuid_hash', qreq_.ibs.get_annot_hashid_semantic_uuid(self.qaids, prefix='Q')),
             ('dsuuid_hash', qreq_.ibs.get_annot_hashid_semantic_uuid(self.daids, prefix='D')),
+            ('bc_info', bc_info),
         ])
 
         if test:
@@ -632,6 +642,20 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         print('Showing query results')
         if self.query_info is None:
             self.populate_table()
+
+    def load_bc(self):
+        from ibeis.gui import inspect_gui
+        review_cfg = self.review_cfg.asdict().copy()
+        bc_dpath, bc_fname, bc_cfgstr = self.bc_info
+        qaid2_cm = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
+        qreq_ = self.qreq_
+        ibs = self.ibs
+        cm_list = [qaid2_cm[qaid] for qaid in qreq_.qaids]
+        qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list, qreq_=qreq_,
+                                                  **review_cfg)
+        self.qres_wgt = qres_wgt
+        qres_wgt.show()
+        qres_wgt.raise_()
 
     def on_table_doubleclick(self, index):
         #print('index = %r' % (index,))

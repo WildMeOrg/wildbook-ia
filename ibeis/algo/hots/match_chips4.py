@@ -142,16 +142,7 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
     use_bigcache_ = (use_bigcache and use_cache and
                      len(qaid_list) > MIN_BIGCACHE_BUNDLE)
     if (use_bigcache_ or save_qcache) and len(qaid_list) > MIN_BIGCACHE_BUNDLE:
-        bc_dpath = ibs.get_big_cachedir()
-        # TODO: SYSTEM : semantic should only be used if name scoring is on
-        #qhashid = qreq_.get_data_hashid()
-        #dhashid = qreq_.get_query_hashid()
-        #pipe_hashstr = qreq_.get_pipe_hashid()
-        #bc_fname = ''.join((ibs.get_dbname(), '_QRESMAP', qhashid, dhashid, pipe_hashstr))
-        #bc_fname = ''.join((ibs.get_dbname(), '_BIG_MC4_CM', qhashid, dhashid, pipe_hashstr))
-        bc_fname = 'BIG_MC4_' + qreq_.get_shortinfo_cfgstr()
-        #bc_cfgstr = ibs.cfg.query_cfg.get_cfgstr()  # FIXME, rectify w/ qparams
-        bc_cfgstr = qreq_.get_full_cfgstr()
+        bc_dpath, bc_fname, bc_cfgstr = qreq_.get_bigcache_info()
         if use_bigcache_:
             # Try and load directly from a big cache
             try:

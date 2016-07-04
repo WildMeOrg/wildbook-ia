@@ -383,6 +383,15 @@ class QueryRequest(object):
         shortinfo_cfgstr = '_'.join(qreq_.get_shortinfo_parts())
         return shortinfo_cfgstr
 
+    def get_bigcache_info(qreq_):
+        bc_dpath = qreq_.ibs.get_big_cachedir()
+        # TODO: SYSTEM : semantic should only be used if name scoring is on
+        bc_fname = 'BIG_MC4_' + qreq_.get_shortinfo_cfgstr()
+        #bc_cfgstr = ibs.cfg.query_cfg.get_cfgstr()  # FIXME, rectify w/ qparams
+        bc_cfgstr = qreq_.get_full_cfgstr()
+        bc_info = bc_dpath, bc_fname, bc_cfgstr
+        return bc_info
+
     #def __nice__(qreq_):
     #    parts = qreq_.get_shortinfo_parts()
     #    return '(%s) %s %s %s' % (tuple(parts))
