@@ -226,6 +226,7 @@ def get_text_test_img(text):
 if __name__ == '__main__':
     r"""
     CommandLine:
+        pip install freetype-py
         python -m vtool.fontdemo
         python -m vtool.fontdemo --allexamples
     """
