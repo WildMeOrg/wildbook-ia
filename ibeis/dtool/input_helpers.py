@@ -119,7 +119,7 @@ def make_expanded_input_graph(graph, target):
         if BIG_HACK and True:
             v_list = ut.take_column(edge_list, 1)
             pred_ids = ([
-                [x['local_input_id'] for x in graph.pred[node].values()[0].values()]
+                [x['local_input_id'] for x in list(graph.pred[node].values())[0].values()]
                 if len(graph.pred[node]) else []
                 for node in v_list
             ])
