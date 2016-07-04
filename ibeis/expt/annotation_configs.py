@@ -450,7 +450,7 @@ __controlled_aidcfg = ut.augdict(__baseline_aidcfg, {
 
 single_default = __default_aidcfg
 
-exclude_vars = list(vars().keys())   # this line is before tests
+exclude_vars = list(locals().keys())   # this line is before tests
 exclude_vars.append('exclude_vars')
 
 default = {
@@ -778,7 +778,7 @@ viewdiff_td1h = apply_timecontrol(viewdiff, '1h')
 # THIS IS A GOOD START
 # NEED TO DO THIS CONFIG AND THEN SWITCH DCFG TO USE primary1
 
-include_vars = list(vars().keys())  # this line is after tests
+include_vars = list(locals().keys())  # this line is after tests
 
 # List of all valid tests
 TEST_NAMES = set(include_vars) - set(exclude_vars)

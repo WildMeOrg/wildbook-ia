@@ -1546,7 +1546,7 @@ def get_annot_yaws(ibs, aid_list):
     """
     #from ibeis.algo.preproc import preproc_annot
     yaw_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aid_list)
-    yaw_list = [yaw if yaw >= 0.0 else None for yaw in yaw_list]
+    yaw_list = [yaw if yaw is not None and yaw >= 0.0 else None for yaw in yaw_list]
     return yaw_list
 
 

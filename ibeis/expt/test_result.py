@@ -7,7 +7,7 @@ import utool as ut
 import vtool as vt
 import numpy as np
 from functools import partial
-from six.moves import zip, range, map
+from six.moves import zip, range, map, reduce
 from ibeis.expt import cfghelpers
 from ibeis.expt import experiment_helpers  # NOQA
 print, rrr, profile = ut.inject2(__name__, '[testres]')

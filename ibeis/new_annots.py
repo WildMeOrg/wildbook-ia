@@ -18,7 +18,7 @@ register_subprop = register_subprops['annot']
 
 @ut.memoize
 def testdata_vocab():
-    from ibeis.new_annots import *  # NOQA
+    # from ibeis.new_annots import *  # NOQA
     import ibeis
     ibs, aid_list = ibeis.testdata_aids('testdb1')
     depc = ibs.depc_annot
