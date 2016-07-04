@@ -1182,6 +1182,7 @@ class MainWindowBackend(GUIBACK_BASE):
         return id_list
 
     def _clear_selection(back):
+        print('[back] _clear_selection')
         back.sel_aids = []
         back.sel_gids = []
         back.sel_nids = []
@@ -3345,6 +3346,11 @@ class MainWindowBackend(GUIBACK_BASE):
             command = ut.python_executable() + ' super_setup.py pull'
             ut.cmd(command)
         print('Done updating source install')
+
+    @slot_()
+    def toggle_output_widget(back):
+        current = back.front.outputLog.isVisible()
+        back.front.outputLog.setVisible(not current)
 
 
 def testdata_guiback(defaultdb='testdb2', **kwargs):

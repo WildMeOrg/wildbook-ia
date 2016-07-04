@@ -137,6 +137,10 @@ def setup_view_menu(mainwin, back):
         text='Toggle Thumbnails',
         slot_fn=back.toggle_thumbnails)
     menu.newAction(
+        name='toggleOutput',
+        text='Toggle Output Log',
+        slot_fn=back.toggle_output_widget)
+    menu.newAction(
         name='actionLayout_Figures',
         text='Layout Figures',
         tooltip='Organizes windows in a grid',
