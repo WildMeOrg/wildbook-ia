@@ -78,7 +78,10 @@ def get_target_backend():
                     from guitool import __PYQT__  # NOQA
                 except ImportError:
                     import PyQt4  # NOQA
-                target_backend = 'Qt4Agg'
+                if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
+                    target_backend = 'Qt4Agg'
+                else:
+                    target_backend = 'Qt5Agg'
             except ImportError:
                 print('[!plotttool] WARNING backend fallback to %s' % (FALLBACK_BACKEND, ))
                 target_backend = FALLBACK_BACKEND
