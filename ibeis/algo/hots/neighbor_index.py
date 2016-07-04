@@ -127,6 +127,7 @@ def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
         >>> (idx2_vec, idx2_fgw, idx2_ax, idx2_fx) = tup
         >>> result = 'output depth_profile = %s' % (ut.depth_profile(tup),)
         >>> print(result)
+
         output depth_profile = [(1912, 128), 1912, 1912, 1912]
     """
     if ut.VERYVERBOSE:
