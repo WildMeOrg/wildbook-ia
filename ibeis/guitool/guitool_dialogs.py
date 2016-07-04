@@ -89,11 +89,11 @@ def user_option(parent=None, msg='msg', title='user_option',
     msgbox = _newMsgBox(msg, title, parent, resizable=detailed_msg is not None)
     #     _addOptions(msgbox, options)
     # def _addOptions(msgbox, options):
-    #msgbox.addButton(QtGui.QMessageBox.Close)
+    #msgbox.addButton(QtWidgets.QMessageBox.Close)
     options = list(options)[::-1]
     for opt in options:
-        role = QtGui.QMessageBox.ApplyRole
-        msgbox.addButton(QtGui.QPushButton(opt), role)
+        role = QtWidgets.QMessageBox.ApplyRole
+        msgbox.addButton(QtWidgets.QPushButton(opt), role)
     # Set default button
     if default is not None:
         assert default in options, (
@@ -109,7 +109,7 @@ def user_option(parent=None, msg='msg', title='user_option',
         msgbox.setDetailedText(detailed_msg)
     # Wait for output
     optx = msgbox.exec_()
-    if optx == QtGui.QMessageBox.Cancel:
+    if optx == QtWidgets.QMessageBox.Cancel:
         # User Canceled
         return None
     try:
@@ -168,7 +168,7 @@ def user_info(parent=None, msg='msg', title='user_info'):
     print('[gt] dlg.user_info title=%r, msg=%r' % (title, msg))
     msgbox = _newMsgBox(msg, title, parent)
     msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-    msgbox.setStandardButtons(QtGui.QMessageBox.Ok)
+    msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
     msgbox.setModal(False)
     msgbox.open(msgbox.close)
     msgbox.show()
@@ -176,7 +176,7 @@ def user_info(parent=None, msg='msg', title='user_info'):
 
 def user_question(msg):
     raise NotImplementedError('user_question')
-    msgbox = QtGui.QMessageBox.question(None, '', 'lovely day?')
+    msgbox = QtWidgets.QMessageBox.question(None, '', 'lovely day?')
     return msgbox
 
 
@@ -198,9 +198,9 @@ def newDirectoryDialog(caption='Select Directory', directory=None,
                        other_sidebar_dpaths=[], use_sidebar_cwd=True):
     # hack to fix the dialog window on ubuntu
     if 'ubuntu' in platform.platform().lower():
-        qopt = QtGui.QFileDialog.ShowDirsOnly | QtGui.QFileDialog.DontUseNativeDialog
+        qopt = QtWidgets.QFileDialog.ShowDirsOnly | QtWidgets.QFileDialog.DontUseNativeDialog
     else:
-        qopt = QtGui.QFileDialog.ShowDirsOnly
+        qopt = QtWidgets.QFileDialog.ShowDirsOnly
     if directory is None:
         directory = '.'
     qtkw = {
@@ -250,9 +250,9 @@ def select_directory(caption='Select Directory', directory=None,
         directory_ = directory
     # hack to fix the dialog window on ubuntu
     if 'ubuntu' in platform.platform().lower():
-        qopt = QtGui.QFileDialog.ShowDirsOnly | QtGui.QFileDialog.DontUseNativeDialog
+        qopt = QtWidgets.QFileDialog.ShowDirsOnly | QtWidgets.QFileDialog.DontUseNativeDialog
     else:
-        qopt = QtGui.QFileDialog.ShowDirsOnly
+        qopt = QtWidgets.QFileDialog.ShowDirsOnly
     qtkw = {
         'caption': caption,
         'options': qopt,
@@ -361,7 +361,7 @@ class ResizableMessageBox(QtWidgets.QMessageBox):
         http://stackoverflow.com/questions/2655354/how-to-allow-resizing-of-qmessagebox-in-pyqt4
     """
     def __init__(self, *args):
-        QtGui.QMessageBox.__init__(self, *args)
+        QtWidgets.QMessageBox.__init__(self, *args)
         self.setSizeGripEnabled(True)
 
     def event(self, event):
@@ -371,7 +371,7 @@ class ResizableMessageBox(QtWidgets.QMessageBox):
         #print(ut.invert_dict(dict(QtCore.QEvent.__dict__))[event.type()])
         #print(event.spontaneous())
         #print(event.isAccepted())
-        result = QtGui.QMessageBox.event(self, event)
+        result = QtWidgets.QMessageBox.event(self, event)
         #print(event.isAccepted())
         #print('----')
         #if event != QtCore.QEvent.DeferredDelete:
@@ -382,7 +382,7 @@ class ResizableMessageBox(QtWidgets.QMessageBox):
             self.setMaximumWidth(16777215)
             self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
-            textEdit = self.findChild(QtGui.QTextEdit)
+            textEdit = self.findChild(QtWidgets.QTextEdit)
             if textEdit is not None:
                 textEdit.setMinimumHeight(0)
                 textEdit.setMaximumHeight(16777215)
@@ -398,7 +398,7 @@ class ResizableMessageBox(QtWidgets.QMessageBox):
 
 
 def msgbox(msg='', title='msgbox', detailed_msg=None):
-    """ Make a non modal critical QtGui.QMessageBox.
+    """ Make a non modal critical QtWidgets.QMessageBox.
 
     CommandLine:
         python -m guitool.guitool_dialogs --test-msgbox
@@ -422,10 +422,10 @@ def msgbox(msg='', title='msgbox', detailed_msg=None):
         >>> ut.quit_if_noshow()
         >>> msgbox.exec_()
     """
-    #msgbox = QtGui.QMessageBox(None)
+    #msgbox = QtWidgets.QMessageBox(None)
     msgbox = ResizableMessageBox(None)
     msgbox.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-    msgbox.setStandardButtons(QtGui.QMessageBox.Ok)
+    msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
     msgbox.setWindowTitle(title)
     # TODO: custom resizable msgbox
     msgbox.setText(msg)
@@ -583,7 +583,7 @@ def _enforce_scope(qobj, scoped_obj, scope_title='_scope_list'):
 def _cacheReply(msgbox):
     dontPrompt = QtGui.QCheckBox('dont ask me again', parent=msgbox)
     dontPrompt.blockSignals(True)
-    msgbox.addButton(dontPrompt, QtGui.QMessageBox.ActionRole)
+    msgbox.addButton(dontPrompt, QtWidgets.QMessageBox.ActionRole)
     return dontPrompt
 
 

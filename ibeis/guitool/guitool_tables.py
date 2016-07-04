@@ -17,7 +17,7 @@ class ColumnListTableView(QtWidgets.QTableView):
         view.setSortingEnabled(True)
         view.vertical_header = view.verticalHeader()
         view.vertical_header.setVisible(True)
-        #view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        #view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         view.resizeColumnsToContents()
 
     @QtCore.pyqtSlot()

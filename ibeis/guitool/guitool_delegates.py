@@ -8,7 +8,7 @@ ut.noinject(__name__, '[guitool.delegates]', DEBUG=False)
 class APIDelegate(QtWidgets.QItemDelegate):
     is_persistant_editable = True
     def __init__(self, parent):
-        QtGui.QItemDelegate.__init__(self, parent)
+        QtWidgets.QItemDelegate.__init__(self, parent)
 
     def sizeHint(option, qindex):
         # QStyleOptionViewItem option
@@ -84,7 +84,7 @@ class ButtonDelegate(APIDelegate):
         if not self.parent().indexWidget(index):
             self.parent().setIndexWidget(
                 index,
-                QtGui.QPushButton(
+                QtWidgets.QPushButton(
                     index.data().toString(),
                     self.parent(),
                     clicked=self.parent().cellButtonClicked

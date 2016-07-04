@@ -10,9 +10,9 @@ import sys
 import six  # NOQA
 import traceback
 from guitool.__PYQT__ import QtCore, QtGui  # NOQA
+from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__ import QVariantHack
 from guitool.__PYQT__.QtCore import Qt, QAbstractItemModel, QModelIndex, QObject
-from guitool.__PYQT__.QtGui import QWidget
 from guitool.__PYQT__ import _fromUtf8, _encoding, _translate  # NOQA
 import utool as ut
 ut.noinject(__name__, '[PrefWidget2]', DEBUG=False)
@@ -111,14 +111,14 @@ Notes:
 
     #self.drawDisplay(painter, opt, opt.rect, opt.currentText)
     #self.drawFocus(painter, opt, opt.rect)
-    #QtGui.QItemDelegate
+    #QtWidgets.QItemDelegate
     #painter.restore()
     #return super(ConfigValueDelegate, self).paint(painter, option, index)
 """
 
 #DELEGATE_BASE = QtGui.QStyledItemDelegate
-#DELEGATE_BASE = QtGui.QAbstractItemDelegate
-DELEGATE_BASE = QtGui.QItemDelegate
+#DELEGATE_BASE = QtWidgets.QAbstractItemDelegate
+DELEGATE_BASE = QtWidgets.QItemDelegate
 
 
 class ConfigValueDelegate(DELEGATE_BASE):
@@ -155,7 +155,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
             #print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
             #painter.save()
             curent_value = six.text_type(index.model().data(index))
-            style = QtGui.QApplication.style()
+            style = QtWidgets.QApplication.style()
             opt = QtGui.QStyleOptionComboBox()
             opt.currentText = curent_value
             opt.rect = option.rect
@@ -174,7 +174,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
         elif False and (leafNode is not None and leafNode.type_ is int):
             curent_value = six.text_type(index.model().data(index))
             # fill style options with item data
-            style = QtGui.QApplication.style()
+            style = QtWidgets.QApplication.style()
             opt = QtGui.QStyleOptionSpinBox()
             # opt.currentText doesn't exist for SpinBox
             opt.currentText = curent_value  #
@@ -657,7 +657,7 @@ class ConfigNodeWrapper(ut.NiceRepr):
         return True
 
 
-class EditConfigWidget(QWidget):
+class EditConfigWidget(QtWidgets.QWidget):
     """
     Widget to edit a dtool.Config object
     """
@@ -674,7 +674,7 @@ class EditConfigWidget(QWidget):
     def init_layout(self):
         import guitool as gt
         self.vbox = QtWidgets.QVBoxLayout(self)
-        self.tree_view = QtGui.QTreeView(self)
+        self.tree_view = QtWidgets.QTreeView(self)
         self.delegate = ConfigValueDelegate(self.tree_view)
         self.tree_view.setItemDelegateForColumn(1, self.delegate)
         self.vbox.addWidget(self.tree_view)
@@ -708,12 +708,13 @@ class EditConfigWidget(QWidget):
 
     def init_mvc(self):
         import operator
+        from six.moves import reduce
         edit_triggers = reduce(operator.__or__, [
-            QtGui.QAbstractItemView.CurrentChanged,
-            QtGui.QAbstractItemView.DoubleClicked,
-            QtGui.QAbstractItemView.SelectedClicked,
-            # QtGui.QAbstractItemView.EditKeyPressed,
-            # QtGui.QAbstractItemView.AnyKeyPressed,
+            QtWidgets.QAbstractItemView.CurrentChanged,
+            QtWidgets.QAbstractItemView.DoubleClicked,
+            QtWidgets.QAbstractItemView.SelectedClicked,
+            # QtWidgets.QAbstractItemView.EditKeyPressed,
+            # QtWidgets.QAbstractItemView.AnyKeyPressed,
         ])
         self.tree_view.setEditTriggers(edit_triggers)
         self.tree_view.setModel(self.config_model)
@@ -731,8 +732,12 @@ class EditConfigWidget(QWidget):
         self.tree_view.resizeColumnToContents(1)
         #self.tree_view.setAnimated(True)
         #view_header.setStretchLastSection(True)
-        view_header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        #view_header.setResizeMode(QtGui.QHeaderView.Interactive)
+        try:
+            view_header.setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        except AttributeError:
+            view_header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+
+        #view_header.setResizeMode(QtWidgets.QHeaderView.Interactive)
         #import utool
         #utool.embed()
         #self.tree_view.header().resizeSection(0, 250)

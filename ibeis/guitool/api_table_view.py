@@ -14,7 +14,7 @@ import utool
 # AbstractItemView::keyboardSearch
 
 API_VIEW_BASE = QtWidgets.QTableView
-#API_VIEW_BASE = QtGui.QAbstractItemView
+#API_VIEW_BASE = QtWidgets.QAbstractItemView
 
 
 class APITableView(API_VIEW_BASE):
@@ -69,8 +69,12 @@ class APITableView(API_VIEW_BASE):
         verticalHeader.setVisible(True)
         #verticalHeader.setSortIndicatorShown(True)
         verticalHeader.setHighlightSections(True)
-        verticalHeader.setResizeMode(QtGui.QHeaderView.Interactive)
-        verticalHeader.setMovable(True)
+        try:
+            verticalHeader.setResizeMode(QtWidgets.QHeaderView.Interactive)
+            verticalHeader.setMovable(True)
+        except AttributeError:
+            verticalHeader.setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
+            verticalHeader.setSectionsMovable(True)
         # TODO: get good estimate if there are thumbnails
         #verticalHeader.setDefaultSectionSize(256)
 
@@ -82,12 +86,16 @@ class APITableView(API_VIEW_BASE):
         horizontalHeader.setHighlightSections(True)
         # Column Sizes
         # DO NOT USE ResizeToContents. IT MAKES THINGS VERY SLOW
-        #horizontalHeader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        #horizontalHeader.setResizeMode(QtGui.QHeaderView.Stretch)
-        horizontalHeader.setResizeMode(QtGui.QHeaderView.Interactive)
+        #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.Stretch)
+        try:
+            horizontalHeader.setResizeMode(QtWidgets.QHeaderView.Interactive)
+            horizontalHeader.setMovable(True)
+        except AttributeError:
+            horizontalHeader.setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
+            horizontalHeader.setSectionsMovable(True)
         #horizontalHeader.setCascadingSectionResizes(True)
         # Columns moveable
-        horizontalHeader.setMovable(True)
         view.registered_single_keys = []
         view.registered_keypress_funcs = []
 
@@ -129,7 +137,7 @@ class APITableView(API_VIEW_BASE):
         assert isinstance(event, QtGui.QMouseEvent)
         API_VIEW_BASE.mousePressEvent(view, event)
         #print('no editing')
-        view.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
     def mouseReleaseEvent(view, event):
         assert isinstance(event, QtGui.QMouseEvent)

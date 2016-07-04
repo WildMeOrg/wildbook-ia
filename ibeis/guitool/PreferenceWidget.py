@@ -38,13 +38,13 @@ except AttributeError:
     def _fromUtf8(s):
         return s
 try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
+    _encoding = QtWidgets.QApplication.UnicodeUTF8
 
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+        return QtWidgets.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
+        return QtWidgets.QApplication.translate(context, text, disambig)
 
 
 def _qt_set_leaf_data(self, qvar):
@@ -296,22 +296,22 @@ class Ui_editPrefSkel(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(editPrefSkel)
         self.verticalLayout.setObjectName(_fromUtf8('verticalLayout'))
         # The TreeView for QAbstractItemModel to attach to
-        self.prefTreeView = QtGui.QTreeView(editPrefSkel)
+        self.prefTreeView = QtWidgets.QTreeView(editPrefSkel)
         self.prefTreeView.setObjectName(_fromUtf8('prefTreeView'))
         self.verticalLayout.addWidget(self.prefTreeView)
         # Add Pane for buttons
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8('horizontalLayout'))
         #
-        #self.redrawBUT = QtGui.QPushButton(editPrefSkel)
+        #self.redrawBUT = QtWidgets.QPushButton(editPrefSkel)
         #self.redrawBUT.setObjectName(_fromUtf8('redrawBUT'))
         #self.horizontalLayout.addWidget(self.redrawBUT)
         ##
-        #self.unloadFeaturesAndModelsBUT = QtGui.QPushButton(editPrefSkel)
+        #self.unloadFeaturesAndModelsBUT = QtWidgets.QPushButton(editPrefSkel)
         #self.unloadFeaturesAndModelsBUT.setObjectName(_fromUtf8('unloadFeaturesAndModelsBUT'))
         #self.horizontalLayout.addWidget(self.unloadFeaturesAndModelsBUT)
         #
-        self.defaultPrefsBUT = QtGui.QPushButton(editPrefSkel)
+        self.defaultPrefsBUT = QtWidgets.QPushButton(editPrefSkel)
         self.defaultPrefsBUT.setObjectName(_fromUtf8('defaultPrefsBUT'))
         self.horizontalLayout.addWidget(self.defaultPrefsBUT)
         # Buttons are a child of the View

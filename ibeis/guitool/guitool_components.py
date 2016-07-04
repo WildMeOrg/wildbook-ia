@@ -578,7 +578,7 @@ def newProgressBar(parent, visible=True, verticalStretch=1):
         guitool.ensure_qtapp()
 
     """
-    progressBar = QtGui.QProgressBar(parent)
+    progressBar = QtWidgets.QProgressBar(parent)
     sizePolicy = newSizePolicy(progressBar,
                                verticalSizePolicy=QtWidgets.QSizePolicy.Maximum,
                                verticalStretch=verticalStretch)
@@ -656,7 +656,7 @@ def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}):
         >>> label.show()
         >>> guitool.qtapp_loop(qwin=label, freq=10)
     """
-    label = QtGui.QLabel(text, parent=parent)
+    label = QtWidgets.QLabel(text, parent=parent)
     #label.setAlignment(ALIGN_DICT[align])
     if isinstance(align, six.string_types):
         align = ALIGN_DICT[align]
@@ -759,7 +759,7 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
     """
     if editable is not None:
         readOnly = editable
-    widget = QtGui.QLineEdit(parent)
+    widget = QtWidgets.QLineEdit(parent)
     sizePolicy = newSizePolicy(widget,
                                verticalSizePolicy=QtWidgets.QSizePolicy.Fixed,
                                verticalStretch=verticalStretch)
@@ -1316,10 +1316,10 @@ class ConfigConfirmWidget(GuitoolWidget):
 
         #        #if defined(Q_WS_X11)
         #        try:
-        #            screen = QtGui.QApplication.desktop().screenGeometry(q.pos())
+        #            screen = QtWidgets.QApplication.desktop().screenGeometry(q.pos())
         #        except Exception:
         #            #else // all others
-        #            screen = QtGui.QApplication.desktop().screenGeometry(q.x11Info().screen())
+        #            screen = QtWidgets.QApplication.desktop().screenGeometry(q.x11Info().screen())
         #            #endif
 
         #        #if defined (Q_WS_WINCE) || defined (Q_OS_SYMBIAN)
@@ -1379,7 +1379,7 @@ class ConfigConfirmWidget(GuitoolWidget):
 def newButton(parent=None, text='', clicked=None, pressed=None, qicon=None, visible=True,
               enabled=True, bgcolor=None, fgcolor=None, fontkw={},
               shrink_to_text=False):
-    """ wrapper around QtGui.QPushButton
+    """ wrapper around QtWidgets.QPushButton
 
     Args:
         parent (QWidget): parent widget
@@ -1403,7 +1403,7 @@ def newButton(parent=None, text='', clicked=None, pressed=None, qicon=None, visi
         void toggled(bool checked)
 
     Returns:
-       QtGui.QPushButton
+       QtWidgets.QPushButton
 
     CommandLine:
         python -m guitool.guitool_components --exec-newButton
@@ -1441,7 +1441,7 @@ def newButton(parent=None, text='', clicked=None, pressed=None, qicon=None, visi
         enabled = True
     if qicon is not None:
         but_args = [qicon] + but_args
-    button = QtGui.QPushButton(*but_args, **but_kwargs)
+    button = QtWidgets.QPushButton(*but_args, **but_kwargs)
     style_sheet_str = make_style_sheet(bgcolor=bgcolor, fgcolor=fgcolor)
     if style_sheet_str is not None:
         button.setStyleSheet(style_sheet_str)
@@ -1727,7 +1727,7 @@ class Spoiler(WIDGET_BASE):
         >>> detailed_msg = 'Foo\nbar'
         >>> child_widget = QtWidgets.QTextEdit()
         >>> #child_widget.setWordWrap(True)
-        >>> #child_widget = QtGui.QPushButton()
+        >>> #child_widget = QtWidgets.QPushButton()
         >>> child_widget.setObjectName('child_widget')
         >>> child_widget.setText(ut.lorium_ipsum() * 10)
         >>> #vbox = QtWidgets.QVBoxLayout()
@@ -1789,7 +1789,7 @@ class Spoiler(WIDGET_BASE):
         self.animationDuration = 150
         #150
 
-        self.toggleButton = QtGui.QToolButton()
+        self.toggleButton = QtWidgets.QToolButton()
         toggleButton = self.toggleButton
         toggleButton.setStyleSheet('QToolButton { border: none; }')
         toggleButton.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)

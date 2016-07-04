@@ -8,7 +8,7 @@ import utool as ut
 ut.noinject(__name__, '[api_button_delegate]', DEBUG=False)
 
 
-#DELEGATE_BASE = QtGui.QItemDelegate
+#DELEGATE_BASE = QtWidgets.QItemDelegate
 DELEGATE_BASE = QtWidgets.QStyledItemDelegate
 
 
@@ -164,7 +164,7 @@ class APIButtonDelegate(DELEGATE_BASE):
 #        #    # and return model.createIndex(row, col, object) where
 #        #    # object is specified.
 #        #    view.setIndexWidget(qtindex, None)
-#        #    button = QtGui.QPushButton(text, view, clicked=view.cellButtonClicked)
+#        #    button = QtWidgets.QPushButton(text, view, clicked=view.cellButtonClicked)
 
 #    #        pass
 #    #    #       dgt._pressed = (qtindex.row(), qtindex.column())

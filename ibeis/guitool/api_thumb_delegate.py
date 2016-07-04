@@ -35,7 +35,7 @@ def read_thumb_size(thumb_path):
 
 def test_show_qimg(qimg):
     qpixmap = QtGui.QPixmap(qimg)
-    lbl = QtGui.QLabel()
+    lbl = QtWidgets.QLabel()
     lbl.setPixmap(qpixmap)
     lbl.show()   # show label with qim image
     return lbl
@@ -335,7 +335,7 @@ class APIThumbDelegate(DELEGATE_BASE):
         image.
         """
         view = dgt.parent()
-        if isinstance(view, QtGui.QTableView):
+        if isinstance(view, QtWidgets.QTableView):
             # dimensions of the table cells
             col_width = view.columnWidth(qtindex.column())
             col_height = view.rowHeight(qtindex.row())
@@ -359,7 +359,7 @@ class APIThumbDelegate(DELEGATE_BASE):
             # MULTIPLE READS OF THE THUMBS WHICH CAUSES MAJOR SLOWDOWNS.
             #if height < col_height:
             #    view.setRowHeight(qtindex.row(), height)
-        elif isinstance(view, QtGui.QTreeView):
+        elif isinstance(view, QtWidgets.QTreeView):
             col_width = view.columnWidth(qtindex.column())
             col_height = view.rowHeight(qtindex)
             # TODO: finishme

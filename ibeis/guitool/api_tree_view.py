@@ -17,7 +17,7 @@ from guitool import api_item_view
 # AbstractItemView::keyboardSearch
 
 API_VIEW_BASE = QtWidgets.QTreeView
-#API_VIEW_BASE = QtGui.QAbstractItemView
+#API_VIEW_BASE = QtWidgets.QAbstractItemView
 
 
 class APITreeView(API_VIEW_BASE):
@@ -78,9 +78,9 @@ class APITreeView(API_VIEW_BASE):
         header.setHighlightSections(True)
         # Column Sizes
         # DO NOT USE RESIZETOCONTENTS. IT MAKES THINGS VERY SLOW
-        #horizontalHeader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        #horizontalHeader.setResizeMode(QtGui.QHeaderView.Stretch)
-        header.setResizeMode(QtGui.QHeaderView.Interactive)
+        #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.Stretch)
+        header.setResizeMode(QtWidgets.QHeaderView.Interactive)
         #horizontalHeader.setCascadingSectionResizes(True)
         # Columns moveable
         header.setMovable(True)

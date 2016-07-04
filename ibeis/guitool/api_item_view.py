@@ -3,7 +3,8 @@
 provides common methods for api_tree_view and api_table_view
 """
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtGui
+from guitool.__PYQT__ import QtGui  # NOQA
+from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__.QtCore import Qt
 import functools
@@ -28,7 +29,7 @@ VERBOSE_ITEM_VIEW = ut.get_argflag(('--verbose-item-view'))
 VERBOSE = utool.VERBOSE or VERBOSE_QT or VERBOSE_ITEM_VIEW
 
 API_VIEW_BASE = QtWidgets.QAbstractItemView
-ABSTRACT_VIEW_INJECT_KEY = ('QtGui.QAbstractItemView', 'guitool')
+ABSTRACT_VIEW_INJECT_KEY = ('QtWidgets.QAbstractItemView', 'guitool')
 register_view_method = utool.make_class_method_decorator(ABSTRACT_VIEW_INJECT_KEY, __name__)
 
 injectviewinstance = functools.partial(utool.inject_instance, classkey=ABSTRACT_VIEW_INJECT_KEY)
@@ -78,49 +79,49 @@ def _init_itemview_behavior(view):
     view.setWordWrap(True)
 
     # Selection behavior
-    #view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-    #view.setSelectionBehavior(QtGui.QAbstractItemView.SelectColumns)
-    view.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
+    #view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+    #view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectColumns)
+    view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
 
     # Selection behavior
-    # view.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-    # view.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
-    # view.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
-    # view.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
-    view.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+    # view.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+    # view.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection)
+    # view.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+    # view.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
+    view.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
     # uniformRowHeights
-    view.setVerticalScrollMode(QtGui.QAbstractItemView.ScrollPerItem)
-    view.setVerticalScrollMode(QtGui.QAbstractItemView.ScrollPerPixel)
+    view.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerItem)
+    view.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
 
     # Allow sorting by column
     view.setSortingEnabled(True)
 
     # Edit Triggers
-    #view.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)  # No Editing
-    #view.setEditTriggers(QtGui.QAbstractItemView.SelectedClicked)
-    #QtGui.QAbstractItemView.NoEditTriggers  |  # 0
-    #QtGui.QAbstractItemView.CurrentChanged  |  # 1
-    #QtGui.QAbstractItemView.DoubleClicked   |  # 2
-    #QtGui.QAbstractItemView.SelectedClicked |  # 4
-    #QtGui.QAbstractItemView.EditKeyPressed  |  # 8
-    #QtGui.QAbstractItemView.AnyKeyPressed      # 16
-    #view._defaultEditTriggers = QtGui.QAbstractItemView.AllEditTriggers
+    #view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)  # No Editing
+    #view.setEditTriggers(QtWidgets.QAbstractItemView.SelectedClicked)
+    #QtWidgets.QAbstractItemView.NoEditTriggers  |  # 0
+    #QtWidgets.QAbstractItemView.CurrentChanged  |  # 1
+    #QtWidgets.QAbstractItemView.DoubleClicked   |  # 2
+    #QtWidgets.QAbstractItemView.SelectedClicked |  # 4
+    #QtWidgets.QAbstractItemView.EditKeyPressed  |  # 8
+    #QtWidgets.QAbstractItemView.AnyKeyPressed      # 16
+    #view._defaultEditTriggers = QtWidgets.QAbstractItemView.AllEditTriggers
 
     bitwise_or = operator.__or__
     chosen_triggers = [
-        #QtGui.QAbstractItemView.NoEditTriggers,
-        QtGui.QAbstractItemView.CurrentChanged,
-        QtGui.QAbstractItemView.DoubleClicked,
-        QtGui.QAbstractItemView.SelectedClicked,
-        QtGui.QAbstractItemView.EditKeyPressed,
-        QtGui.QAbstractItemView.AnyKeyPressed,
+        #QtWidgets.QAbstractItemView.NoEditTriggers,
+        QtWidgets.QAbstractItemView.CurrentChanged,
+        QtWidgets.QAbstractItemView.DoubleClicked,
+        QtWidgets.QAbstractItemView.SelectedClicked,
+        QtWidgets.QAbstractItemView.EditKeyPressed,
+        QtWidgets.QAbstractItemView.AnyKeyPressed,
     ]
     view._defaultEditTriggers = reduce(bitwise_or, chosen_triggers)
-    #view._defaultEditTriggers = QtGui.QAbstractItemView.NoEditTriggers
+    #view._defaultEditTriggers = QtWidgets.QAbstractItemView.NoEditTriggers
     view.setEditTriggers(view._defaultEditTriggers)
     # TODO: Figure out how to not edit when you are selecting
-    #view.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+    #view.setEditTriggers(QtWidgets.QAbstractItemView.AllEditTriggers)
 
 
 @register_view_method
@@ -147,7 +148,7 @@ def infer_delegates(view, **headers):
                 print('[view] colx=%r is a BUTTON' % colx)
             button_delegate = api_button_delegate.APIButtonDelegate(view)
             view.setItemDelegateForColumn(colx, button_delegate)
-        elif isinstance(coltype, QtGui.QAbstractItemDelegate):
+        elif isinstance(coltype, QtWidgets.QAbstractItemDelegate):
             if VERBOSE:
                 print('[view] colx=%r is a CUSTOM DELEGATE' % colx)
             view.setItemDelegateForColumn(colx, coltype)
@@ -182,7 +183,7 @@ def _update_headers(view, **headers):
     print('[view] updating headers')
     col_width_list = headers.get('col_width_list', None)
     if col_width_list is not None:
-        if isinstance(view, QtGui.QTreeView):
+        if isinstance(view, QtWidgets.QTreeView):
             horizontal_header = view.header()
         else:
             horizontal_header = view.horizontalHeader()
@@ -241,13 +242,13 @@ def select_row_from_id(view, _id, scroll=False, collapse=True):
                   (_id, scroll, collapse)):
         qtindex, row = view.get_row_and_qtindex_from_id(_id)
         if row is not None:
-            if isinstance(view, QtGui.QTreeView):
+            if isinstance(view, QtWidgets.QTreeView):
                 if collapse:
                     view.collapseAll()
                 select_model = view.selectionModel()
-                select_flag = QtGui.QItemSelectionModel.ClearAndSelect
-                #select_flag = QtGui.QItemSelectionModel.Select
-                #select_flag = QtGui.QItemSelectionModel.NoUpdate
+                select_flag = QtCore.QItemSelectionModel.ClearAndSelect
+                #select_flag = QtCore.QItemSelectionModel.Select
+                #select_flag = QtCore.QItemSelectionModel.NoUpdate
                 with ut.Timer('[api_item_view] selecting name. qtindex=%r' % (qtindex,)):
                     select_model.select(qtindex, select_flag)
                 with ut.Timer('[api_item_view] expanding'):

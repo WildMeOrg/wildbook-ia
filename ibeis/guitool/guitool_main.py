@@ -2,7 +2,8 @@ from __future__ import absolute_import, division, print_function
 # Python
 #import atexit
 import sys
-from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtCore
+# from guitool.__PYQT__ import QtGui
 from guitool.__PYQT__ import QtWidgets  # NOQA
 from guitool.__PYQT__.QtCore import pyqtRemoveInputHook
 import utool
@@ -38,7 +39,7 @@ class GuitoolApplication(QtWidgets.QApplication):
                 key = event.text()
                 print('key = %r' % (key,))
                 self.keylog.append(key)
-            #QtGui.QMessageBox.information(
+            #QtWidgets.QMessageBox.information(
             #    None, "Received Key Press Event!!", "You Pressed: " + event.text())
         # Call Base Class Method to Continue Normal Event Processing
         return super(GuitoolApplication, self).notify(receiver, event)
@@ -183,7 +184,7 @@ def ping_python_interpreter(frequency=420):  # 4200):
 def exit_application():
     if utool.NOT_QUIET:
         print('[guitool] exiting application')
-    QtGui.qApp.quit()
+    QtWidgets.qApp.quit()
 
 
 def _on_ctrl_c(signal, frame):

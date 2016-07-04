@@ -6,7 +6,7 @@ import utool as ut
 ut.noinject(__name__, '[api_timestamp_delegate]', DEBUG=False)
 
 
-DELEGATE_BASE = QtGui.QItemDelegate
+DELEGATE_BASE = QtWidgets.QItemDelegate
 #DELEGATE_BASE = QtGui.QStyledItemDelegate
 
 
