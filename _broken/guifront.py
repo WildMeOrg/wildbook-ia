@@ -20,8 +20,8 @@ VERBOSE = utool.get_flag(('--verbose', '--verbose-front', '--vf'))
 
 UID_TYPE = rowidtables.UID_TYPE
 ENC_TYPE = str  # imagesets are ided with imagesettext right now
-QUTF8      = QtGui.QApplication.UnicodeUTF8
-QTRANSLATE = QtGui.QApplication.translate
+QUTF8      = QtWidgets.QApplication.UnicodeUTF8
+QTRANSLATE = QtWidgets.QApplication.translate
 
 #=================
 # Decorators / Helpers

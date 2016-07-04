@@ -13,7 +13,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from functools import partial
 from guitool import (qtype, APIItemWidget, APIItemModel, FilterProxyModel,
                      ChangeLayoutContext)
-from guitool.__PYQT__ import QtGui, QtCore
+from guitool.__PYQT__ import QtCore
+from guitool.__PYQT__ import QtGui  # NOQA
+from guitool.__PYQT__ import QtWidgets  # NOQA
 from ibeis.other import ibsfuncs
 #from ibeis.viz import interact
 from ibeis.viz import viz_helpers as vh
@@ -391,7 +393,7 @@ class QueryResultsWidget(APIItemWidget):
             qres_wgt.add_checkboxes(qres_wgt.show_new, qres_wgt.show_join,
                                     qres_wgt.show_split)
 
-        lbl = QtGui.QLabel('\'T\' marks as correct match. \'F\' marks as incorrect match. Alt brings up context menu. Double click a row to inspect matches.')
+        lbl = QtWidgets.QLabel('\'T\' marks as correct match. \'F\' marks as incorrect match. Alt brings up context menu. Double click a row to inspect matches.')
         from guitool.__PYQT__.QtCore import Qt
         qres_wgt.layout().setSpacing(0)
         bottom_bar = guitool.newFrame(qres_wgt, orientation=Qt.Horizontal)

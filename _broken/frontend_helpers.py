@@ -233,7 +233,7 @@ def newTabbedTabWidget(front, tabWidget, viewname, name, text='', **kwargs):
 
 
 def newOutputEdit(parent, name='outputEdit', visible=True):
-    outputEdit = QtGui.QTextEdit(parent)
+    outputEdit = QtWidgets.QTextEdit(parent)
     sizePolicy = _new_size_policy(outputEdit, vstretch=1)
     outputEdit.setSizePolicy(sizePolicy)
     outputEdit.setAcceptRichText(False)
@@ -243,7 +243,7 @@ def newOutputEdit(parent, name='outputEdit', visible=True):
 
 
 def newProgressBar(parent, name='progressBar', visible=True):
-    progressBar = QtGui.QProgressBar(parent)
+    progressBar = QtWidgets.QProgressBar(parent)
     sizePolicy = _new_size_policy(progressBar, vpolicy=QSizePolicy.Fixed, vstretch=1)
     progressBar.setSizePolicy(sizePolicy)
     progressBar.setProperty('value', 24)

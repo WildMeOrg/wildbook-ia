@@ -88,7 +88,7 @@ class APITabWidget(QtWidgets.QTabWidget):
         tabwgt.ibswgt.back._clear_selection()
         view = tabwgt.ibswgt.views[tblname]
         selected = view.selectionModel().selection()
-        deselected = QtGui.QItemSelection()
+        deselected = QtCore.QItemSelection()
         tabwgt.ibswgt.update_selection(selected, deselected)
         #tabwgt.ibswgt.back.update_selection_texts()
 

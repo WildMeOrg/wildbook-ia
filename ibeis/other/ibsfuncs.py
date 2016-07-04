@@ -5311,8 +5311,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
         annotconfig_stats_strs1 = ut.odict(annotconfig_stats_strs_list1)
         annotconfig_stats_strs2 = ut.odict(annotconfig_stats_strs_list2)
 
-        annotconfig_stats_strs = ut.odict(annotconfig_stats_strs1.items() +
-                                          annotconfig_stats_strs2.items())
+        annotconfig_stats_strs = ut.odict(list(annotconfig_stats_strs1.items()) +
+                                          list(annotconfig_stats_strs2.items()))
         stats_str = ut.dict_str(annotconfig_stats_strs1, strvals=True,
                                 newlines=False, explicit=True, nobraces=True)
         stats_str +=  '\n' + ut.dict_str(annotconfig_stats_strs2, strvals=True,

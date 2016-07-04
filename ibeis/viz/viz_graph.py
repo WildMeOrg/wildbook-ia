@@ -844,7 +844,7 @@ def test_with_qt():
             #frame = self.page().mainFrame()
             #print(unicode(frame.toHtml()).encode('utf-8'))
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     view = Browser()
     view.show()

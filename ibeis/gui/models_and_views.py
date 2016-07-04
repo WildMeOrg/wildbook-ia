@@ -7,7 +7,7 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 from guitool import (APIItemModel, APITableView, APITreeView, APIItemWidget,
                      StripeProxyModel, ChangeLayoutContext)
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[newgui_models]')
+print, rrr, profile = ut.inject2(__name__, '[newgui_models]')
 
 #---------------------
 # --- IBEIS Tables ---

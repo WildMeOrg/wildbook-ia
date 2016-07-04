@@ -165,22 +165,22 @@ class ImageSetModelSQL(APIItemModel):
         return str(result_list[0])
 
 
-class ImageView(QtGui.QTableView):
+class ImageView(QtWidgets.QTableView):
     def __init__(view, parent=None):
-        QtGui.QTableView.__init__(view, parent)
+        QtWidgets.QTableView.__init__(view, parent)
         view.setSortingEnabled(True)
         vh = view.verticalHeader()
         vh.setVisible(False)
-        view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         view.resizeColumnsToContents()
 
     def _change_imageset(view, imageset_id):
         view.model()._change_imageset(imageset_id)
 
 
-class ImageSetView(QtGui.QTableView):
+class ImageSetView(QtWidgets.QTableView):
     def __init__(view, parent=None):
-        QtGui.QTableView.__init__(view, parent)
+        QtWidgets.QTableView.__init__(view, parent)
         view.setSortingEnabled(True)
         vh = view.verticalHeader()
         vh.setVisible(False)
@@ -287,7 +287,7 @@ if __name__ == '__main__':
         print('Caught ctrl+c')
         sys.exit(0)
     signal.signal(signal.SIGINT, _on_ctrl_c)
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     widget = DummyWidget()
     widget.show()
     widget.timer = guitool.ping_python_interpreter()

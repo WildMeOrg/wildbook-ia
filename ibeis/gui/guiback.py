@@ -27,7 +27,7 @@ import traceback  # NOQA
 import guitool
 import utool as ut
 from guitool import slot_, signal_, cast_from_qt
-from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtCore, QtGui, QtWidgets
 from ibeis import constants as const
 from ibeis.other import ibsfuncs
 from ibeis import sysres
@@ -231,11 +231,11 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         acfg_hframe = splitter.newWidget(orientation=Qt.Horizontal)
 
         query_vframe = acfg_hframe.newVWidget()
-        query_vframe.addWidget(QtGui.QLabel('Query Config'))
+        query_vframe.addWidget(QtWidgets.QLabel('Query Config'))
         query_vframe.addWidget(self.editQueryConfig)
 
         data_vframe = acfg_hframe.newVWidget()
-        data_vframe.addWidget(QtGui.QLabel('Data Config'))
+        data_vframe.addWidget(QtWidgets.QLabel('Data Config'))
         data_vframe.addWidget(self.editDataConfig)
         #data_vframe.setVisible(False)
 
@@ -255,12 +255,12 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         #stats_vwidget = splitter.newWidget(orientation=Qt.Vertical)
         stats_vwidget = splitter.newWidget(orientation=Qt.Vertical, verticalStretch=1)
         stats_vwidget.addNewLabel('Expanded Annot Info (Info Config Changes Display)')
-        self.qstats = QtGui.QTextEdit()
+        self.qstats = QtWidgets.QTextEdit()
         self.qstats.setReadOnly(True)
         self.qstats.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
         stats_vwidget.addWidget(self.qstats)
         # Hack a copy for tab2
-        self.qstats2 = QtGui.QTextEdit()
+        self.qstats2 = QtWidgets.QTextEdit()
         self.qstats2.setReadOnly(True)
         self.qstats2.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
         tab2.addWidget(self.qstats2)
@@ -268,17 +268,17 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
         button_bar = self.newHWidget()
 
-        update_button = QtGui.QPushButton('Apply New Config')
+        update_button = QtWidgets.QPushButton('Apply New Config')
         update_button.clicked.connect(self.apply_new_config)
         button_bar.addWidget(update_button)
 
-        self.execute_button = QtGui.QPushButton('Execute New Query')
+        self.execute_button = QtWidgets.QPushButton('Execute New Query')
         self.execute_button.pressed.connect(self.execute_query)
         button_bar.addWidget(self.execute_button)
 
         button_bar.addNewButton('TestLog', pressed=self.log_query)
         button_bar.addNewButton('Embed', pressed=self.embed)
-        # testlog = QtGui.QPushButton('TestLog')
+        # testlog = QtWidgets.QPushButton('TestLog')
         # testlog.pressed.connect(self.log_query)
         # button_bar.addWidget(testlog)
 
@@ -2479,7 +2479,7 @@ class MainWindowBackend(GUIBACK_BASE):
         print('species2_qaids = %r' % (species2_qaids,))
 
         species2_expanded_aids = {}
-        species_list = ut.unique(list(ibs.get_all_species_texts()) + (species2_qaids.keys()))
+        species_list = ut.unique(list(ibs.get_all_species_texts()) + (list(species2_qaids.keys())))
         for species in species_list:
             print('[back] Finding daids for species = %r' % (species,))
             qaids = species2_qaids[species]
