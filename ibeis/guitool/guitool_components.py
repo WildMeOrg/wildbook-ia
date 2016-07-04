@@ -852,6 +852,7 @@ def _inject_new_widget_methods(self):
     # Black magic
     guitype_list = [
         'Widget', 'Button', 'LineEdit', 'ComboBox', 'Label', 'Spoiler',
+        'CheckBox',
         'Frame', 'Splitter', 'TabWidget', 'ProgressBar',
         ('EditConfigWidget', PrefWidget2.EditConfigWidget)
     ]
@@ -920,7 +921,8 @@ class GuitoolWidget(WIDGET_BASE):
     def __init__(self, parent=None, orientation=Qt.Vertical,
                  verticalSizePolicy=QtWidgets.QSizePolicy.Expanding,
                  horizontalSizePolicy=QtWidgets.QSizePolicy.Expanding,
-                 verticalStretch=0, spacing=None, margin=None, name=None, **kwargs):
+                 verticalStretch=0, spacing=None, margin=None, name=None,
+                 **kwargs):
         super(GuitoolWidget, self).__init__(parent)
 
         if name is not None:
@@ -1356,7 +1358,7 @@ class ConfigConfirmWidget(GuitoolWidget):
         self.close()
 
 
-def newButton(parent=None, text='', clicked=None, pressed=None, qicon=None, visible=True,
+def newButton(parent=None, text=None, clicked=None, pressed=None, qicon=None, visible=True,
               enabled=True, bgcolor=None, fgcolor=None, fontkw={},
               shrink_to_text=False):
     """ wrapper around QtWidgets.QPushButton
@@ -1408,6 +1410,14 @@ def newButton(parent=None, text='', clicked=None, pressed=None, qicon=None, visi
         >>> result = ('button = %s' % (str(button),))
         >>> print(result)
     """
+    if text is None:
+        if pressed is not None:
+            text = ut.get_funcname(pressed)
+        elif clicked is not None:
+            text = ut.get_funcname(clicked)
+        else:
+            text = ''
+
     but_args = [text]
     but_kwargs = {
         'parent': parent
@@ -1428,6 +1438,10 @@ def newButton(parent=None, text='', clicked=None, pressed=None, qicon=None, visi
 
     button.setVisible(visible)
     button.setEnabled(enabled)
+    if clicked is not None:
+        #import utool
+        #utool.embed()
+        button.setCheckable(True)
     adjust_font(button, **fontkw)
     #sizePolicy = newSizePolicy(button,
     #                           #verticalSizePolicy=QSizePolicy.Fixed,

@@ -3,7 +3,7 @@
 terms of development time)
 """
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtGui, QtCore
+from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__ import QtWidgets
 from guitool.api_item_model import APIItemModel
 from guitool.api_table_view import APITableView
