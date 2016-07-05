@@ -310,7 +310,9 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         print('set exemplars')
         ibs = self.ibs
         print('self.exemplar_cfg = %r' % (self.exemplar_cfg,))
-        ibs.set_exemplars_from_quality_and_viewpoint(**self.exemplar_cfg)
+        with self.progress_context('Querying') as ctx:
+            ibs.set_exemplars_from_quality_and_viewpoint(prog_hook=ctx.prog_hook,
+                                                         **self.exemplar_cfg)
 
     def onstart(self):
         if self.saved_queries.rowCount() > 0:

@@ -85,10 +85,12 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         graph_tables_widget = splitter.addNewTabWidget(verticalStretch=1)
         edge_tab = graph_tables_widget.addNewTab('Edges')
         node_tab = graph_tables_widget.addNewTab('Nodes')
-        self.edge_table = edge_tab.addNewTableWidget()
+        #self.edge_table = edge_tab.addNewTableWidget()
         #self.node_table = node_tab.addNewTableWidget()
+        self.edge_api_widget = gt.APIItemWidget()
         self.node_api_widget = gt.APIItemWidget()
         node_tab.addWidget(self.node_api_widget)
+        edge_tab.addWidget(self.edge_api_widget)
 
         self.mpl_wgt = MatplotlibWidget(parent=self)
         splitter.addWidget(self.mpl_wgt)
@@ -146,13 +148,13 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         self.cb = None
         self.mpl_wgt.click_inside_signal.connect(self.on_click_inside)
-        self.populate_node_table()
+        self.populate_node_model()
 
     def reset(self):
         self.infr.initialize_graph()
         self.toggle_pin.setChecked(False)
 
-    def populate_node_table(self):
+    def populate_node_model(self):
         aids = sorted(list(self.infr.graph.nodes()))
         col_name_list = [
             'aid',
@@ -164,7 +166,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ut.delete_dict_keys(data,
                                 ['color', 'framewidth', 'image', 'label',
                                  'pos', 'shape', 'size', 'height', 'width'])
-            return str(data)
+            return ut.repr2(data, precision=2)
         col_getter_dict = {
             'aid': np.array(aids),
             'data': get_node_data,
@@ -181,10 +183,49 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                                 col_ider_dict=col_ider_dict,
                                 col_types_dict=col_types_dict,
                                 col_getter_dict=col_getter_dict,
-                                sortby='aid')
-        headers = node_api.make_headers(tblnice='Simple Example')
+                                sortby='aid', sort_reverse=False)
+        headers = node_api.make_headers(tblnice='Nodes')
         self.node_api_widget.change_headers(headers)
         return node_api
+
+    def populate_edge_model(self):
+        graph = self.infr.graph
+        col_name_list = [
+            'aid1',
+            'aid2',
+            'data',
+            #'thumb',
+        ]
+        def get_edge_data(edge):
+            aid1, aid2 = edge
+            attrs = graph.get_edge_data(aid1, aid2).copy()
+            ut.delete_dict_keys(attrs, ['color', 'implicit', 'stroke', 'lw',
+                                        'end_pt', 'head_lp', 'alpha', 'style',
+                                        'ctrl_pts', 'pos'])
+            return ut.repr2(attrs, precision=2)
+        uv_list = list(graph.edges())
+        aids1 = ut.take_column(uv_list, 0)
+        aids2 = ut.take_column(uv_list, 1)
+        col_getter_dict = {
+            'aid1': np.array(aids1),
+            'aid2': np.array(aids2),
+            'data': get_edge_data,
+            #'thumb': self.infr.ibs.get_annot_chip_thumbtup,
+        }
+        col_ider_dict = {
+            #'thumb': 'aid',
+            'data': ('aid1', 'aid2'),
+        }
+        col_types_dict = {
+            #'thumb': 'PIXMAP',
+        }
+        edge_api = gt.CustomAPI(col_name_list,
+                                col_ider_dict=col_ider_dict,
+                                col_types_dict=col_types_dict,
+                                col_getter_dict=col_getter_dict,
+                                sortby='aid1', sort_reverse=False)
+        headers = edge_api.make_headers(tblnice='Edges')
+        self.edge_api_widget.change_headers(headers)
 
     def populate_edge_table(self):
         print('Updating saved query table')
@@ -397,7 +438,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.update_graph_layout()
 
         # Update Qt things
-        self.populate_edge_table()
+        self.populate_edge_model()
         self.thresh_lbl.setText('%.2f' % (self.infr.thresh))
 
         # Update MPL things
