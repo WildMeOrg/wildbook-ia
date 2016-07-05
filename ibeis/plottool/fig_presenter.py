@@ -72,10 +72,13 @@ def get_geometry(fnum):
 #@profile
 def get_all_figures():
     manager_list = mpl._pylab_helpers.Gcf.get_all_fig_managers()
-    all_figures_ = [manager.canvas.figure for manager in manager_list]
     all_figures = []
     # Make sure you dont show figures that this module closed
-    for fig in iter(all_figures_):
+    for manager in manager_list:
+        try:
+            fig = manager.canvas.figure
+        except AttributeError:
+            continue
         if not fig.__dict__.get('df2_closed', False):
             all_figures.append(fig)
     # Return all the figures sorted by their number
@@ -99,8 +102,11 @@ def all_figures_show():
 
 
 def show_figure(fig):
-    fig.show()
-    fig.canvas.draw()
+    try:
+        fig.show()
+        fig.canvas.draw()
+    except AttributeError as ex:
+        ut.printex(ex, 'probably registered made figure with Qt.', iswarning=True)
 
 
 def all_figures_tight_layout():
@@ -169,7 +175,8 @@ def all_figures_tile(max_rows=None,
     QMainWin = get_main_win_base()
     for ix, win in enumerate(all_wins):
         isqt4_mpl = isinstance(win, QMainWin)
-        from guitool.__PYQT__ import QtGui
+        from guitool.__PYQT__ import QtGui  # NOQA
+        from guitool.__PYQT__ import QtWidgets  # NOQA
         isqt4_back = isinstance(win, QtWidgets.QMainWindow)
         isqt4_widget = isinstance(win, QtWidgets.QWidget)
         (x, y, w, h) = valid_positions[ix]

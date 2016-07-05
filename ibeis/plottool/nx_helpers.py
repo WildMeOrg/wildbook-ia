@@ -355,10 +355,8 @@ def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
 
     if layout == 'custom':
 
-        edge_keys = list(reduce(set.union, [set(edge[-1].keys()) for edge in
-                                            graph.edges(data=True)]))
-        node_keys = list(reduce(set.union, [set(node[-1].keys()) for node in
-                                            graph.nodes(data=True)]))
+        edge_keys = list(reduce(set.union, [set(edge[-1].keys()) for edge in graph.edges(data=True)], set([])))
+        node_keys = list(reduce(set.union, [set(node[-1].keys()) for node in graph.nodes(data=True)], set([])))
         graph_keys = list(graph.graph.keys())
         #graph_keys = [
         #    'splines',

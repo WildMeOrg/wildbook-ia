@@ -251,6 +251,8 @@ class PanEvents(object):
         #self.connect()
 
     def pan_on_press(self, event):
+        if event.button != 1:
+            return
         ax = self.ax
         if event.inaxes != ax:
             return
@@ -260,6 +262,8 @@ class PanEvents(object):
         self.x0, self.y0, self.xpress, self.ypress = self.press
 
     def pan_on_release(self, event):
+        if event.button != 1:
+            return
         ax = self.ax
         self.press = None
         ax.figure.canvas.draw()
