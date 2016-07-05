@@ -223,7 +223,8 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None, force
         colnames = (_autogen_annotmatch_funcs.ANNOTMATCH_ROWID,)
         # FIXME: col_rowid is not correct
         params_iter = list(zip(aid_list, aid_list))
-        where_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID1, _autogen_annotmatch_funcs.ANNOT_ROWID2]
+        where_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID1,
+                          _autogen_annotmatch_funcs.ANNOT_ROWID2]
         with ut.Timer('one'):
             annotmatch_rowid_list1 = ibs.db.get_where3(  # NOQA
                 ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, where_colnames,
@@ -231,92 +232,6 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None, force
     # Ensure funciton output is consistent
     annotmatch_rowid_list = list(map(sorted, annotmatch_rowid_list))
     return annotmatch_rowid_list
-
-
-def get_annotmatch_subgraph(ibs):
-    r"""
-    http://bokeh.pydata.org/en/latest/
-    https://github.com/jsexauer/networkx_viewer
-
-    TODO: Need a special visualization
-        In the web I need:
-            * graph of annotations matches.
-            * can move them around.
-            * edit lines between them.
-            * http://stackoverflow.com/questions/15373530/web-graph-visualization-tool
-
-            This should  share functionality with a name view.
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-
-    CommandLine:
-        python -m ibeis.annotmatch_funcs --exec-get_annotmatch_subgraph --show
-
-        # Networkx example
-        python -m ibeis.viz.viz_graph --test-show_chipmatch_graph:0 --show
-
-    Ignore:
-
-        from ibeis import viz
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> result = get_annotmatch_subgraph(ibs)
-        >>> ut.show_if_requested()
-    """
-    #import ibeis
-    #ibs = ibeis.opendb(db='PZ_MTEST')
-    #rowids = ibs._get_all_annotmatch_rowids()
-    #aids1 = ibs.get_annotmatch_aid1(rowids)
-    #aids2 = ibs.get_annotmatch_aid2(rowids)
-    #
-    #
-    nids = ibs.get_valid_nids()
-    nids = nids[0:5]
-    aids_list = ibs.get_name_aids(nids)
-    import itertools
-    unflat_edges = (list(itertools.product(aids, aids)) for aids in aids_list)
-    aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
-    aids1 = ut.get_list_column(aid_pairs, 0)
-    aids2 = ut.get_list_column(aid_pairs, 1)
-
-    # Enumerate annotmatch properties
-    rng = np.random.RandomState(0)
-    edge_props = {
-        'weight': rng.rand(len(aids1)),
-        'reviewer_confidence': rng.rand(len(aids1)),
-        'algo_confidence': rng.rand(len(aids1)),
-    }
-
-    # Remove data that does not need to be visualized
-    # (dont show all the aids if you dont have to)
-    thresh = .5
-    flags = edge_props['weight'] > thresh
-    aids1_ = ut.compress(aids1, flags)
-    aids2_ = ut.compress(aids2, flags)
-    chosen_props = ut.dict_subset(edge_props, ['weight'])
-    edge_props = ut.map_dict_vals(ut.partial(ut.compress, flag_list=flags), chosen_props)
-
-    edge_keys = list(edge_props.keys())
-    edge_vals = ut.dict_take(edge_props, edge_keys)
-    edge_attr_list = [dict(zip(edge_keys, vals_)) for vals_ in zip(*edge_vals)]
-
-    unique_aids = list(set(aids1_ + aids2_))
-    # Make a graph between the chips
-    nodes = unique_aids
-    edges = list(zip(aids1_, aids2_, edge_attr_list))
-    import networkx as nx
-    graph = nx.DiGraph()
-    graph.add_nodes_from(nodes)
-    graph.add_edges_from(edges)
-    from ibeis.viz import viz_graph
-    fnum = None
-    #zoom = kwargs.get('zoom', .4)
-    viz_graph.viz_netx_chipgraph(ibs, graph, fnum=fnum, with_images=True, augment_graph=False)
 
 
 @register_ibs_method

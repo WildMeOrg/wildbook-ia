@@ -36,9 +36,11 @@ MAX_COLS = 3
 def build_name_context_options(ibs, nids):
     callback_list = []
     from ibeis.viz import viz_graph
-    callback_list.append(
+    from ibeis.viz import viz_graph2
+    callback_list.extend([
         ('Interact name graph', functools.partial(viz_graph.make_name_graph_interaction, ibs, nids=nids)),
-    )
+        ('Interact name graph2', functools.partial(viz_graph2.make_qt_graph_interface, ibs, nids=nids)),
+    ])
     return callback_list
 
 

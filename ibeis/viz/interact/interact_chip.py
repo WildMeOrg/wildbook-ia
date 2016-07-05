@@ -161,6 +161,12 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
             ibs.set_annot_quality_texts([aid], [qualtext])
             print('set_annot_quality(%r, %r)' % (aid, qualtext))
         return _wrp_qual
+    def set_multiple_func(flag):
+        #@refresh_wrp()
+        def _wrp():
+            ibs.set_annot_multiple([aid], [flag])
+            print('set_annot_multiple(%r, %r)' % (aid, flag))
+        return _wrp
     # Define popup menu
     callback_list = []
 
@@ -217,6 +223,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
 
     current_qualtext = ibs.get_annot_quality_texts([aid])[0]
     current_yawtext = ibs.get_annot_yaw_texts([aid])[0]
+    current_multiple = ibs.get_annot_multiple([aid])[0]
     # Nested viewpoints
     callback_list += [
         #('Set Viewpoint: ' + key, set_yaw_func(key))
@@ -238,6 +245,10 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
             for count, key in
             enumerate(six.iterkeys(const.QUALITY_TEXT_TO_INT), start=1)
         ]),
+    ]
+
+    callback_list += [
+        ('Set &multiple: %r' % (not current_multiple), set_multiple_func(not current_multiple)),
     ]
 
     with_tags = True

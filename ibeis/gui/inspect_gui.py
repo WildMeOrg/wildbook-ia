@@ -164,6 +164,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
     with_review_options = True
 
     from ibeis.viz import viz_graph
+    from ibeis.viz import viz_graph2
     if with_review_options:
         options += [
             ('Mark as &Reviewed',
@@ -186,7 +187,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
              partial(viz_graph.make_name_graph_interaction,
                      ibs, aids=aid_list2, selected_aids=aid_list2)),
             ('Interact Name Graph 2',
-             partial(viz_graph.make_name_graph_interaction,
+             partial(viz_graph2.make_qt_graph_interface,
                      ibs, aids=aid_list2)),
         ]
 
@@ -835,7 +836,8 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
         raise guiexcept.NeedsUserInput('non-trivial split')
     try:
         status = ibs.set_annot_pair_as_negative_match(
-            aid1, aid2, on_nontrivial_split=on_nontrivial_split, logger=kwargs.get('logger', None)
+            aid1, aid2, on_nontrivial_split=on_nontrivial_split,
+            logger=kwargs.get('logger', None)
         )
         print('status = %r' % (status,))
     except guiexcept.NeedsUserInput:
@@ -860,6 +862,7 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
             log('FLAG SplitCase: (annot_uuid_pair=%r)' % annot_uuid_pair)
             am_rowid = ibs.add_annotmatch_undirected([aid1], [aid2])[0]
             ibs.set_annotmatch_prop(prop, [am_rowid], [True])
+            ibs.set_annotmatch_truth([am_rowid], [ibs.const.TRUTH_NOT_MATCH])
         elif reply == options[1]:
             review_match(ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)
     except guiexcept.UserCancel:
@@ -991,7 +994,8 @@ def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
         >>> daid = cm.get_top_aids()[0]
         >>> match_thumbtup_cache = {}
         >>> # execute function
-        >>> match_thumb_fpath_ = ensure_match_img(qreq_.ibs, cm, daid, qreq_, match_thumbtup_cache)
+        >>> match_thumb_fpath_ = ensure_match_img(qreq_.ibs, cm, daid, qreq_,
+        >>>                                       match_thumbtup_cache)
         >>> # verify results
         >>> result = str(match_thumb_fpath_)
         >>> print(result)

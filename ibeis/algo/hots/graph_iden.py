@@ -12,6 +12,9 @@ nx.get_node_attrs = nx.get_node_attributes
 print, rrr, profile = ut.inject2(__name__, '[graph_inference]')
 
 
+CUT_WEIGHT_KEY = 'cut_weight'
+
+
 def _dz(a, b):
     a = a.tolist() if isinstance(a, np.ndarray) else list(a)
     b = b.tolist() if isinstance(b, np.ndarray) else list(b)
@@ -94,7 +97,7 @@ class InfrModel(ut.NiceRepr):
     def _update_state(model):
         import networkx as nx
         name_label_key = 'name_label'
-        weight_key = 'weight'
+        weight_key = CUT_WEIGHT_KEY
         # Get nx graph properties
         external_nodes = sorted(list(model.graph.nodes()))
         external_edges = list(model.graph.edges())
@@ -403,8 +406,13 @@ class AnnotInference2(object):
             len(node2_nid), len(node2_aid))
         nx.set_node_attrs(graph, 'aid', node2_aid)
         nx.set_node_attrs(graph, 'name_label', node2_nid)
-
+        nx.set_node_attrs(graph, 'orig_name_label', node2_nid)
         infr.initialize_visual_node_attrs()
+
+    def reset_name_labels(infr):
+        graph = infr.graph
+        orig_names = nx.get_node_attrs(graph, 'orig_name_label')
+        nx.set_node_attrs(graph, 'name_label', orig_names)
 
     def initialize_visual_node_attrs(infr):
         print('Init Visual Attrs')
@@ -426,7 +434,7 @@ class AnnotInference2(object):
     def get_colored_edge_weights(infr):
         # Update color and linewidth based on scores/weight
         edges = list(infr.graph.edges())
-        edge2_weight = nx.get_edge_attrs(infr.graph, 'weight')
+        edge2_weight = nx.get_edge_attrs(infr.graph, CUT_WEIGHT_KEY)
         #edges = list(edge2_weight.keys())
         weights = np.array(ut.dict_take(edge2_weight, edges, np.nan))
         nan_idxs = []
@@ -458,7 +466,8 @@ class AnnotInference2(object):
                                     logscale=False)
         return colors
 
-    def update_graph_visual_attributes(infr, show_cuts=False):
+    def update_graph_visual_attributes(infr, show_cuts=False,
+                                       only_feedback_cuts=True):
         print('Update Visual Attrs')
         import plottool as pt
         #edge2_weight = nx.get_edge_attrs(infr.graph, 'score')
@@ -474,6 +483,7 @@ class AnnotInference2(object):
 
         # Update color and linewidth based on scores/weight
         edges, edge_weights, edge_colors = infr.get_colored_edge_weights()
+        #nx.set_edge_attrs(graph, 'len', _dz(edges, [10]))
         nx.set_edge_attrs(graph, 'color', _dz(edges, edge_colors))
         maxlw = 4
         minlw = .5
@@ -497,8 +507,7 @@ class AnnotInference2(object):
         cut_edges = [edge for edge, cut in edge2_cut.items() if cut]
         nx.set_edge_attrs(graph, 'implicit', _dz(cut_edges, [True]))
         if show_cuts:
-            show_feedback_cuts = 1
-            if show_feedback_cuts:
+            if only_feedback_cuts:
                 # Show only ones we made though
                 nonfeedback_cuts = ut.setdiff(cut_edges, reviewed_states.keys())
                 nx.set_edge_attrs(graph, 'style', _dz(nonfeedback_cuts, ['invis']))
@@ -742,7 +751,7 @@ class AnnotInference2(object):
         Combines scores and user feedback into edge weights used in inference.
         """
         print('Weight Edges')
-        ut.nx_delete_edge_attr(infr.graph, 'weight')
+        ut.nx_delete_edge_attr(infr.graph, 'cut_weight')
         # mst not needed. No edges are removed
 
         edges = list(infr.graph.edges())
@@ -760,7 +769,7 @@ class AnnotInference2(object):
         is_valid = ~np.isnan(weights)
         weights = weights.compress(is_valid, axis=0)
         edges = ut.compress(edges, is_valid)
-        nx.set_edge_attrs(infr.graph, 'weight', _dz(edges, weights))
+        nx.set_edge_attrs(infr.graph, 'cut_weight', _dz(edges, weights))
 
     def get_scalars(infr):
         scalars = {}
@@ -768,7 +777,7 @@ class AnnotInference2(object):
                                                        'reviewed_weight').values()
         scalars['score'] = nx.get_edge_attrs(infr.graph, 'score').values()
         scalars['normscores'] = nx.get_edge_attrs(infr.graph, 'normscores').values()
-        scalars['weights'] = nx.get_edge_attrs(infr.graph, 'weight').values()
+        scalars[CUT_WEIGHT_KEY] = nx.get_edge_attrs(infr.graph, CUT_WEIGHT_KEY).values()
         return scalars
 
     def apply_cuts(infr):
@@ -1266,14 +1275,14 @@ def piecewise_weighting(infr, normscores, edges):
         flag = np.logical_and(edge_scores >= pt1, edge_scores < pt2)
         edge_weights[flag] = (((edge_scores[flag] - pt1) / pt_len) * prob_len) + prob1
 
-    nx.set_edge_attrs(infr.graph, 'weight', _dz(edges, edge_weights))
+    nx.set_edge_attrs(infr.graph, CUT_WEIGHT_KEY, _dz(edges, edge_weights))
 
     p_same, unique_pairs = infr.get_feedback_probs()
     unique_pairs = [tuple(x.tolist()) for x in unique_pairs]
     for aid1, aid2 in unique_pairs:
         if not infr.graph.has_edge(aid1, aid2):
             infr.graph.add_edge(aid1, aid2)
-    nx.set_edge_attrs(infr.graph, 'weight', _dz(unique_pairs, p_same))
+    nx.set_edge_attrs(infr.graph, CUT_WEIGHT_KEY, _dz(unique_pairs, p_same))
     #nx.set_edge_attrs(infr.graph, 'lw', _dz(unique_pairs, [6.0]))
     """
     pt.plot(sorted(edge_weights))

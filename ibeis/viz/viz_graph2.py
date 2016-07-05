@@ -41,16 +41,31 @@ class MatplotlibWidget(gt.GuitoolWidget):
         self.zoon_events = zoom_factory(self.ax)
         ih.connect_callback(self.fig, 'button_press_event', self.on_click)
         ih.connect_callback(self.fig, 'draw_event', self.draw_callback)
+        ih.connect_callback(self.fig, 'pick_event', self.on_pick)
 
         self.MOUSE_BUTTONS = AbstractInteraction.MOUSE_BUTTONS
         self.setMinimumHeight(20)
         self.setMinimumWidth(20)
 
     def on_click(self, event):
-        print('[mplwidget] on_click')
+        #print('[mplwidget] on_click')
         if ih.clicked_inside_axis(event):
             ax = event.inaxes
             self.click_inside_signal.emit(event, ax)
+
+    def on_pick(self, event):
+        print('PICK: event.artist = %r' % (event.artist,))
+        edge = pt.get_plotdat(event.artist, 'edge')
+        node = pt.get_plotdat(event.artist, 'node')
+        edge_data = pt.get_plotdat(event.artist, 'edge_data')
+        node_data = pt.get_plotdat(event.artist, 'node_data')
+        if edge_data is not None:
+            print('edge = %r' % (edge,))
+            print('edge_data = %s' % (ut.repr3(edge_data),))
+            pass
+        if node_data is not None:
+            print('node = %r' % (node,))
+            pass
 
     def draw_callback(self, event):
         pass
@@ -137,7 +152,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         bbar2.addNewButton('Accept', pressed=self.confirm)
 
         #Debug row
-        _simple_button3(self.reset)
+        _simple_button3(self.reset_all)
+        _simple_button3(self.infr.reset_name_labels)
         _simple_button3(self.infr.apply_mst)
         _simple_button3(self.infr.apply_scores)
         _simple_button3(self.infr.apply_feedback)
@@ -150,7 +166,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.mpl_wgt.click_inside_signal.connect(self.on_click_inside)
         self.populate_node_model()
 
-    def reset(self):
+    def reset_all(self):
         self.infr.initialize_graph()
         self.toggle_pin.setChecked(False)
 
@@ -199,9 +215,13 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         def get_edge_data(edge):
             aid1, aid2 = edge
             attrs = graph.get_edge_data(aid1, aid2).copy()
-            ut.delete_dict_keys(attrs, ['color', 'implicit', 'stroke', 'lw',
-                                        'end_pt', 'head_lp', 'alpha', 'style',
+            ut.delete_dict_keys(attrs, ['color',
+                                        'stroke', 'lw',
+                                        'end_pt', 'head_lp', 'alpha',
+                                        #'implicit',
+                                        #'style',
                                         'ctrl_pts', 'pos'])
+            attrs = {k: v for k, v in attrs.items() if v is not None}
             return ut.repr2(attrs, precision=2)
         uv_list = list(graph.edges())
         aids1 = ut.take_column(uv_list, 0)
@@ -428,9 +448,14 @@ class AnnotGraphWidget(gt.GuitoolWidget):
     def update_graph_layout(self):
         graph = self.infr.graph
         self.infr.update_graph_visual_attributes(self.show_cuts)
-        layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
-        _, layout_info = pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
-        pass
+        layoutkw = dict(
+            prog='neato',
+            #defaultdist=100,
+            splines='spline',
+            sep=10 / 72,
+            #esep=10 / 72
+        )
+        pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
     def draw_graph(self):
         print('Start draw page')
@@ -475,9 +500,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         xytext = (2.5, .3 if self.infr.thresh < .5 else .7)
         print('xy = %r' % (xy,))
         print('xytext = %r' % (xytext,))
-        #_, edge_weights, edge_colors = self.infr.get_colored_edge_weights()
-        #pt.colorbar(edge_weights, edge_colors, lbl='weights')
-        # self.cb = None
+        print('self.infr.thresh = %r' % (self.infr.thresh,))
 
         if self.cb is not None:
             ax = self.cb.ax
@@ -503,23 +526,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 alpha=.5,
                 fc="0.6",
                 connectionstyle="angle3,angleA=90,angleB=0"),)
-        # self.thresh_annot.set_animated(True)
         self.cb = cb
-        # else:
-        #     self.thresh_annot.set_x(xy[0])
-        #     self.thresh_annot.set_y(xy[1])
-        #     self.thresh_annot.set_position(xytext)
-        #     self.thresh_annot.set_position(xy)
-        #     print('not redoing cb yet')
-
-        #ax = pt.gca()
-        #self.enable_pan_and_zoom(ax)
-        #ax.autoscale()
-        #for aid in self.selected_aids:
-        #    self.highlight_aid(aid, pt.ORANGE)
-        #self.static_plot(fnum, pnum)
-        #self.make_hud()
-        #print(ut.repr2(self.infr.graph.edge, nl=2))
 
     def embed(self):
         fig = self.mpl_wgt.fig  # NOQA
@@ -530,11 +537,13 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         utool.embed()
 
 
-def make_qt_graph_interface(ibs, aids):
+def make_qt_graph_interface(ibs, aids=None, nids=None):
     r"""
     CommandLine:
-        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids="[1, 2, 3, 4, 5, 6, 7, 8, 9]"
+        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
         python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show
+
+        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --db LEWA_splits --nids=1 --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -544,11 +553,14 @@ def make_qt_graph_interface(ibs, aids):
         >>> defaultdb = 'PZ_MTEST'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> aids = ut.get_argval('--aids', type_=list, default=None)
+        >>> nids = ut.get_argval('--nids', type_=list, default=None)
         >>> gt.ensure_qtapp()
-        >>> win = make_qt_graph_interface(ibs, aids)
+        >>> win = make_qt_graph_interface(ibs, aids, nids)
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=win, freq=10)
     """
+    if nids is not None and aids is None:
+        aids = ut.flatten(ibs.get_name_aids(nids))
     if aids is None:
         aids = ibs.get_valid_aids()[0:40]
     print('make_qt_graph_interface aids = %r' % (aids,))
@@ -568,6 +580,7 @@ def make_qt_graph_interface(ibs, aids):
     win = AnnotGraphWidget(infr=infr, use_image=False)
     win.resize(900, 600)
     win.draw_graph()
+    win.show()
     return win
 
 
