@@ -342,21 +342,16 @@ def get_explicit_graph(graph):
 
 def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
     import networkx as nx
-    only_explicit = True
-    if only_explicit:
-        explicit_graph = get_explicit_graph(graph)
-        layout_graph = explicit_graph
-    else:
-        layout_graph = graph
 
     if layoutkw is None:
         layoutkw = {}
     layout_info = {}
 
     if layout == 'custom':
-
-        edge_keys = list(reduce(set.union, [set(edge[-1].keys()) for edge in graph.edges(data=True)], set([])))
-        node_keys = list(reduce(set.union, [set(node[-1].keys()) for node in graph.nodes(data=True)], set([])))
+        edge_keys = list(reduce(set.union, [set(edge[-1].keys())
+                                            for edge in graph.edges(data=True)], set([])))
+        node_keys = list(reduce(set.union, [set(node[-1].keys())
+                                            for node in graph.nodes(data=True)], set([])))
         graph_keys = list(graph.graph.keys())
         #graph_keys = [
         #    'splines',
@@ -368,7 +363,7 @@ def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
         }
     elif layout == 'agraph':
         # PREFERED LAYOUT WITH MOST CONTROL
-        _, layout_info = nx_agraph_layout(layout_graph, orig_graph=graph, verbose=verbose,
+        _, layout_info = nx_agraph_layout(graph, verbose=verbose,
                                           **layoutkw)
     else:
         raise ValueError('Undefined layout = %r' % (layout,))
@@ -377,12 +372,18 @@ def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
 
 def apply_graph_layout_attrs(graph, layout_info):
     import networkx as nx
+    def noneish(v):
+        isNone = v is None
+        isNoneStr = isinstance(v, six.string_types) and v.lower() == 'none'
+        return isNone or isNoneStr
     for key, vals in layout_info['node'].items():
+        vals = {n: v for n, v in vals.items() if not noneish(n)}
         nx.set_node_attributes(graph, key, vals)
-
     for key, vals in layout_info['edge'].items():
+        vals = {e: v for e, v in vals.items() if not noneish(e)}
         nx.set_edge_attributes(graph, key, vals)
-    graph.graph.update(layout_info['graph'])
+    graph_attrs = {k: v for k, v in layout_info['graph'].items() if not noneish(k)}
+    graph.graph.update(graph_attrs)
 
 
 def make_agraph(graph):
@@ -463,7 +464,7 @@ def make_agraph_args(kwargs):
     return args
 
 
-def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwargs):
+def nx_agraph_layout(orig_graph, inplace=False, verbose=None, **kwargs):
     r"""
     orig_graph = graph
     graph = layout_graph
@@ -474,6 +475,11 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
     """
     import networkx as nx
     import pygraphviz
+
+    #only_explicit = True
+    #if only_explicit:
+    graph = get_explicit_graph(orig_graph)
+    #explicit_graph = get_explicit_graph(graph)
 
     kwargs = kwargs.copy()
     prog = kwargs.pop('prog', 'dot')
@@ -629,10 +635,6 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
             argparts = ['-G%s=%s' % (key, str(val))
                         for key, val in implicit_kw.items()]
             args = ' '.join(argparts)
-            #print('args = %r' % (args,))
-
-            #import utool
-            #utool.embed()
 
             agraph.layout(prog='neato', args='-n ' + args)
             agraph.draw(ut.truepath('~/implicit_test_graphviz_draw.png'))
@@ -640,16 +642,16 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
                 print('AFTER IMPLICIT LAYOUT\n' + str(agraph))
 
             control_node = pygraphviz.Node(agraph, node)
-            print('control_node = %r' % (control_node,))
+            #print('control_node = %r' % (control_node,))
             node1_attr2 = parse_anode_layout_attrs(control_node)
-            print('node1_attr2 = %r' % (node1_attr2,))
+            #print('node1_attr2 = %r' % (node1_attr2,))
 
             # graph positions shifted
             # This is not the right place to divide by 72
             translation = (node1_attr1['pos'] - node1_attr2['pos'] )
             #print('translation = %r' % (translation,))
             #translation = np.array([0, 0])
-            print('translation = %r' % (translation,))
+            #print('translation = %r' % (translation,))
 
             #for iedge in all_edges:
             for iedge in implicit_edges:
@@ -669,10 +671,7 @@ def nx_agraph_layout(graph, orig_graph=None, inplace=False, verbose=None, **kwar
     }
 
     if inplace:
-        if orig_graph is not None:
-            graph = orig_graph
-        apply_graph_layout_attrs(graph, layout_info)
-
+        apply_graph_layout_attrs(orig_graph, layout_info)
     return graph, layout_info
 
 
@@ -911,8 +910,13 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 lw = framewidth
                 frame = pt.make_bbox(bbox, bbox_color=framecolor, ax=ax, lw=lw, alpha=alpha)
                 patch_dict['patch_frame_dict'][node] = frame
+        #import utool
+        #utool.embed()
+        picker = nattrs.get('picker', True)
+        patch.set_picker(picker)
+        pt.set_plotdat(patch, 'node_data', nattrs)
+        pt.set_plotdat(patch, 'node', node)
 
-        #patch_dict[node] = patch
         x, y = xy
         text = str(node)
         if label is not None:
@@ -941,7 +945,6 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     edge_pos = layout_info['edge'].get('ctrl_pts', None)
     if edge_pos is not None:
         for edge, pts in edge_pos.items():
-
             data = get_default_edge_data(graph, edge)
 
             if data.get('style', None) == 'invis':
@@ -1101,14 +1104,18 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             #    print('verts = %r' % (verts,))
             #    pass
 
+            picker = data.get('picker', 5)
             patch = mpl.patches.PathPatch(path, facecolor='none', lw=lw,
                                           path_effects=path_effects,
                                           edgecolor=color,
+                                          picker=picker,
                                           #facecolor=color,
                                           linestyle=linestyle,
                                           alpha=alpha,
                                           joinstyle='bevel',
                                           hatch=hatch)
+            pt.set_plotdat(patch, 'edge_data', data)
+            pt.set_plotdat(patch, 'edge', edge)
 
             if as_directed:
                 if end_pt is not None:
