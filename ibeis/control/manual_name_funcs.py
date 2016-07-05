@@ -1253,6 +1253,160 @@ def get_name_imgset_uuids(ibs, nid_list):
 #def get_imageset_nids(ibs,
 
 
+@register_ibs_method
+@accessor_decors.getter
+def get_name_has_split(ibs, nid_list):
+    r"""
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --test-get_name_speeds
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid_list = ibs._get_all_known_nids()
+        >>> splits_list = ibs.get_name_has_split(nid_list)
+        >>> result = str(splits_list)
+        >>> print(result)
+    """
+    aids_list_ = ibs.get_name_aids(nid_list)
+    #ibs.check_name_mapping_consistency(aids_list_)
+    def get_valid_aids_clique_annotmatch_rowids(aids):
+        import itertools
+        aid_pairs = list(itertools.combinations(aids, 2))
+        aids1 = ut.take_column(aid_pairs, 0)
+        aids2 = ut.take_column(aid_pairs, 1)
+        am_ids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+        am_ids = ut.filter_Nones(am_ids)
+        return am_ids
+    amids_list = [get_valid_aids_clique_annotmatch_rowids(aids) for aids in aids_list_]
+    flags_list = ibs.unflat_map(ut.partial(ibs.get_annotmatch_prop, 'SplitCase'), amids_list)
+    has_splits = list(map(any, flags_list))
+    return has_splits
+
+
+@register_ibs_method
+def get_name_speeds(ibs, nid_list):
+    r"""
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --test-get_name_speeds
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid_list = ibs._get_all_known_nids()
+        >>> speeds_list = get_name_speeds(ibs, nid_list)
+        >>> result = str(speeds_list)
+        >>> print(result)
+    """
+    aids_list_ = ibs.get_name_aids(nid_list)
+    #ibs.check_name_mapping_consistency(aids_list_)
+    aids_list = [(aids) for aids in aids_list_]
+    speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)
+    return speeds_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_name_hourdiffs(ibs, nid_list):
+    """
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --test-get_name_hourdiffs
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid_list = ibs._get_all_known_nids()
+        >>> hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
+        >>> result = hourdiffs_list
+        >>> print(hourdiffs_list)
+    """
+    aids_list_ = ibs.get_name_aids(nid_list)
+    #ibs.check_name_mapping_consistency(aids_list_)
+    # HACK FILTERING SHOULD NOT OCCUR HERE
+    aids_list = [(aids) for aids in aids_list_]
+    hourdiffs_list = ibs.get_unflat_annots_hourdists_list(aids_list)
+    return hourdiffs_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_name_max_hourdiff(ibs, nid_list):
+    hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
+    maxhourdiff_list_ = list(map(vt.safe_max, hourdiffs_list))
+    maxhourdiff_list = np.array(maxhourdiff_list_)
+    return maxhourdiff_list
+
+
+@register_ibs_method
+@accessor_decors.getter
+def get_name_max_speed(ibs, nid_list):
+    """
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --test-get_name_max_speed
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> nid_list = ibs._get_all_known_nids())
+        >>> maxspeed_list = ibs.get_name_max_speed(nid_list)
+        >>> result = maxspeed_list
+        >>> print(maxspeed_list)
+    """
+    speeds_list = ibs.get_name_speeds(nid_list)
+    maxspeed_list = np.array(list(map(vt.safe_max, speeds_list)))
+    return maxspeed_list
+
+
+@register_ibs_method
+def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
+    """
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --test-get_name_gps_tracks
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_name_funcs import *  # NOQA
+        >>> import ibeis
+        >>> # build test data
+        >>> #ibs = ibeis.opendb('PZ_Master0')
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> #nid_list = ibs.get_valid_nids()
+        >>> aid_list = ibs.get_valid_aids()
+        >>> nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list)
+        >>> nonempty_list = list(map(lambda x: len(x) > 0, gps_track_list))
+        >>> ut.compress(nid_list, nonempty_list)
+        >>> ut.compress(gps_track_list, nonempty_list)
+        >>> ut.compress(aid_track_list, nonempty_list)
+        >>> result = str(aid_track_list)
+        >>> print(result)
+        [[11], [], [4], [1], [2, 3], [5, 6], [7], [8], [10], [12], [13]]
+    """
+    assert aid_list is None or nid_list is None, 'only specify one please'
+    if aid_list is None:
+        aids_list_ = ibs.get_name_aids(nid_list)
+    else:
+        aids_list_, nid_list = ibs.group_annots_by_name(aid_list)
+    aids_list = [ut.sortedby(aids, ibs.get_annot_image_unixtimes(aids)) for aids in aids_list_]
+    gids_list = ibs.unflat_map(ibs.get_annot_gids, aids_list)
+    gpss_list = ibs.unflat_map(ibs.get_image_gps, gids_list)
+
+    isvalids_list = [[gps[0] != -1.0 or gps[1] != -1.0 for gps in gpss]
+                     for gpss in gpss_list]
+    gps_track_list = [ut.compress(gpss, isvalids) for gpss, isvalids in
+                      zip(gpss_list, isvalids_list)]
+    aid_track_list  = [ut.compress(aids, isvalids) for aids, isvalids in
+                       zip(aids_list, isvalids_list)]
+    return nid_list, gps_track_list, aid_track_list
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

@@ -323,7 +323,7 @@ def get_imageset_custom_filtered_aids(ibs, imgsetid_list):
     """
     aids_list_ = ibs.get_imageset_aids(imgsetid_list)
     # HACK: Get percentage for the annots we currently care about
-    aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
+    aids_list = [(aids) for aids in aids_list_]
     return aids_list
 
 

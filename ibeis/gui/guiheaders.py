@@ -153,6 +153,7 @@ def make_table_declarations(ibs):
             'datetime',
             'max_hourdiff',
             'max_speed',
+            'has_split',
             'namenotes',
         ],
 
@@ -215,6 +216,7 @@ def make_table_declarations(ibs):
             'datetime': 1,
             'max_hourdiff': 0,
             'max_speed': 0,
+            'has_split': 0,
         },
     }
 
@@ -303,6 +305,7 @@ def make_table_declarations(ibs):
         ('num_annotmatch_reviewed',         (str,      '#Matches Reviewed')),
         ('percent_names_with_exemplar_str', (str,      '%Names with Exemplar')),
         ('max_speed',                       (float,    'Max Speed km/h')),
+        ('has_split',                       (float,    'Needs Split')),
         ('max_hourdiff',                    (float,    'Max Hour Diff')),
         ('tag_text',                        (str,      'Tags')),
     ])
@@ -454,6 +457,7 @@ def make_ibeis_headers_dict(ibs):
         'name'       : ibs.get_name_texts,
         'nAids'      : ibs.get_name_num_annotations,
         'namenotes'  : ibs.get_name_notes,
+        #'has_split'  : ibs.get_name_has_split,
     }
     setters[NAME_TABLE] = {
         'name'       : ibs.set_name_texts,

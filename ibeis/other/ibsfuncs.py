@@ -3171,8 +3171,6 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         aid_list = ibs.get_valid_aids(imgsetid=imgsetid)
     HACK = ibs.cfg.other_cfg.enable_custom_filter
     assert not HACK, 'enable_custom_filter is no longer supported'
-    #True
-    #if not HACK:
     new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
         ibs, aid_list=aid_list, annots_per_view=exemplars_per_view,
         verbose=verbose, prog_hook=prog_hook)
@@ -3740,54 +3738,6 @@ def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
 
 
 @register_ibs_method
-def get_annot_custom_filterflags(ibs, aid_list):
-    if not ibs.cfg.other_cfg.enable_custom_filter:
-        return [True] * len(aid_list)
-    assert not ibs.cfg.other_cfg.enable_custom_filter, 'enable_custom_filter is no longer supported'
-    #minqual = const.QUALITY_TEXT_TO_INT['poor']
-    minqual = 'ok'
-    #valid_yaws = {'left', 'frontleft', 'backleft'}
-    valid_yawtexts = {'left', 'frontleft'}
-    flags_list = ibs.get_quality_viewpoint_filterflags(aid_list, minqual, valid_yawtexts)
-    return flags_list
-
-
-@register_ibs_method
-def filter_aids_custom(ibs, aid_list):
-    r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid_list (int):  list of annotation ids
-
-    Returns:
-        list: aid_list_
-
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-filter_aids_custom
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb2')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> # execute function
-        >>> aid_list_ = filter_aids_custom(ibs, aid_list)
-        >>> # verify results
-        >>> result = str(aid_list_)
-        >>> print(result)
-    """
-    if not ibs.cfg.other_cfg.enable_custom_filter:
-        return aid_list
-    assert not ibs.cfg.other_cfg.enable_custom_filter, 'enable_custom_filter is no longer supported'
-    flags_list = ibs.get_annot_custom_filterflags(aid_list)
-    aid_list_ = list(ut.iter_compress(aid_list, flags_list))
-    #aid_list_ = list(ut.compress(aid_list, flags_list))
-    return aid_list_
-
-
-@register_ibs_method
 def flag_aids_count(ibs, aid_list):
     r"""
     Args:
@@ -3824,9 +3774,8 @@ def flag_aids_count(ibs, aid_list):
     nid_list       = ibs.get_annot_name_rowids(aid_list)
     contrib_list   = ibs.get_image_contributor_tag(gid_list)
     # Get filter flags for aids
-    flag_list      = ibs.get_annot_custom_filterflags(aid_list)
     isunknown_list = ibs.is_aid_unknown(aid_list)
-    flag_list      = [ not unknown and flag for unknown, flag in zip(isunknown_list, flag_list) ]
+    flag_list      = [not unknown  for unknown in isunknown_list]
     # Filter by seen and car
     flag_list_     = []
     seen_dict      = ut.ddict(set)
@@ -3859,74 +3808,6 @@ def filter_aids_count(ibs, aid_list=None, pre_unixtime_sort=True):
 
 
 @register_ibs_method
-def filterflags_unflat_aids_custom(ibs, aids_list):
-    def some(flags):
-        """ like any, but some at least one must be True """
-        return len(flags) != 0 and any(flags)
-    filtered_aids_list = ibs.unflat_map(ibs.get_annot_custom_filterflags, aids_list)
-    isvalid_list = list(map(some, filtered_aids_list))
-    return isvalid_list
-
-
-@register_ibs_method
-def filter_nids_custom(ibs, nid_list):
-    aids_list = ibs.get_name_aids(nid_list)
-    isvalid_list = ibs.filterflags_unflat_aids_custom(aids_list)
-    filtered_nid_list = ut.compress(nid_list, isvalid_list)
-    return filtered_nid_list
-
-
-@register_ibs_method
-def filter_gids_custom(ibs, gid_list):
-    aids_list = ibs.get_image_aids(gid_list)
-    isvalid_list = ibs.filterflags_unflat_aids_custom(aids_list)
-    filtered_gid_list = ut.compress(gid_list, isvalid_list)
-    return filtered_gid_list
-
-
-@register_ibs_method
-def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
-    """
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_gps_tracks
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> #ibs = ibeis.opendb('PZ_Master0')
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> #nid_list = ibs.get_valid_nids()
-        >>> aid_list = ibs.get_valid_aids()
-        >>> nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list)
-        >>> nonempty_list = list(map(lambda x: len(x) > 0, gps_track_list))
-        >>> ut.compress(nid_list, nonempty_list)
-        >>> ut.compress(gps_track_list, nonempty_list)
-        >>> ut.compress(aid_track_list, nonempty_list)
-        >>> result = str(aid_track_list)
-        >>> print(result)
-        [[11], [], [4], [1], [2, 3], [5, 6], [7], [8], [10], [12], [13]]
-    """
-    assert aid_list is None or nid_list is None, 'only specify one please'
-    if aid_list is None:
-        aids_list_ = ibs.get_name_aids(nid_list)
-    else:
-        aids_list_, nid_list = ibs.group_annots_by_name(aid_list)
-    aids_list = [ut.sortedby(aids, ibs.get_annot_image_unixtimes(aids)) for aids in aids_list_]
-    gids_list = ibs.unflat_map(ibs.get_annot_gids, aids_list)
-    gpss_list = ibs.unflat_map(ibs.get_image_gps, gids_list)
-
-    isvalids_list = [[gps[0] != -1.0 or gps[1] != -1.0 for gps in gpss]
-                     for gpss in gpss_list]
-    gps_track_list = [ut.compress(gpss, isvalids) for gpss, isvalids in
-                      zip(gpss_list, isvalids_list)]
-    aid_track_list  = [ut.compress(aids, isvalids) for aids, isvalids in
-                       zip(aids_list, isvalids_list)]
-    return nid_list, gps_track_list, aid_track_list
-
-
-@register_ibs_method
 def get_unflat_annots_kmdists_list(ibs, aids_list):
     #ibs.check_name_mapping_consistency(aids_list)
     latlons_list = ibs.unflat_map(ibs.get_annot_image_gps, aids_list)
@@ -3944,7 +3825,7 @@ def get_unflat_annots_hourdists_list(ibs, aids_list):
         >>> ibs = testdata_ibs('NNP_Master3')
         >>> nid_list = get_valid_multiton_nids_custom(ibs)
         >>> aids_list_ = ibs.get_name_aids(nid_list)
-        >>> aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
+        >>> aids_list = [(aids) for aids in aids_list_]
 
     """
     assert all(list(map(ut.isunique, aids_list)))
@@ -3965,7 +3846,7 @@ def get_unflat_annots_timedelta_list(ibs, aids_list):
         >>> ibs = testdata_ibs('NNP_Master3')
         >>> nid_list = get_valid_multiton_nids_custom(ibs)
         >>> aids_list_ = ibs.get_name_aids(nid_list)
-        >>> aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
+        >>> aids_list = [(aids) for aids in aids_list_]
 
     """
     assert all(list(map(ut.isunique, aids_list)))
@@ -3995,86 +3876,10 @@ def testdata_ibs(defaultdb='testdb1'):
 
 def get_valid_multiton_nids_custom(ibs):
     nid_list_ = ibs._get_all_known_nids()
-    ismultiton_list = [len(ibs.filter_aids_custom(aids)) > 1
+    ismultiton_list = [len((aids)) > 1
                        for aids in ibs.get_name_aids(nid_list_)]
     nid_list = ut.compress(nid_list_, ismultiton_list)
     return nid_list
-
-
-@register_ibs_method
-def get_name_speeds(ibs, nid_list):
-    r"""
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_speeds
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> ibs = testdata_ibs('NNP_Master3')
-        >>> nid_list = get_valid_multiton_nids_custom(ibs)
-        >>> speeds_list = get_name_speeds(ibs, nid_list)
-        >>> result = str(speeds_list)
-        >>> print(result)
-    """
-    aids_list_ = ibs.get_name_aids(nid_list)
-    #ibs.check_name_mapping_consistency(aids_list_)
-    aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
-    speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)
-    return speeds_list
-
-
-@register_ibs_method
-@accessor_decors.getter
-def get_name_hourdiffs(ibs, nid_list):
-    """
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_hourdiffs
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> ibs = testdata_ibs('NNP_Master3')
-        >>> nid_list = ibs.filter_nids_custom(ibs._get_all_known_nids())
-        >>> hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
-        >>> result = hourdiffs_list
-        >>> print(hourdiffs_list)
-    """
-    aids_list_ = ibs.get_name_aids(nid_list)
-    #ibs.check_name_mapping_consistency(aids_list_)
-    # HACK FILTERING SHOULD NOT OCCUR HERE
-    aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
-    hourdiffs_list = ibs.get_unflat_annots_hourdists_list(aids_list)
-    return hourdiffs_list
-
-
-@register_ibs_method
-@accessor_decors.getter
-def get_name_max_hourdiff(ibs, nid_list):
-    hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
-    maxhourdiff_list_ = list(map(vt.safe_max, hourdiffs_list))
-    maxhourdiff_list = np.array(maxhourdiff_list_)
-    return maxhourdiff_list
-
-
-@register_ibs_method
-@accessor_decors.getter
-def get_name_max_speed(ibs, nid_list):
-    """
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_max_speed
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> ibs = testdata_ibs('NNP_Master3')
-        >>> nid_list = ibs.filter_nids_custom(ibs._get_all_known_nids())
-        >>> maxspeed_list = ibs.get_name_max_speed(nid_list)
-        >>> result = maxspeed_list
-        >>> print(maxspeed_list)
-    """
-    speeds_list = ibs.get_name_speeds(nid_list)
-    maxspeed_list = np.array(list(map(vt.safe_max, speeds_list)))
-    return maxspeed_list
 
 
 @register_ibs_method
