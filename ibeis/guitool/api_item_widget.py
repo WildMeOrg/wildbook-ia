@@ -75,9 +75,9 @@ class CustomAPI(object):
     API wrapper around a list of lists, each containing column data
     Defines a single table
     """
-    def __init__(self, col_name_list, col_types_dict, col_getter_dict,
-                 col_bgrole_dict, col_ider_dict, col_setter_dict,
-                 editable_colnames, sortby, get_thumb_size=None,
+    def __init__(self, col_name_list, col_types_dict={}, col_getter_dict={},
+                 col_bgrole_dict={}, col_ider_dict={}, col_setter_dict={},
+                 editable_colnames={}, sortby=None, get_thumb_size=None,
                  sort_reverse=True, col_width_dict={}, strict=False, **kwargs):
         if VERBOSE_ITEM_WIDGET:
             print('[CustomAPI] <__init__>')
