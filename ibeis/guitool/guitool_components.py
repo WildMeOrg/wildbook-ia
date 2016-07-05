@@ -1591,7 +1591,7 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
     return combo
 
 
-def newCheckBox(parent=None, text='', changed=None, checked=False, visible=True,
+def newCheckBox(parent=None, text=None, changed=None, checked=False, visible=True,
                 enabled=True, bgcolor=None, fgcolor=None):
     """ wrapper around QtWidgets.QCheckBox
     """
@@ -1606,6 +1606,9 @@ def newCheckBox(parent=None, text='', changed=None, checked=False, visible=True,
 
         def stateChangedCustom(check, state):
             check.changed(state == 2)
+
+    if text is None:
+        text = ut.get_funcname(changed)
 
     check_kwargs = {
         'text'   : text,
