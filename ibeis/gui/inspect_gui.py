@@ -185,6 +185,9 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             ('Interact Name Graph',
              partial(viz_graph.make_name_graph_interaction,
                      ibs, aids=aid_list2, selected_aids=aid_list2))
+            ('Interact Name Graph 2',
+             partial(viz_graph.make_name_graph_interaction,
+                     ibs, aids=aid_list2))
         ]
 
     with_vsone = True

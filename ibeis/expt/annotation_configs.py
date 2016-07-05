@@ -73,10 +73,6 @@ INDEPENDENT_DEFAULTS = {
     'multiple'            : None,
 }
 
-for pi in INDEPENDENT_DEFAULTS_PARAM_INFO:
-    INDEPENDENT_DEFAULTS[pi.varname] = pi.default
-
-
 # HACK
 from ibeis import tag_funcs  # NOQA  #
 # Build Filters
@@ -84,18 +80,31 @@ filter_keys = ut.get_func_kwargs(tag_funcs.filterflags_general_tags)
 for key in filter_keys:
     INDEPENDENT_DEFAULTS[key] = None
 
+for pi in INDEPENDENT_DEFAULTS_PARAM_INFO:
+    INDEPENDENT_DEFAULTS[pi.varname] = pi.default
 
+
+INTRAGROUP_DEFAULTS_PARAM_INFO = [
+    ut.ParamInfo('min_pername', None, type_=int,
+                 help_='Keeps names with at least this number of aids within the group'),
+    ut.ParamInfo('max_pername', None, type_=int,
+                 help_='Keeps names with at most this number of aids within the group'),
+]
 INTRAGROUP_DEFAULTS = {
     # if True all annots must belong to the same imageset
     'same_imageset'      : None,
     'view_pername'        : None,  # formatted string filtering the viewpoints
     'min_timedelta'       : None,
     # minimum number of aids for each name in sample
-    'min_pername'         : None,
-    'max_pername'         : None,
+    #'min_pername'         : None,
+    #'max_pername'         : None,
     'min_spacedelta'      : None,
     'min_spacetimedelta'  : None,
 }
+for pi in INTRAGROUP_DEFAULTS_PARAM_INFO:
+    INTRAGROUP_DEFAULTS[pi.varname] = pi.default
+
+# HACK
 INDEPENDENT_DEFAULTS.update(INTRAGROUP_DEFAULTS)  # hack
 
 SUBINDEX_DEFAULTS_PARAM_INFO = [

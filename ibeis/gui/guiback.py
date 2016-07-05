@@ -153,6 +153,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         class TmpAnnotConfig(dtool.Config):
             _param_info_list = (
                 annotation_configs.INDEPENDENT_DEFAULTS_PARAM_INFO +
+                annotation_configs.INTRAGROUP_DEFAULTS_PARAM_INFO +
                 annotation_configs.SUBINDEX_DEFAULTS_PARAM_INFO
             )
 
@@ -191,6 +192,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.info_cfg['per_vp'] = True
         self.info_cfg['per_qual'] = True
         self.info_cfg['hashid'] = True
+        self.info_cfg['per_name'] = True
         self.info_cfg['hashid_visual'] = True
         self.info_cfg['hashid_uuid'] = True
         self.info_cfg['per_multiple'] = True
@@ -199,6 +201,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             cfg['minqual'] = 'good'
             cfg['reviewed'] = True
             cfg['multiple'] = False
+            #cfg['min_pername'] = 0
             #from ibeis.other import ibsfuncs
             cfg['species'] = self.ibs.get_primary_database_species()
             cfg['require_viewpoint'] = True

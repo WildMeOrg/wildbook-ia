@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+CommandLine:
+    python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import vtool as vt
@@ -17,28 +22,25 @@ class MatplotlibWidget(gt.GuitoolWidget):
     click_inside_signal = QtCore.pyqtSignal(MouseEvent, object)
 
     def initialize(self):
-        #from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-        #from matplotlib.backends.backend_qt5agg import NavigationToolbar2QTAgg as NavigationToolbar
-        from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-        #from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
+        from guitool import __PYQT__
         import plottool as pt
+        from plottool.interactions import zoom_factory, pan_factory
+        from plottool.abstract_interaction import AbstractInteraction
+        if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
+            import matplotlib.backends.backend_qt4agg as backend_qt
+        else:
+            import matplotlib.backends.backend_qt5agg as backend_qt
+        FigureCanvas = backend_qt.FigureCanvasQTAgg
         self.fig = pt.plt.figure()
         self.canvas = FigureCanvas(self.fig)
         self.ax = self.fig.add_subplot(1, 1, 1)
         #self.ax.plot([1, 2, 3], [1, 2, 3])
         self.addWidget(self.canvas)
 
-        self.pan_event_list = []
-        self.zoom_event_list = []
-        #pan = PanEvents(self.ax)
-        #self.pan_event_list.append(pan)
-        from plottool.interactions import zoom_factory, pan_factory
         self.pan_events = pan_factory(self.ax)
         self.zoon_events = zoom_factory(self.ax)
         ih.connect_callback(self.fig, 'button_press_event', self.on_click)
         ih.connect_callback(self.fig, 'draw_event', self.draw_callback)
-
-        from plottool.abstract_interaction import AbstractInteraction
 
         self.MOUSE_BUTTONS = AbstractInteraction.MOUSE_BUTTONS
         self.setMinimumHeight(20)
@@ -76,25 +78,23 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         self.splitter = self.addNewSplitter(orientation=Qt.Horizontal)
         splitter = self.splitter
-        self.mpl_wgt = MatplotlibWidget(parent=self)
         self.ctrls = splitter.addNewWidget(orientation=Qt.Vertical,
                                            vertical_stretch=1, margin=1,
                                            spacing=1)
-        self.edge_widget = splitter.addNewWidget(orientation=Qt.Vertical,
-                                                 vertical_stretch=1, margin=1,
-                                                 spacing=1)
+
+        graph_tables_widget = splitter.addNewTabWidget(verticalStretch=1)
+        edge_tab = graph_tables_widget.addNewTab('Edges')
+        node_tab = graph_tables_widget.addNewTab('Nodes')
+        self.edge_table = edge_tab.addNewTableWidget()
+        self.node_table = node_tab.addNewTableWidget()
+
+        self.mpl_wgt = MatplotlibWidget(parent=self)
         splitter.addWidget(self.mpl_wgt)
 
-        self.edge_table = QtWidgets.QTableWidget()
-        self.edge_widget.addWidget(self.edge_table)
-
         ctrls = self.ctrls
-        bbar1 = self.bbar1 = ctrls.addNewWidget(orientation=Qt.Vertical,
-                                                margin=1, spacing=1)
-        bbar2 = self.bbar2 = ctrls.addNewWidget(orientation=Qt.Vertical,
-                                                margin=1, spacing=1)
-        bbar3 = self.bbar3 = ctrls.addNewWidget(orientation=Qt.Vertical,
-                                                margin=1, spacing=1)
+        bbar1 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
+        bbar2 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
+        bbar3 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
         def _simple_button3(func, text=None, refresh=True):
             def _simple_onevent():
                 func()
@@ -123,9 +123,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         bbar2.addNewButton('Show Annots', pressed=self.show_selected)
         bbar2.addNewButton('Infer Cut', pressed=self.cut)
 
-        bbar2.addNewCheckBox('Toggle Cuts', changed=self.toggle_cuts,
+        bbar2.addNewCheckBox('Show Cuts', changed=self.toggle_cuts,
                              checked=self.show_cuts)
-        bbar2.addNewCheckBox('Toggle Img', changed=self.toggle_imgs,
+        bbar2.addNewCheckBox('Show Img', changed=self.toggle_imgs,
                              checked=self.use_image)
         self.toggle_pin = bbar2.addNewCheckBox(changed=self.toggle_pin,
                                                checked=False)
