@@ -86,7 +86,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         edge_tab = graph_tables_widget.addNewTab('Edges')
         node_tab = graph_tables_widget.addNewTab('Nodes')
         self.edge_table = edge_tab.addNewTableWidget()
-        self.node_table = node_tab.addNewTableWidget()
+        #self.node_table = node_tab.addNewTableWidget()
+        self.node_api_widget = gt.APIItemWidget()
+        node_tab.addWidget(self.node_api_widget)
 
         self.mpl_wgt = MatplotlibWidget(parent=self)
         splitter.addWidget(self.mpl_wgt)
@@ -144,10 +146,45 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         self.cb = None
         self.mpl_wgt.click_inside_signal.connect(self.on_click_inside)
+        self.populate_node_table()
 
     def reset(self):
         self.infr.initialize_graph()
         self.toggle_pin.setChecked(False)
+
+    def populate_node_table(self):
+        aids = sorted(list(self.infr.graph.nodes()))
+        col_name_list = [
+            'aid',
+            'data',
+            'thumb',
+        ]
+        def get_node_data(aid):
+            data = self.infr.graph.node[aid].copy()
+            ut.delete_dict_keys(data,
+                                ['color', 'framewidth', 'image', 'label',
+                                 'pos', 'shape', 'size', 'height', 'width'])
+            return str(data)
+        col_getter_dict = {
+            'aid': np.array(aids),
+            'data': get_node_data,
+            'thumb': self.infr.ibs.get_annot_chip_thumbtup,
+        }
+        col_ider_dict = {
+            'thumb': 'aid',
+            'data': 'aid',
+        }
+        col_types_dict = {
+            'thumb': 'PIXMAP',
+        }
+        node_api = gt.CustomAPI(col_name_list,
+                                col_ider_dict=col_ider_dict,
+                                col_types_dict=col_types_dict,
+                                col_getter_dict=col_getter_dict,
+                                sortby='aid')
+        headers = node_api.make_headers(tblnice='Simple Example')
+        self.node_api_widget.change_headers(headers)
+        return node_api
 
     def populate_edge_table(self):
         print('Updating saved query table')
