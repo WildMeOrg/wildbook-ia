@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 
-python -m guitool.guitool_components ConfigConfirmWidget --show
-python -m guitool.PrefWidget2 EditConfigWidget --show --verbconf
+CommandLine:
+    python -m guitool.PrefWidget2 EditConfigWidget --show
+    python -m guitool.guitool_components ConfigConfirmWidget --show
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -121,6 +122,29 @@ Notes:
 DELEGATE_BASE = QtWidgets.QItemDelegate
 
 
+#def inject_none_on_delete_event(editor):
+#    def keyPressEvent(self, event):
+#        if event.matches(QtGui.QKeySequence.Delete):
+#            utool.embed()
+#            #self.editingFinished()
+#        #else:
+#        #return super(NoneSpinBox, self).keyPressEvent(event)
+
+
+#class NoneSpinBox(QtWidgets.QSpinBox):
+#    def keyPressEvent(self, event):
+#        if event.matches(QtGui.QKeySequence.Delete):
+#            self.valueChanged.emit(None)
+#            #print('DELETEME')
+#            #print('DELETEME')
+#            #import utool
+#            #utool.embed()
+#            #self.editingFinished()
+#        #else:
+#        return super(NoneSpinBox, self).keyPressEvent(event)
+#    pass
+
+
 class ConfigValueDelegate(DELEGATE_BASE):
     """
     A delegate that decides what the editor should be for each row in a
@@ -214,7 +238,6 @@ class ConfigValueDelegate(DELEGATE_BASE):
             editor = guitool.newComboBox(parent, options, default=curent_value)
             editor.currentIndexChanged['int'].connect(self.currentIndexChanged)
             editor.setAutoFillBackground(True)
-            return editor
         elif leafNode is not None and leafNode.type_ is float:
             editor = QtWidgets.QDoubleSpinBox(parent)
             # TODO: min / max
@@ -224,7 +247,6 @@ class ConfigValueDelegate(DELEGATE_BASE):
             editor.setSingleStep(0.1)
             editor.setAutoFillBackground(True)
             editor.setHidden(False)
-            return editor
         elif leafNode is not None and leafNode.type_ is int:
             # TODO: Find a way for the user to enter a None into int boxes
             editor = QtWidgets.QSpinBox(parent)
@@ -236,13 +258,12 @@ class ConfigValueDelegate(DELEGATE_BASE):
             editor.setSingleStep(1)
             editor.setAutoFillBackground(True)
             editor.setHidden(False)
-            return editor
         else:
             editor = super(ConfigValueDelegate, self).createEditor(parent, option, index)
             editor.setAutoFillBackground(True)
-            return editor
-
-            # return None
+            editor.keyPressEvent
+            #none_ok
+        return editor
 
     def setEditorData(self, editor, index):
         leafNode = index.internalPointer()
@@ -270,8 +291,12 @@ class ConfigValueDelegate(DELEGATE_BASE):
         else:
             return super(ConfigValueDelegate, self).setModelData(editor, model, index)
 
+    #def onKeyPress():
+    #    pass
+
     # @QtCore.pyqtSlot()
     def currentIndexChanged(self, combo_idx):
+        # For combo boxes
         if VERBOSE_CONFIG:
             print('[DELEGATE] Commit Data with combo_idx=%r' % (combo_idx,))
         self.commitData.emit(self.sender())
@@ -281,6 +306,24 @@ class ConfigValueDelegate(DELEGATE_BASE):
             print('[DELEGATE] updateEditorGeometry at %s' % (qindexstr(index)))
         editor.setGeometry(option.rect)
         #return super(ConfigValueDelegate, self).updateEditorGeometry(editor, option, index)
+
+    def editorEvent(self, event, model, option, index):
+        if True and VERBOSE_CONFIG:
+            print('[DELEGATE] editorEvent event=%r with model=%r, option=%r, index=%r' % (event, model, option, index,))
+        return super(ConfigValueDelegate, self).editorEvent(event, model, option, index)
+
+    def eventFilter(self, editor, event):
+        if VERBOSE_CONFIG:
+            print('[DELEGATE] eventFilter editor=%r, event=%r' % (editor, event))
+        #if event.type() == QtCore.QEvent.KeyPress:
+        #    if event.matches(QtGui.QKeySequence.Delete):
+        #        #self.valueChanged.emit(None)
+        #        print('[DELEGATE] DELETE eventFilter editor=%r, event=%r' % (editor, event))
+        #        return True
+        handled =  super(ConfigValueDelegate, self).eventFilter(editor, event)
+        if VERBOSE_CONFIG:
+            print('handled = %r' % (handled,))
+        return handled
 
     #def editorChanged(self, index):
     #    check = self.editor.itemText(index)

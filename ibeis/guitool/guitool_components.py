@@ -68,7 +68,7 @@ def newTabWidget(parent, horizontalStretch=1, verticalStretch=1):
 
     def addNewTab(self, name):
         tab = QtWidgets.QTabWidget()
-        self.addTab(tab, name)
+        self.addTab(tab, str(name))
         tab.setLayout(QtWidgets.QVBoxLayout())
         # tab.setSizePolicy(*cfg_size_policy)
         _inject_new_widget_methods(tab)
@@ -803,24 +803,15 @@ def newFrame(*args, **kwargs):
     return widget
 
 
-def newWidget(parent=None, *args, **kwargs):
-    r"""
-    Args:
-        parent (QWidget):
-        orientation (Orientation): (default = 2)
-        verticalSizePolicy (Policy): (default = 7)
-        horizontalSizePolicy (Policy): (default = 7)
-        verticalStretch (int): (default = 1)
-
-    Returns:
-        GuitoolWidget: widget
-    """
-    widget = GuitoolWidget(parent, *args, **kwargs)
-    return widget
-
-
 def _inject_new_widget_methods(self):
-    """ helper for guitool widgets """
+    """
+    helper for guitool widgets
+
+    adds the addNewXXX functions to the widget.
+    Bypasses having to set layouts. Can simply add widgets to other widgets.
+    Layouts are specified in the addNew constructors.
+    As such, this is less flexible, but quicker to get started.
+    """
     import guitool as gt
     from guitool import PrefWidget2
     # Creates addNewWidget and newWidget
@@ -854,7 +845,8 @@ def _inject_new_widget_methods(self):
         'Widget', 'Button', 'LineEdit', 'ComboBox', 'Label', 'Spoiler',
         'CheckBox',
         'Frame', 'Splitter', 'TabWidget', 'ProgressBar',
-        ('EditConfigWidget', PrefWidget2.EditConfigWidget)
+        ('EditConfigWidget', PrefWidget2.EditConfigWidget),
+        ('TableWidget', QtWidgets.QTableWidget),
     ]
     for guitype in guitype_list:
         if isinstance(guitype, tuple):
@@ -891,6 +883,22 @@ def _inject_new_widget_methods(self):
     #     ... etc
 
 
+def newWidget(parent=None, *args, **kwargs):
+    r"""
+    Args:
+        parent (QWidget):
+        orientation (Orientation): (default = 2)
+        verticalSizePolicy (Policy): (default = 7)
+        horizontalSizePolicy (Policy): (default = 7)
+        verticalStretch (int): (default = 1)
+
+    Returns:
+        GuitoolWidget: widget
+    """
+    widget = GuitoolWidget(parent, *args, **kwargs)
+    return widget
+
+
 #class GuitoolWidget(QtWidgets.QWidget):
 class GuitoolWidget(WIDGET_BASE):
     """
@@ -922,8 +930,16 @@ class GuitoolWidget(WIDGET_BASE):
                  verticalSizePolicy=QtWidgets.QSizePolicy.Expanding,
                  horizontalSizePolicy=QtWidgets.QSizePolicy.Expanding,
                  verticalStretch=0, spacing=None, margin=None, name=None,
+                 ori=None,
                  **kwargs):
         super(GuitoolWidget, self).__init__(parent)
+
+        if ori is not None:
+            orientation = ori
+        if orientation == 'vert':
+            orientation = Qt.Vertical
+        elif orientation == 'horiz':
+            orientation = Qt.Horizontal
 
         if name is not None:
             self.setObjectName(name)
