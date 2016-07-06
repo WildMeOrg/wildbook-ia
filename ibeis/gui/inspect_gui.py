@@ -1261,7 +1261,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         'qaid',
         'aid',
         'rank',
-        'hourdiff',
+        'timedist',
         'd_nGt',
         'q_nGt',
         'qname',
@@ -1273,7 +1273,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         ('aid',        int),
         ('d_nGt',      int),
         ('q_nGt',      int),
-        ('hourdiff',   float),
+        ('timedist',   float),
         #('review',     'BUTTON'),
         (MATCHED_STATUS_TEXT, str),
         (REVIEWED_STATUS_TEXT, str),
@@ -1287,16 +1287,16 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         ('opt',        int),
         ('result_index',  int),
     ])
-    hourdiffs_list = np.array(ut.take_column(ibs.get_unflat_annots_hourdists_list(list(zip(qaids, daids))), 0))
+    timedist_list = np.array(ut.take_column(ibs.get_unflat_annots_timedist_list(list(zip(qaids, daids))), 0))
     # TODO: make a display role
-    #timediff_list = [ut.get_posix_timedelta_str(t, year=True, approx=True) for t in (hourdiffs_list * 60 * 60)]
+    #timediff_list = [ut.get_posix_timedelta_str(t, year=True, approx=True) for t in (timedist_list * 60 * 60)]
 
     col_getter_dict = dict([
         ('qaid',       np.array(qaids)),
         ('aid',        np.array(daids)),
         ('d_nGt',      ibs.get_annot_num_groundtruth),
         ('q_nGt',      ibs.get_annot_num_groundtruth),
-        ('hourdiff', np.array(hourdiffs_list)),
+        ('timedist', np.array(timedist_list)),
         #('review',     lambda rowid: get_buttontup),
         (MATCHED_STATUS_TEXT,  partial(get_match_status, ibs)),
         (REVIEWED_STATUS_TEXT,  partial(get_reviewed_status, ibs)),
@@ -1323,7 +1323,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         'qname': 60,
         'name': 60,
         'd_nGt': 42,
-        'hourdiff': 42,
+        'timedist': 75,
         'q_nGt': 42,
     }
 
@@ -1401,12 +1401,24 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     def get_thumb_size():
         return ibs.cfg.other_cfg.thumb_size
 
+    col_display_role_func_dict = {
+        'timedist': ut.partial(ut.get_posix_timedelta_str, year=True, approx=2),
+    }
+
     # Insert info into dict
-    qres_api = guitool.CustomAPI(col_name_list, col_types_dict,
-                                 col_getter_dict, col_bgrole_dict,
-                                 col_ider_dict, col_setter_dict,
-                                 editable_colnames, sortby, get_thumb_size,
-                                 True, col_width_dict)
+    qres_api = guitool.CustomAPI(
+        col_name_list=col_name_list,
+        col_types_dict=col_types_dict,
+        col_getter_dict=col_getter_dict,
+        col_bgrole_dict=col_bgrole_dict,
+        col_ider_dict=col_ider_dict,
+        col_setter_dict=col_setter_dict,
+        editable_colnames=editable_colnames,
+        col_display_role_func_dict=col_display_role_func_dict,
+        sortby=sortby,
+        get_thumb_size=get_thumb_size,
+        sort_reverse=True,
+        col_width_dict=col_width_dict)
     #qres_api.candidate_matches = candidate_matches
     return qres_api
 
