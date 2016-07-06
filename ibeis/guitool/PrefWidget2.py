@@ -166,7 +166,7 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
                 value = self.type_(text)
             else:
                 raise ValueError('unknown self.type_=%r' % (self.type_,))
-        print(' * return value = %r' % (value,))
+        #print(' * return value = %r' % (value,))
         return value
 
     def textFromValue(self, value):
@@ -182,7 +182,7 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
             else:
                 raise ValueError('unknown self.type_=%r' % (self.type_,))
                 #return super(NoneSpinBox, self).textFromValue(value)
-        print(' * return text = %r' % (text,))
+        #print(' * return text = %r' % (text,))
         return text
 
 
