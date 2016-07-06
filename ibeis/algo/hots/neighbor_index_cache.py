@@ -166,7 +166,11 @@ def get_nnindexer_uuid_map_fpath(qreq_):
     flann_cfgstr    = qreq_.qparams.flann_cfgstr
     feat_cfgstr     = qreq_.qparams.feat_cfgstr
     chip_cfgstr     = qreq_.qparams.chip_cfgstr
-    uuid_map_cfgstr = ''.join((flann_cfgstr, feat_cfgstr, chip_cfgstr))
+    featweight_cfgstr = qreq_.qparams.featweight_cfgstr
+    if qreq_.qparams.fgw_thresh is None or qreq_.qparams.fgw_thresh == 0:
+        uuid_map_cfgstr = ''.join((flann_cfgstr, feat_cfgstr, chip_cfgstr))
+    else:
+        uuid_map_cfgstr = ''.join((flann_cfgstr, featweight_cfgstr, feat_cfgstr, chip_cfgstr))
     #uuid_map_ext    = '.shelf'
     uuid_map_ext    = '.cPkl'
     uuid_map_prefix = 'uuid_map'

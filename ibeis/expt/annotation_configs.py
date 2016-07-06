@@ -52,7 +52,9 @@ SAMPLE_DEFAULTS_PARAM_INFO = [
     ut.ParamInfo('sample_per_name', None, type_=int, min_=0,
                  help_='Take this many annots per name'),
     ut.ParamInfo('sample_rule', 'random', valid_values=['random', 'mintime', 'maxtime'],
-                 help_='Method of samping from names')
+                 help_='Method of samping from names'),
+    ut.ParamInfo('sample_seed', 0, type_=int, none_ok=True,
+                 help_='Random seed for sampling from names'),
 ]
 
 SUBINDEX_DEFAULTS_PARAM_INFO = [

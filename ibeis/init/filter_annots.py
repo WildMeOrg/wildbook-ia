@@ -1482,7 +1482,8 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         # For the database we have to do something different
         grouped_aids = ibs.group_annots_by_name(avail_aids)[0]
         # Order based on some preference (like random)
-        rng = np.random.RandomState(SEED1)
+        sample_seed = get_cfg('sample_seed')
+        rng = np.random.RandomState(sample_seed)
         # + --- Get nested sample indicies ---
         if sample_rule == 'random':
             preference_idxs_list = [
