@@ -459,10 +459,12 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     feat_cfgstr    = qreq_.qparams.feat_cfgstr
     flann_cfgstr   = qreq_.qparams.flann_cfgstr
     single_name_condition   = qreq_.qparams.single_name_condition
+    assert single_name_condition is False, 'can not be on yet'
     aug_cfgstr = ('aug_quryside' if qreq_.qparams.augment_queryside_hack
                   else '')
     nn_mid_cacheid = ''.join([data_hashid, nn_cfgstr, chip_cfgstr, feat_cfgstr,
                               flann_cfgstr, aug_cfgstr])
+    print('nn_mid_cacheid = %r' % (nn_mid_cacheid,))
 
     if single_name_condition:
         query_hashid_list = qreq_.ibs.get_annot_semantic_uuids(internal_qaids)
