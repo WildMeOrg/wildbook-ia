@@ -406,15 +406,22 @@ class QueryResultsWidget(APIItemWidget):
         bottom_bar.layout().setMargin(0)
         #import utool
         #utool.embed()
+        import guitool as gt
+        lbl.setMinimumSize(0, 0)
+        lbl.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Ignored)
+        #lbl.setSizePolicy(gt.newSizePolicy())
+
         qres_wgt.layout().addWidget(bottom_bar)
         bottom_bar.addWidget(lbl)
-        bottom_bar.addNewButton('Mark all above as correct', clicked=qres_wgt.mark_unreviewed_above_score_as_correct)
-        bottom_bar.addNewButton('Hide Reviewed', clicked=qres_wgt.hide_reviewed)
+        bottom_bar.addNewButton('Mark all above as correct', pressed=qres_wgt.mark_unreviewed_above_score_as_correct)
+        bottom_bar.addNewButton('Hide Reviewed', pressed=qres_wgt.hide_reviewed)
 
         qres_wgt.name_scoring = name_scoring
         qres_wgt.cm_list = cm_list
         qres_wgt.qreq_ = qreq_
         qres_wgt.kwargs = kwargs
+
+        qres_wgt.setSizePolicy(gt.newSizePolicy())
 
         qres_wgt.set_query_results(ibs, cm_list, name_scoring=name_scoring,
                                    qreq_=qreq_, **kwargs)
@@ -1225,6 +1232,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     (qaids, daids, scores, ranks) = candidate_matches
 
     RES_THUMB_TEXT = 'ResThumb'  # NOQA
+    QUERY_THUMB_TEXT = 'querythumb'
     MATCH_THUMB_TEXT = 'MatchThumb'
 
     col_name_list = [
@@ -1232,11 +1240,13 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         'score',
         REVIEWED_STATUS_TEXT,
         MATCHED_STATUS_TEXT,
-        # 'querythumb',
-        # RES_THUMB_TEXT,
+        QUERY_THUMB_TEXT,
+        RES_THUMB_TEXT,
         'qaid',
         'aid',
         'rank',
+        'd_nGt',
+        'q_nGt',
         'qname',
         'name',
     ]
@@ -1244,12 +1254,12 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     col_types_dict = dict([
         ('qaid',       int),
         ('aid',        int),
-        #('d_nGt',      int),
-        #('q_nGt',      int),
+        ('d_nGt',      int),
+        ('q_nGt',      int),
         #('review',     'BUTTON'),
         (MATCHED_STATUS_TEXT, str),
         (REVIEWED_STATUS_TEXT, str),
-        ('querythumb', 'PIXMAP'),
+        (QUERY_THUMB_TEXT, 'PIXMAP'),
         (RES_THUMB_TEXT,   'PIXMAP'),
         ('qname',      str),
         ('name',       str),
@@ -1263,12 +1273,12 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     col_getter_dict = dict([
         ('qaid',       np.array(qaids)),
         ('aid',        np.array(daids)),
-        #('d_nGt',      ibs.get_annot_num_groundtruth),
-        #('q_nGt',      ibs.get_annot_num_groundtruth),
+        ('d_nGt',      ibs.get_annot_num_groundtruth),
+        ('q_nGt',      ibs.get_annot_num_groundtruth),
         #('review',     lambda rowid: get_buttontup),
         (MATCHED_STATUS_TEXT,  partial(get_match_status, ibs)),
         (REVIEWED_STATUS_TEXT,  partial(get_reviewed_status, ibs)),
-        ('querythumb', ibs.get_annot_chip_thumbtup),
+        (QUERY_THUMB_TEXT, ibs.get_annot_chip_thumbtup),
         (RES_THUMB_TEXT,   ibs.get_annot_chip_thumbtup),
         ('qname',      ibs.get_annot_names),
         ('name',       ibs.get_annot_names),
@@ -1290,6 +1300,8 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         'result_index': 42,
         'qname': 60,
         'name': 60,
+        'd_nGt': 42,
+        'q_nGt': 42,
     }
 
     USE_MATCH_THUMBS = 1
@@ -1348,9 +1360,9 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     col_ider_dict = {
         MATCHED_STATUS_TEXT     : ('qaid', 'aid'),
         REVIEWED_STATUS_TEXT    : ('qaid', 'aid'),
-        #'d_nGt'      : ('aid'),
-        #'q_nGt'      : ('qaid'),
-        'querythumb' : ('qaid'),
+        QUERY_THUMB_TEXT : ('qaid'),
+        'd_nGt'      : ('aid'),
+        'q_nGt'      : ('qaid'),
         'ResThumb'   : ('aid'),
         'qname'      : ('qaid'),
         'name'       : ('aid'),
