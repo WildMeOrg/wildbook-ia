@@ -592,9 +592,12 @@ class QueryResultsWidget(APIItemWidget):
                 logger=qres_wgt.logger, update_callback=update_callback,
                 backend_callback=backend_callback)
 
-            option_dict = {key[key.find('&') + 1]: val for key, val in options
-                           if '&' in key}
+            def make_option_dict(options):
+                option_dict = {key[key.find('&') + 1]: val for key, val in options
+                               if '&' in key}
+                return option_dict
             #print('option_dict = %s' % (ut.repr3(option_dict, nl=2),))
+            option_dict = make_option_dict(options)
 
             event_key = event.key()
             if event_key == QtCore.Qt.Key_R:
@@ -606,6 +609,19 @@ class QueryResultsWidget(APIItemWidget):
             elif event_key == QtCore.Qt.Key_F:
                 # set_annot_pair_as_negative_match_
                 option_dict['F']()
+            elif event_key == QtCore.Qt.Key_P:
+                # Mark as photobomb
+                pair_options = option_dict['g']
+                pair_option_dict = make_option_dict(pair_options)
+                pair_option_dict['P']()
+            elif event_key == QtCore.Qt.Key_4:
+                annot1_options_dict = make_option_dict(option_dict['1'])
+                qual1_options_dict = make_option_dict(annot1_options_dict['Q'])
+                qual1_options_dict['4']()
+            elif event_key == QtCore.Qt.Key_8:
+                annot1_options_dict = make_option_dict(option_dict['2'])
+                qual1_options_dict = make_option_dict(annot1_options_dict['Q'])
+                qual1_options_dict['4']()
             ## BROKEN FOR NOW
             #elif event_key == QtCore.Qt.Key_S:
             #    option_dict['S']()
