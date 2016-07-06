@@ -434,9 +434,16 @@ class QConfigModel(QAbstractItemModel):
             return QVariantHack()
         # Specify CheckState Role:
         flags = self.flags(qtindex)
+        #if role == Qt.CheckStateRole and (flags & Qt.ItemIsUserCheckable or flags & Qt.ItemIsTristate):
         if role == Qt.CheckStateRole and flags & Qt.ItemIsUserCheckable:
             data = self.index2Pref(qtindex).qt_get_data(qtindex.column())
-            return Qt.Checked if data else Qt.Unchecked
+            data_to_state = {
+                True: Qt.Checked, 'True': Qt.Checked,
+                None: Qt.PartiallyChecked, 'None': Qt.PartiallyChecked,
+                False: Qt.Unchecked, 'False': Qt.Unchecked,
+            }
+            state = data_to_state[data]
+            return state
         #elif role == QtCore.Qt.SizeHintRole:
         #    #return QtCore.QSize(40, 30)
         #    return QVariantHack()
@@ -458,7 +465,9 @@ class QConfigModel(QAbstractItemModel):
         if role == Qt.EditRole:
             data = value
         elif role == Qt.CheckStateRole:
-            data = (value == Qt.Checked)
+            state_to_data = {Qt.Checked: True, Qt.PartiallyChecked: None,
+                             Qt.Unchecked: False}
+            data = state_to_data[value]
         else:
             return False
         if VERBOSE_CONFIG:
@@ -472,10 +481,8 @@ class QConfigModel(QAbstractItemModel):
             print('[setData] type(value) = %r' % type(value))
         result = leafPref.qt_set_data(data)
         if VERBOSE_CONFIG:
-            if result:
-                print('[setData] Notified of acceptance')
-            else:
-                print('[setData] Notified of rejection')
+            print('[setData] Notified of %s' %
+                  ('acceptance' if result else 'rejection'))
         self.dataChanged.emit(qtindex, qtindex)
         if VERBOSE_CONFIG:
             print('[setData] --- FINISH setData() ---')
@@ -527,6 +534,9 @@ class QConfigModel(QAbstractItemModel):
             if childPref and childPref.qt_is_editable():
                 if childPref.is_checkable():
                     flags = Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
+                    #flags = Qt.ItemIsEnabled | Qt.ItemIsTristate | Qt.ItemIsUserCheckable
+                    #flags |= Qt.ItemIsSelectable
+                    #flags = Qt.ItemIsEnabled | Qt.ItemIsTristate
                 else:
                     flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
             else:
@@ -825,8 +835,8 @@ class ConfigNodeWrapper(ut.NiceRepr):
         if column == 0:
             return self.name
         data = self.value
-        if data is None:
-            data = 'None'
+        #if data is None:
+        #    data = 'None'
         return data
 
     def qt_set_data(self, qvar):
@@ -886,6 +896,7 @@ class EditConfigWidget(QtWidgets.QWidget):
         >>>         ut.ParamInfo('none_combo_option', None, valid_values=[None, True, False]),
         >>>         ut.ParamInfo('combo_option', 'up', valid_values=['up', 'down', 'strange', 'charm', 'top', 'bottom']),
         >>>         ut.ParamInfo('bool_option', False),
+        >>>         ut.ParamInfo('bool_option2', None, type_=bool),
         >>>         ut.ParamInfo('hidden_str', 'foobar', hideif=lambda cfg: not cfg['bool_option']),
         >>>         ut.ParamInfo('hidden_combo', 'one', valid_values=['oneA', 'twoB', 'threeC'], hideif=lambda cfg: not cfg['bool_option']),
         >>>     ]
@@ -896,6 +907,7 @@ class EditConfigWidget(QtWidgets.QWidget):
         >>> fig_presenter.register_qt4_win(widget)
         >>> widget.show()
         >>> ut.quit_if_noshow()
+        >>> widget.resize(400, 500)
         >>> guitool.qtapp_loop(qwin=widget, freq=10)
     """
     data_changed = QtCore.pyqtSignal()
