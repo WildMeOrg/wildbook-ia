@@ -60,7 +60,7 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
     """
     Custom spin box that handles None / nan values
     """
-    _EXP = 8
+    _EXP = 29
     HARD_MIN = float(-2 ** _EXP) - 1.0
     HARD_MAX = float(2 ** _EXP) + 1.0
     NONE_VALUE = HARD_MIN + 1.0
