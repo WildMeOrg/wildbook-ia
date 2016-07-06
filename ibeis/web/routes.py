@@ -203,8 +203,8 @@ def view():
 
     valid_aids = ibs.get_valid_aids()
     valid_gids = ibs.get_valid_gids()
-    valid_aids_ = ibs.filter_aids_custom(valid_aids)
-    valid_gids_ = ibs.filter_gids_custom(valid_gids)
+    valid_aids_ = (valid_aids)
+    valid_gids_ = (valid_gids)
     used_gids = list(set( ibs.get_annot_gids(valid_aids) ))
     used_contrib_tags = list(set( ibs.get_image_contributor_tag(used_gids) ))
 

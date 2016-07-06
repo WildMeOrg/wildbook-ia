@@ -13,7 +13,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from functools import partial
 from guitool import (qtype, APIItemWidget, APIItemModel, FilterProxyModel,
                      ChangeLayoutContext)
-from guitool.__PYQT__ import QtGui, QtCore
+from guitool.__PYQT__ import QtCore
+from guitool.__PYQT__ import QtGui  # NOQA
+from guitool.__PYQT__ import QtWidgets  # NOQA
 from ibeis.other import ibsfuncs
 #from ibeis.viz import interact
 from ibeis.viz import viz_helpers as vh
@@ -162,6 +164,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
     with_review_options = True
 
     from ibeis.viz import viz_graph
+    from ibeis.viz import viz_graph2
     if with_review_options:
         options += [
             ('Mark as &Reviewed',
@@ -182,7 +185,10 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
                  ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)),
             ('Interact Name Graph',
              partial(viz_graph.make_name_graph_interaction,
-                     ibs, aids=aid_list2, selected_aids=aid_list2))
+                     ibs, aids=aid_list2, selected_aids=aid_list2)),
+            ('Interact Name Graph 2',
+             partial(viz_graph2.make_qt_graph_interface,
+                     ibs, aids=aid_list2)),
         ]
 
     with_vsone = True
@@ -229,7 +235,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
 
     with_match_tags = True
     if with_match_tags:
-        annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(
+        annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey(
             [aid1], [aid2])[0]
 
         if annotmatch_rowid is None:
@@ -257,7 +263,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             if ut.VERBOSE:
                 print('[SETTING] Clicked set prop=%r to val=%r' %
                       (prop, toggle_val,))
-            am_rowid = ibs.add_annotmatch([aid1], [aid2])[0]
+            am_rowid = ibs.add_annotmatch_undirected([aid1], [aid2])[0]
             if ut.VERBOSE:
                 print('[SETTING] aid1, aid2 = %r, %r' % (aid1, aid2,))
                 print('[SETTING] annotmatch_rowid = %r' % (am_rowid,))
@@ -378,7 +384,7 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.OLD_CLICK_BEHAVIOR = False
 
         #qres_wgt.altkey_shortcut =
-        #QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ALT), qres_wgt,
+        #QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.ALT), qres_wgt,
         #                qres_wgt.on_alt_pressed,
         #                context=QtCore..Qt.WidgetShortcut)
         qres_wgt.button_list = None
@@ -391,16 +397,31 @@ class QueryResultsWidget(APIItemWidget):
             qres_wgt.add_checkboxes(qres_wgt.show_new, qres_wgt.show_join,
                                     qres_wgt.show_split)
 
-        lbl = QtGui.QLabel('\'T\' marks as correct match. \'F\' marks as incorrect match. Alt brings up context menu. Double click a row to inspect matches.')
+        lbl = QtWidgets.QLabel('\'T\' marks as correct match. \'F\' marks as incorrect match. Alt brings up context menu. Double click a row to inspect matches.')
         from guitool.__PYQT__.QtCore import Qt
         qres_wgt.layout().setSpacing(0)
-        bottom_bar = guitool.newFrame(qres_wgt, orientation=Qt.Horizontal)
+        qres_wgt.layout().setMargin(0)
+        bottom_bar = guitool.newWidget(qres_wgt, orientation=Qt.Horizontal, spacing=0, margin=0)
         bottom_bar.layout().setSpacing(0)
+        bottom_bar.layout().setMargin(0)
         #import utool
         #utool.embed()
+        import guitool as gt
+        lbl.setMinimumSize(0, 0)
+        lbl.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Ignored)
+        #lbl.setSizePolicy(gt.newSizePolicy())
+
         qres_wgt.layout().addWidget(bottom_bar)
         bottom_bar.addWidget(lbl)
-        bottom_bar.addNewButton('Mark all above as correct', clicked=qres_wgt.mark_unreviewed_above_score_as_correct)
+        bottom_bar.addNewButton('Mark all above as correct', pressed=qres_wgt.mark_unreviewed_above_score_as_correct)
+        bottom_bar.addNewButton('Hide Reviewed', pressed=qres_wgt.hide_reviewed)
+
+        qres_wgt.name_scoring = name_scoring
+        qres_wgt.cm_list = cm_list
+        qres_wgt.qreq_ = qreq_
+        qres_wgt.kwargs = kwargs
+
+        qres_wgt.setSizePolicy(gt.newSizePolicy())
 
         qres_wgt.set_query_results(ibs, cm_list, name_scoring=name_scoring,
                                    qreq_=qreq_, **kwargs)
@@ -429,7 +450,7 @@ class QueryResultsWidget(APIItemWidget):
 
         # LOG ALL CHANGES MADE TO NAMES
         import logging
-        ut.vd(review_log_dir)
+        # ut.vd(review_log_dir)
         # create logger with 'spam_application'
         logger = logging.getLogger('query_review')
         logger.setLevel(logging.DEBUG)
@@ -456,7 +477,7 @@ class QueryResultsWidget(APIItemWidget):
                           qreq_=None, **kwargs):
         print('[qres_wgt] set_query_results()')
         tblnice = 'Query Results: ' + kwargs.get('query_title', '')
-        ut.util_dict.delete_dict_keys(kwargs, ['query_title'])
+        ut.delete_dict_keys(kwargs, ['query_title'])
 
         qres_wgt.ibs = ibs
         qres_wgt.qaid2_cm = dict([(cm.qaid, cm) for cm in cm_list])
@@ -481,7 +502,10 @@ class QueryResultsWidget(APIItemWidget):
         horizontal_header = qres_wgt.view.horizontalHeader()
         for col, width in six.iteritems(qres_wgt.qres_api.col_width_dict):
             #horizontal_header.defaultSectionSize()
-            index = qres_wgt.qres_api.col_name_list.index(col)
+            try:
+                index = qres_wgt.qres_api.col_name_list.index(col)
+            except ValueError:
+                pass
             horizontal_header.resizeSection(index, width)
 
     @guitool.slot_()
@@ -568,9 +592,12 @@ class QueryResultsWidget(APIItemWidget):
                 logger=qres_wgt.logger, update_callback=update_callback,
                 backend_callback=backend_callback)
 
-            option_dict = {key[key.find('&') + 1]: val for key, val in options
-                           if '&' in key}
+            def make_option_dict(options):
+                option_dict = {key[key.find('&') + 1]: val for key, val in options
+                               if '&' in key}
+                return option_dict
             #print('option_dict = %s' % (ut.repr3(option_dict, nl=2),))
+            option_dict = make_option_dict(options)
 
             event_key = event.key()
             if event_key == QtCore.Qt.Key_R:
@@ -582,6 +609,19 @@ class QueryResultsWidget(APIItemWidget):
             elif event_key == QtCore.Qt.Key_F:
                 # set_annot_pair_as_negative_match_
                 option_dict['F']()
+            elif event_key == QtCore.Qt.Key_P:
+                # Mark as photobomb
+                pair_options = option_dict['g']
+                pair_option_dict = make_option_dict(pair_options)
+                pair_option_dict['P']()
+            elif event_key == QtCore.Qt.Key_K:
+                annot1_options_dict = make_option_dict(option_dict['1'])
+                qual1_options_dict = make_option_dict(annot1_options_dict['Q'])
+                qual1_options_dict['4']()
+            elif event_key == QtCore.Qt.Key_L:
+                annot1_options_dict = make_option_dict(option_dict['2'])
+                qual1_options_dict = make_option_dict(annot1_options_dict['Q'])
+                qual1_options_dict['4']()
             ## BROKEN FOR NOW
             #elif event_key == QtCore.Qt.Key_S:
             #    option_dict['S']()
@@ -637,7 +677,7 @@ class QueryResultsWidget(APIItemWidget):
     def get_annotmatch_rowid_from_qtindex(qres_wgt, qtindex):
         qaid, daid = qres_wgt.get_aidpair_from_qtindex(qtindex)
         ibs = qres_wgt.ibs
-        annotmatch_rowid_list = ibs.add_annotmatch([qaid], [daid])
+        annotmatch_rowid_list = ibs.add_annotmatch_undirected([qaid], [daid])
         return annotmatch_rowid_list
 
     def show_match_at_qtindex(qres_wgt, qtindex):
@@ -649,37 +689,46 @@ class QueryResultsWidget(APIItemWidget):
         fig = match_interaction.fig
         fig_presenter.bring_to_front(fig)
 
+    def hide_reviewed(qres_wgt):
+        print('hide_reviewed')
+        # Really just reloads the widget
+        qreq_ = qres_wgt.qreq_
+        qres_wgt.set_query_results(qreq_.ibs, qres_wgt.cm_list,
+                                   name_scoring=qres_wgt.name_scoring,
+                                   qreq_=qres_wgt.qreq_, **qres_wgt.kwargs)
+
     def mark_unreviewed_above_score_as_correct(qres_wgt):
         selected_qtindex_list = qres_wgt.selectedRows()
         if len(selected_qtindex_list) == 1:
             qtindex = selected_qtindex_list[0]
-            aid1, aid2 = qres_wgt.get_aidpair_from_qtindex(qtindex)
+            #aid1, aid2 = qres_wgt.get_aidpair_from_qtindex(qtindex)
             thresh  = qtindex.model().get_header_data('score', qtindex)
             print('thresh = %r' % (thresh,))
 
             rows = qres_wgt.qres_api.ider()
             scores_ = qres_wgt.qres_api.get(qres_wgt.qres_api.col_name_list.index('score'), rows)
             valid_rows = ut.compress(rows, scores_ >= thresh)
-            aid1 = qres_wgt.qres_api.get(qres_wgt.qres_api.col_name_list.index('qaid'), valid_rows)
-            aid2 = qres_wgt.qres_api.get(qres_wgt.qres_api.col_name_list.index('aid'), valid_rows)
+            aids1 = qres_wgt.qres_api.get(qres_wgt.qres_api.col_name_list.index('qaid'), valid_rows)
+            aids2 = qres_wgt.qres_api.get(qres_wgt.qres_api.col_name_list.index('aid'), valid_rows)
             #ibs = qres_wgt.ibs
             ibs = qres_wgt.ibs
-            am_rowids = ibs.get_annotmatch_rowid_from_superkey(aid1, aid2)
+            am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
             reviewed = ibs.get_annotmatch_reviewed(am_rowids)
             unreviewed = ut.not_list(reviewed)
 
             valid_rows = ut.compress(valid_rows, unreviewed)
-            aid1 = ut.compress(aid1, unreviewed)
-            aid2 = ut.compress(aid2, unreviewed)
+            aids1 = ut.compress(aids1, unreviewed)
+            aids2 = ut.compress(aids2, unreviewed)
 
             import networkx as nx
             graph = nx.Graph()
-            graph.add_edges_from(list(zip(aid1, aid2)), {'user_thresh_match': True})
+            graph.add_edges_from(list(zip(aids1, aids2)), {'user_thresh_match': True})
             review_groups = list(nx.connected_component_subgraphs(graph))
 
             changing_aids = list(graph.nodes())
             nids = ibs.get_annot_nids(changing_aids)
-            for nid, aids in ut.group_items(changing_aids, nids).items():
+            nid2_aids = ut.group_items(changing_aids, nids)
+            for nid, aids in nid2_aids.items():
                 # Connect all original names in the database to denote merges
                 for u, v in ut.itertwo(aids):
                     graph.add_edge(u, v)
@@ -689,13 +738,14 @@ class QueryResultsWidget(APIItemWidget):
                 'Accept',
                 #'Review More'
             ]
-
-            reply = guitool.user_option(msg=ut.codeblock(
+            msg = ut.codeblock(
                 '''
-                This will group %d annotations into %d groups within the matching interface.
-                This will induce a database grouping of %d names.
-                ''') % (len(changing_aids), len(review_groups), len(dbside_groups))
-                , options=options)
+                There are %d names and %d annotations in this mass review set.
+                Mass review has discovered %d internal groups.
+                Accepting will induce a database grouping of %d names.
+                ''') % (len(nid2_aids), len(changing_aids), len(review_groups), len(dbside_groups))
+
+            reply = guitool.user_option(msg=msg, options=options)
 
             if reply == options[0]:
                 # This is not the smartest way to group names.
@@ -703,9 +753,10 @@ class QueryResultsWidget(APIItemWidget):
                 # the new graph name inference algorithm.
                 # then the chosen point will be used as the threshold. Then
                 # the graph cut algorithm will be applied.
-                log = qres_wgt.logger.info
-                log('START MASS_THRESHOLD_MERGE')
-                log('num_groups=%d thresh=%r' % (
+                logger = qres_wgt.logger
+                logger.debug(msg)
+                logger.info('START MASS_THRESHOLD_MERGE')
+                logger.info('num_groups=%d thresh=%r' % (
                     len(dbside_groups), thresh,))
                 for count, subgraph in enumerate(dbside_groups):
                     thresh_aid_pairs = [
@@ -734,17 +785,27 @@ class QueryResultsWidget(APIItemWidget):
 
                     merge_name = ibs.get_name_texts(merge_nid)
                     annot_uuids = ibs.get_annot_uuids(aids)
-                    log('START GROUP %d' % (count,))
-                    log('GROUP BASED ON %d ANNOT_PAIRS WITH SCORE ABOVE (thresh=%r)' % (thresh,))
-                    log('(uuid_pairs=%r)' % (len(thresh_uuid_pairs), thresh_uuid_pairs))
-                    log('CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)' % (
+                    ###
+                    # Set as reviewed (so we dont see them again), but mark it
+                    # with a different code to denote that it was a MASS review
+                    aid1_list = ut.take_column(thresh_aid_pairs, 0)
+                    aid2_list = ut.take_column(thresh_aid_pairs, 1)
+                    am_rowids = ibs.add_annotmatch_undirected(aid1_list, aid2_list)
+                    MASS_REVIEW_CODE = 2
+                    ibs.set_annotmatch_reviewed(am_rowids, [MASS_REVIEW_CODE] * len(am_rowids))
+
+                    logger.info('START GROUP %d' % (count,))
+                    logger.info('GROUP BASED ON %d ANNOT_PAIRS WITH SCORE ABOVE (thresh=%r)' % (len(thresh_uuid_pairs), thresh,))
+                    logger.debug('(uuid_pairs=%r)' % (thresh_uuid_pairs))
+                    logger.debug('(merge_name=%r)' % (merge_name))
+                    logger.debug('CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)' % (
                         len(annot_uuids), annot_uuids, previous_names, type_, merge_name))
-                    log('ADDITIONAL CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)' % (
+                    logger.debug('ADDITIONAL CHANGE NAME OF %d (annot_uuids=%r) WITH (previous_names=%r) TO (%s) (merge_name=%r)' % (
                         len(other_auuids), other_auuids, other_previous_names, type_, merge_name))
-                    log('END GROUP %d' % (count,))
+                    logger.info('END GROUP %d' % (count,))
                     new_nids = [merge_nid] * len(aids)
                     ibs.set_annot_name_rowids(aids, new_nids)
-                log('END MASS_THRESHOLD_MERGE')
+                logger.info('END MASS_THRESHOLD_MERGE')
 
             #ibs.get_annotmatch_truth(am_rowids)
         else:
@@ -798,7 +859,8 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
         raise guiexcept.NeedsUserInput('non-trivial split')
     try:
         status = ibs.set_annot_pair_as_negative_match(
-            aid1, aid2, on_nontrivial_split=on_nontrivial_split, logger=kwargs.get('logger', None)
+            aid1, aid2, on_nontrivial_split=on_nontrivial_split,
+            logger=kwargs.get('logger', None)
         )
         print('status = %r' % (status,))
     except guiexcept.NeedsUserInput:
@@ -821,8 +883,9 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
                 log = print
             annot_uuid_pair = ibs.get_annot_uuids((aid1, aid2))
             log('FLAG SplitCase: (annot_uuid_pair=%r)' % annot_uuid_pair)
-            am_rowid = ibs.add_annotmatch([aid1], [aid2])[0]
+            am_rowid = ibs.add_annotmatch_undirected([aid1], [aid2])[0]
             ibs.set_annotmatch_prop(prop, [am_rowid], [True])
+            ibs.set_annotmatch_truth([am_rowid], [ibs.const.TRUTH_NOT_MATCH])
         elif reply == options[1]:
             review_match(ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)
     except guiexcept.UserCancel:
@@ -870,7 +933,15 @@ def get_reviewed_status(ibs, aid_pair):
     assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
     #text  = ibsfuncs.vsstr(aid1, aid2)
     annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
-    return 'Yes' if annotmach_reviewed else 'No'
+    if annotmach_reviewed is None:
+        text = 'Unreviewed'
+    elif annotmach_reviewed == 2:
+        text = 'Auto-reviewed'
+    elif annotmach_reviewed == 1:
+        text = 'User-reviewed'
+    else:
+        text = '??? unknown mode %r' % (annotmach_reviewed,)
+    return text
     #text = ibs.get_match_text(aid1, aid2)
     #if text is None:
     #    raise AssertionError('impossible state inspect_gui')
@@ -893,7 +964,12 @@ def get_reviewed_status_bgrole(ibs, aid_pair):
     annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
     #truth = ibs.get_annot_pair_truth([aid1], [aid2])[0]
     #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
-    lighten_amount = .35 if annotmach_reviewed else .9
+    if annotmach_reviewed == 0 or annotmach_reviewed is None:
+        lighten_amount = .9
+    elif annotmach_reviewed == 2:
+        lighten_amount = .7
+    else:
+        lighten_amount = .35
     truth_color = vh.get_truth_color(truth, base255=True,
                                      lighten_amount=lighten_amount)
     #truth = ibs.get_match_truth(aid1, aid2)
@@ -941,7 +1017,8 @@ def ensure_match_img(ibs, cm, daid, qreq_=None, match_thumbtup_cache={}):
         >>> daid = cm.get_top_aids()[0]
         >>> match_thumbtup_cache = {}
         >>> # execute function
-        >>> match_thumb_fpath_ = ensure_match_img(qreq_.ibs, cm, daid, qreq_, match_thumbtup_cache)
+        >>> match_thumb_fpath_ = ensure_match_img(qreq_.ibs, cm, daid, qreq_,
+        >>>                                       match_thumbtup_cache)
         >>> # verify results
         >>> result = str(match_thumb_fpath_)
         >>> print(result)
@@ -1096,7 +1173,8 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
         if check_func is not None and check_func():
             return
         savekw = {
-            'dpi' : 60,
+            # 'dpi' : 60,
+            'dpi' : 80,
         }
         axes_extents = pt.extract_axes_extents(fig)
         #assert len(axes_extents) == 1, 'more than one axes'
@@ -1169,7 +1247,8 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     # Get extra info
     (qaids, daids, scores, ranks) = candidate_matches
 
-    RES_THUMB_TEXT = 'ResThumb'
+    RES_THUMB_TEXT = 'ResThumb'  # NOQA
+    QUERY_THUMB_TEXT = 'querythumb'
     MATCH_THUMB_TEXT = 'MatchThumb'
 
     col_name_list = [
@@ -1177,11 +1256,14 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         'score',
         REVIEWED_STATUS_TEXT,
         MATCHED_STATUS_TEXT,
-        'querythumb',
+        QUERY_THUMB_TEXT,
         RES_THUMB_TEXT,
         'qaid',
         'aid',
         'rank',
+        'timedist',
+        'd_nGt',
+        'q_nGt',
         'qname',
         'name',
     ]
@@ -1189,12 +1271,13 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     col_types_dict = dict([
         ('qaid',       int),
         ('aid',        int),
-        #('d_nGt',      int),
-        #('q_nGt',      int),
+        ('d_nGt',      int),
+        ('q_nGt',      int),
+        ('timedist',   float),
         #('review',     'BUTTON'),
         (MATCHED_STATUS_TEXT, str),
         (REVIEWED_STATUS_TEXT, str),
-        ('querythumb', 'PIXMAP'),
+        (QUERY_THUMB_TEXT, 'PIXMAP'),
         (RES_THUMB_TEXT,   'PIXMAP'),
         ('qname',      str),
         ('name',       str),
@@ -1204,16 +1287,20 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         ('opt',        int),
         ('result_index',  int),
     ])
+    timedist_list = np.array(ut.take_column(ibs.get_unflat_annots_timedist_list(list(zip(qaids, daids))), 0))
+    # TODO: make a display role
+    #timediff_list = [ut.get_posix_timedelta_str(t, year=True, approx=True) for t in (timedist_list * 60 * 60)]
 
     col_getter_dict = dict([
         ('qaid',       np.array(qaids)),
         ('aid',        np.array(daids)),
-        #('d_nGt',      ibs.get_annot_num_groundtruth),
-        #('q_nGt',      ibs.get_annot_num_groundtruth),
+        ('d_nGt',      ibs.get_annot_num_groundtruth),
+        ('q_nGt',      ibs.get_annot_num_groundtruth),
+        ('timedist', np.array(timedist_list)),
         #('review',     lambda rowid: get_buttontup),
         (MATCHED_STATUS_TEXT,  partial(get_match_status, ibs)),
         (REVIEWED_STATUS_TEXT,  partial(get_reviewed_status, ibs)),
-        ('querythumb', ibs.get_annot_chip_thumbtup),
+        (QUERY_THUMB_TEXT, ibs.get_annot_chip_thumbtup),
         (RES_THUMB_TEXT,   ibs.get_annot_chip_thumbtup),
         ('qname',      ibs.get_annot_names),
         ('name',       ibs.get_annot_names),
@@ -1235,6 +1322,9 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         'result_index': 42,
         'qname': 60,
         'name': 60,
+        'd_nGt': 42,
+        'timedist': 75,
+        'q_nGt': 42,
     }
 
     USE_MATCH_THUMBS = 1
@@ -1274,7 +1364,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
                 }
                 return thumbdat
 
-        col_name_list.insert(col_name_list.index(RES_THUMB_TEXT) + 1,
+        col_name_list.insert(col_name_list.index('qaid'),
                              MATCH_THUMB_TEXT)
         col_types_dict[MATCH_THUMB_TEXT] = 'PIXMAP'
         #col_types_dict[MATCH_THUMB_TEXT] = CustomMatchThumbDelegate
@@ -1293,9 +1383,9 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     col_ider_dict = {
         MATCHED_STATUS_TEXT     : ('qaid', 'aid'),
         REVIEWED_STATUS_TEXT    : ('qaid', 'aid'),
-        #'d_nGt'      : ('aid'),
-        #'q_nGt'      : ('qaid'),
-        'querythumb' : ('qaid'),
+        QUERY_THUMB_TEXT : ('qaid'),
+        'd_nGt'      : ('aid'),
+        'q_nGt'      : ('qaid'),
         'ResThumb'   : ('aid'),
         'qname'      : ('qaid'),
         'name'       : ('aid'),
@@ -1306,63 +1396,29 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     }
     editable_colnames =  ['truth', 'notes', 'qname', 'name', 'opt']
 
-    USE_BOOLS = False
-    if USE_BOOLS:
-        # DEPRICATED use tag funcs
-        boolean_annotmatch_columns = [
-            'is_hard',
-            'is_nondistinct',
-            'is_scenerymatch',
-            'is_photobomb',
-        ]
-
-        def make_annotmatch_boolean_getter_wrapper(ibs, colname):
-            colname_getter = getattr(ibs, 'get_annotmatch_' + colname)
-            def getter_wrapper(aidpair):
-                qaid, daid = aidpair
-                annotmatch_rowid_list = ibs.add_annotmatch([qaid], [daid])
-                value_list = colname_getter(annotmatch_rowid_list)
-                value = value_list[0]
-                return value if value is not None else False
-            ut.set_funcname(getter_wrapper, 'getter_wrapper_' + colname)
-            return getter_wrapper
-
-        def make_annotmatch_boolean_setter_wrapper(ibs, colname):
-            colname_setter = getattr(ibs, 'set_annotmatch_' + colname)
-            def setter_wrapper(aidpair, value):
-                qaid, daid = aidpair
-                annotmatch_rowid_list = ibs.add_annotmatch([qaid], [daid])
-                value_list = [value]
-                return colname_setter(annotmatch_rowid_list, value_list)
-            ut.set_funcname(setter_wrapper, 'setter_wrapper_' + colname)
-            return setter_wrapper
-
-        for colname in boolean_annotmatch_columns:
-            #annotmatch_rowid_list = ibs.add_annotmatch(qaids, daids)
-            #col_name_list.append(colname)
-            col_name_list.insert(col_name_list.index('qname'), colname)
-            #rank
-            #col_ider_dict[colname] = annotmatch_rowid_list
-            col_ider_dict[colname] = ('qaid', 'aid')
-            col_types_dict[colname] = bool
-            col_getter_dict[colname] = make_annotmatch_boolean_getter_wrapper(
-                ibs, colname)
-            col_setter_dict[colname] = make_annotmatch_boolean_setter_wrapper(
-                ibs, colname)
-            col_width_dict[colname] = 70
-            editable_colnames.append(colname)
-
     sortby = 'score'
 
     def get_thumb_size():
         return ibs.cfg.other_cfg.thumb_size
 
+    col_display_role_func_dict = {
+        'timedist': ut.partial(ut.get_posix_timedelta_str, year=True, approx=2),
+    }
+
     # Insert info into dict
-    qres_api = guitool.CustomAPI(col_name_list, col_types_dict,
-                                 col_getter_dict, col_bgrole_dict,
-                                 col_ider_dict, col_setter_dict,
-                                 editable_colnames, sortby, get_thumb_size,
-                                 True, col_width_dict)
+    qres_api = guitool.CustomAPI(
+        col_name_list=col_name_list,
+        col_types_dict=col_types_dict,
+        col_getter_dict=col_getter_dict,
+        col_bgrole_dict=col_bgrole_dict,
+        col_ider_dict=col_ider_dict,
+        col_setter_dict=col_setter_dict,
+        editable_colnames=editable_colnames,
+        col_display_role_func_dict=col_display_role_func_dict,
+        sortby=sortby,
+        get_thumb_size=get_thumb_size,
+        sort_reverse=True,
+        col_width_dict=col_width_dict)
     #qres_api.candidate_matches = candidate_matches
     return qres_api
 
@@ -1574,7 +1630,7 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
     return candidate_matches
 
 
-def test_inspect_matches(ibs, qaid_list, daid_list):
+def test_inspect_matches(qreq_):
     """
 
     Args:
@@ -1587,7 +1643,7 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
 
     CommandLine:
         python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show
-        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show --nodelete
+        python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show --fresh-inspect
         python -m ibeis.gui.inspect_gui --test-test_inspect_matches --cmd
 
     Example:
@@ -1595,14 +1651,13 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
         >>> import guitool
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> assert ibs.dbname in ['PZ_MTEST', 'testdb1'], 'do not use on a real database'
-        >>> qaid_list = ibs.get_valid_aids()  #[0:5]
-        >>> daid_list = ibs.get_valid_aids()  # [0:20]
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default:qindex=0:5,dindex=0:20', t='default:SV=False,AQH=True')
+        >>> assert qreq_.ibs.dbname in ['PZ_MTEST', 'testdb1'], 'do not use on a real database'
+        >>> ibs = qreq_.ibs
         >>> if ut.get_argflag('--fresh-inspect'):
         >>>     #ut.remove_files_in_dir(ibs.get_match_thumbdir())
         >>>     ibs.delete_annotmatch(ibs._get_all_annotmatch_rowids())
-        >>> main_locals = test_inspect_matches(ibs, qaid_list, daid_list)
+        >>> main_locals = test_inspect_matches(qreq_)
         >>> main_execstr = ibeis.main_loop(main_locals)
         >>> ut.quit_if_noshow()
         >>> # TODO: add in qwin to main loop
@@ -1611,8 +1666,8 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
         >>> exec(main_execstr)
     """
     from ibeis.gui import inspect_gui
-    qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict={
-        'sv_on': False, 'augment_queryside_hack': True})
+    # qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict={
+    #     'sv_on': False, 'augment_queryside_hack': True})
     cm_list = qreq_.execute()
     tblname = ''
     name_scoring = False
@@ -1622,8 +1677,8 @@ def test_inspect_matches(ibs, qaid_list, daid_list):
     print('[inspect_matches] make_qres_widget')
     #ut.view_directory(ibs.get_match_thumbdir())
     qres_wgt = inspect_gui.QueryResultsWidget(
-        ibs, cm_list, ranks_lt=ranks_lt, qreq_=qreq_, filter_reviewed=False,
-        filter_duplicate_namepair_matches=False)
+        qreq_.ibs, cm_list, ranks_lt=ranks_lt, qreq_=qreq_,
+        filter_reviewed=True, filter_duplicate_namepair_matches=False)
     print('[inspect_matches] show')
     qres_wgt.show()
     print('[inspect_matches] raise')

@@ -20,8 +20,8 @@ VERBOSE = utool.get_flag(('--verbose', '--verbose-front', '--vf'))
 
 UID_TYPE = rowidtables.UID_TYPE
 ENC_TYPE = str  # imagesets are ided with imagesettext right now
-QUTF8      = QtGui.QApplication.UnicodeUTF8
-QTRANSLATE = QtGui.QApplication.translate
+QUTF8      = QtWidgets.QApplication.UnicodeUTF8
+QTRANSLATE = QtWidgets.QApplication.translate
 
 #=================
 # Decorators / Helpers
@@ -34,7 +34,7 @@ def rowid_tbl_clicked(func):
     This extract the row, column, and table and passes that instead.
     Also provies debugging prints
     """
-    @slot_(QtGui.QTableWidgetItem)
+    @slot_(QtWidgets.QTableWidgetItem)
     @functools.wraps(func)
     def clicked_wrapper(front, item):
         if front.isItemEditable(item):
@@ -58,7 +58,7 @@ def rowid_tbl_changed(func):
     This extract the row, column, and table and passes that instead.
     Also provies debugging prints
     """
-    @slot_(QtGui.QTableWidgetItem)
+    @slot_(QtWidgets.QTableWidgetItem)
     @functools.wraps(func)
     def changed_wrapper(front, item):
         front._prev_tbl_item = item
@@ -112,7 +112,7 @@ def update_tabwidget_text(front, tblname, text, imagesettext=''):
     tabTable.setTabText(index, tab_text)
 
 
-class MainWindowFrontend(QtGui.QMainWindow):
+class MainWindowFrontend(QtWidgets.QMainWindow):
     printSignal      = signal_(str)
     raiseExceptionSignal = signal_(Exception)
     quitSignal       = signal_()
@@ -284,7 +284,7 @@ class MainWindowFrontend(QtGui.QMainWindow):
         col = rowidtables.table_headers[tblname].index(header)
         return tbl.item(row, col).text()
 
-    @slot_(QtGui.QTableWidgetItem)
+    @slot_(QtWidgets.QTableWidgetItem)
     def rowid_tbl_pressed(front, item):
         """ Keeps track of item state: if text or check value is changed """
         #front.print('')

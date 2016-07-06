@@ -165,22 +165,22 @@ class ImageSetModelSQL(APIItemModel):
         return str(result_list[0])
 
 
-class ImageView(QtGui.QTableView):
+class ImageView(QtWidgets.QTableView):
     def __init__(view, parent=None):
-        QtGui.QTableView.__init__(view, parent)
+        QtWidgets.QTableView.__init__(view, parent)
         view.setSortingEnabled(True)
         vh = view.verticalHeader()
         vh.setVisible(False)
-        view.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         view.resizeColumnsToContents()
 
     def _change_imageset(view, imageset_id):
         view.model()._change_imageset(imageset_id)
 
 
-class ImageSetView(QtGui.QTableView):
+class ImageSetView(QtWidgets.QTableView):
     def __init__(view, parent=None):
-        QtGui.QTableView.__init__(view, parent)
+        QtWidgets.QTableView.__init__(view, parent)
         view.setSortingEnabled(True)
         vh = view.verticalHeader()
         vh.setVisible(False)
@@ -193,9 +193,9 @@ class ImageSetView(QtGui.QTableView):
         view.parent()._add_imageset_tab(imageset_id, imageset_name)
 
 
-class TabWidget(QtGui.QTabWidget):
+class TabWidget(QtWidgets.QTabWidget):
     def __init__(widget, parent=None):
-        QtGui.QTabWidget.__init__(widget, parent)
+        QtWidgets.QTabWidget.__init__(widget, parent)
         widget.setTabsClosable(True)
         if sys.platform.startswith('darwin'):
             tab_height = 21
@@ -225,7 +225,7 @@ class TabWidget(QtGui.QTabWidget):
     def _add_imageset_tab(widget, imageset_id, imageset_name):
         if imageset_id not in widget.imageset_id_list:
             tab_name = str(imageset_id) + ' - ' + str(imageset_name)
-            widget.addTab(QtGui.QWidget(), tab_name)
+            widget.addTab(QtWidgets.QWidget(), tab_name)
 
             widget.imageset_id_list.append(imageset_id)
             index = len(widget.imageset_id_list) - 1
@@ -241,11 +241,11 @@ class TabWidget(QtGui.QTabWidget):
                 widget.setTabText(index, imageset_name)
 
 
-class DummyWidget(QtGui.QWidget):
+class DummyWidget(QtWidgets.QWidget):
     ''' Test Main Window '''
     def __init__(widget, parent=None):
-        QtGui.QWidget.__init__(widget, parent)
-        widget.vlayout = QtGui.QVBoxLayout(widget)
+        QtWidgets.QWidget.__init__(widget, parent)
+        widget.vlayout = QtWidgets.QVBoxLayout(widget)
 
         col_name_list, col_type_list, col_edit_list, col_nice_list, db = create_databse()
         widget._image_model = ImageModelSQL(col_name_list, col_type_list, col_edit_list, col_nice_list, db, parent=widget)
@@ -256,7 +256,7 @@ class DummyWidget(QtGui.QWidget):
         col_type_list = [str, int]
         col_edit_list = [True, False]
 
-        #splitter = QtGui.QSplitter(centralwidget)
+        #splitter = QtWidgets.QSplitter(centralwidget)
         #splitter.setOrientation(QtCore.Qt.Vertical)
 
         widget._imageset_model = ImageSetModelSQL(col_name_list, col_type_list, col_edit_list, db, parent=widget)
@@ -287,7 +287,7 @@ if __name__ == '__main__':
         print('Caught ctrl+c')
         sys.exit(0)
     signal.signal(signal.SIGINT, _on_ctrl_c)
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     widget = DummyWidget()
     widget.show()
     widget.timer = guitool.ping_python_interpreter()

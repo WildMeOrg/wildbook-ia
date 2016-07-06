@@ -38,7 +38,7 @@ def setup_dummy_menus():
     #import unittest
     import guitool
     guitool.ensure_qapp()  # must be ensured before any embeding
-    mainwin = guitool.QtGui.QMainWindow()
+    mainwin = guitool.QtWidgets.QMainWindow()
     back = DummyBack()
     import mock
     mainwin.expand_names_tree = mock.Mock
@@ -137,6 +137,10 @@ def setup_view_menu(mainwin, back):
         text='Toggle Thumbnails',
         slot_fn=back.toggle_thumbnails)
     menu.newAction(
+        name='toggleOutput',
+        text='Toggle Output Log',
+        slot_fn=back.toggle_output_widget)
+    menu.newAction(
         name='actionLayout_Figures',
         text='Layout Figures',
         tooltip='Organizes windows in a grid',
@@ -188,6 +192,12 @@ def setup_actions_menu(mainwin, back):
             ''')
     )
     menu.addSeparator()  # ---------
+    menu.newAction(
+        name='actionAdvancedID',
+        text='Advanced ID Interface',
+        slot_fn=back.show_advanced_id_interface,
+        shortcut='Ctrl+G',
+    )
     menu.newAction(
         name='actionRunMergeChecks',
         text='Run Merge Checks (Exemplars vs Exemplars)',

@@ -202,7 +202,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
     elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
         if qreq_.prog_hook is not None:
-            qreq_.prog_hook.initialize_subhooks(4)
+            qreq_.prog_hook.initialize_subhooks(5)
 
         #qreq_.lazy_load(verbose=(verbose and ut.NOT_QUIET))
         qreq_.lazy_preload(verbose=(verbose and ut.NOT_QUIET))
@@ -430,12 +430,12 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         >>> result = result1 + '\n' + result2
         >>> print(result)
         nn_mid_cacheid_list1 = [
-            '8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,width)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
-            'a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,width)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
+            'nnobj_8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,width)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
+            'nnobj_a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,width)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
         ]
         nn_mid_cacheid_list2 = [
-            '8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,width)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
-            'a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,width)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
+            'nnobj_8687dcb6-1f1f-fdd3-8b72-8f36f9f41905_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,width)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
+            'nnobj_a2aef668-20c1-1897-d8f3-09a47a73f26a_DVUUIDS((5)oavtblnlrtocnrpm)_NN(single,cks800)_Chip(sz700,width)_Feat(hesaff+sift)_FLANN(8_kdtrees)_truek6',
         ]
 
     """
@@ -459,10 +459,12 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     feat_cfgstr    = qreq_.qparams.feat_cfgstr
     flann_cfgstr   = qreq_.qparams.flann_cfgstr
     single_name_condition   = qreq_.qparams.single_name_condition
+    assert single_name_condition is False, 'can not be on yet'
     aug_cfgstr = ('aug_quryside' if qreq_.qparams.augment_queryside_hack
                   else '')
     nn_mid_cacheid = ''.join([data_hashid, nn_cfgstr, chip_cfgstr, feat_cfgstr,
                               flann_cfgstr, aug_cfgstr])
+    print('nn_mid_cacheid = %r' % (nn_mid_cacheid,))
 
     if single_name_condition:
         query_hashid_list = qreq_.ibs.get_annot_semantic_uuids(internal_qaids)
@@ -507,15 +509,28 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, single_name_
     qvecs_list = qreq_.ibs.get_annot_vecs(
         internal_qaids, config2_=config2_)
 
+    qfxs_list = [np.arange(len(qvecs)) for qvecs in qvecs_list]
+
+    if config2_.minscale_thresh is not None or config2_.maxscale_thresh is not None:
+        min_ = -np.inf if config2_.minscale_thresh is None else config2_.minscale_thresh
+        max_ = np.inf if config2_.maxscale_thresh is None else config2_.maxscale_thresh
+        qkpts_list = qreq_.ibs.get_annot_kpts(internal_qaids, config2_=config2_)
+        qkpts_list = vt.ziptake(qkpts_list, qfxs_list, axis=0)
+        # kpts_list = vt.ziptake(kpts_list, fxs_list, axis=0)  # not needed for first filter
+        scales_list = [vt.get_scales(kpts) for kpts in qkpts_list]
+        # Remove data under the threshold
+        flags_list = [np.logical_and(scales >= min_, scales <= max_) for scales in scales_list]
+        qvecs_list = vt.zipcompress(qvecs_list, flags_list, axis=0)
+        qfxs_list = vt.zipcompress(qfxs_list, flags_list, axis=0)
+
     if config2_.fgw_thresh is not None:
         qfgw_list = qreq_.ibs.get_annot_fgweights(
             internal_qaids, config2_=config2_)
+        qfgw_list = vt.ziptake(qfgw_list, qfxs_list, axis=0)
         fgw_thresh = config2_.fgw_thresh
         flags_list = [fgws >= fgw_thresh for fgws in qfgw_list]
-        qfxs_list = [np.where(flags)[0] for flags in flags_list]
+        qfxs_list = vt.zipcompress(qfxs_list, flags_list, axis=0)
         qvecs_list = vt.zipcompress(qvecs_list, flags_list, axis=0)
-    else:
-        qfxs_list = [np.arange(len(qvecs)) for qvecs in qvecs_list]
 
     if verbose:
         if len(internal_qaids) == 1:
@@ -578,7 +593,10 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     if verbose:
         print('[hs] Step 1) Assign nearest neighbors: %s' %
               (qreq_.qparams.nn_cfgstr,))
-    qreq_.load_indexer(verbose=verbose)
+
+    prog_hook = (None if qreq_.prog_hook is None else
+                 qreq_.prog_hook.next_subhook())
+    qreq_.load_indexer(verbose=verbose, prog_hook=prog_hook)
     # For each internal query annotation
     # Find the nearest neighbors of each descriptor vector
     #USE_NN_MID_CACHE = ut.is_developer()

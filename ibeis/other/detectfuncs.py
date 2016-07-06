@@ -18,11 +18,6 @@ import numpy as np
 import vtool as vt
 import utool as ut
 import cv2
-try:
-    from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
-except ImportError as ex:
-    ut.printex('COMMIT TO DETECTTOOLS')
-    pass
 from ibeis.control import controller_inject
 from ibeis import annotmatch_funcs  # NOQA
 
@@ -39,6 +34,11 @@ CLASS_INJECT_KEY, register_ibs_method = (
 def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=False):
     import random
     from datetime import date
+    # try:
+    from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
+    # except ImportError as:
+    #     ut.printex('COMMIT TO DETECTTOOLS')
+    #     pass
 
     current_year = int(date.today().year)
     # target_size = 900

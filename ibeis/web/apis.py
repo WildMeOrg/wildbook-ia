@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function
 from os.path import join, exists
 import zipfile
 import time
-import cStringIO as StringIO
+from six.moves import cStringIO as StringIO
 from flask import request, current_app, send_file
 from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf

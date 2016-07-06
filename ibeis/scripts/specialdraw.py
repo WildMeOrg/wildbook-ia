@@ -809,9 +809,7 @@ def intraoccurrence_connected():
         nx.set_edge_attributes(graph, 'taillabel', {e: str(e[0]) for e in graph.edges()})
         nx.set_edge_attributes(graph, 'headlabel', {e: str(e[1]) for e in graph.edges()})
 
-    explicit_graph = pt.get_explicit_graph(graph)
-    _, layout_info = pt.nx_agraph_layout(explicit_graph, orig_graph=graph,
-                                         inplace=True, **layoutkw)
+    _, layout_info = pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
     if ut.get_argflag('--smaller'):
         graph.node[7660]['pos'] = np.array([550, 350])

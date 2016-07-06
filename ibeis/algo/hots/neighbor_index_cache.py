@@ -166,7 +166,11 @@ def get_nnindexer_uuid_map_fpath(qreq_):
     flann_cfgstr    = qreq_.qparams.flann_cfgstr
     feat_cfgstr     = qreq_.qparams.feat_cfgstr
     chip_cfgstr     = qreq_.qparams.chip_cfgstr
-    uuid_map_cfgstr = ''.join((flann_cfgstr, feat_cfgstr, chip_cfgstr))
+    featweight_cfgstr = qreq_.qparams.featweight_cfgstr
+    if qreq_.qparams.fgw_thresh is None or qreq_.qparams.fgw_thresh == 0:
+        uuid_map_cfgstr = ''.join((flann_cfgstr, feat_cfgstr, chip_cfgstr))
+    else:
+        uuid_map_cfgstr = ''.join((flann_cfgstr, featweight_cfgstr, feat_cfgstr, chip_cfgstr))
     #uuid_map_ext    = '.shelf'
     uuid_map_ext    = '.cPkl'
     uuid_map_prefix = 'uuid_map'
@@ -263,7 +267,7 @@ def print_uuid_cache(qreq_):
     print(candidate_uuids)
 
 
-def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True, force_rebuild=False):
+def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True, force_rebuild=False, prog_hook=None):
     """
     CALLED BY QUERYREQUST::LOAD_INDEXER
     IBEIS interface into neighbor_index_cache
@@ -295,7 +299,8 @@ def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True, force_rebuil
         nnindexer = request_memcached_ibeis_nnindexer(qreq_, daid_list,
                                                       verbose=verbose,
                                                       use_memcache=use_memcache,
-                                                      force_rebuild=force_rebuild)
+                                                      force_rebuild=force_rebuild,
+                                                      prog_hook=prog_hook)
     return nnindexer
 
 
@@ -413,7 +418,8 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
 def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
                                       verbose=ut.NOT_QUIET, veryverbose=False,
                                       force_rebuild=False,
-                                      allow_memfallback=True, memtrack=None):
+                                      allow_memfallback=True, memtrack=None,
+                                      prog_hook=None):
     r"""
     FOR INTERNAL USE ONLY
     takes custom daid list. might not be the same as what is in qreq_
@@ -459,7 +465,7 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
         # Write to inverse uuid
         nnindexer = request_diskcached_ibeis_nnindexer(
             qreq_, daid_list, nnindex_cfgstr, verbose,
-            force_rebuild=force_rebuild, memtrack=memtrack)
+            force_rebuild=force_rebuild, memtrack=memtrack, prog_hook=None)
         NEIGHBOR_CACHE_WRITE = True
         if NEIGHBOR_CACHE_WRITE:
             # Write to memcache
@@ -472,7 +478,9 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
     return nnindexer
 
 
-def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, verbose=True, force_rebuild=False, memtrack=None):
+def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None,
+                                       verbose=True, force_rebuild=False,
+                                       memtrack=None, prog_hook=None):
     r"""
     builds new NeighborIndexer which will try to use a disk cached flann if
     available
@@ -514,14 +522,17 @@ def request_diskcached_ibeis_nnindexer(qreq_, daid_list, nnindex_cfgstr=None, ve
     #if memtrack is not None:
     #    memtrack.report('[PRE SUPPORT]')
     # Get annot descriptors to index
-    print('[nnindex] Loading support data to build diskcached indexer')
+    if prog_hook is not None:
+        prog_hook.set_progress(1, 3, 'Loading support data for indexer')
+    print('[nnindex] Loading support data for indexer')
     vecs_list, fgws_list, fxs_list = get_support_data(qreq_, daid_list)
     if memtrack is not None:
         memtrack.report('[AFTER GET SUPPORT DATA]')
     try:
         nnindexer = new_neighbor_index(
             daid_list, vecs_list, fgws_list, fxs_list, flann_params, cachedir,
-            cfgstr=cfgstr, verbose=verbose, force_rebuild=force_rebuild, memtrack=memtrack)
+            cfgstr=cfgstr, verbose=verbose, force_rebuild=force_rebuild,
+            memtrack=memtrack, prog_hook=prog_hook)
     except Exception as ex:
         ut.printex(ex, True, msg_='cannot build inverted index',
                         key_list=['ibs.get_infostr()'])
@@ -601,7 +612,8 @@ def get_data_cfgstr(ibs, daid_list):
 
 
 def new_neighbor_index(daid_list, vecs_list, fgws_list, fxs_list, flann_params, cachedir,
-                       cfgstr, force_rebuild=False, verbose=True, memtrack=None):
+                       cfgstr, force_rebuild=False, verbose=True,
+                       memtrack=None, prog_hook=None):
     r"""
     constructs neighbor index independent of ibeis
 
@@ -646,7 +658,9 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, fxs_list, flann_params, 
     if memtrack is not None:
         memtrack.report('AFTER INIT SUPPORT')
     # Load or build the indexing structure
-    nnindexer.ensure_indexer(cachedir, verbose=verbose, force_rebuild=force_rebuild, memtrack=memtrack)
+    nnindexer.ensure_indexer(cachedir, verbose=verbose,
+                             force_rebuild=force_rebuild, memtrack=memtrack,
+                             prog_hook=prog_hook)
     if memtrack is not None:
         memtrack.report('AFTER LOAD OR BUILD')
     return nnindexer

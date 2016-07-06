@@ -401,6 +401,12 @@ class MatchInteraction(object):
         desc2 = ibs.get_annot_vecs([self.daid], config2_=self.data_config2_)[0]
         kp1, kp2     = kpts1[fx1], kpts2[fx2]
         sift1, sift2 = desc1[fx1], desc2[fx2]
+        import vtool as vt
+        kp1_scale = vt.get_scales(kp1)
+        print('kp1_scale = %r' % (kp1_scale,))
+        kp2_scale = vt.get_scales(kp2)
+        print('kp2_scale = %r' % (kp2_scale,))
+
         info1 = '\nquery'
         info2 = '\nk=%r fscore=%r' % (fk2, fscore2)
         #last_state.last_fx = fx1

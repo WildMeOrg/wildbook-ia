@@ -133,7 +133,7 @@ def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
     aids2 = ut.get_list_column(aid_pairs, 1)
 
     if only_reviewed_matches:
-        annotmatch_rowids = ibs.get_annotmatch_rowid_from_superkey(aids1, aids2)
+        annotmatch_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
         annotmatch_rowids = ut.filter_Nones(annotmatch_rowids)
         aids1 = ibs.get_annotmatch_aid1(annotmatch_rowids)
         aids2 = ibs.get_annotmatch_aid2(annotmatch_rowids)
@@ -368,7 +368,7 @@ class InferenceConfig(dtool.Config):
 
 class AnnotGraphInteraction(AbstractInteraction):
     def __init__(self, infr, selected_aids=[],
-                 use_image=True, temp_nids=None):
+                 use_image=False, temp_nids=None):
         super(AnnotGraphInteraction, self).__init__()
         self.infr = infr
         self.selected_aids = selected_aids
@@ -486,7 +486,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         import guitool
         guitool.ensure_qtapp()
         from guitool import PrefWidget2
-        self.widget = PrefWidget2.newConfigWidget(self.config)
+        self.widget = PrefWidget2.EditConfigWidget(config=self.config)
         self.widget.show()
         #dlg = guitool.ConfigConfirmWidget.as_dialog(None,
         #                                            title='Confirm Import Images',
@@ -607,17 +607,13 @@ class AnnotGraphInteraction(AbstractInteraction):
         node = self.aid2_node[aid]
         frame = self.plotinfo['patch_frame_dict'][node]
         framewidth = self.infr.graph.node[node]['framewidth']
-        def fix_color(color):
-            if isinstance(color, six.string_types) and color.startswith('#'):
-                import matplotlib.colors as colors
-                color = colors.hex2color(color[0:7])
-            return color
         if color is True:
             color = pt.ORANGE
         if color is None:
             color = pt.DARK_BLUE
             color = self.infr.graph.node[node]['color']
-            color = fix_color(color)
+            #color = fix_color(color)
+            color = pt.fix_hex_color(color)
             frame.set_linewidth(framewidth)
         else:
             frame.set_linewidth(framewidth * 2)
@@ -653,9 +649,9 @@ class AnnotGraphInteraction(AbstractInteraction):
         if len(self.selected_aids) == 2:
             ibs = self.infr.ibs
             aid1, aid2 = self.selected_aids
-            _rowid = ibs.get_annotmatch_rowid_from_superkey([aid1], [aid2])
+            _rowid = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])
             if _rowid is None:
-                _rowid = ibs.get_annotmatch_rowid_from_superkey([aid2], [aid1])
+                _rowid = ibs.get_annotmatch_rowid_from_undirected_superkey([aid2], [aid1])
             rowid = _rowid  # NOQA
 
     @ut.debug_function_exceptions
@@ -733,7 +729,7 @@ class AnnotGraphInteraction(AbstractInteraction):
 
 def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                                 with_all=True, invis_edges=None,
-                                ensure_edges=None, use_image=True,
+                                ensure_edges=None, use_image=False,
                                 temp_nids=None, **kwargs):
     """
     CommandLine:
@@ -787,6 +783,13 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
     if ut.get_argflag('--cut'):
         infr.apply_all()
 
+    #import guitool as gt
+    #gt.ensure_qtapp()
+    #print('infr = %r' % (infr,))
+    #win = test_qt_graphs(infr=infr, use_image=use_image)
+    #self = win
+    #gt.qtapp_loop(qwin=win, freq=10)
+
     self = AnnotGraphInteraction(infr, selected_aids=selected_aids,
                                  use_image=use_image)
     self.show_page()
@@ -829,7 +832,7 @@ def test_web_graphs(self, infr):
 
 def test_with_qt():
     import sys
-    from PyQt4 import QtCore, QtGui, QtWebKit
+    from PyQt4 import QtCore, QtWebKit, QtWidgets
     from os.path import join, dirname
     import ibeis.viz
 
@@ -844,7 +847,7 @@ def test_with_qt():
             #frame = self.page().mainFrame()
             #print(unicode(frame.toHtml()).encode('utf-8'))
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     view = Browser()
     view.show()

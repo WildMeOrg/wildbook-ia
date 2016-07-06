@@ -22,15 +22,6 @@ ALIAS_KEYS = {
     'excluderef': 'exclude_reference',
 }
 
-OTHER_DEFAULTS = {
-    # forces a consistnet sample size across combinations
-    'force_const_size'    : None,
-    #'hack_extra' : None,  # hack param to make bigger db sizes
-    #'hack_imageset': None,
-    # Hack out errors in test data
-    'hackerrors'    : True,
-    'joinme'    : None,
-}
 
 INDEPENDENT_DEFAULTS_PARAM_INFO = [
     ut.ParamInfo('reviewed', None, valid_values=[True, False, None]),
@@ -41,8 +32,44 @@ INDEPENDENT_DEFAULTS_PARAM_INFO = [
     ut.ParamInfo('view', None),  # TODO: allow for lists
     ut.ParamInfo('require_quality', None, valid_values=[True, False, None]),
     ut.ParamInfo('require_viewpoint', None, valid_values=[True, False, None]),
+    ut.ParamInfo('is_exemplar', None, valid_values=[True, False, None]),
+    ut.ParamInfo('min_pername_global', None, type_=int, min_=0,
+                 help_='Keep annot if it has at least this many global names'),
+    ut.ParamInfo('max_pername_global', None, type_=int, min_=0,
+                 help_='Keep annot if it has at most this many global names'),
     #ut.ParamInfo('view', None),
 ]
+
+
+INTRAGROUP_DEFAULTS_PARAM_INFO = [
+    ut.ParamInfo('min_pername', None, type_=int, min_=0,
+                 help_='Keeps names with at least this number of aids within the group'),
+    ut.ParamInfo('max_pername', None, type_=int, min_=0,
+                 help_='Keeps names with at most this number of aids within the group'),
+]
+
+SAMPLE_DEFAULTS_PARAM_INFO = [
+    ut.ParamInfo('sample_per_name', None, type_=int, min_=0,
+                 help_='Take this many annots per name'),
+    ut.ParamInfo('sample_rule', 'random', valid_values=['random', 'mintime', 'maxtime'],
+                 help_='Method of samping from names'),
+    ut.ParamInfo('sample_seed', 0, type_=int, none_ok=True,
+                 help_='Random seed for sampling from names'),
+]
+
+SUBINDEX_DEFAULTS_PARAM_INFO = [
+    ut.ParamInfo('index', None),
+]
+
+OTHER_DEFAULTS = {
+    # forces a consistnet sample size across combinations
+    'force_const_size'    : None,
+    #'hack_extra' : None,  # hack param to make bigger db sizes
+    #'hack_imageset': None,
+    # Hack out errors in test data
+    'hackerrors'    : True,
+    'joinme'    : None,
+}
 
 # Defaults for the independent filter
 # THese filters are orderless
@@ -72,16 +99,15 @@ INDEPENDENT_DEFAULTS = {
     'multiple'            : None,
 }
 
-for pi in INDEPENDENT_DEFAULTS_PARAM_INFO:
-    INDEPENDENT_DEFAULTS[pi.varname] = pi.default
-
-
 # HACK
 from ibeis import tag_funcs  # NOQA  #
 # Build Filters
 filter_keys = ut.get_func_kwargs(tag_funcs.filterflags_general_tags)
 for key in filter_keys:
     INDEPENDENT_DEFAULTS[key] = None
+
+for pi in INDEPENDENT_DEFAULTS_PARAM_INFO:
+    INDEPENDENT_DEFAULTS[pi.varname] = pi.default
 
 
 INTRAGROUP_DEFAULTS = {
@@ -90,16 +116,16 @@ INTRAGROUP_DEFAULTS = {
     'view_pername'        : None,  # formatted string filtering the viewpoints
     'min_timedelta'       : None,
     # minimum number of aids for each name in sample
-    'min_pername'         : None,
-    'max_pername'         : None,
+    #'min_pername'         : None,
+    #'max_pername'         : None,
     'min_spacedelta'      : None,
     'min_spacetimedelta'  : None,
 }
-INDEPENDENT_DEFAULTS.update(INTRAGROUP_DEFAULTS)  # hack
+for pi in INTRAGROUP_DEFAULTS_PARAM_INFO:
+    INTRAGROUP_DEFAULTS[pi.varname] = pi.default
 
-SUBINDEX_DEFAULTS_PARAM_INFO = [
-    ut.ParamInfo('index', None),
-]
+# HACK
+INDEPENDENT_DEFAULTS.update(INTRAGROUP_DEFAULTS)  # hack
 
 SUBINDEX_DEFAULTS = {
     # Final indexing
@@ -114,13 +140,15 @@ SAMPLE_DEFAULTS = {
     'num_names'           : None,
     # Gets as close to sample size without removing other props
     # Per Name / Exemplar Params
-    'sample_per_name'     : None,  # Choos num_annots to sample from each name.
-    'sample_rule'         : 'random',
+    #'sample_per_name'     : None,  # Choos num_annots to sample from each name.
+    #'sample_rule'         : 'random',
     'sample_offset'       : None,  # UNUSED
     'occur_offset'        : None,  # UNUSED
     'name_offset'         : None,  # UNUSED
     'sample_occur'        : None,
 }
+for pi in SAMPLE_DEFAULTS_PARAM_INFO:
+    SAMPLE_DEFAULTS[pi.varname] = pi.default
 
 SAMPLE_REF_DEFAULTS = {
     # excludes any aids specified in a reference set (ie qaids)
@@ -207,9 +235,9 @@ def get_varied_acfg_labels(acfg_list, mainkey='_cfgname', checkname=False):
     """
     #print(ut.list_str(varied_acfg_list, nl=2))
     for acfg in acfg_list:
-        assert acfg['qcfg'][mainkey] == acfg['dcfg'][mainkey], (
+        assert acfg['qcfg'].get(mainkey, '') == acfg['dcfg'].get(mainkey, ''), (
             'should be the same for now')
-    cfgname_list = [acfg['qcfg'][mainkey] for acfg in acfg_list]
+    cfgname_list = [acfg['qcfg'].get(mainkey, '') for acfg in acfg_list]
     if checkname and ut.allsame(cfgname_list):
         cfgname_list = [None] * len(cfgname_list)
 
@@ -449,7 +477,7 @@ __controlled_aidcfg = ut.augdict(__baseline_aidcfg, {
 
 single_default = __default_aidcfg
 
-exclude_vars = list(vars().keys())   # this line is before tests
+exclude_vars = list(locals().keys())   # this line is before tests
 exclude_vars.append('exclude_vars')
 
 default = {
@@ -777,7 +805,7 @@ viewdiff_td1h = apply_timecontrol(viewdiff, '1h')
 # THIS IS A GOOD START
 # NEED TO DO THIS CONFIG AND THEN SWITCH DCFG TO USE primary1
 
-include_vars = list(vars().keys())  # this line is after tests
+include_vars = list(locals().keys())  # this line is after tests
 
 # List of all valid tests
 TEST_NAMES = set(include_vars) - set(exclude_vars)

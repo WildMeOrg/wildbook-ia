@@ -704,8 +704,9 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
 
 
 def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
-                  do_per_annot=True, draw_icon=True, numranks=3, kind='bar',
-                  cdfzoom=False):
+                  do_per_annot=True, draw_icon=True,
+                  numranks=5, kind='cmc', cdfzoom=True):
+    # numranks=3, kind='bar', cdfzoom=False):
     r"""
     Args:
         ibs (ibeis.IBEISController):  ibeis controller object
@@ -801,10 +802,12 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
 
     numranks = ut.get_argval('--numranks', type_=int, default=numranks)
 
-    if numranks is not None:
-        maxpos = min(len(cfgx2_cumhist_percent.T), numranks)
-        cfgx2_cumhist_short = cfgx2_cumhist_percent[:, 0:maxpos]
-        edges_short = edges[0:min(len(edges), numranks + 1)]
+    if numranks is None:
+        numranks = len(cfgx2_cumhist_percent.T)
+
+    maxpos = min(len(cfgx2_cumhist_percent.T), numranks)
+    cfgx2_cumhist_short = cfgx2_cumhist_percent[:, 0:maxpos]
+    edges_short = edges[0:min(len(edges), numranks + 1)]
 
     if cdfzoom is None:
         cdfzoom = ut.get_argflag('--cdfzoom')

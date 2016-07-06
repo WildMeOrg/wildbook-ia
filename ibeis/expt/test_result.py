@@ -7,7 +7,7 @@ import utool as ut
 import vtool as vt
 import numpy as np
 from functools import partial
-from six.moves import zip, range, map
+from six.moves import zip, range, map, reduce
 from ibeis.expt import cfghelpers
 from ibeis.expt import experiment_helpers  # NOQA
 print, rrr, profile = ut.inject2(__name__, '[testres]')
@@ -1676,7 +1676,7 @@ class TestResult(object):
                 for aids in aid_mat.T
             ]).T
             annotmatch_rowid_mat = np.vstack([
-                ibs.get_annotmatch_rowid_from_superkey(test_qaids, aids)
+                ibs.get_annotmatch_rowid_from_undirected_superkey(test_qaids, aids)
                 for aids in aid_mat.T
             ]).T
             truth2_prop[truth]['annotmatch_rowid']  = annotmatch_rowid_mat

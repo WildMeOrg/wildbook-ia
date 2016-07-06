@@ -309,7 +309,7 @@ def populate_item_table(tbl,
         for col, data in enumerate(datatup):
             #type_ = _type_from_data(data)
             type_ = col_types[col]
-            item = QtGui.QTableWidgetItem()
+            item = QtWidgets.QTableWidgetItem()
             try:
                 if data is None:
                     # Default case to handle None inputs

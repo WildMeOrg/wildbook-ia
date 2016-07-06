@@ -1104,6 +1104,33 @@ def compute_one_vs_one(depc, qaids, daids, config):
         >>> #match.ishow_single_annotmatch(qreq_=request)
         >>> match.show_single_annotmatch(qreq_=request, vert=False)
         >>> ut.show_if_requested()
+
+
+    Example:
+        >>> # Example of a one-vs-one query
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> config = {'codename': 'vsone'}
+        >>> qreq_ = ibs.new_query_request([1], [2], cfgdict=config)
+        >>> cm_list = qreq_.execute()
+        >>> match = cm_list[0]
+        >>> match.print_inspect_str(qreq_)
+        >>> match.show_single_annotmatch(qreq_=qreq_, vert=False)
+        >>> import utool as ut
+        >>> ut.show_if_requested()
+
+    Example:
+        >>> # Example of a one-vs-many query
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> config = {'codename': 'vsmany'}
+        >>> qreq_ = ibs.new_query_request([1], ibs.get_valid_aids(), cfgdict=config)
+        >>> cm_list = qreq_.execute()
+        >>> match = cm_list[0]
+        >>> match.print_inspect_str(qreq_)
+        >>> match.show_single_annotmatch(qreq_=qreq_, vert=False)
+        >>> import utool as ut
+        >>> ut.show_if_requested()
     """
     import ibeis
     ibs = depc.controller

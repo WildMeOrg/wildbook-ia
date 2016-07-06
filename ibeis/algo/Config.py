@@ -373,7 +373,10 @@ class FlannConfig(ConfigBase):
         flann_cfg.centers_init = 'random'
         flann_cfg.cb_index = .4
         flann_cfg.branching = 64
+        # THESE CONFIGS DONT BELONG TO FLANN. THEY ARE INDEXER CONFIGS
         flann_cfg.fgw_thresh = None
+        flann_cfg.minscale_thresh = None
+        flann_cfg.maxscale_thresh = None
         flann_cfg.update(**kwargs)
 
     def get_flann_params(flann_cfg):
@@ -402,6 +405,9 @@ class FlannConfig(ConfigBase):
         if flann_cfg.fgw_thresh is not None and flann_cfg.fgw_thresh > 0:
             # HACK FOR GGR
             flann_cfgstrs += ['_fgwthrsh=%s' % flann_cfg.fgw_thresh]
+        if (flann_cfg.minscale_thresh is not None) or (flann_cfg.maxscale_thresh is not None):
+            # HACK FOR GGR
+            flann_cfgstrs += ['scalethrsh=%s,%s' % (flann_cfg.minscale_thresh, flann_cfg.maxscale_thresh)]
         #flann_cfgstrs += ['checks=%r' % flann_cfg.checks]
         flann_cfgstrs += [')']
         return flann_cfgstrs

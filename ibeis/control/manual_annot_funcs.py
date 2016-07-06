@@ -1407,9 +1407,7 @@ def get_annot_semantic_uuids(ibs, aid_list):
         >>> annot_semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
         >>> assert len(aid_list) == len(annot_semantic_uuid_list)
         >>> result = annot_semantic_uuid_list
-        [UUID('bf774bf3-582d-dbce-6ca6-329adeb086a6')]
-
-        [UUID('215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6')]
+        [UUID('0a41bee7-1760-0995-c220-f4b5ddf189ba')]
     """
     id_iter = aid_list
     colnames = (ANNOT_SEMANTIC_UUID,)
@@ -1542,11 +1540,11 @@ def get_annot_yaws(ibs, aid_list):
         >>> aid_list = ibs.get_valid_aids()[::3]
         >>> result = get_annot_yaws(ibs, aid_list)
         >>> print(result)
-        [None, None, None, None, None]
+        [3.141592653589793, 3.141592653589793, None, 3.141592653589793, None]
     """
     #from ibeis.algo.preproc import preproc_annot
     yaw_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aid_list)
-    yaw_list = [yaw if yaw >= 0.0 else None for yaw in yaw_list]
+    yaw_list = [yaw if yaw is not None and yaw >= 0.0 else None for yaw in yaw_list]
     return yaw_list
 
 
@@ -2206,7 +2204,7 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
         >>> semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)
         >>> result = str(list(zip(*semantic_infotup))[1])
         >>> print(result)
-        (UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'), ((0, 0), (1035, 0), (1035, 576), (0, 576)), 0.0, None, u'easy', u'zebra_plains')
+        (UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'), ((0, 0), (1035, 0), (1035, 576), (0, 576)), 0.0, 3.141592653589793, u'easy', u'zebra_plains')
 
     """
     # Semantic info depends on visual info

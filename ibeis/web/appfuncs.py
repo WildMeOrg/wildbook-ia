@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-import cStringIO as StringIO
+from six.moves import cStringIO as StringIO
+# import cStringIO as StringIO
 import flask
 import random
 from ibeis.constants import TAU

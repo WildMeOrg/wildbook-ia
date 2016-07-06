@@ -161,46 +161,67 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         pass
 
     PREREQ_PYPKG_LIST = [
+        # Initial
         'pip',
         'setuptools',
-        'psutil',
-        'functools32',
-        'requests',
-        'pyopenssl',  # needed for secure requests
-        'ndg-httpsclient',  # needed for secure requests
-        'pyasn1',  # needed for secure requests
+        # Core
         'Cython',
         'numpy',
         'scipy',
-        'Pygments',
-        'colorama',
-        'six',
-        'dateutils',
-        'pyreadline',
-        'pyparsing',
-        #'sip',
-        #'PyQt4',
+        'scikit-learn',
         'Pillow',
         'ipython',
+        # Algorithm helpers
+        'shapely',
+        'statsmodels',
+        'networkx',
+        # Plotting
+        'matplotlib',
+        'pygraphviz',
+        # Web-based
+        'zmq',
         'tornado',
         'flask',
         'flask-cors',
         'flask-cas',
-        'matplotlib',
-        'scikit-learn',
-        'parse',
+        'requests',
+        'pyopenssl',  # needed for secure requests
+        'ndg-httpsclient',  # needed for secure requests
+        'pyasn1',  # needed for secure requests
+        'pynmea2',
+        # System Helpers
         'simplejson',
-        # 'pyinstaller',
-        'statsmodels',
         'lockfile',  # Need to do upgrade on this
         'lru-dict',
-        'shapely',
-        'zmq',
-        'networkx',
+        'dateutils',
+        'pyreadline',
+        'pyparsing',
+        'parse',
+        'psutil',
+        # 'pyinstaller',
+        # Convinence
+        'six',
         'pyfiglet',
-        'pygraphviz',
-        'pynmea2',
+        'Pygments',
+        'colorama',
     ]
+
+    import platform
+    python_version = platform.python_version()
+    PYTHON3 = python_version.startswith('3')
+
+    if not PYTHON3:
+        PREREQ_PYPKG_LIST += [
+            'functools32',
+            # 'functools32',
+            #'sip',
+            #'PyQt4',
+        ]
+    else:
+        PREREQ_PYPKG_LIST += [
+            'pyqt5',
+            'pydot-ng',
+        ]
 
     OPTIONAL_PYPKG_LIST = [
         #'pandas',

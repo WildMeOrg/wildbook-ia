@@ -3073,7 +3073,7 @@ def inspect_nonzero_yaws(ibs):
 @register_ibs_method
 def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
                                              exemplars_per_view=None, imgsetid=None,
-                                             dry_run=False, verbose=False):
+                                             dry_run=False, verbose=True, prog_hook=None):
     """
     Automatic exemplar selection algorithm based on viewpoint and quality
 
@@ -3170,31 +3170,31 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
     if aid_list is None:
         aid_list = ibs.get_valid_aids(imgsetid=imgsetid)
     HACK = ibs.cfg.other_cfg.enable_custom_filter
-    #True
-    if not HACK:
-        new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
-            ibs, aid_list=aid_list, annots_per_view=exemplars_per_view, verbose=verbose)
-    else:
-        # HACK
-        new_exemplar_aids = ibs.get_prioritized_name_subset(aid_list, exemplars_per_view)
-        new_nonexemplar_aids = list(set(aid_list) - set(new_exemplar_aids))
-        new_aid_list = new_nonexemplar_aids + new_exemplar_aids
-        new_flag_list = [0] * len(new_nonexemplar_aids) + [1] * len(new_exemplar_aids)
+    assert not HACK, 'enable_custom_filter is no longer supported'
+    new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
+        ibs, aid_list=aid_list, annots_per_view=exemplars_per_view,
+        verbose=verbose, prog_hook=prog_hook)
+    #else:
+    #    # HACK
+    #    new_exemplar_aids = ibs.get_prioritized_name_subset(aid_list, exemplars_per_view)
+    #    new_nonexemplar_aids = list(set(aid_list) - set(new_exemplar_aids))
+    #    new_aid_list = new_nonexemplar_aids + new_exemplar_aids
+    #    new_flag_list = [0] * len(new_nonexemplar_aids) + [1] * len(new_exemplar_aids)
 
     # Hack ensure each name has at least 1 exemplar
-    if False:
-        nids = ibs.get_annot_nids(new_aid_list)
-        uniquenids, groupxs = ut.group_indices(nids)
-        num_hacked = 0
-        grouped_exemplars = ut.apply_grouping(new_flag_list, groupxs)
-        for exflags, idxs in zip(grouped_exemplars, groupxs):
-            if not any(exflags):
-                num_hacked += 1
-                if len(idxs) > 0:
-                    new_flag_list[idxs[0]] = True
-                if len(idxs) > 1:
-                    new_flag_list[idxs[1]] = True
-        print('(exemplars) num_hacked = %r' % (num_hacked,))
+    #if False:
+    #    nids = ibs.get_annot_nids(new_aid_list)
+    #    uniquenids, groupxs = ut.group_indices(nids)
+    #    num_hacked = 0
+    #    grouped_exemplars = ut.apply_grouping(new_flag_list, groupxs)
+    #    for exflags, idxs in zip(grouped_exemplars, groupxs):
+    #        if not any(exflags):
+    #            num_hacked += 1
+    #            if len(idxs) > 0:
+    #                new_flag_list[idxs[0]] = True
+    #            if len(idxs) > 1:
+    #                new_flag_list[idxs[1]] = True
+    #    print('(exemplars) num_hacked = %r' % (num_hacked,))
 
     if not dry_run:
         ibs.set_annot_exemplar_flags(new_aid_list, new_flag_list)
@@ -3318,120 +3318,78 @@ def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=None):
 
 
 @register_ibs_method
-def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, verbose=False):
+def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, verbose=False, prog_hook=None):
     """
     CommandLine:
         python -m ibeis.other.ibsfuncs --exec-get_annot_quality_viewpoint_subset --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
+        >>> ut.exec_funckw(get_annot_quality_viewpoint_subset, globals())
         >>> ibs = ibeis.opendb('testdb2')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> annots_per_view = 2
         >>> new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(ibs)
         >>> result = sum(new_flag_list)
         >>> print(result)
         38
-
-    Ignore:
-        nids = ibs.get_annot_nids(new_aid_list)
-        uniquenids, groupxs = ut.group_indices(nids)
-        num_hacked = 0
-        grouped_exemplars = ut.apply_grouping(new_flag_list, groupxs)
-        for exflags, idxs in zip(grouped_exemplars, groupxs):
-            if not any(exflags):
-                num_hacked += 1
-                new_flag_list[idxs[0]] = True
-        print('(exemplars) num_hacked = %r' % (num_hacked,))
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
 
-    PREFER_GOOD_EXEMPLAR_OVER_EXCELLENT = True
+    INF = 999999  # effectively infinite
 
-    # Params for knapsack
-    def make_knapsack_params(N, levels_per_tier_list):
-        """
-        Args:
-            N (int): the integral maximum number of items
-            levels_per_tier_list (list): list of number of distinctions possible
-            per tier.
-
-        Returns:
-            tuple: (w, tier_w_list, infeasible_w)
-                w            - is the base weight of all items
-                tier_w_list  - is a list of w offsets per tier that does not bring it over 1
-                                but suggest a preference for that item.
-                infeasible_w - weight of impossible items
-        """
-        EPS = 1E-9
-        # Solve for the minimum per-item weight
-        # to allow for preference wiggle room
-        w = N / (N + 1) + EPS
-        # level1 perference augmentation
-        # TODO: figure out mathematically ellegant value
-        pref_decimator = max(1, (N + EPS)) ** 2  # max is a hack for N = 0
-        # we want space to specify two levels of tier1 preference
-        tier_w_list = []
-        last_w = w
-        for num_levels in levels_per_tier_list:
-            last_w = tier_w = last_w / (num_levels * pref_decimator)
-            tier_w_list.append(tier_w)
-        infeasible_w = max(9001, N + 1)
-        return w, tier_w_list, infeasible_w
-    levels_per_tier_list = [4, 1, 1, 1]
-    w, tier_w_list, infeasible_w = make_knapsack_params(annots_per_view, levels_per_tier_list)
-
-    qual2_weight = {
-        const.QUAL_EXCELLENT : tier_w_list[0] * 3,
-        const.QUAL_GOOD      : tier_w_list[0] * 2,
-        const.QUAL_OK        : tier_w_list[0] * 1,
-        const.QUAL_UNKNOWN   : tier_w_list[2],
-        const.QUAL_POOR      : tier_w_list[3],
-        const.QUAL_JUNK      : infeasible_w,
+    qual2_value = {
+        const.QUAL_EXCELLENT : 30,
+        const.QUAL_GOOD      : 20,
+        const.QUAL_OK        : 10,
+        const.QUAL_UNKNOWN   : 0,
+        const.QUAL_POOR      : -30,
+        const.QUAL_JUNK      : -INF,
     }
 
-    exemplar_offset = (
-        # always prefer good over ok
-        tier_w_list[0] - tier_w_list[1]
-        if PREFER_GOOD_EXEMPLAR_OVER_EXCELLENT else
-        # prefer ok over good when ok has oldflag
-        tier_w_list[0] + tier_w_list[1]
-    )
-    # this probably broke with the introduction of 2 more tiers
+    # Value of previously being an exemplar
+    oldexemp2_value = {
+        True:  0,
+        False: 1,
+        None: 10,
+    }
 
-    def get_knapsack_flags(weights, N):
-        #values = [1] * len(weights)
-        values = weights
+    # Value of not having multiple annotations
+    ismulti2_value = {
+        True: 0,
+        False: 10,
+        None: 10,
+    }
+
+    def get_chosen_flags(aids):
+        # The weight of each annotation is 1. The value is based off its properties
+        # We like good more than ok, and junk is infeasible We prefer items that
+        # had previously been exemplars
+        qual_value     = np.array(ut.take(qual2_value, ibs.get_annot_quality_texts(aids)))
+        oldexemp_value = np.array(ut.take(oldexemp2_value, ibs.get_annot_exemplar_flags(aids)))
+        ismulti_value  = np.array(ut.take(ismulti2_value, ibs.get_annot_multiple(aids)))
+        base_value = 1
+        values = qual_value + oldexemp_value + ismulti_value + base_value
+
+        # Build input for knapsack
+        weights = [1] * len(values)
         indices = list(range(len(weights)))
-        # round to 3 decimal places to avoid np-hardness
-        values = np.round(np.array(values), 3).tolist()
-        weights = np.round(np.array(weights), 3).tolist()
+        values = np.round(values, 3).tolist()
         items = list(zip(values, weights, indices))
-        try:
-            total_value, chosen_items = ut.knapsack(items, annots_per_view, method='recursive')
-        except Exception:
-            print('WARNING: iterative method does not work correctly, but stack too big for recrusive')
-            total_value, chosen_items = ut.knapsack(items, annots_per_view, method='iterative')
+
+        # Greedy version is fine if all weights are 1, just pick the N maximum values
+        total_value, chosen_items = ut.knapsack_greedy(items, maxweight=annots_per_view)
+        #try:
+        #    total_value, chosen_items = ut.knapsack(items, annots_per_view, method='recursive')
+        #except Exception:
+        #    print('WARNING: iterative method does not work correctly, but stack too big for recrusive')
+        #    total_value, chosen_items = ut.knapsack(items, annots_per_view, method='iterative')
+
         chosen_indices = ut.get_list_column(chosen_items, 2)
         flags = [False] * len(aids)
         for index in chosen_indices:
             flags[index] = True
-        return flags
-
-    def get_chosen_flags(aids, annots_per_view, w, qual2_weight, exemplar_offset):
-        qualtexts = ibs.get_annot_quality_texts(aids)
-        isexemplar_flags = ibs.get_annot_exemplar_flags(aids)
-        # base weight plug preference offsets
-        weights = [w + qual2_weight[qual] + exemplar_offset * isexemplar
-                   for qual, isexemplar in zip(qualtexts, isexemplar_flags)]
-        N = annots_per_view
-        maxweight = N  # NOQA
-        flags = get_knapsack_flags(weights, N)
-        # We like good more than ok, and junk is infeasible We prefer items that
-        # had previously been exemplars Build input for knapsack
         return flags
 
     nid_list = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=True))
@@ -3441,9 +3399,11 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
     # for final settings because I'm too lazy to write
     new_aid_list = []
     new_flag_list = []
-    _iter = ut.ProgressIter(zip(grouped_aids_, unique_nids),
-                            nTotal=len(unique_nids),
-                            lbl='Picking best annots per viewpoint')
+    _iter = ut.ProgIter(zip(grouped_aids_, unique_nids),
+                        nTotal=len(unique_nids),
+                        #freq=100,
+                        lbl='Picking best annots per viewpoint',
+                        prog_hook=prog_hook)
     for aids_, nid in _iter:
         if ibs.is_nid_unknown(nid):
             # do not change unknown animals
@@ -3452,11 +3412,11 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
         yawtexts  = ibs.get_annot_yaw_texts(aids_)
         yawtext2_aids = ut.group_items(aids_, yawtexts)
         for yawtext, aids in six.iteritems(yawtext2_aids):
-            flags = get_chosen_flags(aids, annots_per_view, w, qual2_weight, exemplar_offset)
+            flags = get_chosen_flags(aids)
             new_aid_list.extend(aids)
             new_flag_list.extend(flags)
-        if verbose:
-            print('L ___')
+    if verbose:
+        print('Found %d exemplars for %d names' % (sum(new_flag_list), len(unique_nids)))
     return new_aid_list, new_flag_list
 
 
@@ -3778,52 +3738,6 @@ def get_quality_viewpoint_filterflags(ibs, aid_list, minqual, valid_yaws):
 
 
 @register_ibs_method
-def get_annot_custom_filterflags(ibs, aid_list):
-    if not ibs.cfg.other_cfg.enable_custom_filter:
-        return [True] * len(aid_list)
-    #minqual = const.QUALITY_TEXT_TO_INT['poor']
-    minqual = 'ok'
-    #valid_yaws = {'left', 'frontleft', 'backleft'}
-    valid_yawtexts = {'left', 'frontleft'}
-    flags_list = ibs.get_quality_viewpoint_filterflags(aid_list, minqual, valid_yawtexts)
-    return flags_list
-
-
-@register_ibs_method
-def filter_aids_custom(ibs, aid_list):
-    r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid_list (int):  list of annotation ids
-
-    Returns:
-        list: aid_list_
-
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-filter_aids_custom
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> ibs = ibeis.opendb('testdb2')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> # execute function
-        >>> aid_list_ = filter_aids_custom(ibs, aid_list)
-        >>> # verify results
-        >>> result = str(aid_list_)
-        >>> print(result)
-    """
-    if not ibs.cfg.other_cfg.enable_custom_filter:
-        return aid_list
-    flags_list = ibs.get_annot_custom_filterflags(aid_list)
-    aid_list_ = list(ut.iter_compress(aid_list, flags_list))
-    #aid_list_ = list(ut.compress(aid_list, flags_list))
-    return aid_list_
-
-
-@register_ibs_method
 def flag_aids_count(ibs, aid_list):
     r"""
     Args:
@@ -3860,9 +3774,8 @@ def flag_aids_count(ibs, aid_list):
     nid_list       = ibs.get_annot_name_rowids(aid_list)
     contrib_list   = ibs.get_image_contributor_tag(gid_list)
     # Get filter flags for aids
-    flag_list      = ibs.get_annot_custom_filterflags(aid_list)
     isunknown_list = ibs.is_aid_unknown(aid_list)
-    flag_list      = [ not unknown and flag for unknown, flag in zip(isunknown_list, flag_list) ]
+    flag_list      = [not unknown  for unknown in isunknown_list]
     # Filter by seen and car
     flag_list_     = []
     seen_dict      = ut.ddict(set)
@@ -3895,74 +3808,6 @@ def filter_aids_count(ibs, aid_list=None, pre_unixtime_sort=True):
 
 
 @register_ibs_method
-def filterflags_unflat_aids_custom(ibs, aids_list):
-    def some(flags):
-        """ like any, but some at least one must be True """
-        return len(flags) != 0 and any(flags)
-    filtered_aids_list = ibs.unflat_map(ibs.get_annot_custom_filterflags, aids_list)
-    isvalid_list = list(map(some, filtered_aids_list))
-    return isvalid_list
-
-
-@register_ibs_method
-def filter_nids_custom(ibs, nid_list):
-    aids_list = ibs.get_name_aids(nid_list)
-    isvalid_list = ibs.filterflags_unflat_aids_custom(aids_list)
-    filtered_nid_list = ut.compress(nid_list, isvalid_list)
-    return filtered_nid_list
-
-
-@register_ibs_method
-def filter_gids_custom(ibs, gid_list):
-    aids_list = ibs.get_image_aids(gid_list)
-    isvalid_list = ibs.filterflags_unflat_aids_custom(aids_list)
-    filtered_gid_list = ut.compress(gid_list, isvalid_list)
-    return filtered_gid_list
-
-
-@register_ibs_method
-def get_name_gps_tracks(ibs, nid_list=None, aid_list=None):
-    """
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_gps_tracks
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> # build test data
-        >>> #ibs = ibeis.opendb('PZ_Master0')
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> #nid_list = ibs.get_valid_nids()
-        >>> aid_list = ibs.get_valid_aids()
-        >>> nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list)
-        >>> nonempty_list = list(map(lambda x: len(x) > 0, gps_track_list))
-        >>> ut.compress(nid_list, nonempty_list)
-        >>> ut.compress(gps_track_list, nonempty_list)
-        >>> ut.compress(aid_track_list, nonempty_list)
-        >>> result = str(aid_track_list)
-        >>> print(result)
-        [[11], [], [4], [1], [2, 3], [5, 6], [7], [8], [10], [12], [13]]
-    """
-    assert aid_list is None or nid_list is None, 'only specify one please'
-    if aid_list is None:
-        aids_list_ = ibs.get_name_aids(nid_list)
-    else:
-        aids_list_, nid_list = ibs.group_annots_by_name(aid_list)
-    aids_list = [ut.sortedby(aids, ibs.get_annot_image_unixtimes(aids)) for aids in aids_list_]
-    gids_list = ibs.unflat_map(ibs.get_annot_gids, aids_list)
-    gpss_list = ibs.unflat_map(ibs.get_image_gps, gids_list)
-
-    isvalids_list = [[gps[0] != -1.0 or gps[1] != -1.0 for gps in gpss]
-                     for gpss in gpss_list]
-    gps_track_list = [ut.compress(gpss, isvalids) for gpss, isvalids in
-                      zip(gpss_list, isvalids_list)]
-    aid_track_list  = [ut.compress(aids, isvalids) for aids, isvalids in
-                       zip(aids_list, isvalids_list)]
-    return nid_list, gps_track_list, aid_track_list
-
-
-@register_ibs_method
 def get_unflat_annots_kmdists_list(ibs, aids_list):
     #ibs.check_name_mapping_consistency(aids_list)
     latlons_list = ibs.unflat_map(ibs.get_annot_image_gps, aids_list)
@@ -3977,19 +3822,41 @@ def get_unflat_annots_hourdists_list(ibs, aids_list):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> ibs = testdata_ibs('NNP_Master3')
+        >>> ibs = testdata_ibs('testdb1')
         >>> nid_list = get_valid_multiton_nids_custom(ibs)
         >>> aids_list_ = ibs.get_name_aids(nid_list)
-        >>> aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
-
+        >>> aids_list = [(aids) for aids in aids_list_]
+        >>> ibs.get_unflat_annots_hourdists_list(aids_list)
     """
     assert all(list(map(ut.isunique, aids_list)))
-    unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes, aids_list)
+    unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
     #assert all(list(map(ut.isunique, unixtimes_list)))
     unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
     hour_dists_list = [ut.safe_pdist(unixtime_arr, metric=ut.unixtime_hourdiff)
                        for unixtime_arr in unixtime_arrs]
     return hour_dists_list
+
+
+@register_ibs_method
+def get_unflat_annots_timedist_list(ibs, aids_list):
+    """
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> ibs = testdata_ibs('testdb1')
+        >>> nid_list = ibs.get_valid_nids()
+        >>> aids_list_ = ibs.get_name_aids(nid_list)
+        >>> aids_list = [(aids) for aids in aids_list_]
+        >>> ibs.get_unflat_annots_hourdists_list(aids_list)
+
+    """
+    assert all(list(map(ut.isunique, aids_list)))
+    unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
+    #assert all(list(map(ut.isunique, unixtimes_list)))
+    unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
+    timedist_list = [ut.safe_pdist(unixtime_arr, metric=ut.absdiff) for
+                     unixtime_arr in unixtime_arrs]
+    return timedist_list
 
 
 @register_ibs_method
@@ -4001,7 +3868,7 @@ def get_unflat_annots_timedelta_list(ibs, aids_list):
         >>> ibs = testdata_ibs('NNP_Master3')
         >>> nid_list = get_valid_multiton_nids_custom(ibs)
         >>> aids_list_ = ibs.get_name_aids(nid_list)
-        >>> aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
+        >>> aids_list = [(aids) for aids in aids_list_]
 
     """
     assert all(list(map(ut.isunique, aids_list)))
@@ -4031,86 +3898,10 @@ def testdata_ibs(defaultdb='testdb1'):
 
 def get_valid_multiton_nids_custom(ibs):
     nid_list_ = ibs._get_all_known_nids()
-    ismultiton_list = [len(ibs.filter_aids_custom(aids)) > 1
+    ismultiton_list = [len((aids)) > 1
                        for aids in ibs.get_name_aids(nid_list_)]
     nid_list = ut.compress(nid_list_, ismultiton_list)
     return nid_list
-
-
-@register_ibs_method
-def get_name_speeds(ibs, nid_list):
-    r"""
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_speeds
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> ibs = testdata_ibs('NNP_Master3')
-        >>> nid_list = get_valid_multiton_nids_custom(ibs)
-        >>> speeds_list = get_name_speeds(ibs, nid_list)
-        >>> result = str(speeds_list)
-        >>> print(result)
-    """
-    aids_list_ = ibs.get_name_aids(nid_list)
-    #ibs.check_name_mapping_consistency(aids_list_)
-    aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
-    speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)
-    return speeds_list
-
-
-@register_ibs_method
-@accessor_decors.getter
-def get_name_hourdiffs(ibs, nid_list):
-    """
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_hourdiffs
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> ibs = testdata_ibs('NNP_Master3')
-        >>> nid_list = ibs.filter_nids_custom(ibs._get_all_known_nids())
-        >>> hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
-        >>> result = hourdiffs_list
-        >>> print(hourdiffs_list)
-    """
-    aids_list_ = ibs.get_name_aids(nid_list)
-    #ibs.check_name_mapping_consistency(aids_list_)
-    # HACK FILTERING SHOULD NOT OCCUR HERE
-    aids_list = [ibs.filter_aids_custom(aids) for aids in aids_list_]
-    hourdiffs_list = ibs.get_unflat_annots_hourdists_list(aids_list)
-    return hourdiffs_list
-
-
-@register_ibs_method
-@accessor_decors.getter
-def get_name_max_hourdiff(ibs, nid_list):
-    hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
-    maxhourdiff_list_ = list(map(vt.safe_max, hourdiffs_list))
-    maxhourdiff_list = np.array(maxhourdiff_list_)
-    return maxhourdiff_list
-
-
-@register_ibs_method
-@accessor_decors.getter
-def get_name_max_speed(ibs, nid_list):
-    """
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_name_max_speed
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> ibs = testdata_ibs('NNP_Master3')
-        >>> nid_list = ibs.filter_nids_custom(ibs._get_all_known_nids())
-        >>> maxspeed_list = ibs.get_name_max_speed(nid_list)
-        >>> result = maxspeed_list
-        >>> print(maxspeed_list)
-    """
-    speeds_list = ibs.get_name_speeds(nid_list)
-    maxspeed_list = np.array(list(map(vt.safe_max, speeds_list)))
-    return maxspeed_list
 
 
 @register_ibs_method
@@ -5308,8 +5099,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
         annotconfig_stats_strs1 = ut.odict(annotconfig_stats_strs_list1)
         annotconfig_stats_strs2 = ut.odict(annotconfig_stats_strs_list2)
 
-        annotconfig_stats_strs = ut.odict(annotconfig_stats_strs1.items() +
-                                          annotconfig_stats_strs2.items())
+        annotconfig_stats_strs = ut.odict(list(annotconfig_stats_strs1.items()) +
+                                          list(annotconfig_stats_strs2.items()))
         stats_str = ut.dict_str(annotconfig_stats_strs1, strvals=True,
                                 newlines=False, explicit=True, nobraces=True)
         stats_str +=  '\n' + ut.dict_str(annotconfig_stats_strs2, strvals=True,

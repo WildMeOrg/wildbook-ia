@@ -9,8 +9,8 @@ import utool  # NOQA
 from ibeis.gui.frontend_helpers import *  # NOQA
 
 
-QTRANSLATE = QtGui.QApplication.translate
-QUTF8      = QtGui.QApplication.UnicodeUTF8
+QTRANSLATE = QtWidgets.QApplication.translate
+QUTF8      = QtWidgets.QApplication.UnicodeUTF8
 
 
 class Ui_mainSkel(object):
@@ -352,8 +352,8 @@ def setup_main_layout(ui, front, back):
 
 if __name__ == "__main__":
     import sys
-    app = QtGui.QApplication(sys.argv)
-    front = QtGui.QMainWindow()
+    app = QtWidgets.QApplication(sys.argv)
+    front = QtWidgets.QMainWindow()
     front.ui = Ui_mainSkel()
     front.ui.setupUi(front)
     front.show()

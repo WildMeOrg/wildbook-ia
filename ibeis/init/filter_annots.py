@@ -14,13 +14,13 @@ import six
 from ibeis.control import controller_inject
 (print, rrr, profile) = ut.inject2(__name__, '[main_helpers]')
 
-VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td')
+VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td', 'acfg')
 
 # TODO: Make these configurable
 SEED1 = 0
 SEED2 = 42
 
-if ut.is_developer():
+if False and ut.is_developer():
     USE_ACFG_CACHE = not ut.get_argflag(('--nocache-annot', '--nocache-aid',
                                          '--nocache')) and ut.USE_CACHE
     USE_ACFG_CACHE = False
@@ -818,6 +818,13 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                 avail_aids, invert=not aidcfg['is_known'])
         avail_aids = sorted(avail_aids)
 
+    if aidcfg.get('is_exemplar') is not None:
+        flags = ibs.get_annot_exemplar_flags(avail_aids)
+        is_valid = [flag == aidcfg['is_exemplar'] for flag in flags]
+        with VerbosityContext('is_exemplar'):
+            avail_aids = ut.compress(avail_aids, is_valid)
+        avail_aids = sorted(avail_aids)
+
     if aidcfg.get('reviewed') is not None:
         flags = ibs.get_annot_reviewed(avail_aids)
         is_valid = [flag == aidcfg['reviewed'] for flag in flags]
@@ -954,14 +961,31 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                                   'view_ext1', 'view_ext2', valid_yaws=valid_yaw_txts):
                 avail_aids = ut.compress(avail_aids, yaw_flags)
 
-    if aidcfg.get('exclude_view') is not None:
-        raise NotImplementedError('view tag resolution of exclude_view')
-        # Filter viewpoint
-        # TODO need to resolve viewpoints
-        exclude_view = aidcfg.get('exclude_view')
-        with VerbosityContext('exclude_view', hack=True):
-            avail_aids = ibs.remove_aids_of_viewpoint(
-                avail_aids, exclude_view)
+    #if aidcfg.get('exclude_view') is not None:
+    #    raise NotImplementedError('view tag resolution of exclude_view')
+    #    # Filter viewpoint
+    #    # TODO need to resolve viewpoints
+    #    exclude_view = aidcfg.get('exclude_view')
+    #    with VerbosityContext('exclude_view', hack=True):
+    #        avail_aids = ibs.remove_aids_of_viewpoint(
+    #            avail_aids, exclude_view)
+
+    if aidcfg.get('min_pername_global') is not None:
+        # Keep annots with at least this many groundtruths in the database
+        min_pername_global = aidcfg.get('min_pername_global')
+        num_gt_global_list = ibs.get_annot_num_groundtruth(avail_aids, noself=False)
+        flag_list = np.array(num_gt_global_list) >= min_pername_global
+        with VerbosityContext('exclude_view'):
+            avail_aids = ut.compress(avail_aids, flag_list)
+        avail_aids = sorted(avail_aids)
+
+    if aidcfg.get('max_pername_global') is not None:
+        max_pername_global = aidcfg.get('max_pername_global')
+        num_gt_global_list = ibs.get_annot_num_groundtruth(avail_aids, noself=False)
+        flag_list = np.array(num_gt_global_list) <= max_pername_global
+        with VerbosityContext('exclude_view'):
+            avail_aids = ut.compress(avail_aids, flag_list)
+        avail_aids = sorted(avail_aids)
 
     # FILTER HACK integrating some notion of tag functions
     # TODO: further integrate
@@ -1458,7 +1482,8 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         # For the database we have to do something different
         grouped_aids = ibs.group_annots_by_name(avail_aids)[0]
         # Order based on some preference (like random)
-        rng = np.random.RandomState(SEED1)
+        sample_seed = get_cfg('sample_seed')
+        rng = np.random.RandomState(sample_seed)
         # + --- Get nested sample indicies ---
         if sample_rule == 'random':
             preference_idxs_list = [
