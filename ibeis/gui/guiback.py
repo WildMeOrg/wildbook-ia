@@ -159,11 +159,11 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
         class TmpPipelineConfig(dtool.Config):
             _param_info_list = [
-                ut.ParamInfo('K', ibs.cfg.query_cfg.nn_cfg.K),
-                ut.ParamInfo('Knorm', ibs.cfg.query_cfg.nn_cfg.Knorm),
+                ut.ParamInfo('K', ibs.cfg.query_cfg.nn_cfg.K, min_=1, none_ok=False),
+                ut.ParamInfo('Knorm', ibs.cfg.query_cfg.nn_cfg.Knorm, min_=1, none_ok=False),
                 #ibs.cfg.query_cfg.nn_cfg.lookup_paraminfo('Knorm'),
                 ibs.cfg.query_cfg.nnweight_cfg.lookup_paraminfo('normalizer_rule'),
-                ut.ParamInfo('fgw_thresh', ibs.cfg.query_cfg.flann_cfg.fgw_thresh, type_=float),
+                ut.ParamInfo('fgw_thresh', ibs.cfg.query_cfg.flann_cfg.fgw_thresh, type_=float, min_=0, max_=1),
                 ut.ParamInfo('augment_queryside_hack', ibs.cfg.query_cfg.augment_queryside_hack),
                 ut.ParamInfo('minscale_thresh', ibs.cfg.query_cfg.flann_cfg.minscale_thresh, type_=float),
                 ut.ParamInfo('maxscale_thresh', ibs.cfg.query_cfg.flann_cfg.maxscale_thresh, type_=float),
