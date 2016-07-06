@@ -63,7 +63,7 @@ def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
 
     # Encode image
     image_pil = Image.fromarray(image)
-    img_io = StringIO.StringIO()
+    img_io = StringIO()
     image_pil.save(img_io, 'JPEG', quality=100)
     img_io.seek(0)
     return send_file(img_io, mimetype='image/jpeg')
