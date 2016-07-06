@@ -421,7 +421,7 @@ class NeighborIndex(object):
             print('DONE ADD POINTS')
 
     def ensure_indexer(nnindexer, cachedir, verbose=True, force_rebuild=False,
-                       memtrack=None):
+                       memtrack=None, prog_hook=None):
         r"""
         Ensures that you get a neighbor indexer. It either loads a chached
         indexer or rebuilds a new one.
@@ -443,8 +443,12 @@ class NeighborIndex(object):
                 nAnnots = nnindexer.num_indexed_annots()
                 print('...nnindex flann cache miss: %d vectors, %d annots' %
                       (nVecs, nAnnots))
+            if prog_hook is not None:
+                prog_hook.set_progress(1, 2, 'Building new indexer (may take some time)')
             nnindexer.build_and_save(cachedir, verbose=verbose,
                                      memtrack=memtrack)
+        if prog_hook is not None:
+            prog_hook.set_progress(2, 2, 'Finished loading indexer')
 
     def build_and_save(nnindexer, cachedir, verbose=True, memtrack=None):
         nnindexer.reindex(memtrack=memtrack)

@@ -924,7 +924,6 @@ class QueryRequest(object):
         Performs preloading of all data needed for a batch of queries
         """
         print('[qreq] lazy loading')
-        #with ut.Indenter('[qreq.lazy_load]'):
         qreq_.hasloaded = True
         #qreq_.ibs = ibs  # HACK
         qreq_.lazy_preload(verbose=verbose)
@@ -1081,17 +1080,21 @@ class QueryRequest(object):
             #print(ut.hashstr27(str(dfeatweights)))
 
     @profile
-    def load_indexer(qreq_, verbose=ut.NOT_QUIET, force=False):
+    def load_indexer(qreq_, verbose=ut.NOT_QUIET, force=False, prog_hook=None):
         if not force and qreq_.indexer is not None:
+            if prog_hook is not None:
+                prog_hook.set_progress(1, 1, lbl='Indexer is loaded')
             return False
         else:
             index_method = qreq_.qparams.index_method
+            if prog_hook is not None:
+                prog_hook.set_progress(0, 1, lbl='Loading %s indexer' % (index_method,))
             if index_method == 'single':
                 # TODO: SYSTEM updatable indexer
                 if ut.VERYVERBOSE or verbose:
                     print('[qreq] loading single indexer normalizer')
                 indexer = neighbor_index_cache.request_ibeis_nnindexer(
-                    qreq_, verbose=verbose, **qreq_._indexer_request_params)
+                    qreq_, verbose=verbose, prog_hook=prog_hook, **qreq_._indexer_request_params)
             elif index_method == 'multi':
                 if ut.VERYVERBOSE or verbose:
                     print('[qreq] loading multi indexer normalizer')

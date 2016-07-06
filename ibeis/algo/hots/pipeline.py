@@ -202,7 +202,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
     elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
         if qreq_.prog_hook is not None:
-            qreq_.prog_hook.initialize_subhooks(4)
+            qreq_.prog_hook.initialize_subhooks(5)
 
         #qreq_.lazy_load(verbose=(verbose and ut.NOT_QUIET))
         qreq_.lazy_preload(verbose=(verbose and ut.NOT_QUIET))
@@ -593,7 +593,10 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     if verbose:
         print('[hs] Step 1) Assign nearest neighbors: %s' %
               (qreq_.qparams.nn_cfgstr,))
-    qreq_.load_indexer(verbose=verbose)
+
+    prog_hook = (None if qreq_.prog_hook is None else
+                 qreq_.prog_hook.next_subhook())
+    qreq_.load_indexer(verbose=verbose, prog_hook=prog_hook)
     # For each internal query annotation
     # Find the nearest neighbors of each descriptor vector
     #USE_NN_MID_CACHE = ut.is_developer()
