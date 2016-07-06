@@ -41,85 +41,9 @@ def report_thread_error(fn):
 def qindexstr(index):
     return 'QIndex(%r, %r)' % (index.row(), index.column())
 
-
-"""
-Notes:
-    Combo Junmk
-    # fill style options with item data
-    #style = QtCore.QCoreApplication.instance().style()
-    #opt.rect.setWidth(400)
-    #print('opt.rect = %r' % (opt.rect,))
-    #style.State style.StateFlag style.State_NoChange style.State_Sibling
-    #style.State_Active style.State_FocusAtBorder style.State_None
-    #style.State_Small style.State_AutoRaise style.State_HasFocus
-    #style.State_Off style.State_Sunken style.State_Bottom
-    #style.State_Horizontal style.State_On style.State_Top
-    #style.State_Children style.State_Item style.State_Open
-    #style.State_UpArrow style.State_DownArrow
-    #style.State_KeyboardFocusChange style.State_Raised style.State_Window
-    #style.State_Editing style.State_Mini style.State_ReadOnly
-    #style.State_Enabled style.State_MouseOver style.State_Selected
-
-    #opt.state |= style.State_Raised
-    #opt.state |= style.State_UpArrow
-    #opt.state |= style.State_AutoRaise
-    #opt.state |= style.State_Active
-    #opt.state |= style.State_Editing
-    #opt.state |= style.State_Enabled
-    #opt.state |= style.State_On
-    #opt.state |= style.State_Open
-    #opt.state |= style.State_HasFocus
-    #opt.state |= style.State_FocusAtBorder
-    #opt.state |= style.State_Selected
-
-    #painter.drawText(option.rect, Qt.AlignLeft, "FOOBAR")
-    #print('opt.state = %r' % (opt.state,))
-
-    #else:
-        #opt.state = style.State_Enabled | style.State_Active
-
-    #self.initStyleOption(opt)
-
-    #'currentIcon': <PyQt4.QtGui.QIcon object at 0x7fb19681b8a0>,
-    #'currentText': '',
-    #'direction': 0,
-    #'editable': False,
-    #'frame': True,
-    #'iconSize': PyQt4.QtCore.QSize(-1, -1),
-    #'palette': <PyQt4.QtGui.QPalette object at 0x7fb1959666e0>,
-    #'popupRect': PyQt4.QtCore.QRect(),
-    #'rect': PyQt4.QtCore.QRect(),
-    #'state': <PyQt4.QtGui.State object at 0x7fb195966848>,
-    #'activeSubControls': <PyQt4.QtGui.SubControls object at 0x7fb195966578>,
-    #'subControls': <PyQt4.QtGui.SubControls object at 0x7fb1959668c0>,
-
-    #opt.subControls = QtWidgets.QStyle.SC_All
-    #print('QtWidgets.QStyle.SC_All = %r' % (QtWidgets.QStyle.SC_All,))
-    #print('opt.subControls = %r' % (opt.subControls,))
-
-    # draw item data as ComboBox
-    #element = QtWidgets.QStyle.CE_ItemViewItem
-    #QtWidgets.QStyle.SC_ComboBoxArrow
-    #QtWidgets.QStyle.SC_ComboBoxEditField
-    #QtWidgets.QStyle.SC_ComboBoxFrame
-    #QtWidgets.QStyle.SC_ComboBoxListBoxPopup
-
-    #style.drawPrimitive(QtWidgets.QStyle.PE_PanelButtonBevel, opt, painter)
-    # Do I need to draw sub controls?
-
-    #painter.save()
-    #painter.restore()
-
-    #self.drawDisplay(painter, opt, opt.rect, opt.currentText)
-    #self.drawFocus(painter, opt, opt.rect)
-    #QtWidgets.QItemDelegate
-    #painter.restore()
-    #return super(ConfigValueDelegate, self).paint(painter, option, index)
-"""
-
-#DELEGATE_BASE = QtWidgets.QStyledItemDelegate
 #DELEGATE_BASE = QtWidgets.QAbstractItemDelegate
-DELEGATE_BASE = QtWidgets.QItemDelegate
+#DELEGATE_BASE = QtWidgets.QItemDelegate
+DELEGATE_BASE = QtWidgets.QStyledItemDelegate
 
 
 #def inject_none_on_delete_event(editor):
@@ -131,18 +55,145 @@ DELEGATE_BASE = QtWidgets.QItemDelegate
 #        #return super(NoneSpinBox, self).keyPressEvent(event)
 
 
-#class NoneSpinBox(QtWidgets.QSpinBox):
-#    def keyPressEvent(self, event):
-#        if event.matches(QtGui.QKeySequence.Delete):
-#            self.valueChanged.emit(None)
-#            #print('DELETEME')
-#            #print('DELETEME')
-#            #import utool
-#            #utool.embed()
-#            #self.editingFinished()
-#        #else:
-#        return super(NoneSpinBox, self).keyPressEvent(event)
-#    pass
+#class NoneSpinBox(QtWidgets.QDoubleSpinBox):
+class NoneSpinBox(QtWidgets.QDoubleSpinBox):
+    """
+    Custom spin box that handles None / nan values
+    """
+    _EXP = 8
+    HARD_MIN = float(-2 ** _EXP) - 1.0
+    HARD_MAX = float(2 ** _EXP) + 1.0
+    NONE_VALUE = HARD_MIN + 1.0
+    #NONE_VALUE = float('nan')
+
+    def __init__(self, *args, **kwargs):
+        self.type_ = kwargs.pop('type_', float)
+        self.post_nan_value = 0
+        self._hack_min = self.HARD_MIN + 2.0
+        self._hack_max = self.HARD_MAX - 2.0
+        super(NoneSpinBox, self).__init__(*args, **kwargs)
+        super(NoneSpinBox, self).setRange(self.HARD_MIN, self.HARD_MAX)
+
+    def keyPressEvent(self, event):
+        if event.matches(QtGui.QKeySequence.Delete):
+            #self.setSpecialValueText('None')
+            self.setValue(self.NONE_VALUE)
+            #print('Need to set delete value')
+            #self.editingFinished()
+        else:
+            #import utool
+            #utool.embed()
+            #self.valueChanged.emit(None)
+            #print('DELETEME')
+            #print('DELETEME')
+            #import utool
+            #utool.embed()
+            #self.editingFinished()
+            return super(NoneSpinBox, self).keyPressEvent(event)
+
+    def setMinimum(self, min_):
+        """ hack to get around None being invalid """
+        self._hack_min = min_
+        #super(NoneSpinBox, self).setMinimum(-2 ** 29)
+
+    def setMaximum(self, max_):
+        self._hack_max = max_
+        #super(NoneSpinBox, self).setMaximum(2 ** 29)
+
+    def setRange(self, min_, max_):
+        self._hack_min = min_
+        self._hack_max = max_
+        #super(NoneSpinBox, self).setRange(-2 ** 29, 2 ** 29)
+
+    def stepBy(self, steps):
+        #print('step by %r' % (steps,))
+        current_value = self.value()
+        if current_value is None:
+            self.setValue(self.post_nan_value)
+        else:
+            self.setValue(current_value + steps * self.singleStep())
+            #super(NoneSpinBox, self).stepBy(steps)
+
+    def validate(self, text, pos):
+        import re
+        #print('validate text = %r, pos=%r' % (text, pos))
+        if len(text) == 0 or text.lower().startswith('n'):
+            state = (QtGui.QValidator.Acceptable, text, pos)
+        else:
+            #state =  super(NoneSpinBox, self).validate(text, pos)
+            if self._hack_min >= 0 and text.startswith('-'):
+                state = (QtGui.QValidator.Invalid, text, pos)
+            else:
+                if not re.match(r'^[+-]?[0-9]*[.,]?[0-9]*[Ee]?[+-]?[0-9]*$', text, flags=re.MULTILINE):
+                    print('INVALIDATE text = %r' % (text,))
+                    state = (QtGui.QValidator.Invalid, text, pos)
+                else:
+                    try:
+                        val = float(text)
+                        if val >= self._hack_min and val <= self._hack_max:
+                            state = (QtGui.QValidator.Acceptable, text, pos)
+                        else:
+                            state = (QtGui.QValidator.Invalid, text, pos)
+                    except Exception:
+                        state = (QtGui.QValidator.Intermediate, text, pos)
+        #print('state = %r' % (state,))
+        return state
+
+    def value(self):
+        internal_value = super(NoneSpinBox, self).value()
+        if internal_value == self.NONE_VALUE:
+            return None
+        else:
+            return internal_value
+
+    def setValue(self, value):
+        print('[spin] setValue = %r' % (value,))
+        if value is None:
+            value = self.NONE_VALUE
+        if isinstance(value, six.string_types):
+            value = self.valueFromText(value)
+            #if value.lower().startswith('n'):
+            #    value = self.NONE_VALUE
+            #else:
+            #    value = self.type_(value)
+        if value != self.NONE_VALUE:
+            #print('value = %r' % (value,))
+            #print('self._hack_min = %r' % (self._hack_min,))
+            #print('self._hack_max = %r' % (self._hack_max,))
+            value = max(value, self._hack_min)
+            value = min(value, self._hack_max)
+            #print('value = %r' % (value,))
+        return super(NoneSpinBox, self).setValue(value)
+
+    def valueFromText(self, text):
+        print('[spin] valueFromText text = %r' % (text,))
+        if len(text) == 0 or text[0].lower().startswith('n'):
+            value = self.NONE_VALUE
+        else:
+            if self.type_ is int:
+                value = int(round(float(text)))
+            elif self.type_ is float:
+                value = self.type_(text)
+            else:
+                raise ValueError('unknown self.type_=%r' % (self.type_,))
+        print(' * return value = %r' % (value,))
+        return value
+
+    def textFromValue(self, value):
+        print('[spin] textFromValue value = %r' % (value,))
+        if value is None or value == self.NONE_VALUE:
+            text = 'None'
+            #return str(self.NONE_VALUE)
+        else:
+            if self.type_ is int:
+                text = str(int(value))
+            elif self.type_ is float:
+                text = str(float(value))
+            else:
+                raise ValueError('unknown self.type_=%r' % (self.type_,))
+                #return super(NoneSpinBox, self).textFromValue(value)
+        print(' * return text = %r' % (text,))
+        return text
 
 
 class ConfigValueDelegate(DELEGATE_BASE):
@@ -195,21 +246,26 @@ class ConfigValueDelegate(DELEGATE_BASE):
 
             style.drawComplexControl(control, opt, painter)
             style.drawControl(element, opt, painter)
-        elif False and (leafNode is not None and leafNode.type_ is int):
-            curent_value = six.text_type(index.model().data(index))
+        elif (leafNode is not None and leafNode.is_spin):
             # fill style options with item data
             style = QtWidgets.QApplication.style()
             opt = QtWidgets.QStyleOptionSpinBox()
             # opt.currentText doesn't exist for SpinBox
-            opt.currentText = curent_value  #
+            #opt.currentText = curent_value  #
             opt.rect = option.rect
             #opt.editable = False
             if leafNode.qt_is_editable():
                 opt.state |= style.State_Enabled
             element = QtWidgets.QStyle.CE_ItemViewItem
             control = QtWidgets.QStyle.CC_SpinBox
+            painter.save()
             style.drawComplexControl(control, opt, painter)
             style.drawControl(element, opt, painter)
+            #self.drawDisplay(painter, opt, opt.rect, str(curent_value))
+            option.rect.setLeft(option.rect.left() + 3)
+            curent_value = six.text_type(index.model().data(index))
+            painter.drawText(option.rect, Qt.AlignLeft, str(curent_value))
+            painter.restore()
         else:
             return super(ConfigValueDelegate, self).paint(painter, option, index)
 
@@ -238,26 +294,38 @@ class ConfigValueDelegate(DELEGATE_BASE):
             editor = guitool.newComboBox(parent, options, default=curent_value)
             editor.currentIndexChanged['int'].connect(self.currentIndexChanged)
             editor.setAutoFillBackground(True)
-        elif leafNode is not None and leafNode.type_ is float:
-            editor = QtWidgets.QDoubleSpinBox(parent)
-            # TODO: min / max
-            if False:
-                editor.setMinimum(0.0)
-                editor.setMaximum(1.0)
-            editor.setSingleStep(0.1)
-            editor.setAutoFillBackground(True)
-            editor.setHidden(False)
-        elif leafNode is not None and leafNode.type_ is int:
+        #elif leafNode is not None and leafNode.type_ is float:
+        #    curent_value = index.model().data(index)
+        #    # TODO: min / max
+        #    if False:
+        #        editor.setMinimum(0.0)
+        #        editor.setMaximum(1.0)
+        #    editor.setSingleStep(0.1)
+        #    editor.setAutoFillBackground(True)
+        #    editor.setHidden(False)
+        elif (leafNode is not None and leafNode.is_spin):
             # TODO: Find a way for the user to enter a None into int boxes
-            editor = QtWidgets.QSpinBox(parent)
-            editor.setMinimum(-int(2 ** 29))
-            editor.setMaximum(int(2 ** 29))
-            if False:
-                editor.setMinimum(0)
-                editor.setMaximum(1)
-            editor.setSingleStep(1)
+            #editor = QtWidgets.QDoubleSpinBox(parent)
+            editor = NoneSpinBox(parent, type_=leafNode.type_)
+
+            if leafNode.min_ is not None:
+                editor.setMinimum(leafNode.min_)
+            if leafNode.max_ is not None:
+                editor.setMaximum(leafNode.max_)
+
+            step_ = leafNode.step_
+            if step_ is None:
+                if leafNode.type_ is float:
+                    step_ = .1
+                else:
+                    step_ = 1
+            editor.setSingleStep(step_)
+
             editor.setAutoFillBackground(True)
             editor.setHidden(False)
+            curent_value = index.model().data(index)
+            #print('curent_value = %r' % (curent_value,))
+            editor.setValue(curent_value)
         else:
             editor = super(ConfigValueDelegate, self).createEditor(parent, option, index)
             editor.setAutoFillBackground(True)
@@ -287,6 +355,11 @@ class ConfigValueDelegate(DELEGATE_BASE):
             current_value = editor.currentValue()
             if VERBOSE_CONFIG:
                 print('[DELEGATE] * current_value = %r' % (current_value,))
+            model.setData(index, current_value)
+        elif (leafNode is not None and leafNode.is_spin):
+            current_value = editor.value()
+            #if editor.textFromValue(current_value) == 'None':
+            #    current_value = None
             model.setData(index, current_value)
         else:
             return super(ConfigValueDelegate, self).setModelData(editor, model, index)
@@ -483,6 +556,82 @@ class QConfigModel(QAbstractItemModel):
         return QVariantHack()
 
 
+"""
+Notes:
+    Combo Junmk
+    # fill style options with item data
+    #style = QtCore.QCoreApplication.instance().style()
+    #opt.rect.setWidth(400)
+    #print('opt.rect = %r' % (opt.rect,))
+    #style.State style.StateFlag style.State_NoChange style.State_Sibling
+    #style.State_Active style.State_FocusAtBorder style.State_None
+    #style.State_Small style.State_AutoRaise style.State_HasFocus
+    #style.State_Off style.State_Sunken style.State_Bottom
+    #style.State_Horizontal style.State_On style.State_Top
+    #style.State_Children style.State_Item style.State_Open
+    #style.State_UpArrow style.State_DownArrow
+    #style.State_KeyboardFocusChange style.State_Raised style.State_Window
+    #style.State_Editing style.State_Mini style.State_ReadOnly
+    #style.State_Enabled style.State_MouseOver style.State_Selected
+
+    #opt.state |= style.State_Raised
+    #opt.state |= style.State_UpArrow
+    #opt.state |= style.State_AutoRaise
+    #opt.state |= style.State_Active
+    #opt.state |= style.State_Editing
+    #opt.state |= style.State_Enabled
+    #opt.state |= style.State_On
+    #opt.state |= style.State_Open
+    #opt.state |= style.State_HasFocus
+    #opt.state |= style.State_FocusAtBorder
+    #opt.state |= style.State_Selected
+
+    #painter.drawText(option.rect, Qt.AlignLeft, "FOOBAR")
+    #print('opt.state = %r' % (opt.state,))
+
+    #else:
+        #opt.state = style.State_Enabled | style.State_Active
+
+    #self.initStyleOption(opt)
+
+    #'currentIcon': <PyQt4.QtGui.QIcon object at 0x7fb19681b8a0>,
+    #'currentText': '',
+    #'direction': 0,
+    #'editable': False,
+    #'frame': True,
+    #'iconSize': PyQt4.QtCore.QSize(-1, -1),
+    #'palette': <PyQt4.QtGui.QPalette object at 0x7fb1959666e0>,
+    #'popupRect': PyQt4.QtCore.QRect(),
+    #'rect': PyQt4.QtCore.QRect(),
+    #'state': <PyQt4.QtGui.State object at 0x7fb195966848>,
+    #'activeSubControls': <PyQt4.QtGui.SubControls object at 0x7fb195966578>,
+    #'subControls': <PyQt4.QtGui.SubControls object at 0x7fb1959668c0>,
+
+    #opt.subControls = QtWidgets.QStyle.SC_All
+    #print('QtWidgets.QStyle.SC_All = %r' % (QtWidgets.QStyle.SC_All,))
+    #print('opt.subControls = %r' % (opt.subControls,))
+
+    # draw item data as ComboBox
+    #element = QtWidgets.QStyle.CE_ItemViewItem
+    #QtWidgets.QStyle.SC_ComboBoxArrow
+    #QtWidgets.QStyle.SC_ComboBoxEditField
+    #QtWidgets.QStyle.SC_ComboBoxFrame
+    #QtWidgets.QStyle.SC_ComboBoxListBoxPopup
+
+    #style.drawPrimitive(QtWidgets.QStyle.PE_PanelButtonBevel, opt, painter)
+    # Do I need to draw sub controls?
+
+    #painter.save()
+    #painter.restore()
+
+    #self.drawDisplay(painter, opt, opt.rect, opt.currentText)
+    #self.drawFocus(painter, opt, opt.rect)
+    #QtWidgets.QItemDelegate
+    #painter.restore()
+    #return super(ConfigValueDelegate, self).paint(painter, option, index)
+"""
+
+
 BOOL_AS_COMBO = False
 
 
@@ -597,10 +746,19 @@ class ConfigNodeWrapper(ut.NiceRepr):
 
     @property
     def type_(self):
-        if self.param_info is None:
-            return None
-        else:
-            return self.param_info.type_
+        return None if self.param_info is None else self.param_info.type_
+
+    @property
+    def step_(self):
+        return None if self.param_info is None else self.param_info.step_
+
+    @property
+    def min_(self):
+        return None if self.param_info is None else self.param_info.min_
+
+    @property
+    def max_(self):
+        return None if self.param_info is None else self.param_info.max_
 
     @property
     def is_combo(self):
@@ -610,6 +768,13 @@ class ConfigNodeWrapper(ut.NiceRepr):
             return True
         else:
             return self.param_info.valid_values is not None
+
+    @property
+    def is_spin(self):
+        if self.param_info is None:
+            return False
+        elif self.type_ is int or self.type_ is float:
+            return True
 
     @property
     def valid_values(self):
@@ -721,7 +886,8 @@ class EditConfigWidget(QtWidgets.QWidget):
         >>>     _param_info_list = [
         >>>         ut.ParamInfo('str_option', 'hello'),
         >>>         ut.ParamInfo('int_option', 42),
-        >>>         ut.ParamInfo('float_option', 42.),
+        >>>         ut.ParamInfo('int_option2', None, type_=int, min_=-2),
+        >>>         ut.ParamInfo('float_option', .42, max_=1.0, min_=0),
         >>>         ut.ParamInfo('none_option', None),
         >>>         ut.ParamInfo('none_combo_option', None, valid_values=[None, True, False]),
         >>>         ut.ParamInfo('combo_option', 'up', valid_values=['up', 'down', 'strange', 'charm', 'top', 'bottom']),
@@ -760,17 +926,17 @@ class EditConfigWidget(QtWidgets.QWidget):
         self.vbox.addWidget(self.tree_view)
 
         self.hbox = QtWidgets.QHBoxLayout()
-        self.default_but = gt.newButton(self, 'Defaults', clicked=self.reset_to_default)
+        self.default_but = gt.newButton(self, 'Defaults', pressed=self.reset_to_default)
         self.default_but.setStyleSheet('QToolButton { border: none; }')
         self.hbox.addWidget(self.default_but)
 
-        self.orig_but = gt.newButton(self, 'Original', clicked=self.reset_to_original)
+        self.orig_but = gt.newButton(self, 'Original', pressed=self.reset_to_original)
         self.orig_but.setStyleSheet('QToolButton { border: none; }')
         self.hbox.addWidget(self.orig_but)
 
         if not self.user_mode:
             self.print_internals = gt.newButton(self, 'Print Internals',
-                                                clicked=self.print_internals)
+                                                pressed=self.print_internals)
             self.hbox.addWidget(self.print_internals)
         self.vbox.addLayout(self.hbox)
         self.setWindowTitle(_translate('self', 'Edit Config Widget', None))
