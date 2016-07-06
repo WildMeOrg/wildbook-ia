@@ -218,7 +218,7 @@ class APIItemModel(API_MODEL_BASE):
         col_sort_index   = headers.get('col_sort_index', 0)
         col_sort_reverse = headers.get('col_sort_reverse', False)
         # New for dynamically getting non-data roles for each row
-        col_bgrole_getter_list  = headers.get('col_bgrole_getter_list', None)
+        col_bgrole_getter_list = headers.get('col_bgrole_getter_list', None)
         col_visible_list = headers.get('col_visible_list', None)
         model.cache = {}  # FIXME: This is not sustainable
         model.name = str(name)
@@ -232,6 +232,8 @@ class APIItemModel(API_MODEL_BASE):
         model._set_col_getter(col_getter_list)
         model._set_col_bgrole_getter(col_bgrole_getter_list)
         model._set_col_visible_list(col_visible_list)
+        # newer stuff
+        model.col_display_role_func_dict = headers.get('col_display_role_func_dict', None)
 
         model._set_col_level(col_level_list)
         # calls model._update_rows()
@@ -248,29 +250,12 @@ class APIItemModel(API_MODEL_BASE):
             print('[APIItemModel] +-----------')
             print('[APIItemModel] _update_rows')
         # this is not slow
-        #with ut.Timer('update_rows'):
-        #printDBG('UPDATE ROWS!')
         #print('UPDATE ROWS!')
-        #print('num_rows=%r' % len(model.col_level_list))
-        #print('UPDATE model(%s) rows' % model.name)
-        #print('[api_model] UPDATE ROWS: %r' % (model.name,))
-        #print(ut.get_caller_name(range(4, 12)))
         if len(model.col_level_list) == 0:
             return
         #old_root = model.root_node  # NOQA
         if rebuild_structure:
-            #with ut.Timer('[%s] _update_rows: %r' %
-            #                 ('cyth' if _atn.CYTHONIZED else 'pyth',
-            #                  model.name,), newline=False):
-                model.root_node = _atn.build_internal_structure(model)
-        #print('-----')
-        #def lazy_update_rows():
-        #    with ut.Timer('lazy updater: %r' % (model.name,)):
-        #        printDBG('[model] calling lazy updater: %r' % (model.name,))
-        # REMOVING LAZY FUNCTION BECAUSE IT MIGHT HAVE CAUSED PROBLEMS
-        #with ut.Timer('[%s] _update_rows2: %r' %
-        #                 ('cyth' if _atn.CYTHONIZED else 'pyth',
-        #                  model.name,), newline=False):
+            model.root_node = _atn.build_internal_structure(model)
         if VERBOSE:
             print('[APIItemModel] lazy_update_rows')
         model.level_index_list = []
@@ -291,7 +276,6 @@ class APIItemModel(API_MODEL_BASE):
                 if type_ == 'PIXMAP':
                     # TODO: find a better sorting metric for pixmaps
                     values = ut.get_list_column(values, 0)
-                #print('values got')
             else:
                 type_ = int
                 values = id_list
@@ -299,49 +283,33 @@ class APIItemModel(API_MODEL_BASE):
 
             #ut.embed()
             # <NUMPY MULTIARRAY SORT>
-            #with ut.embed_on_exception_context:
-            if type_ is float:
-                values = np.array(ut.replace_nones(values, np.nan))
-                #values = np.array(values)
-                values[np.isnan(values)] = -np.inf  # Force nan to be the smallest number
-            import vtool as vt
-            sortx = vt.argsort_records([values, id_list], reverse=reverse)
-            #sorting_records = np.rec.fromarrays([values, id_list])
-            #sort_stride = (-reverse * 2) + 1
-            #sortx = sorting_records.argsort()[::sort_stride]
-            # </NUMPY MULTIARRAY SORT>
-            nodes = ut.take(children, sortx)
-
-            #sorted_pairs = sorted(zip(values, id_list, children), reverse=reverse)
-            #nodes = [child for (value, id_, child) in sorted_pairs]
-            level = model.col_level_list[sort_index]
-            #print("row_indices sorted")
-            if level == 0:
-                model.root_node.set_children(nodes)
-            # end sort
+            #import utool
+            #with utool.embed_on_exception_context:
+            if True:
+                if type_ is float:
+                    values = np.array(ut.replace_nones(values, np.nan))
+                    values[np.isnan(values)] = -np.inf  # Force nan to be the smallest number
+                import vtool as vt
+                sortx = vt.argsort_records([values, id_list], reverse=reverse)
+                # </NUMPY MULTIARRAY SORT>
+                nodes = ut.take(children, sortx)
+                #sorted_pairs = sorted(zip(values, id_list, children), reverse=reverse)
+                #nodes = [child for (value, id_, child) in sorted_pairs]
+                level = model.col_level_list[sort_index]
+                #print("row_indices sorted")
+                if level == 0:
+                    model.root_node.set_children(nodes)
+                # end sort
         if ut.USE_ASSERT:
             assert nodes is not None, 'no indices'
         model.level_index_list = nodes
         #if VERBOSE:
         #    print('[APIItemModel] lazy_update_rows emmiting _rows_updated')
-
         # EMIT THE NUMERR OF ROWS AND THE NAME OF FOR THE VIEW TO DISPLAY
         model._rows_updated.emit(model.name, len(model.level_index_list))
-
-        # lazy method didn't work. Eagerly evaluate
-        #lazy_update_rows()
-        # HACK TO MAKE SURE TREE NODES DONT DELETE THEMSELVES
-        #if VERBOSE:
-        #    print('[APIItemModel] build_scope_hack_list')
-        # SCOPE HACK SEEMS TO HAVE NOT HALPED
-        #model.scope_hack_list = []
-        #_atn.build_scope_hack_list(model.root_node, model.scope_hack_list)
-        #model.lazy_updater = lazy_update_rows
-        #print("Rows updated")
         if VERBOSE:
             print('[APIItemModel] finished _update_rows')
             print('[APIItemModel] L__________')
-    #del old_root
 
     #@profile
     def lazy_checks(model):
@@ -911,6 +879,12 @@ class APIItemModel(API_MODEL_BASE):
             else:
                 # Display data with default delegate by casting to a qvariant
                 data = model._get_data(qtindex, **kwargs)
+                if model.col_display_role_func_dict is not None:
+                    col_name = model.col_name_list[col]
+                    display_role_func = model.col_display_role_func_dict.get(col_name, None)
+                    if display_role_func is not None:
+                        value = display_role_func(data)
+                        return value
                 value = qtype.cast_into_qt(data)
                 return value
         else:

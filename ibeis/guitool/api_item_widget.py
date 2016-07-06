@@ -40,25 +40,20 @@ def simple_api_item_widget():
     """
     import guitool
     guitool.ensure_qapp()
-    col_name_list = ['col1', 'col2']
-    col_types_dict = {}
     col_getter_dict = {
         'col1': [1, 2, 3],
         'col2': ['a', 'b', 'c'],
     }
-    col_ider_dict = {}
-    col_setter_dict = {}
-    editable_colnames = []
     sortby = 'col1'
-    def get_thumb_size():
-        return 128  # HACK
-    col_width_dict = {}
-    col_bgrole_dict = {}
+
+    #col_display_role_func_dict = {
+    #    'col1': lambda x: 'banana %d' % ((x * 100 % 23)),
+    #}
 
     api = guitool.CustomAPI(
-        col_name_list, col_types_dict, col_getter_dict,
-        col_bgrole_dict, col_ider_dict, col_setter_dict,
-        editable_colnames, sortby, get_thumb_size, True, col_width_dict)
+        col_getter_dict=col_getter_dict,
+        #col_display_role_func_dict=col_display_role_func_dict,
+        sortby=sortby)
     headers = api.make_headers(tblnice='Simple Example')
 
     wgt = guitool.APIItemWidget()
@@ -75,17 +70,21 @@ class CustomAPI(object):
     API wrapper around a list of lists, each containing column data
     Defines a single table
     """
-    def __init__(self, col_name_list, col_types_dict={}, col_getter_dict={},
+    def __init__(self, col_name_list=None, col_types_dict={}, col_getter_dict={},
                  col_bgrole_dict={}, col_ider_dict={}, col_setter_dict={},
                  editable_colnames={}, sortby=None, get_thumb_size=None,
-                 sort_reverse=True, col_width_dict={}, strict=False, **kwargs):
+                 sort_reverse=True, col_width_dict={}, strict=False,
+                 col_display_role_func_dict=None, **kwargs):
         if VERBOSE_ITEM_WIDGET:
             print('[CustomAPI] <__init__>')
+        if col_name_list is None:
+            col_name_list = sorted(list(col_getter_dict.keys()))
         self.col_width_dict = col_width_dict
         self.col_name_list = []
         self.col_type_list = []
         self.col_getter_list = []
         self.col_setter_list = []
+        self.col_display_role_func_dict = col_display_role_func_dict
         self.nCols = 0
         self.nRows = 0
         if get_thumb_size is None:
@@ -139,7 +138,8 @@ class CustomAPI(object):
             flag_list = [colname in col_getter_dict for colname in col_name_list]
             if not all(flag_list):
                 invalid_colnames = ut.compress(col_name_list, ut.not_list(flag_list))
-                print('[api_item_widget] Warning: colnames=%r have no getters' % (invalid_colnames,))
+                print('[api_item_widget] Warning: colnames=%r have no getters' % (
+                    invalid_colnames,))
                 col_name_list = ut.compress(col_name_list, flag_list)
             # sloppy type inference
             for colname in col_name_list:
@@ -154,8 +154,11 @@ class CustomAPI(object):
         self.col_nice_list = [col_nice_dict.get(name, name) for name in col_name_list]
 
         self.col_name_list = col_name_list
-        self.col_type_list = [col_types_dict.get(colname, str) for colname in col_name_list]
-        self.col_getter_list = [col_getter_dict.get(colname, str) for colname in col_name_list]  # First col is always a getter
+        self.col_type_list = [col_types_dict.get(colname, str)
+                              for colname in col_name_list]
+        # First col is always a getter
+        self.col_getter_list = [col_getter_dict.get(colname, str)
+                                for colname in col_name_list]
         # Get number of rows / columns
         self.nCols = len(self.col_getter_list)
         self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME
@@ -181,7 +184,8 @@ class CustomAPI(object):
                 del colx
                 del colname
             except Exception as ex:
-                ut.printex(ex, keys=['colname', 'ider_colnames', 'colx', 'col_ider', 'ider_cols'])
+                ut.printex(ex, keys=['colname', 'ider_colnames', 'colx',
+                                     'col_ider', 'ider_cols'])
                 raise
         # Init setters to data, and then overwrite based on dict inputs
         self.col_setter_list = list(self.col_getter_list)
@@ -189,7 +193,8 @@ class CustomAPI(object):
             colx = colname2_colx[colname]
             self.col_setter_list[colx] = col_setter
         # Init bgrole_getters to None, and then overwrite based on dict inputs
-        self.col_bgrole_getter_list = [col_bgrole_dict.get(colname, None) for colname in self.col_name_list]
+        self.col_bgrole_getter_list = [col_bgrole_dict.get(colname, None)
+                                       for colname in self.col_name_list]
         # Mark edtiable columns
         self.col_edit_list = [name in editable_colnames for name in col_name_list]
         # Mark the sort column index
@@ -265,6 +270,7 @@ class CustomAPI(object):
             'col_setter_list'  : self._make_setter_list(),
             'col_bgrole_getter_list' : self._make_bgrole_getter_list(),
             'get_thumb_size'   : self.get_thumb_size,
+            'col_display_role_func_dict': self.col_display_role_func_dict,
         }
         return headers
 
