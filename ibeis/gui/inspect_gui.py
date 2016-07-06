@@ -1273,7 +1273,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         ('aid',        int),
         ('d_nGt',      int),
         ('q_nGt',      int),
-        ('hourdiff',   str),
+        ('hourdiff',   float),
         #('review',     'BUTTON'),
         (MATCHED_STATUS_TEXT, str),
         (REVIEWED_STATUS_TEXT, str),
@@ -1288,14 +1288,15 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         ('result_index',  int),
     ])
     hourdiffs_list = np.array(ut.take_column(ibs.get_unflat_annots_hourdists_list(list(zip(qaids, daids))), 0))
-    timediff_list = [ut.get_posix_timedelta_str(t, year=True, approx=True) for t in (hourdiffs_list * 60 * 60)]
+    # TODO: make a display role
+    #timediff_list = [ut.get_posix_timedelta_str(t, year=True, approx=True) for t in (hourdiffs_list * 60 * 60)]
 
     col_getter_dict = dict([
         ('qaid',       np.array(qaids)),
         ('aid',        np.array(daids)),
         ('d_nGt',      ibs.get_annot_num_groundtruth),
         ('q_nGt',      ibs.get_annot_num_groundtruth),
-        ('hourdiff', np.array(timediff_list)),
+        ('hourdiff', np.array(hourdiffs_list)),
         #('review',     lambda rowid: get_buttontup),
         (MATCHED_STATUS_TEXT,  partial(get_match_status, ibs)),
         (REVIEWED_STATUS_TEXT,  partial(get_reviewed_status, ibs)),
