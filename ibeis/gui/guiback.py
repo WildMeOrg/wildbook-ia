@@ -154,6 +154,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             _param_info_list = (
                 annotation_configs.INDEPENDENT_DEFAULTS_PARAM_INFO +
                 annotation_configs.INTRAGROUP_DEFAULTS_PARAM_INFO +
+                annotation_configs.SAMPLE_DEFAULTS_PARAM_INFO +
                 annotation_configs.SUBINDEX_DEFAULTS_PARAM_INFO
             )
 

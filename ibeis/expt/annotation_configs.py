@@ -48,6 +48,17 @@ INTRAGROUP_DEFAULTS_PARAM_INFO = [
                  help_='Keeps names with at most this number of aids within the group'),
 ]
 
+SAMPLE_DEFAULTS_PARAM_INFO = [
+    ut.ParamInfo('sample_per_name', None, type_=int, min_=0,
+                 help_='Take this many annots per name'),
+    ut.ParamInfo('sample_rule', 'random', valid_values=['random', 'mintime', 'maxtime'],
+                 help_='Method of samping from names')
+]
+
+SUBINDEX_DEFAULTS_PARAM_INFO = [
+    ut.ParamInfo('index', None),
+]
+
 OTHER_DEFAULTS = {
     # forces a consistnet sample size across combinations
     'force_const_size'    : None,
@@ -114,10 +125,6 @@ for pi in INTRAGROUP_DEFAULTS_PARAM_INFO:
 # HACK
 INDEPENDENT_DEFAULTS.update(INTRAGROUP_DEFAULTS)  # hack
 
-SUBINDEX_DEFAULTS_PARAM_INFO = [
-    ut.ParamInfo('index', None),
-]
-
 SUBINDEX_DEFAULTS = {
     # Final indexing
     'shuffle'             : False,  # randomize order before indexing
@@ -131,13 +138,15 @@ SAMPLE_DEFAULTS = {
     'num_names'           : None,
     # Gets as close to sample size without removing other props
     # Per Name / Exemplar Params
-    'sample_per_name'     : None,  # Choos num_annots to sample from each name.
-    'sample_rule'         : 'random',
+    #'sample_per_name'     : None,  # Choos num_annots to sample from each name.
+    #'sample_rule'         : 'random',
     'sample_offset'       : None,  # UNUSED
     'occur_offset'        : None,  # UNUSED
     'name_offset'         : None,  # UNUSED
     'sample_occur'        : None,
 }
+for pi in SAMPLE_DEFAULTS_PARAM_INFO:
+    SAMPLE_DEFAULTS[pi.varname] = pi.default
 
 SAMPLE_REF_DEFAULTS = {
     # excludes any aids specified in a reference set (ie qaids)
