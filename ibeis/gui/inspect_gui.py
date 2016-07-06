@@ -614,11 +614,11 @@ class QueryResultsWidget(APIItemWidget):
                 pair_options = option_dict['g']
                 pair_option_dict = make_option_dict(pair_options)
                 pair_option_dict['P']()
-            elif event_key == QtCore.Qt.Key_4:
+            elif event_key == QtCore.Qt.Key_K:
                 annot1_options_dict = make_option_dict(option_dict['1'])
                 qual1_options_dict = make_option_dict(annot1_options_dict['Q'])
                 qual1_options_dict['4']()
-            elif event_key == QtCore.Qt.Key_8:
+            elif event_key == QtCore.Qt.Key_L:
                 annot1_options_dict = make_option_dict(option_dict['2'])
                 qual1_options_dict = make_option_dict(annot1_options_dict['Q'])
                 qual1_options_dict['4']()
