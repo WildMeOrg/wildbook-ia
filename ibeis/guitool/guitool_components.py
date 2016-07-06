@@ -27,14 +27,14 @@ ALIGN_DICT = {
 }
 
 
-def newSizePolicy(widget,
-                  verticalSizePolicy=QtWidgets.QSizePolicy.Expanding,
-                  horizontalSizePolicy=QtWidgets.QSizePolicy.Expanding,
-                  horizontalStretch=None,
-                  verticalStretch=None):
+def newSizePolicy(widget=None, verticalSizePolicy=None, horizontalSizePolicy=None,
+                  horizontalStretch=None, verticalStretch=None):
     """
-    input: widget - the central widget
     """
+    if verticalSizePolicy is None:
+        verticalSizePolicy = QtWidgets.QSizePolicy.Expanding
+    if horizontalSizePolicy is None:
+        horizontalSizePolicy = QtWidgets.QSizePolicy.Expanding
     if verticalStretch is None:
         verticalStretch = 0
     if horizontalStretch is None:
