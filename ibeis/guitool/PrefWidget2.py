@@ -68,6 +68,7 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
 
     def __init__(self, *args, **kwargs):
         self.type_ = kwargs.pop('type_', float)
+        self.none_ok = kwargs.pop('none_ok', True)
         self.post_nan_value = 0
         self._hack_min = self.HARD_MIN + 2.0
         self._hack_max = self.HARD_MAX - 2.0
@@ -75,20 +76,9 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
         super(NoneSpinBox, self).setRange(self.HARD_MIN, self.HARD_MAX)
 
     def keyPressEvent(self, event):
-        if event.matches(QtGui.QKeySequence.Delete):
-            #self.setSpecialValueText('None')
+        if self.none_ok and event.matches(QtGui.QKeySequence.Delete):
             self.setValue(self.NONE_VALUE)
-            #print('Need to set delete value')
-            #self.editingFinished()
         else:
-            #import utool
-            #utool.embed()
-            #self.valueChanged.emit(None)
-            #print('DELETEME')
-            #print('DELETEME')
-            #import utool
-            #utool.embed()
-            #self.editingFinished()
             return super(NoneSpinBox, self).keyPressEvent(event)
 
     def setMinimum(self, min_):
@@ -117,7 +107,7 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
     def validate(self, text, pos):
         import re
         #print('validate text = %r, pos=%r' % (text, pos))
-        if len(text) == 0 or text.lower().startswith('n'):
+        if self.none_ok and (len(text) == 0 or text.lower().startswith('n')):
             state = (QtGui.QValidator.Acceptable, text, pos)
         else:
             #state =  super(NoneSpinBox, self).validate(text, pos)
@@ -125,7 +115,7 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
                 state = (QtGui.QValidator.Invalid, text, pos)
             else:
                 if not re.match(r'^[+-]?[0-9]*[.,]?[0-9]*[Ee]?[+-]?[0-9]*$', text, flags=re.MULTILINE):
-                    print('INVALIDATE text = %r' % (text,))
+                    #print('INVALIDATE text = %r' % (text,))
                     state = (QtGui.QValidator.Invalid, text, pos)
                 else:
                     try:
@@ -141,13 +131,13 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
 
     def value(self):
         internal_value = super(NoneSpinBox, self).value()
-        if internal_value == self.NONE_VALUE:
+        if self.none_ok and internal_value == self.NONE_VALUE:
             return None
         else:
             return internal_value
 
     def setValue(self, value):
-        print('[spin] setValue = %r' % (value,))
+        #print('[spin] setValue = %r' % (value,))
         if value is None:
             value = self.NONE_VALUE
         if isinstance(value, six.string_types):
@@ -166,8 +156,8 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
         return super(NoneSpinBox, self).setValue(value)
 
     def valueFromText(self, text):
-        print('[spin] valueFromText text = %r' % (text,))
-        if len(text) == 0 or text[0].lower().startswith('n'):
+        #print('[spin] valueFromText text = %r' % (text,))
+        if self.none_ok and (len(text) == 0 or text[0].lower().startswith('n')):
             value = self.NONE_VALUE
         else:
             if self.type_ is int:
@@ -180,8 +170,8 @@ class NoneSpinBox(QtWidgets.QDoubleSpinBox):
         return value
 
     def textFromValue(self, value):
-        print('[spin] textFromValue value = %r' % (value,))
-        if value is None or value == self.NONE_VALUE:
+        #print('[spin] textFromValue value = %r' % (value,))
+        if self.none_ok and value is None or value == self.NONE_VALUE:
             text = 'None'
             #return str(self.NONE_VALUE)
         else:
@@ -306,7 +296,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
         elif (leafNode is not None and leafNode.is_spin):
             # TODO: Find a way for the user to enter a None into int boxes
             #editor = QtWidgets.QDoubleSpinBox(parent)
-            editor = NoneSpinBox(parent, type_=leafNode.type_)
+            editor = NoneSpinBox(parent, type_=leafNode.type_, none_ok=leafNode.none_ok)
 
             if leafNode.min_ is not None:
                 editor.setMinimum(leafNode.min_)
@@ -757,6 +747,10 @@ class ConfigNodeWrapper(ut.NiceRepr):
         return None if self.param_info is None else self.param_info.min_
 
     @property
+    def none_ok(self):
+        return None if self.param_info is None else self.param_info.none_ok
+
+    @property
     def max_(self):
         return None if self.param_info is None else self.param_info.max_
 
@@ -885,7 +879,7 @@ class EditConfigWidget(QtWidgets.QWidget):
         >>> class ExampleConfig(dtool.Config):
         >>>     _param_info_list = [
         >>>         ut.ParamInfo('str_option', 'hello'),
-        >>>         ut.ParamInfo('int_option', 42),
+        >>>         ut.ParamInfo('int_option', 42, none_ok=False),
         >>>         ut.ParamInfo('int_option2', None, type_=int, min_=-2),
         >>>         ut.ParamInfo('float_option', .42, max_=1.0, min_=0),
         >>>         ut.ParamInfo('none_option', None),
