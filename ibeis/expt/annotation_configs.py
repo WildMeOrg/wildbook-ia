@@ -22,15 +22,6 @@ ALIAS_KEYS = {
     'excluderef': 'exclude_reference',
 }
 
-OTHER_DEFAULTS = {
-    # forces a consistnet sample size across combinations
-    'force_const_size'    : None,
-    #'hack_extra' : None,  # hack param to make bigger db sizes
-    #'hack_imageset': None,
-    # Hack out errors in test data
-    'hackerrors'    : True,
-    'joinme'    : None,
-}
 
 INDEPENDENT_DEFAULTS_PARAM_INFO = [
     ut.ParamInfo('reviewed', None, valid_values=[True, False, None]),
@@ -42,8 +33,30 @@ INDEPENDENT_DEFAULTS_PARAM_INFO = [
     ut.ParamInfo('require_quality', None, valid_values=[True, False, None]),
     ut.ParamInfo('require_viewpoint', None, valid_values=[True, False, None]),
     ut.ParamInfo('is_exemplar', None, valid_values=[True, False, None]),
+    ut.ParamInfo('min_pername_global', None, type_=int, min_=0,
+                 help_='Keep annot if it has at least this many global names'),
+    ut.ParamInfo('max_pername_global', None, type_=int, min_=0,
+                 help_='Keep annot if it has at most this many global names'),
     #ut.ParamInfo('view', None),
 ]
+
+
+INTRAGROUP_DEFAULTS_PARAM_INFO = [
+    ut.ParamInfo('min_pername', None, type_=int, min_=0,
+                 help_='Keeps names with at least this number of aids within the group'),
+    ut.ParamInfo('max_pername', None, type_=int, min_=0,
+                 help_='Keeps names with at most this number of aids within the group'),
+]
+
+OTHER_DEFAULTS = {
+    # forces a consistnet sample size across combinations
+    'force_const_size'    : None,
+    #'hack_extra' : None,  # hack param to make bigger db sizes
+    #'hack_imageset': None,
+    # Hack out errors in test data
+    'hackerrors'    : True,
+    'joinme'    : None,
+}
 
 # Defaults for the independent filter
 # THese filters are orderless
@@ -84,12 +97,6 @@ for pi in INDEPENDENT_DEFAULTS_PARAM_INFO:
     INDEPENDENT_DEFAULTS[pi.varname] = pi.default
 
 
-INTRAGROUP_DEFAULTS_PARAM_INFO = [
-    ut.ParamInfo('min_pername', None, type_=int,
-                 help_='Keeps names with at least this number of aids within the group'),
-    ut.ParamInfo('max_pername', None, type_=int,
-                 help_='Keeps names with at most this number of aids within the group'),
-]
 INTRAGROUP_DEFAULTS = {
     # if True all annots must belong to the same imageset
     'same_imageset'      : None,
