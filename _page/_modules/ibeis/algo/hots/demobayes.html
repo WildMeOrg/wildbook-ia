@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.demobayes &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.hots.demobayes &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,17 +133,17 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.hots.demobayes</h1><div class="highlight"><pre>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots.bayes</span> <span class="kn">import</span> <span class="n">make_name_model</span><span class="p">,</span> <span class="n">test_model</span><span class="p">,</span> <span class="n">draw_tree_model</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[demobayes]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[demobayes]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="testdata_demo_cfgs"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.demobayes.testdata_demo_cfgs">[docs]</a><span class="k">def</span> <span class="nf">testdata_demo_cfgs</span><span class="p">():</span>
-    <span class="n">alias_keys</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;nA&#39;</span><span class="p">:</span> <span class="s">&#39;num_annots&#39;</span><span class="p">,</span> <span class="s">&#39;nN&#39;</span><span class="p">:</span> <span class="s">&#39;num_names&#39;</span><span class="p">,</span> <span class="s">&#39;nS&#39;</span><span class="p">:</span> <span class="s">&#39;num_scores&#39;</span><span class="p">}</span>
-    <span class="n">cfg_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_argv_cfg</span><span class="p">(</span><span class="s">&#39;--ev&#39;</span><span class="p">,</span> <span class="n">alias_keys</span><span class="o">=</span><span class="n">alias_keys</span><span class="p">)</span>
+    <span class="n">alias_keys</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;nA&#39;</span><span class="p">:</span> <span class="s1">&#39;num_annots&#39;</span><span class="p">,</span> <span class="s1">&#39;nN&#39;</span><span class="p">:</span> <span class="s1">&#39;num_names&#39;</span><span class="p">,</span> <span class="s1">&#39;nS&#39;</span><span class="p">:</span> <span class="s1">&#39;num_scores&#39;</span><span class="p">}</span>
+    <span class="n">cfg_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">parse_argv_cfg</span><span class="p">(</span><span class="s1">&#39;--ev&#39;</span><span class="p">,</span> <span class="n">alias_keys</span><span class="o">=</span><span class="n">alias_keys</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cfg_list</span>
 
 </div>
@@ -182,24 +182,24 @@
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="n">num_annots</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;num_annots&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-    <span class="n">num_names</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;num_names&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="n">num_scores</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;num_scores&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">rand_scores</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;rand_scores&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-    <span class="n">method</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;method&#39;</span><span class="p">,</span> <span class="s">&#39;bp&#39;</span><span class="p">)</span>
-    <span class="n">other_evidence</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)}</span>
+    <span class="n">num_annots</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;num_annots&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">num_names</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;num_names&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">num_scores</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;num_scores&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">rand_scores</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;rand_scores&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;method&#39;</span><span class="p">,</span> <span class="s1">&#39;bp&#39;</span><span class="p">)</span>
+    <span class="n">other_evidence</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)}</span>
     <span class="k">if</span> <span class="n">rand_scores</span><span class="p">:</span>
-        <span class="c">#import randomdotorg</span>
-        <span class="c">#import sys</span>
-        <span class="c">#r = randomdotorg.RandomDotOrg(&#39;ExampleCode&#39;)</span>
-        <span class="c">#seed = int((1 - 2 * r.random()) * sys.maxint)</span>
+        <span class="c1">#import randomdotorg</span>
+        <span class="c1">#import sys</span>
+        <span class="c1">#r = randomdotorg.RandomDotOrg(&#39;ExampleCode&#39;)</span>
+        <span class="c1">#seed = int((1 - 2 * r.random()) * sys.maxint)</span>
         <span class="n">toy_data</span> <span class="o">=</span> <span class="n">get_toy_data_1v1</span><span class="p">(</span><span class="n">num_annots</span><span class="p">,</span> <span class="n">nid_sequence</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;toy_data = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">toy_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;toy_data = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">toy_data</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
         <span class="n">diag_scores</span><span class="p">,</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span>
-            <span class="n">toy_data</span><span class="p">,</span> <span class="s">&#39;diag_scores&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="p">))</span>
+            <span class="n">toy_data</span><span class="p">,</span> <span class="s1">&#39;diag_scores&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">))</span>
         <span class="n">discr_domain</span><span class="p">,</span> <span class="n">discr_p_same</span> <span class="o">=</span> <span class="n">learn_prob_score</span><span class="p">(</span><span class="n">num_scores</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
         <span class="k">def</span> <span class="nf">discretize_scores</span><span class="p">(</span><span class="n">scores</span><span class="p">):</span>
-            <span class="c"># Assign continuous scores to discrete index</span>
+            <span class="c1"># Assign continuous scores to discrete index</span>
             <span class="n">score_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">discr_domain</span> <span class="o">/</span> <span class="n">scores</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">]))</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">score_idxs</span>
         <span class="n">score_evidence</span> <span class="o">=</span> <span class="n">discretize_scores</span><span class="p">(</span><span class="n">diag_scores</span><span class="p">)</span>
@@ -234,27 +234,27 @@
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="n">num_annots</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;num_annots&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-    <span class="n">num_scores</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;num_scores&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="n">num_iter</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;k&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">num_annots</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;num_annots&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">num_scores</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;num_scores&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">num_iter</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">nid_sequence</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
     <span class="n">toy_data</span> <span class="o">=</span> <span class="n">get_toy_data_1v1</span><span class="p">(</span><span class="n">num_annots</span><span class="p">,</span> <span class="n">nid_sequence</span><span class="o">=</span><span class="n">nid_sequence</span><span class="p">)</span>
     <span class="n">force_evidence</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="n">force_evidence</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">diag_scores</span><span class="p">,</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span>
-        <span class="n">toy_data</span><span class="p">,</span> <span class="s">&#39;diag_scores&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="p">))</span>
+        <span class="n">toy_data</span><span class="p">,</span> <span class="s1">&#39;diag_scores&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">))</span>
 
-    <span class="c">#print(&#39;diag_scores = %r&#39; % (diag_scores,))</span>
-    <span class="c">#diag_labels = pairwise_matches.compress(is_diag)</span>
-    <span class="c">#diag_pairs = ut.compress(pairwise_aidxs, is_diag)</span>
+    <span class="c1">#print(&#39;diag_scores = %r&#39; % (diag_scores,))</span>
+    <span class="c1">#diag_labels = pairwise_matches.compress(is_diag)</span>
+    <span class="c1">#diag_pairs = ut.compress(pairwise_aidxs, is_diag)</span>
 
     <span class="n">discr_domain</span><span class="p">,</span> <span class="n">discr_p_same</span> <span class="o">=</span> <span class="n">learn_prob_score</span><span class="p">(</span><span class="n">num_scores</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
     <span class="k">def</span> <span class="nf">discretize_scores</span><span class="p">(</span><span class="n">scores</span><span class="p">):</span>
-        <span class="c"># Assign continuous scores to closest discrete index</span>
+        <span class="c1"># Assign continuous scores to closest discrete index</span>
         <span class="n">score_idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">discr_domain</span> <span class="o">/</span> <span class="n">scores</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">]))</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">score_idxs</span>
 
-    <span class="c"># Careful ordering is important here</span>
+    <span class="c1"># Careful ordering is important here</span>
     <span class="n">score_evidence</span> <span class="o">=</span> <span class="n">discretize_scores</span><span class="p">(</span><span class="n">diag_scores</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">force_evidence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">score_evidence</span><span class="p">)):</span>
@@ -267,57 +267,57 @@
         <span class="n">score_evidence</span><span class="o">=</span><span class="n">score_evidence</span><span class="p">,</span>
         <span class="n">p_score_given_same</span><span class="o">=</span><span class="n">discr_p_same</span><span class="p">,</span>
         <span class="n">score_basis</span><span class="o">=</span><span class="n">discr_domain</span><span class="p">,</span>
-        <span class="c">#verbose=True</span>
+        <span class="c1">#verbose=True</span>
     <span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">query_results</span><span class="p">[</span><span class="s">&#39;top_assignments&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">query_results</span><span class="p">[</span><span class="s1">&#39;top_assignments&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">toy_data1</span> <span class="o">=</span> <span class="n">toy_data</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;toy_data1 = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">toy_data1</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;toy_data1 = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">toy_data1</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
     <span class="n">num_annots2</span> <span class="o">=</span> <span class="n">num_annots</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">score_evidence1</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">score_evidence</span><span class="p">)</span>
     <span class="n">full_evidence</span> <span class="o">=</span> <span class="n">score_evidence</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
-    <span class="n">factor_list</span> <span class="o">=</span> <span class="n">query_results</span><span class="p">[</span><span class="s">&#39;factor_list&#39;</span><span class="p">]</span>
+    <span class="n">factor_list</span> <span class="o">=</span> <span class="n">query_results</span><span class="p">[</span><span class="s1">&#39;factor_list&#39;</span><span class="p">]</span>
     <span class="n">using_soft</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="n">using_soft</span><span class="p">:</span>
         <span class="n">soft_evidence1</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">statenames</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">values</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">factor_list</span><span class="p">]</span>
 
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_iter</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n\n</span><span class="s"> ---------- </span><span class="se">\n\n</span><span class="s">&#39;</span><span class="p">)</span>
-        <span class="c">#toy_data1[&#39;all_nids&#39;].max() + 1</span>
-        <span class="n">num_names_gen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">toy_data1</span><span class="p">[</span><span class="s">&#39;all_aids&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
-        <span class="n">num_names_gen</span> <span class="o">=</span> <span class="n">toy_data1</span><span class="p">[</span><span class="s">&#39;all_nids&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1"> ---------- </span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="c1">#toy_data1[&#39;all_nids&#39;].max() + 1</span>
+        <span class="n">num_names_gen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">toy_data1</span><span class="p">[</span><span class="s1">&#39;all_aids&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">num_names_gen</span> <span class="o">=</span> <span class="n">toy_data1</span><span class="p">[</span><span class="s1">&#39;all_nids&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">2</span>
         <span class="n">toy_data2</span> <span class="o">=</span> <span class="n">get_toy_data_1v1</span><span class="p">(</span>
             <span class="mi">1</span><span class="p">,</span> <span class="n">num_names_gen</span><span class="p">,</span>
-            <span class="n">initial_aids</span><span class="o">=</span><span class="n">toy_data1</span><span class="p">[</span><span class="s">&#39;all_aids&#39;</span><span class="p">],</span>
-            <span class="n">initial_nids</span><span class="o">=</span><span class="n">toy_data1</span><span class="p">[</span><span class="s">&#39;all_nids&#39;</span><span class="p">],</span>
+            <span class="n">initial_aids</span><span class="o">=</span><span class="n">toy_data1</span><span class="p">[</span><span class="s1">&#39;all_aids&#39;</span><span class="p">],</span>
+            <span class="n">initial_nids</span><span class="o">=</span><span class="n">toy_data1</span><span class="p">[</span><span class="s1">&#39;all_nids&#39;</span><span class="p">],</span>
             <span class="n">nid_sequence</span><span class="o">=</span><span class="n">nid_sequence</span><span class="p">)</span>
         <span class="n">diag_scores2</span><span class="p">,</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span>
-            <span class="n">toy_data2</span><span class="p">,</span> <span class="s">&#39;diag_scores&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;toy_data2 = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">toy_data2</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">toy_data2</span><span class="p">,</span> <span class="s1">&#39;diag_scores&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;toy_data2 = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">toy_data2</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
         <span class="n">score_evidence2</span> <span class="o">=</span> <span class="n">discretize_scores</span><span class="p">(</span><span class="n">diag_scores2</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">force_evidence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">score_evidence2</span><span class="p">)):</span>
                 <span class="n">score_evidence2</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">force_evidence</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;score_evidence2 = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">score_evidence2</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;score_evidence2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">score_evidence2</span><span class="p">,))</span>
 
         <span class="k">if</span> <span class="n">using_soft</span><span class="p">:</span>
-            <span class="c"># Demo with soft evidence</span>
+            <span class="c1"># Demo with soft evidence</span>
             <span class="n">model</span><span class="p">,</span> <span class="n">evidence</span><span class="p">,</span> <span class="n">query_results2</span> <span class="o">=</span> <span class="n">test_model</span><span class="p">(</span>
                 <span class="n">num_annots</span><span class="o">=</span><span class="n">num_annots2</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="n">num_annots2</span><span class="p">,</span>
                 <span class="n">num_scores</span><span class="o">=</span><span class="n">num_scores</span><span class="p">,</span>
                 <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                 <span class="n">name_evidence</span><span class="o">=</span><span class="n">soft_evidence1</span><span class="p">,</span>
-                <span class="c">#score_evidence=score_evidence1 + score_evidence2,</span>
+                <span class="c1">#score_evidence=score_evidence1 + score_evidence2,</span>
                 <span class="n">score_evidence</span><span class="o">=</span><span class="n">score_evidence2</span><span class="p">,</span>
                 <span class="n">p_score_given_same</span><span class="o">=</span><span class="n">discr_p_same</span><span class="p">,</span>
                 <span class="n">score_basis</span><span class="o">=</span><span class="n">discr_domain</span><span class="p">,</span>
-                <span class="c">#verbose=True,</span>
+                <span class="c1">#verbose=True,</span>
                 <span class="n">hack_score_only</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">score_evidence2</span><span class="p">),</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="c"># Demo with full evidence</span>
+            <span class="c1"># Demo with full evidence</span>
             <span class="n">model</span><span class="p">,</span> <span class="n">evidence</span><span class="p">,</span> <span class="n">query_results2</span> <span class="o">=</span> <span class="n">test_model</span><span class="p">(</span>
                 <span class="n">num_annots</span><span class="o">=</span><span class="n">num_annots2</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="n">num_annots2</span><span class="p">,</span>
                 <span class="n">num_scores</span><span class="o">=</span><span class="n">num_scores</span><span class="p">,</span>
@@ -327,7 +327,7 @@
                 <span class="n">score_basis</span><span class="o">=</span><span class="n">discr_domain</span><span class="p">,</span>
                 <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span>
             <span class="p">)</span>
-        <span class="n">factor_list2</span> <span class="o">=</span> <span class="n">query_results2</span><span class="p">[</span><span class="s">&#39;factor_list&#39;</span><span class="p">]</span>
+        <span class="n">factor_list2</span> <span class="o">=</span> <span class="n">query_results2</span><span class="p">[</span><span class="s1">&#39;factor_list&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">using_soft</span><span class="p">:</span>
             <span class="n">soft_evidence1</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">statenames</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">values</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">factor_list2</span><span class="p">]</span>
         <span class="n">score_evidence1</span> <span class="o">+=</span> <span class="p">([</span><span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">score_evidence2</span><span class="p">))</span>
@@ -344,10 +344,10 @@
     <span class="n">tp_pdf</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">gauss_func1d</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="o">**</span><span class="n">toy_params</span><span class="p">[</span><span class="bp">True</span><span class="p">])</span>
     <span class="n">fp_pdf</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">gauss_func1d</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="o">**</span><span class="n">toy_params</span><span class="p">[</span><span class="bp">False</span><span class="p">])</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">plot_probabilities</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">tp_pdf</span><span class="p">,</span> <span class="n">fp_pdf</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;TP&#39;</span><span class="p">,</span> <span class="s">&#39;TF&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">tp_pdf</span><span class="p">,</span> <span class="n">fp_pdf</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;TP&#39;</span><span class="p">,</span> <span class="s1">&#39;TF&#39;</span><span class="p">],</span>
         <span class="n">prob_colors</span><span class="o">=</span><span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">TRUE_BLUE</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">FALSE_RED</span><span class="p">],</span>
         <span class="n">xdata</span><span class="o">=</span><span class="n">xdata</span><span class="p">,</span>
-        <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;Toy Distributions&#39;</span><span class="p">)</span>
+        <span class="n">figtitle</span><span class="o">=</span><span class="s1">&#39;Toy Distributions&#39;</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="get_toy_data_1vM"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.demobayes.get_toy_data_1vM">[docs]</a><span class="k">def</span> <span class="nf">get_toy_data_1vM</span><span class="p">(</span><span class="n">num_annots</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -380,14 +380,14 @@
     <span class="n">aids</span><span class="p">,</span> <span class="n">nids</span><span class="p">,</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">nids1</span><span class="p">,</span> <span class="n">all_aids</span><span class="p">,</span> <span class="n">all_nids</span> <span class="o">=</span> <span class="n">tup_</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ensure_rng</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
 
-    <span class="c"># Test a simple SVM classifier</span>
+    <span class="c1"># Test a simple SVM classifier</span>
     <span class="n">nid2_nexemp</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_hist</span><span class="p">(</span><span class="n">nids1</span><span class="p">)</span>
     <span class="n">aid2_nid</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">nids</span><span class="p">))</span>
 
     <span class="n">ut</span><span class="o">.</span><span class="n">fix_embed_globals</span><span class="p">()</span>
 
-    <span class="c">#def add_to_globals(globals_, subdict):</span>
-    <span class="c">#    globals_.update(subdict)</span>
+    <span class="c1">#def add_to_globals(globals_, subdict):</span>
+    <span class="c1">#    globals_.update(subdict)</span>
 
     <span class="n">unique_nids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nid2_nexemp</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
@@ -401,7 +401,7 @@
             <span class="k">if</span> <span class="n">num_exemplars</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">params</span> <span class="o">=</span> <span class="n">toy_params</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
-            <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;mu&#39;</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">])</span>
+            <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">])</span>
             <span class="n">score_</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">num_exemplars</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
             <span class="n">score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">score_</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
             <span class="n">pair_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">aid</span><span class="p">,</span> <span class="n">nid</span><span class="p">))</span>
@@ -424,17 +424,17 @@
     <span class="n">lbl_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">aid2_nid</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">==</span> <span class="n">nid</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">aidnid_pairs</span><span class="p">]</span>
 
     <span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">svm</span>
-    <span class="c">#clf1 = svm.LinearSVC()</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Learning classifiers&#39;</span><span class="p">)</span>
+    <span class="c1">#clf1 = svm.LinearSVC()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Learning classifiers&#39;</span><span class="p">)</span>
 
     <span class="n">clf3</span> <span class="o">=</span> <span class="n">svm</span><span class="o">.</span><span class="n">SVC</span><span class="p">(</span><span class="n">probability</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">clf3</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">feat_list</span><span class="p">,</span> <span class="n">lbl_list</span><span class="p">)</span>
-    <span class="c">#prob_true, prob_false = clf3.predict_proba(feat_list).T</span>
+    <span class="c1">#prob_true, prob_false = clf3.predict_proba(feat_list).T</span>
 
     <span class="n">clf1</span> <span class="o">=</span> <span class="n">svm</span><span class="o">.</span><span class="n">LinearSVC</span><span class="p">()</span>
     <span class="n">clf1</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">score_list</span><span class="p">,</span> <span class="n">lbl_list</span><span class="p">)</span>
 
-    <span class="c"># Score new annots against the training database</span>
+    <span class="c1"># Score new annots against the training database</span>
     <span class="n">tup_</span> <span class="o">=</span> <span class="n">get_toy_annots</span><span class="p">(</span><span class="n">num_annots</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">num_names</span><span class="p">,</span> <span class="n">initial_aids</span><span class="o">=</span><span class="n">all_aids</span><span class="p">,</span> <span class="n">initial_nids</span><span class="o">=</span><span class="n">all_nids</span><span class="p">)</span>
     <span class="n">aids</span><span class="p">,</span> <span class="n">nids</span><span class="p">,</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">nids1</span><span class="p">,</span> <span class="n">all_aids</span><span class="p">,</span> <span class="n">all_nids</span> <span class="o">=</span> <span class="n">tup_</span>
     <span class="n">aid2_nid</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">nids</span><span class="p">))</span>
@@ -443,7 +443,7 @@
     <span class="n">feat_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">toclass_features</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
     <span class="n">lbl_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">aid2_nid</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span> <span class="o">==</span> <span class="n">nid</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">nid</span> <span class="ow">in</span> <span class="n">aidnid_pairs</span><span class="p">])</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Running tests&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Running tests&#39;</span><span class="p">)</span>
 
     <span class="n">score_list</span> <span class="o">=</span> <span class="n">feat_list</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
 
@@ -451,17 +451,17 @@
     <span class="n">tn_feat_list</span> <span class="o">=</span> <span class="n">feat_list</span><span class="p">[</span><span class="o">~</span><span class="n">lbl_list</span><span class="p">]</span>
     <span class="n">tp_lbls</span> <span class="o">=</span> <span class="n">lbl_list</span><span class="p">[</span><span class="n">lbl_list</span><span class="p">]</span>
     <span class="n">tn_lbls</span> <span class="o">=</span> <span class="n">lbl_list</span><span class="p">[</span><span class="o">~</span><span class="n">lbl_list</span><span class="p">]</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;num tp: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">tp_lbls</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;num fp: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">tn_lbls</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;num tp: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">tp_lbls</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;num fp: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">tn_lbls</span><span class="p">))</span>
 
     <span class="n">tp_score_list</span> <span class="o">=</span> <span class="n">score_list</span><span class="p">[</span><span class="n">lbl_list</span><span class="p">]</span>
     <span class="n">tn_score_list</span> <span class="o">=</span> <span class="n">score_list</span><span class="p">[</span><span class="o">~</span><span class="n">lbl_list</span><span class="p">]</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;tp_feat&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">tp_feat_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;tp_feat&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">tn_feat_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;tp_feat&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">tp_feat_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;tp_feat&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">tn_feat_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;tp_score&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">tp_score_list</span><span class="p">),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;tp_score&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">tn_score_list</span><span class="p">),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;tp_score&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">tp_score_list</span><span class="p">),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;tp_score&#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_stats</span><span class="p">(</span><span class="n">tn_score_list</span><span class="p">),</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
 
     <span class="n">tp_pred3</span> <span class="o">=</span> <span class="n">clf3</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">tp_feat_list</span><span class="p">)</span>
     <span class="n">tn_pred3</span> <span class="o">=</span> <span class="n">clf3</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">tn_feat_list</span><span class="p">)</span>
@@ -478,11 +478,11 @@
 
     <span class="n">tp_score1</span> <span class="o">=</span> <span class="n">clf1</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">tp_score_list</span><span class="p">,</span> <span class="n">tp_lbls</span><span class="p">)</span>
     <span class="n">tn_score1</span> <span class="o">=</span> <span class="n">clf1</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">tn_score_list</span><span class="p">,</span> <span class="n">tn_lbls</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;tp score with rank    = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tp_score3</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;tn score with rank    = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tn_score3</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;tp score with rank    = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tp_score3</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;tn score with rank    = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tn_score3</span><span class="p">,))</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;tp score without rank = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tp_score1</span><span class="p">,))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;tn score without rank = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tn_score1</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;tp score without rank = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tp_score1</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;tn score without rank = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tn_score1</span><span class="p">,))</span>
     <span class="n">toy_data</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">return</span> <span class="n">toy_data</span>
@@ -520,7 +520,7 @@
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
     <span class="k">if</span> <span class="n">num_names</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">num_names</span> <span class="o">=</span> <span class="n">num_annots</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Generating toy data with num_annots=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_annots</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Generating toy data with num_annots=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_annots</span><span class="p">,))</span>
     <span class="k">if</span> <span class="n">initial_aids</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">initial_nids</span> <span class="ow">is</span> <span class="bp">None</span>
         <span class="n">first_step</span> <span class="o">=</span> <span class="bp">True</span>
@@ -556,23 +556,23 @@
     <span class="n">all_aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">initial_aids</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">utool</span>
     <span class="k">with</span> <span class="n">utool</span><span class="o">.</span><span class="n">embed_on_exception_context</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">assert_eq</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">nids</span><span class="p">),</span> <span class="s">&#39;len new&#39;</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">assert_eq</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">nids1</span><span class="p">),</span> <span class="s">&#39;len comp&#39;</span><span class="p">)</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">assert_eq</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_nids</span><span class="p">),</span> <span class="s">&#39;len all&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">assert_eq</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">nids</span><span class="p">),</span> <span class="s1">&#39;len new&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">assert_eq</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aids1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">nids1</span><span class="p">),</span> <span class="s1">&#39;len comp&#39;</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">assert_eq</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_aids</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_nids</span><span class="p">),</span> <span class="s1">&#39;len all&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">aids</span><span class="p">,</span> <span class="n">nids</span><span class="p">,</span> <span class="n">aids1</span><span class="p">,</span> <span class="n">nids1</span><span class="p">,</span> <span class="n">all_aids</span><span class="p">,</span> <span class="n">all_nids</span>
 
 </div>
 <span class="n">toy_params</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">},</span>
-    <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">4</span><span class="p">}</span>
-    <span class="c">#True: {&#39;mu&#39;: 3.5, &#39;sigma&#39;: 1.1},</span>
-    <span class="c">#False: {&#39;mu&#39;: .3, &#39;sigma&#39;: .7}</span>
-    <span class="c">#&#39;p&#39;: .7},</span>
-    <span class="c">#&#39;p&#39;: .2}</span>
+    <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">},</span>
+    <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">4</span><span class="p">}</span>
+    <span class="c1">#True: {&#39;mu&#39;: 3.5, &#39;sigma&#39;: 1.1},</span>
+    <span class="c1">#False: {&#39;mu&#39;: .3, &#39;sigma&#39;: .7}</span>
+    <span class="c1">#&#39;p&#39;: .7},</span>
+    <span class="c1">#&#39;p&#39;: .2}</span>
 <span class="p">}</span>
 
 
-<span class="c">#@ut.cached_func(&#39;_toy_bayes_data3&#39;)</span>
+<span class="c1">#@ut.cached_func(&#39;_toy_bayes_data3&#39;)</span>
 <div class="viewcode-block" id="get_toy_data_1v1"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.demobayes.get_toy_data_1v1">[docs]</a><span class="k">def</span> <span class="nf">get_toy_data_1v1</span><span class="p">(</span><span class="n">num_annots</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
@@ -615,11 +615,11 @@
         <span class="k">if</span> <span class="n">aidx1</span> <span class="o">==</span> <span class="n">aidx2</span><span class="p">:</span>
             <span class="n">score</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c">#rng = np.random.RandomState(int((aidx1 + 13) * (aidx2 + 13)))</span>
+            <span class="c1">#rng = np.random.RandomState(int((aidx1 + 13) * (aidx2 + 13)))</span>
             <span class="n">nid1</span> <span class="o">=</span> <span class="n">all_nids</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">aidx1</span><span class="p">)]</span>
             <span class="n">nid2</span> <span class="o">=</span> <span class="n">all_nids</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">aidx2</span><span class="p">)]</span>
             <span class="n">params</span> <span class="o">=</span> <span class="n">toy_params</span><span class="p">[</span><span class="n">nid1</span> <span class="o">==</span> <span class="n">nid2</span><span class="p">]</span>
-            <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;mu&#39;</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">])</span>
+            <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">])</span>
             <span class="n">score_</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
             <span class="n">score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">score_</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">score</span>
@@ -633,7 +633,7 @@
     <span class="n">pairwise_features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
         <span class="p">[</span><span class="n">pairwise_feature</span><span class="p">(</span><span class="n">aidx1</span><span class="p">,</span> <span class="n">aidx2</span><span class="p">)</span> <span class="k">for</span> <span class="n">aidx1</span><span class="p">,</span> <span class="n">aidx2</span> <span class="ow">in</span> <span class="n">pairwise_aidxs</span><span class="p">])</span>
 
-    <span class="c">#pairwise_scores_mat = pairwise_scores.reshape(num_annots, num_annots)</span>
+    <span class="c1">#pairwise_scores_mat = pairwise_scores.reshape(num_annots, num_annots)</span>
     <span class="n">is_diag</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="o">&lt;</span> <span class="n">c</span> <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="ow">in</span> <span class="n">pairwise_aidxs</span><span class="p">]</span>
     <span class="n">diag_scores</span> <span class="o">=</span> <span class="n">pairwise_features</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_diag</span><span class="p">)</span>
     <span class="n">diag_aidxs</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">pairwise_aidxs</span><span class="p">,</span> <span class="n">is_diag</span><span class="p">)</span>
@@ -642,27 +642,27 @@
         <span class="n">diag_nids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">pairwise_nids</span><span class="p">,</span> <span class="n">is_diag</span><span class="p">)</span>
     <span class="n">diag_labels</span> <span class="o">=</span> <span class="n">pairwise_matches</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">is_diag</span><span class="p">)</span>
 
-    <span class="c">#import utool</span>
-    <span class="c">#utool.embed()</span>
+    <span class="c1">#import utool</span>
+    <span class="c1">#utool.embed()</span>
 
     <span class="n">toy_data</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;aids&#39;</span><span class="p">:</span> <span class="n">aids</span><span class="p">,</span>
-        <span class="s">&#39;nids&#39;</span><span class="p">:</span> <span class="n">nids</span><span class="p">,</span>
-        <span class="s">&#39;all_nids&#39;</span><span class="p">:</span> <span class="n">all_nids</span><span class="p">,</span>
-        <span class="s">&#39;all_aids&#39;</span><span class="p">:</span> <span class="n">all_aids</span><span class="p">,</span>
-        <span class="c">#&#39;pairwise_aidxs&#39;: pairwise_aidxs,</span>
-        <span class="c">#&#39;pairwise_scores&#39;: pairwise_scores,</span>
-        <span class="c">#&#39;pairwise_matches&#39;: pairwise_matches,</span>
-        <span class="s">&#39;diag_labels&#39;</span><span class="p">:</span> <span class="n">diag_labels</span><span class="p">,</span>
-        <span class="s">&#39;diag_scores&#39;</span><span class="p">:</span> <span class="n">diag_scores</span><span class="p">,</span>
-        <span class="s">&#39;diag_nids&#39;</span><span class="p">:</span> <span class="n">diag_nids</span><span class="p">,</span>
-        <span class="s">&#39;diag_aidxs&#39;</span><span class="p">:</span> <span class="n">diag_aidxs</span><span class="p">,</span>
-        <span class="s">&#39;toy_params&#39;</span><span class="p">:</span> <span class="n">toy_params</span><span class="p">,</span>
+        <span class="s1">&#39;aids&#39;</span><span class="p">:</span> <span class="n">aids</span><span class="p">,</span>
+        <span class="s1">&#39;nids&#39;</span><span class="p">:</span> <span class="n">nids</span><span class="p">,</span>
+        <span class="s1">&#39;all_nids&#39;</span><span class="p">:</span> <span class="n">all_nids</span><span class="p">,</span>
+        <span class="s1">&#39;all_aids&#39;</span><span class="p">:</span> <span class="n">all_aids</span><span class="p">,</span>
+        <span class="c1">#&#39;pairwise_aidxs&#39;: pairwise_aidxs,</span>
+        <span class="c1">#&#39;pairwise_scores&#39;: pairwise_scores,</span>
+        <span class="c1">#&#39;pairwise_matches&#39;: pairwise_matches,</span>
+        <span class="s1">&#39;diag_labels&#39;</span><span class="p">:</span> <span class="n">diag_labels</span><span class="p">,</span>
+        <span class="s1">&#39;diag_scores&#39;</span><span class="p">:</span> <span class="n">diag_scores</span><span class="p">,</span>
+        <span class="s1">&#39;diag_nids&#39;</span><span class="p">:</span> <span class="n">diag_nids</span><span class="p">,</span>
+        <span class="s1">&#39;diag_aidxs&#39;</span><span class="p">:</span> <span class="n">diag_aidxs</span><span class="p">,</span>
+        <span class="s1">&#39;toy_params&#39;</span><span class="p">:</span> <span class="n">toy_params</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">toy_data</span>
 
 </div>
-<span class="nd">@ut.cached_func</span><span class="p">(</span><span class="s">&#39;_toy_learn_prob_score5&#39;</span><span class="p">)</span>
+<span class="nd">@ut.cached_func</span><span class="p">(</span><span class="s1">&#39;_toy_learn_prob_score5&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="learn_prob_score"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.demobayes.learn_prob_score">[docs]</a><span class="k">def</span> <span class="nf">learn_prob_score</span><span class="p">(</span><span class="n">num_scores</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">55</span><span class="p">,</span> <span class="n">ret_enc</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
@@ -688,16 +688,16 @@
     <span class="n">num_annots_train</span> <span class="o">=</span> <span class="mi">200</span>
     <span class="n">num_names_train</span> <span class="o">=</span> <span class="mi">5</span>
     <span class="n">toy_data</span> <span class="o">=</span> <span class="n">get_toy_data_1v1</span><span class="p">(</span><span class="n">num_annots_train</span><span class="p">,</span> <span class="n">num_names_train</span><span class="p">)</span>
-    <span class="c">#pairwise_aidxs, pairwise_scores, pairwise_matches = ut.dict_take(</span>
-    <span class="c">#    toy_data, &#39;pairwise_aidxs, pairwise_scores, pairwise_matches&#39;.split(&#39;, &#39;))</span>
+    <span class="c1">#pairwise_aidxs, pairwise_scores, pairwise_matches = ut.dict_take(</span>
+    <span class="c1">#    toy_data, &#39;pairwise_aidxs, pairwise_scores, pairwise_matches&#39;.split(&#39;, &#39;))</span>
 
     <span class="n">diag_scores</span><span class="p">,</span> <span class="n">diag_labels</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span>
-        <span class="n">toy_data</span><span class="p">,</span> <span class="s">&#39;diag_scores, diag_labels&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="p">))</span>
-    <span class="c">#is_diag = [r &lt; c for r, c, in pairwise_aidxs]</span>
-    <span class="c">#diag_scores = pairwise_scores.compress(is_diag)</span>
-    <span class="c">#diag_labels = pairwise_matches.compress(is_diag)</span>
+        <span class="n">toy_data</span><span class="p">,</span> <span class="s1">&#39;diag_scores, diag_labels&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">))</span>
+    <span class="c1">#is_diag = [r &lt; c for r, c, in pairwise_aidxs]</span>
+    <span class="c1">#diag_scores = pairwise_scores.compress(is_diag)</span>
+    <span class="c1">#diag_labels = pairwise_matches.compress(is_diag)</span>
 
-    <span class="c"># Learn P(S_{ij} | M_{ij})</span>
+    <span class="c1"># Learn P(S_{ij} | M_{ij})</span>
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
     <span class="n">encoder</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">ScoreNormalizer</span><span class="p">(</span>
         <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">monotonize</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
@@ -709,7 +709,7 @@
         <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
         <span class="n">encoder</span><span class="o">.</span><span class="n">visualize</span><span class="p">()</span>
-        <span class="c">#show_toy_distributions()</span>
+        <span class="c1">#show_toy_distributions()</span>
 
     <span class="k">def</span> <span class="nf">discretize_probs</span><span class="p">(</span><span class="n">encoder</span><span class="p">):</span>
         <span class="n">p_tp_given_score</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">p_tp_given_score</span> <span class="o">/</span> <span class="n">encoder</span><span class="o">.</span><span class="n">p_tp_given_score</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
@@ -746,20 +746,20 @@
         <span class="n">constkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">num_annots</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
             <span class="n">name_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="c">#name_evidence=[0, 0, 1, 1, None],</span>
-            <span class="c">#name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],</span>
-            <span class="c">#name_evidence=[0, {0: .99}, {1: .99}, 1, None],</span>
+            <span class="c1">#name_evidence=[0, 0, 1, 1, None],</span>
+            <span class="c1">#name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],</span>
+            <span class="c1">#name_evidence=[0, {0: .99}, {1: .99}, 1, None],</span>
         <span class="p">)</span>
         <span class="n">test_model</span><span class="p">(</span><span class="n">score_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
 
-    <span class="c">#from ibeis.algo.hots.demobayes import *</span>
+    <span class="c1">#from ibeis.algo.hots.demobayes import *</span>
     <span class="n">constkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">num_annots</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">model</span><span class="p">,</span> <span class="n">evidence</span> <span class="o">=</span> <span class="n">test_model</span><span class="p">(</span>
         <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="c"># lll and llh have strikingly different</span>
-        <span class="c"># probability of M marginals</span>
+        <span class="c1"># lll and llh have strikingly different</span>
+        <span class="c1"># probability of M marginals</span>
         <span class="n">score_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
         <span class="n">other_evidence</span><span class="o">=</span><span class="p">{</span>
         <span class="p">},</span>
@@ -784,10 +784,10 @@
     <span class="n">test_model</span><span class="p">(</span>
         <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">other_evidence</span><span class="o">=</span><span class="p">{</span>
-            <span class="s">&#39;Mab&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-            <span class="s">&#39;Mac&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
-            <span class="c">#&#39;Na&#39;: &#39;fred&#39;,</span>
-            <span class="c">#&#39;Nb&#39;: &#39;sue&#39;,</span>
+            <span class="s1">&#39;Mab&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="s1">&#39;Mac&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+            <span class="c1">#&#39;Na&#39;: &#39;fred&#39;,</span>
+            <span class="c1">#&#39;Nb&#39;: &#39;sue&#39;,</span>
         <span class="p">},</span>
         <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
 
@@ -841,7 +841,7 @@
         <span class="n">show_model_templates</span><span class="p">,</span>
         <span class="n">demo_modes</span><span class="p">,</span>
         <span class="n">demo_name_annot_complexity</span><span class="p">,</span>
-        <span class="c">###demo_model_idependencies,</span>
+        <span class="c1">###demo_model_idependencies,</span>
         <span class="n">demo_single_add</span><span class="p">,</span>
         <span class="n">demo_ambiguity</span><span class="p">,</span>
         <span class="n">demo_conflicting_evidence</span><span class="p">,</span>
@@ -849,7 +849,7 @@
     <span class="p">]</span>
     <span class="k">def</span> <span class="nf">format_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_funclike</span><span class="p">(</span><span class="n">cell</span><span class="p">):</span>
-            <span class="n">header</span> <span class="o">=</span> <span class="s">&#39;# &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_title_caps</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">cell</span><span class="p">))</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="s1">&#39;# &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">to_title_caps</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">cell</span><span class="p">))</span>
             <span class="n">code</span> <span class="o">=</span> <span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_func_sourcecode</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">stripdef</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">stripret</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">code</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">cell</span><span class="p">)</span>
@@ -857,8 +857,8 @@
 
     <span class="n">cell_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">format_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">cell_list_def</span><span class="p">])</span>
     <span class="n">nbstr</span> <span class="o">=</span> <span class="n">generate_notebook</span><span class="o">.</span><span class="n">make_notebook</span><span class="p">(</span><span class="n">cell_list</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;nbstr = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nbstr</span><span class="p">,))</span>
-    <span class="n">fpath</span> <span class="o">=</span> <span class="s">&#39;demobayes.ipynb&#39;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;nbstr = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nbstr</span><span class="p">,))</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="s1">&#39;demobayes.ipynb&#39;</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">nbstr</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
 
@@ -875,7 +875,7 @@
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">make_name_model</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;-------------&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;-------------&#39;</span><span class="p">)</span>
     <span class="n">make_name_model</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
 </div>
@@ -892,17 +892,17 @@
 <span class="sd">        &gt;&gt;&gt; demo_single_add()</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Initially there are only two annotations that have a strong match</span>
-    <span class="n">name_evidence</span> <span class="o">=</span> <span class="p">[{</span><span class="mi">0</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}]</span>  <span class="c"># Soft label</span>
-    <span class="n">name_evidence</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># Hard label</span>
+    <span class="c1"># Initially there are only two annotations that have a strong match</span>
+    <span class="n">name_evidence</span> <span class="o">=</span> <span class="p">[{</span><span class="mi">0</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}]</span>  <span class="c1"># Soft label</span>
+    <span class="n">name_evidence</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># Hard label</span>
     <span class="n">test_model</span><span class="p">(</span><span class="n">num_annots</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">score_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name_evidence</span><span class="o">=</span><span class="n">name_evidence</span><span class="p">)</span>
-    <span class="c"># Adding a new annotation does not change the original probabilites</span>
+    <span class="c1"># Adding a new annotation does not change the original probabilites</span>
     <span class="n">test_model</span><span class="p">(</span><span class="n">num_annots</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">score_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name_evidence</span><span class="o">=</span><span class="n">name_evidence</span><span class="p">)</span>
-    <span class="c"># Adding evidence that Na matches Nc does not influence the probability</span>
-    <span class="c"># that Na matches Nb. However the probability that Nb matches Nc goes up.</span>
+    <span class="c1"># Adding evidence that Na matches Nc does not influence the probability</span>
+    <span class="c1"># that Na matches Nb. However the probability that Nb matches Nc goes up.</span>
     <span class="n">test_model</span><span class="p">(</span><span class="n">num_annots</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">score_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">name_evidence</span><span class="o">=</span><span class="n">name_evidence</span><span class="p">)</span>
-    <span class="c"># However, once Nb is scored against Nb that does increase the likelihood</span>
-    <span class="c"># that all 3 are fred goes up significantly.</span>
+    <span class="c1"># However, once Nb is scored against Nb that does increase the likelihood</span>
+    <span class="c1"># that all 3 are fred goes up significantly.</span>
     <span class="n">test_model</span><span class="p">(</span><span class="n">num_annots</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">score_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
                <span class="n">name_evidence</span><span class="o">=</span><span class="n">name_evidence</span><span class="p">)</span>
 
@@ -912,16 +912,16 @@
 <span class="sd">    Notice that the number of annotations in the graph does not affect the</span>
 <span class="sd">    probability of names.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Initialized with two annots. Each are pretty sure they are someone else</span>
+    <span class="c1"># Initialized with two annots. Each are pretty sure they are someone else</span>
     <span class="n">constkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">num_annots</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">score_evidence</span><span class="o">=</span><span class="p">[])</span>
     <span class="n">test_model</span><span class="p">(</span><span class="n">name_evidence</span><span class="o">=</span><span class="p">[{</span><span class="mi">0</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">},</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}],</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
-    <span class="c"># Having evidence that they are different increases this confidence.</span>
-    <span class="n">test_model</span><span class="p">(</span><span class="n">name_evidence</span><span class="o">=</span><span class="p">[{</span><span class="mi">0</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">},</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}],</span> <span class="n">other_evidence</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;Sab&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
-    <span class="c"># However,, confusion is introduced if there is evidence that they are the same</span>
-    <span class="n">test_model</span><span class="p">(</span><span class="n">name_evidence</span><span class="o">=</span><span class="p">[{</span><span class="mi">0</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">},</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}],</span> <span class="n">other_evidence</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;Sab&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
-    <span class="c"># When Na is forced to be fred, this doesnt change Nbs evaulatation by more</span>
-    <span class="c"># than a few points</span>
-    <span class="n">test_model</span><span class="p">(</span><span class="n">name_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}],</span> <span class="n">other_evidence</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;Sab&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
+    <span class="c1"># Having evidence that they are different increases this confidence.</span>
+    <span class="n">test_model</span><span class="p">(</span><span class="n">name_evidence</span><span class="o">=</span><span class="p">[{</span><span class="mi">0</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">},</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}],</span> <span class="n">other_evidence</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Sab&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
+    <span class="c1"># However,, confusion is introduced if there is evidence that they are the same</span>
+    <span class="n">test_model</span><span class="p">(</span><span class="n">name_evidence</span><span class="o">=</span><span class="p">[{</span><span class="mi">0</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">},</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}],</span> <span class="n">other_evidence</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Sab&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
+    <span class="c1"># When Na is forced to be fred, this doesnt change Nbs evaulatation by more</span>
+    <span class="c1"># than a few points</span>
+    <span class="n">test_model</span><span class="p">(</span><span class="n">name_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}],</span> <span class="n">other_evidence</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Sab&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="demo_ambiguity"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.demobayes.demo_ambiguity">[docs]</a><span class="k">def</span> <span class="nf">demo_ambiguity</span><span class="p">():</span>
@@ -941,8 +941,8 @@
     <span class="n">constkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">num_annots</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
         <span class="n">name_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-        <span class="c">#name_evidence=[],</span>
-        <span class="c">#name_evidence=[{0: &#39;+eps&#39;}, {1: &#39;+eps&#39;}, {2: &#39;+eps&#39;}],</span>
+        <span class="c1">#name_evidence=[],</span>
+        <span class="c1">#name_evidence=[{0: &#39;+eps&#39;}, {1: &#39;+eps&#39;}, {2: &#39;+eps&#39;}],</span>
     <span class="p">)</span>
     <span class="n">test_model</span><span class="p">(</span><span class="n">score_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
@@ -1014,13 +1014,13 @@
 <span class="sd">        &gt;&gt;&gt; result = demo_annot_idependence_overlap()</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># We will end up making annots a and b fred and c and d sue</span>
+    <span class="c1"># We will end up making annots a and b fred and c and d sue</span>
     <span class="n">constkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">num_annots</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-        <span class="n">name_evidence</span><span class="o">=</span><span class="p">[{</span><span class="mi">0</span><span class="p">:</span> <span class="s">&#39;+eps&#39;</span><span class="p">},</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s">&#39;+eps&#39;</span><span class="p">},</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="s">&#39;+eps&#39;</span><span class="p">},</span> <span class="p">{</span><span class="mi">3</span><span class="p">:</span> <span class="s">&#39;+eps&#39;</span><span class="p">}],</span>
-        <span class="c">#name_evidence=[{0: .9}, None, None, {1: .9}]</span>
-        <span class="c">#name_evidence=[0, None, None, None]</span>
-        <span class="c">#name_evidence=[0, None, None, None]</span>
+        <span class="n">name_evidence</span><span class="o">=</span><span class="p">[{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;+eps&#39;</span><span class="p">},</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;+eps&#39;</span><span class="p">},</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;+eps&#39;</span><span class="p">},</span> <span class="p">{</span><span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;+eps&#39;</span><span class="p">}],</span>
+        <span class="c1">#name_evidence=[{0: .9}, None, None, {1: .9}]</span>
+        <span class="c1">#name_evidence=[0, None, None, None]</span>
+        <span class="c1">#name_evidence=[0, None, None, None]</span>
     <span class="p">)</span>
     <span class="n">test_model</span><span class="p">(</span><span class="n">score_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">],</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
     <span class="n">test_model</span><span class="p">(</span><span class="n">score_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">],</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
@@ -1034,21 +1034,21 @@
     <span class="n">constkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">num_annots</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
         <span class="n">score_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-        <span class="c">#name_evidence=[{0: .9}, None, None, {1: .9}],</span>
-        <span class="c">#name_evidence=[0, None, None, 1],</span>
+        <span class="c1">#name_evidence=[{0: .9}, None, None, {1: .9}],</span>
+        <span class="c1">#name_evidence=[0, None, None, 1],</span>
         <span class="n">name_evidence</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">],</span>
-        <span class="c">#other_evidence={</span>
-        <span class="c">#    &#39;Sad&#39;: 0,</span>
-        <span class="c">#    &#39;Sab&#39;: 1,</span>
-        <span class="c">#    &#39;Scd&#39;: 1,</span>
-        <span class="c">#    &#39;Sac&#39;: 0,</span>
-        <span class="c">#    &#39;Sbc&#39;: 0,</span>
-        <span class="c">#    &#39;Sbd&#39;: 0,</span>
-        <span class="c">#}</span>
+        <span class="c1">#other_evidence={</span>
+        <span class="c1">#    &#39;Sad&#39;: 0,</span>
+        <span class="c1">#    &#39;Sab&#39;: 1,</span>
+        <span class="c1">#    &#39;Scd&#39;: 1,</span>
+        <span class="c1">#    &#39;Sac&#39;: 0,</span>
+        <span class="c1">#    &#39;Sbc&#39;: 0,</span>
+        <span class="c1">#    &#39;Sbd&#39;: 0,</span>
+        <span class="c1">#}</span>
     <span class="p">)</span>
-    <span class="c"># The first mode uses a hidden Match layer</span>
+    <span class="c1"># The first mode uses a hidden Match layer</span>
     <span class="n">test_model</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
-    <span class="c"># The second mode directly maps names to scores</span>
+    <span class="c1"># The second mode directly maps names to scores</span>
     <span class="n">test_model</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
     <span class="n">test_model</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">noquery</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
     <span class="n">test_model</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">noquery</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
@@ -1069,23 +1069,23 @@
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">constkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">score_evidence</span><span class="o">=</span><span class="p">[],</span> <span class="n">name_evidence</span><span class="o">=</span><span class="p">[],</span> <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="c"># Initially there are 2 annots and 4 names</span>
+    <span class="c1"># Initially there are 2 annots and 4 names</span>
     <span class="n">model</span><span class="p">,</span> <span class="o">=</span> <span class="n">test_model</span><span class="p">(</span><span class="n">num_annots</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
     <span class="n">draw_tree_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
-    <span class="c"># Adding a name causes the probability of the other names to go down</span>
+    <span class="c1"># Adding a name causes the probability of the other names to go down</span>
     <span class="n">model</span><span class="p">,</span> <span class="o">=</span> <span class="n">test_model</span><span class="p">(</span><span class="n">num_annots</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
     <span class="n">draw_tree_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
-    <span class="c"># Adding an annotation wihtout matches dos not effect probabilities of</span>
-    <span class="c"># names</span>
+    <span class="c1"># Adding an annotation wihtout matches dos not effect probabilities of</span>
+    <span class="c1"># names</span>
     <span class="n">model</span><span class="p">,</span> <span class="o">=</span> <span class="n">test_model</span><span class="p">(</span><span class="n">num_annots</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
     <span class="n">draw_tree_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
     <span class="n">model</span><span class="p">,</span> <span class="o">=</span> <span class="n">test_model</span><span class="p">(</span><span class="n">num_annots</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
     <span class="n">draw_tree_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
-    <span class="c"># Given A annots, the number of score nodes is (A ** 2 - A) / 2</span>
+    <span class="c1"># Given A annots, the number of score nodes is (A ** 2 - A) / 2</span>
     <span class="n">model</span><span class="p">,</span> <span class="o">=</span> <span class="n">test_model</span><span class="p">(</span><span class="n">num_annots</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="o">**</span><span class="n">constkw</span><span class="p">)</span>
     <span class="n">draw_tree_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
-    <span class="c">#model, = test_model(num_annots=6, num_names=5, score_evidence=[], name_evidence=[], mode=1)</span>
-    <span class="c">#draw_tree_model(model)</span>
+    <span class="c1">#model, = test_model(num_annots=6, num_names=5, score_evidence=[], name_evidence=[], mode=1)</span>
+    <span class="c1">#draw_tree_model(model)</span>
 
 </div>
 <div class="viewcode-block" id="demo_model_idependencies"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.demobayes.demo_model_idependencies">[docs]</a><span class="k">def</span> <span class="nf">demo_model_idependencies</span><span class="p">():</span>
@@ -1103,43 +1103,43 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">num_names</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--num-names&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">num_names</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--num-names&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">test_model</span><span class="p">(</span><span class="n">num_annots</span><span class="o">=</span><span class="n">num_names</span><span class="p">,</span> <span class="n">num_names</span><span class="o">=</span><span class="n">num_names</span><span class="p">,</span> <span class="n">score_evidence</span><span class="o">=</span><span class="p">[],</span> <span class="n">name_evidence</span><span class="o">=</span><span class="p">[])[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="c"># This model has the following independenceis</span>
+    <span class="c1"># This model has the following independenceis</span>
     <span class="n">idens</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_independencies</span><span class="p">()</span>
 
-    <span class="n">iden_strs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">iden</span><span class="o">.</span><span class="n">event1</span><span class="p">))</span> <span class="o">+</span>
-                 <span class="s">&#39; _L &#39;</span> <span class="o">+</span>
-                 <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">iden</span><span class="o">.</span><span class="n">event2</span><span class="p">))</span> <span class="o">+</span>
-                 <span class="s">&#39; | &#39;</span> <span class="o">+</span>
-                 <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">iden</span><span class="o">.</span><span class="n">event3</span><span class="p">))</span>
+    <span class="n">iden_strs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">iden</span><span class="o">.</span><span class="n">event1</span><span class="p">))</span> <span class="o">+</span>
+                 <span class="s1">&#39; _L &#39;</span> <span class="o">+</span>
+                 <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">iden</span><span class="o">.</span><span class="n">event2</span><span class="p">))</span> <span class="o">+</span>
+                 <span class="s1">&#39; | &#39;</span> <span class="o">+</span>
+                 <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">iden</span><span class="o">.</span><span class="n">event3</span><span class="p">))</span>
                  <span class="k">for</span> <span class="n">iden</span> <span class="ow">in</span> <span class="n">idens</span><span class="o">.</span><span class="n">independencies</span><span class="p">]</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;general idependencies&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">iden_strs</span><span class="p">)),</span> <span class="s">&#39;_&#39;</span><span class="p">),</span> <span class="s">&#39;|&#39;</span><span class="p">))</span>
-    <span class="c">#ut.embed()</span>
-    <span class="c">#model.is_active_trail(&#39;Na&#39;, &#39;Nb&#39;, &#39;Sab&#39;)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;general idependencies&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">iden_strs</span><span class="p">)),</span> <span class="s1">&#39;_&#39;</span><span class="p">),</span> <span class="s1">&#39;|&#39;</span><span class="p">))</span>
+    <span class="c1">#ut.embed()</span>
+    <span class="c1">#model.is_active_trail(&#39;Na&#39;, &#39;Nb&#39;, &#39;Sab&#39;)</span>
 
-<span class="c"># Might not be valid, try and collapse S and M</span>
-<span class="c">#xs = list(map(str, idens.independencies))</span>
-<span class="c">#import re</span>
-<span class="c">#xs = [re.sub(&#39;, M..&#39;, &#39;&#39;, x) for x in xs]</span>
-<span class="c">#xs = [re.sub(&#39;M..,?&#39;, &#39;&#39;, x) for x in xs]</span>
-<span class="c">#xs = [x for x in xs if not x.startswith(&#39;( _&#39;)]</span>
-<span class="c">#xs = [x for x in xs if not x.endswith(&#39;| )&#39;)]</span>
-<span class="c">#print(&#39;\n&#39;.join(sorted(list(set(xs)))))</span>
+<span class="c1"># Might not be valid, try and collapse S and M</span>
+<span class="c1">#xs = list(map(str, idens.independencies))</span>
+<span class="c1">#import re</span>
+<span class="c1">#xs = [re.sub(&#39;, M..&#39;, &#39;&#39;, x) for x in xs]</span>
+<span class="c1">#xs = [re.sub(&#39;M..,?&#39;, &#39;&#39;, x) for x in xs]</span>
+<span class="c1">#xs = [x for x in xs if not x.startswith(&#39;( _&#39;)]</span>
+<span class="c1">#xs = [x for x in xs if not x.endswith(&#39;| )&#39;)]</span>
+<span class="c1">#print(&#39;\n&#39;.join(sorted(list(set(xs)))))</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.algo.hots.demobayes</span>
 <span class="sd">        python -m ibeis.algo.hots.demobayes --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[hs] demobayes&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[hs] demobayes&#39;</span><span class="p">)</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -1174,7 +1174,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

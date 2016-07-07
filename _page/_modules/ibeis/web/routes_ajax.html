@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.web.routes_ajax &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.web.routes_ajax &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,7 +129,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.web.routes_ajax</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Dependencies: flask, tornado</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -138,49 +138,50 @@
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
 <span class="kn">from</span> <span class="nn">ibeis.web</span> <span class="kn">import</span> <span class="n">appfuncs</span> <span class="k">as</span> <span class="n">appf</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 
 <span class="n">register_route</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_route</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 
 
-<span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/ajax/cookie/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/ajax/cookie/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="set_cookie"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.routes_ajax.set_cookie">[docs]</a><span class="k">def</span> <span class="nf">set_cookie</span><span class="p">():</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span><span class="s">&#39;true&#39;</span><span class="p">)</span>
-    <span class="n">response</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">])</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[web] Set Cookie: </span><span class="si">%r</span><span class="s"> -&gt; </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">],</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">],</span> <span class="p">))</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span><span class="s1">&#39;true&#39;</span><span class="p">)</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[web] Set Cookie: </span><span class="si">%r</span><span class="s1"> -&gt; </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="p">))</span>
     <span class="k">return</span> <span class="n">response</span>
 
 </div>
-<span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/ajax/image/src/&lt;gid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/ajax/image/src/&lt;gid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="image_src"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.routes_ajax.image_src">[docs]</a><span class="k">def</span> <span class="nf">image_src</span><span class="p">(</span><span class="n">gid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">thumbnail</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fresh</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">thumbnail</span> <span class="o">=</span> <span class="n">thumbnail</span> <span class="ow">or</span> <span class="s1">&#39;thumbnail&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="s1">&#39;thumbnail&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
-    <span class="n">thumbnail</span> <span class="o">=</span> <span class="n">thumbnail</span> <span class="ow">or</span> <span class="s">&#39;thumbnail&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="s">&#39;thumbnail&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">thumbnail</span><span class="p">:</span>
         <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">ensure_paths</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">fresh</span> <span class="o">=</span> <span class="n">fresh</span> <span class="ow">or</span> <span class="s">&#39;fresh&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="s">&#39;fresh&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span>
+        <span class="n">fresh</span> <span class="o">=</span> <span class="n">fresh</span> <span class="ow">or</span> <span class="s1">&#39;fresh&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="s1">&#39;fresh&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span>
         <span class="k">if</span> <span class="n">fresh</span><span class="p">:</span>
-            <span class="c"># print(&#39;*&#39; * 80)</span>
-            <span class="c"># print(&#39;\n\n&#39;)</span>
-            <span class="c"># print(&#39;RUNNING WITH FRESH&#39;)</span>
-            <span class="c"># print(&#39;\n\n&#39;)</span>
-            <span class="c"># print(&#39;*&#39; * 80)</span>
-            <span class="c"># ut.remove_dirs(gpath)</span>
             <span class="kn">import</span> <span class="nn">os</span>
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
             <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_thumbpath</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">ensure_paths</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">return_src</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+
+    <span class="c1"># Load image</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">resize_via_web_parameters</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">target_width</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 
 </div>
-<span class="nd">@register_route</span><span class="p">(</span><span class="s">&#39;/ajax/annotation/src/&lt;aid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@register_route</span><span class="p">(</span><span class="s1">&#39;/ajax/annotation/src/&lt;aid&gt;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="annotation_src"><a class="viewcode-back" href="../../../ibeis.web.html#ibeis.web.routes_ajax.annotation_src">[docs]</a><span class="k">def</span> <span class="nf">annotation_src</span><span class="p">(</span><span class="n">aid</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">current_app</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">gpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chip_fpath</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">appf</span><span class="o">.</span><span class="n">return_src</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
+    <span class="n">image_src</span> <span class="o">=</span> <span class="n">appf</span><span class="o">.</span><span class="n">embed_image_html</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">target_width</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image_src</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.web.app</span>
@@ -188,8 +189,8 @@
 <span class="sd">        python -m ibeis.web.app --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -224,7 +225,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

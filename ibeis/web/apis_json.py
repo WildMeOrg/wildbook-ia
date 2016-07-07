@@ -267,17 +267,40 @@ def set_exemplars_from_quality_and_viewpoint_json(ibs, annot_uuid_list,
     return new_annot_uuid_list, new_flag_list
 
 
+@register_api('/api/image/unixtimes/json/', methods=['GET'])
+def get_image_unixtimes_json(ibs, image_uuid_list):
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    return ibs.get_image_unixtime(gid_list)
+
+
 @register_api('/api/image/uris_original/json/', methods=['GET'])
 def get_image_uris_original_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    uri_list = ibs.get_image_uris_original(gid_list)
-    return uri_list
+    return ibs.get_image_uris_original(gid_list)
+
+
+@register_api('/api/image/json/', methods=['GET'])
+def get_valid_image_uuids_json(ibs, **kwargs):
+    gid_list = ibs.get_valid_gids(**kwargs)
+    return ibs.get_image_uuids(gid_list)
+
+
+@register_api('/api/name/json/', methods=['GET'])
+def get_valid_name_uuids_json(ibs, **kwargs):
+    nid_list = ibs.get_valid_nids(**kwargs)
+    return ibs.get_name_uuids(nid_list)
 
 
 @register_api('/api/annot/json/', methods=['GET'])
 def get_valid_annot_uuids_json(ibs, **kwargs):
     aid_list = ibs.get_valid_aids(**kwargs)
     return ibs.get_annot_uuids(aid_list)
+
+
+@register_api('/api/imageset/json/', methods=['GET'])
+def get_valid_imageset_uuids_json(ibs, **kwargs):
+    imgsetid_list = ibs.get_valid_imgsetids(**kwargs)
+    return ibs.get_imageset_uuid(imgsetid_list)
 
 
 @register_api('/api/annot/bboxes/json/', methods=['GET'])
@@ -386,7 +409,29 @@ def get_annot_image_paths_json(ibs, annot_uuid_list, **kwargs):
 @register_api('/api/annot/image/uuids/json/', methods=['GET'])
 def get_annot_image_uuids_json(ibs, annot_uuid_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-    return ibs.get_annot_image_uuids(aid_list, **kwargs)
+    image_uuid_list = [
+        None if aid is None else ibs.get_annot_image_uuids(aid, **kwargs)
+        for aid in aid_list
+    ]
+    return image_uuid_list
+
+
+@register_api('/api/imageset/annot/uuids/json/', methods=['GET'])
+def get_imageset_annot_uuids_json(ibs, imageset_uuid_list):
+    imgsetid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
+    aids_list = ibs.get_imageset_aids(imgsetid_list)
+    annot_uuids_list = [
+        ibs.get_annot_uuids(aid_list)
+        for aid_list in aids_list
+    ]
+    return annot_uuids_list
+
+
+@register_api('/api/imageset/annot/aids/json/', methods=['GET'])
+def get_imageset_annot_aids_json(ibs, imageset_uuid_list):
+    imgsetid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
+    aids_list = ibs.get_imageset_aids(imgsetid_list)
+    return aids_list
 
 
 @register_api('/api/annot/qualities/json/', methods=['GET'])
@@ -441,6 +486,44 @@ def get_annot_age_months_est_min_texts_json(ibs, annot_uuid_list, **kwargs):
 def get_annot_age_months_est_max_texts_json(ibs, annot_uuid_list, **kwargs):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.get_annot_age_months_est_max_texts(aid_list, **kwargs)
+
+
+@register_api('/chaos/imageset/', methods=['GET', 'POST'])
+def chaos_imageset(ibs):
+    """
+    REST:
+        Method: POST
+        URL: /api/image/json/
+
+    Args:
+        image_uuid_list (list of str) : list of image UUIDs to be delete from IBEIS
+    """
+    from random import shuffle, randint
+    gid_list = ibs.get_valid_gids()
+    shuffle(gid_list)
+    sample = min(len(gid_list) // 2, 50)
+    assert sample > 0, 'Cannot create a chaos imageset using an empty database'
+    gid_list_ = gid_list[:sample]
+    imagetset_name = 'RANDOM_CHAOS_TEST_IMAGESET_%08d' % (randint(0, 99999999))
+    imagetset_rowid = ibs.add_imagesets(imagetset_name)
+    imagetset_uuid = ibs.get_imageset_uuid(imagetset_rowid)
+    ibs.add_image_relationship(gid_list_, [imagetset_rowid] * len(gid_list_))
+    return imagetset_name, imagetset_uuid
+
+
+@register_api('/api/imageset/json/', methods=['DELETE'])
+def delete_imageset_json(ibs, imageset_uuid_list):
+    """
+    REST:
+        Method: POST
+        URL: /api/image/json/
+
+    Args:
+        image_uuid_list (list of str) : list of image UUIDs to be delete from IBEIS
+    """
+    imgsetid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
+    ibs.delete_imagesets(imgsetid_list)
+    return True
 
 
 @register_api('/api/image/json/', methods=['DELETE'])

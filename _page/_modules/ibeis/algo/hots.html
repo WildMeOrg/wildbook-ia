@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.hots &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.algo" href="../algo.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,13 +131,13 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.hots</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c">### __init__.py ###</span>
-<span class="c"># flake8: noqa</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">### __init__.py ###</span>
+<span class="c1"># flake8: noqa</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.algo.hots.__init__]&#39;</span><span class="p">)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[ibeis.algo.hots.__init__]&#39;</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">automated_helpers</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">automated_matcher</span>
@@ -152,41 +152,41 @@
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">precision_recall</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">query_request</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.algo.hots]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[ibeis.algo.hots]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="reload_subs"><a class="viewcode-back" href="../../../ibeis.algo.hots.html#ibeis.algo.hots.reload_subs">[docs]</a><span class="k">def</span> <span class="nf">reload_subs</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Reloads ibeis.algo.hots and submodules &quot;&quot;&quot;</span>
     <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">automated_helpers</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">automated_matcher</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">exceptions</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">hstypes</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">match_chips4</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">name_scoring</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">neighbor_index</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">multi_index</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">nn_weights</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">precision_recall</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">query_request</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">automated_helpers</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">automated_matcher</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">exceptions</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">hstypes</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">match_chips4</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">name_scoring</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">neighbor_index</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">multi_index</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">nn_weights</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">precision_recall</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">query_request</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">verbose</span><span class="p">:</span> <span class="bp">None</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span></div>
 <span class="n">rrrr</span> <span class="o">=</span> <span class="n">reload_subs</span>
 
 <span class="n">IMPORT_TUPLES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="s">&#39;automated_helpers&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;automated_matcher&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;exceptions&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;hstypes&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;match_chips4&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;name_scoring&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;neighbor_index&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;multi_index&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;nn_weights&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;pipeline&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;precision_recall&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;query_request&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;_pipeline_helpers&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;automated_helpers&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;automated_matcher&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;exceptions&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;hstypes&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;match_chips4&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;name_scoring&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;neighbor_index&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;multi_index&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;nn_weights&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;pipeline&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;precision_recall&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;query_request&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;_pipeline_helpers&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
 <span class="p">]</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Regen Command:</span>
@@ -225,7 +225,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

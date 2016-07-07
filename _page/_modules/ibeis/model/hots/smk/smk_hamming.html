@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.smk.smk_hamming &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.model.hots.smk.smk_hamming &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots.smk" href="../smk.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -135,20 +135,20 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.model.hots.smk.smk_hamming</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
 
 <div class="viewcode-block" id="make_projetion_matrix"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_hamming.make_projetion_matrix">[docs]</a><span class="k">def</span> <span class="nf">make_projetion_matrix</span><span class="p">(</span><span class="n">vec_dim</span><span class="p">):</span>
-    <span class="n">sig_dim</span> <span class="o">=</span> <span class="mi">64</span>   <span class="c"># binary signature dimension</span>
-    <span class="c"># Initialize random matrix</span>
+    <span class="n">sig_dim</span> <span class="o">=</span> <span class="mi">64</span>   <span class="c1"># binary signature dimension</span>
+    <span class="c1"># Initialize random matrix</span>
     <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">vec_dim</span><span class="p">,</span> <span class="n">vec_dim</span><span class="p">)</span>
     <span class="n">randstate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">rand_mat</span> <span class="o">=</span> <span class="n">randstate</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">shape</span><span class="p">)</span>
-    <span class="c"># Q is orthogonal</span>
-    <span class="c"># R is upper triangular</span>
+    <span class="c1"># Q is orthogonal</span>
+    <span class="c1"># R is upper triangular</span>
     <span class="n">Q</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">qr</span><span class="p">(</span><span class="n">rand_mat</span><span class="p">)</span>
-    <span class="c"># alias Q to be the projection matrix P</span>
+    <span class="c1"># alias Q to be the projection matrix P</span>
     <span class="n">P</span> <span class="o">=</span> <span class="n">Q</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">sig_dim</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">P</span>
 
@@ -164,17 +164,17 @@
 <span class="sd">        &gt;&gt;&gt; np.random.seed(0)</span>
 <span class="sd">        &gt;&gt;&gt; vecs = np.random.rand(10, 128)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Embeding Step to compute binary signature:</span>
-    <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c"># raw vector dimension</span>
+    <span class="c1"># Embeding Step to compute binary signature:</span>
+    <span class="n">vec_dim</span> <span class="o">=</span> <span class="n">vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># raw vector dimension</span>
     <span class="n">P</span> <span class="o">=</span> <span class="n">make_projetion_matrix</span><span class="p">(</span><span class="n">vec_dim</span><span class="p">)</span>
     <span class="n">z</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vecs</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
     <span class="n">thresh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="c"># find median values</span>
+    <span class="c1"># find median values</span>
     <span class="n">hamming_sig_bools</span> <span class="o">=</span> <span class="p">(</span><span class="n">z</span> <span class="o">&gt;</span> <span class="n">thresh</span><span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="p">:])</span><span class="o">.</span><span class="n">T</span>
 
-    <span class="c"># mapping to binary encoding</span>
+    <span class="c1"># mapping to binary encoding</span>
     <span class="n">sig_dim</span> <span class="o">=</span> <span class="n">hamming_sig_bools</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-    <span class="k">assert</span> <span class="n">sig_dim</span> <span class="o">&lt;=</span> <span class="mi">64</span><span class="p">,</span> <span class="s">&#39;only up to 64 dimensions implemented&#39;</span>
+    <span class="k">assert</span> <span class="n">sig_dim</span> <span class="o">&lt;=</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;only up to 64 dimensions implemented&#39;</span>
     <span class="n">basis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">sig_dim</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">))</span>
     <span class="n">haming_codes</span> <span class="o">=</span> <span class="p">[</span><span class="n">basis</span><span class="p">[</span><span class="n">bools</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">bools</span> <span class="ow">in</span> <span class="n">hamming_sig_bools</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">haming_codes</span></div>
@@ -211,7 +211,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

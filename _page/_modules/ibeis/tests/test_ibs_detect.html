@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests.test_ibs_detect &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.tests.test_ibs_detect &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis" href="../../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,65 +129,65 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.tests.test_ibs_detect</h1><div class="highlight"><pre>
-<span class="c">#!/usr/bin/env python2.7</span>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c"># TODO: ADD COPYRIGHT TAG</span>
+<span></span><span class="ch">#!/usr/bin/env python2.7</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># TODO: ADD COPYRIGHT TAG</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">ibeis</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
-<span class="c">#from ibeis.model.detect import randomforest</span>
-<span class="c"># IBEIS</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[TEST_DETECT]&#39;</span><span class="p">)</span>
+<span class="c1">#from ibeis.model.detect import randomforest</span>
+<span class="c1"># IBEIS</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[TEST_DETECT]&#39;</span><span class="p">)</span>
 
-<span class="n">SPECIAL</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--special&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">inIPython</span><span class="p">()</span>
+<span class="n">SPECIAL</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--special&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">utool</span><span class="o">.</span><span class="n">inIPython</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="TEST_DETECT"><a class="viewcode-back" href="../../../ibeis.tests.html#ibeis.tests.test_ibs_detect.TEST_DETECT">[docs]</a><span class="k">def</span> <span class="nf">TEST_DETECT</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
-    <span class="c"># Create a HotSpotter API (hs) and GUI backend (back)</span>
-    <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;Re-do this detect test&quot;</span>
-    <span class="c"># print(&#39;get_valid_ANNOTATIONS&#39;)</span>
-    <span class="c"># gid_list = ibs.get_valid_gids()[0:1]</span>
-    <span class="c"># if SPECIAL:</span>
-    <span class="c">#     gid_list = utool.safe_slice(ibs.get_valid_gids(), 3)</span>
-    <span class="c"># #gid_list.extend(ibs.add_images([utool.unixpath(&#39;~/Dropbox/Chuck/detect_testimg/testgrevy.jpg&#39;)]))</span>
-    <span class="c"># species = &#39;zebra_plains&#39;</span>
-    <span class="c"># detectkw = {</span>
-    <span class="c">#     &#39;quick&#39;: True,</span>
-    <span class="c">#     &#39;save_detection_images&#39;: SPECIAL,</span>
-    <span class="c">#     &#39;save_scales&#39;: SPECIAL,</span>
-    <span class="c"># }</span>
-    <span class="c"># detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, species, **detectkw)</span>
-    <span class="c"># gid_list2 = []</span>
-    <span class="c"># bbox_list2 = []</span>
-    <span class="c"># for gid, bboxes, confidences, img_conf in detect_gen:</span>
-    <span class="c">#     for bbox in bboxes:</span>
-    <span class="c">#         gid_list2.append(gid)</span>
-    <span class="c">#         bbox_list2.append(bbox)</span>
-            <span class="c"># not using confidence nor img_conf here</span>
+    <span class="c1"># Create a HotSpotter API (hs) and GUI backend (back)</span>
+    <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;Re-do this detect test&quot;</span>
+    <span class="c1"># print(&#39;get_valid_ANNOTATIONS&#39;)</span>
+    <span class="c1"># gid_list = ibs.get_valid_gids()[0:1]</span>
+    <span class="c1"># if SPECIAL:</span>
+    <span class="c1">#     gid_list = utool.safe_slice(ibs.get_valid_gids(), 3)</span>
+    <span class="c1"># #gid_list.extend(ibs.add_images([utool.unixpath(&#39;~/Dropbox/Chuck/detect_testimg/testgrevy.jpg&#39;)]))</span>
+    <span class="c1"># species = &#39;zebra_plains&#39;</span>
+    <span class="c1"># detectkw = {</span>
+    <span class="c1">#     &#39;quick&#39;: True,</span>
+    <span class="c1">#     &#39;save_detection_images&#39;: SPECIAL,</span>
+    <span class="c1">#     &#39;save_scales&#39;: SPECIAL,</span>
+    <span class="c1"># }</span>
+    <span class="c1"># detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, species, **detectkw)</span>
+    <span class="c1"># gid_list2 = []</span>
+    <span class="c1"># bbox_list2 = []</span>
+    <span class="c1"># for gid, bboxes, confidences, img_conf in detect_gen:</span>
+    <span class="c1">#     for bbox in bboxes:</span>
+    <span class="c1">#         gid_list2.append(gid)</span>
+    <span class="c1">#         bbox_list2.append(bbox)</span>
+            <span class="c1"># not using confidence nor img_conf here</span>
 
-    <span class="c"># if SPECIAL:</span>
-    <span class="c">#     from plottool import viz_image2, fig_presenter</span>
-    <span class="c">#     #from plottool import draw_func2 as df2</span>
-    <span class="c">#     for gid in gid_list:</span>
-    <span class="c">#         isthisgid = [gid == gid2 for gid2 in gid_list2]</span>
-    <span class="c">#         bbox_list = utool.filter_items(bbox_list2, isthisgid)</span>
-    <span class="c">#         img = ibs.get_images(gid)</span>
-    <span class="c">#         print(bbox_list)</span>
-    <span class="c">#         fig = viz_image2.show_image(img, bbox_list=bbox_list)</span>
-    <span class="c">#     fig_presenter.present()</span>
-    <span class="c">#fig_presenter.all_figures_bring_to_front()</span>
-    <span class="c">#ibs.detect_random_forest(gid_list, &#39;zebra_grevys&#39;)</span>
+    <span class="c1"># if SPECIAL:</span>
+    <span class="c1">#     from plottool import viz_image2, fig_presenter</span>
+    <span class="c1">#     #from plottool import draw_func2 as df2</span>
+    <span class="c1">#     for gid in gid_list:</span>
+    <span class="c1">#         isthisgid = [gid == gid2 for gid2 in gid_list2]</span>
+    <span class="c1">#         bbox_list = utool.filter_items(bbox_list2, isthisgid)</span>
+    <span class="c1">#         img = ibs.get_images(gid)</span>
+    <span class="c1">#         print(bbox_list)</span>
+    <span class="c1">#         fig = viz_image2.show_image(img, bbox_list=bbox_list)</span>
+    <span class="c1">#     fig_presenter.present()</span>
+    <span class="c1">#fig_presenter.all_figures_bring_to_front()</span>
+    <span class="c1">#ibs.detect_random_forest(gid_list, &#39;zebra_grevys&#39;)</span>
     <span class="k">return</span> <span class="nb">locals</span><span class="p">()</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># For windows</span>
-    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">]</span>    <span class="c"># IBEIS Control</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># For windows</span>
+    <span class="n">main_locals</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">main_locals</span><span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">]</span>    <span class="c1"># IBEIS Control</span>
     <span class="n">test_locals</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">run_test</span><span class="p">(</span><span class="n">TEST_DETECT</span><span class="p">,</span> <span class="n">ibs</span><span class="p">)</span>
-    <span class="c">#execstr = utool.execstr_dict(test_locals, &#39;test_locals&#39;)</span>
-    <span class="c">#exec(execstr)</span>
+    <span class="c1">#execstr = utool.execstr_dict(test_locals, &#39;test_locals&#39;)</span>
+    <span class="c1">#exec(execstr)</span>
     <span class="k">if</span> <span class="n">SPECIAL</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">df2</span>
         <span class="n">df2</span><span class="o">.</span><span class="n">present</span><span class="p">()</span>
@@ -225,7 +225,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

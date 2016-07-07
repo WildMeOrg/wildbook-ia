@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.exceptions &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.model.hots.exceptions &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,13 +133,13 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.model.hots.exceptions</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="c">#import utool</span>
-<span class="c">#print, print_,  printDBG, rrr, profile = utool.inject(__name__, &#39;[hsexcept]&#39;, DEBUG=False)</span>
+<span class="c1">#import utool</span>
+<span class="c1">#print, print_,  printDBG, rrr, profile = utool.inject(__name__, &#39;[hsexcept]&#39;, DEBUG=False)</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 
-<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[hsecept]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[hsecept]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="QueryException"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.exceptions.QueryException">[docs]</a><span class="k">class</span> <span class="nc">QueryException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
@@ -148,8 +148,8 @@
 
 </div>
 <div class="viewcode-block" id="NoDescriptorsException"><a class="viewcode-back" href="../../../../ibeis.model.hots.html#ibeis.model.hots.exceptions.NoDescriptorsException">[docs]</a><span class="k">def</span> <span class="nf">NoDescriptorsException</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid</span><span class="p">):</span>
-    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;QUERY ERROR IN </span><span class="si">%s</span><span class="s">: qaid=</span><span class="si">%r</span><span class="s"> has no descriptors!&#39;</span> <span class="o">+</span>
-           <span class="s">&#39;Please delete it.&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="n">qaid</span><span class="p">)</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;QUERY ERROR IN </span><span class="si">%s</span><span class="s1">: qaid=</span><span class="si">%r</span><span class="s1"> has no descriptors!&#39;</span> <span class="o">+</span>
+           <span class="s1">&#39;Please delete it.&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">(),</span> <span class="n">qaid</span><span class="p">)</span>
     <span class="n">ex</span> <span class="o">=</span> <span class="n">QueryException</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ex</span>
 
@@ -193,7 +193,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -76,6 +76,14 @@ ibeis.expt.harness module
     :undoc-members:
     :show-inheritance:
 
+ibeis.expt.old_expt_configs module
+----------------------------------
+
+.. automodule:: ibeis.expt.old_expt_configs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.expt.old_storage module
 -----------------------------
 

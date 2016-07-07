@@ -139,6 +139,22 @@ ibeis.algo.hots.exceptions module
     :undoc-members:
     :show-inheritance:
 
+ibeis.algo.hots.graph_iden module
+---------------------------------
+
+.. automodule:: ibeis.algo.hots.graph_iden
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.hots.graph_tmp module
+--------------------------------
+
+.. automodule:: ibeis.algo.hots.graph_tmp
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.algo.hots.hstypes module
 ------------------------------
 
@@ -279,6 +295,14 @@ ibeis.algo.hots.special_query module
 ------------------------------------
 
 .. automodule:: ibeis.algo.hots.special_query
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.hots.testem module
+-----------------------------
+
+.. automodule:: ibeis.algo.hots.testem
     :members:
     :undoc-members:
     :show-inheritance:

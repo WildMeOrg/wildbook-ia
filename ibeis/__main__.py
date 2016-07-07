@@ -38,13 +38,18 @@ def run_ibeis():
     r"""
     CommandLine:
         python -m ibeis
-        python -m ibeis --tf find_installed_tomcat
-        python -m ibeis --tf get_annot_groundtruth:1
+        python -m ibeis find_installed_tomcat
+        python -m ibeis get_annot_groundtruth:1
     """
     #ut.set_process_title('IBEIS_main')
     #main_locals = ibeis.main()
     #ibeis.main_loop(main_locals)
     #ut.set_process_title('IBEIS_main')
+    cmdline_varags = ut.get_cmdline_varargs()
+    if len(cmdline_varags) > 0 and cmdline_varags[0] == 'rsync':
+        from ibeis.scripts import rsync_ibeisdb
+        rsync_ibeisdb.rsync_ibsdb_main()
+        sys.exit(0)
 
     if ut.get_argflag('--devcmd'):
         # Hack to let devs mess around when using an installer version
@@ -52,6 +57,7 @@ def run_ibeis():
         #import utool.tests.run_tests
         #utool.tests.run_tests.run_tests()
         ut.embed()
+    # Run the tests of other modules
     elif ut.get_argflag('--run-utool-tests'):
         import utool.tests.run_tests
         retcode = utool.tests.run_tests.run_tests()

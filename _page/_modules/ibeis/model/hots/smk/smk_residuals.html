@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.hots.smk.smk_residuals &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.model.hots.smk.smk_residuals &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../../index.html"/>
         <link rel="up" title="ibeis.model.hots.smk" href="../smk.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -135,17 +135,17 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.model.hots.smk.smk_residuals</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">clustering2</span> <span class="k">as</span> <span class="n">clustertool</span>
 <span class="kn">from</span> <span class="nn">ibeis.model.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[smk_residuals]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[smk_residuals]&#39;</span><span class="p">)</span>
 
 
-<span class="c">#@ut.cached_func(&#39;nonagg_rvecs&#39;, appname=&#39;smk_cachedir&#39;, key_argx=[1, 3, 4])</span>
+<span class="c1">#@ut.cached_func(&#39;nonagg_rvecs&#39;, appname=&#39;smk_cachedir&#39;, key_argx=[1, 3, 4])</span>
 <span class="nd">@profile</span>
 <div class="viewcode-block" id="compute_nonagg_rvecs"><a class="viewcode-back" href="../../../../../ibeis.model.hots.smk.html#ibeis.model.hots.smk.smk_residuals.compute_nonagg_rvecs">[docs]</a><span class="k">def</span> <span class="nf">compute_nonagg_rvecs</span><span class="p">(</span><span class="n">words</span><span class="p">,</span> <span class="n">idx2_vec</span><span class="p">,</span> <span class="n">wx_sublist</span><span class="p">,</span> <span class="n">idxs_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -197,13 +197,13 @@
 <span class="sd">        %timeit [vecs.sum(axis=1) == 0 for vecs in vecs_list]</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Pick out corresonding lists of residuals and words</span>
+    <span class="c1"># Pick out corresonding lists of residuals and words</span>
     <span class="n">words_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">words</span><span class="p">[</span><span class="n">wx</span><span class="p">:</span><span class="n">wx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">wx</span> <span class="ow">in</span> <span class="n">wx_sublist</span><span class="p">]</span>
     <span class="n">vecs_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">idx2_vec</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">idxs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">idxs</span> <span class="ow">in</span> <span class="n">idxs_list</span><span class="p">]</span>
-    <span class="c"># Compute nonaggregated normalized residuals</span>
+    <span class="c1"># Compute nonaggregated normalized residuals</span>
     <span class="n">rvecs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_norm_residuals</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
                   <span class="k">for</span> <span class="n">vecs</span><span class="p">,</span> <span class="n">word</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vecs_list</span><span class="p">,</span> <span class="n">words_list</span><span class="p">)]</span>
-    <span class="c"># Extract flags (rvecs which are all zeros) and rvecs</span>
+    <span class="c1"># Extract flags (rvecs which are all zeros) and rvecs</span>
     <span class="n">flags_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">rvecs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">rvecs</span> <span class="ow">in</span> <span class="n">rvecs_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">rvecs_list</span><span class="p">,</span> <span class="n">flags_list</span>
 
@@ -240,26 +240,26 @@
 <span class="sd">        &gt;&gt;&gt; ut.assert_eq(len(wx_sublist), len(rvecs_list))</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#assert len(idxs_list) == len(rvecs_list)</span>
-    <span class="c"># group members of each word by aid, we will collapse these groups</span>
+    <span class="c1">#assert len(idxs_list) == len(rvecs_list)</span>
+    <span class="c1"># group members of each word by aid, we will collapse these groups</span>
     <span class="n">grouptup_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">clustertool</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">aids</span> <span class="ow">in</span> <span class="n">aids_list</span><span class="p">]</span>
-    <span class="c"># Agg aids</span>
+    <span class="c1"># Agg aids</span>
     <span class="n">aggaids_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">grouptup_list</span><span class="p">]</span>
     <span class="n">groupxs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">grouptup_list</span><span class="p">]</span>
-    <span class="c"># Aggregate vecs that belong to the same aid, for each word</span>
-    <span class="c"># (weighted aggregation with multi-assign-weights)</span>
+    <span class="c1"># Aggregate vecs that belong to the same aid, for each word</span>
+    <span class="c1"># (weighted aggregation with multi-assign-weights)</span>
     <span class="n">aggvecs_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">aggregate_rvecs</span><span class="p">(</span><span class="n">rvecs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">maws</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">))</span> <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">groupxs</span><span class="p">])</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">groupxs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span>
         <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">VEC_DIM</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">rvecs</span><span class="p">,</span> <span class="n">maws</span><span class="p">,</span> <span class="n">groupxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rvecs_list</span><span class="p">,</span> <span class="n">maws_list</span><span class="p">,</span> <span class="n">groupxs_list</span><span class="p">)]</span>
-    <span class="c"># Agg idxs</span>
+    <span class="c1"># Agg idxs</span>
     <span class="n">aggidxs_list</span> <span class="o">=</span> <span class="p">[[</span><span class="n">idxs</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span> <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">groupxs</span><span class="p">]</span>
                     <span class="k">for</span> <span class="n">idxs</span><span class="p">,</span> <span class="n">groupxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">idxs_list</span><span class="p">,</span> <span class="n">groupxs_list</span><span class="p">)]</span>
     <span class="n">aggmaws_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">maws</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span><span class="o">.</span><span class="n">prod</span><span class="p">()</span> <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">groupxs</span><span class="p">])</span>
                     <span class="k">for</span> <span class="n">maws</span><span class="p">,</span> <span class="n">groupxs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">maws_list</span><span class="p">,</span> <span class="n">groupxs_list</span><span class="p">)]</span>
-    <span class="c"># Need to recompute flags for consistency</span>
-    <span class="c"># flag is true when aggvec is all zeros</span>
+    <span class="c1"># Need to recompute flags for consistency</span>
+    <span class="c1"># flag is true when aggvec is all zeros</span>
     <span class="n">aggflags_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">aggvecs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">aggvecs</span> <span class="ow">in</span> <span class="n">aggvecs_list</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">aggvecs_list</span><span class="p">,</span> <span class="n">aggaids_list</span><span class="p">,</span> <span class="n">aggidxs_list</span><span class="p">,</span> <span class="n">aggmaws_list</span><span class="p">,</span> <span class="n">aggflags_list</span>
 
@@ -332,24 +332,24 @@
 <span class="sd">        [[ 127   29   70 -128 -128]</span>
 <span class="sd">         [-128 -128  -27  -18   73]]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Trick / hack: use 2 * max (psuedo_max), and clip because most components</span>
-    <span class="c"># will be less than 2 * max. This will reduce quantization error</span>
-    <span class="c"># rvec_max = 128</span>
-    <span class="c"># rvec_pseudo_max = rvec_max * 2 = 256</span>
-    <span class="c"># TODO: not sure if rounding or floor is the correct operation</span>
+    <span class="c1"># Trick / hack: use 2 * max (psuedo_max), and clip because most components</span>
+    <span class="c1"># will be less than 2 * max. This will reduce quantization error</span>
+    <span class="c1"># rvec_max = 128</span>
+    <span class="c1"># rvec_pseudo_max = rvec_max * 2 = 256</span>
+    <span class="c1"># TODO: not sure if rounding or floor is the correct operation</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">arr_float</span> <span class="o">*</span> <span class="mf">256.0</span><span class="p">),</span> <span class="o">-</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
-    <span class="c">#return np.clip(np.round((arr_float * (hstypes.RVEC_PSEUDO_MAX))),</span>
-    <span class="c">#               hstypes.RVEC_MIN, hstypes.RVEC_MAX).astype(np.int8)</span>
+    <span class="c1">#return np.clip(np.round((arr_float * (hstypes.RVEC_PSEUDO_MAX))),</span>
+    <span class="c1">#               hstypes.RVEC_MIN, hstypes.RVEC_MAX).astype(np.int8)</span>
 
 
-<span class="c"># Choose appropriate compression function based on the RVEC_TYPE</span>
-<span class="c"># currently its np.int8</span></div>
+<span class="c1"># Choose appropriate compression function based on the RVEC_TYPE</span>
+<span class="c1"># currently its np.int8</span></div>
 <span class="k">if</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">RVEC_TYPE</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
     <span class="n">compress_normvec</span> <span class="o">=</span> <span class="n">compress_normvec_float16</span>
 <span class="k">elif</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">RVEC_TYPE</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">:</span>
     <span class="n">compress_normvec</span> <span class="o">=</span> <span class="n">compress_normvec_uint8</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unsupported RVEC_TYPE = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">RVEC_TYPE</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;unsupported RVEC_TYPE = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">RVEC_TYPE</span><span class="p">)</span>
 
 
 <span class="nd">@profile</span>
@@ -389,12 +389,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">rvecs</span>
-    <span class="c"># Prealloc sum output (do not assign the result of sum)</span>
+    <span class="c1"># Prealloc sum output (do not assign the result of sum)</span>
     <span class="n">arr_float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">)</span>
-    <span class="c"># Take weighted average of multi-assigned vectors</span>
+    <span class="c1"># Take weighted average of multi-assigned vectors</span>
     <span class="p">(</span><span class="n">maws</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">rvecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">arr_float</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="c"># Jegou uses mean instead. Sum should be fine because we normalize</span>
-    <span class="c">#rvecs.mean(axis=0, out=rvecs_agg[0])</span>
+    <span class="c1"># Jegou uses mean instead. Sum should be fine because we normalize</span>
+    <span class="c1">#rvecs.mean(axis=0, out=rvecs_agg[0])</span>
     <span class="n">vt</span><span class="o">.</span><span class="n">normalize_rows</span><span class="p">(</span><span class="n">arr_float</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">arr_float</span><span class="p">)</span>
     <span class="n">rvecs_agg</span> <span class="o">=</span> <span class="n">compress_normvec</span><span class="p">(</span><span class="n">arr_float</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">rvecs_agg</span>
@@ -450,24 +450,24 @@
 <span class="sd">        %timeit  rvec_sums == 0</span>
 <span class="sd">        %timeit  np.logical_or(np.isnan(_rvec_sums), _rvec_sums == 0)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Compute residuals of assigned vectors</span>
-    <span class="c">#rvecs_n = word.astype(dtype=FLOAT_TYPE) - vecs.astype(dtype=FLOAT_TYPE)</span>
+    <span class="c1"># Compute residuals of assigned vectors</span>
+    <span class="c1">#rvecs_n = word.astype(dtype=FLOAT_TYPE) - vecs.astype(dtype=FLOAT_TYPE)</span>
     <span class="n">arr_float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">),</span> <span class="n">vecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">hstypes</span><span class="o">.</span><span class="n">FLOAT_TYPE</span><span class="p">))</span>
-    <span class="c"># Faster, but doesnt work with np.norm</span>
-    <span class="c">#rvecs_n = np.subtract(word.view(hstypes.FLOAT_TYPE), vecs.view(hstypes.FLOAT_TYPE))</span>
+    <span class="c1"># Faster, but doesnt work with np.norm</span>
+    <span class="c1">#rvecs_n = np.subtract(word.view(hstypes.FLOAT_TYPE), vecs.view(hstypes.FLOAT_TYPE))</span>
     <span class="n">vt</span><span class="o">.</span><span class="n">normalize_rows</span><span class="p">(</span><span class="n">arr_float</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">arr_float</span><span class="p">)</span>
-    <span class="c"># Mark null residuals</span>
-    <span class="c">#_rvec_sums = arr_float.sum(axis=1)</span>
-    <span class="c">#rvec_flag = np.isnan(_rvec_sums)</span>
-    <span class="c"># Converts normvec to a smaller type like float16 or int8</span>
+    <span class="c1"># Mark null residuals</span>
+    <span class="c1">#_rvec_sums = arr_float.sum(axis=1)</span>
+    <span class="c1">#rvec_flag = np.isnan(_rvec_sums)</span>
+    <span class="c1"># Converts normvec to a smaller type like float16 or int8</span>
     <span class="n">rvecs_n</span> <span class="o">=</span> <span class="n">compress_normvec</span><span class="p">(</span><span class="n">arr_float</span><span class="p">)</span>
-    <span class="c"># IF FLOAT16 WE NEED TO FILL NANS</span>
-    <span class="c"># (but we should use int8, and in that case it is implicit)</span>
-    <span class="c"># rvecs_n = np.nan_to_num(rvecs_n)</span>
+    <span class="c1"># IF FLOAT16 WE NEED TO FILL NANS</span>
+    <span class="c1"># (but we should use int8, and in that case it is implicit)</span>
+    <span class="c1"># rvecs_n = np.nan_to_num(rvecs_n)</span>
     <span class="k">return</span> <span class="n">rvecs_n</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.model.hots.smk.smk_residuals</span>
@@ -475,8 +475,8 @@
 <span class="sd">        python -m ibeis.model.hots.smk.smk_residuals --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -511,7 +511,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

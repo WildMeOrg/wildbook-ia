@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.model.preproc.preproc_image &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.model.preproc.preproc_image &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.model.preproc" href="../preproc.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,20 +133,20 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.model.preproc.preproc_image</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span><span class="p">,</span> <span class="n">basename</span>
-<span class="kn">import</span> <span class="nn">warnings</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">warnings</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">vtool.exif</span> <span class="kn">as</span> <span class="nn">vtexif</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="c">#import numpy as np  # NOQA</span>
-<span class="c">#import hashlib</span>
-<span class="c">#import uuid</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc_img]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="c1">#import numpy as np  # NOQA</span>
+<span class="c1">#import hashlib</span>
+<span class="c1">#import uuid</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[preproc_img]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
-<span class="c">#@profile</span>
+<span class="c1">#@profile</span>
 <div class="viewcode-block" id="parse_exif"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_image.parse_exif">[docs]</a><span class="k">def</span> <span class="nf">parse_exif</span><span class="p">(</span><span class="n">pil_img</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Image EXIF helper</span>
 
@@ -159,8 +159,8 @@
 <span class="sd">            long exiftime</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">exif_dict</span> <span class="o">=</span> <span class="n">vtexif</span><span class="o">.</span><span class="n">get_exif_dict</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>
-    <span class="c"># TODO: More tags</span>
-    <span class="c"># (mainly the orientation tag)</span>
+    <span class="c1"># TODO: More tags</span>
+    <span class="c1"># (mainly the orientation tag)</span>
     <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="o">=</span> <span class="n">vtexif</span><span class="o">.</span><span class="n">get_lat_lon</span><span class="p">(</span><span class="n">exif_dict</span><span class="p">)</span>
     <span class="n">time</span> <span class="o">=</span> <span class="n">vtexif</span><span class="o">.</span><span class="n">get_unixtime</span><span class="p">(</span><span class="n">exif_dict</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">time</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span>
@@ -176,7 +176,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ext</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">gpath</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="k">return</span> <span class="s">&#39;.jpg&#39;</span> <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s">&#39;.jpeg&#39;</span> <span class="k">else</span> <span class="n">ext</span>
+    <span class="k">return</span> <span class="s1">&#39;.jpg&#39;</span> <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.jpeg&#39;</span> <span class="k">else</span> <span class="n">ext</span>
 
 </div>
 <span class="nd">@profile</span>
@@ -204,39 +204,39 @@
 <span class="sd">        &gt;&gt;&gt; result = (&#39;param_tup = %s&#39; % (str(param_tup),))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Parse arguments from tuple</span>
-    <span class="c">#print(&#39;[ginfo] gpath=%r&#39; % gpath)</span>
-    <span class="c"># Try to open the image</span>
+    <span class="c1"># Parse arguments from tuple</span>
+    <span class="c1">#print(&#39;[ginfo] gpath=%r&#39; % gpath)</span>
+    <span class="c1"># Try to open the image</span>
     <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>  <span class="c"># Open PIL Image</span>
+            <span class="n">pil_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">gpath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>  <span class="c1"># Open PIL Image</span>
         <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc] IOError: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc] IOError: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">),))</span>
             <span class="k">return</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">warn</span> <span class="ow">in</span> <span class="n">w</span><span class="p">:</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">showwarning</span><span class="p">(</span><span class="n">warn</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">warn</span><span class="o">.</span><span class="n">category</span><span class="p">,</span>
                                      <span class="n">warn</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">warn</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span> <span class="n">warn</span><span class="o">.</span><span class="n">file</span><span class="p">,</span>
                                      <span class="n">warn</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
-                <span class="c">#warnstr = warnings.formatwarning</span>
-                <span class="c">#print(warnstr)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warnings issued by </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,))</span>
-    <span class="c"># Parse out the data</span>
-    <span class="n">width</span><span class="p">,</span> <span class="n">height</span>  <span class="o">=</span> <span class="n">pil_img</span><span class="o">.</span><span class="n">size</span>         <span class="c"># Read width, height</span>
-    <span class="n">time</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="o">=</span> <span class="n">parse_exif</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>  <span class="c"># Read exif tags</span>
-    <span class="c"># We cannot use pixel data as libjpeg is not determenistic (even for reads!)</span>
-    <span class="n">image_uuid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_file_uuid</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>  <span class="c"># Read file ]-hash-&gt; guid = gid</span>
-    <span class="c">#orig_gpath = gpath</span>
+                <span class="c1">#warnstr = warnings.formatwarning</span>
+                <span class="c1">#print(warnstr)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Warnings issued by </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gpath</span><span class="p">,))</span>
+    <span class="c1"># Parse out the data</span>
+    <span class="n">width</span><span class="p">,</span> <span class="n">height</span>  <span class="o">=</span> <span class="n">pil_img</span><span class="o">.</span><span class="n">size</span>         <span class="c1"># Read width, height</span>
+    <span class="n">time</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="o">=</span> <span class="n">parse_exif</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>  <span class="c1"># Read exif tags</span>
+    <span class="c1"># We cannot use pixel data as libjpeg is not determenistic (even for reads!)</span>
+    <span class="n">image_uuid</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_file_uuid</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>  <span class="c1"># Read file ]-hash-&gt; guid = gid</span>
+    <span class="c1">#orig_gpath = gpath</span>
     <span class="n">orig_gname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
     <span class="n">ext</span> <span class="o">=</span> <span class="n">get_standard_ext</span><span class="p">(</span><span class="n">gpath</span><span class="p">)</span>
-    <span class="n">notes</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
-    <span class="c"># Build parameters tuple</span>
+    <span class="n">notes</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="c1"># Build parameters tuple</span>
     <span class="n">param_tup</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">image_uuid</span><span class="p">,</span>
         <span class="n">gpath</span><span class="p">,</span>
         <span class="n">gpath</span><span class="p">,</span>
         <span class="n">orig_gname</span><span class="p">,</span>
-        <span class="c">#orig_gpath,</span>
+        <span class="c1">#orig_gpath,</span>
         <span class="n">ext</span><span class="p">,</span>
         <span class="n">width</span><span class="p">,</span>
         <span class="n">height</span><span class="p">,</span>
@@ -245,7 +245,7 @@
         <span class="n">lon</span><span class="p">,</span>
         <span class="n">notes</span>
     <span class="p">)</span>
-    <span class="c">#print(&#39;[ginfo] %r %r&#39; % (image_uuid, orig_gname))</span>
+    <span class="c1">#print(&#39;[ginfo] %r %r&#39; % (image_uuid, orig_gname))</span>
     <span class="k">return</span> <span class="n">param_tup</span>
 
 </div>
@@ -277,18 +277,18 @@
 <span class="sd">        &gt;&gt;&gt; assert str(params_list[0][3]) == &#39;easy1.JPG&#39;, &#39;orig name is different&#39;</span>
 <span class="sd">        &gt;&gt;&gt; assert params_list[3] is None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#preproc_args = [(gpath, kwargs) for gpath in gpath_list]</span>
-    <span class="c">#print(&#39;[about to parse]: gpath_list=%r&#39; % (gpath_list,))</span>
+    <span class="c1">#preproc_args = [(gpath, kwargs) for gpath in gpath_list]</span>
+    <span class="c1">#print(&#39;[about to parse]: gpath_list=%r&#39; % (gpath_list,))</span>
     <span class="n">params_gen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">parse_imageinfo</span><span class="p">,</span> <span class="n">gpath_list</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                              <span class="n">force_serial</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">params_gen</span>
 
 </div>
 <div class="viewcode-block" id="on_delete"><a class="viewcode-back" href="../../../../ibeis.model.preproc.html#ibeis.model.preproc.preproc_image.on_delete">[docs]</a><span class="k">def</span> <span class="nf">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">featweight_rowid_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warning: Not Implemented&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Warning: Not Implemented&#39;</span><span class="p">)</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    python -m ibeis.model.preproc.preproc_image</span>
 <span class="sd">    python -m ibeis.model.preproc.preproc_image --allexamples</span>
@@ -329,7 +329,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

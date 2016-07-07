@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.templates.generate_notebook &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.templates.generate_notebook &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.templates" href="../templates.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,7 +131,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.templates.generate_notebook</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">CommandLine:</span>
 <span class="sd">    # Generate and start an IPython notebook</span>
@@ -153,7 +153,7 @@
 <span class="sd">        python -m ibeis --tf autogen_ipynb --run --db lynx</span>
 
 <span class="sd">        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --asreport</span>
-<span class="sd">        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --noexample</span>
+<span class="sd">        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --noexample --withtags</span>
 
 <span class="sd">        python -m ibeis --tf autogen_ipynb --db PZ_MTEST</span>
 <span class="sd">        # TODO: Add support for dbdir to be specified</span>
@@ -182,27 +182,27 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
-    <span class="n">fname</span> <span class="o">=</span> <span class="s">&#39;Experiments-&#39;</span> <span class="o">+</span> <span class="n">dbname</span>
-    <span class="n">nb_fpath</span> <span class="o">=</span> <span class="n">fname</span> <span class="o">+</span> <span class="s">&#39;.ipynb&#39;</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--cells&#39;</span><span class="p">):</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;Experiments-&#39;</span> <span class="o">+</span> <span class="n">dbname</span>
+    <span class="n">nb_fpath</span> <span class="o">=</span> <span class="n">fname</span> <span class="o">+</span> <span class="s1">&#39;.ipynb&#39;</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--cells&#39;</span><span class="p">):</span>
         <span class="n">notebook_cells</span> <span class="o">=</span> <span class="n">make_ibeis_cell_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s"># ---- </span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">notebook_cells</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"># ---- </span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">notebook_cells</span><span class="p">))</span>
         <span class="k">return</span>
-    <span class="c"># TODO: Add support for dbdir to be specified</span>
+    <span class="c1"># TODO: Add support for dbdir to be specified</span>
     <span class="n">notebook_str</span> <span class="o">=</span> <span class="n">make_ibeis_notebook</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">nb_fpath</span><span class="p">,</span> <span class="n">notebook_str</span><span class="p">)</span>
-    <span class="n">run</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--run&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">run</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">run</span>
-    <span class="n">launch</span> <span class="o">=</span> <span class="n">launch</span> <span class="k">if</span> <span class="n">launch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--ipynb&#39;</span><span class="p">)</span>
+    <span class="n">run</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--run&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">run</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">run</span>
+    <span class="n">launch</span> <span class="o">=</span> <span class="n">launch</span> <span class="k">if</span> <span class="n">launch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--ipynb&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">run</span><span class="p">:</span>
         <span class="n">run_nb</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">run_ipython_notebook</span><span class="p">(</span><span class="n">notebook_str</span><span class="p">)</span>
         <span class="n">output_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">export_notebook</span><span class="p">(</span><span class="n">run_nb</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="n">output_fpath</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">launch</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="s">&#39;jupyter-notebook&#39;</span><span class="p">,</span> <span class="n">nb_fpath</span><span class="p">,</span> <span class="n">detatch</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="c">#ut.cmd(&#39;ipython-notebook&#39;, nb_fpath)</span>
-        <span class="c">#ut.startfile(nb_fpath)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="s1">&#39;jupyter-notebook&#39;</span><span class="p">,</span> <span class="n">nb_fpath</span><span class="p">,</span> <span class="n">detatch</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="c1">#ut.cmd(&#39;ipython-notebook&#39;, nb_fpath)</span>
+        <span class="c1">#ut.startfile(nb_fpath)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;notebook_str =</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">notebook_str</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;notebook_str =</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">notebook_str</span><span class="p">,))</span>
 
 </div>
 <div class="viewcode-block" id="get_default_cell_template_list"><a class="viewcode-back" href="../../../ibeis.templates.html#ibeis.templates.generate_notebook.get_default_cell_template_list">[docs]</a><span class="k">def</span> <span class="nf">get_default_cell_template_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">):</span>
@@ -212,8 +212,9 @@
 
     <span class="n">cells</span> <span class="o">=</span> <span class="n">notebook_cells</span>
 
-    <span class="n">noexample</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--noexample&#39;</span><span class="p">)</span>
-    <span class="n">asreport</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--asreport&#39;</span><span class="p">)</span>
+    <span class="n">noexample</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--noexample&#39;</span><span class="p">)</span>
+    <span class="n">asreport</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--asreport&#39;</span><span class="p">)</span>
+    <span class="n">withtags</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--withtags&#39;</span><span class="p">)</span>
 
     <span class="n">cell_template_list</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -225,8 +226,8 @@
 
     <span class="n">dev_analysis</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">config_overlap</span><span class="p">,</span>
-        <span class="c">#cells.dbsize_expt,</span>
-        <span class="bp">None</span> <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;humpbacks&#39;</span> <span class="k">else</span> <span class="n">cells</span><span class="o">.</span><span class="n">feat_score_sep</span><span class="p">,</span>
+        <span class="c1">#cells.dbsize_expt,</span>
+        <span class="bp">None</span> <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;humpbacks&#39;</span> <span class="k">else</span> <span class="n">cells</span><span class="o">.</span><span class="n">feat_score_sep</span><span class="p">,</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">all_annot_scoresep</span><span class="p">,</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">success_annot_scoresep</span><span class="p">,</span>
     <span class="p">]</span>
@@ -234,7 +235,7 @@
     <span class="n">cell_template_list</span> <span class="o">+=</span> <span class="p">[</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">introduction</span> <span class="k">if</span> <span class="n">asreport</span> <span class="k">else</span> <span class="bp">None</span><span class="p">,</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">initialize</span><span class="p">,</span>
-        <span class="bp">None</span> <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">!=</span> <span class="s">&#39;humpbacks&#39;</span> <span class="k">else</span> <span class="n">cells</span><span class="o">.</span><span class="n">fluke_select</span><span class="p">,</span>
+        <span class="bp">None</span> <span class="k">if</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;humpbacks&#39;</span> <span class="k">else</span> <span class="n">cells</span><span class="o">.</span><span class="n">fluke_select</span><span class="p">,</span>
     <span class="p">]</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">asreport</span><span class="p">:</span>
@@ -254,12 +255,16 @@
         <span class="n">cells</span><span class="o">.</span><span class="n">failure_type1_cases</span><span class="p">,</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">failure_type2_cases</span><span class="p">,</span>
         <span class="n">cells</span><span class="o">.</span><span class="n">timedelta_distribution</span><span class="p">,</span>
-        <span class="c">#cells.investigate_specific_case,</span>
-        <span class="c">#cells.view_intereseting_tags,</span>
     <span class="p">]</span>
 
+    <span class="k">if</span> <span class="n">withtags</span><span class="p">:</span>
+        <span class="n">cell_template_list</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="n">cells</span><span class="o">.</span><span class="n">investigate_specific_case</span><span class="p">,</span>
+            <span class="n">cells</span><span class="o">.</span><span class="n">view_intereseting_tags</span><span class="p">,</span>
+        <span class="p">]</span>
+
     <span class="k">if</span> <span class="n">asreport</span><span class="p">:</span>
-        <span class="c"># Append our debug stuff at the bottom</span>
+        <span class="c1"># Append our debug stuff at the bottom</span>
         <span class="n">cell_template_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">cells</span><span class="o">.</span><span class="n">IGNOREAFTER</span><span class="p">]</span>
         <span class="n">cell_template_list</span> <span class="o">+=</span> <span class="n">info_cells</span>
 
@@ -306,11 +311,11 @@
     <span class="n">cell_template_list</span> <span class="o">=</span> <span class="n">get_default_cell_template_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">)</span>
     <span class="n">autogen_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">make_autogen_str</span><span class="p">()</span>
     <span class="n">dbname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span>
-    <span class="n">default_acfgstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;-a&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;default:is_known=True&#39;</span><span class="p">)</span>
+    <span class="n">default_acfgstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;-a&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;default:is_known=True&#39;</span><span class="p">)</span>
 
-    <span class="n">asreport</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--asreport&#39;</span><span class="p">)</span>
+    <span class="n">asreport</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--asreport&#39;</span><span class="p">)</span>
 
-    <span class="n">default_pcfgstr_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;-t&#39;</span><span class="p">,</span> <span class="s">&#39;-p&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">)</span>
+    <span class="n">default_pcfgstr_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s1">&#39;-t&#39;</span><span class="p">,</span> <span class="s1">&#39;-p&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">)</span>
     <span class="n">default_pcfgstr</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">default_pcfgstr_list</span><span class="p">,</span> <span class="n">nobr</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">asreport</span><span class="p">:</span>
@@ -321,27 +326,27 @@
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">annotconfig_list_body</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">default_acfgstr</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
-<span class="s">            # See ibeis/expt/annotation_configs.py for names of annot configuration options</span>
-<span class="s">            #&#39;default:has_any=(query,),dpername=1,exclude_reference=True&#39;,</span>
-<span class="s">            #&#39;default:is_known=True&#39;,</span>
-<span class="s">            #&#39;default:qsame_imageset=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20&#39;,</span>
-<span class="s">            #&#39;default:require_timestamp=True,min_timedelta=3600&#39;,</span>
-<span class="s">            #&#39;default:species=primary&#39;,</span>
-<span class="s">            #&#39;timectrl:&#39;,</span>
-<span class="s">            #&#39;unctrl:been_adjusted=True&#39;,</span>
-<span class="s">            &#39;&#39;&#39;</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">default_acfgstr</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">            # See ibeis/expt/annotation_configs.py for names of annot configuration options</span>
+<span class="s1">            #&#39;default:has_any=(query,),dpername=1,exclude_reference=True&#39;,</span>
+<span class="s1">            #&#39;default:is_known=True&#39;,</span>
+<span class="s1">            #&#39;default:qsame_imageset=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20&#39;,</span>
+<span class="s1">            #&#39;default:require_timestamp=True,min_timedelta=3600&#39;,</span>
+<span class="s1">            #&#39;default:species=primary&#39;,</span>
+<span class="s1">            #&#39;timectrl:&#39;,</span>
+<span class="s1">            #&#39;unctrl:been_adjusted=True&#39;,</span>
+<span class="s1">            &#39;&#39;&#39;</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="n">pipeline_list_body</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
-            <span class="n">default_pcfgstr</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
-<span class="s">            #&#39;default&#39;,</span>
-<span class="s">            #&#39;default:K=1,AI=False,QRH=True&#39;,</span>
-<span class="s">            #&#39;default:K=1,RI=True,AI=False&#39;,</span>
-<span class="s">            #&#39;default:K=1,adapteq=True&#39;,</span>
-<span class="s">            #&#39;default:fg_on=[True,False]&#39;,</span>
-<span class="s">            &#39;&#39;&#39;</span><span class="p">)</span>
+            <span class="n">default_pcfgstr</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">            #&#39;default&#39;,</span>
+<span class="s1">            #&#39;default:K=1,AI=False,QRH=True&#39;,</span>
+<span class="s1">            #&#39;default:K=1,RI=True,AI=False&#39;,</span>
+<span class="s1">            #&#39;default:K=1,adapteq=True&#39;,</span>
+<span class="s1">            #&#39;default:fg_on=[True,False]&#39;,</span>
+<span class="s1">            &#39;&#39;&#39;</span><span class="p">)</span>
         <span class="p">)</span>
 
     <span class="n">locals_</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
@@ -350,7 +355,7 @@
     <span class="k">return</span> <span class="n">cell_list</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.templates.generate_notebook</span>
@@ -358,8 +363,8 @@
 <span class="sd">        python -m ibeis.templates.generate_notebook --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -394,7 +399,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

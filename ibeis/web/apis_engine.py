@@ -158,7 +158,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         >>> qaids = aids[0:1]
         >>> daids = aids
         >>> query_config_dict = {
-        >>>     'pipeline_root' : 'BC_DTW'
+        >>>     #'pipeline_root' : 'BC_DTW'
         >>> }
         >>> cm_list = ibs.query_chips(qaids, daids, cfgdict=query_config_dict)
 
@@ -278,13 +278,15 @@ def start_identify_annots_query(ibs,
         >>> # DISABLE_DOCTEST
         >>> from ibeis.web.apis_engine import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> #domain = 'localhost'
+        >>> domain = None
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1', domain=domain)  # , domain='http://52.33.105.88')
         >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:3]
         >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]
         >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
         >>> query_config_dict = {
-        >>>    'pipeline_root' : 'BC_DTW'
+        >>>    #'pipeline_root' : 'BC_DTW'
         >>> }
         >>> data = dict(
         >>>     query_annot_uuid_list=quuid_list, database_annot_uuid_list=duuid_list,
@@ -294,7 +296,10 @@ def start_identify_annots_query(ibs,
         >>> print('jobid = %r' % (jobid,))
         >>> status_response = web_ibs.wait_for_results(jobid)
         >>> result_response = web_ibs.read_engine_results(jobid)
+        >>> print('result_response = %s' % (ut.repr3(result_response),))
         >>> inference_result = result_response['json_result']
+        >>> if isinstance(inference_result, six.string_types):
+        >>>    print(inference_result)
         >>> cm_dict = inference_result['cm_dict']
         >>> quuid = quuid_list[0]
         >>> cm = cm_dict[str(quuid)]

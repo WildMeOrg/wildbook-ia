@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.core &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.core &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,7 +129,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.core</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">IBEIS CORE</span>
 <span class="sd">Defines the core dependency cache supported by the image analysis api</span>
@@ -195,41 +195,41 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">cv2</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">register_preproc</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[core]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[core]&#39;</span><span class="p">)</span>
 
 
-<span class="c"># dtool.TableConfig.register_func = register_preproc</span>
+<span class="c1"># dtool.TableConfig.register_func = register_preproc</span>
 
 
 <div class="viewcode-block" id="testdata_core"><a class="viewcode-back" href="../../ibeis.html#ibeis.core.testdata_core">[docs]</a><span class="k">def</span> <span class="nf">testdata_core</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="c"># import plottool as pt</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="c1"># import plottool as pt</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
     <span class="n">depc</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s">&#39;--aids&#39;</span><span class="p">,</span> <span class="s">&#39;--aid&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">((</span><span class="s1">&#39;--aids&#39;</span><span class="p">,</span> <span class="s1">&#39;--aid&#39;</span><span class="p">),</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">depc</span><span class="p">,</span> <span class="n">aid_list</span>
 
 </div>
 <div class="viewcode-block" id="ChipConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core.ChipConfig">[docs]</a><span class="k">class</span> <span class="nc">ChipConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">TableConfig</span><span class="p">):</span>
     <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;resize_dim&#39;</span><span class="p">,</span> <span class="s">&#39;width&#39;</span><span class="p">,</span>
-                     <span class="n">valid_values</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;area&#39;</span><span class="p">,</span> <span class="s">&#39;width&#39;</span><span class="p">,</span> <span class="s">&#39;height&#39;</span><span class="p">,</span> <span class="s">&#39;diag&#39;</span><span class="p">,</span> <span class="s">&#39;maxwh&#39;</span><span class="p">],</span>
-                     <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;dim_size&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">),</span>
-        <span class="c">#ut.ParamInfo(&#39;dim_size&#39;, 128, &#39;sz&#39;, hideif=None),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;dim_size&#39;</span><span class="p">,</span> <span class="mi">960</span><span class="p">,</span> <span class="s">&#39;sz&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">None</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;preserve_aspect&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;histeq&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;pad&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;ext&#39;</span><span class="p">,</span> <span class="s">&#39;.png&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;resize_dim&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span>
+                     <span class="n">valid_values</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="s1">&#39;diag&#39;</span><span class="p">,</span> <span class="s1">&#39;maxwh&#39;</span><span class="p">],</span>
+                     <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="c1">#ut.ParamInfo(&#39;dim_size&#39;, 128, &#39;sz&#39;, hideif=None),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;dim_size&#39;</span><span class="p">,</span> <span class="mi">960</span><span class="p">,</span> <span class="s1">&#39;sz&#39;</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">None</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;preserve_aspect&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;histeq&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;pad&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;ext&#39;</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="p">),</span>
     <span class="p">]</span>
 
 </div>
 <span class="nd">@register_preproc</span><span class="p">(</span>
-    <span class="n">tablename</span><span class="o">=</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;annotations&#39;</span><span class="p">],</span>
-    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="s">&#39;width&#39;</span><span class="p">,</span> <span class="s">&#39;height&#39;</span><span class="p">,</span> <span class="s">&#39;M&#39;</span><span class="p">],</span>
-    <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;annotations&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
     <span class="n">configclass</span><span class="o">=</span><span class="n">ChipConfig</span><span class="p">,</span>
-    <span class="n">fname</span><span class="o">=</span><span class="s">&#39;chipcache4&#39;</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;chipcache4&#39;</span><span class="p">,</span>
     <span class="n">version</span><span class="o">=</span><span class="mi">0</span>
 <span class="p">)</span>
 <div class="viewcode-block" id="compute_chip"><a class="viewcode-back" href="../../ibeis.html#ibeis.core.compute_chip">[docs]</a><span class="k">def</span> <span class="nf">compute_chip</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -263,24 +263,24 @@
 <span class="sd">        &gt;&gt;&gt; iteract_obj = pt.interact_multi_image.MultiImageInteraction(chips, nPerPage=4)</span>
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Preprocess Chips&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;config = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Preprocess Chips&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;config = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">config</span><span class="p">,))</span>
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
-    <span class="n">chip_dpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chipdir</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;2&#39;</span>
+    <span class="n">chip_dpath</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chipdir</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;2&#39;</span>
 
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">chip_dpath</span><span class="p">)</span>
 
-    <span class="n">ext</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;ext&#39;</span><span class="p">]</span>
-    <span class="n">pad</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;pad&#39;</span><span class="p">]</span>
-    <span class="n">dim_size</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;dim_size&#39;</span><span class="p">]</span>
-    <span class="n">resize_dim</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;resize_dim&#39;</span><span class="p">]</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;ext&#39;</span><span class="p">]</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;pad&#39;</span><span class="p">]</span>
+    <span class="n">dim_size</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span>
+    <span class="n">resize_dim</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;resize_dim&#39;</span><span class="p">]</span>
 
     <span class="n">cfghashid</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_hashid</span><span class="p">()</span>
     <span class="n">avuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 
-    <span class="c"># TODO: just hash everything together</span>
-    <span class="n">_fmt</span> <span class="o">=</span> <span class="s">&#39;chip_aid_{aid}_avuuid_{avuuid}_{cfghashid}{ext}&#39;</span>
+    <span class="c1"># TODO: just hash everything together</span>
+    <span class="n">_fmt</span> <span class="o">=</span> <span class="s1">&#39;chip_aid_{aid}_avuuid_{avuuid}_{cfghashid}{ext}&#39;</span>
     <span class="n">cfname_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span> <span class="n">avuuid</span><span class="o">=</span><span class="n">avuuid</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">,</span> <span class="n">cfghashid</span><span class="o">=</span><span class="n">cfghashid</span><span class="p">)</span>
                    <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">avuuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">avuuid_list</span><span class="p">)]</span>
     <span class="n">cfpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">chip_dpath</span><span class="p">,</span> <span class="n">chip_fname</span><span class="p">)</span>
@@ -291,21 +291,21 @@
     <span class="n">theta_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">bbox_size_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 
-    <span class="c"># Checks</span>
+    <span class="c1"># Checks</span>
     <span class="n">invalid_flags</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">h</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bbox_size_list</span><span class="p">]</span>
     <span class="n">invalid_aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">invalid_flags</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalid_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;invalid aids=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">invalid_aids</span><span class="p">,)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">invalid_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;invalid aids=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">invalid_aids</span><span class="p">,)</span>
 
     <span class="n">scale_func_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;width&#39;</span><span class="p">:</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_scaled_size_with_width</span><span class="p">,</span>
-        <span class="s">&#39;root_area&#39;</span><span class="p">:</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_scaled_size_with_area</span><span class="p">,</span>
+        <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_scaled_size_with_width</span><span class="p">,</span>
+        <span class="s1">&#39;root_area&#39;</span><span class="p">:</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_scaled_size_with_area</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="n">scale_func</span> <span class="o">=</span> <span class="n">scale_func_dict</span><span class="p">[</span><span class="n">resize_dim</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">dim_size</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">newsize_list</span> <span class="o">=</span> <span class="n">bbox_size_list</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">resize_dim</span> <span class="o">==</span> <span class="s">&#39;root_area&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">resize_dim</span> <span class="o">==</span> <span class="s1">&#39;root_area&#39;</span><span class="p">:</span>
             <span class="n">dim_size</span> <span class="o">=</span> <span class="n">dim_size</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="n">newsize_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">scale_func</span><span class="p">(</span><span class="n">dim_size</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bbox_size_list</span><span class="p">]</span>
 
@@ -314,11 +314,11 @@
         <span class="n">extras_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">get_extramargin_measures</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">new_size</span><span class="p">,</span> <span class="n">halfoffset_ms</span><span class="p">)</span>
                        <span class="k">for</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">new_size</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">)]</span>
 
-        <span class="c"># Overwrite bbox and new size with margined versions</span>
+        <span class="c1"># Overwrite bbox and new size with margined versions</span>
         <span class="n">bbox_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">extras_list</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">newsize_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take_column</span><span class="p">(</span><span class="n">extras_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="c"># Build transformation from image to chip</span>
+    <span class="c1"># Build transformation from image to chip</span>
     <span class="n">M_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">get_image_to_chip_transform</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">new_size</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span> <span class="k">for</span>
               <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">new_size</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">newsize_list</span><span class="p">)]</span>
 
@@ -329,21 +329,21 @@
     <span class="n">borderMode</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">BORDER_CONSTANT</span>
     <span class="n">warpkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">flags</span><span class="o">=</span><span class="n">flags</span><span class="p">,</span> <span class="n">borderMode</span><span class="o">=</span><span class="n">borderMode</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">arg_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;computing chips&#39;</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">arg_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;computing chips&#39;</span><span class="p">):</span>
         <span class="n">cfpath</span><span class="p">,</span> <span class="n">gfpath</span><span class="p">,</span> <span class="n">new_size</span><span class="p">,</span> <span class="n">M</span> <span class="o">=</span> <span class="n">tup</span>
-        <span class="c"># Read parent image</span>
+        <span class="c1"># Read parent image</span>
         <span class="n">imgBGR</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">gfpath</span><span class="p">)</span>
-        <span class="c"># Warp chip</span>
+        <span class="c1"># Warp chip</span>
         <span class="n">chipBGR</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpAffine</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">new_size</span><span class="p">),</span> <span class="o">**</span><span class="n">warpkw</span><span class="p">)</span>
         <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">chipBGR</span><span class="p">)</span>
-        <span class="c"># Write chip to disk</span>
+        <span class="c1"># Write chip to disk</span>
         <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">cfpath</span><span class="p">,</span> <span class="n">chipBGR</span><span class="p">)</span>
         <span class="k">yield</span> <span class="p">(</span><span class="n">cfpath</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="AnnotMaskConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core.AnnotMaskConfig">[docs]</a><span class="k">class</span> <span class="nc">AnnotMaskConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">TableConfig</span><span class="p">):</span>
     <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;manual&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;manual&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="n">_sub_config_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">ChipConfig</span>
@@ -351,12 +351,12 @@
 
 </div>
 <span class="nd">@register_preproc</span><span class="p">(</span>
-    <span class="n">tablename</span><span class="o">=</span><span class="s">&#39;annotmask&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;annotations&#39;</span><span class="p">],</span>
-    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="s">&#39;width&#39;</span><span class="p">,</span> <span class="s">&#39;height&#39;</span><span class="p">],</span>
-    <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;annotmask&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;annotations&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">),</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
     <span class="n">configclass</span><span class="o">=</span><span class="n">AnnotMaskConfig</span><span class="p">,</span>
-    <span class="n">fname</span><span class="o">=</span><span class="s">&#39;../maskcache2&#39;</span><span class="p">,</span>
-    <span class="c"># isinteractive=True,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;../maskcache2&#39;</span><span class="p">,</span>
+    <span class="c1"># isinteractive=True,</span>
 <span class="p">)</span>
 <div class="viewcode-block" id="compute_annotmask"><a class="viewcode-back" href="../../ibeis.html#ibeis.core.compute_annotmask">[docs]</a><span class="k">def</span> <span class="nf">compute_annotmask</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
@@ -391,71 +391,71 @@
 <span class="sd">        &gt;&gt;&gt; pt.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">interact_impaint</span>
-    <span class="c"># TODO: Ensure interactive required cache words</span>
-    <span class="c"># Keep manual things above the cache dir</span>
-    <span class="n">mask_dpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">cache_dpath</span><span class="p">,</span> <span class="s">&#39;../ManualChipMask&#39;</span><span class="p">)</span>
+    <span class="c1"># TODO: Ensure interactive required cache words</span>
+    <span class="c1"># Keep manual things above the cache dir</span>
+    <span class="n">mask_dpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">depc</span><span class="o">.</span><span class="n">cache_dpath</span><span class="p">,</span> <span class="s1">&#39;../ManualChipMask&#39;</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">mask_dpath</span><span class="p">)</span>
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
     <span class="n">chip_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">chip_cfg</span>
-    <span class="n">chip_imgs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">chip_config</span><span class="p">)</span>
+    <span class="n">chip_imgs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">chip_config</span><span class="p">)</span>
 
     <span class="n">cfghashid</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_hashid</span><span class="p">()</span>
     <span class="n">avuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 
-    <span class="c"># TODO: just hash everything together</span>
-    <span class="n">ext</span> <span class="o">=</span> <span class="s">&#39;.png&#39;</span>
-    <span class="n">_fmt</span> <span class="o">=</span> <span class="s">&#39;mask_aid_{aid}_avuuid_{avuuid}_{cfghashid}{ext}&#39;</span>
+    <span class="c1"># TODO: just hash everything together</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;.png&#39;</span>
+    <span class="n">_fmt</span> <span class="o">=</span> <span class="s1">&#39;mask_aid_{aid}_avuuid_{avuuid}_{cfghashid}{ext}&#39;</span>
     <span class="n">fname_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aid</span><span class="o">=</span><span class="n">aid</span><span class="p">,</span> <span class="n">avuuid</span><span class="o">=</span><span class="n">avuuid</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">,</span> <span class="n">cfghashid</span><span class="o">=</span><span class="n">cfghashid</span><span class="p">)</span>
                    <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">avuuid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">avuuid_list</span><span class="p">)]</span>
 
     <span class="k">for</span> <span class="n">img</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chip_imgs</span><span class="p">,</span> <span class="n">fname_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
         <span class="n">mask_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">mask_dpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">mask_fpath</span><span class="p">):</span>
-            <span class="c"># Allow for editing on recompute</span>
+            <span class="c1"># Allow for editing on recompute</span>
             <span class="n">init_mask</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">mask_fpath</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">init_mask</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">interact_impaint</span><span class="o">.</span><span class="n">impaint_mask2</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">init_mask</span><span class="o">=</span><span class="n">init_mask</span><span class="p">)</span>
         <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">mask_fpath</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;imwrite&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;imwrite&#39;</span><span class="p">)</span>
         <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
 
         <span class="k">yield</span> <span class="n">mask_fpath</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
-        <span class="c"># Remove the old chips</span>
-        <span class="c">#ibs.delete_annot_chips([aid])</span>
-        <span class="c">#ibs.delete_annot_chip_thumbs([aid])</span>
+        <span class="c1"># Remove the old chips</span>
+        <span class="c1">#ibs.delete_annot_chips([aid])</span>
+        <span class="c1">#ibs.delete_annot_chip_thumbs([aid])</span>
 
 </div>
 <div class="viewcode-block" id="ProbchipConfig"><a class="viewcode-back" href="../../ibeis.html#ibeis.core.ProbchipConfig">[docs]</a><span class="k">class</span> <span class="nc">ProbchipConfig</span><span class="p">(</span><span class="n">dtool</span><span class="o">.</span><span class="n">TableConfig</span><span class="p">):</span>
-    <span class="c"># TODO: incorporate into base</span>
+    <span class="c1"># TODO: incorporate into base</span>
     <span class="n">_named_defaults</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;rf&#39;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s">&#39;detector&#39;</span><span class="p">:</span> <span class="s">&#39;rf&#39;</span><span class="p">,</span>
-            <span class="s">&#39;smooth_thresh&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-            <span class="s">&#39;smooth_ksize&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s1">&#39;rf&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;detector&#39;</span><span class="p">:</span> <span class="s1">&#39;rf&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;smooth_thresh&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s1">&#39;smooth_ksize&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="p">}</span>
     <span class="n">_param_info_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="c">#ut.ParamInfo(&#39;preserve_aspect&#39;, True, hideif=True),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;detector&#39;</span><span class="p">,</span> <span class="s">&#39;cnn&#39;</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;dim_size&#39;</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;smooth_thresh&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;smooth_ksize&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s">&#39;smooth_thresh&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">),</span>
-        <span class="c">#ut.ParamInfo(&#39;ext&#39;, &#39;.png&#39;),</span>
+        <span class="c1">#ut.ParamInfo(&#39;preserve_aspect&#39;, True, hideif=True),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;detector&#39;</span><span class="p">,</span> <span class="s1">&#39;cnn&#39;</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;dim_size&#39;</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;smooth_thresh&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;smooth_ksize&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;smooth_thresh&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="c1">#ut.ParamInfo(&#39;ext&#39;, &#39;.png&#39;),</span>
     <span class="p">]</span>
-    <span class="c">#_sub_config_list = [</span>
-    <span class="c">#    ChipConfig</span>
-    <span class="c">#]</span>
+    <span class="c1">#_sub_config_list = [</span>
+    <span class="c1">#    ChipConfig</span>
+    <span class="c1">#]</span>
 
 </div>
 <span class="nd">@register_preproc</span><span class="p">(</span>
-    <span class="n">tablename</span><span class="o">=</span><span class="s">&#39;probchip&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;annotations&#39;</span><span class="p">],</span>
-    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;img&#39;</span><span class="p">],</span>
-    <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">)],</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;probchip&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;annotations&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;img&#39;</span><span class="p">],</span>
+    <span class="n">coltypes</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;extern&#39;</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">,</span> <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">)],</span>
     <span class="n">configclass</span><span class="o">=</span><span class="n">ProbchipConfig</span><span class="p">,</span>
-    <span class="n">fname</span><span class="o">=</span><span class="s">&#39;chipcache4&#39;</span><span class="p">,</span>
-    <span class="c"># isinteractive=True,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;chipcache4&#39;</span><span class="p">,</span>
+    <span class="c1"># isinteractive=True,</span>
 <span class="p">)</span>
 <div class="viewcode-block" id="compute_probchip"><a class="viewcode-back" href="../../ibeis.html#ibeis.core.compute_probchip">[docs]</a><span class="k">def</span> <span class="nf">compute_probchip</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Computes probability chips using pyrf</span>
@@ -485,37 +485,37 @@
 
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
 
-    <span class="c"># Use the labeled species for the detector</span>
+    <span class="c1"># Use the labeled species for the detector</span>
     <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
 
-    <span class="n">detector</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;detector&#39;</span><span class="p">]</span>
-    <span class="n">dim_size</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;dim_size&#39;</span><span class="p">]</span>
-    <span class="n">smooth_thresh</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;smooth_thresh&#39;</span><span class="p">]</span>
-    <span class="n">smooth_ksize</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;smooth_ksize&#39;</span><span class="p">]</span>
+    <span class="n">detector</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;detector&#39;</span><span class="p">]</span>
+    <span class="n">dim_size</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;dim_size&#39;</span><span class="p">]</span>
+    <span class="n">smooth_thresh</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;smooth_thresh&#39;</span><span class="p">]</span>
+    <span class="n">smooth_ksize</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;smooth_ksize&#39;</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="n">detector</span> <span class="o">==</span> <span class="s">&#39;rf&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">detector</span> <span class="o">==</span> <span class="s1">&#39;rf&#39;</span><span class="p">:</span>
         <span class="n">pad</span> <span class="o">=</span> <span class="mi">64</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">pad</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="n">probchip_dir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_probchip_dir</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;2&#39;</span>
+    <span class="n">probchip_dir</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_probchip_dir</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;2&#39;</span>
     <span class="n">cfghashid</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_hashid</span><span class="p">()</span>
 
-    <span class="c"># TODO: just hash everything together</span>
+    <span class="c1"># TODO: just hash everything together</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">ensuredir</span><span class="p">(</span><span class="n">probchip_dir</span><span class="p">)</span>
-    <span class="n">_fmt</span> <span class="o">=</span> <span class="s">&#39;probchip_avuuid_{avuuid}_&#39;</span> <span class="o">+</span> <span class="n">cfghashid</span> <span class="o">+</span> <span class="s">&#39;.png&#39;</span>
+    <span class="n">_fmt</span> <span class="o">=</span> <span class="s1">&#39;probchip_avuuid_{avuuid}_&#39;</span> <span class="o">+</span> <span class="n">cfghashid</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span>
     <span class="n">annot_visual_uuid_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">probchip_dir</span><span class="p">,</span> <span class="n">_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">avuuid</span><span class="o">=</span><span class="n">avuuid</span><span class="p">))</span>
                            <span class="k">for</span> <span class="n">avuuid</span> <span class="ow">in</span> <span class="n">annot_visual_uuid_list</span><span class="p">]</span>
 
     <span class="n">chip_config</span> <span class="o">=</span> <span class="n">ChipConfig</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="n">pad</span><span class="p">,</span> <span class="n">dim_size</span><span class="o">=</span><span class="n">dim_size</span><span class="p">)</span>
-    <span class="n">mchip_path_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">chip_config</span><span class="p">,</span> <span class="n">read_extern</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">mchip_path_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">chip_config</span><span class="p">,</span> <span class="n">read_extern</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">species_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span>
     <span class="n">species_rowid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_species_rowids_from_text</span><span class="p">(</span><span class="n">species_list</span><span class="p">))</span>
 
-    <span class="c"># Group by species</span>
+    <span class="c1"># Group by species</span>
     <span class="n">unique_species_rowids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">species_rowid</span><span class="p">)</span>
     <span class="n">grouped_aids</span>    <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
     <span class="n">grouped_species</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">apply_grouping</span><span class="p">(</span><span class="n">species_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">)</span>
@@ -524,25 +524,25 @@
     <span class="n">unique_species</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_list_column</span><span class="p">(</span><span class="n">grouped_species</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] +--------------------&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">((</span><span class="s">&#39;[preproc_probchip.compute_and_write_probchip] &#39;</span>
-          <span class="s">&#39;Preparing to compute </span><span class="si">%d</span><span class="s"> probchips of </span><span class="si">%d</span><span class="s"> species&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] +--------------------&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">((</span><span class="s1">&#39;[preproc_probchip.compute_and_write_probchip] &#39;</span>
+          <span class="s1">&#39;Preparing to compute </span><span class="si">%d</span><span class="s1"> probchips of </span><span class="si">%d</span><span class="s1"> species&#39;</span><span class="p">)</span>
           <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_species</span><span class="p">)))</span>
     <span class="k">print</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
     <span class="n">grouped_probchip_fpath_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">grouped_aids</span><span class="p">,</span> <span class="n">unique_species</span><span class="p">,</span> <span class="n">grouped_ppaths</span><span class="p">,</span> <span class="n">grouped_mpaths</span><span class="p">)</span>
     <span class="n">_iter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">_iter</span><span class="p">,</span> <span class="n">nTotal</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">grouped_aids</span><span class="p">),</span>
-                        <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;probchip for species&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">)</span>
+                        <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;probchip for species&#39;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">detector</span> <span class="o">==</span> <span class="s">&#39;rf&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">detector</span> <span class="o">==</span> <span class="s1">&#39;rf&#39;</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">probchip_fpaths</span><span class="p">,</span> <span class="n">inputchip_fpaths</span> <span class="ow">in</span> <span class="n">_iter</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">rf_probchips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">probchip_fpaths</span><span class="p">,</span> <span class="n">inputchip_fpaths</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span>
                          <span class="n">smooth_thresh</span><span class="p">,</span> <span class="n">smooth_ksize</span><span class="p">)</span>
             <span class="n">grouped_probchip_fpath_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">probchip_fpaths</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">detector</span> <span class="o">==</span> <span class="s">&#39;cnn&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">detector</span> <span class="o">==</span> <span class="s1">&#39;cnn&#39;</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">probchip_fpaths</span><span class="p">,</span> <span class="n">inputchip_fpaths</span> <span class="ow">in</span> <span class="n">_iter</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">continue</span>
@@ -550,11 +550,11 @@
                           <span class="n">smooth_thresh</span><span class="p">,</span> <span class="n">smooth_ksize</span><span class="p">)</span>
             <span class="n">grouped_probchip_fpath_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">probchip_fpaths</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;unknown detector=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">detector</span><span class="p">,))</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;unknown detector=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">detector</span><span class="p">,))</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] Done computing probability images&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_probchip] L_______________________&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] Done computing probability images&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc_probchip] L_______________________&#39;</span><span class="p">)</span>
 
     <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">invert_apply_grouping2</span><span class="p">(</span>
         <span class="n">grouped_probchip_fpath_list</span><span class="p">,</span> <span class="n">groupxs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
@@ -564,11 +564,11 @@
 
 </div>
 <div class="viewcode-block" id="cnn_probchips"><a class="viewcode-back" href="../../ibeis.html#ibeis.core.cnn_probchips">[docs]</a><span class="k">def</span> <span class="nf">cnn_probchips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">inputchip_fpaths</span><span class="p">,</span> <span class="n">smooth_thresh</span><span class="p">,</span> <span class="n">smooth_ksize</span><span class="p">):</span>
-    <span class="c"># dont use extrmargin here (for now)</span>
+    <span class="c1"># dont use extrmargin here (for now)</span>
     <span class="n">mask_gen</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">generate_species_background_mask</span><span class="p">(</span><span class="n">inputchip_fpaths</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
     <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">mask_gen</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ichunks</span><span class="p">(</span><span class="n">_iter</span><span class="p">,</span> <span class="mi">64</span><span class="p">):</span>
-        <span class="n">_progiter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;write probchip chunk&#39;</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">time_thresh</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)</span>
+        <span class="n">_progiter</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgIter</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;write probchip chunk&#39;</span><span class="p">,</span> <span class="n">adjust</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">time_thresh</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">probchip</span> <span class="ow">in</span> <span class="n">_progiter</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">smooth_thresh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">smooth_ksize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">probchip</span> <span class="o">=</span> <span class="n">postprocess_mask</span><span class="p">(</span><span class="n">probchip</span><span class="p">,</span> <span class="n">smooth_thresh</span><span class="p">,</span> <span class="n">smooth_ksize</span><span class="p">)</span>
@@ -578,17 +578,17 @@
 <div class="viewcode-block" id="rf_probchips"><a class="viewcode-back" href="../../ibeis.html#ibeis.core.rf_probchips">[docs]</a><span class="k">def</span> <span class="nf">rf_probchips</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">probchip_fpaths</span><span class="p">,</span> <span class="n">inputchip_fpaths</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span>
                  <span class="n">smooth_thresh</span><span class="p">,</span> <span class="n">smooth_ksize</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">ibeis.algo.detect</span> <span class="kn">import</span> <span class="n">randomforest</span>
-    <span class="n">extramargin_probchip_fpaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">augpath</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;_margin&#39;</span><span class="p">)</span>
+    <span class="n">extramargin_probchip_fpaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">augpath</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;_margin&#39;</span><span class="p">)</span>
                                    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">probchip_fpaths</span><span class="p">]</span>
-    <span class="n">rfconfig</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;scale_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span> <span class="s">&#39;mode&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-                <span class="s">&#39;output_gpath_list&#39;</span><span class="p">:</span> <span class="n">extramargin_probchip_fpaths</span><span class="p">}</span>
+    <span class="n">rfconfig</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;scale_list&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">],</span> <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s1">&#39;output_gpath_list&#39;</span><span class="p">:</span> <span class="n">extramargin_probchip_fpaths</span><span class="p">}</span>
     <span class="n">probchip_generator</span> <span class="o">=</span> <span class="n">randomforest</span><span class="o">.</span><span class="n">detect_gpath_list_with_species</span><span class="p">(</span>
         <span class="n">ibs</span><span class="p">,</span> <span class="n">inputchip_fpaths</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">rfconfig</span><span class="p">)</span>
-    <span class="c"># Evalutate genrator until completion</span>
+    <span class="c1"># Evalutate genrator until completion</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">evaluate_generator</span><span class="p">(</span><span class="n">probchip_generator</span><span class="p">)</span>
     <span class="n">extramargin_mask_gen</span> <span class="o">=</span> <span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">grayscale</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
                             <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">extramargin_probchip_fpaths</span><span class="p">)</span>
-    <span class="c"># Crop the extra margin off of the new probchips</span>
+    <span class="c1"># Crop the extra margin off of the new probchips</span>
     <span class="n">_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">probchip_fpaths</span><span class="p">,</span> <span class="n">extramargin_mask_gen</span><span class="p">)</span>
     <span class="k">for</span> <span class="p">(</span><span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">extramargin_probchip</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_iter</span><span class="p">:</span>
         <span class="n">half_w</span><span class="p">,</span> <span class="n">half_h</span> <span class="o">=</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">pad</span><span class="p">)</span>
@@ -635,9 +635,9 @@
     <span class="n">thresh</span> <span class="o">=</span> <span class="mi">20</span>
     <span class="n">kernel_size</span> <span class="o">=</span> <span class="mi">20</span>
     <span class="n">mask2</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="c"># light threshold</span>
+    <span class="c1"># light threshold</span>
     <span class="n">mask2</span><span class="p">[</span><span class="n">mask2</span> <span class="o">&lt;</span> <span class="n">thresh</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="c"># open and close</span>
+    <span class="c1"># open and close</span>
     <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">kernel_size</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
     <span class="n">mask2</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">morphologyEx</span><span class="p">(</span><span class="n">mask2</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">MORPH_CLOSE</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
     <span class="n">mask2</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">morphologyEx</span><span class="p">(</span><span class="n">mask2</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">MORPH_OPEN</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
@@ -660,24 +660,24 @@
         <span class="n">default_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pyhesaff</span><span class="o">.</span><span class="n">get_hesaff_default_params</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">default_items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pyhesaff</span><span class="o">.</span><span class="n">get_hesaff_default_params</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
         <span class="n">param_info_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;feat_type&#39;</span><span class="p">,</span> <span class="s">&#39;hesaff+sift&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s">&#39;maskmethod&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;feat_type&#39;</span><span class="p">,</span> <span class="s1">&#39;hesaff+sift&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="s1">&#39;maskmethod&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
         <span class="p">]</span>
         <span class="n">param_info_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">name</span><span class="p">:</span> <span class="n">ut</span><span class="o">.</span><span class="n">ParamInfo</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">hideif</span><span class="o">=</span><span class="n">default</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span> <span class="ow">in</span> <span class="n">default_items</span>
         <span class="p">}</span>
-        <span class="n">param_info_dict</span><span class="p">[</span><span class="s">&#39;scale_max&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="mi">50</span>
+        <span class="n">param_info_dict</span><span class="p">[</span><span class="s1">&#39;scale_max&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="mi">50</span>
         <span class="n">param_info_list</span> <span class="o">+=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">param_info_dict</span><span class="p">,</span> <span class="n">default_keys</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">param_info_list</span>
 
 </div></div>
 <span class="nd">@register_preproc</span><span class="p">(</span>
-    <span class="n">tablename</span><span class="o">=</span><span class="s">&#39;feat&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;chips&#39;</span><span class="p">],</span>
-    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;num_feats&#39;</span><span class="p">,</span> <span class="s">&#39;kpts&#39;</span><span class="p">,</span> <span class="s">&#39;vecs&#39;</span><span class="p">],</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;feat&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;chips&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;num_feats&#39;</span><span class="p">,</span> <span class="s1">&#39;kpts&#39;</span><span class="p">,</span> <span class="s1">&#39;vecs&#39;</span><span class="p">],</span>
     <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
     <span class="n">configclass</span><span class="o">=</span><span class="n">FeatureConfig</span><span class="p">,</span>
-    <span class="n">fname</span><span class="o">=</span><span class="s">&#39;featcache&#39;</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;featcache&#39;</span><span class="p">,</span>
     <span class="n">version</span><span class="o">=</span><span class="mi">0</span>
 <span class="p">)</span>
 <div class="viewcode-block" id="compute_feats"><a class="viewcode-back" href="../../ibeis.html#ibeis.core.compute_feats">[docs]</a><span class="k">def</span> <span class="nf">compute_feats</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -722,40 +722,40 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
     <span class="n">hesaff_params</span>  <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">asdict</span><span class="p">()</span>
-    <span class="n">feat_type</span>      <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;feat_type&#39;</span><span class="p">]</span>
-    <span class="n">maskmethod</span>       <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s">&#39;maskmethod&#39;</span><span class="p">]</span>
+    <span class="n">feat_type</span>      <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;feat_type&#39;</span><span class="p">]</span>
+    <span class="n">maskmethod</span>       <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;maskmethod&#39;</span><span class="p">]</span>
 
-    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="s">&#39;cid_list&#39;</span><span class="p">)</span>
-    <span class="n">chip_fpath_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="s">&#39;img&#39;</span><span class="p">,</span> <span class="n">read_extern</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="s1">&#39;cid_list&#39;</span><span class="p">)</span>
+    <span class="n">chip_fpath_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="n">read_extern</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">maskmethod</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">assert</span> <span class="bp">False</span>
-        <span class="c">#aid_list = ibs.get_chip_aids(cid_list)</span>
-        <span class="c">#probchip_fpath_list = ibs.get_annot_probchip_fpath(aid_list)</span>
+        <span class="c1">#aid_list = ibs.get_chip_aids(cid_list)</span>
+        <span class="c1">#probchip_fpath_list = ibs.get_annot_probchip_fpath(aid_list)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInput</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_feat] config = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">config</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc_feat] config = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">config</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;full_params = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">())</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;full_params = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">())</span>
 
-    <span class="k">if</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s">&#39;hesaff+sift&#39;</span><span class="p">:</span>
-        <span class="c"># Multiprocessing parallelization</span>
+    <span class="k">if</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;hesaff+sift&#39;</span><span class="p">:</span>
+        <span class="c1"># Multiprocessing parallelization</span>
         <span class="n">dictargs_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">hesaff_params</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInput</span><span class="p">))</span>
         <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">dictargs_iter</span><span class="p">)</span>
-        <span class="c"># eager evaluation.</span>
-        <span class="c"># TODO: Check if there is any benefit to just passing in the iterator.</span>
+        <span class="c1"># eager evaluation.</span>
+        <span class="c1"># TODO: Check if there is any benefit to just passing in the iterator.</span>
         <span class="n">arg_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">arg_iter</span><span class="p">)</span>
         <span class="n">featgen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_feat_worker</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s">&#39;hesaff+siam128&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;hesaff+siam128&#39;</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis_cnn</span> <span class="kn">import</span> <span class="n">_plugin</span>
-        <span class="k">assert</span> <span class="n">maskmethod</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;not implemented&#39;</span>
-        <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;not implemented&#39;</span>
+        <span class="k">assert</span> <span class="n">maskmethod</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;not implemented&#39;</span>
+        <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s1">&#39;not implemented&#39;</span>
         <span class="n">ibs</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">controller</span>
         <span class="n">featgen</span> <span class="o">=</span> <span class="n">_plugin</span><span class="o">.</span><span class="n">generate_siam_l2_128_feats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown feat_type=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">feat_type</span><span class="p">,))</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;unknown feat_type=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">feat_type</span><span class="p">,))</span>
 
     <span class="k">for</span> <span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span> <span class="ow">in</span> <span class="n">featgen</span><span class="p">:</span>
         <span class="k">yield</span> <span class="p">(</span><span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,)</span>
@@ -805,14 +805,14 @@
 <span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">pyhesaff</span>
-    <span class="c">#import numpy as np</span>
-    <span class="c">#import vtool as vt</span>
+    <span class="c1">#import numpy as np</span>
+    <span class="c1">#import vtool as vt</span>
     <span class="n">chip_fpath</span><span class="p">,</span> <span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">hesaff_params</span> <span class="o">=</span> <span class="n">tup</span>
     <span class="n">chip</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">chip_fpath</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">probchip_fpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">probchip</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">grayscale</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">probchip</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">resize_mask</span><span class="p">(</span><span class="n">probchip</span><span class="p">,</span> <span class="n">chip</span><span class="p">)</span>
-        <span class="c">#vt.blend_images_multiply(chip, probchip)</span>
+        <span class="c1">#vt.blend_images_multiply(chip, probchip)</span>
         <span class="n">masked_chip</span> <span class="o">=</span> <span class="p">(</span><span class="n">chip</span> <span class="o">*</span> <span class="p">(</span><span class="n">probchip</span><span class="p">[:,</span> <span class="p">:,</span> <span class="bp">None</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mi">255</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">masked_chip</span> <span class="o">=</span> <span class="n">chip</span>
@@ -826,11 +826,11 @@
 
 </div>
 <span class="nd">@register_preproc</span><span class="p">(</span>
-    <span class="n">tablename</span><span class="o">=</span><span class="s">&#39;featweight&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;feat&#39;</span><span class="p">,</span> <span class="s">&#39;probchip&#39;</span><span class="p">],</span>
-    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;fwg&#39;</span><span class="p">],</span>
+    <span class="n">tablename</span><span class="o">=</span><span class="s1">&#39;featweight&#39;</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;feat&#39;</span><span class="p">,</span> <span class="s1">&#39;probchip&#39;</span><span class="p">],</span>
+    <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;fwg&#39;</span><span class="p">],</span>
     <span class="n">coltypes</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
     <span class="n">configclass</span><span class="o">=</span><span class="n">FeatWeightConfig</span><span class="p">,</span>
-    <span class="n">fname</span><span class="o">=</span><span class="s">&#39;featcache&#39;</span><span class="p">,</span>
+    <span class="n">fname</span><span class="o">=</span><span class="s1">&#39;featcache&#39;</span><span class="p">,</span>
     <span class="n">version</span><span class="o">=</span><span class="mi">0</span>
 <span class="p">)</span>
 <div class="viewcode-block" id="compute_fgweights"><a class="viewcode-back" href="../../ibeis.html#ibeis.core.compute_fgweights">[docs]</a><span class="k">def</span> <span class="nf">compute_fgweights</span><span class="p">(</span><span class="n">depc</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="n">pcid_list</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -854,20 +854,20 @@
 <span class="sd">        [ 0.125  0.061  0.053]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">nTasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fid_list</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_featweight.compute_fgweights] Preparing to compute </span><span class="si">%d</span><span class="s"> fgweights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,))</span>
-    <span class="c">#aid_list = depc.get_ancestor_rowids(&#39;feat&#39;, fid_list, &#39;annotations&#39;)</span>
-    <span class="c">#probchip_fpath_list = depc.get(aid_list, &#39;img&#39;, config={}, read_extern=False)</span>
-    <span class="n">probchip_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s">&#39;probchip&#39;</span><span class="p">,</span> <span class="n">pcid_list</span><span class="p">,</span> <span class="s">&#39;img&#39;</span><span class="p">)</span>
-    <span class="n">cid_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_ancestor_rowids</span><span class="p">(</span><span class="s">&#39;feat&#39;</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="s">&#39;chips&#39;</span><span class="p">)</span>
-    <span class="n">chipsize_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s">&#39;chips&#39;</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;width&#39;</span><span class="p">,</span> <span class="s">&#39;height&#39;</span><span class="p">))</span>
-    <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s">&#39;feat&#39;</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="s">&#39;kpts&#39;</span><span class="p">)</span>
-    <span class="c"># Force grayscale reading of chips</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_featweight.compute_fgweights] Computing </span><span class="si">%d</span><span class="s"> fgweights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc_featweight.compute_fgweights] Preparing to compute </span><span class="si">%d</span><span class="s1"> fgweights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,))</span>
+    <span class="c1">#aid_list = depc.get_ancestor_rowids(&#39;feat&#39;, fid_list, &#39;annotations&#39;)</span>
+    <span class="c1">#probchip_fpath_list = depc.get(aid_list, &#39;img&#39;, config={}, read_extern=False)</span>
+    <span class="n">probchip_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;probchip&#39;</span><span class="p">,</span> <span class="n">pcid_list</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">)</span>
+    <span class="n">cid_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_ancestor_rowids</span><span class="p">(</span><span class="s1">&#39;feat&#39;</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="s1">&#39;chips&#39;</span><span class="p">)</span>
+    <span class="n">chipsize_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;chips&#39;</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">))</span>
+    <span class="n">kpts_list</span> <span class="o">=</span> <span class="n">depc</span><span class="o">.</span><span class="n">get_native</span><span class="p">(</span><span class="s1">&#39;feat&#39;</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">,</span> <span class="s1">&#39;kpts&#39;</span><span class="p">)</span>
+    <span class="c1"># Force grayscale reading of chips</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc_featweight.compute_fgweights] Computing </span><span class="si">%d</span><span class="s1"> fgweights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,))</span>
     <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">kpts_list</span><span class="p">,</span> <span class="n">probchip_list</span><span class="p">,</span> <span class="n">chipsize_list</span><span class="p">)</span>
-    <span class="c">#featweight_gen = ut.generate(gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True, freq=10)</span>
+    <span class="c1">#featweight_gen = ut.generate(gen_featweight_worker, arg_iter, nTasks=nTasks, ordered=True, freq=10)</span>
     <span class="n">featweight_gen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_featweight_worker</span><span class="p">,</span> <span class="n">arg_iter</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nTasks</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">force_serial</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">featweight_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">featweight_gen</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_featweight.compute_fgweights] Done computing </span><span class="si">%d</span><span class="s"> fgweights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc_featweight.compute_fgweights] Done computing </span><span class="si">%d</span><span class="s1"> fgweights&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nTasks</span><span class="p">,))</span>
     <span class="k">for</span> <span class="n">fw</span> <span class="ow">in</span> <span class="n">featweight_list</span><span class="p">:</span>
         <span class="k">yield</span> <span class="p">(</span><span class="n">fw</span><span class="p">,)</span>
 
@@ -914,29 +914,29 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="n">probchip</span><span class="p">,</span> <span class="n">chipsize</span><span class="p">)</span> <span class="o">=</span> <span class="n">tup</span>
     <span class="k">if</span> <span class="n">probchip</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># hack for undetected chips. SETS ALL FEATWEIGHTS TO .25 = 1/4</span>
+        <span class="c1"># hack for undetected chips. SETS ALL FEATWEIGHTS TO .25 = 1/4</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">),</span> <span class="o">.</span><span class="mi">25</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">sfx</span><span class="p">,</span> <span class="n">sfy</span> <span class="o">=</span> <span class="p">(</span><span class="n">probchip</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">chipsize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">probchip</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">chipsize</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">kpts_</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">offset_kpts</span><span class="p">(</span><span class="n">kpts</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">sfx</span><span class="p">,</span> <span class="n">sfy</span><span class="p">))</span>
-        <span class="c">#vtpatch.get_warped_patches()</span>
-        <span class="c"># VERY SLOW</span>
+        <span class="c1">#vtpatch.get_warped_patches()</span>
+        <span class="c1"># VERY SLOW</span>
         <span class="n">patch_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">get_warped_patch</span><span class="p">(</span><span class="n">probchip</span><span class="p">,</span> <span class="n">kp</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">255.0</span> <span class="k">for</span> <span class="n">kp</span> <span class="ow">in</span> <span class="n">kpts_</span><span class="p">]</span>
         <span class="n">weight_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">vt</span><span class="o">.</span><span class="n">gaussian_average_patch</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span> <span class="k">for</span> <span class="n">patch</span> <span class="ow">in</span> <span class="n">patch_list</span><span class="p">]</span>
-        <span class="c">#weight_list = [patch.sum() / (patch.size) for patch in patch_list]</span>
+        <span class="c1">#weight_list = [patch.sum() / (patch.size) for patch in patch_list]</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">weight_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">weights</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.core</span>
 <span class="sd">        python -m ibeis.core --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -971,7 +971,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

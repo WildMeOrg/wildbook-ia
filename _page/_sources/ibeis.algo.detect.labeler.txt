@@ -1,0 +1,30 @@
+ibeis.algo.detect.labeler package
+=================================
+
+Submodules
+----------
+
+ibeis.algo.detect.labeler.labeler module
+----------------------------------------
+
+.. automodule:: ibeis.algo.detect.labeler.labeler
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.algo.detect.labeler.model module
+--------------------------------------
+
+.. automodule:: ibeis.algo.detect.labeler.model
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.algo.detect.labeler
+    :members:
+    :undoc-members:
+    :show-inheritance:

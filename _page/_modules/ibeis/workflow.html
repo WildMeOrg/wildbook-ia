@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.workflow &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.workflow &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,10 +129,10 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.workflow</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibs]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[ibs]&#39;</span><span class="p">)</span>
 
 
 <span class="sd">&quot;&quot;&quot;</span>
@@ -146,8 +146,8 @@
 
 <div class="viewcode-block" id="test_sharpness"><a class="viewcode-back" href="../../ibeis.html#ibeis.workflow.test_sharpness">[docs]</a><span class="k">def</span> <span class="nf">test_sharpness</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">defaltdb</span> <span class="o">=</span> <span class="s">&#39;seaturtles&#39;</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]</span>
+    <span class="n">defaltdb</span> <span class="o">=</span> <span class="s1">&#39;seaturtles&#39;</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaltdb</span><span class="p">)</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_expanded_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
     <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">quality_classifier</span>
@@ -165,19 +165,19 @@
         <span class="n">pt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 
 </div>
-<div class="viewcode-block" id="testdata_workflow"><a class="viewcode-back" href="../../ibeis.html#ibeis.workflow.testdata_workflow">[docs]</a><span class="k">def</span> <span class="nf">testdata_workflow</span><span class="p">(</span><span class="n">defaltdb</span><span class="o">=</span><span class="s">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">],</span> <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;defualt&#39;</span><span class="p">]):</span>
-    <span class="c"># qreq_ = ibeis.testdata_qreq_(defaultdb=&#39;PZ_MTEST&#39;, a=&#39;default&#39;, t=&#39;default&#39;)</span>
-    <span class="c"># ibs = qreq_.ibs</span>
-    <span class="c"># qaids = qreq_.qaids</span>
-    <span class="c"># daids = qreq_.daids</span>
-    <span class="c"># from ibeis.init import filter_annots</span>
-    <span class="c"># from ibeis.expt import annotation_configs</span>
-    <span class="c"># import copy</span>
-    <span class="c"># acfg = copy.deepcopy(annotation_configs.default)</span>
-    <span class="c"># qaids, daids = filter_annots.expand_acfgs(ibs, acfg,</span>
-    <span class="c">#                                           initial_aids=None,</span>
-    <span class="c">#                                           use_cache=False,</span>
-    <span class="c">#                                           verbose=True)</span>
+<div class="viewcode-block" id="testdata_workflow"><a class="viewcode-back" href="../../ibeis.html#ibeis.workflow.testdata_workflow">[docs]</a><span class="k">def</span> <span class="nf">testdata_workflow</span><span class="p">(</span><span class="n">defaltdb</span><span class="o">=</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span> <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;defualt&#39;</span><span class="p">]):</span>
+    <span class="c1"># qreq_ = ibeis.testdata_qreq_(defaultdb=&#39;PZ_MTEST&#39;, a=&#39;default&#39;, t=&#39;default&#39;)</span>
+    <span class="c1"># ibs = qreq_.ibs</span>
+    <span class="c1"># qaids = qreq_.qaids</span>
+    <span class="c1"># daids = qreq_.daids</span>
+    <span class="c1"># from ibeis.init import filter_annots</span>
+    <span class="c1"># from ibeis.expt import annotation_configs</span>
+    <span class="c1"># import copy</span>
+    <span class="c1"># acfg = copy.deepcopy(annotation_configs.default)</span>
+    <span class="c1"># qaids, daids = filter_annots.expand_acfgs(ibs, acfg,</span>
+    <span class="c1">#                                           initial_aids=None,</span>
+    <span class="c1">#                                           use_cache=False,</span>
+    <span class="c1">#                                           verbose=True)</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaltdb</span><span class="p">)</span>
     <span class="n">ibs</span><span class="p">,</span> <span class="n">qaids</span><span class="p">,</span> <span class="n">daids</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_expanded_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
@@ -199,13 +199,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="n">cm_list</span><span class="p">,</span> <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_cmlist</span><span class="p">(</span>
-        <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default:has_none=mother,size=30&#39;</span><span class="p">])</span>
-    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>  <span class="c"># NOQA</span>
-    <span class="n">cm</span> <span class="o">=</span> <span class="n">cm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># NOQA</span>
-    <span class="c"># import plottool as pt</span>
-    <span class="c"># import ibeis.viz</span>
-    <span class="c"># pt.ensure_pylab_qt4()</span>
-    <span class="c"># ibeis.viz.viz_graph.make_name_graph_interaction(ibs, aids=qreq_.qaids)</span>
+        <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default:has_none=mother,size=30&#39;</span><span class="p">])</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span>  <span class="c1"># NOQA</span>
+    <span class="n">cm</span> <span class="o">=</span> <span class="n">cm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># NOQA</span>
+    <span class="c1"># import plottool as pt</span>
+    <span class="c1"># import ibeis.viz</span>
+    <span class="c1"># pt.ensure_pylab_qt4()</span>
+    <span class="c1"># ibeis.viz.viz_graph.make_name_graph_interaction(ibs, aids=qreq_.qaids)</span>
     <span class="k">pass</span>
 
 </div>
@@ -221,36 +221,36 @@
 
     <span class="n">pt</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
 
-    <span class="c"># load image and convert to LAB</span>
-    <span class="n">img_fpath</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">grab_test_imgpath</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="s">&#39;lena.png&#39;</span><span class="p">)))</span>
+    <span class="c1"># load image and convert to LAB</span>
+    <span class="n">img_fpath</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">grab_test_imgpath</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;lena.png&#39;</span><span class="p">)))</span>
     <span class="n">img</span> <span class="o">=</span> <span class="n">vigra</span><span class="o">.</span><span class="n">impex</span><span class="o">.</span><span class="n">readImage</span><span class="p">(</span><span class="n">img_fpath</span><span class="p">)</span>
     <span class="n">imgLab</span> <span class="o">=</span> <span class="n">vigra</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">transform_RGB2Lab</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
 
-    <span class="n">superpixelDiameter</span> <span class="o">=</span> <span class="mi">15</span>   <span class="c"># super-pixel size</span>
-    <span class="n">slicWeight</span> <span class="o">=</span> <span class="mf">15.0</span>        <span class="c"># SLIC color - spatial weight</span>
+    <span class="n">superpixelDiameter</span> <span class="o">=</span> <span class="mi">15</span>   <span class="c1"># super-pixel size</span>
+    <span class="n">slicWeight</span> <span class="o">=</span> <span class="mf">15.0</span>        <span class="c1"># SLIC color - spatial weight</span>
     <span class="n">labels</span><span class="p">,</span> <span class="n">nseg</span> <span class="o">=</span> <span class="n">vigra</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">slicSuperpixels</span><span class="p">(</span><span class="n">imgLab</span><span class="p">,</span> <span class="n">slicWeight</span><span class="p">,</span>
                                                   <span class="n">superpixelDiameter</span><span class="p">)</span>
     <span class="n">labels</span> <span class="o">=</span> <span class="n">vigra</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">labelImage</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
 
-    <span class="c"># get 2D grid graph and RAG</span>
+    <span class="c1"># get 2D grid graph and RAG</span>
     <span class="n">gridGraph</span> <span class="o">=</span> <span class="n">graphs</span><span class="o">.</span><span class="n">gridGraph</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
     <span class="n">rag</span> <span class="o">=</span> <span class="n">graphs</span><span class="o">.</span><span class="n">regionAdjacencyGraph</span><span class="p">(</span><span class="n">gridGraph</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
 
-    <span class="c"># Node Features</span>
+    <span class="c1"># Node Features</span>
     <span class="n">nodeFeatures</span> <span class="o">=</span> <span class="n">rag</span><span class="o">.</span><span class="n">accumulateNodeFeatures</span><span class="p">(</span><span class="n">imgLab</span><span class="p">)</span>
     <span class="n">nodeFeaturesImg</span> <span class="o">=</span> <span class="n">rag</span><span class="o">.</span><span class="n">projectNodeFeaturesToGridGraph</span><span class="p">(</span><span class="n">nodeFeatures</span><span class="p">)</span>
-    <span class="n">nodeFeaturesImg</span> <span class="o">=</span> <span class="n">vigra</span><span class="o">.</span><span class="n">taggedView</span><span class="p">(</span><span class="n">nodeFeaturesImg</span><span class="p">,</span> <span class="s">&quot;xyc&quot;</span><span class="p">)</span>
+    <span class="n">nodeFeaturesImg</span> <span class="o">=</span> <span class="n">vigra</span><span class="o">.</span><span class="n">taggedView</span><span class="p">(</span><span class="n">nodeFeaturesImg</span><span class="p">,</span> <span class="s2">&quot;xyc&quot;</span><span class="p">)</span>
     <span class="n">nodeFeaturesImgRgb</span> <span class="o">=</span> <span class="n">vigra</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">transform_Lab2RGB</span><span class="p">(</span><span class="n">nodeFeaturesImg</span><span class="p">)</span>
 
     <span class="n">nCluster</span> <span class="o">=</span> <span class="mi">5</span>
     <span class="n">g</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">mixture</span><span class="o">.</span><span class="n">GMM</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">nCluster</span><span class="p">)</span>
     <span class="n">g</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">nodeFeatures</span><span class="p">[:,</span> <span class="p">:])</span>
     <span class="n">clusterProb</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">nodeFeatures</span><span class="p">)</span>
-    <span class="c"># https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/Irregular%20Factor%20Graphs.ipynb</span>
-    <span class="c"># https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/Hard%20and%20Soft%20Constraints.ipynb</span>
+    <span class="c1"># https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/Irregular%20Factor%20Graphs.ipynb</span>
+    <span class="c1"># https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/Hard%20and%20Soft%20Constraints.ipynb</span>
     <span class="n">clusterProbImg</span> <span class="o">=</span> <span class="n">rag</span><span class="o">.</span><span class="n">projectNodeFeaturesToGridGraph</span><span class="p">(</span>
         <span class="n">clusterProb</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
-    <span class="n">clusterProbImg</span> <span class="o">=</span> <span class="n">vigra</span><span class="o">.</span><span class="n">taggedView</span><span class="p">(</span><span class="n">clusterProbImg</span><span class="p">,</span> <span class="s">&quot;xyc&quot;</span><span class="p">)</span>
+    <span class="n">clusterProbImg</span> <span class="o">=</span> <span class="n">vigra</span><span class="o">.</span><span class="n">taggedView</span><span class="p">(</span><span class="n">clusterProbImg</span><span class="p">,</span> <span class="s2">&quot;xyc&quot;</span><span class="p">)</span>
 
     <span class="n">ndim_data</span> <span class="o">=</span> <span class="n">clusterProbImg</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">nCluster</span><span class="p">))</span>
     <span class="n">pca</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">decomposition</span><span class="o">.</span><span class="n">PCA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
@@ -261,27 +261,27 @@
     <span class="n">clusterProgImg3</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">ndim_data</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">oldshape</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">clusterProgImg3</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
-    <span class="c"># graphical model with as many variables</span>
-    <span class="c"># as superpixels, each has 3 states</span>
+    <span class="c1"># graphical model with as many variables</span>
+    <span class="c1"># as superpixels, each has 3 states</span>
     <span class="n">gm</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">gm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">rag</span><span class="o">.</span><span class="n">nodeNum</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">opengm</span><span class="o">.</span><span class="n">label_type</span><span class="p">)</span> <span class="o">*</span> <span class="n">nCluster</span><span class="p">)</span>
-    <span class="c"># convert probabilites to energies</span>
+    <span class="c1"># convert probabilites to energies</span>
     <span class="n">probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">clusterProb</span><span class="p">,</span> <span class="mf">0.00001</span><span class="p">,</span> <span class="mf">0.99999</span><span class="p">)</span>
     <span class="n">costs</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
-    <span class="c"># add ALL unaries AT ONCE</span>
+    <span class="c1"># add ALL unaries AT ONCE</span>
     <span class="n">fids</span> <span class="o">=</span> <span class="n">gm</span><span class="o">.</span><span class="n">addFunctions</span><span class="p">(</span><span class="n">costs</span><span class="p">)</span>
     <span class="n">gm</span><span class="o">.</span><span class="n">addFactors</span><span class="p">(</span><span class="n">fids</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">rag</span><span class="o">.</span><span class="n">nodeNum</span><span class="p">))</span>
-    <span class="c"># add a potts function</span>
-    <span class="n">beta</span> <span class="o">=</span> <span class="mf">40.0</span>  <span class="c"># strength of potts regularizer</span>
+    <span class="c1"># add a potts function</span>
+    <span class="n">beta</span> <span class="o">=</span> <span class="mf">40.0</span>  <span class="c1"># strength of potts regularizer</span>
     <span class="n">regularizer</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">pottsFunction</span><span class="p">([</span><span class="n">nCluster</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span>
     <span class="n">fid</span> <span class="o">=</span> <span class="n">gm</span><span class="o">.</span><span class="n">addFunction</span><span class="p">(</span><span class="n">regularizer</span><span class="p">)</span>
-    <span class="c"># get variable indices of adjacent superpixels</span>
-    <span class="c"># - or &quot;u&quot; and &quot;v&quot; node id&#39;s for edges</span>
+    <span class="c1"># get variable indices of adjacent superpixels</span>
+    <span class="c1"># - or &quot;u&quot; and &quot;v&quot; node id&#39;s for edges</span>
     <span class="n">uvIds</span> <span class="o">=</span> <span class="n">rag</span><span class="o">.</span><span class="n">uvIds</span><span class="p">()</span>
     <span class="n">uvIds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">uvIds</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="c"># add all second order factors at once</span>
+    <span class="c1"># add all second order factors at once</span>
     <span class="n">gm</span><span class="o">.</span><span class="n">addFactors</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="n">uvIds</span><span class="p">)</span>
 
-    <span class="c"># get super-pixels with slic on LAB image</span>
+    <span class="c1"># get super-pixels with slic on LAB image</span>
     <span class="n">Inf</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">BeliefPropagation</span>
     <span class="n">parameter</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">InfParam</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">damping</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">convergenceBound</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
     <span class="n">inf</span> <span class="o">=</span> <span class="n">Inf</span><span class="p">(</span><span class="n">gm</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="n">parameter</span><span class="p">)</span>
@@ -292,7 +292,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inference</span><span class="p">):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;begin of inference&quot;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s2">&quot;begin of inference&quot;</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inference</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inference</span><span class="o">.</span><span class="n">arg</span><span class="p">())</span>
@@ -300,7 +300,7 @@
         <span class="k">def</span> <span class="nf">visit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inference</span><span class="p">):</span>
             <span class="n">gm</span> <span class="o">=</span> <span class="n">inference</span><span class="o">.</span><span class="n">gm</span><span class="p">()</span>
             <span class="n">labelVector</span> <span class="o">=</span> <span class="n">inference</span><span class="o">.</span><span class="n">arg</span><span class="p">()</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;energy  </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gm</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">labelVector</span><span class="p">),))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s2">&quot;energy  </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gm</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">labelVector</span><span class="p">),))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">labelVector</span><span class="p">)</span>
 
     <span class="n">callback</span> <span class="o">=</span> <span class="n">PyCallback</span><span class="p">()</span>
@@ -309,30 +309,30 @@
     <span class="n">inf</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span><span class="n">visitor</span><span class="p">)</span>
 
     <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">clusterProgImg3</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-    <span class="c"># plot superpixels</span>
+    <span class="c1"># plot superpixels</span>
     <span class="n">cmap</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">ListedColormap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nseg</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">nodeFeaturesImgRgb</span><span class="p">)</span>
 
     <span class="n">cmap</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">ListedColormap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nCluster</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">callback</span><span class="o">.</span><span class="n">labels</span><span class="p">:</span>
-        <span class="n">arg</span> <span class="o">=</span> <span class="n">vigra</span><span class="o">.</span><span class="n">taggedView</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="s">&quot;n&quot;</span><span class="p">)</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="n">vigra</span><span class="o">.</span><span class="n">taggedView</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">)</span>
         <span class="n">argImg</span> <span class="o">=</span> <span class="n">rag</span><span class="o">.</span><span class="n">projectNodeFeaturesToGridGraph</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">))</span>
-        <span class="n">argImg</span> <span class="o">=</span> <span class="n">vigra</span><span class="o">.</span><span class="n">taggedView</span><span class="p">(</span><span class="n">argImg</span><span class="p">,</span> <span class="s">&quot;xy&quot;</span><span class="p">)</span>
-        <span class="c"># plot superpixels</span>
+        <span class="n">argImg</span> <span class="o">=</span> <span class="n">vigra</span><span class="o">.</span><span class="n">taggedView</span><span class="p">(</span><span class="n">argImg</span><span class="p">,</span> <span class="s2">&quot;xy&quot;</span><span class="p">)</span>
+        <span class="c1"># plot superpixels</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">argImg</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
 
 </div>
 <div class="viewcode-block" id="dummy_multicut"><a class="viewcode-back" href="../../ibeis.html#ibeis.workflow.dummy_multicut">[docs]</a><span class="k">def</span> <span class="nf">dummy_multicut</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
-    <span class="c"># Places to look for the definition of PottsGFunction class</span>
-    <span class="c"># ~/code/opengm/src/interfaces/python/opengm/opengmcore/pyFunctionTypes.cxx</span>
-    <span class="c"># /src/interfaces/python/opengm/opengmcore/function_injector.py</span>
-    <span class="c"># A Comparative Study of Modern Inference Techniques for Structured Discrete Energy Minimization Problems</span>
-    <span class="c"># http://arxiv.org/pdf/1404.0533.pdf</span>
-    <span class="c"># __init__( (object)arg1, (object)shape [, (object)values=()]) -&gt; object :</span>
-    <span class="c"># values = np.arange(1, ut.num_partitions(num_annots) + 1)</span>
-    <span class="c"># http://hci.iwr.uni-heidelberg.de/opengm2/doxygen/opengm-2.1.1/classopengm_1_1PottsGFunction.html</span>
+    <span class="c1"># Places to look for the definition of PottsGFunction class</span>
+    <span class="c1"># ~/code/opengm/src/interfaces/python/opengm/opengmcore/pyFunctionTypes.cxx</span>
+    <span class="c1"># /src/interfaces/python/opengm/opengmcore/function_injector.py</span>
+    <span class="c1"># A Comparative Study of Modern Inference Techniques for Structured Discrete Energy Minimization Problems</span>
+    <span class="c1"># http://arxiv.org/pdf/1404.0533.pdf</span>
+    <span class="c1"># __init__( (object)arg1, (object)shape [, (object)values=()]) -&gt; object :</span>
+    <span class="c1"># values = np.arange(1, ut.num_partitions(num_annots) + 1)</span>
+    <span class="c1"># http://hci.iwr.uni-heidelberg.de/opengm2/doxygen/opengm-2.1.1/classopengm_1_1PottsGFunction.html</span>
     <span class="kn">import</span> <span class="nn">opengm</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
     <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
@@ -343,20 +343,20 @@
         <span class="p">[</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span>  <span class="mf">0.8</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.8</span><span class="p">,</span>  <span class="mf">1.</span> <span class="p">]])</span>
     <span class="n">num_vars</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cost_matrix</span><span class="p">)</span>
 
-    <span class="c"># Enumerate undirected edges (node index pairs)</span>
+    <span class="c1"># Enumerate undirected edges (node index pairs)</span>
     <span class="n">var_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_vars</span><span class="p">)</span>
     <span class="n">varindex_pairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
         <span class="p">[(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">)</span> <span class="k">for</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="n">var_indices</span><span class="p">,</span> <span class="n">var_indices</span><span class="p">)</span>
          <span class="k">if</span> <span class="n">a1</span> <span class="o">!=</span> <span class="n">a2</span> <span class="ow">and</span> <span class="n">a1</span> <span class="o">&gt;</span> <span class="n">a2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
     <span class="n">varindex_pairs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="c"># Create nodes in the graphical model.  In this case there are &lt;num_vars&gt;</span>
-    <span class="c"># nodes and each node can be assigned to one of &lt;num_vars&gt; possible labels</span>
+    <span class="c1"># Create nodes in the graphical model.  In this case there are &lt;num_vars&gt;</span>
+    <span class="c1"># nodes and each node can be assigned to one of &lt;num_vars&gt; possible labels</span>
     <span class="n">num_nodes</span> <span class="o">=</span> <span class="n">num_vars</span>
     <span class="n">space</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">num_nodes</span><span class="p">,),</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">num_vars</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
     <span class="n">gm</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">gm</span><span class="p">(</span><span class="n">space</span><span class="p">)</span>
 
-    <span class="c"># Use one potts function for each edge</span>
+    <span class="c1"># Use one potts function for each edge</span>
     <span class="k">for</span> <span class="n">varx1</span><span class="p">,</span> <span class="n">varx2</span> <span class="ow">in</span> <span class="n">varindex_pairs</span><span class="p">:</span>
         <span class="n">cost</span> <span class="o">=</span> <span class="n">cost_matrix</span><span class="p">[</span><span class="n">varx1</span><span class="p">,</span> <span class="n">varx2</span><span class="p">]</span>
         <span class="n">potts_func</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">PottsFunction</span><span class="p">((</span><span class="n">num_vars</span><span class="p">,</span> <span class="n">num_vars</span><span class="p">),</span> <span class="n">valueEqual</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">valueNotEqual</span><span class="o">=</span><span class="n">cost</span><span class="p">)</span>
@@ -364,7 +364,7 @@
         <span class="n">var_indicies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">varx1</span><span class="p">,</span> <span class="n">varx2</span><span class="p">])</span>
         <span class="n">gm</span><span class="o">.</span><span class="n">addFactor</span><span class="p">(</span><span class="n">potts_func_id</span><span class="p">,</span> <span class="n">var_indicies</span><span class="p">)</span>
 
-    <span class="c">#opengm.visualizeGm(gm=gm)</span>
+    <span class="c1">#opengm.visualizeGm(gm=gm)</span>
 
     <span class="n">InfAlgo</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">Multicut</span>
     <span class="n">parameter</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">InfParam</span><span class="p">()</span>
@@ -375,35 +375,35 @@
 
     <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
 
-    <span class="c">#varindex_pairs = np.vstack(np.triu_indices_from(cost_matrix)).T</span>
+    <span class="c1">#varindex_pairs = np.vstack(np.triu_indices_from(cost_matrix)).T</span>
 
-    <span class="c"># Dummy unaries</span>
-    <span class="c">#for varx in var_indices:</span>
-    <span class="c">#    unary_func = np.ones(num_vars)</span>
-    <span class="c">#    unary_func_id = gm.addFunction(unary_func)</span>
-    <span class="c">#    gm.addFactor(unary_func_id, varx1)</span>
+    <span class="c1"># Dummy unaries</span>
+    <span class="c1">#for varx in var_indices:</span>
+    <span class="c1">#    unary_func = np.ones(num_vars)</span>
+    <span class="c1">#    unary_func_id = gm.addFunction(unary_func)</span>
+    <span class="c1">#    gm.addFactor(unary_func_id, varx1)</span>
 
-    <span class="c">#pt.ensure_pylab_qt4()</span>
+    <span class="c1">#pt.ensure_pylab_qt4()</span>
 
-    <span class="c"># add a potts function</span>
-    <span class="c">#shape = [num_vars] * 2</span>
-    <span class="c"># num_parts = 5  # possible number paritions with 4 variables</span>
-    <span class="c"># num_parts = ut.get_nth_bell_number(num_vars - 1)</span>
-    <span class="c"># Causes a segfault if values is passed in</span>
-    <span class="c"># values = np.arange(1, num_parts + 1).astype(np.float64)</span>
-    <span class="c"># gpotts_func = opengm.PottsGFunction(shape, values)</span>
-    <span class="c">#gpotts_func = opengm.PottsGFunction(shape)</span>
-    <span class="c">#gpotts_fid = gm.addFunction(gpotts_func)</span>
-    <span class="c"># Commenting out the next line results in a segfault</span>
-    <span class="c">#gm.addFactors(gpotts_fid, varindex_pairs)</span>
+    <span class="c1"># add a potts function</span>
+    <span class="c1">#shape = [num_vars] * 2</span>
+    <span class="c1"># num_parts = 5  # possible number paritions with 4 variables</span>
+    <span class="c1"># num_parts = ut.get_nth_bell_number(num_vars - 1)</span>
+    <span class="c1"># Causes a segfault if values is passed in</span>
+    <span class="c1"># values = np.arange(1, num_parts + 1).astype(np.float64)</span>
+    <span class="c1"># gpotts_func = opengm.PottsGFunction(shape, values)</span>
+    <span class="c1">#gpotts_func = opengm.PottsGFunction(shape)</span>
+    <span class="c1">#gpotts_fid = gm.addFunction(gpotts_func)</span>
+    <span class="c1"># Commenting out the next line results in a segfault</span>
+    <span class="c1">#gm.addFactors(gpotts_fid, varindex_pairs)</span>
 
-    <span class="c"># 2nd order function</span>
-    <span class="c"># Seems to cause OpenGM error: Invalid Model for Multicut-Solver! Solver requires a generalized potts model!</span>
-    <span class="c"># pair_fid = gm.addFunction(cost_matrix)</span>
-    <span class="c"># gm.addFactors(pair_fid, varindex_pairs)</span>
+    <span class="c1"># 2nd order function</span>
+    <span class="c1"># Seems to cause OpenGM error: Invalid Model for Multicut-Solver! Solver requires a generalized potts model!</span>
+    <span class="c1"># pair_fid = gm.addFunction(cost_matrix)</span>
+    <span class="c1"># gm.addFactors(pair_fid, varindex_pairs)</span>
 
     <span class="n">InfAlgo</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">Multicut</span>
-    <span class="c"># Not sure what parameters are allowed to be passed here.</span>
+    <span class="c1"># Not sure what parameters are allowed to be passed here.</span>
     <span class="n">parameter</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">InfParam</span><span class="p">()</span>
     <span class="n">inf</span> <span class="o">=</span> <span class="n">InfAlgo</span><span class="p">(</span><span class="n">gm</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="n">parameter</span><span class="p">)</span>
     <span class="n">inf</span><span class="o">.</span><span class="n">infer</span><span class="p">()</span>
@@ -414,7 +414,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inference</span><span class="p">):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;begin of inference&quot;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s2">&quot;begin of inference&quot;</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inference</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inference</span><span class="o">.</span><span class="n">arg</span><span class="p">())</span>
@@ -422,7 +422,7 @@
         <span class="k">def</span> <span class="nf">visit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inference</span><span class="p">):</span>
             <span class="n">gm</span> <span class="o">=</span> <span class="n">inference</span><span class="o">.</span><span class="n">gm</span><span class="p">()</span>
             <span class="n">labelVector</span> <span class="o">=</span> <span class="n">inference</span><span class="o">.</span><span class="n">arg</span><span class="p">()</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;energy  </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gm</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">labelVector</span><span class="p">),))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s2">&quot;energy  </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gm</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">labelVector</span><span class="p">),))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">labelVector</span><span class="p">)</span>
 
     <span class="n">callback</span> <span class="o">=</span> <span class="n">PyCallback</span><span class="p">()</span>
@@ -431,7 +431,7 @@
     <span class="k">print</span><span class="p">(</span><span class="n">callback</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span>
 
     <span class="k">print</span><span class="p">(</span><span class="n">cost_matrix</span><span class="p">)</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cost_matrix</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">&#39;magma&#39;</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cost_matrix</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;magma&#39;</span><span class="p">)</span>
     <span class="n">opengm</span><span class="o">.</span><span class="n">visualizeGm</span><span class="p">(</span><span class="n">gm</span><span class="o">=</span><span class="n">gm</span><span class="p">)</span>
 
 </div>
@@ -453,7 +453,7 @@
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
     <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
-    <span class="c"># Matching Graph</span>
+    <span class="c1"># Matching Graph</span>
     <span class="n">cost_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
         <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">],</span>
         <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">],</span>
@@ -463,40 +463,40 @@
     <span class="n">cost_matrix</span> <span class="o">+=</span> <span class="n">cost_matrix</span><span class="o">.</span><span class="n">T</span>
     <span class="n">number_of_labels</span> <span class="o">=</span> <span class="mi">4</span>
     <span class="n">num_annots</span> <span class="o">=</span> <span class="mi">4</span>
-    <span class="c">#cost_matrix = (cost_matrix * 2) - 1</span>
+    <span class="c1">#cost_matrix = (cost_matrix * 2) - 1</span>
 
-    <span class="c">#gm = opengm.gm(number_of_labels)</span>
+    <span class="c1">#gm = opengm.gm(number_of_labels)</span>
     <span class="n">gm</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">gm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">num_annots</span><span class="p">)</span> <span class="o">*</span> <span class="n">number_of_labels</span><span class="p">)</span>
     <span class="n">aids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_annots</span><span class="p">)</span>
     <span class="n">aid_pairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">)</span> <span class="k">for</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">iprod</span><span class="p">(</span>
         <span class="n">aids</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span> <span class="k">if</span> <span class="n">a1</span> <span class="o">!=</span> <span class="n">a2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
     <span class="n">aid_pairs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="c"># add a potts function</span>
-    <span class="c"># penalizes neighbors for having different labels</span>
-    <span class="c"># beta = 0   # 0.1  # strength of potts regularizer</span>
-    <span class="c">#beta = 0.1   # 0.1  # strength of potts regularizer</span>
+    <span class="c1"># add a potts function</span>
+    <span class="c1"># penalizes neighbors for having different labels</span>
+    <span class="c1"># beta = 0   # 0.1  # strength of potts regularizer</span>
+    <span class="c1">#beta = 0.1   # 0.1  # strength of potts regularizer</span>
 
-    <span class="c"># Places to look for the definition of this stupid class</span>
-    <span class="c"># ~/code/opengm/src/interfaces/python/opengm/opengmcore/pyFunctionTypes.cxx</span>
-    <span class="c"># /src/interfaces/python/opengm/opengmcore/function_injector.py</span>
+    <span class="c1"># Places to look for the definition of this stupid class</span>
+    <span class="c1"># ~/code/opengm/src/interfaces/python/opengm/opengmcore/pyFunctionTypes.cxx</span>
+    <span class="c1"># /src/interfaces/python/opengm/opengmcore/function_injector.py</span>
 
-    <span class="c">#shape = [number_of_labels] * 2</span>
-    <span class="c">#regularizer = opengm.PottsGFunction(shape, 0.0, beta)</span>
-    <span class="c"># __init__( (object)arg1, (object)shape [, (object)values=()]) -&gt; object :</span>
+    <span class="c1">#shape = [number_of_labels] * 2</span>
+    <span class="c1">#regularizer = opengm.PottsGFunction(shape, 0.0, beta)</span>
+    <span class="c1"># __init__( (object)arg1, (object)shape [, (object)values=()]) -&gt; object :</span>
 
-    <span class="c"># values = np.arange(1, ut.num_partitions(num_annots) + 1)</span>
-    <span class="c">#regularizer = opengm.PottsGFunction(shape)</span>
-    <span class="c">#reg_fid = gm.addFunction(regularizer)</span>
+    <span class="c1"># values = np.arange(1, ut.num_partitions(num_annots) + 1)</span>
+    <span class="c1">#regularizer = opengm.PottsGFunction(shape)</span>
+    <span class="c1">#reg_fid = gm.addFunction(regularizer)</span>
 
-    <span class="c"># A Comparative Study of Modern Inference Techniques for Structured Discrete Energy Minimization Problems</span>
-    <span class="c"># http://arxiv.org/pdf/1404.0533.pdf</span>
+    <span class="c1"># A Comparative Study of Modern Inference Techniques for Structured Discrete Energy Minimization Problems</span>
+    <span class="c1"># http://arxiv.org/pdf/1404.0533.pdf</span>
 
-    <span class="c"># regularizer1 = opengm.pottsFunction([number_of_labels] * 2, valueEqual=0.0, valueNotEqual=beta)</span>
+    <span class="c1"># regularizer1 = opengm.pottsFunction([number_of_labels] * 2, valueEqual=0.0, valueNotEqual=beta)</span>
 
-    <span class="c"># gm.addFactors(reg_fid, aid_pairs)</span>
+    <span class="c1"># gm.addFactors(reg_fid, aid_pairs)</span>
 
-    <span class="c"># 2nd order function</span>
+    <span class="c1"># 2nd order function</span>
     <span class="n">pair_fid</span> <span class="o">=</span> <span class="n">gm</span><span class="o">.</span><span class="n">addFunction</span><span class="p">(</span><span class="n">cost_matrix</span><span class="p">)</span>
     <span class="n">gm</span><span class="o">.</span><span class="n">addFactors</span><span class="p">(</span><span class="n">pair_fid</span><span class="p">,</span> <span class="n">aid_pairs</span><span class="p">)</span>
 
@@ -515,7 +515,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inference</span><span class="p">):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;begin of inference&quot;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s2">&quot;begin of inference&quot;</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inference</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inference</span><span class="o">.</span><span class="n">arg</span><span class="p">())</span>
@@ -523,7 +523,7 @@
         <span class="k">def</span> <span class="nf">visit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inference</span><span class="p">):</span>
             <span class="n">gm</span> <span class="o">=</span> <span class="n">inference</span><span class="o">.</span><span class="n">gm</span><span class="p">()</span>
             <span class="n">labelVector</span> <span class="o">=</span> <span class="n">inference</span><span class="o">.</span><span class="n">arg</span><span class="p">()</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;energy  </span><span class="si">%r</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gm</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">labelVector</span><span class="p">),))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s2">&quot;energy  </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gm</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">labelVector</span><span class="p">),))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">labelVector</span><span class="p">)</span>
 
     <span class="n">callback</span> <span class="o">=</span> <span class="n">PyCallback</span><span class="p">()</span>
@@ -532,7 +532,7 @@
     <span class="k">print</span><span class="p">(</span><span class="n">callback</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span>
 
     <span class="k">print</span><span class="p">(</span><span class="n">cost_matrix</span><span class="p">)</span>
-    <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cost_matrix</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s">&#39;magma&#39;</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cost_matrix</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;magma&#39;</span><span class="p">)</span>
     <span class="n">opengm</span><span class="o">.</span><span class="n">visualizeGm</span><span class="p">(</span><span class="n">gm</span><span class="o">=</span><span class="n">gm</span><span class="p">)</span>
     <span class="k">pass</span>
 
@@ -541,8 +541,8 @@
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
     <span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">coo_matrix</span><span class="p">,</span> <span class="n">csgraph</span>
     <span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span> <span class="o">=</span> <span class="n">testdata_workflow</span><span class="p">()</span>
-    <span class="c"># qaids = [cm.qaid for cm in cm_list]</span>
-    <span class="c"># top_aids = [cm.get_top_aids(5) for cm in cm_list]</span>
+    <span class="c1"># qaids = [cm.qaid for cm in cm_list]</span>
+    <span class="c1"># top_aids = [cm.get_top_aids(5) for cm in cm_list]</span>
     <span class="n">aid_pairs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">cm</span><span class="o">.</span><span class="n">qaid</span><span class="p">,</span> <span class="n">daid</span><span class="p">)</span>
                           <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span> <span class="k">for</span> <span class="n">daid</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_top_aids</span><span class="p">(</span><span class="mi">5</span><span class="p">)])</span>
     <span class="n">top_scores</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([</span><span class="n">cm</span><span class="o">.</span><span class="n">get_top_scores</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">cm_list</span><span class="p">])</span>
@@ -550,35 +550,35 @@
     <span class="n">N</span> <span class="o">=</span> <span class="n">aid_pairs</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">mat</span> <span class="o">=</span> <span class="n">coo_matrix</span><span class="p">((</span><span class="n">top_scores</span><span class="p">,</span> <span class="n">aid_pairs</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
     <span class="n">csgraph</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
-    <span class="n">tree</span> <span class="o">=</span> <span class="n">csgraph</span><span class="o">.</span><span class="n">minimum_spanning_tree</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>  <span class="c"># NOQA</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">csgraph</span><span class="o">.</span><span class="n">minimum_spanning_tree</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>  <span class="c1"># NOQA</span>
     <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
     <span class="n">dense</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">dense</span> <span class="o">/</span> <span class="n">dense</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span>
     <span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 
-    <span class="c"># baseline jobid</span>
+    <span class="c1"># baseline jobid</span>
     <span class="kn">import</span> <span class="nn">opengm</span>
-    <span class="c"># https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/OpenGM%20tutorial.ipynb</span>
+    <span class="c1"># https://github.com/opengm/opengm/blob/master/src/interfaces/python/examples/tutorial/OpenGM%20tutorial.ipynb</span>
     <span class="n">numVar</span> <span class="o">=</span> <span class="mi">10</span>
     <span class="n">unaries</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">numVar</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">opengm</span><span class="o">.</span><span class="n">value_type</span><span class="p">)</span>
     <span class="n">gm</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">gm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">numVar</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">opengm</span><span class="o">.</span><span class="n">label_type</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span>
     <span class="n">unary_fids</span> <span class="o">=</span> <span class="n">gm</span><span class="o">.</span><span class="n">addFunctions</span><span class="p">(</span><span class="n">unaries</span><span class="p">)</span>
     <span class="n">gm</span><span class="o">.</span><span class="n">addFactors</span><span class="p">(</span><span class="n">unary_fids</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">numVar</span><span class="p">))</span>
     <span class="n">infParam</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">InfParam</span><span class="p">(</span>
-        <span class="n">workflow</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">ensure_ascii</span><span class="p">(</span><span class="s">&#39;(IC)(TTC-I,CC-I)&#39;</span><span class="p">),</span>
+        <span class="n">workflow</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">ensure_ascii</span><span class="p">(</span><span class="s1">&#39;(IC)(TTC-I,CC-I)&#39;</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="n">inf</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">Multicut</span><span class="p">(</span><span class="n">gm</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="n">infParam</span><span class="p">)</span>
     <span class="n">visitor</span> <span class="o">=</span> <span class="n">inf</span><span class="o">.</span><span class="n">verboseVisitor</span><span class="p">(</span><span class="n">printNth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">multiline</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">inf</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span><span class="n">visitor</span><span class="p">)</span>
     <span class="n">arg</span> <span class="o">=</span> <span class="n">inf</span><span class="o">.</span><span class="n">arg</span><span class="p">()</span>
 
-    <span class="c"># gridVariableIndices = opengm.secondOrderGridVis(img.shape[0], img.shape[1])</span>
-    <span class="c"># fid = gm.addFunction(regularizer)</span>
-    <span class="c"># gm.addFactors(fid, gridVariableIndices)</span>
-    <span class="c"># regularizer = opengm.pottsFunction([3, 3], 0.0, beta)</span>
-    <span class="c"># gridVariableIndices = opengm.secondOrderGridVis(img.shape[0], img.shape[1])</span>
-    <span class="c"># fid = gm.addFunction(regularizer)</span>
-    <span class="c"># gm.addFactors(fid, gridVariableIndices)</span>
+    <span class="c1"># gridVariableIndices = opengm.secondOrderGridVis(img.shape[0], img.shape[1])</span>
+    <span class="c1"># fid = gm.addFunction(regularizer)</span>
+    <span class="c1"># gm.addFactors(fid, gridVariableIndices)</span>
+    <span class="c1"># regularizer = opengm.pottsFunction([3, 3], 0.0, beta)</span>
+    <span class="c1"># gridVariableIndices = opengm.secondOrderGridVis(img.shape[0], img.shape[1])</span>
+    <span class="c1"># fid = gm.addFunction(regularizer)</span>
+    <span class="c1"># gm.addFactors(fid, gridVariableIndices)</span>
 
     <span class="n">unaries</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">potts</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">PottsFunction</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span>
@@ -586,7 +586,7 @@
 
     <span class="n">inf</span> <span class="o">=</span> <span class="n">opengm</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">GraphCut</span><span class="p">(</span><span class="n">gm</span><span class="p">)</span>
     <span class="n">inf</span><span class="o">.</span><span class="n">infer</span><span class="p">()</span>
-    <span class="n">arg</span> <span class="o">=</span> <span class="n">inf</span><span class="o">.</span><span class="n">arg</span><span class="p">()</span>  <span class="c"># NOQA</span>
+    <span class="n">arg</span> <span class="o">=</span> <span class="n">inf</span><span class="o">.</span><span class="n">arg</span><span class="p">()</span>  <span class="c1"># NOQA</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    # TODO: multiway cut</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -612,15 +612,15 @@
     <span class="k">pass</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.workflow</span>
 <span class="sd">        python -m ibeis.workflow --allexamples</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -655,7 +655,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

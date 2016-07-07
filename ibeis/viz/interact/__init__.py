@@ -9,7 +9,6 @@ ut.noinject(__name__, '[ibeis.viz.interact.__init__]', DEBUG=False)
 from plottool import interact_helpers as ih
 
 from ibeis.viz.interact import interact_annotations2
-from ibeis.viz.interact import interact_bbox
 from ibeis.viz.interact import interact_chip
 from ibeis.viz.interact import interact_image
 from ibeis.viz.interact import interact_matches
@@ -20,7 +19,6 @@ from ibeis.viz.interact import interact_sver
 from ibeis.viz.interact.interact_image import ishow_image
 from ibeis.viz.interact.interact_chip import ishow_chip
 from ibeis.viz.interact.interact_name import ishow_name
-from ibeis.viz.interact.interact_bbox import iselect_bbox
 from ibeis.viz.interact.interact_sver import ishow_sver
 
 import utool
@@ -64,7 +62,6 @@ def reload_subs(verbose=True):
         """ fallback reload """
         pass
     getattr(interact_annotations2, 'rrr', fbrrr)(verbose=verbose)
-    getattr(interact_bbox, 'rrr', fbrrr)(verbose=verbose)
     getattr(interact_chip, 'rrr', fbrrr)(verbose=verbose)
     getattr(interact_image, 'rrr', fbrrr)(verbose=verbose)
     getattr(interact_matches, 'rrr', fbrrr)(verbose=verbose)
@@ -81,7 +78,6 @@ rrrr = reload_subs
 
 IMPORT_TUPLES = [
     ('interact_annotations2', None),
-    ('interact_bbox', None),
     ('interact_chip', None),
     ('interact_image', None),
     ('interact_matches', None),

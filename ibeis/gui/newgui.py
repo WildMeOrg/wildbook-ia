@@ -429,12 +429,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         _NEWLBL = functools.partial(guitool.newLabel, ibswgt)
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
-        _COMBO  = functools.partial(guitool.newComboBox, ibswgt)
+        # _COMBO  = functools.partial(guitool.newComboBox, ibswgt)
         _NEWTEXT = functools.partial(guitool.newLineEdit, ibswgt, verticalStretch=1)
 
         primary_fontkw = dict(bold=True, pointSize=11)
         secondary_fontkw = dict(bold=False, pointSize=9)
-        advanced_fontkw = dict(bold=False, pointSize=8, italic=True)
+        # advanced_fontkw = dict(bold=False, pointSize=8, italic=True)
         identify_color = (255, 150, 0)
 
         ibswgt.tablename_to_status_widget_index = {
@@ -464,61 +464,78 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         back = ibswgt.back
 
-        detection_combo_box_options = []
-        ibswgt.species_combo = _COMBO(detection_combo_box_options,
-                                      ibswgt.back.change_detection_species,
-                                      fontkw=primary_fontkw)
+        # detection_combo_box_options = []
+        # ibswgt.species_combo = _COMBO(detection_combo_box_options,
+        #                               ibswgt.back.change_detection_species,
+        #                               fontkw=primary_fontkw)
 
         # Define special intra-occurrence function
-        ibswgt.back.special_query_funcs['intra_occurrence'] = ut.overrideable_partial(
-            back.compute_queries, query_is_known=None,
-            daids_mode=const.INTRA_OCCUR_KEY,
-            use_prioritized_name_subset=False,
-            cfgdict={'can_match_samename': False, 'use_k_padding': False})
+        # ibswgt.back.special_query_funcs['intra_occurrence'] = ut.overrideable_partial(
 
         ibswgt.batch_intra_occurrence_query_button = _NEWBUT(
-            'Intra Occurrrence',
-            ibswgt.back.special_query_funcs['intra_occurrence'],
-            bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, -0.01, -0.7, 0.0),
-            fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
-
-        ibswgt.batch_vsexemplar_query_button = _NEWBUT(
-            'Vs Exemplar',
+            '4) ID Encounters',
+            # ibswgt.back.special_query_funcs['intra_occurrence'],
             functools.partial(
                 back.compute_queries,
+                daids_mode=const.INTRA_OCCUR_KEY,
+                query_is_known=None,
+                use_prioritized_name_subset=False,
+                cfgdict={'can_match_samename': False, 'use_k_padding': False}
+            ),
+            bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color,
+                                                     -0.01, -0.7, 0.0),
+            fgcolor=(0, 0, 0),
+            # fontkw=advanced_fontkw
+            fontkw=primary_fontkw
+        )
+
+        ibswgt.batch_vsexemplar_query_button = _NEWBUT(
+            '5) ID Exemplars',
+            functools.partial(
+                back.compute_queries,
+                daids_mode=const.VS_EXEMPLARS_KEY,
                 use_prioritized_name_subset=True,
-                query_is_known=None, daids_mode=const.VS_EXEMPLARS_KEY,
+                query_is_known=None,
                 cfgdict={'can_match_samename': False, 'use_k_padding': False},
             ),
-            bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, -0.02, -0.7, 0.0),
-            fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
+            bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color,
+                                                     -0.02, -0.7, 0.0),
+            fgcolor=(0, 0, 0),
+            # fontkw=advanced_fontkw
+            fontkw=primary_fontkw
+        )
 
-        ibswgt.set_exemplars = _NEWBUT(
-            'Set Exemplars',
-            back.set_exemplars_from_quality_and_viewpoint,
-            bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, -0.03, -0.7, 0.0),
-            fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
+        # ibswgt.set_exemplars = _NEWBUT(
+        #     'Set Exemplars',
+        #     back.set_exemplars_from_quality_and_viewpoint,
+        #     bgcolor=identify_color,
+        #     # bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color, -0.03, -0.7, 0.0),
+        #     fgcolor=(0, 0, 0), fontkw=advanced_fontkw)
 
         ibswgt.import_button = _NEWBUT(
             '1) Import',
-            back.import_images_from_dir,
+            # back.import_images_from_dir,
+            back.import_button_click,
             bgcolor=(235, 200, 200), fontkw=primary_fontkw)
 
         ibswgt.imageset_button = _NEWBUT(
             '2) Group',
-            ibswgt.back.compute_occurrences,
+            ibswgt.back.do_group_occurrence_step,
             bgcolor=(255, 255, 150), fontkw=primary_fontkw)
 
         ibswgt.detect_button = _NEWBUT(
             '3) Detect',
-            ibswgt.back.run_detection,
-            bgcolor=(150, 255, 150), fontkw=primary_fontkw)
+            ibswgt.back.run_detection_step,
+            bgcolor=(150, 255, 150),
+            fontkw=primary_fontkw
+        )
 
-        ibswgt.inc_query_button = _NEWBUT(
-            '4) Identify',
-            ibswgt.back.incremental_query,
-            bgcolor=identify_color,
-            fgcolor=(0, 0, 0), fontkw=primary_fontkw)
+        # ibswgt.inc_query_button = _NEWBUT(
+        #     'Old Identify',
+        #     ibswgt.back.incremental_query,
+        #     bgcolor=identify_color,
+        #     fgcolor=(0, 0, 0), fontkw=primary_fontkw)
+        # ibswgt.inc_query_button.setEnabled(False)
 
         #hack_enabled_machines = [
         #    'ibeis.cs.uic.edu',
@@ -529,31 +546,36 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         enable_complete = True
 
         ibswgt.reviewed_button = _NEWBUT(
-            '5) Complete',
-            ibswgt.back.imageset_reviewed_all_images,
+            '6) Complete',
+            ibswgt.back.commit_to_wb_step,
             bgcolor=color_funcs.adjust_hsv_of_rgb255((0, 232, 211), 0., -.9, 0.),
             fontkw=primary_fontkw,
             enabled=enable_complete)
 
         ibswgt.control_widget_lists = [
             [
-                ibswgt.import_button,
-                ibswgt.imageset_button,
-                _NEWLBL('ImageSet: ', align='right', fontkw=primary_fontkw),
-                ibswgt.detect_button,
-                ibswgt.inc_query_button,
-                ibswgt.reviewed_button,
             ],
             [
-                _NEWLBL('Species Selector: ', align='right', fontkw=primary_fontkw),
-                ibswgt.species_combo,
+                ibswgt.import_button,
+                ibswgt.imageset_button,
                 _NEWLBL(''),
-                _NEWLBL('*Advanced Batch Identification: ', align='right', fontkw=advanced_fontkw),
+                ibswgt.detect_button,
+                # _NEWLBL('ImageSet: ', align='right', fontkw=primary_fontkw),
                 ibswgt.batch_intra_occurrence_query_button,
                 ibswgt.batch_vsexemplar_query_button,
-                ibswgt.set_exemplars,
-                _NEWLBL(''),
+                ibswgt.reviewed_button,
             ],
+            # [
+            # _NEWLBL('Species Selector: ', align='right', fontkw=primary_fontkw),
+            # ibswgt.species_combo,
+            # _NEWLBL(''),
+            # _NEWLBL('*Advanced Batch Identification: ', align='right', fontkw=advanced_fontkw),
+            # _NEWLBL('Identification: ', align='right', fontkw=advanced_fontkw),
+            # _NEWLBL('Identification: ', align='right', fontkw=advanced_fontkw),
+            # ibswgt.inc_query_button,
+            # ibswgt.set_exemplars,
+            # _NEWLBL(''),
+            # ],
         ]
 
     def _init_layout(ibswgt):
@@ -710,8 +732,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             reselect_index = nice_name_list.index(reselect_new_name)
             print('[update_species_available] Reselecting renamed selection: %r' % (reselect_new_name, ))
         print('[update_species_available] Reselecting index: %r' % (reselect_index, ))
-        ibswgt.species_combo.setOptions(detection_combo_box_options)
-        ibswgt.species_combo.updateOptions(reselect=reselect, reselect_index=reselect_index)
+        # ibswgt.species_combo.setOptions(detection_combo_box_options)
+        # ibswgt.species_combo.updateOptions(reselect=reselect, reselect_index=reselect_index)
 
     def setWindowTitle(ibswgt, title):
         parent_ = ibswgt.parent()
@@ -737,7 +759,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #else:
             #    imagesettext = ibswgt.ibs.get_imageset_text(imgsetid)
             ibswgt.back.select_imgsetid(imgsetid)
-            ibswgt.species_combo.setDefault(ibswgt.ibs.cfg.detect_cfg.species_text)
+            # ibswgt.species_combo.setDefault(ibswgt.ibs.cfg.detect_cfg.species_text)
             #text_list = [
             #    'Identify Mode: Within-ImageSet (%s vs. %s)' % (imagesettext, imagesettext),
             #    'Identify Mode: Exemplars (%s vs. %s)' % (imagesettext, const.EXEMPLAR_IMAGESETTEXT)]

@@ -12,10 +12,26 @@ ibeis.other.dbinfo module
     :undoc-members:
     :show-inheritance:
 
+ibeis.other.detectfuncs module
+------------------------------
+
+.. automodule:: ibeis.other.detectfuncs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.other.duct_tape module
 ----------------------------
 
 .. automodule:: ibeis.other.duct_tape
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.other.ibsfuncs module
+---------------------------
+
+.. automodule:: ibeis.other.ibsfuncs
     :members:
     :undoc-members:
     :show-inheritance:

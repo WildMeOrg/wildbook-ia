@@ -1,0 +1,1340 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.scripts.specialdraw &mdash; ibeis 1.5.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis" href="../../ibeis.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+    <li>ibeis.scripts.specialdraw</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.scripts.specialdraw</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[specialdraw]&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="multidb_montage"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.specialdraw.multidb_montage">[docs]</a><span class="k">def</span> <span class="nf">multidb_montage</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw multidb_montage --save montage.jpg --dpath ~/slides --diskshow --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.specialdraw import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; multidb_montage()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
+    <span class="n">ibs1</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;PZ_MTEST&#39;</span><span class="p">)</span>
+    <span class="n">ibs2</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;GZ_ALL&#39;</span><span class="p">)</span>
+    <span class="n">ibs3</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;GIRM_Master1&#39;</span><span class="p">)</span>
+
+    <span class="n">chip_lists</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">ibs</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">ibs3</span><span class="p">]:</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">sample_annots_general</span><span class="p">(</span><span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;good&#39;</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+        <span class="n">aids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">depth_profile</span><span class="p">(</span><span class="n">aids_list</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">aids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">([</span><span class="n">ibs1</span><span class="p">,</span> <span class="n">ibs2</span><span class="p">,</span> <span class="n">ibs3</span><span class="p">],</span> <span class="n">aids_list</span><span class="p">):</span>
+        <span class="n">chips</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_chips</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+        <span class="n">chip_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chips</span><span class="p">)</span>
+
+    <span class="n">chip_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">chip_lists</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">chip_list</span><span class="p">)</span>
+
+    <span class="n">widescreen_ratio</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">/</span> <span class="mi">9</span>
+    <span class="n">ratio</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">PHI</span>
+    <span class="n">ratio</span> <span class="o">=</span> <span class="n">widescreen_ratio</span>
+
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_save_directions</span><span class="p">()</span>
+
+    <span class="c1">#height = 6000</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="mi">6000</span>
+    <span class="c1">#width = int(height * ratio)</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="n">ratio</span><span class="p">)</span>
+    <span class="n">dsize</span> <span class="o">=</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+    <span class="n">dst</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">montage</span><span class="p">(</span><span class="n">chip_list</span><span class="p">,</span> <span class="n">dsize</span><span class="p">)</span>
+    <span class="n">vt</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--show&#39;</span><span class="p">):</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="double_depcache_graph"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.specialdraw.double_depcache_graph">[docs]</a><span class="k">def</span> <span class="nf">double_depcache_graph</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw double_depcache_graph --show --testmode</span>
+
+<span class="sd">        python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite --arrow-width=.5</span>
+
+<span class="sd">        python -m ibeis.scripts.specialdraw double_depcache_graph --save=figures5/doubledepc.png --dpath ~/latex/cand/  --diskshow  --figsize=8,20 --dpi=220 --testmode --show --clipwhite --arrow-width=5</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.specialdraw import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; result = double_depcache_graph()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
+    <span class="c1"># pt.plt.xkcd()</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
+    <span class="n">reduced</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">implicit</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">annot_graph</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_annot</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span><span class="n">reduced</span><span class="o">=</span><span class="n">reduced</span><span class="p">,</span> <span class="n">implicit</span><span class="o">=</span><span class="n">implicit</span><span class="p">)</span>
+    <span class="n">image_graph</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc_image</span><span class="o">.</span><span class="n">make_graph</span><span class="p">(</span><span class="n">reduced</span><span class="o">=</span><span class="n">reduced</span><span class="p">,</span> <span class="n">implicit</span><span class="o">=</span><span class="n">implicit</span><span class="p">)</span>
+    <span class="n">to_rename</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">isect</span><span class="p">(</span><span class="n">image_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(),</span> <span class="n">annot_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">relabel_nodes</span><span class="p">(</span><span class="n">annot_graph</span><span class="p">,</span> <span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="s1">&#39;annot_&#39;</span> <span class="o">+</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">to_rename</span><span class="p">},</span> <span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">relabel_nodes</span><span class="p">(</span><span class="n">image_graph</span><span class="p">,</span> <span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="s1">&#39;image_&#39;</span> <span class="o">+</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">to_rename</span><span class="p">},</span> <span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">compose_all</span><span class="p">([</span><span class="n">image_graph</span><span class="p">,</span> <span class="n">annot_graph</span><span class="p">])</span>
+    <span class="c1">#graph = nx.union_all([image_graph, annot_graph], rename=(&#39;image&#39;, &#39;annot&#39;))</span>
+    <span class="c1"># userdecision = ut.nx_makenode(graph, &#39;user decision&#39;, shape=&#39;rect&#39;, color=pt.DARK_YELLOW, style=&#39;diagonals&#39;)</span>
+    <span class="c1"># userdecision = ut.nx_makenode(graph, &#39;user decision&#39;, shape=&#39;circle&#39;, color=pt.DARK_YELLOW)</span>
+    <span class="n">userdecision</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;User decision&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;rect&#39;</span><span class="p">,</span>
+                                  <span class="c1">#width=100, height=100,</span>
+                                  <span class="n">color</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">YELLOW</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;diagonals&#39;</span><span class="p">)</span>
+    <span class="c1">#longcat = True</span>
+    <span class="n">longcat</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="c1">#edge = (&#39;feat&#39;, &#39;neighbor_index&#39;)</span>
+    <span class="c1">#data = graph.get_edge_data(*edge)[0]</span>
+    <span class="c1">#print(&#39;data = %r&#39; % (data,))</span>
+    <span class="c1">#graph.remove_edge(*edge)</span>
+    <span class="c1">## hack</span>
+    <span class="c1">#graph.add_edge(&#39;featweight&#39;, &#39;neighbor_index&#39;, **data)</span>
+
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s1">&#39;detections&#39;</span><span class="p">,</span> <span class="n">userdecision</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="n">longcat</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">PINK</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">userdecision</span><span class="p">,</span> <span class="s1">&#39;annotations&#39;</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="n">longcat</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">PINK</span><span class="p">)</span>
+    <span class="c1"># graph.add_edge(userdecision, &#39;annotations&#39;, implicit=True, color=[0, 0, 0])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">longcat</span><span class="p">:</span>
+        <span class="k">pass</span>
+        <span class="c1">#graph.add_edge(&#39;images&#39;, &#39;annotations&#39;, style=&#39;invis&#39;)</span>
+        <span class="c1">#graph.add_edge(&#39;thumbnails&#39;, &#39;annotations&#39;, style=&#39;invis&#39;)</span>
+        <span class="c1">#graph.add_edge(&#39;thumbnails&#39;, userdecision, style=&#39;invis&#39;)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">remove_node</span><span class="p">(</span><span class="s1">&#39;Has_Notch&#39;</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">remove_node</span><span class="p">(</span><span class="s1">&#39;annotmask&#39;</span><span class="p">)</span>
+    <span class="n">layoutkw</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;ranksep&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="s1">&#39;nodesep&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="s1">&#39;dpi&#39;</span><span class="p">:</span> <span class="mi">96</span><span class="p">,</span>
+        <span class="c1"># &#39;nodesep&#39;: 1,</span>
+    <span class="p">}</span>
+    <span class="n">ns</span> <span class="o">=</span> <span class="mi">1000</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;fontsize&#39;</span><span class="p">,</span> <span class="mi">72</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;fontname&#39;</span><span class="p">,</span> <span class="s1">&#39;Ubuntu&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;style&#39;</span><span class="p">,</span>  <span class="s1">&#39;filled&#39;</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="n">ns</span> <span class="o">*</span> <span class="n">ut</span><span class="o">.</span><span class="n">PHI</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="n">ns</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">ut</span><span class="o">.</span><span class="n">PHI</span><span class="p">))</span>
+
+    <span class="c1">#for u, v, d in graph.edge(data=True):</span>
+    <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">vkd</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">edge</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="n">dk</span> <span class="ow">in</span> <span class="n">vkd</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dk</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">localid</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;local_input_id&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">localid</span><span class="p">:</span>
+                    <span class="c1"># d[&#39;headlabel&#39;] = localid</span>
+                    <span class="k">if</span> <span class="n">localid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">]:</span>
+                        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;taillabel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">localid</span>
+                    <span class="c1">#d[&#39;label&#39;] = localid</span>
+                <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;taillabel&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;1&#39;</span><span class="p">}:</span>
+                    <span class="k">del</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;taillabel&#39;</span><span class="p">]</span>
+
+    <span class="n">node_alias</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;chips&#39;</span><span class="p">:</span> <span class="s1">&#39;Chip&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;images&#39;</span><span class="p">:</span> <span class="s1">&#39;Image&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;feat&#39;</span><span class="p">:</span> <span class="s1">&#39;Feat&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;featweight&#39;</span><span class="p">:</span> <span class="s1">&#39;Feat Weights&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;thumbnails&#39;</span><span class="p">:</span> <span class="s1">&#39;Thumbnail&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;detections&#39;</span><span class="p">:</span> <span class="s1">&#39;Detections&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;annotations&#39;</span><span class="p">:</span> <span class="s1">&#39;Annotation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Notch_Tips&#39;</span><span class="p">:</span> <span class="s1">&#39;Notch Tips&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;probchip&#39;</span><span class="p">:</span> <span class="s1">&#39;Prob Chip&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Cropped_Chips&#39;</span><span class="p">:</span> <span class="s1">&#39;Croped Chip&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Trailing_Edge&#39;</span><span class="p">:</span> <span class="s1">&#39;Trailing</span><span class="se">\n</span><span class="s1">Edge&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Block_Curvature&#39;</span><span class="p">:</span> <span class="s1">&#39;Block</span><span class="se">\n</span><span class="s1">Curvature&#39;</span><span class="p">,</span>
+        <span class="c1"># &#39;BC_DTW&#39;: &#39;block curvature /\n dynamic time warp&#39;,</span>
+        <span class="s1">&#39;BC_DTW&#39;</span><span class="p">:</span> <span class="s1">&#39;DTW Distance&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;vsone&#39;</span><span class="p">:</span> <span class="s1">&#39;Hots vsone&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;feat_neighbs&#39;</span><span class="p">:</span> <span class="s1">&#39;Nearest</span><span class="se">\n</span><span class="s1">Neighbors&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;neighbor_index&#39;</span><span class="p">:</span> <span class="s1">&#39;Neighbor</span><span class="se">\n</span><span class="s1">Index&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;vsmany&#39;</span><span class="p">:</span> <span class="s1">&#39;Hots vsmany&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;annot_labeler&#39;</span><span class="p">:</span> <span class="s1">&#39;Annot Labeler&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;labeler&#39;</span><span class="p">:</span> <span class="s1">&#39;Labeler&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;localizations&#39;</span><span class="p">:</span> <span class="s1">&#39;Localizations&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;classifier&#39;</span><span class="p">:</span> <span class="s1">&#39;Classifier&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sver&#39;</span><span class="p">:</span> <span class="s1">&#39;Spatial</span><span class="se">\n</span><span class="s1">Verification&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Classifier&#39;</span><span class="p">:</span> <span class="s1">&#39;Existence&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;image_labeler&#39;</span><span class="p">:</span> <span class="s1">&#39;Image Labeler&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">node_alias</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Classifier&#39;</span><span class="p">:</span> <span class="s1">&#39;existence&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;feat_neighbs&#39;</span><span class="p">:</span> <span class="s1">&#39;neighbors&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sver&#39;</span><span class="p">:</span> <span class="s1">&#39;spatial_verification&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Cropped_Chips&#39;</span><span class="p">:</span> <span class="s1">&#39;cropped_chip&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;BC_DTW&#39;</span><span class="p">:</span> <span class="s1">&#39;dtw_distance&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Block_Curvature&#39;</span><span class="p">:</span> <span class="s1">&#39;curvature&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Trailing_Edge&#39;</span><span class="p">:</span> <span class="s1">&#39;trailing_edge&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Notch_Tips&#39;</span><span class="p">:</span> <span class="s1">&#39;notch_tips&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;thumbnails&#39;</span><span class="p">:</span> <span class="s1">&#39;thumbnail&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;images&#39;</span><span class="p">:</span> <span class="s1">&#39;image&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;annotations&#39;</span><span class="p">:</span> <span class="s1">&#39;annotation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;chips&#39;</span><span class="p">:</span> <span class="s1">&#39;chip&#39;</span><span class="p">,</span>
+        <span class="c1">#userdecision: &#39;User de&#39;</span>
+    <span class="p">}</span>
+    <span class="n">node_alias</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">delete_dict_keys</span><span class="p">(</span><span class="n">node_alias</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">node_alias</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
+                                                            <span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()))</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">relabel_nodes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">node_alias</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="n">fontkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fontname</span><span class="o">=</span><span class="s1">&#39;Ubuntu&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    <span class="c1">#pt.gca().set_aspect(&#39;equal&#39;)</span>
+    <span class="c1">#pt.figure()</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">layoutkw</span><span class="o">=</span><span class="n">layoutkw</span><span class="p">,</span> <span class="n">fontkw</span><span class="o">=</span><span class="n">fontkw</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">zoom_factory</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="lighten_hex"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.specialdraw.lighten_hex">[docs]</a><span class="k">def</span> <span class="nf">lighten_hex</span><span class="p">(</span><span class="n">hexcolor</span><span class="p">,</span> <span class="n">amount</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="kn">as</span> <span class="nn">colors</span>
+    <span class="k">return</span> <span class="n">pt</span><span class="o">.</span><span class="n">color_funcs</span><span class="o">.</span><span class="n">lighten_rgb</span><span class="p">(</span><span class="n">colors</span><span class="o">.</span><span class="n">hex2color</span><span class="p">(</span><span class="n">hexcolor</span><span class="p">),</span> <span class="n">amount</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="general_identify_flow"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.specialdraw.general_identify_flow">[docs]</a><span class="k">def</span> <span class="nf">general_identify_flow</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw general_identify_flow --show --save pairsim.png --dpi=100 --diskshow --clipwhite</span>
+
+<span class="sd">        python -m ibeis.scripts.specialdraw general_identify_flow --dpi=200 --diskshow --clipwhite --dpath ~/latex/cand/ --figsize=20,10  --save figures4/pairprob.png --arrow-width=2.0</span>
+
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # SCRIPT</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.specialdraw import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; general_identify_flow()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
+    <span class="c1"># pt.plt.xkcd()</span>
+
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">makecluster</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="o">**</span><span class="n">attrkw</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="o">**</span><span class="n">attrkw</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">add_edge2</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_u</span><span class="p">,</span> <span class="n">_v</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+            <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">_u</span><span class="p">,</span> <span class="n">_v</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c1"># *** Primary color:</span>
+    <span class="n">p_shade2</span> <span class="o">=</span> <span class="s1">&#39;#41629A&#39;</span>
+    <span class="c1"># *** Secondary color</span>
+    <span class="n">s1_shade2</span> <span class="o">=</span> <span class="s1">&#39;#E88B53&#39;</span>
+    <span class="c1"># *** Secondary color</span>
+    <span class="n">s2_shade2</span> <span class="o">=</span> <span class="s1">&#39;#36977F&#39;</span>
+    <span class="c1"># *** Complement color</span>
+    <span class="n">c_shade2</span> <span class="o">=</span> <span class="s1">&#39;#E8B353&#39;</span>
+
+    <span class="n">ns</span> <span class="o">=</span> <span class="mi">512</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">inject_func_as_method</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">)</span>
+
+    <span class="n">annot1_color</span> <span class="o">=</span> <span class="n">p_shade2</span>
+    <span class="n">annot2_color</span> <span class="o">=</span> <span class="n">s1_shade2</span>
+    <span class="c1">#annot1_color2 = pt.color_funcs.lighten_rgb(colors.hex2color(annot1_color), .01)</span>
+
+    <span class="n">annot1</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="s1">&#39;Annotation X&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">ns</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">ns</span><span class="p">,</span> <span class="n">groupid</span><span class="o">=</span><span class="s1">&#39;annot&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">annot1_color</span><span class="p">)</span>
+    <span class="n">annot2</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="s1">&#39;Annotation Y&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">ns</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">ns</span><span class="p">,</span> <span class="n">groupid</span><span class="o">=</span><span class="s1">&#39;annot&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">annot2_color</span><span class="p">)</span>
+
+    <span class="n">featX</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="s1">&#39;Features X&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">ns</span> <span class="o">/</span> <span class="mf">1.2</span><span class="p">,</span> <span class="n">ns</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">groupid</span><span class="o">=</span><span class="s1">&#39;feats&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">annot1_color</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">featY</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="s1">&#39;Features Y&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">ns</span> <span class="o">/</span> <span class="mf">1.2</span><span class="p">,</span> <span class="n">ns</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">groupid</span><span class="o">=</span><span class="s1">&#39;feats&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">annot2_color</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">))</span>
+    <span class="c1">#&#39;#4771B3&#39;)</span>
+
+    <span class="n">global_pairvec</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="s1">&#39;Global similarity</span><span class="se">\n</span><span class="s1">(viewpoint, quality, ...)&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">ns</span> <span class="o">*</span> <span class="n">ut</span><span class="o">.</span><span class="n">PHI</span> <span class="o">*</span> <span class="mf">1.2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">s2_shade2</span><span class="p">)</span>
+    <span class="n">findnn</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="s1">&#39;Find correspondences</span><span class="se">\n</span><span class="s1">(nearest neighbors)&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;ellipse&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">c_shade2</span><span class="p">)</span>
+    <span class="n">local_pairvec</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="s1">&#39;Local similarities</span><span class="se">\n</span><span class="s1">(LNBNN, spatial error, ...)&#39;</span><span class="p">,</span>
+                                      <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">ns</span> <span class="o">*</span> <span class="mf">2.2</span><span class="p">,</span> <span class="n">ns</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">c_shade2</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">agglocal</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="s1">&#39;Aggregate&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">ns</span> <span class="o">/</span> <span class="mf">1.1</span><span class="p">,</span> <span class="n">ns</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;ellipse&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">c_shade2</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">catvecs</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="s1">&#39;Concatenate&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">ns</span> <span class="o">/</span> <span class="mf">1.1</span><span class="p">,</span> <span class="n">ns</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;ellipse&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">s2_shade2</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">pairvec</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="s1">&#39;Vector of</span><span class="se">\n</span><span class="s1">pairwise similarities&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">s2_shade2</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">classifier</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="s1">&#39;Classifier</span><span class="se">\n</span><span class="s1">(SVM/RF/DNN)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">s2_shade2</span><span class="p">,</span> <span class="o">.</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">prob</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="s1">&#39;Matching Probability</span><span class="se">\n</span><span class="s1">(same individual given</span><span class="se">\n</span><span class="s1">similar viewpoint)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">s2_shade2</span><span class="p">,</span> <span class="o">.</span><span class="mi">4</span><span class="p">))</span>
+
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">annot1</span><span class="p">,</span> <span class="n">global_pairvec</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">annot2</span><span class="p">,</span> <span class="n">global_pairvec</span><span class="p">)</span>
+
+    <span class="n">add_edge2</span><span class="p">(</span><span class="n">annot1</span><span class="p">,</span> <span class="n">featX</span><span class="p">)</span>
+    <span class="n">add_edge2</span><span class="p">(</span><span class="n">annot2</span><span class="p">,</span> <span class="n">featY</span><span class="p">)</span>
+
+    <span class="n">add_edge2</span><span class="p">(</span><span class="n">featX</span><span class="p">,</span> <span class="n">findnn</span><span class="p">)</span>
+    <span class="n">add_edge2</span><span class="p">(</span><span class="n">featY</span><span class="p">,</span> <span class="n">findnn</span><span class="p">)</span>
+
+    <span class="n">add_edge2</span><span class="p">(</span><span class="n">findnn</span><span class="p">,</span> <span class="n">local_pairvec</span><span class="p">)</span>
+
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">local_pairvec</span><span class="p">,</span> <span class="n">agglocal</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">agglocal</span><span class="p">,</span> <span class="n">catvecs</span><span class="p">,</span> <span class="n">constraint</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">global_pairvec</span><span class="p">,</span> <span class="n">catvecs</span><span class="p">)</span>
+
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">catvecs</span><span class="p">,</span> <span class="n">pairvec</span><span class="p">)</span>
+
+    <span class="c1"># graph.add_edge(annot1, classifier, style=&#39;invis&#39;)</span>
+    <span class="c1"># graph.add_edge(pairvec, classifier , constraint=False)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">pairvec</span><span class="p">,</span> <span class="n">classifier</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">prob</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">,</span>  <span class="s1">&#39;rect&#39;</span><span class="p">)</span>
+    <span class="c1">#ut.nx_set_default_node_attributes(graph, &#39;fillcolor&#39;, nx.get_node_attributes(graph, &#39;color&#39;))</span>
+    <span class="c1">#ut.nx_set_default_node_attributes(graph, &#39;style&#39;,  &#39;rounded&#39;)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;style&#39;</span><span class="p">,</span>  <span class="s1">&#39;filled,rounded&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;fixedsize&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;xlabel&#39;</span><span class="p">,</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">))</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="n">ns</span> <span class="o">*</span> <span class="n">ut</span><span class="o">.</span><span class="n">PHI</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="n">ns</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;regular&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+    <span class="c1">#font = &#39;MonoDyslexic&#39;</span>
+    <span class="c1">#font = &#39;Mono_Dyslexic&#39;</span>
+    <span class="n">font</span> <span class="o">=</span> <span class="s1">&#39;Ubuntu&#39;</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;fontsize&#39;</span><span class="p">,</span> <span class="mi">72</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;fontname&#39;</span><span class="p">,</span> <span class="n">font</span><span class="p">)</span>
+
+    <span class="c1">#ut.nx_delete_node_attr(graph, &#39;width&#39;)</span>
+    <span class="c1">#ut.nx_delete_node_attr(graph, &#39;height&#39;)</span>
+    <span class="c1">#ut.nx_delete_node_attr(graph, &#39;fixedsize&#39;)</span>
+    <span class="c1">#ut.nx_delete_node_attr(graph, &#39;style&#39;)</span>
+    <span class="c1">#ut.nx_delete_node_attr(graph, &#39;regular&#39;)</span>
+    <span class="c1">#ut.nx_delete_node_attr(graph, &#39;shape&#39;)</span>
+
+    <span class="c1">#graph.node[annot1][&#39;label&#39;] = &quot;&lt;f0&gt; left|&lt;f1&gt; mid&amp;#92; dle|&lt;f2&gt; right&quot;</span>
+    <span class="c1">#graph.node[annot2][&#39;label&#39;] = ut.codeblock(</span>
+    <span class="c1">#    &#39;&#39;&#39;</span>
+    <span class="c1">#    &lt;&lt;TABLE BORDER=&quot;0&quot; CELLBORDER=&quot;1&quot; CELLSPACING=&quot;0&quot;&gt;</span>
+    <span class="c1">#      &lt;TR&gt;&lt;TD&gt;left&lt;/TD&gt;&lt;TD PORT=&quot;f1&quot;&gt;mid dle&lt;/TD&gt;&lt;TD PORT=&quot;f2&quot;&gt;right&lt;/TD&gt;&lt;/TR&gt;</span>
+    <span class="c1">#    &lt;/TABLE&gt;&gt;</span>
+    <span class="c1">#    &#39;&#39;&#39;)</span>
+    <span class="c1">#graph.node[annot1][&#39;label&#39;] = ut.codeblock(</span>
+    <span class="c1">#    &#39;&#39;&#39;</span>
+    <span class="c1">#    &lt;&lt;TABLE BORDER=&quot;0&quot; CELLBORDER=&quot;1&quot; CELLSPACING=&quot;0&quot;&gt;</span>
+    <span class="c1">#      &lt;TR&gt;&lt;TD&gt;left&lt;/TD&gt;&lt;TD PORT=&quot;f1&quot;&gt;mid dle&lt;/TD&gt;&lt;TD PORT=&quot;f2&quot;&gt;right&lt;/TD&gt;&lt;/TR&gt;</span>
+    <span class="c1">#    &lt;/TABLE&gt;&gt;</span>
+    <span class="c1">#    &#39;&#39;&#39;)</span>
+
+    <span class="c1">#graph.node[annot1][&#39;shape&#39;] = &#39;none&#39;</span>
+    <span class="c1">#graph.node[annot1][&#39;margin&#39;] = &#39;0&#39;</span>
+
+    <span class="n">layoutkw</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;forcelabels&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s1">&#39;prog&#39;</span><span class="p">:</span> <span class="s1">&#39;dot&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;rankdir&#39;</span><span class="p">:</span> <span class="s1">&#39;LR&#39;</span><span class="p">,</span>
+        <span class="c1"># &#39;splines&#39;: &#39;curved&#39;,</span>
+        <span class="s1">&#39;splines&#39;</span><span class="p">:</span> <span class="s1">&#39;line&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;samplepoints&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+        <span class="s1">&#39;showboxes&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="c1"># &#39;splines&#39;: &#39;polyline&#39;,</span>
+        <span class="c1">#&#39;splines&#39;: &#39;spline&#39;,</span>
+        <span class="s1">&#39;sep&#39;</span><span class="p">:</span> <span class="mi">100</span> <span class="o">/</span> <span class="mi">72</span><span class="p">,</span>
+        <span class="s1">&#39;nodesep&#39;</span><span class="p">:</span> <span class="mi">300</span> <span class="o">/</span> <span class="mi">72</span><span class="p">,</span>
+        <span class="s1">&#39;ranksep&#39;</span><span class="p">:</span> <span class="mi">300</span> <span class="o">/</span> <span class="mi">72</span><span class="p">,</span>
+        <span class="c1">#&#39;inputscale&#39;: 72,</span>
+        <span class="c1"># &#39;inputscale&#39;: 1,</span>
+        <span class="c1"># &#39;dpi&#39;: 72,</span>
+        <span class="c1"># &#39;concentrate&#39;: &#39;true&#39;, # merges edge lines</span>
+        <span class="c1"># &#39;splines&#39;: &#39;ortho&#39;,</span>
+        <span class="c1"># &#39;aspect&#39;: 1,</span>
+        <span class="c1"># &#39;ratio&#39;: &#39;compress&#39;,</span>
+        <span class="c1"># &#39;size&#39;: &#39;5,4000&#39;,</span>
+        <span class="c1"># &#39;rank&#39;: &#39;max&#39;,</span>
+    <span class="p">}</span>
+
+    <span class="c1">#fontkw = dict(fontfamilty=&#39;sans-serif&#39;, fontweight=&#39;normal&#39;, fontsize=12)</span>
+    <span class="c1">#fontkw = dict(fontname=&#39;Ubuntu&#39;, fontweight=&#39;normal&#39;, fontsize=12)</span>
+    <span class="c1">#fontkw = dict(fontname=&#39;Ubuntu&#39;, fontweight=&#39;light&#39;, fontsize=20)</span>
+    <span class="n">fontkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fontname</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;light&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    <span class="c1">#prop = fm.FontProperties(fname=&#39;/usr/share/fonts/truetype/groovygh.ttf&#39;)</span>
+
+    <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="s1">&#39;agraph&#39;</span><span class="p">,</span> <span class="n">layoutkw</span><span class="o">=</span><span class="n">layoutkw</span><span class="p">,</span> <span class="o">**</span><span class="n">fontkw</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">zoom_factory</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="graphcut_flow"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.specialdraw.graphcut_flow">[docs]</a><span class="k">def</span> <span class="nf">graphcut_flow</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: name</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw graphcut_flow --show --save cutflow.png --diskshow --clipwhite</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw graphcut_flow --save figures4/cutiden.png --diskshow --clipwhite --dpath ~/latex/crall-candidacy-2015/ --figsize=24,10 --arrow-width=2.0</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.specialdraw import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; graphcut_flow()</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+    <span class="c1"># pt.plt.xkcd()</span>
+
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">makecluster</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="o">**</span><span class="n">attrkw</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="o">**</span><span class="n">attrkw</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">add_edge2</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_iterable</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_u</span><span class="p">,</span> <span class="n">_v</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+            <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">_u</span><span class="p">,</span> <span class="n">_v</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">ns</span> <span class="o">=</span> <span class="mi">512</span>
+
+    <span class="c1"># *** Primary color:</span>
+    <span class="n">p_shade2</span> <span class="o">=</span> <span class="s1">&#39;#41629A&#39;</span>
+    <span class="c1"># *** Secondary color</span>
+    <span class="n">s1_shade2</span> <span class="o">=</span> <span class="s1">&#39;#E88B53&#39;</span>
+    <span class="c1"># *** Secondary color</span>
+    <span class="n">s2_shade2</span> <span class="o">=</span> <span class="s1">&#39;#36977F&#39;</span>
+    <span class="c1"># *** Complement color</span>
+    <span class="n">c_shade2</span> <span class="o">=</span> <span class="s1">&#39;#E8B353&#39;</span>
+
+    <span class="n">annot1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;Unlabeled</span><span class="se">\n</span><span class="s1">annotations</span><span class="se">\n</span><span class="s1">(query)&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">ns</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">ns</span><span class="p">,</span>
+                            <span class="n">groupid</span><span class="o">=</span><span class="s1">&#39;annot&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">p_shade2</span><span class="p">)</span>
+    <span class="n">annot2</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;Labeled</span><span class="se">\n</span><span class="s1">annotations</span><span class="se">\n</span><span class="s1">(database)&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">ns</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">ns</span><span class="p">,</span>
+                            <span class="n">groupid</span><span class="o">=</span><span class="s1">&#39;annot&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">s1_shade2</span><span class="p">)</span>
+    <span class="n">occurprob</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;Dense </span><span class="se">\n</span><span class="s1">probabilities&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">p_shade2</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">cacheprob</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;Cached </span><span class="se">\n</span><span class="s1">probabilities&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">s1_shade2</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">sparseprob</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;Sparse</span><span class="se">\n</span><span class="s1">probabilities&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">c_shade2</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">annot1</span><span class="p">,</span> <span class="n">occurprob</span><span class="p">)</span>
+
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">annot1</span><span class="p">,</span> <span class="n">sparseprob</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">annot2</span><span class="p">,</span> <span class="n">sparseprob</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">annot2</span><span class="p">,</span> <span class="n">cacheprob</span><span class="p">)</span>
+
+    <span class="n">matchgraph</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;Graph of</span><span class="se">\n</span><span class="s1">potential matches&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">s2_shade2</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">cutalgo</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;Graph cut algorithm&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">s2_shade2</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">),</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;ellipse&#39;</span><span class="p">)</span>
+    <span class="n">cc_names</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_makenode</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;Identifications,</span><span class="se">\n</span><span class="s1"> splits, and merges are</span><span class="se">\n</span><span class="s1">connected compoments&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lighten_hex</span><span class="p">(</span><span class="n">s2_shade2</span><span class="p">,</span> <span class="o">.</span><span class="mi">3</span><span class="p">))</span>
+
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">occurprob</span><span class="p">,</span> <span class="n">matchgraph</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">sparseprob</span><span class="p">,</span> <span class="n">matchgraph</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">cacheprob</span><span class="p">,</span> <span class="n">matchgraph</span><span class="p">)</span>
+
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">matchgraph</span><span class="p">,</span> <span class="n">cutalgo</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">cutalgo</span><span class="p">,</span> <span class="n">cc_names</span><span class="p">)</span>
+
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">,</span>  <span class="s1">&#39;rect&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;style&#39;</span><span class="p">,</span>  <span class="s1">&#39;filled,rounded&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;fixedsize&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="n">ns</span> <span class="o">*</span> <span class="n">ut</span><span class="o">.</span><span class="n">PHI</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span> <span class="n">ns</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">ut</span><span class="o">.</span><span class="n">PHI</span><span class="p">))</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_set_default_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;regular&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+    <span class="n">layoutkw</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;prog&#39;</span><span class="p">:</span> <span class="s1">&#39;dot&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;rankdir&#39;</span><span class="p">:</span> <span class="s1">&#39;LR&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;splines&#39;</span><span class="p">:</span> <span class="s1">&#39;line&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sep&#39;</span><span class="p">:</span> <span class="mi">100</span> <span class="o">/</span> <span class="mi">72</span><span class="p">,</span>
+        <span class="s1">&#39;nodesep&#39;</span><span class="p">:</span> <span class="mi">300</span> <span class="o">/</span> <span class="mi">72</span><span class="p">,</span>
+        <span class="s1">&#39;ranksep&#39;</span><span class="p">:</span> <span class="mi">300</span> <span class="o">/</span> <span class="mi">72</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">fontkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fontname</span><span class="o">=</span><span class="s1">&#39;Ubuntu&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;light&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="s1">&#39;agraph&#39;</span><span class="p">,</span> <span class="n">layoutkw</span><span class="o">=</span><span class="n">layoutkw</span><span class="p">,</span> <span class="o">**</span><span class="n">fontkw</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">zoom_factory</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="merge_viewpoint_graph"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.specialdraw.merge_viewpoint_graph">[docs]</a><span class="k">def</span> <span class="nf">merge_viewpoint_graph</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw merge_viewpoint_graph --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.specialdraw import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; result = merge_viewpoint_graph()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+
+    <span class="n">defaultdb</span> <span class="o">=</span> <span class="s1">&#39;PZ_Master1&#39;</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="n">defaultdb</span><span class="p">)</span>
+
+    <span class="c1">#nids = None</span>
+    <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="mi">4875</span><span class="p">)</span>
+    <span class="n">ibs</span><span class="o">.</span><span class="n">print_annot_stats</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+
+    <span class="n">left_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">right_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+    <span class="n">right_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">right_aids</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="mi">14517</span><span class="p">})[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">back</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s1">&#39;back&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+    <span class="n">backleft</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s1">&#39;backleft&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+    <span class="n">backright</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s1">&#39;backright&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+
+    <span class="n">right_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">upper_diag_self_prodx</span><span class="p">(</span><span class="n">right_aids</span><span class="p">))</span>
+    <span class="n">left_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">upper_diag_self_prodx</span><span class="p">(</span><span class="n">left_aids</span><span class="p">))</span>
+    <span class="n">back_edges</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">tuple</span><span class="p">([</span><span class="n">back</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">backright</span><span class="p">[</span><span class="mi">0</span><span class="p">]][::</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="nb">tuple</span><span class="p">([</span><span class="n">back</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">backleft</span><span class="p">[</span><span class="mi">0</span><span class="p">]][::</span><span class="mi">1</span><span class="p">]),</span>
+    <span class="p">]</span>
+    <span class="n">back_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">(</span><span class="n">back_edges</span><span class="p">)</span>
+
+    <span class="c1"># Let the graph be a bit smaller</span>
+
+    <span class="n">right_graph</span><span class="o">.</span><span class="n">edge</span><span class="p">[</span><span class="n">right_aids</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="n">right_aids</span><span class="p">[</span><span class="mi">2</span><span class="p">]][</span><span class="s1">&#39;constraint&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--constraint&#39;</span><span class="p">)</span>
+    <span class="n">left_graph</span><span class="o">.</span><span class="n">edge</span><span class="p">[</span><span class="n">left_aids</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="n">left_aids</span><span class="p">[</span><span class="mi">2</span><span class="p">]][</span><span class="s1">&#39;constraint&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--constraint&#39;</span><span class="p">)</span>
+
+    <span class="c1">#right_graph = right_graph.to_undirected().to_directed()</span>
+    <span class="c1">#left_graph = left_graph.to_undirected().to_directed()</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">right_graph</span><span class="p">,</span> <span class="s1">&#39;groupid&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">left_graph</span><span class="p">,</span> <span class="s1">&#39;groupid&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+    <span class="c1">#nx.set_node_attributes(right_graph, &#39;scale&#39;, .2)</span>
+    <span class="c1">#nx.set_node_attributes(left_graph, &#39;scale&#39;, .2)</span>
+    <span class="c1">#back_graph.node[back[0]][&#39;scale&#39;] = 2.3</span>
+
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">back_graph</span><span class="p">,</span> <span class="s1">&#39;groupid&#39;</span><span class="p">,</span> <span class="s1">&#39;back&#39;</span><span class="p">)</span>
+
+    <span class="n">view_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">compose_all</span><span class="p">([</span><span class="n">left_graph</span><span class="p">,</span> <span class="n">back_graph</span><span class="p">,</span> <span class="n">right_graph</span><span class="p">])</span>
+    <span class="n">view_graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">([</span>
+        <span class="p">[</span><span class="n">backright</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">right_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">backleft</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">left_aids</span><span class="p">[</span><span class="mi">0</span><span class="p">]][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="p">])</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span> <span class="o">=</span> <span class="n">view_graph</span>  <span class="c1"># NOQA</span>
+    <span class="c1">#graph = graph.to_undirected()</span>
+
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">DARK_ORANGE</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>
+    <span class="c1">#nx.set_edge_attributes(graph, &#39;color&#39;, pt.BLACK)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="p">{</span><span class="n">edge</span><span class="p">:</span> <span class="n">pt</span><span class="o">.</span><span class="n">LIGHT_BLUE</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">back_edges</span><span class="p">})</span>
+
+    <span class="c1">#pt.close_all_figures();</span>
+    <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_graph</span>
+    <span class="n">layoutkw</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;nodesep&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">viz_graph</span><span class="o">.</span><span class="n">viz_netx_chipgraph</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">with_images</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="s1">&#39;dot&#39;</span><span class="p">,</span>
+                                 <span class="n">augment_graph</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">layoutkw</span><span class="o">=</span><span class="n">layoutkw</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        #view_graph = left_graph</span>
+<span class="sd">        pt.close_all_figures(); viz_netx_chipgraph(ibs, view_graph, with_images=0, prog=&#39;neato&#39;)</span>
+<span class="sd">        #viz_netx_chipgraph(ibs, view_graph, layout=&#39;pydot&#39;, with_images=False)</span>
+<span class="sd">        #back_graph = make_name_graph_interaction(ibs, aids=back, with_all=False)</span>
+
+<span class="sd">        aids = left_aids + back + backleft + backright + right_aids</span>
+
+<span class="sd">        for aid, chip in zip(aids, ibs.get_annot_chips(aids)):</span>
+<span class="sd">            fpath = ut.truepath(&#39;~/slides/merge/aid_%d.jpg&#39; % (aid,))</span>
+<span class="sd">            vt.imwrite(fpath, vt.resize_to_maxdims(chip, (400, 400)))</span>
+
+<span class="sd">        ut.copy_files_to(, )</span>
+
+<span class="sd">        aids = ibs.filterannots_by_tags(ibs.get_valid_aids(),</span>
+<span class="sd">        dict(has_any_annotmatch=&#39;splitcase&#39;))</span>
+
+<span class="sd">        aid1 = ibs.group_annots_by_name_dict(aids)[252]</span>
+<span class="sd">        aid2 = ibs.group_annots_by_name_dict(aids)[6791]</span>
+<span class="sd">        aids1 = ibs.get_annot_groundtruth(aid1)[0][0:4]</span>
+<span class="sd">        aids2 = ibs.get_annot_groundtruth(aid2)[0]</span>
+
+<span class="sd">        make_name_graph_interaction(ibs, aids=aids1 + aids2, with_all=False)</span>
+
+<span class="sd">        ut.ensuredir(ut.truthpath(&#39;~/slides/split/))</span>
+
+<span class="sd">        for aid, chip in zip(aids, ibs.get_annot_chips(aids)):</span>
+<span class="sd">            fpath = ut.truepath(&#39;~/slides/merge/aidA_%d.jpg&#39; % (aid,))</span>
+<span class="sd">            vt.imwrite(fpath, vt.resize_to_maxdims(chip, (400, 400)))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="setcover_example"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.specialdraw.setcover_example">[docs]</a><span class="k">def</span> <span class="nf">setcover_example</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw setcover_example --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.specialdraw import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; result = setcover_example()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_graph</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb2&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="c1"># Select a good set</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_nids</span><span class="p">())</span>
+        <span class="c1"># ibeis.testdata_aids(&#39;testdb2&#39;, a=&#39;default:mingt=2&#39;)</span>
+        <span class="n">aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">aids</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">aids</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr3</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_stats_dict</span><span class="p">(</span><span class="n">a</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">aids</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+    <span class="c1">#aids = [78, 79, 80, 81, 88, 91]</span>
+    <span class="n">aids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">78</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">81</span><span class="p">,</span> <span class="mi">88</span><span class="p">,</span> <span class="mi">91</span><span class="p">]</span>
+    <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">depc</span><span class="o">.</span><span class="n">new_request</span><span class="p">(</span><span class="s1">&#39;vsone&#39;</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="p">{})</span>
+    <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+    <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">graph_iden</span>
+    <span class="n">infr</span> <span class="o">=</span> <span class="n">graph_iden</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">cm_list</span><span class="p">)</span>
+    <span class="n">unique_aids</span><span class="p">,</span> <span class="n">prob_annots</span> <span class="o">=</span> <span class="n">infr</span><span class="o">.</span><span class="n">make_prob_annots</span><span class="p">()</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">hz_str</span><span class="p">(</span><span class="s1">&#39;prob_annots = &#39;</span><span class="p">,</span> <span class="n">ut</span><span class="o">.</span><span class="n">array2string2</span><span class="p">(</span><span class="n">prob_annots</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_line_width</span><span class="o">=</span><span class="mi">140</span><span class="p">,</span> <span class="n">suppress_small</span><span class="o">=</span><span class="bp">True</span><span class="p">)))</span>
+    <span class="c1"># ut.setcover_greedy(candidate_sets_dict)</span>
+    <span class="n">max_weight</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">prob_annots</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">diag_indices</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">prob_annots</span><span class="p">))]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="n">prob_annots</span> <span class="o">=</span> <span class="n">prob_annots</span>
+    <span class="n">thresh_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">prob_annots</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">prob_annots</span><span class="p">)])</span>
+
+    <span class="c1"># probably not the best way to go about searching for these thresholds</span>
+    <span class="c1"># but when you have a hammer...</span>
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">quant</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">thresh_points</span><span class="p">))[(</span><span class="nb">len</span><span class="p">(</span><span class="n">thresh_points</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span> <span class="p">]</span>
+        <span class="n">candset</span> <span class="o">=</span> <span class="p">{</span><span class="n">point</span><span class="p">:</span> <span class="n">thresh_points</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">thresh_points</span> <span class="o">-</span> <span class="n">point</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">quant</span><span class="p">]</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">thresh_points</span><span class="p">}</span>
+        <span class="n">check_thresholds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+        <span class="n">thresh_points2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">setcover_greedy</span><span class="p">(</span><span class="n">candset</span><span class="p">,</span> <span class="n">max_weight</span><span class="o">=</span><span class="n">check_thresholds</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">thresh_points</span> <span class="o">=</span> <span class="n">thresh_points2</span>
+
+    <span class="c1"># pt.plot(sorted(thresh_points), &#39;rx&#39;)</span>
+    <span class="c1"># pt.plot(sorted(thresh_points2), &#39;o&#39;)</span>
+
+    <span class="c1"># prob_annots = prob_annots.T</span>
+
+    <span class="c1"># thresh_start = np.mean(thresh_points)</span>
+    <span class="n">current_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_covers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">for</span> <span class="n">thresh</span> <span class="ow">in</span> <span class="n">thresh_points</span><span class="p">:</span>
+        <span class="n">covering_sets</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">row</span> <span class="o">&gt;=</span> <span class="n">thresh</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="p">(</span><span class="n">prob_annots</span><span class="p">)]</span>
+        <span class="n">candidate_sets_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">ax</span><span class="p">:</span> <span class="n">others</span> <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">others</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">covering_sets</span><span class="p">)}</span>
+        <span class="n">soln_cover</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">setcover_ilp</span><span class="p">(</span><span class="n">candidate_sets_dict</span><span class="p">,</span> <span class="n">max_weight</span><span class="o">=</span><span class="n">max_weight</span><span class="p">)</span>
+        <span class="n">exemplar_idxs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">soln_cover</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">soln_weight</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">exemplar_idxs</span><span class="p">)</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">max_weight</span> <span class="o">-</span> <span class="n">soln_weight</span>
+        <span class="c1"># print(&#39;val = %r&#39; % (val,))</span>
+        <span class="c1"># print(&#39;soln_weight = %r&#39; % (soln_weight,))</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;</span> <span class="n">current_val</span><span class="p">:</span>
+            <span class="n">current_val</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="n">current_covers</span> <span class="o">=</span> <span class="n">covering_sets</span>
+            <span class="n">current_idxs</span> <span class="o">=</span> <span class="n">exemplar_idxs</span>
+    <span class="n">exemplars</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">aids</span><span class="p">,</span> <span class="n">current_idxs</span><span class="p">)</span>
+    <span class="n">ensure_edges</span> <span class="o">=</span> <span class="p">[(</span><span class="n">aids</span><span class="p">[</span><span class="n">ax</span><span class="p">],</span> <span class="n">aids</span><span class="p">[</span><span class="n">ax2</span><span class="p">])</span> <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">other_xs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">current_covers</span><span class="p">)</span> <span class="k">for</span> <span class="n">ax2</span> <span class="ow">in</span> <span class="n">other_xs</span><span class="p">]</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">viz_graph</span><span class="o">.</span><span class="n">make_netx_graph_from_aid_groups</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="p">[</span><span class="n">aids</span><span class="p">],</span> <span class="n">allow_directed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">ensure_edges</span><span class="o">=</span><span class="n">ensure_edges</span><span class="p">,</span>
+        <span class="n">temp_nids</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">))</span>
+    <span class="n">viz_graph</span><span class="o">.</span><span class="n">ensure_node_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;framewidth&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;framewidth&#39;</span><span class="p">,</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="mf">4.0</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">exemplars</span><span class="p">})</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">ORANGE</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">LIGHT_BLUE</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">,</span> <span class="s1">&#39;rect&#39;</span><span class="p">)</span>
+
+    <span class="n">layoutkw</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;sep&#39;</span> <span class="p">:</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="s1">&#39;prog&#39;</span><span class="p">:</span> <span class="s1">&#39;neato&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;overlap&#39;</span><span class="p">:</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span>
+        <span class="c1">#&#39;splines&#39;: &#39;ortho&#39;,</span>
+        <span class="s1">&#39;splines&#39;</span><span class="p">:</span> <span class="s1">&#39;spline&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="s1">&#39;agraph&#39;</span><span class="p">,</span> <span class="n">layoutkw</span><span class="o">=</span><span class="n">layoutkw</span><span class="p">)</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">zoom_factory</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="intraoccurrence_connected"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.specialdraw.intraoccurrence_connected">[docs]</a><span class="k">def</span> <span class="nf">intraoccurrence_connected</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw intraoccurrence_connected --show</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw intraoccurrence_connected --show --postcut</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw intraoccurrence_connected --show --smaller</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.specialdraw import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; result = intraoccurrence_connected()</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">ibeis</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_graph</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;PZ_Master1&#39;</span><span class="p">)</span>
+    <span class="n">nid2_aid</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1">#4880: [3690, 3696, 3703, 3706, 3712, 3721],</span>
+        <span class="mi">4880</span><span class="p">:</span> <span class="p">[</span><span class="mi">3690</span><span class="p">,</span> <span class="mi">3696</span><span class="p">,</span> <span class="mi">3703</span><span class="p">],</span>
+        <span class="mi">6537</span><span class="p">:</span> <span class="p">[</span><span class="mi">3739</span><span class="p">],</span>
+        <span class="mi">6653</span><span class="p">:</span> <span class="p">[</span><span class="mi">7671</span><span class="p">],</span>
+        <span class="mi">6610</span><span class="p">:</span> <span class="p">[</span><span class="mi">7566</span><span class="p">,</span> <span class="mi">7408</span><span class="p">],</span>
+        <span class="c1">#6612: [7664, 7462, 7522],</span>
+        <span class="c1">#6624: [7465, 7360],</span>
+        <span class="c1">#6625: [7746, 7383, 7390, 7477, 7376, 7579],</span>
+        <span class="mi">6630</span><span class="p">:</span> <span class="p">[</span><span class="mi">7586</span><span class="p">,</span> <span class="mi">7377</span><span class="p">,</span> <span class="mi">7464</span><span class="p">,</span> <span class="mi">7478</span><span class="p">],</span>
+        <span class="c1">#6677: [7500]</span>
+    <span class="p">}</span>
+    <span class="n">nid2_dbaids</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mi">4880</span><span class="p">:</span> <span class="p">[</span><span class="mi">33</span><span class="p">,</span> <span class="mi">6120</span><span class="p">,</span> <span class="mi">7164</span><span class="p">],</span>
+        <span class="mi">6537</span><span class="p">:</span> <span class="p">[</span><span class="mi">7017</span><span class="p">,</span> <span class="mi">7206</span><span class="p">],</span>
+        <span class="mi">6653</span><span class="p">:</span> <span class="p">[</span><span class="mi">7660</span><span class="p">]</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--small&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--smaller&#39;</span><span class="p">):</span>
+        <span class="k">del</span> <span class="n">nid2_aid</span><span class="p">[</span><span class="mi">6630</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">nid2_aid</span><span class="p">[</span><span class="mi">6537</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">nid2_dbaids</span><span class="p">[</span><span class="mi">6537</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--smaller&#39;</span><span class="p">):</span>
+            <span class="n">nid2_dbaids</span><span class="p">[</span><span class="mi">4880</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="mi">33</span><span class="p">)</span>
+            <span class="n">nid2_aid</span><span class="p">[</span><span class="mi">4880</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="mi">3690</span><span class="p">)</span>
+            <span class="n">nid2_aid</span><span class="p">[</span><span class="mi">6610</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="mi">7408</span><span class="p">)</span>
+        <span class="c1">#del nid2_aid[4880]</span>
+        <span class="c1">#del nid2_dbaids[4880]</span>
+
+    <span class="n">aids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">nid2_aid</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="n">temp_nids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+    <span class="n">postcut</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--postcut&#39;</span><span class="p">)</span>
+    <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">group_annots_by_name</span><span class="p">(</span><span class="n">aids</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ensure_edges</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span> <span class="k">if</span> <span class="bp">True</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">postcut</span> <span class="k">else</span> <span class="bp">None</span>
+    <span class="n">unlabeled_graph</span> <span class="o">=</span> <span class="n">viz_graph</span><span class="o">.</span><span class="n">make_netx_graph_from_aid_groups</span><span class="p">(</span>
+        <span class="n">ibs</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span>
+        <span class="c1">#invis_edges=invis_edges,</span>
+        <span class="n">ensure_edges</span><span class="o">=</span><span class="n">ensure_edges</span><span class="p">,</span> <span class="n">temp_nids</span><span class="o">=</span><span class="n">temp_nids</span><span class="p">)</span>
+    <span class="n">viz_graph</span><span class="o">.</span><span class="n">color_by_nids</span><span class="p">(</span><span class="n">unlabeled_graph</span><span class="p">,</span> <span class="n">unique_nids</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span>
+                            <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">unlabeled_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())))</span>
+    <span class="n">viz_graph</span><span class="o">.</span><span class="n">ensure_node_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">unlabeled_graph</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">unlabeled_graph</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">,</span> <span class="s1">&#39;rect&#39;</span><span class="p">)</span>
+    <span class="c1">#unlabeled_graph = unlabeled_graph.to_undirected()</span>
+
+    <span class="c1"># Find the &quot;database exemplars for these annots&quot;</span>
+    <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">gt_aids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_groundtruth</span><span class="p">(</span><span class="n">aids</span><span class="p">)</span>
+        <span class="n">gt_aids</span> <span class="o">=</span> <span class="p">[</span><span class="n">ut</span><span class="o">.</span><span class="n">setdiff</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">aids</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">gt_aids</span><span class="p">]</span>
+        <span class="n">dbaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">gt_aids</span><span class="p">))</span>
+        <span class="n">dbaids</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">filter_annots_general</span><span class="p">(</span><span class="n">dbaids</span><span class="p">,</span> <span class="n">minqual</span><span class="o">=</span><span class="s1">&#39;good&#39;</span><span class="p">)</span>
+        <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_quality_texts</span><span class="p">(</span><span class="n">dbaids</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dbaids</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">nid2_dbaids</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">exemplars</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+    <span class="c1">#graph = exemplars  # NOQA</span>
+    <span class="n">exemplars</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">dbaids</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_clique</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">edgeattrs</span><span class="o">=</span><span class="p">{},</span> <span class="n">nodeattrs</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="n">edge_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">upper_diag_self_prodx</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">edge_list</span><span class="p">,</span> <span class="o">**</span><span class="n">edgeattrs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">edge_list</span>
+
+    <span class="k">for</span> <span class="n">aids_</span><span class="p">,</span> <span class="n">nid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">ibs</span><span class="o">.</span><span class="n">group_annots_by_name</span><span class="p">(</span><span class="n">dbaids</span><span class="p">)):</span>
+        <span class="n">add_clique</span><span class="p">(</span><span class="n">exemplars</span><span class="p">,</span> <span class="n">aids_</span><span class="p">)</span>
+    <span class="n">viz_graph</span><span class="o">.</span><span class="n">ensure_node_images</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">exemplars</span><span class="p">)</span>
+    <span class="n">viz_graph</span><span class="o">.</span><span class="n">color_by_nids</span><span class="p">(</span><span class="n">exemplars</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">unlabeled_graph</span><span class="p">,</span> <span class="s1">&#39;framewidth&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">exemplars</span><span class="p">,</span>  <span class="s1">&#39;framewidth&#39;</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">)</span>
+
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">unlabeled_graph</span><span class="p">,</span> <span class="s1">&#39;group&#39;</span><span class="p">,</span> <span class="s1">&#39;unlab&#39;</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">exemplars</span><span class="p">,</span>  <span class="s1">&#39;group&#39;</span><span class="p">,</span> <span class="s1">&#39;exemp&#39;</span><span class="p">)</span>
+
+    <span class="c1">#big_graph = nx.compose_all([unlabeled_graph])</span>
+    <span class="n">big_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">compose_all</span><span class="p">([</span><span class="n">exemplars</span><span class="p">,</span> <span class="n">unlabeled_graph</span><span class="p">])</span>
+
+    <span class="c1"># add sparse connections from unlabeled to exemplars</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">True</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">postcut</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">aid_</span> <span class="ow">in</span> <span class="n">unlabeled_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
+            <span class="n">flags</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">exemplars</span><span class="p">))</span> <span class="o">&gt;</span> <span class="o">.</span><span class="mi">5</span>
+            <span class="n">nid_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_</span><span class="p">)</span>
+            <span class="n">exnids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">exemplars</span><span class="o">.</span><span class="n">nodes</span><span class="p">())))</span>
+            <span class="n">flags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">exnids</span> <span class="o">==</span> <span class="n">nid_</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+            <span class="n">exmatches</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">exemplars</span><span class="o">.</span><span class="n">nodes</span><span class="p">()),</span> <span class="n">flags</span><span class="p">)</span>
+            <span class="n">big_graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">product</span><span class="p">([</span><span class="n">aid_</span><span class="p">],</span> <span class="n">exmatches</span><span class="p">)),</span>
+                                     <span class="n">color</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">ORANGE</span><span class="p">,</span> <span class="n">implicit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">aid_</span> <span class="ow">in</span> <span class="n">unlabeled_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
+            <span class="n">flags</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">exemplars</span><span class="p">))</span> <span class="o">&gt;</span> <span class="o">.</span><span class="mi">5</span>
+            <span class="n">exmatches</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">exemplars</span><span class="o">.</span><span class="n">nodes</span><span class="p">()),</span> <span class="n">flags</span><span class="p">)</span>
+            <span class="n">nid_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid_</span><span class="p">)</span>
+            <span class="n">exnids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">exmatches</span><span class="p">))</span>
+            <span class="n">exmatches</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">exmatches</span><span class="p">,</span> <span class="n">exnids</span> <span class="o">==</span> <span class="n">nid_</span><span class="p">)</span>
+            <span class="n">big_graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">product</span><span class="p">([</span><span class="n">aid_</span><span class="p">],</span> <span class="n">exmatches</span><span class="p">)))</span>
+        <span class="k">pass</span>
+
+    <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">big_graph</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">,</span> <span class="s1">&#39;rect&#39;</span><span class="p">)</span>
+    <span class="c1">#if False and postcut:</span>
+    <span class="c1">#    ut.nx_delete_node_attr(big_graph, &#39;nid&#39;)</span>
+    <span class="c1">#    ut.nx_delete_edge_attr(big_graph, &#39;color&#39;)</span>
+    <span class="c1">#    viz_graph.ensure_graph_nid_labels(big_graph, ibs=ibs)</span>
+    <span class="c1">#    viz_graph.color_by_nids(big_graph, ibs=ibs)</span>
+    <span class="c1">#    big_graph = big_graph.to_undirected()</span>
+
+    <span class="n">layoutkw</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;sep&#39;</span> <span class="p">:</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="s1">&#39;prog&#39;</span><span class="p">:</span> <span class="s1">&#39;neato&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;overlap&#39;</span><span class="p">:</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span>
+        <span class="c1">#&#39;splines&#39;: &#39;ortho&#39;,</span>
+        <span class="s1">&#39;splines&#39;</span><span class="p">:</span> <span class="s1">&#39;spline&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">as_directed</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="c1">#as_directed = True</span>
+    <span class="c1">#hacknode = True</span>
+    <span class="n">hacknode</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">big_graph</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">nx_ensure_agraph_color</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hacknode</span><span class="p">:</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;taillabel&#39;</span><span class="p">,</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()})</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_edge_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;headlabel&#39;</span><span class="p">,</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">()})</span>
+
+    <span class="n">explicit_graph</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_explicit_graph</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">layout_info</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">nx_agraph_layout</span><span class="p">(</span><span class="n">explicit_graph</span><span class="p">,</span> <span class="n">orig_graph</span><span class="o">=</span><span class="n">graph</span><span class="p">,</span>
+                                         <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">layoutkw</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--smaller&#39;</span><span class="p">):</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="mi">7660</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">550</span><span class="p">,</span> <span class="mi">350</span><span class="p">])</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="mi">6120</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">200</span><span class="p">,</span> <span class="mi">600</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">350</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">])</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="mi">7164</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">200</span><span class="p">,</span> <span class="mi">480</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">350</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">])</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;pin&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">layout_info</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">nx_agraph_layout</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span>
+                                             <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">layoutkw</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--small&#39;</span><span class="p">):</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="mi">7660</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">750</span><span class="p">,</span> <span class="mi">350</span><span class="p">])</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="mi">33</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">300</span><span class="p">,</span> <span class="mi">600</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">350</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">])</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="mi">6120</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">500</span><span class="p">,</span> <span class="mi">600</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">350</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">])</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="mi">7164</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">410</span><span class="p">,</span> <span class="mi">480</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">350</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">])</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;pin&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">layout_info</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">nx_agraph_layout</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span>
+                                             <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">layoutkw</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">postcut</span><span class="p">:</span>
+        <span class="c1">#pt.show_nx(graph.to_undirected(), layout=&#39;agraph&#39;, layoutkw=layoutkw,</span>
+        <span class="c1">#           as_directed=False)</span>
+        <span class="c1">#pt.show_nx(graph, layout=&#39;agraph&#39;, layoutkw=layoutkw,</span>
+        <span class="c1">#           as_directed=as_directed, hacknode=hacknode)</span>
+
+        <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="s1">&#39;custom&#39;</span><span class="p">,</span> <span class="n">layoutkw</span><span class="o">=</span><span class="n">layoutkw</span><span class="p">,</span>
+                   <span class="n">as_directed</span><span class="o">=</span><span class="n">as_directed</span><span class="p">,</span> <span class="n">hacknode</span><span class="o">=</span><span class="n">hacknode</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1">#explicit_graph = pt.get_explicit_graph(graph)</span>
+        <span class="c1">#_, layout_info = pt.nx_agraph_layout(explicit_graph, orig_graph=graph,</span>
+        <span class="c1">#                                     **layoutkw)</span>
+
+        <span class="c1">#layout_info[&#39;edge&#39;][&#39;alpha&#39;] = .8</span>
+        <span class="c1">#pt.apply_graph_layout_attrs(graph, layout_info)</span>
+
+        <span class="c1">#graph_layout_attrs = layout_info[&#39;graph&#39;]</span>
+        <span class="c1">##edge_layout_attrs  = layout_info[&#39;edge&#39;]</span>
+        <span class="c1">##node_layout_attrs  = layout_info[&#39;node&#39;]</span>
+
+        <span class="c1">#for key, vals in layout_info[&#39;node&#39;].items():</span>
+        <span class="c1">#    #print(&#39;[special] key = %r&#39; % (key,))</span>
+        <span class="c1">#    nx.set_node_attributes(graph, key, vals)</span>
+
+        <span class="c1">#for key, vals in layout_info[&#39;edge&#39;].items():</span>
+        <span class="c1">#    #print(&#39;[special] key = %r&#39; % (key,))</span>
+        <span class="c1">#    nx.set_edge_attributes(graph, key, vals)</span>
+
+        <span class="c1">#nx.set_edge_attributes(graph, &#39;alpha&#39;, .8)</span>
+        <span class="c1">#graph.graph[&#39;splines&#39;] = graph_layout_attrs.get(&#39;splines&#39;, &#39;line&#39;)</span>
+        <span class="c1">#graph.graph[&#39;splines&#39;] = &#39;polyline&#39;   # graph_layout_attrs.get(&#39;splines&#39;, &#39;line&#39;)</span>
+        <span class="c1">#graph.graph[&#39;splines&#39;] = &#39;line&#39;</span>
+
+        <span class="n">cut_graph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">edge_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cut_graph</span><span class="o">.</span><span class="n">edges</span><span class="p">())</span>
+        <span class="n">edge_nids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">unflat_map</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">,</span> <span class="n">edge_list</span><span class="p">))</span>
+        <span class="n">cut_flags</span> <span class="o">=</span> <span class="n">edge_nids</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">edge_nids</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">cut_edges</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">edge_list</span><span class="p">,</span> <span class="n">cut_flags</span><span class="p">)</span>
+        <span class="n">cut_graph</span><span class="o">.</span><span class="n">remove_edges_from</span><span class="p">(</span><span class="n">cut_edges</span><span class="p">)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">nx_delete_node_attr</span><span class="p">(</span><span class="n">cut_graph</span><span class="p">,</span> <span class="s1">&#39;nid&#39;</span><span class="p">)</span>
+        <span class="n">viz_graph</span><span class="o">.</span><span class="n">ensure_graph_nid_labels</span><span class="p">(</span><span class="n">cut_graph</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">)</span>
+
+        <span class="c1">#ut.nx_get_default_node_attributes(exemplars, &#39;color&#39;, None)</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">nx_delete_node_attr</span><span class="p">(</span><span class="n">cut_graph</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="n">unlabeled_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
+        <span class="n">aid2_color</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">nx_get_default_node_attributes</span><span class="p">(</span><span class="n">cut_graph</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">nid2_colors</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span><span class="n">aid2_color</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid2_color</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="n">nid2_colors</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">filter_Nones</span><span class="p">,</span> <span class="n">nid2_colors</span><span class="p">)</span>
+        <span class="n">nid2_colors</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">map_dict_vals</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unique</span><span class="p">,</span> <span class="n">nid2_colors</span><span class="p">)</span>
+        <span class="c1">#for val in nid2_colors.values():</span>
+        <span class="c1">#    assert len(val) &lt;= 1</span>
+        <span class="c1"># Get initial colors</span>
+        <span class="n">nid2_color_</span> <span class="o">=</span> <span class="p">{</span><span class="n">nid</span><span class="p">:</span> <span class="n">colors_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">nid</span><span class="p">,</span> <span class="n">colors_</span> <span class="ow">in</span> <span class="n">nid2_colors</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                       <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">colors_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">}</span>
+
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">cut_graph</span>
+        <span class="n">viz_graph</span><span class="o">.</span><span class="n">color_by_nids</span><span class="p">(</span><span class="n">cut_graph</span><span class="p">,</span> <span class="n">ibs</span><span class="o">=</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nid2_color_</span><span class="o">=</span><span class="n">nid2_color_</span><span class="p">)</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">cut_graph</span><span class="p">,</span> <span class="s1">&#39;framewidth&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+        <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">(</span><span class="n">cut_graph</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="s1">&#39;custom&#39;</span><span class="p">,</span> <span class="n">layoutkw</span><span class="o">=</span><span class="n">layoutkw</span><span class="p">,</span>
+                   <span class="n">as_directed</span><span class="o">=</span><span class="n">as_directed</span><span class="p">,</span> <span class="n">hacknode</span><span class="o">=</span><span class="n">hacknode</span><span class="p">)</span>
+
+    <span class="n">pt</span><span class="o">.</span><span class="n">zoom_factory</span><span class="p">()</span>
+
+    <span class="c1"># The database exemplars</span>
+    <span class="c1"># TODO: match these along with the intra encounter set</span>
+    <span class="c1">#interact = viz_graph.make_name_graph_interaction(</span>
+    <span class="c1">#    ibs, aids=dbaids, with_all=False, prog=&#39;neato&#39;, framewidth=True)</span>
+    <span class="c1">#print(interact)</span>
+
+    <span class="c1"># Groupid only works for dot</span>
+    <span class="c1">#nx.set_node_attributes(unlabeled_graph, &#39;groupid&#39;, &#39;unlabeled&#39;)</span>
+    <span class="c1">#nx.set_node_attributes(exemplars, &#39;groupid&#39;, &#39;exemplars&#39;)</span>
+    <span class="c1">#exemplars = exemplars.to_undirected()</span>
+    <span class="c1">#add_clique(exemplars, aids_, edgeattrs=dict(constraint=False))</span>
+    <span class="c1">#layoutkw = {}</span>
+    <span class="c1">#pt.show_nx(exemplars, layout=&#39;agraph&#39;, layoutkw=layoutkw,</span>
+    <span class="c1">#           as_directed=False, framewidth=True,)</span>
+
+</div>
+<div class="viewcode-block" id="scalespace"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.specialdraw.scalespace">[docs]</a><span class="k">def</span> <span class="nf">scalespace</span><span class="p">():</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    THIS DOES NOT SHOW A REAL SCALE SPACE PYRAMID YET. FIXME.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ?: imgBGRA_warped</span>
+
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw scalespace --show</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.scripts.specialdraw import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; imgBGRA_warped = scalespace()</span>
+<span class="sd">        &gt;&gt;&gt; result = (&#39;imgBGRA_warped = %s&#39; % (ut.repr2(imgBGRA_warped),))</span>
+<span class="sd">        &gt;&gt;&gt; print(result)</span>
+<span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="c1"># import matplotlib.pyplot as plt</span>
+    <span class="kn">import</span> <span class="nn">cv2</span>
+    <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">qt4ensure</span><span class="p">()</span>
+
+    <span class="c1">#imgBGR = vt.imread(ut.grab_test_imgpath(&#39;lena.png&#39;))</span>
+    <span class="n">imgBGR</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">grab_test_imgpath</span><span class="p">(</span><span class="s1">&#39;zebra.png&#39;</span><span class="p">))</span>
+    <span class="c1"># imgBGR = vt.imread(ut.grab_test_imgpath(&#39;carl.jpg&#39;))</span>
+
+    <span class="c1"># Convert to colored intensity image</span>
+    <span class="n">imgGray</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2GRAY</span><span class="p">)</span>
+    <span class="n">imgBGR</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">imgGray</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_GRAY2BGR</span><span class="p">)</span>
+    <span class="n">imgRaw</span> <span class="o">=</span> <span class="n">imgBGR</span>
+
+    <span class="c1"># TODO: # stack images in pyramid # boarder?</span>
+    <span class="n">initial_sigma</span> <span class="o">=</span> <span class="mf">1.6</span>
+    <span class="n">num_intervals</span> <span class="o">=</span> <span class="mi">4</span>
+
+    <span class="k">def</span> <span class="nf">makepyramid_octave</span><span class="p">(</span><span class="n">imgRaw</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">num_intervals</span><span class="p">):</span>
+        <span class="c1"># Downsample image to take sigma to a power of level</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="n">level</span><span class="p">))</span>
+        <span class="n">img_level</span> <span class="o">=</span> <span class="n">imgRaw</span><span class="p">[::</span><span class="n">step</span><span class="p">,</span> <span class="p">::</span><span class="n">step</span><span class="p">]</span>
+        <span class="c1"># Compute interval relative scales</span>
+        <span class="n">interval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_intervals</span><span class="p">)))</span>
+        <span class="n">relative_scales</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">((</span><span class="n">interval</span> <span class="o">/</span> <span class="n">num_intervals</span><span class="p">)))</span>
+        <span class="n">sigma_intervals</span> <span class="o">=</span> <span class="n">initial_sigma</span> <span class="o">*</span> <span class="n">relative_scales</span>
+        <span class="n">octave_intervals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sigma</span> <span class="ow">in</span> <span class="n">sigma_intervals</span><span class="p">:</span>
+            <span class="n">sizex</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">6.</span> <span class="o">*</span> <span class="n">sigma</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">6.</span> <span class="o">*</span> <span class="n">sigma</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="n">ksize</span> <span class="o">=</span> <span class="p">(</span><span class="n">sizex</span><span class="p">,</span> <span class="n">sizex</span><span class="p">)</span>
+            <span class="n">img_blur</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">GaussianBlur</span><span class="p">(</span><span class="n">img_level</span><span class="p">,</span> <span class="n">ksize</span><span class="p">,</span> <span class="n">sigmaX</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+                                        <span class="n">sigmaY</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+                                        <span class="n">borderType</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">BORDER_REPLICATE</span><span class="p">)</span>
+            <span class="n">octave_intervals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img_blur</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">octave_intervals</span>
+
+    <span class="n">pyramid</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">num_octaves</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_octaves</span><span class="p">):</span>
+        <span class="n">octave</span> <span class="o">=</span> <span class="n">makepyramid_octave</span><span class="p">(</span><span class="n">imgRaw</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">num_intervals</span><span class="p">)</span>
+        <span class="n">pyramid</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">octave</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">makewarp</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">):</span>
+        <span class="c1"># hack a projection matrix using dummy homogrpahy</span>
+        <span class="n">imgBGRA</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">imgBGR</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2BGRA</span><span class="p">)</span>
+        <span class="n">imgBGRA</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="o">.</span><span class="mi">87</span> <span class="o">*</span> <span class="mi">255</span>  <span class="c1"># hack alpha</span>
+        <span class="n">imgBGRA</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">pad_image</span><span class="p">(</span><span class="n">imgBGRA</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">])</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">get_size</span><span class="p">(</span><span class="n">imgBGRA</span><span class="p">))</span>
+        <span class="n">pts1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)])</span> <span class="o">*</span> <span class="n">size</span>
+        <span class="n">x_adjust</span> <span class="o">=</span> <span class="o">.</span><span class="mi">15</span>
+        <span class="n">y_adjust</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span>
+        <span class="n">pts2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">x_adjust</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">y_adjust</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">y_adjust</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x_adjust</span><span class="p">,</span> <span class="mi">0</span><span class="p">)])</span> <span class="o">*</span> <span class="n">size</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">findHomography</span><span class="p">(</span><span class="n">pts1</span><span class="p">,</span> <span class="n">pts2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">dsize</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">bbox_from_verts</span><span class="p">(</span><span class="n">pts2</span><span class="p">)[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="n">warpkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">flags</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LANCZOS4</span><span class="p">,</span> <span class="n">borderMode</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">BORDER_CONSTANT</span><span class="p">)</span>
+        <span class="n">imgBGRA_warped</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">warpPerspective</span><span class="p">(</span><span class="n">imgBGRA</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dsize</span><span class="p">),</span> <span class="o">**</span><span class="n">warpkw</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">imgBGRA_warped</span>
+
+    <span class="n">framesize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">700</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">.</span><span class="mo">04</span><span class="p">,</span> <span class="o">.</span><span class="mo">03</span><span class="p">,</span> <span class="o">.</span><span class="mo">02</span><span class="p">,</span> <span class="o">.</span><span class="mo">01</span><span class="p">])</span> <span class="o">*</span> <span class="mf">1.3</span>
+
+    <span class="n">numintervals</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">octave_ty_starts</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+        <span class="n">prev_ty</span> <span class="o">=</span> <span class="n">octave_ty_starts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">prev_base</span> <span class="o">=</span> <span class="n">pyramid</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">next_ty</span> <span class="o">=</span> <span class="n">prev_ty</span> <span class="o">-</span> <span class="p">((</span><span class="n">prev_base</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">framesize</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">numintervals</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">steps</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span>
+        <span class="n">octave_ty_starts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">next_ty</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">temprange</span><span class="p">(</span><span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">stop</span> <span class="o">-</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span>  <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">)]</span>
+
+    <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+        <span class="n">ty_start</span> <span class="o">=</span> <span class="n">octave_ty_starts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="n">steps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">intervals</span> <span class="o">=</span> <span class="n">pyramid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">ty_range</span> <span class="o">=</span> <span class="n">temprange</span><span class="p">(</span><span class="n">ty_start</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">numintervals</span><span class="p">)</span>
+        <span class="n">nextpart</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">vt</span><span class="o">.</span><span class="n">embed_in_square_image</span><span class="p">(</span><span class="n">makewarp</span><span class="p">(</span><span class="n">interval</span><span class="p">),</span> <span class="n">framesize</span><span class="p">,</span> <span class="n">img_origin</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">),</span>
+                                     <span class="n">target_origin</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="n">ty</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">ty</span><span class="p">,</span> <span class="n">interval</span> <span class="ow">in</span>  <span class="nb">zip</span><span class="p">(</span><span class="n">ty_range</span><span class="p">,</span> <span class="n">intervals</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">layers</span> <span class="o">+=</span> <span class="n">nextpart</span>
+
+    <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+
+    <span class="n">pt</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="event_space"><a class="viewcode-back" href="../../../ibeis.scripts.html#ibeis.scripts.specialdraw.event_space">[docs]</a><span class="k">def</span> <span class="nf">event_space</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    pip install matplotlib-venn</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="c1"># import numpy as np</span>
+    <span class="kn">from</span> <span class="nn">matplotlib_venn</span> <span class="kn">import</span> <span class="n">venn3</span><span class="p">,</span> <span class="n">venn2</span><span class="p">,</span> <span class="n">venn3_circles</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">venn3</span><span class="p">(</span><span class="n">subsets</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">set_labels</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">))</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">get_patch_by_id</span><span class="p">(</span><span class="s1">&#39;100&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">get_patch_by_id</span><span class="p">(</span><span class="s1">&#39;100&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">get_label_by_id</span><span class="p">(</span><span class="s1">&#39;100&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">get_label_by_id</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="s1">&#39;Set &quot;A&quot;&#39;</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">venn3_circles</span><span class="p">(</span><span class="n">subsets</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">)</span>
+    <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_lw</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ls</span><span class="p">(</span><span class="s1">&#39;dotted&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="n">same</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;comparable&#39;</span><span class="p">,</span> <span class="s1">&#39;incomparable&#39;</span><span class="p">,</span> <span class="s1">&#39;same&#39;</span><span class="p">])</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;comparable&#39;</span><span class="p">,</span> <span class="s1">&#39;incomparable&#39;</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">])</span>
+    <span class="c1"># comparable = set([&#39;comparable&#39;, &#39;same&#39;, &#39;diff&#39;])</span>
+    <span class="c1"># incomparable = set([&#39;incomparable&#39;, &#39;same&#39;, &#39;diff&#39;])</span>
+    <span class="n">subsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">same</span><span class="p">,</span> <span class="n">diff</span><span class="p">]</span>  <span class="c1"># , comparable, incomparable]</span>
+    <span class="n">set_labels</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;same&#39;</span><span class="p">,</span> <span class="s1">&#39;diff&#39;</span><span class="p">)</span>  <span class="c1"># , &#39;comparable&#39;, &#39;incomparable&#39;)</span>
+    <span class="n">venn3</span><span class="p">(</span><span class="n">subsets</span><span class="o">=</span><span class="n">subsets</span><span class="p">,</span> <span class="n">set_labels</span><span class="o">=</span><span class="n">set_labels</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="n">pt</span><span class="o">.</span><span class="n">ensure_pylab_qt4</span><span class="p">()</span>
+    <span class="kn">from</span> <span class="nn">matplotlib_subsets</span> <span class="kn">import</span> <span class="n">treesets_rectangles</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="s1">&#39;Same&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span> <span class="p">[</span>
+            <span class="p">((</span><span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;comparable&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span> <span class="p">[]),</span>
+            <span class="p">((</span><span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;incomparable&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span> <span class="p">[])</span>
+        <span class="p">]</span>
+        <span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="s1">&#39;Diff&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span> <span class="p">[</span>
+            <span class="p">((</span><span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;comparable&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span> <span class="p">[]),</span>
+            <span class="p">((</span><span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;incomparable&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span> <span class="p">[])</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">treesets_rectangles</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="kn">from</span> <span class="nn">matplotlib_venn</span> <span class="kn">import</span> <span class="n">venn2</span><span class="p">,</span> <span class="n">venn2_circles</span>  <span class="c1"># NOQA</span>
+
+    <span class="c1"># Subset sizes</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="mi">2</span><span class="p">,</span>  <span class="c1"># Ab</span>
+        <span class="mi">3</span><span class="p">,</span>  <span class="c1"># aB</span>
+        <span class="mi">1</span><span class="p">,</span>  <span class="c1"># AB</span>
+    <span class="p">)</span>
+
+    <span class="n">v</span> <span class="o">=</span> <span class="n">venn2</span><span class="p">(</span><span class="n">subsets</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">set_labels</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Subset labels</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">get_label_by_id</span><span class="p">(</span><span class="s1">&#39;10&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="s1">&#39;A but not B&#39;</span><span class="p">)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">get_label_by_id</span><span class="p">(</span><span class="s1">&#39;01&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="s1">&#39;B but not A&#39;</span><span class="p">)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">get_label_by_id</span><span class="p">(</span><span class="s1">&#39;11&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="s1">&#39;A and B&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Subset colors</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">get_patch_by_id</span><span class="p">(</span><span class="s1">&#39;10&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">get_patch_by_id</span><span class="p">(</span><span class="s1">&#39;01&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;#993333&#39;</span><span class="p">)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">get_patch_by_id</span><span class="p">(</span><span class="s1">&#39;11&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Subset alphas</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">get_patch_by_id</span><span class="p">(</span><span class="s1">&#39;10&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="mf">0.4</span><span class="p">)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">get_patch_by_id</span><span class="p">(</span><span class="s1">&#39;01&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">get_patch_by_id</span><span class="p">(</span><span class="s1">&#39;11&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">set_alpha</span><span class="p">(</span><span class="mf">0.7</span><span class="p">)</span>
+
+    <span class="c1"># Border styles</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">venn2_circles</span><span class="p">(</span><span class="n">subsets</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;solid&#39;</span><span class="p">)</span>
+    <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ls</span><span class="p">(</span><span class="s1">&#39;dashed&#39;</span><span class="p">)</span>  <span class="c1"># Line style</span>
+    <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_lw</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>       <span class="c1"># Line width</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="c1"># plt.savefig(&#39;example_tree.pdf&#39;, bbox_inches=&#39;tight&#39;)</span>
+    <span class="c1"># plt.close()</span>
+
+    <span class="c1"># venn2(subsets=(25, 231+65, 8+15))</span>
+
+    <span class="c1"># # Find out the location of the two circles</span>
+    <span class="c1"># # (you can look up how its done in the first lines</span>
+    <span class="c1"># # of the venn2 function)</span>
+
+    <span class="c1"># from matplotlib_venn._venn2 import compute_venn2_areas, solve_venn2_circles</span>
+    <span class="c1"># subsets = (25, 231+65, 8+15)</span>
+    <span class="c1"># areas = compute_venn2_areas(subsets, normalize_to=1.0)</span>
+    <span class="c1"># centers, radii = solve_venn2_circles(areas)</span>
+
+    <span class="c1"># # Now draw the third circle.</span>
+    <span class="c1"># # Its area is (15+65)/(25+8+15) times</span>
+    <span class="c1"># # that of the first circle,</span>
+    <span class="c1"># # hence its radius must be</span>
+
+    <span class="c1"># r3 = radii[0]*sqrt((15+65.0)/(25+8+15))</span>
+
+    <span class="c1"># # Its position must be such that the intersection</span>
+    <span class="c1"># # area  with C1 is  15/(15+8+25) of C1&#39;s area.</span>
+    <span class="c1"># # The way to compute the distance between</span>
+    <span class="c1"># # the circles by area can be looked up in</span>
+    <span class="c1"># # solve_venn2_circles</span>
+
+    <span class="c1"># from matplotlib_venn._math import find_distance_by_area</span>
+    <span class="c1"># distance = find_distance_by_area(radii[0], r3,</span>
+    <span class="c1">#             15.0/(15+8+25)*np.pi*radii[0]*radii[0])</span>
+    <span class="c1"># ax = gca()</span>
+    <span class="c1"># ax.add_patch(Circle(centers[0] + np.array([distance, 0]),</span>
+    <span class="c1">#              r3, alpha=0.5, edgecolor=None,</span>
+    <span class="c1">#              facecolor=&#39;red&#39;, linestyle=None,</span>
+    <span class="c1">#              linewidth=0))</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw</span>
+<span class="sd">        python -m ibeis.scripts.specialdraw --allexamples</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.5.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

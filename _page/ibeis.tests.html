@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.tests package &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.tests package &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="index.html"/>
         <link rel="up" title="ibeis package" href="ibeis.html"/>
         <link rel="next" title="ibeis.viz package" href="ibeis.viz.html"/>
         <link rel="prev" title="ibeis.templates package" href="ibeis.templates.html"/> 
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -114,14 +114,15 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_annots">ibeis.core_annots module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_images">ibeis.core_images module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.new_annots">ibeis.new_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workflow">ibeis.workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workspace">ibeis.workspace module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -180,7 +181,7 @@
 <span id="ibeis-tests-assert-modules-module"></span><h2>ibeis.tests.assert_modules module<a class="headerlink" href="#module-ibeis.tests.assert_modules" title="Permalink to this headline">¶</a></h2>
 <p>Very useful script to ensure you have all the modules you need</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.tests.assert_modules
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.tests.assert_modules
 python -m ibeis.tests.assert_modules --test-assert_modules --nolibdep
 python -m ibeis.tests.assert_modules --test-assert_modules
 </pre></div>
@@ -209,12 +210,12 @@ sudo pip install numpy &#8211;upgrade</p>
 <dd><p>checkinfo functions return info_dict
 checkinfo_func</p>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.tests.assert_modules --test-assert_modules
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.tests.assert_modules --test-assert_modules
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DOCTEST_ENABLE</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.tests.assert_modules</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DOCTEST_ENABLE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.tests.assert_modules</span> <span class="kn">import</span> <span class="o">*</span>   <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">detailed_msg</span> <span class="o">=</span> <span class="n">assert_modules</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">detailed_msg</span><span class="p">)</span>
 </pre></div>
@@ -269,6 +270,11 @@ checkinfo_func</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="ibeis.tests.assert_modules.networkx_version">
+<code class="descclassname">ibeis.tests.assert_modules.</code><code class="descname">networkx_version</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#networkx_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.networkx_version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="ibeis.tests.assert_modules.numpy_version">
 <code class="descclassname">ibeis.tests.assert_modules.</code><code class="descname">numpy_version</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#numpy_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.numpy_version" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -289,11 +295,6 @@ checkinfo_func</p>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="ibeis.tests.assert_modules.pip_version">
-<code class="descclassname">ibeis.tests.assert_modules.</code><code class="descname">pip_version</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#pip_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.pip_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="ibeis.tests.assert_modules.pyflann_version">
 <code class="descclassname">ibeis.tests.assert_modules.</code><code class="descname">pyflann_version</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#pyflann_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.pyflann_version" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -311,6 +312,11 @@ checkinfo_func</p>
 <dl class="function">
 <dt id="ibeis.tests.assert_modules.pyrf_version">
 <code class="descclassname">ibeis.tests.assert_modules.</code><code class="descname">pyrf_version</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#pyrf_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.pyrf_version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ibeis.tests.assert_modules.reg_std_version_check">
+<code class="descclassname">ibeis.tests.assert_modules.</code><code class="descname">reg_std_version_check</code><span class="sig-paren">(</span><em>version</em>, <em>modname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#reg_std_version_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.reg_std_version_check" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -336,11 +342,6 @@ checkinfo_func</p>
 <dl class="function">
 <dt id="ibeis.tests.assert_modules.tornado_version">
 <code class="descclassname">ibeis.tests.assert_modules.</code><code class="descname">tornado_version</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#tornado_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.tornado_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="ibeis.tests.assert_modules.utool_version">
-<code class="descclassname">ibeis.tests.assert_modules.</code><code class="descname">utool_version</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/assert_modules.html#utool_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.assert_modules.utool_version" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -378,12 +379,12 @@ checkinfo_func</p>
 <dt id="ibeis.tests.reset_testdbs.reset_mtest">
 <code class="descclassname">ibeis.tests.reset_testdbs.</code><code class="descname">reset_mtest</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/reset_testdbs.html#reset_mtest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.reset_testdbs.reset_mtest" title="Permalink to this definition">¶</a></dt>
 <dd><p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis --tf reset_mtest
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis --tf reset_mtest
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.tests.reset_testdbs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.tests.reset_testdbs</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">reset_mtest</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -411,7 +412,7 @@ checkinfo_func</p>
 <dl class="function">
 <dt id="ibeis.tests.run_tests.run_tests">
 <code class="descclassname">ibeis.tests.run_tests.</code><code class="descname">run_tests</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/tests/run_tests.html#run_tests"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.tests.run_tests.run_tests" title="Permalink to this definition">¶</a></dt>
-<dd><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.tests.run_tests</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<dd><div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.tests.run_tests</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -463,7 +464,7 @@ checkinfo_func</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

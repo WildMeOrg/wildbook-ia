@@ -1,0 +1,431 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.algo.detect.classifier.classifier &mdash; ibeis 1.5.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../../index.html"/>
+        <link rel="up" title="ibeis.algo.detect.classifier" href="../classifier.html"/> 
+
+  
+  <script src="../../../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../../../algo.html">ibeis.algo</a> &raquo;</li>
+      
+          <li><a href="../../detect.html">ibeis.algo.detect</a> &raquo;</li>
+      
+          <li><a href="../classifier.html">ibeis.algo.detect.classifier</a> &raquo;</li>
+      
+    <li>ibeis.algo.detect.classifier.classifier</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.algo.detect.classifier.classifier</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python2.7</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">ibeis</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">isfile</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">expanduser</span>
+<span class="kn">from</span> <span class="nn">ibeis.algo.detect.classifier.model</span> <span class="kn">import</span> <span class="n">Classifier_Model</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">listdir</span>
+<span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
+<span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">jpcnn.core</span> <span class="kn">import</span> <span class="n">JPCNN_Network</span><span class="p">,</span> <span class="n">JPCNN_Data</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibeis.algo.detect] WARNING: Could not load CNN library for some detectors (ignore for now)&#39;</span><span class="p">)</span>
+    <span class="k">pass</span>
+
+<span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[classifier]&#39;</span><span class="p">)</span>
+
+<span class="n">MODEL_DOMAIN</span> <span class="o">=</span> <span class="s1">&#39;https://lev.cs.rpi.edu/public/models/&#39;</span>
+
+<span class="n">MODEL_URLS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;v1&#39;</span> <span class="p">:</span> <span class="s1">&#39;classifier.v1.npy&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="load_classifier"><a class="viewcode-back" href="../../../../../ibeis.algo.detect.classifier.html#ibeis.algo.detect.classifier.classifier.load_classifier">[docs]</a><span class="k">def</span> <span class="nf">load_classifier</span><span class="p">(</span><span class="n">source_path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">source_name</span><span class="o">=</span><span class="s1">&#39;classifier&#39;</span><span class="p">,</span>
+                    <span class="n">cache_data_filename</span><span class="o">=</span><span class="s1">&#39;data.npy&#39;</span><span class="p">,</span>
+                    <span class="n">cache_labels_filename</span><span class="o">=</span><span class="s1">&#39;labels.npy&#39;</span><span class="p">,</span>
+                    <span class="n">cache</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">source_path</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">source_path</span> <span class="o">=</span> <span class="n">expanduser</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="s1">&#39;Desktop&#39;</span><span class="p">,</span> <span class="s1">&#39;extracted&#39;</span><span class="p">))</span>
+
+    <span class="n">cache_data_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">source_name</span><span class="p">,</span> <span class="n">cache_data_filename</span><span class="p">)</span>
+    <span class="n">cache_labels_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">source_name</span><span class="p">,</span> <span class="n">cache_labels_filename</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">cache_data_filepath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">exists</span><span class="p">(</span><span class="n">cache_labels_filepath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">cache</span><span class="p">:</span>
+        <span class="n">data_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cache_data_filepath</span><span class="p">)</span>
+        <span class="n">label_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cache_labels_filepath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data_list</span><span class="p">,</span> <span class="n">label_list</span>
+
+    <span class="n">label_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">source_name</span><span class="p">,</span> <span class="s1">&#39;labels&#39;</span><span class="p">,</span> <span class="s1">&#39;labels.csv&#39;</span><span class="p">)</span>
+    <span class="n">label_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="n">label_list</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">label_list</span><span class="p">:</span>
+            <span class="n">label_list</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">label_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">class_</span> <span class="o">=</span> <span class="n">label_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">label_dict</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="n">class_</span>
+
+    <span class="n">background_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">source_name</span><span class="p">,</span> <span class="s1">&#39;raw&#39;</span><span class="p">)</span>
+    <span class="n">filename_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">listdir</span><span class="p">(</span><span class="n">background_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">isfile</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">background_path</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+    <span class="p">]</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">label_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">filename_list</span><span class="p">)</span>
+
+    <span class="n">data_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">label_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Loading images...&#39;</span><span class="p">)</span>
+    <span class="n">filename_list</span> <span class="o">=</span> <span class="n">filename_list</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">filename</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">filename_list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">label_dict</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">background_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="c1"># data = cv2.resize(data, (128, 128))</span>
+        <span class="n">data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">label_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="n">data_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="n">label_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">label_list</span><span class="p">)</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">cache_data_filepath</span><span class="p">,</span> <span class="n">data_list</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">cache_labels_filepath</span><span class="p">,</span> <span class="n">label_list</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data_list</span><span class="p">,</span> <span class="n">label_list</span>
+
+</div>
+<div class="viewcode-block" id="train_classifier"><a class="viewcode-back" href="../../../../../ibeis.algo.detect.classifier.html#ibeis.algo.detect.classifier.classifier.train_classifier">[docs]</a><span class="k">def</span> <span class="nf">train_classifier</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[classifier] Loading the classifier training data&#39;</span><span class="p">)</span>
+    <span class="n">data_list</span><span class="p">,</span> <span class="n">label_list</span> <span class="o">=</span> <span class="n">load_classifier</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[classifier] Loading the data into a JPCNN_Data&#39;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">JPCNN_Data</span><span class="p">()</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">set_data_list</span><span class="p">(</span><span class="n">data_list</span><span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">set_label_list</span><span class="p">(</span><span class="n">label_list</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[classifier] Create the JPCNN_Model used for training&#39;</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Classifier_Model</span><span class="p">()</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[classifier] Create the JPCNN_network and start training&#39;</span><span class="p">)</span>
+    <span class="n">net</span> <span class="o">=</span> <span class="n">JPCNN_Network</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="n">model_path</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">train</span><span class="p">(</span>
+        <span class="n">output_path</span><span class="p">,</span>
+        <span class="n">train_learning_rate</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">train_batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+        <span class="n">train_max_epochs</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+        <span class="n">train_mini_batch_augment</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">model_path</span>
+
+</div>
+<div class="viewcode-block" id="load_images"><a class="viewcode-back" href="../../../../../ibeis.algo.detect.classifier.html#ibeis.algo.detect.classifier.classifier.load_images">[docs]</a><span class="k">def</span> <span class="nf">load_images</span><span class="p">(</span><span class="n">cache_data_filename</span><span class="o">=</span><span class="s1">&#39;test_data.npy&#39;</span><span class="p">,</span>
+                <span class="n">cache_labels_filename</span><span class="o">=</span><span class="s1">&#39;test_labels.npy&#39;</span><span class="p">,</span>
+                <span class="n">cache</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+
+    <span class="n">cache_data_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">cache_data_filename</span><span class="p">)</span>
+    <span class="n">cache_labels_filepath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">cache_labels_filename</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">cache_data_filepath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">exists</span><span class="p">(</span><span class="n">cache_labels_filepath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">cache</span><span class="p">:</span>
+        <span class="n">data_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cache_data_filepath</span><span class="p">)</span>
+        <span class="n">label_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cache_labels_filepath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data_list</span><span class="p">,</span> <span class="n">label_list</span>
+
+    <span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="n">dbdir</span><span class="o">=</span><span class="s1">&#39;/media/danger/GGR/GGR-IBEIS-TEST/&#39;</span><span class="p">)</span>
+    <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
+    <span class="n">filepath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_paths</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
+
+    <span class="n">data_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">label_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">filepath_list</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">%</span> <span class="mi">25</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="mi">192</span><span class="p">,</span> <span class="mi">192</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LANCZOS4</span><span class="p">)</span>
+        <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_species_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">shared_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">species_list</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;zebra_grevys&#39;</span><span class="p">,</span> <span class="s1">&#39;zebra_plains&#39;</span><span class="p">])</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;positive&#39;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shared_set</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;negative&#39;</span>
+        <span class="n">data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">label_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="n">data_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="n">label_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">label_list</span><span class="p">)</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">cache_data_filepath</span><span class="p">,</span> <span class="n">data_list</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">cache_labels_filepath</span><span class="p">,</span> <span class="n">label_list</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data_list</span><span class="p">,</span> <span class="n">label_list</span>
+
+
+<span class="c1"># def test_classifier(output_path):</span>
+<span class="c1">#     print(&#39;[classifier] Loading the classifier training data&#39;)</span>
+<span class="c1">#     data_list, label_list = load_images()</span>
+
+<span class="c1">#     print(&#39;[mnist] Loading the data into a JPCNN_Data&#39;)</span>
+<span class="c1">#     data = JPCNN_Data()</span>
+<span class="c1">#     data.set_data_list(data_list)</span>
+<span class="c1">#     data.set_label_list(label_list)</span>
+
+<span class="c1">#     print(&#39;[classifier] Create the JPCNN_Model used for testing&#39;)</span>
+<span class="c1">#     model = Classifier_Model(&#39;model.npy&#39;)</span>
+
+<span class="c1">#     print(&#39;[mnist] Create the JPCNN_network and start testing&#39;)</span>
+<span class="c1">#     net = JPCNN_Network(model, data)</span>
+<span class="c1">#     test_results = net.test(output_path, best_weights=True)</span>
+<span class="c1">#     prediction_list = test_results[&#39;label_list&#39;]</span>
+<span class="c1">#     confidence_list = test_results[&#39;confidence_list&#39;]</span>
+
+<span class="c1">#     best_errors = np.inf</span>
+<span class="c1">#     # conf_list = [ _ / 100.0 for _ in range(0, 101) ]</span>
+<span class="c1">#     # conf_list = [ 0.81 ]  # FOR MODEL.5.NPY</span>
+<span class="c1">#     conf_list = [ 0.96 ]  # MODEL.6.NPY</span>
+<span class="c1">#     for conf in conf_list:</span>
+<span class="c1">#         failure_path = join(output_path, &#39;failures&#39;)</span>
+<span class="c1">#         ut.ensuredir(failure_path)</span>
+<span class="c1">#         error_list = [0, 0, 0, 0]</span>
+<span class="c1">#         zipped = zip(data_list, label_list, prediction_list, confidence_list)</span>
+<span class="c1">#         for index, (data, label, prediction, confidence) in enumerate(zipped):</span>
+<span class="c1">#             if prediction == &#39;negative&#39; and confidence &lt; conf:</span>
+<span class="c1">#                 prediction = &#39;positive&#39;</span>
+<span class="c1">#                 confidence == 1.0 - confidence</span>
+<span class="c1">#             if label == prediction and label == &#39;positive&#39;:</span>
+<span class="c1">#                 error_list[0] += 1</span>
+<span class="c1">#             elif label == prediction and label == &#39;negative&#39;:</span>
+<span class="c1">#                 error_list[1] += 1</span>
+<span class="c1">#             elif label != prediction:</span>
+<span class="c1">#                 if label == &#39;positive&#39;:</span>
+<span class="c1">#                     error_list[2] += 1</span>
+<span class="c1">#                 elif label == &#39;negative&#39;:</span>
+<span class="c1">#                     error_list[3] += 1</span>
+<span class="c1">#                 args = (confidence, index, label, prediction)</span>
+<span class="c1">#                 failure_filename = &#39;failure_%0.05f_%06d_%s_%s.png&#39; % args</span>
+<span class="c1">#                 failure_filepath = join(failure_path, failure_filename)</span>
+<span class="c1">#                 cv2.imwrite(failure_filepath, data)</span>
+<span class="c1">#         errors = error_list[2] + error_list[3]</span>
+<span class="c1">#         total = sum(error_list)</span>
+<span class="c1">#         if errors &lt; best_errors:</span>
+<span class="c1">#             best_errors = errors</span>
+<span class="c1">#             print(error_list)</span>
+<span class="c1">#             args = (conf, errors / total, errors, total, )</span>
+<span class="c1">#             print(&#39;Error rate %0.2f: %0.03f [ %d / %d ]&#39; % args)</span>
+
+</div>
+<div class="viewcode-block" id="classify_thumbnail_list"><a class="viewcode-back" href="../../../../../ibeis.algo.detect.classifier.html#ibeis.algo.detect.classifier.classifier.classify_thumbnail_list">[docs]</a><span class="k">def</span> <span class="nf">classify_thumbnail_list</span><span class="p">(</span><span class="n">thumbnail_list</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s1">&#39;v1&#39;</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[classifier] Loading the classifier training data&#39;</span><span class="p">)</span>
+    <span class="n">data_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">thumbnail_list</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[mnist] Loading the data into a JPCNN_Data&#39;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">JPCNN_Data</span><span class="p">()</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">set_data_list</span><span class="p">(</span><span class="n">data_list</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[classifier] Create the JPCNN_Model used for testing&#39;</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">MODEL_DOMAIN</span> <span class="o">+</span> <span class="n">MODEL_URLS</span><span class="p">[</span><span class="n">model</span><span class="p">]</span>
+    <span class="n">model_path</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;ibeis&#39;</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Classifier_Model</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[mnist] Create the JPCNN_network and start testing&#39;</span><span class="p">)</span>
+    <span class="n">net</span> <span class="o">=</span> <span class="n">JPCNN_Network</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="n">test_results</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">best_weights</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">prediction_list</span> <span class="o">=</span> <span class="n">test_results</span><span class="p">[</span><span class="s1">&#39;label_list&#39;</span><span class="p">]</span>
+    <span class="n">confidence_list</span> <span class="o">=</span> <span class="n">test_results</span><span class="p">[</span><span class="s1">&#39;confidence_list&#39;</span><span class="p">]</span>
+
+    <span class="n">result_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">confidence_list</span><span class="p">,</span> <span class="n">prediction_list</span><span class="p">))</span>
+
+    <span class="c1"># Release memory</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">net</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">return</span> <span class="n">result_list</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">OUTPUT_PATH</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span>
+    <span class="c1"># Train network on Classifier training data</span>
+    <span class="n">train_classifier</span><span class="p">(</span><span class="n">OUTPUT_PATH</span><span class="p">)</span>
+    <span class="c1"># Test network on Classifier training data</span>
+    <span class="c1"># test_classifier(OUTPUT_PATH)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../../../',
+            VERSION:'1.5.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

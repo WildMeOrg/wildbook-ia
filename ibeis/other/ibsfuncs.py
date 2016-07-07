@@ -7,6 +7,8 @@ TODO: need to split up into sub modules:
     feasibility_fixes
     move the export stuff to dbio
 
+    python -m utool.util_inspect check_module_usage --pat="ibsfuncs.py"
+
     then there are also convineience functions that need to be ordered at least
     within this file
 """
@@ -246,8 +248,8 @@ def assert_valid_species_texts(ibs, species_list, iswarning=True):
             for species in species_list
         ]
         assert all(isvalid_list), 'invalid species found in %r: %r' % (
-            ut.get_caller_name(range(1, 3)), ut.filterfalse_items(
-                species_list, isvalid_list),)
+            ut.get_caller_name(range(1, 3)), ut.compress(
+                species_list, ut.not_list(isvalid_list)),)
     except AssertionError as ex:
         ut.printex(ex, iswarning=iswarning)
         if not iswarning:
@@ -389,7 +391,7 @@ def get_missing_gids(ibs, gid_list=None):
         gid_list = ibs.get_valid_gids()
     gpath_list = ibs.get_image_paths(gid_list)
     exists_list = list(map(exists, gpath_list))
-    bad_gids = ut.filterfalse_items(gid_list, exists_list)
+    bad_gids = ut.compress(gid_list, ut.not_list(exists_list))
     return bad_gids
 
 
@@ -1236,6 +1238,7 @@ def delete_all_annotations(ibs):
 def delete_thumbnails(ibs):
     gid_list = ibs.get_valid_gids()
     ibs.delete_image_thumbs(gid_list)
+    ibs.delete_annot_imgthumbs(ibs.get_valid_aids())
 
 
 @register_ibs_method
@@ -1678,23 +1681,24 @@ def update_exemplar_special_imageset(ibs):
 @register_ibs_method
 @ut.time_func
 #@profile
-def update_reviewed_unreviewed_image_special_imageset(ibs):
+def update_reviewed_unreviewed_image_special_imageset(ibs, reviewed=True, unreviewed=True):
     """
     Creates imageset of images that have not been reviewed
-    and that have been reviewed
+    and that have been reviewed (wrt detection)
     """
     # FIXME SLOW
-    unreviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(const.UNREVIEWED_IMAGE_IMAGESETTEXT)
-    reviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(const.REVIEWED_IMAGE_IMAGESETTEXT)
-    #ibs.delete_imagesets(imgsetid)
-    ibs.delete_gsgr_imageset_relations(unreviewed_imgsetid)
-    ibs.delete_gsgr_imageset_relations(reviewed_imgsetid)
-    #gid_list = ibs.get_valid_gids(reviewed=False)
-    #ibs.set_image_imagesettext(gid_list, [const.UNREVIEWED_IMAGE_IMAGESETTEXT] * len(gid_list))
-    unreviewed_gids = _get_unreviewed_gids(ibs)  # hack
-    reviewed_gids   = _get_reviewed_gids(ibs)  # hack
-    ibs.set_image_imgsetids(unreviewed_gids, [unreviewed_imgsetid] * len(unreviewed_gids))
-    ibs.set_image_imgsetids(reviewed_gids, [reviewed_imgsetid] * len(reviewed_gids))
+    if unreviewed:
+        unreviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(const.UNREVIEWED_IMAGE_IMAGESETTEXT)
+        ibs.delete_gsgr_imageset_relations(unreviewed_imgsetid)
+        unreviewed_gids = _get_unreviewed_gids(ibs)  # hack
+        ibs.set_image_imgsetids(unreviewed_gids, [unreviewed_imgsetid] * len(unreviewed_gids))
+    if reviewed:
+        reviewed_imgsetid = ibs.get_imageset_imgsetids_from_text(const.REVIEWED_IMAGE_IMAGESETTEXT)
+        ibs.delete_gsgr_imageset_relations(reviewed_imgsetid)
+        #gid_list = ibs.get_valid_gids(reviewed=False)
+        #ibs.set_image_imagesettext(gid_list, [const.UNREVIEWED_IMAGE_IMAGESETTEXT] * len(gid_list))
+        reviewed_gids   = _get_reviewed_gids(ibs)  # hack
+        ibs.set_image_imgsetids(reviewed_gids, [reviewed_imgsetid] * len(reviewed_gids))
 
 
 @register_ibs_method
@@ -1812,33 +1816,62 @@ def update_special_imagesets(ibs):
         'use_more_special_imagesets', False)
     if USE_MORE_SPECIAL_IMAGESETS:
         #ibs.update_reviewed_unreviewed_image_special_imageset()
+        ibs.update_reviewed_unreviewed_image_special_imageset(reviewed=False)
         ibs.update_exemplar_special_imageset()
         ibs.update_all_image_special_imageset()
     ibs.update_ungrouped_special_imageset()
 
 
+# def _get_unreviewed_gids(ibs):
+#     # hack
+#     gid_list = ibs.db.executeone(
+#         '''
+#         SELECT image_rowid
+#         FROM {IMAGE_TABLE}
+#         WHERE
+#         image_toggle_reviewed=0
+#         '''.format(**const.__dict__))
+#     return gid_list
+
+
+# def _get_reviewed_gids(ibs):
+#     # hack
+#     gid_list = ibs.db.executeone(
+#         '''
+#         SELECT image_rowid
+#         FROM {IMAGE_TABLE}
+#         WHERE
+#         image_toggle_reviewed=1
+#         '''.format(**const.__dict__))
+#     return gid_list
+
+
 def _get_unreviewed_gids(ibs):
+    """
+        >>> import ibeis  # NOQA
+        >>> ibs = ibeis.opendb('testdb1')
+    """
     # hack
-    gid_list = ibs.db.executeone(
-        '''
-        SELECT image_rowid
-        FROM {IMAGE_TABLE}
-        WHERE
-        image_toggle_reviewed=0
-        '''.format(**const.__dict__))
-    return gid_list
+    gid_list = ibs.get_valid_gids()
+    flag_list = ibs.detect_cnn_yolo_exists(gid_list)
+    gid_list_ = ut.compress(gid_list, ut.not_list(flag_list))
+    # unreviewed and unshipped
+    imgsets_list = ibs.get_image_imgsetids(gid_list_)
+    nonspecial_imgset_ids = [ut.compress(ids, ut.not_list(mask))
+                             for mask, ids in zip(ibs.unflat_map(ibs.is_special_imageset, imgsets_list), imgsets_list)]
+    flags_list = ibs.unflat_map(ibs.get_imageset_shipped_flags, nonspecial_imgset_ids)
+    # Keep images that have at least one instance in an unshipped non-special set
+    flag_list = [not all(flags) for flags in flags_list]
+    gid_list_ = ut.compress(gid_list_, flag_list)
+    return gid_list_
 
 
 def _get_reviewed_gids(ibs):
     # hack
-    gid_list = ibs.db.executeone(
-        '''
-        SELECT image_rowid
-        FROM {IMAGE_TABLE}
-        WHERE
-        image_toggle_reviewed=1
-        '''.format(**const.__dict__))
-    return gid_list
+    gid_list = ibs.get_valid_gids()
+    flag_list = ibs.detect_cnn_yolo_exists(gid_list)
+    gid_list_ = ut.filter_items(gid_list, flag_list)
+    return gid_list_
 
 
 def _get_gids_in_imgsetid(ibs, imgsetid):
@@ -2930,7 +2963,7 @@ def get_title(ibs):
         dbdir = ibs.get_dbdir()
         dbname = ibs.get_dbname()
         title = 'IBEIS - %r - Database Directory = %s' % (dbname, dbdir)
-        wb_target = ibs.get_wildbook_target()
+        wb_target = ibs.const.WILDBOOK_TARGET
         #params.args.wildbook_target
         if wb_target is not None:
             title = '%s - Wildbook Target = %s' % (title, wb_target)
@@ -3645,14 +3678,6 @@ def check_chip_existence(ibs, aid_list=None):
     if len(aid_kill_list) > 0:
         print('found %d inconsistent chips attempting to fix' % len(aid_kill_list))
     ibs.delete_annot_chips(aid_kill_list)
-
-
-@register_ibs_method
-def is_special_imageset(ibs, imgsetid_list):
-    imagesettext_list = ibs.get_imageset_text(imgsetid_list)
-    isspecial_list = [str(imagesettext) in set(const.SPECIAL_IMAGESET_LABELS)
-                      for imagesettext in imagesettext_list]
-    return isspecial_list
 
 
 @register_ibs_method
@@ -4874,6 +4899,12 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
              statwrap(ut.get_stats(ibs.get_num_annots_per_name(aids)[0],
                                     use_nan=True, use_median=True)))]
 
+    # if kwargs.pop('per_name_dict', True or forceall):
+    #     keyval_list += [
+    #         (prefix + 'per_name_dict',
+    #          ut.get_stats(ibs.get_num_annots_per_name(aids)[0],
+    #                                 use_nan=True, use_median=True))]
+
     if kwargs.pop('per_qual', False or forceall):
         keyval_list += [(prefix + 'per_qual',
                          statwrap(ibs.get_annot_qual_stats(aids)))]
@@ -4908,6 +4939,12 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
         keyval_list += [
             (prefix + 'aid_per_image',
              statwrap(get_per_prop_stats(ibs, aids, ibs.get_annot_image_rowids)))]
+
+    if kwargs.pop('species_hist', False or forceall):
+        keyval_list += [
+            (prefix + 'species_hist',
+             ut.dict_hist(ibs.get_annot_species_texts(aids)))
+        ]
 
     if kwargs.pop('case_tag_hist', False or forceall):
         keyval_list += [
@@ -5385,6 +5422,56 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
 
 
 @register_ibs_method
+def get_image_lazydict(ibs, gid, config=None):
+    r"""
+    Args:
+        ibs (ibeis.IBEISController):  image analysis api
+        aid (int):  annotation id
+        config (dict): (default = None)
+
+    Returns:
+        ut.LazyDict: metadata
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs --exec-get_annot_lazy_dict2 --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> gid = 1
+    """
+    #from ibeis.viz.interact import interact_chip
+    metadata = ut.LazyDict({
+        'gid': gid,
+        'unixtime': lambda: ibs.get_image_unixtime(gid),
+        'aids': lambda: ibs.get_image_aids(gid),
+        'size': lambda: ibs.get_image_sizes(gid),
+        'uri': lambda: ibs.get_image_uris(gid),
+        'uuid': lambda: ibs.get_image_uuids(gid),
+        'gps': lambda: ibs.get_image_gps(gid),
+        'orientation': lambda: ibs.get_image_orientation(gid),
+        #'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
+    })
+    return metadata
+
+
+@register_ibs_method
+def get_image_instancelist(ibs, gid_list):
+    obj_list = [ibs.get_image_lazydict(gid) for gid in gid_list]
+    image_list = ut.make_instancelist(obj_list, check=False)
+    return image_list
+
+
+@register_ibs_method
+def get_annot_instancelist(ibs, aid_list):
+    obj_list = [ibs.get_annot_lazydict(aid) for aid in aid_list]
+    annot_list = ut.make_instancelist(obj_list, check=False)
+    return annot_list
+
+
+@register_ibs_method
 def get_annot_lazy_dict2(ibs, aid, config=None):
     r"""
     Args:
@@ -5600,14 +5687,37 @@ def get_annot_encounter_text(ibs, aids):
 
 @register_ibs_method
 def get_annot_occurrence_text(ibs, aids):
-    """ Occurrence identifier for annotations """
+    """ Occurrence identifier for annotations
+
+    Args:
+        ibs (ibeis.IBEISController):  image analysis api
+        aids (list):  list of annotation rowids
+
+    Returns:
+        list: occur_texts
+
+    CommandLine:
+        python -m ibeis.other.ibsfuncs get_annot_occurrence_text --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aids = ibs.get_valid_aids()
+        >>> occur_texts = get_annot_occurrence_text(ibs, aids)
+        >>> result = ('occur_texts = %s' % (ut.repr2(occur_texts),))
+        >>> print(result)
+    """
     imgset_ids = ibs.get_annot_imgsetids(aids)
-    imgset_texts = ibs.unflat_map(ibs.get_imageset_text, imgset_ids)
-    flags = [[text.lower().startswith('occurrence') for text in texts]
-             for texts in imgset_texts]
-    _occur_texts = ut.zipcompress(imgset_texts, flags)
+    flags = ibs.unflat_map(ibs.get_imageset_isoccurrence, imgset_ids)
+    #flags = [[text.lower().startswith('occurrence') for text in texts]
+    #         for texts in imgset_texts]
+    imgset_ids = ut.zipcompress(imgset_ids, flags)
+    _occur_texts = ibs.unflat_map(ibs.get_imageset_text, imgset_ids)
     _occur_texts = [t if len(t) > 0 else [None] for t in _occur_texts]
-    assert all([len(t) == 1 for t in _occur_texts]), 'annot must be in exactly one occurrence'
+    if not all([len(t) == 1 for t in _occur_texts]):
+        print('WARNING: annot must be in exactly one occurrence')
     occur_texts = ut.take_column(_occur_texts, 0)
     return occur_texts
 
@@ -5795,7 +5905,7 @@ def temp_group_annot_occurrences(ibs, aid_list):
 
 
 @register_ibs_method
-def compute_occurrences(ibs):
+def compute_occurrences(ibs, seconds_thresh=None):
     """
     Clusters ungrouped images into imagesets representing occurrences
 
@@ -5806,11 +5916,10 @@ def compute_occurrences(ibs):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import ibeis  # NOQA
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs.compute_occurrences()
         >>> ibs.update_special_imagesets()
-        >>> # Now we want to remove some images from a non-special imageset
+        >>> # Remove some images from a non-special imageset
         >>> nonspecial_imgsetids = [i for i in ibs.get_valid_imgsetids() if i not in ibs.get_special_imgsetids()]
         >>> images_to_remove = ibs.get_imageset_gids(nonspecial_imgsetids[0:1])[0][0:1]
         >>> ibs.unrelate_images_and_imagesets(images_to_remove,nonspecial_imgsetids[0:1] * len(images_to_remove))
@@ -5835,26 +5944,20 @@ def compute_occurrences(ibs):
     #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
     with ut.Timer('computing imagesets'):
         flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
-            ibs, gid_list)
-        flat_imgsetids = np.array(flat_imgsetids)
-        flat_gids = np.array(flat_gids)
-        sortx = flat_imgsetids.argsort()
-        flat_imgsetids = flat_imgsetids[sortx]
-        flat_gids = flat_gids[sortx]
+            ibs, gid_list, seconds_thresh=seconds_thresh)
+        sortx = ut.argsort(flat_imgsetids)
+        flat_imgsetids = ut.take(flat_imgsetids, sortx)
+        flat_gids = ut.take(flat_gids, sortx)
+
     valid_imgsetids = ibs.get_valid_imgsetids()
     imgsetid_offset = 0 if len(valid_imgsetids) == 0 else max(valid_imgsetids)
 
-    #imgset_to_gids = ut.group_items(flat_gids, flat_imgsetids)
-    #unixtimes_list = ibs.unflat_map(ibs.get_image_unixtime, imgset_to_gids.values())
-    #imgset_keys = imgset_to_gids.keys()
-    #imageset_start_time_posix_list = [min(unixtimes) for unixtimes in unixtimes_list]
-    #import utool
-    #utool.embed()
-
     # This way we can make sure that manually separated imagesets
     # remain untouched, and ensure that new imagesets are created
-    flat_imgsetids_offset = [imgsetid + imgsetid_offset for imgsetid in flat_imgsetids]
-    imagesettext_list = ['Occurrence ' + str(imgsetid) for imgsetid in flat_imgsetids_offset]
+    flat_imgsetids_offset = [imgsetid + imgsetid_offset
+                             for imgsetid in flat_imgsetids]
+    imagesettext_list = ['Occurrence ' + str(imgsetid)
+                         for imgsetid in flat_imgsetids_offset]
     print('[ibs] Finished computing, about to add imageset.')
     ibs.set_image_imagesettext(flat_gids, imagesettext_list)
     # HACK TO UPDATE IMAGESET POSIX TIMES

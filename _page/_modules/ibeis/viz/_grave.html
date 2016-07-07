@@ -1,0 +1,683 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ibeis.viz._grave &mdash; ibeis 1.5.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="ibeis.viz" href="../viz.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> ibeis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.5.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ibeis.html">ibeis package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">ibeis</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+          <li><a href="../../ibeis.html">ibeis</a> &raquo;</li>
+      
+          <li><a href="../viz.html">ibeis.viz</a> &raquo;</li>
+      
+    <li>ibeis.viz._grave</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ibeis.viz._grave</h1><div class="highlight"><pre>
+<span></span>    <span class="c1">#csize_list = ibs.get_annot_chip_sizes(aid_list, config2_=dict(dim_size=200, resize_dim=&#39;area&#39;))</span>
+    <span class="c1">#print(&#39;csize_list = %r&#39; % (csize_list,))</span>
+    <span class="c1">#size_dict = {aid: size for aid, size in zip(aid_list, csize_list)}</span>
+
+    <span class="c1">#scale_list = np.array(ut.dict_take_column(node_attrs, &#39;scale&#39;,</span>
+    <span class="c1">#                                          default=None))</span>
+    <span class="c1">#nx.set_node_attributes(graph, &#39;width&#39;,</span>
+    <span class="c1">#                       ut.map_dict_vals(lambda x: .1 * x[0], size_dict))</span>
+    <span class="c1">#nx.set_node_attributes(graph, &#39;height&#39;,</span>
+    <span class="c1">#                       ut.map_dict_vals(lambda x: .1 * x[1], size_dict))</span>
+
+    <span class="c1">#pos = plotinfo[&#39;pos&#39;]</span>
+    <span class="c1">#if old and with_nid_edges:</span>
+    <span class="c1">#    edge_pts1_ = np.array(ut.dict_take(pos, spantree_aids1_))</span>
+    <span class="c1">#    edge_pts2_ = np.array(ut.dict_take(pos, spantree_aids2_))</span>
+    <span class="c1">#    segments = list(zip(edge_pts1_, edge_pts2_))</span>
+    <span class="c1">#    #pt.distinct_colors</span>
+    <span class="c1">#    color_list = pt.DARK_ORANGE[0:3]</span>
+    <span class="c1">#    #color_list = pt.BLACK</span>
+    <span class="c1">#    import matplotlib as mpl</span>
+    <span class="c1">#    line_group = mpl.collections.LineCollection(segments, color=color_list,</span>
+    <span class="c1">#                                                alpha=.3, lw=4)</span>
+    <span class="c1">#    ax.add_collection(line_group)</span>
+
+        <span class="c1"># img_list = ibs.get_annot_chips(aid_list)</span>
+        <span class="c1"># img_list = [vt.resize_thumb(img, target_size) for img in img_list]</span>
+        <span class="c1"># img_list = [vt.cvt_BGR2RGB(img) for img in img_list]</span>
+        <span class="c1"># size_dict = {aid: vt.get_size(img) for aid, img in zip(aid_list, img_list)}</span>
+        <span class="c1"># img_dict = {aid: img for aid, img in zip(aid_list, img_list)}</span>
+        <span class="c1"># import utool</span>
+        <span class="c1"># utool.embed()</span>
+        <span class="c1"># imgpath_list = ibs.get_annot_chip_fpath(aid_list)</span>
+
+        <span class="c1">#csize_list = ibs.get_annot_chip_sizes(aid_list)</span>
+        <span class="c1">#size_list = [vt.resized_dims_and_ratio(size, target_size)[0]</span>
+        <span class="c1">#             for size in csize_list]</span>
+        <span class="c1">#size_dict = {aid: size for aid, size in zip(aid_list, size_list)}</span>
+        <span class="c1"># img_dict = None</span>
+
+            <span class="c1">#if len(mst_edges) &gt; 0:</span>
+            <span class="c1">#    min_aids1_, min_aids2_ = ut.list_transpose(mst_edges)</span>
+            <span class="c1">#    spantree_aids1_.extend(min_aids1_)</span>
+            <span class="c1">#    spantree_aids2_.extend(min_aids2_)</span>
+
+    <span class="c1">#with_images = True</span>
+
+    <span class="c1"># target_size = (300, 300)</span>
+    <span class="c1">#target_size = (220, 220)</span>
+    <span class="c1">#target_size = (100, 100)</span>
+
+
+    <span class="c1">#aids1, aids2 = get_name_rowid_edges_from_aids(ibs, aid_list)</span>
+    <span class="c1">#g = make_netx_graph_from_aidpairs(ibs, aids1, aids2,                                                    unique_aids=aid_list)</span>
+
+    <span class="c1">#IMPLICIT_LAYOUT = len(set(ibs.get_annot_nids(aid_list))) != 1</span>
+    <span class="c1">#if IMPLICIT_LAYOUT:</span>
+    <span class="c1">#    # HACK:</span>
+    <span class="c1">#    # Use name edge to make pos (very bad)</span>
+    <span class="c1">#    aids1, aids2 = get_name_rowid_edges_from_aids(ibs, aid_list)</span>
+    <span class="c1">#    netx_graph_hack = make_netx_graph_from_aidpairs(ibs, aids1, aids2,</span>
+    <span class="c1">#                                                    unique_aids=aid_list)</span>
+    <span class="c1">#    pos = nx.nx_agraph.graphviz_layout(netx_graph_hack)</span>
+
+    <span class="c1">#    implicit_netx_graph = nx.Graph()</span>
+    <span class="c1">#    implicit_netx_graph.add_nodes_from(aid_list)</span>
+    <span class="c1">#    implicit_netx_graph.add_edges_from(list(zip(aids1, aids2)))</span>
+    <span class="c1">#else:</span>
+    <span class="c1">#    pos = nx.nx_agraph.graphviz_layout(graph)</span>
+
+    <span class="c1">#layout = &#39;spring&#39; #layout = &#39;spectral&#39; #layout = &#39;circular&#39;</span>
+    <span class="c1">#layout = &#39;shell&#39; #layout = &#39;pydot&#39; #layout = &#39;graphviz&#39;</span>
+
+
+
+
+<span class="c1">#def show_chipmatch_graph(ibs, cm_list, qreq_, fnum=None, pnum=None, **kwargs):</span>
+<span class="c1">#    r&quot;&quot;&quot;</span>
+
+<span class="c1">#    CommandLine:</span>
+<span class="c1">#        python -m ibeis --tf show_chipmatch_graph:0 --show</span>
+<span class="c1">#        python -m ibeis --tf show_chipmatch_graph:1 --show</span>
+<span class="c1">#        python -m ibeis --tf show_chipmatch_graph:1 --show --zoom=.15</span>
+<span class="c1">#        python -m ibeis --tf show_chipmatch_graph:1 --zoom=.25 --save foo.jpg --diskshow --figsize=12,6 --dpath=. --dpi=280</span>
+
+<span class="c1">#    Example:</span>
+<span class="c1">#        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="c1">#        &gt;&gt;&gt; from ibeis.viz.viz_graph import *  # NOQA</span>
+<span class="c1">#        &gt;&gt;&gt; from ibeis.algo.hots.chip_match import *  # NOQA</span>
+<span class="c1">#        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_post_sver(&#39;PZ_MTEST&#39;, qaid_list=[1, 2, 3, 4, 5, 6, 7, 18])</span>
+<span class="c1">#        &gt;&gt;&gt; [cm.score_nsum(qreq_) for cm in cm_list]</span>
+<span class="c1">#        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="c1">#        &gt;&gt;&gt; daid = cm.get_groundtruth_daids()[0]</span>
+<span class="c1">#        &gt;&gt;&gt; zoom = ut.get_argval(&#39;--zoom&#39;, float, .4)</span>
+<span class="c1">#        &gt;&gt;&gt; show_chipmatch_graph(ibs, cm_list, qreq_, zoom=zoom)</span>
+<span class="c1">#        &gt;&gt;&gt; #cm.show_single_annotmatch(qreq_, daid)</span>
+<span class="c1">#        &gt;&gt;&gt; ut.show_if_requested()</span>
+
+<span class="c1">#    Example:</span>
+<span class="c1">#        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="c1">#        &gt;&gt;&gt; from ibeis.viz.viz_graph import *  # NOQA</span>
+<span class="c1">#        &gt;&gt;&gt; from ibeis.algo.hots.chip_match import *  # NOQA</span>
+<span class="c1">#        &gt;&gt;&gt; #ibs, qreq_, cm_list = plh.testdata_post_sver(&#39;PZ_MTEST&#39;, qaid_list=&#39;all&#39;)</span>
+<span class="c1">#        &gt;&gt;&gt; ibs, qreq_, cm_list = plh.testdata_pre_sver(&#39;PZ_MTEST&#39;, qaid_list=&#39;all&#39;)</span>
+<span class="c1">#        &gt;&gt;&gt; [cm.score_nsum(qreq_) for cm in cm_list]</span>
+<span class="c1">#        &gt;&gt;&gt; ut.quit_if_noshow()</span>
+<span class="c1">#        &gt;&gt;&gt; daid = cm.get_groundtruth_daids()[0]</span>
+<span class="c1">#        &gt;&gt;&gt; zoom = ut.get_argval(&#39;--zoom&#39;, float, .4)</span>
+<span class="c1">#        &gt;&gt;&gt; show_chipmatch_graph(ibs, cm_list, qreq_, zoom=zoom)</span>
+<span class="c1">#        &gt;&gt;&gt; #cm.show_single_annotmatch(qreq_, daid)</span>
+<span class="c1">#        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    pass</span>
+<span class="c1">#    # breaking</span>
+<span class="c1">#    num = 3</span>
+<span class="c1">#    qaid_list   = [cm.qaid for cm in cm_list]</span>
+<span class="c1">#    daids_list  = [cm.get_top_aids(num).tolist() for cm in cm_list]</span>
+<span class="c1">#    scores_list = [cm.get_annot_scores(daids) for cm, daids in zip(cm_list, daids_list)]</span>
+<span class="c1">#    #graph = nx.Graph()</span>
+<span class="c1">#    #node = graph.add_node(img)</span>
+<span class="c1">#    # FDSFDS!!!</span>
+<span class="c1">#    graph = make_ibeis_matching_graph(ibs, qaid_list, daids_list, scores_list)</span>
+<span class="c1">#    fnum = None</span>
+<span class="c1">#    zoom = kwargs.get(&#39;zoom&#39;, .4)</span>
+<span class="c1">#    viz_netx_chipgraph(ibs, graph, fnum=fnum, with_images=True, zoom=zoom)</span>
+
+
+<span class="k">def</span> <span class="nf">make_ibeis_matching_graph</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">qaid_list</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">,</span> <span class="n">scores_list</span><span class="p">):</span>
+<div class="viewcode-block" id="make_ibeis_matching_graph"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz._grave.make_ibeis_matching_graph">[docs]</a>    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;make_ibeis_matching_graph&#39;</span><span class="p">)</span>
+    <span class="n">aid1_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">([[</span><span class="n">qaid</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">daids</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">daids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">daids_list</span><span class="p">)])</span>
+    <span class="n">aid2_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">daids_list</span><span class="p">)</span>
+    <span class="n">unique_aids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aid2_list</span> <span class="o">+</span> <span class="n">qaid_list</span><span class="p">))</span>
+    <span class="n">score_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">scores_list</span><span class="p">)</span>
+
+    <span class="c1"># Make a graph between the chips</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique_aids</span><span class="p">))</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid1_list</span><span class="p">,</span> <span class="n">aid2_list</span><span class="p">,</span> <span class="n">score_list</span><span class="p">))</span>
+    <span class="n">node_lbls</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;aid&#39;</span><span class="p">,</span> <span class="s1">&#39;int&#39;</span><span class="p">)]</span>
+    <span class="n">edge_lbls</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;weight&#39;</span><span class="p">,</span> <span class="s1">&#39;float&#39;</span><span class="p">)]</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">make_netx_graph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">node_lbls</span><span class="p">,</span> <span class="n">edge_lbls</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">graph</span>
+
+
+    <span class="c1">#if ut.WIN32:</span>
+    <span class="c1">#    # Make sure graphviz is in the path</span>
+    <span class="c1">#    win32_graphviz_bin_paths = [</span>
+    <span class="c1">#        r&#39;C:\Program Files (x86)\Graphviz2.38\bin&#39;,</span>
+    <span class="c1">#        r&#39;C:\Program Files\Graphviz2.38\bin&#39;,</span>
+    <span class="c1">#    ]</span>
+    <span class="c1">#    found_dot_exe = False</span>
+    <span class="c1">#    for path in win32_graphviz_bin_paths:</span>
+    <span class="c1">#        if ut.checkpath(path):</span>
+    <span class="c1">#            if ut.checkpath(join(path, &#39;dot.exe&#39;)):</span>
+    <span class="c1">#                sys.path.append(path)</span>
+    <span class="c1">#                found_dot_exe = True</span>
+    <span class="c1">#                break</span>
+    <span class="c1">#    assert found_dot_exe, &#39;could not find graphviz&#39;</span>
+
+
+<span class="k">def</span> <span class="nf">make_name_graph_interaction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">selected_aids</span><span class="o">=</span><span class="p">[],</span></div>
+<div class="viewcode-block" id="make_name_graph_interaction"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz._grave.make_name_graph_interaction">[docs]</a>                                <span class="n">with_all</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">invis_edges</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">ensure_edges</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">use_image</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                <span class="n">split_check</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                <span class="n">temp_nids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis --tf make_name_graph_interaction --db PZ_MTEST \</span>
+<span class="sd">            --aids=1,2,3,4,5,6,7,8,9 --show</span>
+
+<span class="sd">        python -m ibeis --tf make_name_graph_interaction --db LEWA_splits --nids=1 --show --split</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; # DISABLE_DOCTEST</span>
+<span class="sd">        &gt;&gt;&gt; from ibeis.viz.viz_graph import *  # NOQA</span>
+<span class="sd">        &gt;&gt;&gt; import ibeis</span>
+<span class="sd">        &gt;&gt;&gt; import plottool as pt</span>
+<span class="sd">        &gt;&gt;&gt; exec(ut.execstr_funckw(make_name_graph_interaction), globals())</span>
+<span class="sd">        &gt;&gt;&gt; defaultdb=&#39;testdb1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ibs = ibeis.opendb(defaultdb=defaultdb)</span>
+<span class="sd">        &gt;&gt;&gt; aids = ut.get_argval(&#39;--aids&#39;, type_=list, default=None)</span>
+<span class="sd">        &gt;&gt;&gt; nids = ut.get_argval(&#39;--nids&#39;, type_=list, default=ibs.get_valid_nids()[0:5])</span>
+<span class="sd">        &gt;&gt;&gt; nids = None if aids is not None else nids</span>
+<span class="sd">        &gt;&gt;&gt; with_all = not ut.get_argflag(&#39;--no-with-all&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; make_name_graph_interaction(ibs, nids, aids, with_all=with_all)</span>
+<span class="sd">        &gt;&gt;&gt; #pt.zoom_factory()</span>
+<span class="sd">        &gt;&gt;&gt; ut.show_if_requested()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+    <span class="kn">from</span> <span class="nn">plottool.abstract_interaction</span> <span class="kn">import</span> <span class="n">AbstractInteraction</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aids</span><span class="p">,))</span>
+
+    <span class="k">if</span> <span class="n">split_check</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">split_check</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--split&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">exec_split_check</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">):</span>
+        <span class="n">cfgdict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;can_match_samename&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s1">&#39;K&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s1">&#39;Knorm&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s1">&#39;prescore_method&#39;</span><span class="p">:</span> <span class="s1">&#39;csum&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;score_method&#39;</span><span class="p">:</span> <span class="s1">&#39;csum&#39;</span>
+        <span class="p">}</span>
+        <span class="n">qreq_</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">new_query_request</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">cfgdict</span><span class="o">=</span><span class="n">cfgdict</span><span class="p">)</span>
+        <span class="n">cm_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+        <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">graph_iden</span>
+        <span class="n">infr</span> <span class="o">=</span> <span class="n">graph_iden</span><span class="o">.</span><span class="n">AnnotInference</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">cm_list</span><span class="p">)</span>
+        <span class="n">infr</span><span class="o">.</span><span class="n">initialize_graph_and_model</span><span class="p">()</span>
+        <span class="c1">#print(&quot;BUILT SPLIT GRAPH&quot;)</span>
+        <span class="k">return</span> <span class="n">infr</span>
+
+    <span class="k">class</span> <span class="nc">NameGraphInteraction</span><span class="p">(</span><span class="n">AbstractInteraction</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ibs</span><span class="p">,</span> <span class="n">nids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">aids</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">selected_aids</span><span class="o">=</span><span class="p">[]):</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">NameGraphInteraction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibs</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span> <span class="o">=</span> <span class="n">selected_aids</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nids</span> <span class="o">=</span> <span class="n">nids</span> <span class="k">if</span> <span class="n">nids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_aids</span> <span class="o">=</span> <span class="n">aids</span> <span class="k">if</span> <span class="n">aids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">use_image</span> <span class="o">=</span> <span class="n">use_image</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_aids2</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">def</span> <span class="nf">make_hud</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Creates heads up display &quot;&quot;&quot;</span>
+            <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+            <span class="n">hl_slot</span><span class="p">,</span> <span class="n">hr_slot</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">make_bbox_positioner</span><span class="p">(</span>
+                <span class="n">y</span><span class="o">=.</span><span class="mo">02</span><span class="p">,</span> <span class="n">w</span><span class="o">=.</span><span class="mi">10</span><span class="p">,</span> <span class="n">h</span><span class="o">=.</span><span class="mo">03</span><span class="p">,</span> <span class="n">xpad</span><span class="o">=.</span><span class="mo">05</span><span class="p">,</span> <span class="n">startx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stopx</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># Create buttons</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;Auto Infer&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">make_inference</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hl_slot</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;Break&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">break_links</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hl_slot</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;Link&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">make_links</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hl_slot</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;Accept&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">confirm</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hr_slot</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;Deselect&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unselect_all</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hr_slot</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_button</span><span class="p">(</span><span class="s1">&#39;Show&#39;</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">show_selected</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="n">hr_slot</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+            <span class="c1">#self.append_button(next_text, callback=next_callback, rect=next_rect)</span>
+
+        <span class="k">def</span> <span class="nf">make_inference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;self.selected_aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">,))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">infer_cut</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">break_links</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;self.selected_aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">,))</span>
+
+        <span class="k">def</span> <span class="nf">make_links</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;self.selected_aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">,))</span>
+
+        <span class="k">def</span> <span class="nf">unselect_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;self.selected_aids = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">,))</span>
+            <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">[:]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">toggle_selected_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">confirm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Not done yet&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">show_selected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+            <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;show_selected&#39;</span><span class="p">)</span>
+            <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_chip</span>
+            <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ensure_fnum</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;fnum = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fnum</span><span class="p">,))</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">)</span>
+            <span class="n">viz_chip</span><span class="o">.</span><span class="n">show_many_chips</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ibs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">)</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+            <span class="c1">#fig.canvas.update()</span>
+            <span class="c1">#pt.iup()</span>
+
+        <span class="k">def</span> <span class="nf">update_netx_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="n">nids_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aids2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">nids2</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aids2</span><span class="p">)</span>
+                <span class="n">nids_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">nids2</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">with_all</span><span class="p">:</span>
+                <span class="n">nids_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aids</span><span class="p">)]</span>
+                <span class="n">nids_list</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_nids</span><span class="p">]</span>
+                <span class="n">nids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">nids_list</span><span class="p">)))</span>
+                <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_name_aids</span><span class="p">(</span><span class="n">nids</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">aids_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">group_annots_by_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aids</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="n">make_netx_graph_from_aid_groups</span><span class="p">(</span>
+                <span class="n">ibs</span><span class="p">,</span> <span class="n">aids_list</span><span class="p">,</span> <span class="n">invis_edges</span><span class="o">=</span><span class="n">invis_edges</span><span class="p">,</span>
+                <span class="n">ensure_edges</span><span class="o">=</span><span class="n">ensure_edges</span><span class="p">,</span> <span class="n">temp_nids</span><span class="o">=</span><span class="n">temp_nids</span><span class="p">)</span>
+            <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">aids_list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">split_check</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">infr</span> <span class="o">=</span> <span class="n">exec_split_check</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">graph_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">graph_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_aids2</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">aid2_node</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">val</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aids2</span><span class="p">)}</span>
+                <span class="n">graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">graph</span>
+                <span class="n">node_to_aid</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;aid&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span>
+                <span class="n">node_to_aid</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(),</span> <span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()))</span>
+                <span class="c1">#self._aids2 = sorted(list(self.graph.nodes()))</span>
+                <span class="c1">#self.aid2_node = {key: val for val, key in enumerate(self._aids2)}</span>
+
+            <span class="n">node_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">()))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_aids2</span> <span class="o">=</span> <span class="p">[</span><span class="n">node_to_aid</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">node_list</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">aid2_node</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aids2</span><span class="p">,</span> <span class="n">node_list</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">node2_aid</span> <span class="o">=</span> <span class="n">node_to_aid</span>
+
+            <span class="c1">#self.graph = make_netx_graph_from_aid_groups(</span>
+            <span class="c1">#    ibs, aids_list, invis_edges=invis_edges,</span>
+            <span class="c1">#    ensure_edges=ensure_edges, temp_nids=temp_nids)</span>
+            <span class="k">pass</span>
+            <span class="c1"># TODO: allow for a subset of grouped aids to be shown</span>
+            <span class="c1">#self.graph = make_netx_graph_from_nids(ibs, nids)</span>
+
+        <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_netx_graph</span><span class="p">()</span>
+            <span class="c1">#if split_check:</span>
+
+            <span class="n">node2_aid</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;aid&#39;</span><span class="p">)</span>
+            <span class="n">node2_label</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">node</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">:aid=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">aid</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">node2_aid</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">node2_label</span><span class="p">)</span>
+            <span class="c1">#{self.infr.model.graph}</span>
+            <span class="n">layoutkw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="s1">&#39;neato&#39;</span><span class="p">,</span> <span class="n">splines</span><span class="o">=</span><span class="s1">&#39;spline&#39;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="mi">10</span> <span class="o">/</span> <span class="mi">72</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plotinfo</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">show_nx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">infr</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span>
+                                       <span class="n">as_directed</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fnum</span><span class="p">,</span>
+                                       <span class="n">layoutkw</span><span class="o">=</span><span class="n">layoutkw</span><span class="p">,</span>
+                                       <span class="n">use_image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_image</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1">#ax = pt.gca()</span>
+            <span class="c1">#pt.zoom_factory()</span>
+            <span class="c1">#else:</span>
+            <span class="c1">#    self.plotinfo = viz_netx_chipgraph(self.ibs, self.graph,</span>
+            <span class="c1">#                                       fnum=self.fnum,</span>
+            <span class="c1">#                                       use_image=self.use_image,</span>
+            <span class="c1">#                                       **kwargs)</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">enable_pan_and_zoom</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">autoscale</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">highlight_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">make_hud</span><span class="p">()</span>
+            <span class="c1">#self.static_plot(fnum, pnum)</span>
+
+        <span class="k">def</span> <span class="nf">highlight_aid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">pt</span><span class="o">.</span><span class="n">ORANGE</span><span class="p">):</span>
+            <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aid2_node</span><span class="p">[</span><span class="n">aid</span><span class="p">]</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotinfo</span><span class="p">[</span><span class="s1">&#39;patch_frame_dict&#39;</span><span class="p">][</span><span class="n">node</span><span class="p">]</span>
+            <span class="n">frame</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+            <span class="n">frame</span><span class="o">.</span><span class="n">set_edgecolor</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">toggle_images</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">use_image</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_image</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">toggle_selected_aid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aid</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">aid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+                <span class="c1">#self.highlight_aid(aid, pt.WHITE)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">highlight_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">DARK_BLUE</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">highlight_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">,</span> <span class="n">pt</span><span class="o">.</span><span class="n">ORANGE</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">on_key_press</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;r&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;i&#39;</span><span class="p">:</span>
+                <span class="n">ut</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">ibs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibs</span>
+                <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span>
+                <span class="n">_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_superkey</span><span class="p">([</span><span class="n">aid1</span><span class="p">],</span> <span class="p">[</span><span class="n">aid2</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">_rowid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">_rowid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annotmatch_rowid_from_superkey</span><span class="p">([</span><span class="n">aid2</span><span class="p">],</span> <span class="p">[</span><span class="n">aid1</span><span class="p">])</span>
+                <span class="n">rowid</span> <span class="o">=</span> <span class="n">_rowid</span>  <span class="c1"># NOQA</span>
+
+        <span class="k">def</span> <span class="nf">mark_pair_truth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">truth</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;This funciton only work if exactly 2 are selected&#39;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;aid2 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid2</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;aid1 = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid1</span><span class="p">,))</span>
+
+        <span class="nd">@ut.debug_function_exceptions</span>
+        <span class="k">def</span> <span class="nf">on_click_inside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">event</span> <span class="o">=</span> <span class="n">event</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span>
+            <span class="c1">#print(ax)</span>
+            <span class="c1">#print(event.x)</span>
+            <span class="c1">#print(event.y)</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotinfo</span><span class="p">[</span><span class="s1">&#39;node&#39;</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">pos_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
+
+            <span class="c1"># TODO: FIXME</span>
+            <span class="c1">#x = 10</span>
+            <span class="c1">#y = 10</span>
+            <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>  <span class="c1"># NOQA</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">xdata</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">ydata</span>
+            <span class="n">point</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span>
+            <span class="n">pos_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pos_list</span><span class="p">)</span>
+            <span class="n">index</span><span class="p">,</span> <span class="n">dist</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">closest_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">pos_list</span><span class="p">,</span> <span class="n">distfunc</span><span class="o">=</span><span class="n">vt</span><span class="o">.</span><span class="n">L2</span><span class="p">)</span>
+            <span class="c1">#print(&#39;dist = %r&#39; % (dist,))</span>
+            <span class="n">node</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">aid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node2_aid</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
+            <span class="n">context_shown</span> <span class="o">=</span> <span class="bp">False</span>
+
+            <span class="n">CHECK_PAIR</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="n">CHECK_PAIR</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">context_shown</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;This funciton only work if exactly 2 are selected&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="kn">from</span> <span class="nn">ibeis.gui</span> <span class="kn">import</span> <span class="n">inspect_gui</span>
+                        <span class="n">context_shown</span> <span class="o">=</span> <span class="bp">True</span>
+                        <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_aids</span><span class="p">)</span>
+                        <span class="n">qres</span> <span class="o">=</span> <span class="bp">None</span>
+                        <span class="n">qreq_</span> <span class="o">=</span> <span class="bp">None</span>
+                        <span class="n">options</span> <span class="o">=</span> <span class="n">inspect_gui</span><span class="o">.</span><span class="n">get_aidpair_context_menu_options</span><span class="p">(</span>
+                            <span class="n">ibs</span><span class="p">,</span> <span class="n">aid1</span><span class="p">,</span> <span class="n">aid2</span><span class="p">,</span> <span class="n">qres</span><span class="p">,</span> <span class="n">qreq_</span><span class="o">=</span><span class="n">qreq_</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">show_popup_menu</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+
+            <span class="n">SELECT_ANNOT</span> <span class="o">=</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="mi">35</span>
+            <span class="k">if</span> <span class="n">SELECT_ANNOT</span><span class="p">:</span>
+                <span class="c1">#print(ut.obj_str(ibs.get_annot_info(aid, default=True,</span>
+                <span class="c1">#                                    name=False, gname=False)))</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">toggle_selected_aid</span><span class="p">(</span><span class="n">aid</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">context_shown</span><span class="p">:</span>
+                    <span class="c1"># right click</span>
+                    <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_chip</span>
+                    <span class="n">context_shown</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="c1">#refresh_func = functools.partial(viz.show_name, ibs, nid,</span>
+                    <span class="c1">#fnum=fnum, sel_aids=sel_aids)</span>
+                    <span class="n">refresh_func</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="n">config2_</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="n">interact_chip</span><span class="o">.</span><span class="n">build_annot_context_options</span><span class="p">(</span>
+                        <span class="n">ibs</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">refresh_func</span><span class="o">=</span><span class="n">refresh_func</span><span class="p">,</span>
+                        <span class="n">with_interact_name</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                        <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">show_popup_menu</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">button</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="p">(</span><span class="s1">&#39;Toggle images&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">toggle_images</span><span class="p">),</span>
+                    <span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">show_popup_menu</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+
+    <span class="bp">self</span> <span class="o">=</span> <span class="n">NameGraphInteraction</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">nids</span><span class="p">,</span> <span class="n">aids</span><span class="p">,</span> <span class="n">selected_aids</span><span class="o">=</span><span class="n">selected_aids</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">show_page</span><span class="p">()</span>
+    <span class="c1">#self.make_hud()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="c1">#ax = self.fig.axes[0]</span>
+    <span class="c1">#for index in range(len(ax.artists)):</span>
+    <span class="c1">#    artist = ax.artists[index]</span>
+    <span class="c1">#    bbox = artist.patch</span>
+    <span class="c1">#    bbox.set_facecolor(pt.ORANGE)</span>
+    <span class="c1">#    #offset_img = artist.offsetbox</span>
+    <span class="c1">#    #img = offset_img.get_data()</span>
+    <span class="c1">#    #offset_img.set_data(vt.draw_border(img, thickness=5))</span>
+
+    <span class="c1">#bbox = artist.patch</span>
+
+    <span class="c1">#ax.figure.canvas.draw()  # force re-draw</span>
+
+    <span class="k">return</span> <span class="bp">self</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span></div>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CommandLine:</span>
+<span class="sd">        python -m ibeis.viz.viz_graph</span>
+<span class="sd">        python -m ibeis.viz.viz_graph --allexamples</span>
+<span class="sd">        python -m ibeis.viz.viz_graph --allexamples --noface --nosrc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Jon Crall.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'1.5.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

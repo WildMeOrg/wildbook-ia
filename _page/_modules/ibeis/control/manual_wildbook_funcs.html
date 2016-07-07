@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.manual_wildbook_funcs &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.control.manual_wildbook_funcs &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,7 +131,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.control.manual_wildbook_funcs</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">CommandLine;</span>
 <span class="sd">    # Reset IBEIS database (can skip if done)</span>
@@ -162,7 +162,7 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">six</span>  <span class="c"># NOQA</span>
+<span class="kn">import</span> <span class="nn">six</span>  <span class="c1"># NOQA</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">lockfile</span>
@@ -173,7 +173,7 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
 <span class="kn">from</span> <span class="nn">ibeis.control</span> <span class="kn">import</span> <span class="n">controller_inject</span>
 <span class="kn">from</span> <span class="nn">ibeis.control.controller_inject</span> <span class="kn">import</span> <span class="n">make_ibs_register_decorator</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[manual_wildbook]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[manual_wildbook]&#39;</span><span class="p">)</span>
 
 <span class="n">CLASS_INJECT_KEY</span><span class="p">,</span> <span class="n">register_ibs_method</span> <span class="o">=</span> <span class="n">make_ibs_register_decorator</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 
@@ -181,21 +181,21 @@
 <span class="n">register_route</span> <span class="o">=</span> <span class="n">controller_inject</span><span class="o">.</span><span class="n">get_ibeis_flask_route</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 
 
-<span class="c">#PREFERED_BROWSER = &#39;chrome&#39;</span>
-<span class="c">#webbrowser._tryorder</span>
+<span class="c1">#PREFERED_BROWSER = &#39;chrome&#39;</span>
+<span class="c1">#webbrowser._tryorder</span>
 <span class="n">PREFERED_BROWSER</span> <span class="o">=</span> <span class="bp">None</span>
-<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;hyrule&#39;</span><span class="p">:</span>
-    <span class="n">PREFERED_BROWSER</span> <span class="o">=</span> <span class="s">&#39;firefox&#39;</span>
+<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;hyrule&#39;</span><span class="p">:</span>
+    <span class="n">PREFERED_BROWSER</span> <span class="o">=</span> <span class="s1">&#39;firefox&#39;</span>
 
 
-<span class="c"># FIXME add as controller config</span>
-<span class="n">ALLOW_SYSTEM_TOMCAT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--allow-system-tomcat&#39;</span><span class="p">)</span>
+<span class="c1"># FIXME add as controller config</span>
+<span class="n">ALLOW_SYSTEM_TOMCAT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--allow-system-tomcat&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_tomcat_startup_tmpdir"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.get_tomcat_startup_tmpdir">[docs]</a><span class="k">def</span> <span class="nf">get_tomcat_startup_tmpdir</span><span class="p">():</span>
     <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="c">#os.environ.get(&#39;CATALINA_TMPDIR&#39;, None),</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">ensure_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s">&#39;tomcat&#39;</span><span class="p">,</span> <span class="s">&#39;ibeis_startup_tmpdir&#39;</span><span class="p">),</span>
+        <span class="c1">#os.environ.get(&#39;CATALINA_TMPDIR&#39;, None),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">ensure_app_resource_dir</span><span class="p">(</span><span class="s1">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s1">&#39;tomcat&#39;</span><span class="p">,</span> <span class="s1">&#39;ibeis_startup_tmpdir&#39;</span><span class="p">),</span>
     <span class="p">]</span>
     <span class="n">tomcat_startup_dir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">search_candidate_paths</span><span class="p">(</span><span class="n">dpath_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">tomcat_startup_dir</span>
@@ -218,36 +218,36 @@
 <span class="sd">        &gt;&gt;&gt; result = (&#39;tomcat_dpath = %s&#39; % (str(tomcat_dpath),))</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">fname_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Tomcat&#39;</span><span class="p">,</span> <span class="s">&#39;tomcat&#39;</span><span class="p">]</span>
+    <span class="n">fname_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Tomcat&#39;</span><span class="p">,</span> <span class="s1">&#39;tomcat&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">ALLOW_SYSTEM_TOMCAT</span><span class="p">:</span>
-        <span class="c"># Places for system install of tomcat</span>
+        <span class="c1"># Places for system install of tomcat</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
-            <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;C:/Program Files (x86)&#39;</span><span class="p">,</span> <span class="s">&#39;C:/Program Files&#39;</span><span class="p">]</span>
+            <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;C:/Program Files (x86)&#39;</span><span class="p">,</span> <span class="s1">&#39;C:/Program Files&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/var/lib&#39;</span><span class="p">,</span> <span class="s">&#39;/usr/share&#39;</span><span class="p">,</span> <span class="s">&#39;/opt&#39;</span><span class="p">,</span> <span class="s">&#39;/lib&#39;</span><span class="p">]</span>
+            <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;/var/lib&#39;</span><span class="p">,</span> <span class="s1">&#39;/usr/share&#39;</span><span class="p">,</span> <span class="s1">&#39;/opt&#39;</span><span class="p">,</span> <span class="s1">&#39;/lib&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">DARWIN</span><span class="p">:</span>
-            <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/Library&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">dpath_list</span>
+            <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;/Library&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">dpath_list</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">dpath_list</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="n">priority_paths</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="c"># Numberone preference is the CATALINA_HOME directory</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;CATALINA_HOME&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-        <span class="c"># We put tomcat here if we can&#39;t find it</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s">&#39;tomcat&#39;</span><span class="p">)</span>
+        <span class="c1"># Numberone preference is the CATALINA_HOME directory</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;CATALINA_HOME&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+        <span class="c1"># We put tomcat here if we can&#39;t find it</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s1">&#39;ibeis&#39;</span><span class="p">,</span> <span class="s1">&#39;tomcat&#39;</span><span class="p">)</span>
     <span class="p">]</span>
 
     <span class="n">required_subpaths</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s">&#39;webapps&#39;</span><span class="p">,</span>
-        <span class="s">&#39;bin&#39;</span><span class="p">,</span>
-        <span class="s">&#39;bin/catalina.sh&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;webapps&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;bin&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;bin/catalina.sh&#39;</span><span class="p">,</span>
     <span class="p">]</span>
 
     <span class="n">return_path</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">search_candidate_paths</span><span class="p">(</span><span class="n">dpath_list</span><span class="p">,</span> <span class="n">fname_list</span><span class="p">,</span>
                                             <span class="n">priority_paths</span><span class="p">,</span> <span class="n">required_subpaths</span><span class="p">,</span>
                                             <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">return_path</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;tomcat_dpath = </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;tomcat_dpath = </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,))</span>
     <span class="k">return</span> <span class="n">tomcat_dpath</span>
 
 </div>
@@ -260,26 +260,26 @@
 <span class="sd">        # Reset</span>
 <span class="sd">        python -c &quot;import utool as ut; ut.delete(ut.unixjoin(ut.get_app_resource_dir(&#39;ibeis&#39;), &#39;tomcat&#39;))&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Grabbing tomcat&#39;</span><span class="p">)</span>
-    <span class="c"># FIXME: need to make a stable link</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Grabbing tomcat&#39;</span><span class="p">)</span>
+    <span class="c1"># FIXME: need to make a stable link</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">WIN32</span><span class="p">:</span>
-        <span class="n">tomcat_binary_url</span> <span class="o">=</span> <span class="s">&#39;http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24-windows-x86.zip&#39;</span>
+        <span class="n">tomcat_binary_url</span> <span class="o">=</span> <span class="s1">&#39;http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.36/bin/apache-tomcat-8.0.36-windows-x86.zip&#39;</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">tomcat_binary_url</span> <span class="o">=</span> <span class="s">&#39;http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.24/bin/apache-tomcat-8.0.24.zip&#39;</span>
-    <span class="n">zip_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">tomcat_binary_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;ibeis&#39;</span><span class="p">)</span>
-    <span class="c"># Download tomcat into the IBEIS resource directory</span>
-    <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">),</span> <span class="s">&#39;tomcat&#39;</span><span class="p">)</span>
+        <span class="n">tomcat_binary_url</span> <span class="o">=</span> <span class="s1">&#39;http://mirrors.advancedhosters.com/apache/tomcat/tomcat-8/v8.0.36/bin/apache-tomcat-8.0.36.zip&#39;</span>
+    <span class="n">zip_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">tomcat_binary_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;ibeis&#39;</span><span class="p">)</span>
+    <span class="c1"># Download tomcat into the IBEIS resource directory</span>
+    <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">),</span> <span class="s1">&#39;tomcat&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-        <span class="c"># hack because unzipping is still weird</span>
+        <span class="c1"># hack because unzipping is still weird</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">unzip_file</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">)</span>
         <span class="n">tomcat_dpath_tmp</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">zip_fpath</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">tomcat_dpath_tmp</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s">&#39;bin&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-        <span class="n">scriptnames</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;catalina.sh&#39;</span><span class="p">,</span> <span class="s">&#39;startup.sh&#39;</span><span class="p">,</span> <span class="s">&#39;shutdown.sh&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="n">scriptnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;catalina.sh&#39;</span><span class="p">,</span> <span class="s1">&#39;startup.sh&#39;</span><span class="p">,</span> <span class="s1">&#39;shutdown.sh&#39;</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">scriptnames</span><span class="p">:</span>
-            <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s">&#39;bin&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+            <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_file_executable</span><span class="p">(</span><span class="n">fpath</span><span class="p">):</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Adding executable bits to script </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Adding executable bits to script </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">chmod_add_executable</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">tomcat_dpath</span>
 
@@ -312,7 +312,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_tomcat</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">tomcat_dpath</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Cannot find tomcat&#39;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Cannot find tomcat&#39;</span>
         <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -320,9 +320,9 @@
             <span class="k">return</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="n">check_unpacked</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">ibeis</span>
-        <span class="c"># Check that webapps was unpacked</span>
+        <span class="c1"># Check that webapps was unpacked</span>
         <span class="n">wb_target</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">WILDBOOK_TARGET</span>
-        <span class="n">webapps_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s">&#39;webapps&#39;</span><span class="p">)</span>
+        <span class="n">webapps_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;webapps&#39;</span><span class="p">)</span>
         <span class="n">unpacked_war_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">webapps_dpath</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">assertpath</span><span class="p">(</span><span class="n">unpacked_war_dpath</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">tomcat_dpath</span>
@@ -368,11 +368,11 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">candidate_path_list</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="c">#os.environ.get(&#39;JAVA_HOME&#39;, None),</span>
-        <span class="c">#&#39;/usr/lib/jvm/java-7-openjdk-amd64&#39;,</span>
+        <span class="c1">#os.environ.get(&#39;JAVA_HOME&#39;, None),</span>
+        <span class="c1">#&#39;/usr/lib/jvm/java-7-openjdk-amd64&#39;,</span>
     <span class="p">]</span>
     <span class="n">jvm_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">search_candidate_paths</span><span class="p">(</span><span class="n">candidate_path_list</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">assertpath</span><span class="p">(</span><span class="n">jvm_fpath</span><span class="p">,</span> <span class="s">&#39;IBEIS cannot find Java Runtime Environment&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assertpath</span><span class="p">(</span><span class="n">jvm_fpath</span><span class="p">,</span> <span class="s1">&#39;IBEIS cannot find Java Runtime Environment&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">jvm_fpath</span>
 
 </div>
@@ -382,8 +382,8 @@
 <span class="sd">            ~/Downloads/pachy_ibeis.war wget</span>
 <span class="sd">    http://dev.wildme.org/ibeis_data_dir/ibeis.war</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">war_url</span> <span class="o">=</span> <span class="s">&#39;http://dev.wildme.org/ibeis_data_dir/ibeis.war&#39;</span>
-    <span class="n">war_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">war_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s">&#39;ibeis&#39;</span><span class="p">)</span>
+    <span class="n">war_url</span> <span class="o">=</span> <span class="s1">&#39;http://dev.wildme.org/ibeis_data_dir/ibeis.war&#39;</span>
+    <span class="n">war_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_file_url</span><span class="p">(</span><span class="n">war_url</span><span class="p">,</span> <span class="n">appname</span><span class="o">=</span><span class="s1">&#39;ibeis&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">war_fpath</span>
 
 </div>
@@ -401,7 +401,7 @@
         <span class="n">shutdown_wildbook_server</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="k">pass</span>
-    <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s">&#39;ibeis&#39;</span><span class="p">),</span> <span class="s">&#39;tomcat&#39;</span><span class="p">))</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_app_resource_dir</span><span class="p">(</span><span class="s1">&#39;ibeis&#39;</span><span class="p">),</span> <span class="s1">&#39;tomcat&#39;</span><span class="p">))</span>
 
 </div>
 <span class="nd">@ut.tracefunc_xml</span>
@@ -433,115 +433,115 @@
 <span class="sd">        &gt;&gt;&gt; result = install_wildbook()</span>
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># TODO: allow custom specified tomcat directory</span>
+    <span class="c1"># TODO: allow custom specified tomcat directory</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s">&#39;java&#39;</span><span class="p">,</span> <span class="s">&#39;-version&#39;</span><span class="p">],</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s1">&#39;java&#39;</span><span class="p">,</span> <span class="s1">&#39;-version&#39;</span><span class="p">],</span>
                                          <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
-        <span class="n">_java_version</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">_java_version</span> <span class="o">=</span> <span class="n">_java_version</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;java version &#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">java_version</span> <span class="o">=</span> <span class="n">_java_version</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;java_version = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">java_version</span><span class="p">,))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">java_version</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;1.7&#39;</span><span class="p">):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warning wildbook is only supported for java 1.7&#39;</span><span class="p">)</span>
+        <span class="n">_java_version</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">_java_version</span> <span class="o">=</span> <span class="n">_java_version</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;java version &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">java_version</span> <span class="o">=</span> <span class="n">_java_version</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;java_version = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">java_version</span><span class="p">,))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">java_version</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;1.7&#39;</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Warning wildbook is only supported for java 1.7&#39;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
         <span class="n">output</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-            <span class="s">&#39;Cannot find java on this machine. &#39;</span>
-            <span class="s">&#39;Please install java: http://www.java.com/en/download/&#39;</span><span class="p">)</span>
+            <span class="s1">&#39;Cannot find java on this machine. &#39;</span>
+            <span class="s1">&#39;Please install java: http://www.java.com/en/download/&#39;</span><span class="p">)</span>
 
     <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_or_download_tomcat</span><span class="p">()</span>
-    <span class="k">assert</span> <span class="n">tomcat_dpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;Could not find tomcat&#39;</span>
+    <span class="k">assert</span> <span class="n">tomcat_dpath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;Could not find tomcat&#39;</span>
     <span class="n">war_fpath</span> <span class="o">=</span> <span class="n">find_or_download_wilbook_warfile</span><span class="p">()</span>
     <span class="n">war_fname</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">war_fpath</span><span class="p">)</span>
     <span class="n">wb_target</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="n">war_fname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="c"># Ensure environment variables</span>
-    <span class="c">#os.environ[&#39;JAVA_HOME&#39;] = find_java_jvm()</span>
-    <span class="c">#os.environ[&#39;TOMCAT_HOME&#39;] = tomcat_dpath</span>
-    <span class="c">#os.environ[&#39;CATALINA_HOME&#39;] = tomcat_dpath</span>
+    <span class="c1"># Ensure environment variables</span>
+    <span class="c1">#os.environ[&#39;JAVA_HOME&#39;] = find_java_jvm()</span>
+    <span class="c1">#os.environ[&#39;TOMCAT_HOME&#39;] = tomcat_dpath</span>
+    <span class="c1">#os.environ[&#39;CATALINA_HOME&#39;] = tomcat_dpath</span>
 
-    <span class="c"># Move the war file to tomcat webapps if not there</span>
-    <span class="n">webapps_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s">&#39;webapps&#39;</span><span class="p">)</span>
+    <span class="c1"># Move the war file to tomcat webapps if not there</span>
+    <span class="n">webapps_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;webapps&#39;</span><span class="p">)</span>
     <span class="n">deploy_war_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">webapps_dpath</span><span class="p">,</span> <span class="n">war_fname</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">deploy_war_fpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">):</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">war_fpath</span><span class="p">,</span> <span class="n">deploy_war_fpath</span><span class="p">)</span>
 
-    <span class="c"># Ensure that the war file has been unpacked</span>
+    <span class="c1"># Ensure that the war file has been unpacked</span>
 
     <span class="n">unpacked_war_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">webapps_dpath</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">unpacked_war_dpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">):</span>
-        <span class="c"># Need to make sure you start catalina in the same directory otherwise</span>
-        <span class="c"># the derby databsae gets put in in cwd</span>
+        <span class="c1"># Need to make sure you start catalina in the same directory otherwise</span>
+        <span class="c1"># the derby databsae gets put in in cwd</span>
         <span class="n">tomcat_startup_dir</span> <span class="o">=</span> <span class="n">get_tomcat_startup_tmpdir</span><span class="p">()</span>
         <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">ChdirContext</span><span class="p">(</span><span class="n">tomcat_startup_dir</span><span class="p">):</span>
-            <span class="c"># Starting and stoping catalina should be sufficient to unpack the</span>
-            <span class="c"># war</span>
-            <span class="n">startup_fpath</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s">&#39;bin&#39;</span><span class="p">,</span> <span class="s">&#39;startup.sh&#39;</span><span class="p">)</span>
-            <span class="n">shutdown_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s">&#39;bin&#39;</span><span class="p">,</span> <span class="s">&#39;shutdown.sh&#39;</span><span class="p">)</span>
+            <span class="c1"># Starting and stoping catalina should be sufficient to unpack the</span>
+            <span class="c1"># war</span>
+            <span class="n">startup_fpath</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="s1">&#39;startup.sh&#39;</span><span class="p">)</span>
+            <span class="n">shutdown_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="s1">&#39;shutdown.sh&#39;</span><span class="p">)</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">quote_single_command</span><span class="p">(</span><span class="n">startup_fpath</span><span class="p">))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;It is NOT ok if the startup.sh fails</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;It is NOT ok if the startup.sh fails</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 
-            <span class="c"># wait for the war to be unpacked</span>
+            <span class="c1"># wait for the war to be unpacked</span>
             <span class="k">for</span> <span class="n">retry_count</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">checkpath</span><span class="p">(</span><span class="n">unpacked_war_dpath</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
                     <span class="k">break</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Retrying&#39;</span><span class="p">)</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Retrying&#39;</span><span class="p">)</span>
 
-            <span class="c"># ensure that the server is ruuning</span>
+            <span class="c1"># ensure that the server is ruuning</span>
             <span class="kn">import</span> <span class="nn">requests</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Checking if we can ping the server&#39;</span><span class="p">)</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;http://localhost:8080&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Checking if we can ping the server&#39;</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;http://localhost:8080&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;There may be an error starting the server&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;There may be an error starting the server&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;Seem able to ping the server&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Seem able to ping the server&#39;</span><span class="p">)</span>
 
-            <span class="c"># assert tht the war was unpacked</span>
+            <span class="c1"># assert tht the war was unpacked</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">assertpath</span><span class="p">(</span><span class="n">unpacked_war_dpath</span><span class="p">,</span> <span class="p">(</span>
-                <span class="s">&#39;Wildbook war might have not unpacked correctly.  This may &#39;</span>
-                <span class="s">&#39;be ok. Try again. If it fails a second time, then there is a &#39;</span>
-                <span class="s">&#39;problem.&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="s1">&#39;Wildbook war might have not unpacked correctly.  This may &#39;</span>
+                <span class="s1">&#39;be ok. Try again. If it fails a second time, then there is a &#39;</span>
+                <span class="s1">&#39;problem.&#39;</span><span class="p">),</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-            <span class="c"># shutdown the server</span>
+            <span class="c1"># shutdown the server</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">quote_single_command</span><span class="p">(</span><span class="n">shutdown_fpath</span><span class="p">))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;It is ok if the shutdown.sh fails&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;It is ok if the shutdown.sh fails&#39;</span><span class="p">)</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">)</span>
 
-    <span class="c"># Make sure permissions are correctly set in wildbook</span>
-    <span class="c"># Comment out the line that requires authentication</span>
-    <span class="n">permission_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">unpacked_war_dpath</span><span class="p">,</span> <span class="s">&#39;WEB-INF/web.xml&#39;</span><span class="p">)</span>
+    <span class="c1"># Make sure permissions are correctly set in wildbook</span>
+    <span class="c1"># Comment out the line that requires authentication</span>
+    <span class="n">permission_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">unpacked_war_dpath</span><span class="p">,</span> <span class="s1">&#39;WEB-INF/web.xml&#39;</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assertpath</span><span class="p">(</span><span class="n">permission_fpath</span><span class="p">)</span>
     <span class="n">permission_text</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">readfrom</span><span class="p">(</span><span class="n">permission_fpath</span><span class="p">)</span>
     <span class="n">lines_to_remove</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="c"># &#39;/ImageSetSetMarkedIndividual = authc, roles[admin]&#39;</span>
-        <span class="s">&#39;/EncounterSetMarkedIndividual = authc, roles[admin]&#39;</span>
+        <span class="c1"># &#39;/ImageSetSetMarkedIndividual = authc, roles[admin]&#39;</span>
+        <span class="s1">&#39;/EncounterSetMarkedIndividual = authc, roles[admin]&#39;</span>
     <span class="p">]</span>
     <span class="n">new_permission_text</span> <span class="o">=</span> <span class="n">permission_text</span><span class="p">[:]</span>
     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines_to_remove</span><span class="p">:</span>
         <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">line</span><span class="p">),</span> <span class="n">permission_text</span><span class="p">)</span>
-        <span class="n">prefix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s">&#39;prefix&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">s*&#39;</span><span class="p">)</span>
-        <span class="n">suffix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s">&#39;suffix&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">s*</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
-        <span class="n">pattern</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;^&#39;</span> <span class="o">+</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s1">&#39;prefix&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">s*&#39;</span><span class="p">)</span>
+        <span class="n">suffix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">named_field</span><span class="p">(</span><span class="s1">&#39;suffix&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">s*</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;^&#39;</span> <span class="o">+</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">re</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">)</span>
         <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">permission_text</span><span class="p">,</span>
                           <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="n">newline</span> <span class="o">=</span> <span class="s">&#39;&lt;!--</span><span class="si">%s</span><span class="s"> --&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,)</span>
-        <span class="n">repl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">bref_field</span><span class="p">(</span><span class="s">&#39;prefix&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">newline</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">bref_field</span><span class="p">(</span><span class="s">&#39;suffix&#39;</span><span class="p">)</span>
+        <span class="n">newline</span> <span class="o">=</span> <span class="s1">&#39;&lt;!--</span><span class="si">%s</span><span class="s1"> --&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="p">,)</span>
+        <span class="n">repl</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">bref_field</span><span class="p">(</span><span class="s1">&#39;prefix&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">newline</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">bref_field</span><span class="p">(</span><span class="s1">&#39;suffix&#39;</span><span class="p">)</span>
         <span class="n">new_permission_text</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">repl</span><span class="p">,</span> <span class="n">permission_text</span><span class="p">,</span>
                                      <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">new_permission_text</span> <span class="o">!=</span> <span class="n">permission_text</span><span class="p">,</span> <span class="p">(</span>
-            <span class="s">&#39;text should have changed&#39;</span><span class="p">)</span>
+            <span class="s1">&#39;text should have changed&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">new_permission_text</span> <span class="o">!=</span> <span class="n">permission_text</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Need to write new permission texts&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Need to write new permission texts&#39;</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">permission_fpath</span><span class="p">,</span> <span class="n">new_permission_text</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Permission file seems to be ok&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Permission file seems to be ok&#39;</span><span class="p">)</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Wildbook is installed and waiting to be started&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Wildbook is installed and waiting to be started&#39;</span><span class="p">)</span>
 
 </div>
 <span class="nd">@ut.tracefunc_xml</span>
@@ -562,20 +562,20 @@
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># TODO: allow custom specified tomcat directory</span>
+    <span class="c1"># TODO: allow custom specified tomcat directory</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_installed_tomcat</span><span class="p">()</span>
 
-    <span class="c"># Ensure environment variables</span>
-    <span class="c">#os.environ[&#39;JAVA_HOME&#39;] = find_java_jvm()</span>
-    <span class="c">#os.environ[&#39;TOMCAT_HOME&#39;] = tomcat_dpath</span>
-    <span class="c">#os.environ[&#39;CATALINA_HOME&#39;] = tomcat_dpath</span>
+    <span class="c1"># Ensure environment variables</span>
+    <span class="c1">#os.environ[&#39;JAVA_HOME&#39;] = find_java_jvm()</span>
+    <span class="c1">#os.environ[&#39;TOMCAT_HOME&#39;] = tomcat_dpath</span>
+    <span class="c1">#os.environ[&#39;CATALINA_HOME&#39;] = tomcat_dpath</span>
 
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">ChdirContext</span><span class="p">(</span><span class="n">get_tomcat_startup_tmpdir</span><span class="p">()):</span>
-        <span class="n">startup_fpath</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s">&#39;bin&#39;</span><span class="p">,</span> <span class="s">&#39;startup.sh&#39;</span><span class="p">)</span>
+        <span class="n">startup_fpath</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="s1">&#39;startup.sh&#39;</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">quote_single_command</span><span class="p">(</span><span class="n">startup_fpath</span><span class="p">))</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">wb_url</span> <span class="o">=</span> <span class="s">&#39;http://localhost:8080/&#39;</span> <span class="o">+</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">WILDBOOK_TARGET</span>
+    <span class="n">wb_url</span> <span class="o">=</span> <span class="s1">&#39;http://localhost:8080/&#39;</span> <span class="o">+</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">WILDBOOK_TARGET</span>
     <span class="k">return</span> <span class="n">wb_url</span>
 
 </div>
@@ -596,17 +596,17 @@
 <span class="sd">        &gt;&gt;&gt; ut.quit_if_noshow()</span>
 <span class="sd">        &gt;&gt;&gt; ut.get_prefered_browser(PREFERED_BROWSER).open_new_tab(wb_url)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># TODO: allow custom specified tomcat directory</span>
+    <span class="c1"># TODO: allow custom specified tomcat directory</span>
     <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_installed_tomcat</span><span class="p">(</span><span class="n">check_unpacked</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
-    <span class="c"># Ensure environment variables</span>
-    <span class="c">#os.environ[&#39;JAVA_HOME&#39;] = find_java_jvm()</span>
-    <span class="c">#os.environ[&#39;TOMCAT_HOME&#39;] = tomcat_dpath</span>
-    <span class="c">#os.environ[&#39;CATALINA_HOME&#39;] = tomcat_dpath</span>
+    <span class="c1"># Ensure environment variables</span>
+    <span class="c1">#os.environ[&#39;JAVA_HOME&#39;] = find_java_jvm()</span>
+    <span class="c1">#os.environ[&#39;TOMCAT_HOME&#39;] = tomcat_dpath</span>
+    <span class="c1">#os.environ[&#39;CATALINA_HOME&#39;] = tomcat_dpath</span>
 
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">ChdirContext</span><span class="p">(</span><span class="n">get_tomcat_startup_tmpdir</span><span class="p">()):</span>
-        <span class="n">shutdown_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s">&#39;bin&#39;</span><span class="p">,</span> <span class="s">&#39;shutdown.sh&#39;</span><span class="p">)</span>
-        <span class="c">#ut.cmd(shutdown_fpath)</span>
+        <span class="n">shutdown_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="s1">&#39;shutdown.sh&#39;</span><span class="p">)</span>
+        <span class="c1">#ut.cmd(shutdown_fpath)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">cmd</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">quote_single_command</span><span class="p">(</span><span class="n">shutdown_fpath</span><span class="p">))</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">)</span>
 
@@ -627,40 +627,40 @@
 <span class="sd">        &gt;&gt;&gt; from ibeis.control.manual_wildbook_funcs import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; test_wildbook_login()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Use selenimum to login to wildbook</span>
+    <span class="c1"># Use selenimum to login to wildbook</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="n">manaul_login</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="n">wb_target</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">WILDBOOK_TARGET</span>
-    <span class="n">wb_url</span> <span class="o">=</span> <span class="s">&#39;http://localhost:8080/&#39;</span> <span class="o">+</span> <span class="n">wb_target</span>
+    <span class="n">wb_url</span> <span class="o">=</span> <span class="s1">&#39;http://localhost:8080/&#39;</span> <span class="o">+</span> <span class="n">wb_target</span>
     <span class="k">if</span> <span class="n">manaul_login</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">get_prefered_browser</span><span class="p">(</span><span class="n">PREFERED_BROWSER</span><span class="p">)</span><span class="o">.</span><span class="n">open_new_tab</span><span class="p">(</span><span class="n">wb_url</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">driver</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">grab_selenium_driver</span><span class="p">(</span><span class="n">PREFERED_BROWSER</span><span class="p">)</span>
         <span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wb_url</span><span class="p">)</span>
-        <span class="n">login_button</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_partial_link_text</span><span class="p">(</span><span class="s">&#39;Log in&#39;</span><span class="p">)</span>
+        <span class="n">login_button</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_partial_link_text</span><span class="p">(</span><span class="s1">&#39;Log in&#39;</span><span class="p">)</span>
         <span class="n">login_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
-        <span class="c"># Find login elements</span>
-        <span class="n">username_field</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s">&#39;username&#39;</span><span class="p">)</span>
-        <span class="n">password_field</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s">&#39;password&#39;</span><span class="p">)</span>
-        <span class="n">submit_login_button</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s">&#39;submit&#39;</span><span class="p">)</span>
-        <span class="n">rememberMe_button</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s">&#39;rememberMe&#39;</span><span class="p">)</span>
-        <span class="c"># Execute elements</span>
-        <span class="n">username_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s">&#39;tomcat&#39;</span><span class="p">)</span>
-        <span class="n">password_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s">&#39;tomcat123&#39;</span><span class="p">)</span>
+        <span class="c1"># Find login elements</span>
+        <span class="n">username_field</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">)</span>
+        <span class="n">password_field</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">)</span>
+        <span class="n">submit_login_button</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s1">&#39;submit&#39;</span><span class="p">)</span>
+        <span class="n">rememberMe_button</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s1">&#39;rememberMe&#39;</span><span class="p">)</span>
+        <span class="c1"># Execute elements</span>
+        <span class="n">username_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s1">&#39;tomcat&#39;</span><span class="p">)</span>
+        <span class="n">password_field</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s1">&#39;tomcat123&#39;</span><span class="p">)</span>
         <span class="n">rememberMe_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
         <span class="n">submit_login_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
-        <span class="c"># Accept agreement</span>
+        <span class="c1"># Accept agreement</span>
         <span class="kn">import</span> <span class="nn">selenium.common.exceptions</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">accept_aggrement_button</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s">&#39;acceptUserAgreement&#39;</span><span class="p">)</span>
+            <span class="n">accept_aggrement_button</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_name</span><span class="p">(</span><span class="s1">&#39;acceptUserAgreement&#39;</span><span class="p">)</span>
             <span class="n">accept_aggrement_button</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
         <span class="k">except</span> <span class="n">selenium</span><span class="o">.</span><span class="n">common</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">NoSuchElementException</span><span class="p">:</span>
             <span class="k">pass</span>
 
-        <span class="c"># Goto individuals page</span>
-        <span class="n">individuals</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_partial_link_text</span><span class="p">(</span><span class="s">&#39;Individuals&#39;</span><span class="p">)</span>
+        <span class="c1"># Goto individuals page</span>
+        <span class="n">individuals</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_partial_link_text</span><span class="p">(</span><span class="s1">&#39;Individuals&#39;</span><span class="p">)</span>
         <span class="n">individuals</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
-        <span class="n">view_all</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_partial_link_text</span><span class="p">(</span><span class="s">&#39;View All&#39;</span><span class="p">)</span>
+        <span class="n">view_all</span> <span class="o">=</span> <span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_partial_link_text</span><span class="p">(</span><span class="s1">&#39;View All&#39;</span><span class="p">)</span>
         <span class="n">view_all</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
 
 </div>
@@ -670,12 +670,12 @@
 <span class="sd">    SeeAlso:</span>
 <span class="sd">        ~/local/build_scripts/init_wildbook.sh</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Very hacky and specific testdata script.</span>
-    <span class="c">#if ut.is_developer():</span>
-    <span class="c">#    tomcat_dpath = join(os.environ[&#39;CODE_DIR&#39;],</span>
-    <span class="c">#                        &#39;Wildbook/tmp/apache-tomcat-8.0.24&#39;)</span>
-    <span class="c">#else:</span>
-    <span class="c">#    tomcat_dpath = &#39;/var/lib/tomcat&#39;</span>
+    <span class="c1"># Very hacky and specific testdata script.</span>
+    <span class="c1">#if ut.is_developer():</span>
+    <span class="c1">#    tomcat_dpath = join(os.environ[&#39;CODE_DIR&#39;],</span>
+    <span class="c1">#                        &#39;Wildbook/tmp/apache-tomcat-8.0.36&#39;)</span>
+    <span class="c1">#else:</span>
+    <span class="c1">#    tomcat_dpath = &#39;/var/lib/tomcat&#39;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
     <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">find_installed_tomcat</span><span class="p">()</span>
     <span class="n">wb_target</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">WILDBOOK_TARGET</span>
@@ -689,13 +689,13 @@
 </div>
 <span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="get_wildbook_info"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.get_wildbook_info">[docs]</a><span class="k">def</span> <span class="nf">get_wildbook_info</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="c"># TODO: Clean this up</span>
+    <span class="c1"># TODO: Clean this up</span>
     <span class="n">wildbook_base_url</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_base_url</span><span class="p">(</span><span class="n">wb_target</span><span class="p">)</span>
     <span class="n">wildbook_tomcat_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_tomcat_path</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">)</span>
-    <span class="c"># Setup</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Looking for WildBook installation: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">wildbook_tomcat_path</span><span class="p">,</span> <span class="p">))</span>
+    <span class="c1"># Setup</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Looking for WildBook installation: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">wildbook_tomcat_path</span><span class="p">,</span> <span class="p">))</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_exists</span><span class="p">(</span><span class="n">wildbook_tomcat_path</span><span class="p">,</span>
-                     <span class="s">&#39;Wildbook is not installed on this machine&#39;</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                     <span class="s1">&#39;Wildbook is not installed on this machine&#39;</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wildbook_base_url</span><span class="p">,</span> <span class="n">wildbook_tomcat_path</span>
 
 </div>
@@ -704,16 +704,16 @@
     <span class="n">DEFAULT_TOMCAT_PATH</span> <span class="o">=</span> <span class="n">find_installed_tomcat</span><span class="p">()</span>
     <span class="n">tomcat_dpath</span> <span class="o">=</span> <span class="n">DEFAULT_TOMCAT_PATH</span> <span class="k">if</span> <span class="n">tomcat_dpath</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">tomcat_dpath</span>
     <span class="n">wb_target</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">WILDBOOK_TARGET</span> <span class="k">if</span> <span class="n">wb_target</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">wb_target</span>
-    <span class="n">wildbook_tomcat_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s">&#39;webapps&#39;</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">)</span>
+    <span class="n">wildbook_tomcat_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="s1">&#39;webapps&#39;</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">wildbook_tomcat_path</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
 <div class="viewcode-block" id="get_wildbook_base_url"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.get_wildbook_base_url">[docs]</a><span class="k">def</span> <span class="nf">get_wildbook_base_url</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="n">wb_target</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">WILDBOOK_TARGET</span> <span class="k">if</span> <span class="n">wb_target</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">wb_target</span>
-    <span class="n">hostname</span> <span class="o">=</span> <span class="s">&#39;127.0.0.1&#39;</span>
+    <span class="n">hostname</span> <span class="o">=</span> <span class="s1">&#39;127.0.0.1&#39;</span>
     <span class="n">wb_port</span> <span class="o">=</span> <span class="mi">8080</span>
-    <span class="n">wildbook_base_url</span> <span class="o">=</span> <span class="s">&#39;http://&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">hostname</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">wb_port</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span> <span class="o">+</span> <span class="n">wb_target</span>
+    <span class="n">wildbook_base_url</span> <span class="o">=</span> <span class="s1">&#39;http://&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">hostname</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">wb_port</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">wb_target</span>
     <span class="k">return</span> <span class="n">wildbook_base_url</span>
 
 </div>
@@ -723,36 +723,36 @@
 <span class="sd">    mirroring the one in IBEISController.py, but with changed functionality</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">dryrun</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[DRYrun_submit] URL=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[DRYrun_submit] URL=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="p">))</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">status</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[submit] URL=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[submit] URL=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="p">))</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">payload</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
-                <span class="c">#response = requests.get(url, auth=(&#39;tomcat&#39;, &#39;tomcat123&#39;))</span>
+                <span class="c1">#response = requests.get(url, auth=(&#39;tomcat&#39;, &#39;tomcat123&#39;))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
-                <span class="c">#r = requests.post(url, data=None, auth=(&#39;tomcat&#39;, &#39;tomcat123&#39;))</span>
+                <span class="c1">#r = requests.post(url, data=None, auth=(&#39;tomcat&#39;, &#39;tomcat123&#39;))</span>
         <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Could not connect to Wildbook server url=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">url</span><span class="p">)</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Could not connect to Wildbook server url=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">url</span><span class="p">)</span>
             <span class="k">raise</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">status</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-            <span class="n">errmsg_list</span> <span class="o">=</span> <span class="p">([(</span><span class="s">&#39;Wildbook response NOT ok (200)&#39;</span><span class="p">)])</span>
+            <span class="n">errmsg_list</span> <span class="o">=</span> <span class="p">([(</span><span class="s1">&#39;Wildbook response NOT ok (200)&#39;</span><span class="p">)])</span>
             <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">errmsg_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                    <span class="p">(</span><span class="s">&#39;WILDBOOK SERVER RESPONSE = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="p">)),</span>
+                    <span class="p">(</span><span class="s1">&#39;WILDBOOK SERVER RESPONSE = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="p">)),</span>
                 <span class="p">])</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">errmsg_list</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                    <span class="p">(</span><span class="s">&#39;WILDBOOK SERVER STATUS = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,)),</span>
-                    <span class="p">(</span><span class="s">&#39;WILDBOOK SERVER RESPONSE TEXT = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,)),</span>
+                    <span class="p">(</span><span class="s1">&#39;WILDBOOK SERVER STATUS = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,)),</span>
+                    <span class="p">(</span><span class="s1">&#39;WILDBOOK SERVER RESPONSE TEXT = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,)),</span>
                 <span class="p">])</span>
-            <span class="n">errmsg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errmsg_list</span><span class="p">)</span>
+            <span class="n">errmsg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errmsg_list</span><span class="p">)</span>
             <span class="k">print</span><span class="p">(</span><span class="n">errmsg</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">browse_on_error</span><span class="p">:</span>
                 <span class="n">ut</span><span class="o">.</span><span class="n">get_prefered_browser</span><span class="p">(</span><span class="n">PREFERED_BROWSER</span><span class="p">)</span><span class="o">.</span><span class="n">open_new_tab</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
@@ -764,31 +764,31 @@
 <span class="nd">@ut.tracefunc_xml</span>
 <div class="viewcode-block" id="update_wildbook_config"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.update_wildbook_config">[docs]</a><span class="k">def</span> <span class="nf">update_wildbook_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wildbook_tomcat_path</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="n">wildbook_properteis_dpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">wildbook_tomcat_path</span><span class="p">,</span>
-                                     <span class="s">&#39;WEB-INF/classes/bundles/&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.update_wildbook_config()] Wildbook properties=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                                     <span class="s1">&#39;WEB-INF/classes/bundles/&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs.update_wildbook_config()] Wildbook properties=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
         <span class="n">wildbook_properteis_dpath</span><span class="p">,</span> <span class="p">))</span>
-    <span class="c"># The src file is non-standard. It should be remove here as well</span>
+    <span class="c1"># The src file is non-standard. It should be remove here as well</span>
     <span class="n">wildbook_config_fpath_dst</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">wildbook_properteis_dpath</span><span class="p">,</span>
-                                     <span class="s">&#39;commonConfiguration.properties&#39;</span><span class="p">)</span>
+                                     <span class="s1">&#39;commonConfiguration.properties&#39;</span><span class="p">)</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">assert_exists</span><span class="p">(</span><span class="n">wildbook_properteis_dpath</span><span class="p">)</span>
-    <span class="c"># for come reason the .default file is not there, that should be ok though</span>
+    <span class="c1"># for come reason the .default file is not there, that should be ok though</span>
     <span class="n">orig_content</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">read_from</span><span class="p">(</span><span class="n">wildbook_config_fpath_dst</span><span class="p">)</span>
     <span class="n">content</span> <span class="o">=</span> <span class="n">orig_content</span>
-    <span class="n">content</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;IBEIS_DB_path = .*&#39;</span><span class="p">,</span>
-                     <span class="s">&#39;IBEIS_DB_path = &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_core_path</span><span class="p">(),</span> <span class="n">content</span><span class="p">)</span>
-    <span class="n">content</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;IBEIS_image_path = .*&#39;</span><span class="p">,</span>
-                     <span class="s">&#39;IBEIS_image_path = &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imgdir</span><span class="p">(),</span> <span class="n">content</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;IBEIS_DB_path = .*&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;IBEIS_DB_path = &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_core_path</span><span class="p">(),</span> <span class="n">content</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;IBEIS_image_path = .*&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;IBEIS_image_path = &#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imgdir</span><span class="p">(),</span> <span class="n">content</span><span class="p">)</span>
 
-    <span class="c"># Write to the configuration if it is different</span>
+    <span class="c1"># Write to the configuration if it is different</span>
     <span class="k">if</span> <span class="n">orig_content</span> <span class="o">!=</span> <span class="n">content</span><span class="p">:</span>
         <span class="n">need_sudo</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">ut</span><span class="o">.</span><span class="n">is_file_writable</span><span class="p">(</span><span class="n">wildbook_config_fpath_dst</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">need_sudo</span><span class="p">:</span>
-            <span class="n">quoted_content</span> <span class="o">=</span> <span class="s">&#39;&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Attempting to gain sudo access to update wildbook config&#39;</span><span class="p">)</span>
-            <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;sudo&#39;</span><span class="p">,</span> <span class="s">&#39;sh&#39;</span><span class="p">,</span> <span class="s">&#39;-c&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;echo&#39;</span><span class="p">,</span>
-                       <span class="n">quoted_content</span><span class="p">,</span> <span class="s">&#39;&gt;&#39;</span><span class="p">,</span> <span class="n">wildbook_config_fpath_dst</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">]</span>
-            <span class="c"># ut.cmd(command, sudo=True)</span>
-            <span class="n">command</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+            <span class="n">quoted_content</span> <span class="o">=</span> <span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Attempting to gain sudo access to update wildbook config&#39;</span><span class="p">)</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;sudo&#39;</span><span class="p">,</span> <span class="s1">&#39;sh&#39;</span><span class="p">,</span> <span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;echo&#39;</span><span class="p">,</span>
+                       <span class="n">quoted_content</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="n">wildbook_config_fpath_dst</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">]</span>
+            <span class="c1"># ut.cmd(command, sudo=True)</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -796,7 +796,7 @@
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/wildbook/signal_annot_name_changes/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/wildbook/signal_annot_name_changes/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="wildbook_signal_annot_name_changes"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.wildbook_signal_annot_name_changes">[docs]</a><span class="k">def</span> <span class="nf">wildbook_signal_annot_name_changes</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">wb_target</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Args:</span>
@@ -869,28 +869,28 @@
 <span class="sd">        &gt;&gt;&gt; wb_target, tomcat_dpath = testdata_wildbook_server()</span>
 <span class="sd">        &gt;&gt;&gt; result = ibs.wildbook_signal_annot_name_changes(aid_list, tomcat_dpath, wb_target, dryrun)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.wildbook_signal_imgsetid_list()] signaling any annotation name changes to wildbook&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs.wildbook_signal_imgsetid_list()] signaling any annotation name changes to wildbook&#39;</span><span class="p">)</span>
 
     <span class="n">wildbook_base_url</span><span class="p">,</span> <span class="n">wildbook_tomcat_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_info</span><span class="p">(</span><span class="n">tomcat_dpath</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">)</span>
-    <span class="c"># url_command = &#39;ImageSetSetMarkedIndividual&#39;</span>
-    <span class="n">url_command</span> <span class="o">=</span> <span class="s">&#39;EncounterSetMarkedIndividual&#39;</span>
+    <span class="c1"># url_command = &#39;ImageSetSetMarkedIndividual&#39;</span>
+    <span class="n">url_command</span> <span class="o">=</span> <span class="s1">&#39;EncounterSetMarkedIndividual&#39;</span>
     <span class="n">BASIC_AUTH</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">if</span> <span class="n">BASIC_AUTH</span><span class="p">:</span>
-        <span class="c">#url_command += &#39;=authcBasicWildbook&#39;</span>
-        <span class="n">username</span> <span class="o">=</span> <span class="s">&#39;tomcat&#39;</span>
-        <span class="n">password</span> <span class="o">=</span> <span class="s">&#39;tomcat123&#39;</span>
-        <span class="n">wildbook_base_url</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;http://&#39;</span> <span class="o">+</span> <span class="n">username</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="n">password</span> <span class="o">+</span> <span class="s">&#39;@&#39;</span> <span class="o">+</span>
-                             <span class="n">wildbook_base_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;http://&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
-    <span class="n">url_args_fmtstr</span> <span class="o">=</span> <span class="s">&#39;&amp;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
-        <span class="s">&#39;imagesetID={annot_uuid!s}&#39;</span><span class="p">,</span>
-        <span class="s">&#39;individualID={name_text!s}&#39;</span><span class="p">,</span>
+        <span class="c1">#url_command += &#39;=authcBasicWildbook&#39;</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="s1">&#39;tomcat&#39;</span>
+        <span class="n">password</span> <span class="o">=</span> <span class="s1">&#39;tomcat123&#39;</span>
+        <span class="n">wildbook_base_url</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;http://&#39;</span> <span class="o">+</span> <span class="n">username</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">password</span> <span class="o">+</span> <span class="s1">&#39;@&#39;</span> <span class="o">+</span>
+                             <span class="n">wildbook_base_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;http://&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+    <span class="n">url_args_fmtstr</span> <span class="o">=</span> <span class="s1">&#39;&amp;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+        <span class="s1">&#39;annotID={annot_uuid!s}&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;individualID={name_text!s}&#39;</span><span class="p">,</span>
     <span class="p">])</span>
     <span class="n">submit_namchange_url_fmtstr</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">wildbook_base_url</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span> <span class="o">+</span> <span class="n">url_command</span> <span class="o">+</span> <span class="s">&#39;?&#39;</span> <span class="o">+</span> <span class="n">url_args_fmtstr</span><span class="p">)</span>
+        <span class="n">wildbook_base_url</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">url_command</span> <span class="o">+</span> <span class="s1">&#39;?&#39;</span> <span class="o">+</span> <span class="n">url_args_fmtstr</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">aid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_aids</span><span class="p">(</span><span class="n">is_known</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="c"># Build URLs to submit</span>
+    <span class="c1"># Build URLs to submit</span>
     <span class="n">annot_uuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">annot_name_text_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_texts</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">submit_url_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -901,34 +901,34 @@
 
     <span class="n">payload</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="c"># Submit each URL</span>
+    <span class="c1"># Submit each URL</span>
     <span class="n">status_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Submitting URL list&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Submitting URL list&#39;</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">submit_url_list</span><span class="p">))</span>
     <span class="n">message_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">submit_url_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;submitting URL&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">submit_url_list</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;submitting URL&#39;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
         <span class="n">status</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">submit_wildbook_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">)</span>
-        <span class="c">#print(ut.dict_str(response.__dict__, truncate=0))</span>
+        <span class="c1">#print(ut.dict_str(response.__dict__, truncate=0))</span>
         <span class="n">status_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">response_json</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-            <span class="c"># imageset in this message is a wb-imageset not our ia-imageset</span>
-            <span class="c">#if ut.VERBOSE:</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">response_json</span><span class="p">[</span><span class="s">&#39;message&#39;</span><span class="p">])</span>
-            <span class="n">message_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">response_json</span><span class="p">[</span><span class="s">&#39;message&#39;</span><span class="p">]))</span>
+            <span class="c1"># imageset in this message is a wb-imageset not our ia-imageset</span>
+            <span class="c1">#if ut.VERBOSE:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">response_json</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">])</span>
+            <span class="n">message_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">response_json</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]))</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">message_list</span><span class="p">))</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;Failed getting json from response. &#39;</span>
-                            <span class="s">&#39;Is there an authentication issue?&#39;</span><span class="p">))</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;Failed getting json from response. &#39;</span>
+                            <span class="s1">&#39;Is there an authentication issue?&#39;</span><span class="p">))</span>
             <span class="k">raise</span>
-        <span class="k">assert</span> <span class="n">response_json</span><span class="p">[</span><span class="s">&#39;success&#39;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">response_json</span><span class="p">[</span><span class="s1">&#39;success&#39;</span><span class="p">]</span>
     <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">indentjoin</span><span class="p">(</span><span class="n">message_list</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">status_list</span>
 
 </div>
 <span class="nd">@register_ibs_method</span>
-<span class="nd">@register_api</span><span class="p">(</span><span class="s">&#39;/api/wildbook/signal_imgsetid_list/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;PUT&#39;</span><span class="p">])</span>
+<span class="nd">@register_api</span><span class="p">(</span><span class="s1">&#39;/api/wildbook/signal_imgsetid_list/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PUT&#39;</span><span class="p">])</span>
 <div class="viewcode-block" id="wildbook_signal_imgsetid_list"><a class="viewcode-back" href="../../../ibeis.control.html#ibeis.control.manual_wildbook_funcs.wildbook_signal_imgsetid_list">[docs]</a><span class="k">def</span> <span class="nf">wildbook_signal_imgsetid_list</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">imgsetid_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                                   <span class="n">set_shipped_flag</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                                   <span class="n">open_url_on_complete</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tomcat_dpath</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
@@ -1015,27 +1015,27 @@
     <span class="k">def</span> <span class="nf">_send</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">use_config_file</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">):</span>
         <span class="n">imageset_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_uuid</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
         <span class="n">url</span> <span class="o">=</span> <span class="n">submit_imgsetid_url_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">imageset_uuid</span><span class="o">=</span><span class="n">imageset_uuid</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_send] URL=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_send] URL=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="p">))</span>
         <span class="n">smart_xml_fname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_smart_xml_fnames</span><span class="p">([</span><span class="n">imgsetid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">smart_waypoint_id</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_smart_waypoint_ids</span><span class="p">([</span><span class="n">imgsetid</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">smart_xml_fname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">smart_waypoint_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="c"># Send smart data if availabel</span>
+            <span class="c1"># Send smart data if availabel</span>
             <span class="k">print</span><span class="p">(</span><span class="n">smart_xml_fname</span><span class="p">,</span> <span class="n">smart_waypoint_id</span><span class="p">)</span>
             <span class="n">smart_xml_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_smart_patrol_dir</span><span class="p">(),</span> <span class="n">smart_xml_fname</span><span class="p">)</span>
             <span class="n">smart_xml_content_list</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">smart_xml_fpath</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_send] Sending with SMART payload&#39;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_send] - patrol: </span><span class="si">%r</span><span class="s"> (</span><span class="si">%d</span><span class="s"> lines) waypoint_id: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_send] Sending with SMART payload&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_send] - patrol: </span><span class="si">%r</span><span class="s1"> (</span><span class="si">%d</span><span class="s1"> lines) waypoint_id: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
                   <span class="p">(</span><span class="n">smart_xml_fpath</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">smart_xml_content_list</span><span class="p">),</span>
                    <span class="n">smart_waypoint_id</span><span class="p">))</span>
-            <span class="n">smart_xml_content</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">smart_xml_content_list</span><span class="p">)</span>
+            <span class="n">smart_xml_content</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">smart_xml_content_list</span><span class="p">)</span>
             <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s">&#39;smart_xml_content&#39;</span><span class="p">:</span> <span class="n">smart_xml_content</span><span class="p">,</span>
-                <span class="s">&#39;smart_waypoint_id&#39;</span><span class="p">:</span> <span class="n">smart_waypoint_id</span><span class="p">,</span>
+                <span class="s1">&#39;smart_xml_content&#39;</span><span class="p">:</span> <span class="n">smart_xml_content</span><span class="p">,</span>
+                <span class="s1">&#39;smart_waypoint_id&#39;</span><span class="p">:</span> <span class="n">smart_waypoint_id</span><span class="p">,</span>
             <span class="p">}</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">use_config_file</span><span class="p">:</span>
                 <span class="n">payload</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-                    <span class="s">&#39;IBEIS_DB_path&#39;</span>    <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_core_path</span><span class="p">(),</span>
-                    <span class="s">&#39;IBEIS_image_path&#39;</span> <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imgdir</span><span class="p">(),</span>
+                    <span class="s1">&#39;IBEIS_DB_path&#39;</span>    <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_db_core_path</span><span class="p">(),</span>
+                    <span class="s1">&#39;IBEIS_image_path&#39;</span> <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imgdir</span><span class="p">(),</span>
                 <span class="p">})</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">payload</span> <span class="o">=</span> <span class="bp">None</span>
@@ -1046,51 +1046,51 @@
         <span class="n">imageset_uuid</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_uuid</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
         <span class="n">complete_url_</span> <span class="o">=</span> <span class="n">complete_url_fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">imageset_uuid</span><span class="o">=</span><span class="n">imageset_uuid</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[_complete] URL=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">complete_url_</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[_complete] URL=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">complete_url_</span><span class="p">,</span> <span class="p">))</span>
         <span class="k">if</span> <span class="n">open_url_on_complete</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
             <span class="n">_browser</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_prefered_browser</span><span class="p">(</span><span class="n">PREFERED_BROWSER</span><span class="p">)</span>
             <span class="n">_browser</span><span class="o">.</span><span class="n">open_new_tab</span><span class="p">(</span><span class="n">complete_url_</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">imgsetid_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">imgsetid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_imgsetids</span><span class="p">()</span>
-    <span class="c"># Check to make sure imagesets are ok:</span>
+    <span class="c1"># Check to make sure imagesets are ok:</span>
     <span class="k">for</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list</span><span class="p">:</span>
-        <span class="c"># First, check if imageset can be pushed</span>
+        <span class="c1"># First, check if imageset can be pushed</span>
         <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_imageset_aids</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
-            <span class="s">&#39;ImageSet imgsetid=</span><span class="si">%r</span><span class="s"> cannot be shipped with0 annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,))</span>
+            <span class="s1">&#39;ImageSet imgsetid=</span><span class="si">%r</span><span class="s1"> cannot be shipped with0 annots&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,))</span>
         <span class="n">unknown_flags</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">is_aid_unknown</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">unnamed_aid_list</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">unknown_flags</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">unnamed_aid_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
-            <span class="p">(</span><span class="s">&#39;ImageSet imgsetid=</span><span class="si">%r</span><span class="s"> cannot be shipped becuase &#39;</span>
-             <span class="s">&#39;annotation(s) </span><span class="si">%r</span><span class="s"> are not named&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">unnamed_aid_list</span><span class="p">,</span> <span class="p">))</span>
+            <span class="p">(</span><span class="s1">&#39;ImageSet imgsetid=</span><span class="si">%r</span><span class="s1"> cannot be shipped becuase &#39;</span>
+             <span class="s1">&#39;annotation(s) </span><span class="si">%r</span><span class="s1"> are not named&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">unnamed_aid_list</span><span class="p">,</span> <span class="p">))</span>
 
-    <span class="c"># Configuration</span>
+    <span class="c1"># Configuration</span>
     <span class="n">use_config_file</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="n">wildbook_base_url</span><span class="p">,</span> <span class="n">wildbook_tomcat_path</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_wildbook_info</span><span class="p">(</span>
         <span class="n">tomcat_dpath</span><span class="p">,</span> <span class="n">wb_target</span><span class="p">)</span>
     <span class="n">submit_imgsetid_url_fmtstr</span>  <span class="o">=</span> <span class="p">(</span>
         <span class="n">wildbook_base_url</span> <span class="o">+</span>
-        <span class="c"># TODO: wildbook should rename their function</span>
-        <span class="c"># &#39;/OccurrenceCreateIBEIS?ibeis_imageset_id={imageset_uuid!s}&#39;)</span>
-        <span class="s">&#39;/OccurrenceCreateIBEIS?ibeis_encounter_id={imageset_uuid!s}&#39;</span><span class="p">)</span>
+        <span class="c1"># TODO: wildbook should rename their function</span>
+        <span class="c1"># &#39;/OccurrenceCreateIBEIS?ibeis_imageset_id={imageset_uuid!s}&#39;)</span>
+        <span class="s1">&#39;/OccurrenceCreateIBEIS?ibeis_encounter_id={imageset_uuid!s}&#39;</span><span class="p">)</span>
     <span class="n">complete_url_fmtstr</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">wildbook_base_url</span> <span class="o">+</span> <span class="s">&#39;/occurrence.jsp?number={imageset_uuid!s}&#39;</span><span class="p">)</span>
-    <span class="c"># Call Wildbook url to signal update</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = </span><span class="si">%r</span><span class="s"> to wildbook&#39;</span> <span class="o">%</span> <span class="p">(</span>
+        <span class="n">wildbook_base_url</span> <span class="o">+</span> <span class="s1">&#39;/occurrence.jsp?number={imageset_uuid!s}&#39;</span><span class="p">)</span>
+    <span class="c1"># Call Wildbook url to signal update</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[ibs.wildbook_signal_imgsetid_list] ship imgsetid_list = </span><span class="si">%r</span><span class="s1"> to wildbook&#39;</span> <span class="o">%</span> <span class="p">(</span>
         <span class="n">imgsetid_list</span><span class="p">,</span> <span class="p">))</span>
 
-    <span class="c"># With a lock file, modify the configuration with the new settings</span>
-    <span class="n">lock_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibeis_resource_dir</span><span class="p">(),</span> <span class="s">&#39;wildbook.lock&#39;</span><span class="p">)</span>
+    <span class="c1"># With a lock file, modify the configuration with the new settings</span>
+    <span class="n">lock_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_ibeis_resource_dir</span><span class="p">(),</span> <span class="s1">&#39;wildbook.lock&#39;</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">lockfile</span><span class="o">.</span><span class="n">LockFile</span><span class="p">(</span><span class="n">lock_fpath</span><span class="p">):</span>
-        <span class="c"># Update the Wildbook configuration to see *THIS* ibeis database</span>
+        <span class="c1"># Update the Wildbook configuration to see *THIS* ibeis database</span>
         <span class="k">if</span> <span class="n">use_config_file</span><span class="p">:</span>
             <span class="n">update_wildbook_config</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">wildbook_tomcat_path</span><span class="p">,</span> <span class="n">dryrun</span><span class="p">)</span>
 
-        <span class="c"># Check and push &#39;done&#39; imagesets</span>
+        <span class="c1"># Check and push &#39;done&#39; imagesets</span>
         <span class="n">status_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">imgsetid</span> <span class="ow">in</span> <span class="n">imgsetid_list</span><span class="p">:</span>
-            <span class="c">#Check for nones</span>
+            <span class="c1">#Check for nones</span>
             <span class="n">status</span> <span class="o">=</span> <span class="n">_send</span><span class="p">(</span><span class="n">imgsetid</span><span class="p">,</span> <span class="n">use_config_file</span><span class="o">=</span><span class="n">use_config_file</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="n">dryrun</span><span class="p">)</span>
             <span class="n">status_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">set_shipped_flag</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">dryrun</span><span class="p">:</span>
@@ -1102,7 +1102,7 @@
         <span class="k">return</span> <span class="n">status_list</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.control.manual_wildbook_funcs</span>
@@ -1110,8 +1110,8 @@
 <span class="sd">        python -m ibeis.control.manual_wildbook_funcs --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -1146,7 +1146,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

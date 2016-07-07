@@ -74,7 +74,40 @@ def check_arrs_eq(arr1, arr2):
         return False
 
 
-def prepare_dict(class_dict, ibs):
+def safe_check_lens_eq(arr1, arr2, msg=None):
+    """
+    safe_check_lens_eq(None, 1)
+    safe_check_lens_eq([3], [2, 4])
+    """
+    if msg is None:
+        msg = 'outer lengths do not correspond'
+    if arr1 is None or arr2 is None:
+        return True
+    else:
+        assert len(arr1) == len(arr2), msg + '(%r != %r)' % (len(arr1), len(arr2))
+
+
+def safe_check_nested_lens_eq(arr1, arr2):
+    """
+    safe_check_nested_lens_eq(None, 1)
+    safe_check_nested_lens_eq([[3, 4]], [[2, 4]])
+    safe_check_nested_lens_eq([[1, 2, 3], [1, 2]], [[1, 2, 3], [1, 2]])
+    safe_check_nested_lens_eq([[1, 2, 3], [1, 2]], [[1, 2, 3], [1]])
+    """
+    if arr1 is None or arr2 is None:
+        return True
+    else:
+        safe_check_lens_eq(arr1, arr2, 'outer lengths do not correspond')
+        for count, (x, y) in enumerate(zip(arr1, arr2)):
+            assert len(x) == len(y), (
+                'inner lengths at position=%r do not correspond (%r != %r)' %
+                (count, len(x), len(y)))
+
+
+def prepare_dict_uuids(class_dict, ibs):
+    """
+    Hacks to ensure proper uuid conversion
+    """
     class_dict = class_dict.copy()
     if 'qaid' not in class_dict and 'qannot_uuid' in class_dict:
         class_dict['qaid'] = ibs.get_annot_aids_from_uuid(class_dict['qannot_uuid'])
@@ -102,385 +135,6 @@ def prepare_dict(class_dict, ibs):
         unique_nids_, name_groupxs_ = vt.group_indices(np.array(dnid_list))
         class_dict['unique_nids'] = unique_nids_
     return class_dict
-
-
-@six.add_metaclass(ut.ReloadingMetaclass)
-class AnnotInference(object):
-    """ Make name inferences about a series of AnnotMatches
-
-    CommandLine:
-        python -m ibeis.algo.hots.chip_match AnnotInference --show --no-cnn
-
-    Example:
-        >>> from ibeis.algo.hots.chip_match import *  # NOQA
-        >>> import ibeis
-        >>> #qreq_ = ibeis.testdata_qreq_(default_qaids=[1, 2, 3, 4], default_daids=[2, 3, 4, 5, 6, 7, 8, 9, 10])
-        >>> #qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default:dsize=20,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2', verbose=0, use_cache=False)
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default:dsize=20,excluderef=True,qnum_names=5,qsize=1,min_pername=3,qsample_per_name=1,dsample_per_name=2', verbose=0, use_cache=False)
-        >>> #qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', t='default:proot=BC_DTW', a='default:dsize=2,qsize=1,excluderef=True,qnum_names=5,min_pername=3,qsample_per_name=1,dsample_per_name=2', verbose=0, use_cache=False)
-        >>> ibs = qreq_.ibs
-        >>> cm_list = qreq_.execute()
-        >>> self1 = AnnotInference(qreq_, cm_list)
-        >>> inf_dict1 = self1.make_annot_inference_dict()
-        >>> user_feedback =  self1.simulate_user_feedback()
-        >>> self2 = AnnotInference(qreq_, cm_list, user_feedback)
-        >>> inf_dict2 = self2.make_annot_inference_dict()
-        >>> print('inference_dict = ' + ut.repr3(inf_dict1, nl=2))
-        >>> print('inference_dict2 = ' + ut.repr3(inf_dict2, nl=2))
-        >>> ut.quit_if_noshow()
-        >>> graph1 = self1.make_graph(show=True)
-        >>> graph2 = self2.make_graph(show=True)
-    """
-
-    def __init__(self, qreq_, cm_list, user_feedback=None):
-        self.qreq_ = qreq_
-        self.cm_list = cm_list
-        self.needs_review_list = []
-        self.cluster_tuples = []
-        self.user_feedback = user_feedback
-        self.make_inference()
-
-    def simulate_user_feedback(self):
-        qreq_ = self.qreq_
-        aid_pairs = np.array(ut.take_column(self.needs_review_list, [0, 1]))
-        nid_pairs = qreq_.ibs.get_annot_nids(aid_pairs)
-        truth = nid_pairs.T[0] == nid_pairs.T[1]
-        user_feedback = ut.odict([
-            ('aid1', aid_pairs.T[0]),
-            ('aid2', aid_pairs.T[1]),
-            ('p_match', truth.astype(np.float)),
-            ('p_nomatch', 1.0 - truth),
-            ('p_notcomp', np.array([0.0] * len(aid_pairs))),
-        ])
-        return user_feedback
-        #dnid2_daids = ut.group_items(qreq_.daids, qreq_.dnids)
-        #correct_daids = ut.take(dnid2_daids, qreq_.qnids)
-        #correct_pairs = ut.flatten([list(ut.product([qaid], daids)) for qaid, daids in zip(qreq_.qaids, correct_daids)])
-        #[correct_pairs]
-        #user_feedback = {'aid1': [1], 'aid2': [2], 'p_match': [1.0], 'p_nomatch': [0.0], 'p_notcomp': [0.0]}
-
-    def make_prob_annots(self):
-        cm_list = self.cm_list
-        unique_aids = sorted(ut.list_union(*[cm.daid_list for cm in cm_list] + [[cm.qaid for cm in cm_list]]))
-        aid2_didx = ut.make_index_lookup(unique_aids)
-        prob_annots = np.zeros((len(unique_aids), len(unique_aids)))
-        for count, cm in enumerate(cm_list):
-            idx = aid2_didx[cm.qaid]
-            annot_scores = ut.dict_take(cm.aid2_annot_score, unique_aids, 0)
-            prob_annots[idx][:] = annot_scores
-        prob_annots[np.diag_indices(len(prob_annots))] = np.inf
-        prob_annots += 1E-9
-        #print(ut.hz_str('prob_names = ', ut.array2string2(prob_names, precision=2, max_line_width=140, suppress_small=True)))
-        return unique_aids, prob_annots
-
-    @ut.memoize
-    def make_prob_names(self):
-        cm_list = self.cm_list
-        # Consolodate information from a series of chip matches
-        unique_nids = sorted(ut.list_union(*[cm.unique_nids for cm in cm_list]))
-        #nid2_nidx = ut.make_index_lookup(unique_nids)
-        # Populate matrix of raw name scores
-        prob_names = np.zeros((len(cm_list), len(unique_nids)))
-        for count, cm in enumerate(cm_list):
-            try:
-                name_scores = ut.dict_take(cm.nid2_name_score, unique_nids, 0)
-            except AttributeError:
-                unique_nidxs = ut.take(cm.nid2_nidx, unique_nids)
-                name_scores = ut.take(cm.name_score_list, unique_nidxs)
-            prob_names[count][:] = name_scores
-
-        # Normalize to row stochastic matrix
-        prob_names /= prob_names.sum(axis=1)[:, None]
-        #print(ut.hz_str('prob_names = ', ut.array2string2(prob_names, precision=2, max_line_width=140, suppress_small=True)))
-        return unique_nids, prob_names
-
-    def choose_thresh(self):
-        import vtool as vt
-        #prob_annots /= prob_annots.sum(axis=1)[:, None]
-        # Find connected components
-        #thresh = .25
-        #thresh = 1 / (1.2 * np.sqrt(prob_names.shape[1]))
-        unique_nids, prob_names = self.make_prob_names()
-
-        if len(unique_nids) <= 2:
-            return .5
-
-        nscores = np.sort(prob_names.flatten())
-        # x = np.gradient(nscores).argmax()
-        # x = (np.gradient(np.gradient(nscores)) ** 2).argmax()
-        # thresh = nscores[x]
-
-        curve = nscores
-        idx1 = vt.find_elbow_point(curve)
-        idx2 = vt.find_elbow_point(curve[idx1:]) + idx1
-        idx3 = vt.find_elbow_point(curve[idx1:idx2 + 1]) + idx1
-        if False:
-            import plottool as pt
-            pt.plot(curve)
-            pt.plot(idx1, curve[idx1], 'bo')
-            pt.plot(idx2, curve[idx2], 'ro')
-            pt.plot(idx3, curve[idx3], 'go')
-        thresh = nscores[idx2]
-        print('thresh = %r' % (thresh,))
-        return thresh
-
-    def make_graph(self, show=False):
-        import networkx as nx
-        import itertools
-        cm_list = self.cm_list
-        unique_nids, prob_names = self.make_prob_names()
-        thresh = self.choose_thresh()
-
-        qaid_list = [cm.qaid for cm in cm_list]
-        postcut = prob_names > thresh
-        qxs, nxs = np.where(postcut)
-        if False:
-            print(ut.hz_str('prob_names = ', ut.array2string2((prob_names), precision=2, max_line_width=140, suppress_small=True)))
-            print(ut.hz_str('postcut = ', ut.array2string2((postcut).astype(np.int), precision=2, max_line_width=140, suppress_small=True)))
-        matching_qaids = ut.take(qaid_list, qxs)
-        matched_nids = ut.take(unique_nids, nxs)
-
-        qreq_ = self.qreq_
-
-        nodes = ut.unique(qreq_.qaids.tolist() + qreq_.daids.tolist())
-        if not hasattr(qreq_, 'dnids'):
-            qreq_.dnids = qreq_.ibs.get_annot_nids(qreq_.daids)
-            qreq_.qnids = qreq_.ibs.get_annot_nids(qreq_.qaids)
-        dnid2_daids = ut.group_items(qreq_.daids, qreq_.dnids)
-        grouped_aids = dnid2_daids.values()
-        matched_daids = ut.take(dnid2_daids, matched_nids)
-        name_cliques = [list(itertools.combinations(aids, 2)) for aids in grouped_aids]
-        aid_matches = [list(ut.product([qaid], daids)) for qaid, daids in zip(matching_qaids, matched_daids)]
-
-        graph = nx.Graph()
-        graph.add_nodes_from(nodes)
-        graph.add_edges_from(ut.flatten(name_cliques))
-        graph.add_edges_from(ut.flatten(aid_matches))
-
-        #matchless_quries = ut.take(qaid_list, ut.index_complement(qxs, len(qaid_list)))
-        name_nodes = [('nid', l) for l in qreq_.dnids]
-        db_aid_nid_edges = list(zip(qreq_.daids, name_nodes))
-        #query_aid_nid_edges = list(zip(matching_qaids, [('nid', l) for l in matched_nids]))
-        #G = nx.Graph()
-        #G.add_nodes_from(matchless_quries)
-        #G.add_edges_from(db_aid_nid_edges)
-        #G.add_edges_from(query_aid_nid_edges)
-
-        graph.add_edges_from(db_aid_nid_edges)
-
-        if self.user_feedback is not None:
-            user_feedback = ut.map_dict_vals(np.array, self.user_feedback)
-            p_bg = 0.0
-            p_same_list = user_feedback['p_match'] * (1 - user_feedback['p_notcomp']) + p_bg * user_feedback['p_notcomp']
-            for aid1, aid2, p_same in zip(user_feedback['aid1'], user_feedback['aid2'], p_same_list):
-                if p_same > .5:
-                    if not graph.has_edge(aid1, aid2):
-                        graph.add_edge(aid1, aid2)
-                else:
-                    if graph.has_edge(aid1, aid2):
-                        graph.remove_edge(aid1, aid2)
-        if show:
-            import plottool as pt
-            nx.set_node_attributes(graph, 'color', {aid: pt.LIGHT_PINK for aid in qreq_.daids})
-            nx.set_node_attributes(graph, 'color', {aid: pt.TRUE_BLUE for aid in qreq_.qaids})
-            nx.set_node_attributes(graph, 'color', {aid: pt.LIGHT_PURPLE for aid in np.intersect1d(qreq_.qaids, qreq_.daids)})
-            nx.set_node_attributes(graph, 'label', {node: 'n%r' % (node[1],) for node in name_nodes})
-            nx.set_node_attributes(graph, 'color', {node: pt.LIGHT_GREEN for node in name_nodes})
-            pt.show_nx(graph, layoutkw={'prog': 'neato'})
-        return graph
-
-    def make_clusters(self):
-        import itertools
-        import networkx as nx
-        cm_list = self.cm_list
-
-        graph = self.make_graph()
-
-        # hack for orig aids
-        orig_aid2_nid = {}
-        for cm in cm_list:
-            orig_aid2_nid[cm.qaid] = cm.qnid
-            for daid, dnid in zip(cm.daid_list, cm.dnid_list):
-                orig_aid2_nid[daid] = dnid
-
-        cluster_aids = []
-        cluster_nids = []
-        connected = list(nx.connected_components(graph))
-        for comp in connected:
-            cluster_nids.append([])
-            cluster_aids.append([])
-            for x in comp:
-                if isinstance(x, tuple):
-                    cluster_nids[-1].append(x[1])
-                else:
-                    cluster_aids[-1].append(x)
-
-        # Make first part of inference output
-        qaid_list = [cm.qaid for cm in cm_list]
-        qaid_set = set(qaid_list)
-        #start_nid = 9001
-        # Find an nid that doesn't exist in the database
-        start_nid = len(self.qreq_.ibs._get_all_known_name_rowids()) + 1
-        next_new_nid = itertools.count(start_nid)
-        cluster_tuples = []
-        for aids, nids in zip(cluster_aids, cluster_nids):
-            other_nid_clusters = cluster_nids[:]
-            other_nid_clusters.remove(nids)
-            other_nids = ut.flatten(other_nid_clusters)
-            split_case = len(ut.list_intersection(other_nids, nids)) > 0
-            merge_case = len(nids) > 1
-            new_name = len(nids) == 0
-
-            #print('[chip_match > AnnotInference > make_inference] WARNING: EXEMPLAR FLAG SET TO TRUE, NEEDS TO BE IMPLEMENTED')
-            error_flag = (split_case << 1) + (merge_case << 2) + (new_name << 3)
-            strflags = ['split', 'merge', 'new']
-            error_flag = ut.compress(strflags, [split_case, merge_case, new_name])
-            #error_flag = split_case or merge_case
-
-            # <HACK>
-            ibs = self.qreq_.ibs
-            viewpoint_texts = ibs.get_annot_yaw_texts(aids)
-            view_to_aids = ut.group_items(aids, viewpoint_texts)
-            num_wanted_exemplars_per_view = 4
-            hack_set_these_qaids_as_exemplars = set([])
-            for view, aids_ in view_to_aids.items():
-                heuristic_exemplar_aids = set(aids) - qaid_set
-                heuristic_non_exemplar_aids = set(aids).intersection(qaid_set)
-                num_needed_exemplars = num_wanted_exemplars_per_view - len(heuristic_exemplar_aids)
-                # Choose the best query annots to fill out exemplars
-                if len(heuristic_non_exemplar_aids) == 0:
-                    continue
-                quality_ints = ibs.get_annot_qualities(heuristic_non_exemplar_aids)
-                okish = ibs.const.QUALITY_TEXT_TO_INT[ibs.const.QUAL_OK] - .1
-                quality_ints = [x if x is None else okish for x in quality_ints]
-                aids_ = ut.sortedby(heuristic_non_exemplar_aids, quality_ints)[::-1]
-                chosen = aids_[:num_needed_exemplars]
-                for qaid_ in chosen:
-                    hack_set_these_qaids_as_exemplars.add(qaid_)
-
-            # </HACK>
-
-            if not error_flag and not new_name:
-                new_nid = nids[0]
-            else:
-                new_nid = six.next(next_new_nid)
-            for aid in aids:
-                if aid not in qaid_set:
-                    continue
-                orig_nid = orig_aid2_nid[aid]
-                exemplar_flag = aid in hack_set_these_qaids_as_exemplars
-                #clusters is list 4 tuple: (aid, orig_name_uuid, new_name_uuid, error_flag)
-                tup = (aid, orig_nid, new_nid, exemplar_flag, error_flag)
-                cluster_tuples.append(tup)
-
-        return cluster_tuples
-
-    def make_inference(self):
-        cm_list = self.cm_list
-        unique_nids, prob_names = self.make_prob_names()
-        cluster_tuples = self.make_clusters()
-
-        # Make pair list for output
-        needs_review_list = []
-        num_top = 4
-        for cm, row in zip(cm_list, prob_names):
-            # Find top scoring names for this chip match in the posterior distribution
-            idxs = row.argsort()[::-1]
-            top_idxs = idxs[:num_top]
-            nids = ut.take(unique_nids, top_idxs)
-            # Find the matched annotations in the pairwise prior distributions
-            nidxs = ut.dict_take(cm.nid2_nidx, nids, None)
-            name_groupxs = ut.take(cm.name_groupxs, ut.filter_Nones(nidxs))
-            daids_list = ut.take(cm.daid_list, name_groupxs)
-            for daids in daids_list:
-                ut.take(cm.score_list, ut.take(cm.daid2_idx, daids))
-                scores_all = cm.annot_score_list / cm.annot_score_list.sum()
-                idxs = ut.take(cm.daid2_idx, daids)
-                scores = scores_all.take(idxs)
-                raw_scores = cm.score_list.take(idxs)
-                scorex = scores.argmax()
-                raw_score = raw_scores[scorex]
-                daid = daids[scorex]
-                import scipy.special
-                # SUPER HACK: these are not probabilities
-                # TODO: set a and b based on dbsize and param configuration
-                # python -m plottool.draw_func2 --exec-plot_func --show --range=0,3 --func="lambda x: scipy.special.expit(2 * x - 2)"
-                #a = 2.0
-                a = 1.5
-                b = 2
-                p_same = scipy.special.expit(b * raw_score - a)
-                #confidence = scores[scorex]
-                #p_diff = 1 - p_same
-                #decision = 'same' if confidence > thresh else 'diff'
-                #confidence = p_same if confidence > thresh else p_diff
-                #tup = (cm.qaid, daid, decision, confidence, raw_score)
-                confidence = (2 * np.abs(0.5 - p_same)) ** 2
-                tup = (cm.qaid, daid, p_same, confidence, raw_score)
-                needs_review_list.append(tup)
-
-        # Sort resulting list by confidence
-        sortx = ut.argsort(ut.take_column(needs_review_list, 3))
-        needs_review_list = ut.take(needs_review_list, sortx)
-
-        self.needs_review_list = needs_review_list
-        self.cluster_tuples = cluster_tuples
-
-        print('needs_review_list = %s' % (ut.repr3(needs_review_list, nl=1),))
-        print('cluster_tuples = %s' % (ut.repr3(cluster_tuples, nl=1),))
-
-        #prob_annots = None
-        #print(ut.array2string2prob_names precision=2, max_line_width=100, suppress_small=True))
-
-    def make_annot_inference_dict(self):
-        import uuid
-
-        def convert_to_uuid(nid):
-            try:
-                text = ibs.get_name_texts(nid)
-                uuid_ = uuid.UUID(text)
-            except ValueError:
-                uuid_ = nid
-            return uuid_
-
-        ibs = self.qreq_.ibs
-        # Compile the cluster_dict
-        col_list = ['aid_list', 'orig_nid_list', 'new_nid_list', 'exemplar_flag_list', 'error_flag_list']
-        cluster_dict = dict(zip(col_list, ut.listT(self.cluster_tuples)))
-        cluster_dict['annot_uuid_list'] = ibs.get_annot_uuids(cluster_dict['aid_list'])
-        # We store the name's UUID as the name's text
-        cluster_dict['orig_name_uuid_list'] = [convert_to_uuid(nid) for nid in cluster_dict['orig_nid_list']]
-        cluster_dict['new_name_uuid_list'] = [convert_to_uuid(nid) for nid in cluster_dict['new_nid_list']]
-        # Filter out only the keys we want to send back in the dictionary
-        key_list = ['annot_uuid_list', 'orig_name_uuid_list', 'new_name_uuid_list', 'exemplar_flag_list', 'error_flag_list']
-        cluster_dict = ut.dict_subset(cluster_dict, key_list)
-
-        # Compile the annot_pair_dict
-        col_list = ['aid_1_list', 'aid_2_list', 'p_same_list', 'confidence_list', 'raw_score_list']
-        annot_pair_dict = dict(zip(col_list, ut.listT(self.needs_review_list)))
-        annot_pair_dict['annot_uuid_1_list'] = ibs.get_annot_uuids(annot_pair_dict['aid_1_list'])
-        annot_pair_dict['annot_uuid_2_list'] = ibs.get_annot_uuids(annot_pair_dict['aid_2_list'])
-        zipped = zip(annot_pair_dict['annot_uuid_1_list'], annot_pair_dict['annot_uuid_2_list'], annot_pair_dict['p_same_list'])
-        annot_pair_dict['review_pair_list'] = [{
-            'annot_uuid_key'       : annot_uuid_1,
-            'annot_uuid_1'         : annot_uuid_1,
-            'annot_uuid_2'         : annot_uuid_2,
-            'prior_matching_state' : {
-                'p_match'   : p_same,
-                'p_nomatch' : 1.0 - p_same,
-                'p_notcomp' : 0.0,
-            }
-        } for (annot_uuid_1, annot_uuid_2, p_same) in zipped]
-        # Filter out only the keys we want to send back in the dictionary
-        key_list = ['review_pair_list', 'confidence_list']
-        annot_pair_dict = ut.dict_subset(annot_pair_dict, key_list)
-
-        # Compile the inference dict
-        inference_dict = ut.odict([
-            ('cluster_dict', cluster_dict),
-            ('annot_pair_dict', annot_pair_dict),
-            ('_internal_state', None),
-        ])
-        return inference_dict
 
 
 class _ChipMatchVisualization(object):
@@ -595,10 +249,12 @@ class _ChipMatchVisualization(object):
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
             >>> cm = cm_list[0]
             >>> cm.score_nsum(qreq_)
-            >>> ut.quit_if_noshow()
             >>> daid = cm.groundtruth_daids[0]
+            >>> ut.quit_if_noshow()
             >>> cm.show_single_annotmatch(qreq_, daid)
             >>> ut.show_if_requested()
+
+            cm.compress_top_feature_matches(num=1)
         """
         from ibeis.viz import viz_matches
         if aid2 is not None:
@@ -1301,7 +957,7 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
                     ut.list_str(other_keys)))
 
         if ibs is not None:
-            class_dict = prepare_dict(class_dict, ibs)
+            class_dict = prepare_dict_uuids(class_dict, ibs)
 
         dict_subset = ut.dict_subset(class_dict, key_list)
         dict_subset['score_list'] = convert_numpy(dict_subset['score_list'],
@@ -2244,8 +1900,11 @@ class ChipMatch(_ChipMatchVisualization,
         Convert dict of arguments back to ChipMatch object
         """
 
-        def convert_numpy_lists(arr_list, dtype):
-            return [np.array(arr, dtype=dtype) for arr in arr_list]
+        def convert_numpy_lists(arr_list, dtype, dims=None):
+            new_arrs = [np.array(arr, dtype=dtype) for arr in arr_list]
+            if dims is not None:
+                new_arrs = [vt.atleast_nd(arr, dims) for arr in new_arrs]
+            return new_arrs
 
         def convert_numpy(arr, dtype):
             return np.array(ut.replace_nones(arr, np.nan), dtype=dtype)
@@ -2259,15 +1918,18 @@ class ChipMatch(_ChipMatchVisualization,
                     ut.list_str(other_keys)))
 
         if ibs is not None:
-            class_dict = prepare_dict(class_dict, ibs)
+            class_dict = prepare_dict_uuids(class_dict, ibs)
 
         dict_subset = ut.dict_subset(class_dict, key_list)
         dict_subset['fm_list'] = convert_numpy_lists(dict_subset['fm_list'],
-                                                     hstypes.FM_DTYPE)
+                                                     hstypes.FM_DTYPE, dims=2)
         dict_subset['fsv_list'] = convert_numpy_lists(dict_subset['fsv_list'],
-                                                      hstypes.FS_DTYPE)
+                                                      hstypes.FS_DTYPE, dims=2)
         dict_subset['score_list'] = convert_numpy(dict_subset['score_list'],
                                                   hstypes.FS_DTYPE)
+        safe_check_nested_lens_eq(dict_subset['fm_list'], dict_subset['fsv_list'])
+        safe_check_lens_eq(dict_subset['score_list'], dict_subset['fsv_list'])
+        safe_check_lens_eq(dict_subset['score_list'], dict_subset['fm_list'])
 
         cm = cls(**dict_subset)
         return cm

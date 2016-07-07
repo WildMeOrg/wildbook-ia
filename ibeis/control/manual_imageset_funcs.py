@@ -52,8 +52,11 @@ def _get_all_imgsetids(ibs):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/imageset/', methods=['GET'])
-def get_valid_imgsetids(ibs, min_num_gids=0, processed=None, shipped=None):
+def get_valid_imgsetids(ibs, min_num_gids=0, processed=None, shipped=None,
+                        is_occurrence=None):
     r"""
+    FIX NAME imgagesetids
+
     Returns:
         list_ (list):  list of all imageset ids
 
@@ -68,14 +71,35 @@ def get_valid_imgsetids(ibs, min_num_gids=0, processed=None, shipped=None):
         imgsetid_list  = ut.compress(imgsetid_list, flag_list)
     if processed is not None:
         flag_list = ibs.get_imageset_processed_flags(imgsetid_list)
-        isvalid_list = [ flag == 1 if processed else flag == 0 for flag in flag_list]
+        isvalid_list = [flag == 1 if processed else flag == 0 for flag in flag_list]
         imgsetid_list  = ut.compress(imgsetid_list, isvalid_list)
     if shipped is not None:
         flag_list = ibs.get_imageset_shipped_flags(imgsetid_list)
-        isvalid_list = [ flag == 1 if shipped else flag == 0 for flag in flag_list]
+        isvalid_list = [flag == 1 if shipped else flag == 0 for flag in flag_list]
         imgsetid_list  = ut.compress(imgsetid_list, isvalid_list)
-
+    if is_occurrence is not None:
+        flag_list = ibs.get_imageset_isoccurrence(imgsetid_list)
+        isvalid_list = [flag == is_occurrence for flag in flag_list]
+        imgsetid_list  = ut.compress(imgsetid_list, isvalid_list)
     return imgsetid_list
+
+
+@register_ibs_method
+def is_special_imageset(ibs, imgsetid_list):
+    imagesettext_list = ibs.get_imageset_text(imgsetid_list)
+    isspecial_list = [str(imagesettext) in set(const.SPECIAL_IMAGESET_LABELS)
+                      for imagesettext in imagesettext_list]
+    return isspecial_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/imageset/is_occurrence/', methods=['GET'])
+def get_imageset_isoccurrence(ibs, imgsetid_list):
+    flags = ut.not_list(ibs.is_special_imageset(imgsetid_list))
+    #imgset_texts = ibs.get_imageset_text(imgsetid_list)
+    #flags = [text.lower().startswith('occurrence') for text in imgset_texts]
+    return flags
 
 
 @register_ibs_method
@@ -532,7 +556,7 @@ def get_imageset_nids(ibs, imgsetid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/imageset/uuid/', methods=['GET'])
+@register_api('/api/imageset/uuids/', methods=['GET'])
 def get_imageset_uuid(ibs, imgsetid_list):
     r"""
     Returns:
@@ -579,6 +603,24 @@ def get_imageset_text(ibs, imgsetid_list):
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
     imagesettext_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_text',), imgsetid_list, id_colname='imageset_rowid')
     return imagesettext_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/imageset/imgsetids_from_uuid/', methods=['GET'])
+def get_imageset_imgsetids_from_uuid(ibs, uuid_list):
+    r"""
+    Returns:
+        list_ (list): a list of imgsetids corresponding to each imageset imagesettext
+    #FIXME: make new naming scheme for non-primary-key-getters
+    get_imageset_imgsetids_from_text_from_text
+
+    RESTful:
+        Method: GET
+        URL:    /api/imageset/imgsetids_from_text/
+    """
+    imgsetid_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_rowid',), uuid_list, id_colname='imageset_uuid')
+    return imgsetid_list
 
 
 @register_ibs_method
@@ -1237,6 +1279,28 @@ def get_imageset_smart_xml_fnames(ibs, imageset_rowid_list):
     imageset_smart_xml_fname_list = ibs.db.get(
         const.IMAGESET_TABLE, colnames, id_iter, id_colname='rowid')
     return imageset_smart_xml_fname_list
+
+
+@register_ibs_method
+#@accessor_decors.cache_getter(const.IMAGESET_TABLE, IMAGESET_SMART_XML_FNAME)
+@register_api('/api/imageset/smart_xml_contents/', methods=['GET'])
+def get_imageset_smart_xml_contents(ibs, imageset_rowid_list):
+    from os.path import join, exists
+    imageset_smart_xml_fname_list = ibs.get_imageset_smart_xml_fnames(imageset_rowid_list)
+    content_list = []
+    smart_patrol_dir = ibs.get_smart_patrol_dir()
+    for imageset_smart_xml_fname in imageset_smart_xml_fname_list:
+        if imageset_smart_xml_fname is None:
+            content_list.append(None)
+        else:
+            imageset_smart_xml_fpath = join(smart_patrol_dir, imageset_smart_xml_fname)
+            if exists(imageset_smart_xml_fpath):
+                with open(imageset_smart_xml_fpath, 'r') as imageset_smart_xml:
+                    content = imageset_smart_xml.read()
+                    content_list.append(content)
+            else:
+                content_list.append(None)
+    return content_list
 
 
 @register_ibs_method

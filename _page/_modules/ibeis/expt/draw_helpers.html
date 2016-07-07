@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.expt.draw_helpers &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.expt.draw_helpers &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.expt" href="../expt.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,13 +131,13 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.expt.draw_helpers</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">splitext</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">map</span><span class="p">,</span> <span class="nb">range</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[expt_drawres]&#39;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[expt_drawres]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="IndividualResultsCopyTaskQueue"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.draw_helpers.IndividualResultsCopyTaskQueue">[docs]</a><span class="k">class</span> <span class="nc">IndividualResultsCopyTaskQueue</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -151,18 +151,18 @@
         <span class="n">fdir_clean</span><span class="p">,</span> <span class="n">cfgdir</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">dstdir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">dstdir</span> <span class="o">=</span> <span class="n">fdir_clean</span>
-        <span class="c">#aug = cfgdir[0:min(len(cfgdir), 10)]</span>
+        <span class="c1">#aug = cfgdir[0:min(len(cfgdir), 10)]</span>
         <span class="n">aug</span> <span class="o">=</span> <span class="n">cfgdir</span>
-        <span class="n">fname_fmt</span> <span class="o">=</span> <span class="s">&#39;{aug}_{fname_orig}{ext}&#39;</span>
-        <span class="n">fmt_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;aug&#39;</span><span class="p">:</span> <span class="n">aug</span><span class="p">,</span> <span class="s">&#39;fname_orig&#39;</span><span class="p">:</span> <span class="n">fname_orig</span><span class="p">,</span> <span class="s">&#39;ext&#39;</span><span class="p">:</span> <span class="n">ext</span><span class="p">}</span>
-        <span class="n">fname_clean</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">long_fname_format</span><span class="p">(</span><span class="n">fname_fmt</span><span class="p">,</span> <span class="n">fmt_dict</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;fname_orig&#39;</span><span class="p">],</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+        <span class="n">fname_fmt</span> <span class="o">=</span> <span class="s1">&#39;{aug}_{fname_orig}{ext}&#39;</span>
+        <span class="n">fmt_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;aug&#39;</span><span class="p">:</span> <span class="n">aug</span><span class="p">,</span> <span class="s1">&#39;fname_orig&#39;</span><span class="p">:</span> <span class="n">fname_orig</span><span class="p">,</span> <span class="s1">&#39;ext&#39;</span><span class="p">:</span> <span class="n">ext</span><span class="p">}</span>
+        <span class="n">fname_clean</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">long_fname_format</span><span class="p">(</span><span class="n">fname_fmt</span><span class="p">,</span> <span class="n">fmt_dict</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;fname_orig&#39;</span><span class="p">],</span> <span class="n">max_len</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
         <span class="n">fdst_clean</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">dstdir</span><span class="p">,</span> <span class="n">fname_clean</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cp_task_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fpath_orig</span><span class="p">,</span> <span class="n">fdst_clean</span><span class="p">))</span>
 </div>
 <div class="viewcode-block" id="IndividualResultsCopyTaskQueue.flush_copy_tasks"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.draw_helpers.IndividualResultsCopyTaskQueue.flush_copy_tasks">[docs]</a>    <span class="k">def</span> <span class="nf">flush_copy_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c"># Execute all copy tasks and empty the lists</span>
+        <span class="c1"># Execute all copy tasks and empty the lists</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[DRAW_RESULT] copying </span><span class="si">%r</span><span class="s"> summaries&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cp_task_list</span><span class="p">)))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[DRAW_RESULT] copying </span><span class="si">%r</span><span class="s1"> summaries&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cp_task_list</span><span class="p">)))</span>
         <span class="k">for</span> <span class="n">src</span><span class="p">,</span> <span class="n">dst</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cp_task_list</span><span class="p">:</span>
             <span class="n">ut</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
         <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">cp_task_list</span><span class="p">[:]</span>
@@ -171,23 +171,23 @@
 <div class="viewcode-block" id="make_individual_latex_figures"><a class="viewcode-back" href="../../../ibeis.expt.html#ibeis.expt.draw_helpers.make_individual_latex_figures">[docs]</a><span class="k">def</span> <span class="nf">make_individual_latex_figures</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fpaths_list</span><span class="p">,</span> <span class="n">flat_case_labels</span><span class="p">,</span>
                                   <span class="n">cfgx2_shortlbl</span><span class="p">,</span> <span class="n">case_figdir</span><span class="p">,</span>
                                   <span class="n">analysis_fpath_list</span><span class="p">):</span>
-    <span class="c"># HACK MAKE LATEX CONVINENCE STUFF</span>
-    <span class="c">#print(&#39;LATEX HACK&#39;)</span>
+    <span class="c1"># HACK MAKE LATEX CONVINENCE STUFF</span>
+    <span class="c1">#print(&#39;LATEX HACK&#39;)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fpaths_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;nothing to render&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;nothing to render&#39;</span><span class="p">)</span>
         <span class="k">return</span>
-    <span class="n">RENDER</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--render&#39;</span><span class="p">)</span>
-    <span class="n">DUMP_FIGDEF</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--figdump&#39;</span><span class="p">,</span> <span class="s">&#39;--dump-figdef&#39;</span><span class="p">,</span> <span class="s">&#39;--figdef&#39;</span><span class="p">))</span>
+    <span class="n">RENDER</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--render&#39;</span><span class="p">)</span>
+    <span class="n">DUMP_FIGDEF</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--figdump&#39;</span><span class="p">,</span> <span class="s1">&#39;--dump-figdef&#39;</span><span class="p">,</span> <span class="s1">&#39;--figdef&#39;</span><span class="p">))</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">DUMP_FIGDEF</span> <span class="ow">or</span> <span class="n">RENDER</span><span class="p">):</span>  <span class="c"># HACK</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">DUMP_FIGDEF</span> <span class="ow">or</span> <span class="n">RENDER</span><span class="p">):</span>  <span class="c1"># HACK</span>
         <span class="k">return</span>
 
     <span class="n">latex_code_blocks</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">latex_block_keys</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="n">caption_prefix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--cappref&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
-    <span class="n">caption_suffix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--capsuf&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
-    <span class="n">cmdaug</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--cmdaug&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;custom&#39;</span><span class="p">)</span>
+    <span class="n">caption_prefix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--cappref&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">caption_suffix</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--capsuf&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">cmdaug</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--cmdaug&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;custom&#39;</span><span class="p">)</span>
 
     <span class="n">selected</span> <span class="o">=</span> <span class="bp">None</span>
 
@@ -199,45 +199,45 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">nCols</span> <span class="o">=</span> <span class="mi">2</span>
 
-        <span class="n">_cmdname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39; Case &#39;</span> <span class="o">+</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">case_idx</span><span class="p">)</span>
-        <span class="c">#print(&#39;_cmdname = %r&#39; % (_cmdname,))</span>
-        <span class="n">cmdname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">latex_sanatize_command_name</span><span class="p">(</span><span class="n">_cmdname</span><span class="p">)</span>
+        <span class="n">_cmdname</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; Case &#39;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">case_idx</span><span class="p">)</span>
+        <span class="c1">#print(&#39;_cmdname = %r&#39; % (_cmdname,))</span>
+        <span class="n">cmdname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">latex_sanitize_command_name</span><span class="p">(</span><span class="n">_cmdname</span><span class="p">)</span>
         <span class="n">label_str</span> <span class="o">=</span> <span class="n">cmdname</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">caption_prefix</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">caption_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">escape_latex</span><span class="p">(</span><span class="s">&#39;Casetags: &#39;</span> <span class="o">+</span>
+            <span class="n">caption_str</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">escape_latex</span><span class="p">(</span><span class="s1">&#39;Casetags: &#39;</span> <span class="o">+</span>
                                           <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">nl</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">strvals</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="o">+</span>
-                                          <span class="s">&#39;, db=&#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="s">&#39;. &#39;</span><span class="p">)</span>
+                                          <span class="s1">&#39;, db=&#39;</span> <span class="o">+</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;. &#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">caption_str</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+            <span class="n">caption_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
         <span class="n">use_sublbls</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgx2_shortlbl</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">use_sublbls</span><span class="p">:</span>
-            <span class="n">caption_str</span> <span class="o">+=</span> <span class="n">ut</span><span class="o">.</span><span class="n">escape_latex</span><span class="p">(</span><span class="s">&#39;Each figure shows a different configuration: &#39;</span><span class="p">)</span>
-            <span class="n">sublbls</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">97</span> <span class="o">+</span> <span class="n">count</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;) &#39;</span> <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfgx2_shortlbl</span><span class="p">))]</span>
+            <span class="n">caption_str</span> <span class="o">+=</span> <span class="n">ut</span><span class="o">.</span><span class="n">escape_latex</span><span class="p">(</span><span class="s1">&#39;Each figure shows a different configuration: &#39;</span><span class="p">)</span>
+            <span class="n">sublbls</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">97</span> <span class="o">+</span> <span class="n">count</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;) &#39;</span> <span class="k">for</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cfgx2_shortlbl</span><span class="p">))]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c">#caption_str += ut.escape_latex(&#39;This figure depicts correct and</span>
-            <span class="c">#incorrect matches from configuration: &#39;)</span>
-            <span class="n">sublbls</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgx2_shortlbl</span><span class="p">)</span>
+            <span class="c1">#caption_str += ut.escape_latex(&#39;This figure depicts correct and</span>
+            <span class="c1">#incorrect matches from configuration: &#39;)</span>
+            <span class="n">sublbls</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cfgx2_shortlbl</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">wrap_tt</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
-            <span class="k">return</span> <span class="s">r&#39;{\tt &#39;</span> <span class="o">+</span> <span class="n">text</span> <span class="o">+</span> <span class="s">&#39;}&#39;</span>
+            <span class="k">return</span> <span class="s1">r&#39;{\tt &#39;</span> <span class="o">+</span> <span class="n">text</span> <span class="o">+</span> <span class="s1">&#39;}&#39;</span>
         <span class="n">_shortlbls</span> <span class="o">=</span> <span class="n">cfgx2_shortlbl</span>
         <span class="n">_shortlbls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">escape_latex</span><span class="p">,</span> <span class="n">_shortlbls</span><span class="p">))</span>
-        <span class="c"># Adjust spacing for breaks</span>
-        <span class="c">#tex_small_space = r&#39;&#39;</span>
-        <span class="n">tex_small_space</span> <span class="o">=</span> <span class="s">r&#39;\hspace{0pt}&#39;</span>
-        <span class="c"># Remove query specific config flags in individual results</span>
-        <span class="n">_shortlbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">bq[^,]*,?&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">shortlbl</span><span class="p">)</span> <span class="k">for</span> <span class="n">shortlbl</span> <span class="ow">in</span> <span class="n">_shortlbls</span><span class="p">]</span>
-        <span class="c"># Let config strings be broken over newlines</span>
-        <span class="n">_shortlbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">+&#39;</span><span class="p">,</span> <span class="n">tex_small_space</span> <span class="o">+</span> <span class="s">&#39;+&#39;</span> <span class="o">+</span> <span class="n">tex_small_space</span><span class="p">,</span> <span class="n">shortlbl</span><span class="p">)</span>
+        <span class="c1"># Adjust spacing for breaks</span>
+        <span class="c1">#tex_small_space = r&#39;&#39;</span>
+        <span class="n">tex_small_space</span> <span class="o">=</span> <span class="s1">r&#39;\hspace{0pt}&#39;</span>
+        <span class="c1"># Remove query specific config flags in individual results</span>
+        <span class="n">_shortlbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">bq[^,]*,?&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">shortlbl</span><span class="p">)</span> <span class="k">for</span> <span class="n">shortlbl</span> <span class="ow">in</span> <span class="n">_shortlbls</span><span class="p">]</span>
+        <span class="c1"># Let config strings be broken over newlines</span>
+        <span class="n">_shortlbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">+&#39;</span><span class="p">,</span> <span class="n">tex_small_space</span> <span class="o">+</span> <span class="s1">&#39;+&#39;</span> <span class="o">+</span> <span class="n">tex_small_space</span><span class="p">,</span> <span class="n">shortlbl</span><span class="p">)</span>
                       <span class="k">for</span> <span class="n">shortlbl</span> <span class="ow">in</span> <span class="n">_shortlbls</span><span class="p">]</span>
-        <span class="n">_shortlbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;, *&#39;</span><span class="p">,</span> <span class="s">&#39;,&#39;</span> <span class="o">+</span> <span class="n">tex_small_space</span><span class="p">,</span> <span class="n">shortlbl</span><span class="p">)</span>
+        <span class="n">_shortlbls</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;, *&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> <span class="n">tex_small_space</span><span class="p">,</span> <span class="n">shortlbl</span><span class="p">)</span>
                       <span class="k">for</span> <span class="n">shortlbl</span> <span class="ow">in</span> <span class="n">_shortlbls</span><span class="p">]</span>
         <span class="n">_shortlbls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">wrap_tt</span><span class="p">,</span> <span class="n">_shortlbls</span><span class="p">))</span>
-        <span class="n">cfgx2_texshortlbl</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">    &#39;</span> <span class="o">+</span> <span class="n">lbl</span> <span class="o">+</span> <span class="n">shortlbl</span>
+        <span class="n">cfgx2_texshortlbl</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">    &#39;</span> <span class="o">+</span> <span class="n">lbl</span> <span class="o">+</span> <span class="n">shortlbl</span>
                              <span class="k">for</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">shortlbl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sublbls</span><span class="p">,</span> <span class="n">_shortlbls</span><span class="p">)]</span>
 
-        <span class="n">caption_str</span> <span class="o">+=</span> <span class="n">ut</span><span class="o">.</span><span class="n">conj_phrase</span><span class="p">(</span><span class="n">cfgx2_texshortlbl</span><span class="p">,</span> <span class="s">&#39;and&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;.</span><span class="se">\n</span><span class="s">    &#39;</span>
-        <span class="n">caption_str</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">    &#39;</span> <span class="o">+</span> <span class="n">caption_prefix</span> <span class="o">+</span> <span class="n">caption_str</span> <span class="o">+</span> <span class="n">caption_suffix</span>
+        <span class="n">caption_str</span> <span class="o">+=</span> <span class="n">ut</span><span class="o">.</span><span class="n">conj_phrase</span><span class="p">(</span><span class="n">cfgx2_texshortlbl</span><span class="p">,</span> <span class="s1">&#39;and&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.</span><span class="se">\n</span><span class="s1">    &#39;</span>
+        <span class="n">caption_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">    &#39;</span> <span class="o">+</span> <span class="n">caption_prefix</span> <span class="o">+</span> <span class="n">caption_str</span> <span class="o">+</span> <span class="n">caption_suffix</span>
         <span class="n">caption_str</span> <span class="o">=</span> <span class="n">caption_str</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
         <span class="n">figure_str</span>  <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_latex_figure_str</span><span class="p">(</span><span class="n">fpaths</span><span class="p">,</span>
                                                 <span class="n">nCols</span><span class="o">=</span><span class="n">nCols</span><span class="p">,</span>
@@ -246,14 +246,14 @@
                                                 <span class="n">use_sublbls</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                                                 <span class="n">use_frame</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">latex_block</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">latex_newcommand</span><span class="p">(</span><span class="n">cmdname</span><span class="p">,</span> <span class="n">figure_str</span><span class="p">)</span>
-        <span class="n">latex_block</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">%----------</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">latex_block</span>
+        <span class="n">latex_block</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">%----------</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">latex_block</span>
         <span class="n">latex_code_blocks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">latex_block</span><span class="p">)</span>
         <span class="n">latex_block_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cmdname</span><span class="p">)</span>
 
-    <span class="c"># HACK</span>
-    <span class="n">remove_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s">&#39;~/latex/crall-candidacy-2015&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span>
+    <span class="c1"># HACK</span>
+    <span class="n">remove_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">truepath</span><span class="p">(</span><span class="s1">&#39;~/latex/crall-candidacy-2015&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
 
-    <span class="n">latex_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">case_figdir</span><span class="p">,</span> <span class="s">&#39;latex_cases.tex&#39;</span><span class="p">)</span>
+    <span class="n">latex_fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">case_figdir</span><span class="p">,</span> <span class="s1">&#39;latex_cases.tex&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">selected</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">selected_keys</span> <span class="o">=</span> <span class="n">selected</span>
@@ -262,27 +262,27 @@
 
     <span class="n">selected_blocks</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">latex_block_keys</span><span class="p">,</span> <span class="n">latex_code_blocks</span><span class="p">)),</span> <span class="n">selected_keys</span><span class="p">)</span>
 
-    <span class="n">figdef_block</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">selected_blocks</span><span class="p">)</span>
-    <span class="n">figcmd_block</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">latex_block_keys</span><span class="p">])</span>
+    <span class="n">figdef_block</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">selected_blocks</span><span class="p">)</span>
+    <span class="n">figcmd_block</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">latex_block_keys</span><span class="p">])</span>
 
-    <span class="n">selected_block</span> <span class="o">=</span> <span class="n">figdef_block</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">figcmd_block</span>
+    <span class="n">selected_block</span> <span class="o">=</span> <span class="n">figdef_block</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">figcmd_block</span>
 
-    <span class="c"># HACK: need full paths to render</span>
+    <span class="c1"># HACK: need full paths to render</span>
     <span class="n">selected_block_renderable</span> <span class="o">=</span> <span class="n">selected_block</span>
-    <span class="n">selected_block</span> <span class="o">=</span> <span class="n">selected_block</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">remove_fpath</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">selected_block</span> <span class="o">=</span> <span class="n">selected_block</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">remove_fpath</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">RENDER</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">render_latex_text</span><span class="p">(</span><span class="n">selected_block_renderable</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">DUMP_FIGDEF</span><span class="p">:</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">latex_fpath</span><span class="p">,</span> <span class="n">selected_block</span><span class="p">)</span>
 
-    <span class="c">#if NOT DUMP AND NOT RENDER:</span>
-    <span class="c">#    print(&#39;STANDARD LATEX RESULTS&#39;)</span>
-    <span class="c">#    cmdname = ibs.get_dbname() + &#39;Results&#39;</span>
-    <span class="c">#    latex_block  = ut.get_latex_figure_str2(analysis_fpath_list, cmdname, nCols=1)</span>
-    <span class="c">#    ut.print_code(latex_block, &#39;latex&#39;)</span>
+    <span class="c1">#if NOT DUMP AND NOT RENDER:</span>
+    <span class="c1">#    print(&#39;STANDARD LATEX RESULTS&#39;)</span>
+    <span class="c1">#    cmdname = ibs.get_dbname() + &#39;Results&#39;</span>
+    <span class="c1">#    latex_block  = ut.get_latex_figure_str2(analysis_fpath_list, cmdname, nCols=1)</span>
+    <span class="c1">#    ut.print_code(latex_block, &#39;latex&#39;)</span>
     <span class="k">if</span> <span class="n">DUMP_FIGDEF</span> <span class="ow">or</span> <span class="n">RENDER</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">print_code</span><span class="p">(</span><span class="n">selected_block</span><span class="p">,</span> <span class="s">&#39;latex&#39;</span><span class="p">)</span></div>
+        <span class="n">ut</span><span class="o">.</span><span class="n">print_code</span><span class="p">(</span><span class="n">selected_block</span><span class="p">,</span> <span class="s1">&#39;latex&#39;</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -316,7 +316,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

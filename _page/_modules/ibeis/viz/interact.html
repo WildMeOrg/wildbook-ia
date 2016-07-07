@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.viz.interact &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,18 +131,17 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.viz.interact</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c">### __init__.py ###</span>
-<span class="c"># flake8: noqa</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">### __init__.py ###</span>
+<span class="c1"># flake8: noqa</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.viz.interact.__init__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[ibeis.viz.interact.__init__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
 
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_annotations2</span>
-<span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_bbox</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_chip</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_image</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact</span> <span class="kn">import</span> <span class="n">interact_matches</span>
@@ -153,13 +152,12 @@
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_image</span> <span class="kn">import</span> <span class="n">ishow_image</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_chip</span> <span class="kn">import</span> <span class="n">ishow_chip</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_name</span> <span class="kn">import</span> <span class="n">ishow_name</span>
-<span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_bbox</span> <span class="kn">import</span> <span class="n">iselect_bbox</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz.interact.interact_sver</span> <span class="kn">import</span> <span class="n">ishow_sver</span>
 
 <span class="kn">import</span> <span class="nn">utool</span>
 
 <span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span>
-    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.viz.interact]&#39;</span><span class="p">)</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[ibeis.viz.interact]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="reassign_submodule_attributes"><a class="viewcode-back" href="../../../ibeis.viz.interact.html#ibeis.viz.interact.reassign_submodule_attributes">[docs]</a><span class="k">def</span> <span class="nf">reassign_submodule_attributes</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
@@ -167,24 +165,24 @@
 <span class="sd">    why reloading all the modules doesnt do this I don&#39;t know</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">sys</span>
-    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="s">&#39;--quiet&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;dev reimport&#39;</span><span class="p">)</span>
-    <span class="c"># Self import</span>
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="s1">&#39;--quiet&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;dev reimport&#39;</span><span class="p">)</span>
+    <span class="c1"># Self import</span>
     <span class="kn">import</span> <span class="nn">ibeis.viz.interact</span>
-    <span class="c"># Implicit reassignment.</span>
+    <span class="c1"># Implicit reassignment.</span>
     <span class="n">seen_</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
     <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">IMPORT_TUPLES</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">tup</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
-            <span class="k">continue</span>  <span class="c"># dont import package names</span>
+            <span class="k">continue</span>  <span class="c1"># dont import package names</span>
         <span class="n">submodname</span><span class="p">,</span> <span class="n">fromimports</span> <span class="o">=</span> <span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">submod</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span> <span class="n">submodname</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">submod</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">seen_</span><span class="p">:</span>
-                <span class="c"># This just holds off bad behavior</span>
-                <span class="c"># but it does mimic normal util_import behavior</span>
-                <span class="c"># which is good</span>
+                <span class="c1"># This just holds off bad behavior</span>
+                <span class="c1"># but it does mimic normal util_import behavior</span>
+                <span class="c1"># which is good</span>
                 <span class="k">continue</span>
             <span class="n">seen_</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">ibeis</span><span class="o">.</span><span class="n">viz</span><span class="o">.</span><span class="n">interact</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">submod</span><span class="p">,</span> <span class="n">attr</span><span class="p">))</span>
@@ -196,31 +194,29 @@
     <span class="k">def</span> <span class="nf">fbrrr</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; fallback reload &quot;&quot;&quot;</span>
         <span class="k">pass</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_annotations2</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_bbox</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_chip</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_image</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_matches</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_name</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_qres</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_sver</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_annotations2</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_chip</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_image</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_matches</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_name</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_qres</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">interact_sver</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">,</span> <span class="n">fbrrr</span><span class="p">)(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="c"># hackish way of propogating up the new reloaded submodule attributes</span>
+        <span class="c1"># hackish way of propogating up the new reloaded submodule attributes</span>
         <span class="n">reassign_submodule_attributes</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span></div>
 <span class="n">rrrr</span> <span class="o">=</span> <span class="n">reload_subs</span>
 
 <span class="n">IMPORT_TUPLES</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="s">&#39;interact_annotations2&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;interact_bbox&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;interact_chip&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;interact_image&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;interact_matches&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;interact_name&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;interact_qres&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;interact_sver&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;interact_annotations2&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;interact_chip&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;interact_image&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;interact_matches&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;interact_name&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;interact_qres&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;interact_sver&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
 <span class="p">]</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
@@ -261,7 +257,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

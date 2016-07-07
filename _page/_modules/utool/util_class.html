@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>utool.util_class &mdash; ibeis 1.5.1 documentation</title>
+  <title>utool.util_class &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -127,7 +127,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for utool.util_class</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">In this module:</span>
 <span class="sd">    * a metaclass allowing for reloading of single class instances</span>
@@ -144,37 +144,38 @@
 <span class="kn">import</span> <span class="nn">types</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">operator</span> <span class="kn">as</span> <span class="nn">op</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_inject</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_set</span>
 <span class="kn">from</span> <span class="nn">utool</span> <span class="kn">import</span> <span class="n">util_arg</span>
 <span class="kn">from</span> <span class="nn">utool._internal.meta_util_six</span> <span class="kn">import</span> <span class="n">get_funcname</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[class]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">util_inject</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[class]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
-<span class="c"># Registers which classes have which attributes</span>
-<span class="c"># FIXME: this might cause memory leaks</span>
-<span class="c"># FIXME: this does cause weird reimport behavior</span>
+<span class="c1"># Registers which classes have which attributes</span>
+<span class="c1"># FIXME: this might cause memory leaks</span>
+<span class="c1"># FIXME: this does cause weird reimport behavior</span>
 <span class="n">__CLASSTYPE_ATTRIBUTES__</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">util_set</span><span class="o">.</span><span class="n">oset</span><span class="p">)</span>
 <span class="n">__CLASSTYPE_POSTINJECT_FUNCS__</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">util_set</span><span class="o">.</span><span class="n">oset</span><span class="p">)</span>
 <span class="n">__CLASSNAME_CLASSKEY_REGISTER__</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">util_set</span><span class="o">.</span><span class="n">oset</span><span class="p">)</span>
 
 
-<span class="c">#_rrr = rrr</span>
-<span class="c">#def rrr(verbose=True):</span>
-<span class="c">#    &quot;&quot;&quot; keep registered functions through reloads ? &quot;&quot;&quot;</span>
-<span class="c">#    global __CLASSTYPE_ATTRIBUTES__</span>
-<span class="c">#    global __CLASSTYPE_POSTINJECT_FUNCS__</span>
-<span class="c">#    cta = __CLASSTYPE_ATTRIBUTES__.copy()</span>
-<span class="c">#    ctpif = __CLASSTYPE_POSTINJECT_FUNCS__.copy()</span>
-<span class="c">#    rrr_(verbose=verbose)</span>
-<span class="c">#    __CLASSTYPE_ATTRIBUTES__ = cta</span>
-<span class="c">#    __CLASSTYPE_POSTINJECT_FUNCS__ = ctpif</span>
+<span class="c1">#_rrr = rrr</span>
+<span class="c1">#def rrr(verbose=True):</span>
+<span class="c1">#    &quot;&quot;&quot; keep registered functions through reloads ? &quot;&quot;&quot;</span>
+<span class="c1">#    global __CLASSTYPE_ATTRIBUTES__</span>
+<span class="c1">#    global __CLASSTYPE_POSTINJECT_FUNCS__</span>
+<span class="c1">#    cta = __CLASSTYPE_ATTRIBUTES__.copy()</span>
+<span class="c1">#    ctpif = __CLASSTYPE_POSTINJECT_FUNCS__.copy()</span>
+<span class="c1">#    rrr_(verbose=verbose)</span>
+<span class="c1">#    __CLASSTYPE_ATTRIBUTES__ = cta</span>
+<span class="c1">#    __CLASSTYPE_POSTINJECT_FUNCS__ = ctpif</span>
 
 
-<span class="n">QUIET_CLASS</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--quiet-class&#39;</span><span class="p">,</span> <span class="s">&#39;--quietclass&#39;</span><span class="p">))</span>
+<span class="n">QUIET_CLASS</span> <span class="o">=</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--quiet-class&#39;</span><span class="p">,</span> <span class="s1">&#39;--quietclass&#39;</span><span class="p">))</span>
 <span class="n">VERBOSE_CLASS</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s">&#39;--verbose-class&#39;</span><span class="p">,</span> <span class="s">&#39;--verbclass&#39;</span><span class="p">))</span> <span class="ow">or</span>
+    <span class="n">util_arg</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">((</span><span class="s1">&#39;--verbose-class&#39;</span><span class="p">,</span> <span class="s1">&#39;--verbclass&#39;</span><span class="p">))</span> <span class="ow">or</span>
     <span class="p">(</span><span class="ow">not</span> <span class="n">QUIET_CLASS</span> <span class="ow">and</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">))</span>
 
 
@@ -201,42 +202,42 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] begin inject_instance&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[util_class] begin inject_instance&#39;</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">classkey</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="c"># Probably should depricate this block of code</span>
-            <span class="c"># It tries to do too much</span>
+            <span class="c1"># Probably should depricate this block of code</span>
+            <span class="c1"># It tries to do too much</span>
             <span class="n">classkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span>
-            <span class="k">if</span> <span class="n">classkey</span> <span class="o">==</span> <span class="s">&#39;ibeis.gui.models_and_views.IBEISTableView&#39;</span><span class="p">:</span>
-                <span class="c"># HACK HACK HACK</span>
+            <span class="k">if</span> <span class="n">classkey</span> <span class="o">==</span> <span class="s1">&#39;ibeis.gui.models_and_views.IBEISTableView&#39;</span><span class="p">:</span>
+                <span class="c1"># HACK HACK HACK</span>
                 <span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtGui</span>
                 <span class="n">classkey</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QAbstractItemView</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="p">[</span><span class="n">classkey</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Warning: no classes of type </span><span class="si">%r</span><span class="s"> are registered&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,))</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] type(self)=</span><span class="si">%r</span><span class="s">, self=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="p">)),</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Checking to see if anybody else was registered...&#39;</span><span class="p">)</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] __CLASSTYPE_ATTRIBUTES__ = &#39;</span> <span class="o">+</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[utool] Warning: no classes of type </span><span class="si">%r</span><span class="s1"> are registered&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[utool] type(self)=</span><span class="si">%r</span><span class="s1">, self=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="p">)),</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[utool] Checking to see if anybody else was registered...&#39;</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[utool] __CLASSTYPE_ATTRIBUTES__ = &#39;</span> <span class="o">+</span>
                       <span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
                 <span class="k">for</span> <span class="n">classtype_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="p">):</span>
                     <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classtype_</span><span class="p">)</span>
                     <span class="n">classkey</span> <span class="o">=</span> <span class="n">classtype_</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[utool] Warning: using subclass=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classtype_</span><span class="p">,))</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[utool] Warning: using subclass=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classtype_</span><span class="p">,))</span>
                     <span class="k">break</span>
         <span class="n">func_list</span> <span class="o">=</span> <span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="p">[</span><span class="n">classkey</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] injecting </span><span class="si">%d</span><span class="s"> methods</span><span class="se">\n</span><span class="s">   with classkey=</span><span class="si">%r</span><span class="se">\n</span><span class="s">   into </span><span class="si">%r</span><span class="s">&#39;</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[util_class] injecting </span><span class="si">%d</span><span class="s1"> methods</span><span class="se">\n</span><span class="s1">   with classkey=</span><span class="si">%r</span><span class="se">\n</span><span class="s1">   into </span><span class="si">%r</span><span class="s1">&#39;</span>
                   <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">func_list</span><span class="p">),</span> <span class="n">classkey</span><span class="p">,</span> <span class="bp">self</span><span class="p">,))</span>
         <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">func_list</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">VERBOSE_CLASS</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] * injecting </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,))</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[util_class] * injecting </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,))</span>
             <span class="n">method_name</span> <span class="o">=</span> <span class="bp">None</span>
-            <span class="c"># Allow user to register tuples for aliases</span>
+            <span class="c1"># Allow user to register tuples for aliases</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
                 <span class="n">func</span><span class="p">,</span> <span class="n">method_name</span> <span class="o">=</span> <span class="n">func</span>
             <span class="n">inject_func_as_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">method_name</span><span class="o">=</span><span class="n">method_name</span><span class="p">,</span>
                                   <span class="n">allow_override</span><span class="o">=</span><span class="n">allow_override</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;ISSUE WHEN INJECTING </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,),</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;ISSUE WHEN INJECTING </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,),</span>
                       <span class="n">iswarning</span><span class="o">=</span><span class="ow">not</span> <span class="n">strict</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
             <span class="k">raise</span>
@@ -244,26 +245,26 @@
 
 <span class="k">def</span> <span class="nf">postinject_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classkey</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">VERBOSE_CLASS</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] Running postinject functions on </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[util_class] Running postinject functions on </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,))</span>
     <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">__CLASSTYPE_POSTINJECT_FUNCS__</span><span class="p">[</span><span class="n">classkey</span><span class="p">]:</span>
         <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] Finished injecting instance self=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[util_class] Finished injecting instance self=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,))</span>
 
 
 <span class="k">def</span> <span class="nf">inject_all_external_modules</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classname</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                                <span class="n">allow_override</span><span class="o">=</span><span class="s">&#39;override+warn&#39;</span><span class="p">,</span>
+                                <span class="n">allow_override</span><span class="o">=</span><span class="s1">&#39;override+warn&#39;</span><span class="p">,</span>
                                 <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    dynamically injects registered module methods into a class instance</span>
 
 <span class="sd">    FIXME: naming convention and use this in all places where this clas is used</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#import utool as ut</span>
+    <span class="c1">#import utool as ut</span>
     <span class="k">if</span> <span class="n">classname</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">classname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
-    <span class="c">#import utool as ut</span>
-    <span class="c">#ut.embed()</span>
+    <span class="c1">#import utool as ut</span>
+    <span class="c1">#ut.embed()</span>
 
     <span class="n">NEW</span> <span class="o">=</span> <span class="bp">True</span>
     <span class="k">if</span> <span class="n">NEW</span><span class="p">:</span>
@@ -271,8 +272,8 @@
                          <span class="k">if</span> <span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">classname</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">injected_modules</span> <span class="o">=</span> <span class="n">get_injected_modules</span><span class="p">(</span><span class="n">classname</span><span class="p">)</span>
-        <span class="c"># the variable must be named CLASS_INJECT_KEY</span>
-        <span class="c"># and only one class can be specified per module.</span>
+        <span class="c1"># the variable must be named CLASS_INJECT_KEY</span>
+        <span class="c1"># and only one class can be specified per module.</span>
         <span class="n">classkey_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">module</span><span class="o">.</span><span class="n">CLASS_INJECT_KEY</span>
                          <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">injected_modules</span><span class="p">]</span>
 
@@ -289,11 +290,11 @@
 <span class="k">def</span> <span class="nf">reload_injected_modules</span><span class="p">(</span><span class="n">classname</span><span class="p">):</span>
     <span class="n">injected_modules</span> <span class="o">=</span> <span class="n">get_injected_modules</span><span class="p">(</span><span class="n">classname</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">injected_modules</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">):</span>
             <span class="n">module</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">imp</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;rrr not defined in module=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module</span><span class="p">,))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;rrr not defined in module=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module</span><span class="p">,))</span>
             <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
 
 
@@ -307,36 +308,36 @@
 
     <span class="n">injected_modules</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">modstr</span> <span class="ow">in</span> <span class="n">modname_list</span><span class="p">:</span>
-        <span class="n">parts</span> <span class="o">=</span> <span class="n">modstr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
-        <span class="n">pkgname</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">modstr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+        <span class="n">pkgname</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">modname</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">exec</span><span class="p">(</span><span class="s">&#39;from </span><span class="si">%s</span><span class="s"> import </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pkgname</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="p">),</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
+            <span class="k">exec</span><span class="p">(</span><span class="s1">&#39;from </span><span class="si">%s</span><span class="s1"> import </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pkgname</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="p">),</span> <span class="nb">globals</span><span class="p">(),</span> <span class="nb">locals</span><span class="p">())</span>
             <span class="n">module</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
             <span class="n">injected_modules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Cannot load package=</span><span class="si">%r</span><span class="s">, module=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pkgname</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="p">))</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Cannot load package=</span><span class="si">%r</span><span class="s1">, module=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pkgname</span><span class="p">,</span> <span class="n">modname</span><span class="p">,</span> <span class="p">))</span>
     <span class="k">return</span> <span class="n">injected_modules</span>
 
 
 <span class="k">def</span> <span class="nf">autogen_import_list</span><span class="p">(</span><span class="n">classname</span><span class="p">,</span> <span class="n">conditional_imports</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="c">#ut.embed()</span>
-    <span class="c">#line_list = []</span>
-    <span class="n">line_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;import sys  # NOQA&#39;</span><span class="p">]</span>
+    <span class="c1">#ut.embed()</span>
+    <span class="c1">#line_list = []</span>
+    <span class="n">line_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;import sys  # NOQA&#39;</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">modname</span> <span class="ow">in</span> <span class="n">__CLASSNAME_CLASSKEY_REGISTER__</span><span class="p">[</span><span class="n">classname</span><span class="p">]:</span>
-        <span class="c"># &lt;super hacky&gt;</span>
+        <span class="c1"># &lt;super hacky&gt;</span>
         <span class="n">condition</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">conditional_imports</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">modname</span> <span class="o">==</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
                 <span class="n">condition</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="c"># &lt;/super hacky&gt;</span>
-        <span class="n">parts</span> <span class="o">=</span> <span class="n">modname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
-        <span class="n">frompart</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="c1"># &lt;/super hacky&gt;</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">modname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+        <span class="n">frompart</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">imppart</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="c">#line = &#39;from %s import %s  # NOQA&#39; % (frompart, imppart)</span>
+        <span class="c1">#line = &#39;from %s import %s  # NOQA&#39; % (frompart, imppart)</span>
         <span class="k">if</span> <span class="n">condition</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">line</span> <span class="o">=</span> <span class="s">&#39;from </span><span class="si">%s</span><span class="s"> import </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">frompart</span><span class="p">,</span> <span class="n">imppart</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;from </span><span class="si">%s</span><span class="s1"> import </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">frompart</span><span class="p">,</span> <span class="n">imppart</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">line</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
                 <span class="sd">&#39;&#39;&#39;</span>
@@ -345,7 +346,7 @@
 <span class="sd">                &#39;&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">condition</span><span class="o">=</span><span class="n">condition</span><span class="p">,</span> <span class="n">frompart</span><span class="o">=</span><span class="n">frompart</span><span class="p">,</span>
                             <span class="n">imppart</span><span class="o">=</span><span class="n">imppart</span><span class="p">)</span>
         <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-    <span class="n">src</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span>
+    <span class="n">src</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">src</span>
 
 
@@ -375,19 +376,19 @@
     <span class="n">vals_list</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span> <span class="nf">make_redirect</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-        <span class="c"># PRESERVES ALL SIGNATURES WITH EXECS</span>
-        <span class="n">src_fmt</span> <span class="o">=</span> <span class="s">r&#39;&#39;&#39;</span>
-<span class="s">        def {funcname}{defsig}:</span>
-<span class="s">            &quot;&quot;&quot; {orig_docstr}&quot;&quot;&quot;</span>
-<span class="s">            return {orig_funcname}{callsig}</span>
-<span class="s">        &#39;&#39;&#39;</span>
+        <span class="c1"># PRESERVES ALL SIGNATURES WITH EXECS</span>
+        <span class="n">src_fmt</span> <span class="o">=</span> <span class="s1">r&#39;&#39;&#39;</span>
+<span class="s1">        def {funcname}{defsig}:</span>
+<span class="s1">            &quot;&quot;&quot; {orig_docstr}&quot;&quot;&quot;</span>
+<span class="s1">            return {orig_funcname}{callsig}</span>
+<span class="s1">        &#39;&#39;&#39;</span>
         <span class="kn">from</span> <span class="nn">utool._internal</span> <span class="kn">import</span> <span class="n">meta_util_six</span>
         <span class="n">orig_docstr</span> <span class="o">=</span> <span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcdoc</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="n">funcname</span> <span class="o">=</span> <span class="n">meta_util_six</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-        <span class="n">orig_funcname</span> <span class="o">=</span> <span class="n">modname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">funcname</span>
-        <span class="n">orig_docstr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span> <span class="k">if</span> <span class="n">orig_docstr</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">orig_docstr</span>
+        <span class="n">orig_funcname</span> <span class="o">=</span> <span class="n">modname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">funcname</span>
+        <span class="n">orig_docstr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">orig_docstr</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">orig_docstr</span>
         <span class="kn">import</span> <span class="nn">textwrap</span>
-        <span class="c"># Put wrapped function into a scope</span>
+        <span class="c1"># Put wrapped function into a scope</span>
         <span class="kn">import</span> <span class="nn">inspect</span>
         <span class="n">argspec</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">varargs</span><span class="p">,</span> <span class="n">varkw</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span> <span class="o">=</span> <span class="n">argspec</span>
@@ -408,44 +409,44 @@
             <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">:</span>
                 <span class="n">src</span> <span class="o">=</span> <span class="n">make_redirect</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
                 <span class="n">src</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">indent</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
-                <span class="n">src</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">_</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">src</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)])</span>
+                <span class="n">src</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">_</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">src</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)])</span>
                 <span class="n">src_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">regen_command</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">regen_command</span> <span class="o">=</span> <span class="s">&#39;FIXME None given&#39;</span>
+        <span class="n">regen_command</span> <span class="o">=</span> <span class="s1">&#39;FIXME None given&#39;</span>
 
     <span class="n">module_header</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        # -*- coding: utf-8 -*-</span>
-<span class="sd">        &quot;&quot;&quot;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">TRIPLE_DOUBLE_QUOTE</span> <span class="o">+</span> <span class="s">&quot;&quot;&quot;</span>
-<span class="s">        Static file containing autogenerated functions for {classname}</span>
-<span class="s">        Autogenerated on {autogen_time}</span>
+<span class="sd">        &quot;&quot;&quot;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">TRIPLE_DOUBLE_QUOTE</span> <span class="o">+</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Static file containing autogenerated functions for {classname}</span>
+<span class="s2">        Autogenerated on {autogen_time}</span>
 
-<span class="s">        RegenCommand:</span>
-<span class="s">            {regen_command}</span>
-<span class="s">        &quot;&quot;&quot;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">TRIPLE_DOUBLE_QUOTE</span> <span class="o">+</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s2">        RegenCommand:</span>
+<span class="s2">            {regen_command}</span>
+<span class="s2">        &quot;&quot;&quot;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">TRIPLE_DOUBLE_QUOTE</span> <span class="o">+</span> <span class="s2">&quot;&quot;&quot;</span>
 
-<span class="s">        from __future__ import absolute_import, division, print_function</span>
-<span class="s">        import utool as ut</span>
+<span class="s2">        from __future__ import absolute_import, division, print_function</span>
+<span class="s2">        import utool as ut</span>
 
-<span class="s">        &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">autogen_time</span><span class="o">=</span><span class="n">ut</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">(),</span>
             <span class="n">regen_command</span><span class="o">=</span><span class="n">regen_command</span><span class="p">,</span>
             <span class="n">classname</span><span class="o">=</span><span class="n">classname</span><span class="p">)</span>
 
     <span class="n">depends_module_block</span> <span class="o">=</span> <span class="n">autogen_import_list</span><span class="p">(</span><span class="n">classname</span><span class="p">,</span> <span class="n">conditional_imports</span><span class="p">)</span>
-    <span class="n">inject_statement_fmt</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;print, rrr, profile = &quot;</span>
-                            <span class="s">&quot;ut.inject2(__name__, &#39;[autogen_explicit_inject_{classname}]&#39;)&quot;</span><span class="p">)</span>
+    <span class="n">inject_statement_fmt</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;print, rrr, profile = &quot;</span>
+                            <span class="s2">&quot;ut.inject2(__name__, &#39;[autogen_explicit_inject_{classname}]&#39;)&quot;</span><span class="p">)</span>
     <span class="n">inject_statement</span> <span class="o">=</span> <span class="n">inject_statement_fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">classname</span><span class="o">=</span><span class="n">classname</span><span class="p">)</span>
 
     <span class="n">source_block_lines</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">module_header</span><span class="p">,</span>
         <span class="n">depends_module_block</span><span class="p">,</span>
         <span class="n">inject_statement</span><span class="p">,</span>
-        <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span>
-        <span class="s">&#39;class ExplicitInject&#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s">&#39;(object):&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;class ExplicitInject&#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s1">&#39;(object):&#39;</span><span class="p">,</span>
     <span class="p">]</span> <span class="o">+</span> <span class="n">src_list</span>
-    <span class="n">source_block</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_block_lines</span><span class="p">)</span>
+    <span class="n">source_block</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_block_lines</span><span class="p">)</span>
 
     <span class="n">source_block</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">autoformat_pep8</span><span class="p">(</span><span class="n">source_block</span><span class="p">,</span> <span class="n">aggressive</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">source_block</span>
@@ -482,15 +483,15 @@
 <span class="sd">        &gt;&gt;&gt; print(&#39;Cheese shop does not have cheese. All is well.&#39;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">__APP_MODNAME_REGISTER__</span>
-    <span class="c">#if util_arg.VERBOSE or VERBOSE_CLASS:</span>
+    <span class="c1">#if util_arg.VERBOSE or VERBOSE_CLASS:</span>
     <span class="k">if</span> <span class="n">VERBOSE_CLASS</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] register via make_class_method_decorator classkey=</span><span class="si">%r</span><span class="s">, modname=</span><span class="si">%r</span><span class="s">&#39;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[util_class] register via make_class_method_decorator classkey=</span><span class="si">%r</span><span class="s1">, modname=</span><span class="si">%r</span><span class="s1">&#39;</span>
               <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,</span> <span class="n">modname</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">modname</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-        <span class="c"># skips reinjects into main</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: cannot register classkey=</span><span class="si">%r</span><span class="s"> functions as __main__&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">modname</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+        <span class="c1"># skips reinjects into main</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;WARNING: cannot register classkey=</span><span class="si">%r</span><span class="s1"> functions as __main__&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,))</span>
         <span class="k">return</span> <span class="k">lambda</span> <span class="n">func</span><span class="p">:</span> <span class="n">func</span>
-    <span class="c"># register that this module was injected into</span>
+    <span class="c1"># register that this module was injected into</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">classkey</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
         <span class="n">classname</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">classkey</span>
         <span class="n">__CLASSNAME_CLASSKEY_REGISTER__</span><span class="p">[</span><span class="n">classname</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
@@ -498,15 +499,15 @@
         <span class="n">classname</span> <span class="o">=</span> <span class="n">classkey</span><span class="o">.</span><span class="n">__name__</span>
         <span class="k">if</span> <span class="n">modname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">modname</span> <span class="o">==</span> <span class="n">classkey</span><span class="o">.</span><span class="n">__module__</span><span class="p">,</span> <span class="p">(</span>
-                <span class="s">&#39;modname=</span><span class="si">%r</span><span class="s"> does not agree with __module__=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="s1">&#39;modname=</span><span class="si">%r</span><span class="s1"> does not agree with __module__=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="n">modname</span><span class="p">,</span> <span class="n">classkey</span><span class="o">.</span><span class="n">__module__</span><span class="p">))</span>
         <span class="n">modname</span> <span class="o">=</span> <span class="n">classkey</span><span class="o">.</span><span class="n">__module__</span>
-        <span class="c"># Convert to new classkey format</span>
+        <span class="c1"># Convert to new classkey format</span>
         <span class="n">classkey</span> <span class="o">=</span> <span class="p">(</span><span class="n">classname</span><span class="p">,</span> <span class="n">modname</span><span class="p">)</span>
         <span class="n">__CLASSNAME_CLASSKEY_REGISTER__</span><span class="p">[</span><span class="n">classname</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">modname</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Warning not using classkey for </span><span class="si">%r</span><span class="s"> </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,</span> <span class="n">modname</span><span class="p">))</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;classkey no longer supported. Use class_inject_key instead&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Warning not using classkey for </span><span class="si">%r</span><span class="s1"> </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,</span> <span class="n">modname</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;classkey no longer supported. Use class_inject_key instead&#39;</span><span class="p">)</span>
     <span class="n">closure_decorate_class_method</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">decorate_class_method</span><span class="p">,</span>
                                                       <span class="n">classkey</span><span class="o">=</span><span class="n">classkey</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">closure_decorate_class_method</span>
@@ -525,11 +526,11 @@
 <span class="sd">        make_class_method_decorator</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">VERBOSE</span> <span class="ow">or</span> <span class="n">VERBOSE_CLASS</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] register class_postinject classkey=</span><span class="si">%r</span><span class="s">, modname=</span><span class="si">%r</span><span class="s">&#39;</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[util_class] register class_postinject classkey=</span><span class="si">%r</span><span class="s1">, modname=</span><span class="si">%r</span><span class="s1">&#39;</span>
               <span class="o">%</span> <span class="p">(</span><span class="n">classkey</span><span class="p">,</span> <span class="n">modname</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">modname</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: cannot register class functions as __main__&#39;</span><span class="p">)</span>
-        <span class="c"># skips reinjects into main</span>
+    <span class="k">if</span> <span class="n">modname</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;WARNING: cannot register class functions as __main__&#39;</span><span class="p">)</span>
+        <span class="c1"># skips reinjects into main</span>
         <span class="k">return</span> <span class="k">lambda</span> <span class="n">func</span><span class="p">:</span> <span class="n">func</span>
     <span class="n">closure_decorate_postinject</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">decorate_postinject</span><span class="p">,</span>
                                                     <span class="n">classkey</span><span class="o">=</span><span class="n">classkey</span><span class="p">)</span>
@@ -544,10 +545,10 @@
 
 <span class="sd">    func can also be a tuple</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#import utool as ut</span>
+    <span class="c1">#import utool as ut</span>
     <span class="k">global</span> <span class="n">__CLASSTYPE_ATTRIBUTES__</span>
-    <span class="k">assert</span> <span class="n">classkey</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify classkey&#39;</span>
-    <span class="c">#if not (skipmain and ut.get_caller_modname() == &#39;__main__&#39;):</span>
+    <span class="k">assert</span> <span class="n">classkey</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;must specify classkey&#39;</span>
+    <span class="c1">#if not (skipmain and ut.get_caller_modname() == &#39;__main__&#39;):</span>
     <span class="n">__CLASSTYPE_ATTRIBUTES__</span><span class="p">[</span><span class="n">classkey</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">func</span>
 
@@ -558,10 +559,10 @@
 
 <span class="sd">    classkey is some identifying string, tuple, or object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#import utool as ut</span>
+    <span class="c1">#import utool as ut</span>
     <span class="k">global</span> <span class="n">__CLASSTYPE_POSTINJECT_FUNCS__</span>
-    <span class="k">assert</span> <span class="n">classkey</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;must specify classkey&#39;</span>
-    <span class="c">#if not (skipmain and ut.get_caller_modname() == &#39;__main__&#39;):</span>
+    <span class="k">assert</span> <span class="n">classkey</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;must specify classkey&#39;</span>
+    <span class="c1">#if not (skipmain and ut.get_caller_modname() == &#39;__main__&#39;):</span>
     <span class="n">__CLASSTYPE_POSTINJECT_FUNCS__</span><span class="p">[</span><span class="n">classkey</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">func</span>
 
@@ -585,47 +586,53 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">method_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">method_name</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="c">#printDBG(&#39;Injecting method_name=%r&#39; % method_name)</span>
+    <span class="c1">#printDBG(&#39;Injecting method_name=%r&#39; % method_name)</span>
     <span class="n">old_method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="c">#import utool as ut</span>
-    <span class="c">#ut.embed()</span>
+    <span class="c1">#import utool as ut</span>
+    <span class="c1">#ut.embed()</span>
 
-    <span class="c"># Bind function to the class instance</span>
-    <span class="c">#new_method = types.MethodType(func, self, self.__class__)</span>
+    <span class="c1"># Bind function to the class instance</span>
+    <span class="c1">#new_method = types.MethodType(func, self, self.__class__)</span>
     <span class="n">new_method</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">)</span>
-    <span class="c">#new_method = profile(func.__get__(self, self.__class__))</span>
+    <span class="c1">#new_method = profile(func.__get__(self, self.__class__))</span>
 
     <span class="k">if</span> <span class="n">old_method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">allow_main</span> <span class="ow">and</span> <span class="p">(</span>
-                <span class="n">old_method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s">&#39;__name__&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;__main__&#39;</span> <span class="ow">and</span>
-                <span class="n">new_method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s">&#39;__name__&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">):</span>
+                <span class="n">old_method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s1">&#39;__name__&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;__main__&#39;</span> <span class="ow">and</span>
+                <span class="n">new_method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s1">&#39;__name__&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">True</span> <span class="ow">or</span> <span class="n">VERBOSE_CLASS</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] skipping re-inject of </span><span class="si">%r</span><span class="s"> from __main__&#39;</span> <span class="o">%</span> <span class="n">method_name</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[util_class] skipping re-inject of </span><span class="si">%r</span><span class="s1"> from __main__&#39;</span> <span class="o">%</span> <span class="n">method_name</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="k">if</span> <span class="n">old_method</span> <span class="ow">is</span> <span class="n">new_method</span> <span class="ow">or</span> <span class="n">old_method</span><span class="o">.</span><span class="n">im_func</span> <span class="ow">is</span> <span class="n">new_method</span><span class="o">.</span><span class="n">im_func</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">util_arg</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: Injecting the same function twice: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">new_method</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;WARNING: Injecting the same function twice: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">new_method</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">allow_override</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
-                <span class="s">&#39;Overrides are not allowed. Already have method_name=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span>
+                <span class="s1">&#39;Overrides are not allowed. Already have method_name=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span>
                 <span class="p">(</span><span class="n">method_name</span><span class="p">))</span>
-        <span class="k">elif</span> <span class="n">allow_override</span> <span class="o">==</span> <span class="s">&#39;warn&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">allow_override</span> <span class="o">==</span> <span class="s1">&#39;warn&#39;</span><span class="p">:</span>
             <span class="k">print</span><span class="p">(</span>
-                <span class="s">&#39;WARNING: Overrides are not allowed. Already have method_name=</span><span class="si">%r</span><span class="s">. Skipping&#39;</span> <span class="o">%</span>
+                <span class="s1">&#39;WARNING: Overrides are not allowed. Already have method_name=</span><span class="si">%r</span><span class="s1">. Skipping&#39;</span> <span class="o">%</span>
                 <span class="p">(</span><span class="n">method_name</span><span class="p">))</span>
             <span class="k">return</span>
-        <span class="k">elif</span> <span class="n">allow_override</span> <span class="o">==</span> <span class="s">&#39;override+warn&#39;</span><span class="p">:</span>
-            <span class="c">#import utool as ut</span>
-            <span class="c">#ut.embed()</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: Overrides are allowed, but dangerous. method_name=</span><span class="si">%r</span><span class="s">.&#39;</span> <span class="o">%</span>
+        <span class="k">elif</span> <span class="n">allow_override</span> <span class="o">==</span> <span class="s1">&#39;override+warn&#39;</span><span class="p">:</span>
+            <span class="c1">#import utool as ut</span>
+            <span class="c1">#ut.embed()</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;WARNING: Overrides are allowed, but dangerous. method_name=</span><span class="si">%r</span><span class="s1">.&#39;</span> <span class="o">%</span>
                   <span class="p">(</span><span class="n">method_name</span><span class="p">))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;old_method = </span><span class="si">%r</span><span class="s">, im_func=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old_method</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">old_method</span><span class="o">.</span><span class="n">im_func</span><span class="p">)))</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;new_method = </span><span class="si">%r</span><span class="s">, im_func=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_method</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">new_method</span><span class="o">.</span><span class="n">im_func</span><span class="p">)))</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">old_method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s">&#39;__name__&#39;</span><span class="p">])</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">new_method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s">&#39;__name__&#39;</span><span class="p">])</span>
-        <span class="c"># TODO: does this actually decrement the refcount enough?</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;old_method = </span><span class="si">%r</span><span class="s1">, im_func=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">old_method</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">old_method</span><span class="o">.</span><span class="n">im_func</span><span class="p">)))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;new_method = </span><span class="si">%r</span><span class="s1">, im_func=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_method</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">new_method</span><span class="o">.</span><span class="n">im_func</span><span class="p">)))</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">old_method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s1">&#39;__name__&#39;</span><span class="p">])</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">new_method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">func_globals</span><span class="p">[</span><span class="s1">&#39;__name__&#39;</span><span class="p">])</span>
+        <span class="c1"># TODO: does this actually decrement the refcount enough?</span>
         <span class="k">del</span> <span class="n">old_method</span>
     <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">new_method</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">inject_func_as_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">method_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                            <span class="n">allow_override</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">allow_main</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                            <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">pass</span>
 
 
 <span class="k">def</span> <span class="nf">makeForwardingMetaclass</span><span class="p">(</span><span class="n">forwarding_dest_getter</span><span class="p">,</span> <span class="n">whitelist</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="nb">object</span><span class="p">):</span>
@@ -635,14 +642,14 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">class</span> <span class="nc">ForwardingMetaclass</span><span class="p">(</span><span class="n">base_class</span><span class="o">.</span><span class="n">__class__</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
-            <span class="c"># print(&#39;ForwardingMetaclass.__init__():</span>
-            <span class="c">#  {forwarding_dest_getter: %r; whitelist: %r}&#39; % (forwarding_dest_getter, whitelist))</span>
+            <span class="c1"># print(&#39;ForwardingMetaclass.__init__():</span>
+            <span class="c1">#  {forwarding_dest_getter: %r; whitelist: %r}&#39; % (forwarding_dest_getter, whitelist))</span>
             <span class="nb">super</span><span class="p">(</span><span class="n">ForwardingMetaclass</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
             <span class="n">old_getattr</span> <span class="o">=</span> <span class="n">metaself</span><span class="o">.</span><span class="n">__getattribute__</span>
             <span class="n">old_setattr</span> <span class="o">=</span> <span class="n">metaself</span><span class="o">.</span><span class="n">__setattr__</span>
             <span class="k">def</span> <span class="nf">new_getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">whitelist</span><span class="p">:</span>
-                    <span class="c">#dest = old_getattr(self, forwarding_dest_name)</span>
+                    <span class="c1">#dest = old_getattr(self, forwarding_dest_name)</span>
                     <span class="n">dest</span> <span class="o">=</span> <span class="n">forwarding_dest_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">val</span> <span class="o">=</span> <span class="n">dest</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__getattribute__</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
@@ -653,7 +660,7 @@
                 <span class="k">return</span> <span class="n">val</span>
             <span class="k">def</span> <span class="nf">new_setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">whitelist</span><span class="p">:</span>
-                    <span class="c">#dest = old_getattr(self, forwarding_dest_name)</span>
+                    <span class="c1">#dest = old_getattr(self, forwarding_dest_name)</span>
                     <span class="n">dest</span> <span class="o">=</span> <span class="n">forwarding_dest_getter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                     <span class="n">dest</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -678,10 +685,10 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-    <span class="n">testdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_app_resource_dir</span><span class="p">(</span><span class="s">&#39;utool&#39;</span><span class="p">,</span> <span class="s">&#39;metaclass_tests&#39;</span><span class="p">)</span>
-    <span class="n">testfoo_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">testdir</span><span class="p">,</span> <span class="s">&#39;testfoo.py&#39;</span><span class="p">)</span>
-    <span class="c"># os.chdir(testdir)</span>
-    <span class="c">#with ut.ChdirContext(testdir, stay=ut.inIPython()):</span>
+    <span class="n">testdir</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ensure_app_resource_dir</span><span class="p">(</span><span class="s1">&#39;utool&#39;</span><span class="p">,</span> <span class="s1">&#39;metaclass_tests&#39;</span><span class="p">)</span>
+    <span class="n">testfoo_fpath</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">unixjoin</span><span class="p">(</span><span class="n">testdir</span><span class="p">,</span> <span class="s1">&#39;testfoo.py&#39;</span><span class="p">)</span>
+    <span class="c1"># os.chdir(testdir)</span>
+    <span class="c1">#with ut.ChdirContext(testdir, stay=ut.inIPython()):</span>
     <span class="k">with</span> <span class="n">ut</span><span class="o">.</span><span class="n">ChdirContext</span><span class="p">(</span><span class="n">testdir</span><span class="p">):</span>
         <span class="n">foo_code1</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">codeblock</span><span class="p">(</span>
             <span class="sd">r&#39;&#39;&#39;</span>
@@ -718,21 +725,21 @@
 <span class="sd">            # ENDBLOCK</span>
 <span class="sd">            &#39;&#39;&#39;</span>
         <span class="p">)</span>
-        <span class="c"># Write a testclass to disk</span>
+        <span class="c1"># Write a testclass to disk</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">testfoo_fpath</span><span class="p">)</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">testfoo_fpath</span><span class="p">,</span> <span class="n">foo_code1</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">testfoo</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">import_module_from_fpath</span><span class="p">(</span><span class="n">testfoo_fpath</span><span class="p">)</span>
-        <span class="c">#import testfoo</span>
+        <span class="c1">#import testfoo</span>
         <span class="n">foo</span> <span class="o">=</span> <span class="n">testfoo</span><span class="o">.</span><span class="n">Foo</span><span class="p">()</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;foo = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">foo</span><span class="p">,))</span>
-        <span class="k">assert</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">),</span> <span class="s">&#39;foo should not have a bar attr&#39;</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">testfoo_fpath</span> <span class="o">+</span> <span class="s">&#39;c&#39;</span><span class="p">)</span>  <span class="c"># remove the pyc file because of the identical creation time</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;foo = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">foo</span><span class="p">,))</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="s1">&#39;bar&#39;</span><span class="p">),</span> <span class="s1">&#39;foo should not have a bar attr&#39;</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">testfoo_fpath</span> <span class="o">+</span> <span class="s1">&#39;c&#39;</span><span class="p">)</span>  <span class="c1"># remove the pyc file because of the identical creation time</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">write_to</span><span class="p">(</span><span class="n">testfoo_fpath</span><span class="p">,</span> <span class="n">foo_code2</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">),</span> <span class="s">&#39;foo should still not have a bar attr&#39;</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="s1">&#39;bar&#39;</span><span class="p">),</span> <span class="s1">&#39;foo should still not have a bar attr&#39;</span>
         <span class="n">foo</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
-        <span class="k">assert</span> <span class="n">foo</span><span class="o">.</span><span class="n">bar</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;spam&#39;</span>
+        <span class="k">assert</span> <span class="n">foo</span><span class="o">.</span><span class="n">bar</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;spam&#39;</span>
         <span class="n">ut</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">testfoo_fpath</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;Reloading worked nicely&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Reloading worked nicely&#39;</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">ReloadingMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
@@ -790,14 +797,14 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">modname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__module__</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s">&#39;[class] reloading &#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s">&#39; from &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">)</span>
-            <span class="c"># --HACK--</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_on_reload&#39;</span><span class="p">):</span>
+                <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[class] reloading &#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s1">&#39; from &#39;</span> <span class="o">+</span> <span class="n">modname</span><span class="p">)</span>
+            <span class="c1"># --HACK--</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_on_reload&#39;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_on_reload</span><span class="p">()</span>
 
             <span class="n">NEW</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="k">if</span> <span class="n">NEW</span><span class="p">:</span>
-                <span class="c"># Do for all inheriting classes</span>
+                <span class="c1"># Do for all inheriting classes</span>
                 <span class="k">def</span> <span class="nf">find_base_clases</span><span class="p">(</span><span class="n">_class</span><span class="p">,</span> <span class="n">find_base_clases</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
                     <span class="n">class_list</span> <span class="o">=</span> <span class="p">[]</span>
                     <span class="k">for</span> <span class="n">_baseclass</span> <span class="ow">in</span> <span class="n">_class</span><span class="o">.</span><span class="n">__bases__</span><span class="p">:</span>
@@ -810,69 +817,69 @@
                 <span class="n">class_list</span> <span class="o">=</span> <span class="n">find_base_clases</span><span class="p">(</span><span class="n">head_class</span><span class="p">,</span> <span class="n">find_base_clases</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">_class</span> <span class="ow">in</span> <span class="n">class_list</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[class] reloading parent &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span>
-                              <span class="s">&#39; from &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">!=</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[class] reloading parent &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span>
+                              <span class="s1">&#39; from &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">!=</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
                         <span class="n">module_</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">_class</span><span class="o">.</span><span class="n">__module__</span><span class="p">]</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="c"># Attempt to find the module that is the main module</span>
-                        <span class="c"># This may be very hacky and potentially break</span>
+                        <span class="c1"># Attempt to find the module that is the main module</span>
+                        <span class="c1"># This may be very hacky and potentially break</span>
                         <span class="n">main_module_</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">_class</span><span class="o">.</span><span class="n">__module__</span><span class="p">]</span>
                         <span class="n">main_modname</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_modname_from_modpath</span><span class="p">(</span><span class="n">main_module_</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
                         <span class="n">module_</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">main_modname</span><span class="p">]</span>
-                        <span class="c">#ut.embed()</span>
-                        <span class="c">#print(&#39;[class!] CANT RELOAD CLASS FROM MAIN MODULE&#39;)</span>
-                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module_</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">):</span>
+                        <span class="c1">#ut.embed()</span>
+                        <span class="c1">#print(&#39;[class!] CANT RELOAD CLASS FROM MAIN MODULE&#39;)</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module_</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">):</span>
                         <span class="n">module_</span><span class="o">.</span><span class="n">rrr</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="kn">import</span> <span class="nn">imp</span>
                         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[class] reloading &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">+</span> <span class="s">&#39; with imp&#39;</span><span class="p">)</span>
+                            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[class] reloading &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">+</span> <span class="s1">&#39; with imp&#39;</span><span class="p">)</span>
                         <span class="k">try</span><span class="p">:</span>
                             <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module_</span><span class="p">)</span>
                         <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
-                            <span class="k">print</span><span class="p">(</span><span class="s">&#39;[class] fallback reloading &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">+</span>
-                                  <span class="s">&#39; with imp&#39;</span><span class="p">)</span>
-                            <span class="c"># one last thing to try. probably used ut.import_module_from_fpath</span>
-                            <span class="c"># when importing this module</span>
+                            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[class] fallback reloading &#39;</span> <span class="o">+</span> <span class="n">_class</span><span class="o">.</span><span class="n">__module__</span> <span class="o">+</span>
+                                  <span class="s1">&#39; with imp&#39;</span><span class="p">)</span>
+                            <span class="c1"># one last thing to try. probably used ut.import_module_from_fpath</span>
+                            <span class="c1"># when importing this module</span>
                             <span class="n">imp</span><span class="o">.</span><span class="n">load_source</span><span class="p">(</span><span class="n">module_</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">module_</span><span class="o">.</span><span class="n">__file__</span><span class="p">)</span>
                     <span class="n">_newclass</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module_</span><span class="p">,</span> <span class="n">_class</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
                     <span class="n">reload_class_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_newclass</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c"># --------</span>
-                <span class="c"># Reload the parent module if it is not main</span>
+                <span class="c1"># --------</span>
+                <span class="c1"># Reload the parent module if it is not main</span>
                 <span class="n">module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">modname</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">modname</span> <span class="o">!=</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s">&#39;rrr&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">modname</span> <span class="o">!=</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s1">&#39;rrr&#39;</span><span class="p">):</span>
                         <span class="n">module</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="kn">import</span> <span class="nn">imp</span>
                         <span class="n">imp</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
-                <span class="c"># --------</span>
-                <span class="c"># Reload parent classes (if inherited)</span>
-                <span class="c"># TODO: figure out how to do this</span>
-                <span class="c">#for _baseclass in self.__class__.__bases__:</span>
-                <span class="c">#    if hasattr(_baseclass, &#39;rrr&#39;):</span>
-                <span class="c">#        print(&#39;Reloading parent: %r&#39; % (_baseclass))</span>
-                <span class="c">#        # make a bound rrr method that belongs to the parent instance</span>
-                <span class="c">#        base_rrr = _baseclass.rrr.__get__(self, _baseclass)</span>
-                <span class="c">#        base_rrr(verbose=verbose)</span>
-                <span class="c"># Get new class definition</span>
+                <span class="c1"># --------</span>
+                <span class="c1"># Reload parent classes (if inherited)</span>
+                <span class="c1"># TODO: figure out how to do this</span>
+                <span class="c1">#for _baseclass in self.__class__.__bases__:</span>
+                <span class="c1">#    if hasattr(_baseclass, &#39;rrr&#39;):</span>
+                <span class="c1">#        print(&#39;Reloading parent: %r&#39; % (_baseclass))</span>
+                <span class="c1">#        # make a bound rrr method that belongs to the parent instance</span>
+                <span class="c1">#        base_rrr = _baseclass.rrr.__get__(self, _baseclass)</span>
+                <span class="c1">#        base_rrr(verbose=verbose)</span>
+                <span class="c1"># Get new class definition</span>
                 <span class="n">class_</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">classname</span><span class="p">)</span>
                 <span class="n">reload_class_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-            <span class="c"># --HACK--</span>
-            <span class="c"># TODO: handle injected definitions</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_initialize_self&#39;</span><span class="p">):</span>
+            <span class="c1"># --HACK--</span>
+            <span class="c1"># TODO: handle injected definitions</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_initialize_self&#39;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_self</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;Error Reloading Class&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span>
-                <span class="s">&#39;modname&#39;</span><span class="p">,</span>
-                <span class="s">&#39;module&#39;</span><span class="p">,</span>
-                <span class="s">&#39;class_&#39;</span><span class="p">,</span>
-                <span class="s">&#39;class_list&#39;</span><span class="p">,</span>
-                <span class="s">&#39;self&#39;</span><span class="p">,</span> <span class="p">])</span>
-            <span class="c">#print(ut.dict_str(module.__dict__))</span>
+            <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;Error Reloading Class&#39;</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span>
+                <span class="s1">&#39;modname&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;module&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;class_&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;class_list&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;self&#39;</span><span class="p">,</span> <span class="p">])</span>
+            <span class="c1">#print(ut.dict_str(module.__dict__))</span>
             <span class="k">raise</span>
     <span class="k">return</span> <span class="n">rrr</span>
 
@@ -882,7 +889,7 @@
     <span class="k">class</span> <span class="nc">ReloadingMetaclass2</span><span class="p">(</span><span class="n">BASE_TYPE</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">metaself</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
             <span class="nb">super</span><span class="p">(</span><span class="n">ReloadingMetaclass2</span><span class="p">,</span> <span class="n">metaself</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
-            <span class="c">#print(&#39;Making rrr for %r&#39; % (name,))</span>
+            <span class="c1">#print(&#39;Making rrr for %r&#39; % (name,))</span>
             <span class="n">rrr</span> <span class="o">=</span> <span class="n">private_rrr_factory</span><span class="p">()</span>
             <span class="n">metaself</span><span class="o">.</span><span class="n">rrr</span> <span class="o">=</span> <span class="n">rrr</span>
     <span class="k">return</span> <span class="n">ReloadingMetaclass2</span>
@@ -904,16 +911,23 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[util_class] Reloading self=</span><span class="si">%r</span><span class="s"> as class_=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[util_class] Reloading self=</span><span class="si">%r</span><span class="s1"> as class_=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">class_</span><span class="p">))</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span> <span class="o">=</span> <span class="n">class_</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">class_</span><span class="p">):</span>
-        <span class="c"># Get unbound reloaded method</span>
+        <span class="c1"># Get unbound reloaded method</span>
         <span class="n">func</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">class_</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">):</span>
-            <span class="c"># inject it into the old instance</span>
+            <span class="c1"># inject it into the old instance</span>
             <span class="n">inject_func_as_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="n">class_</span><span class="p">,</span>
                                   <span class="n">allow_override</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                                   <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">compare_instance</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">__hash__</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">(),</span> <span class="n">other</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">(),</span> <span class="nb">hash</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
 
 
 <span class="k">def</span> <span class="nf">get_comparison_methods</span><span class="p">():</span>
@@ -923,30 +937,30 @@
         <span class="n">method_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">func</span>
 
-    <span class="c"># Comparison operators for sorting and uniqueness</span>
+    <span class="c1"># Comparison operators for sorting and uniqueness</span>
     <span class="nd">@_register</span>
     <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">__hash__</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">compare_instance</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">lt</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
     <span class="nd">@_register</span>
     <span class="k">def</span> <span class="nf">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">__hash__</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">compare_instance</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">le</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
     <span class="nd">@_register</span>
     <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span> <span class="o">==</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">__hash__</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">compare_instance</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">eq</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
     <span class="nd">@_register</span>
     <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span> <span class="o">!=</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">__hash__</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">compare_instance</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">ne</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
     <span class="nd">@_register</span>
     <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">__hash__</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">compare_instance</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">gt</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
     <span class="nd">@_register</span>
     <span class="k">def</span> <span class="nf">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hash__</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">__hash__</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">compare_instance</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">ge</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">method_list</span>
 
@@ -970,8 +984,8 @@
                 <span class="n">dct</span><span class="p">[</span><span class="n">funcname</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">funcname</span> <span class="o">=</span> <span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-                <span class="n">dct</span><span class="p">[</span><span class="s">&#39;meta_&#39;</span> <span class="o">+</span> <span class="n">funcname</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
-            <span class="c">#ut.inject_func_as_method(metaself, func)</span>
+                <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;meta_&#39;</span> <span class="o">+</span> <span class="n">funcname</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
+            <span class="c1">#ut.inject_func_as_method(metaself, func)</span>
         <span class="k">return</span> <span class="nb">type</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
 
 
@@ -1011,10 +1025,10 @@
 <span class="sd">    they appear in class source. Useful when playing with IPython.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">classname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
-    <span class="n">attrlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">attr</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s">&#39;__&#39;</span><span class="p">)]</span>
+    <span class="n">attrlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">attr</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s1">&#39;__&#39;</span><span class="p">)]</span>
     <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attrlist</span><span class="p">:</span>
         <span class="n">method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
-        <span class="n">truename</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s">&#39;__&#39;</span><span class="p">,</span> <span class="s">&#39;__&#39;</span><span class="p">)</span>
+        <span class="n">truename</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">classname</span> <span class="o">+</span> <span class="s1">&#39;__&#39;</span><span class="p">,</span> <span class="s1">&#39;__&#39;</span><span class="p">)</span>
         <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">truename</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
 
 
@@ -1040,13 +1054,13 @@
 <span class="sd">        &gt;&gt;&gt; assert get_classname(class_, local=True) == &#39;ReloadingMetaclass&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">local</span><span class="p">:</span>
-        <span class="n">classname</span> <span class="o">=</span> <span class="n">class_</span><span class="o">.</span><span class="n">__module__</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">class_</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="n">classname</span> <span class="o">=</span> <span class="n">class_</span><span class="o">.</span><span class="n">__module__</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">class_</span><span class="o">.</span><span class="n">__name__</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">classname</span> <span class="o">=</span> <span class="n">class_</span><span class="o">.</span><span class="n">__name__</span>
     <span class="k">return</span> <span class="n">classname</span>
 
 
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    python -c &quot;import utool; utool.doctest_funcs(utool.util_class, allexamples=True)&quot;</span>
 <span class="sd">    python -m utool.util_class --allexamples</span>
@@ -1088,7 +1102,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

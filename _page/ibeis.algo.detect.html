@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.detect package &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.detect package &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,9 +30,9 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="index.html"/>
         <link rel="up" title="ibeis.algo package" href="ibeis.algo.html"/>
-        <link rel="next" title="ibeis.algo.hots package" href="ibeis.algo.hots.html"/>
+        <link rel="next" title="ibeis.algo.detect.background package" href="ibeis.algo.detect.background.html"/>
         <link rel="prev" title="ibeis.algo package" href="ibeis.algo.html"/> 
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -113,14 +113,15 @@
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.annotmatch_funcs">ibeis.annotmatch_funcs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.constants">ibeis.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_annots">ibeis.core_annots module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.core_images">ibeis.core_images module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.dev">ibeis.dev module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.filter_configs">ibeis.filter_configs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.ibsfuncs">ibeis.ibsfuncs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.main_module">ibeis.main_module module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.new_annots">ibeis.new_annots module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.params">ibeis.params module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.species">ibeis.species module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.tag_funcs">ibeis.tag_funcs module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workflow">ibeis.workflow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis.workspace">ibeis.workspace module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ibeis.html#module-ibeis">Module contents</a></li>
 </ul>
 </li>
@@ -174,6 +175,42 @@
             
   <div class="section" id="ibeis-algo-detect-package">
 <h1>ibeis.algo.detect package<a class="headerlink" href="#ibeis-algo-detect-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.algo.detect.background.html">ibeis.algo.detect.background package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.background.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.background.html#module-ibeis.algo.detect.background.extract_mini_48">ibeis.algo.detect.background.extract_mini_48 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.background.html#module-ibeis.algo.detect.background">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.algo.detect.classifier.html">ibeis.algo.detect.classifier package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.classifier.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.classifier.html#module-ibeis.algo.detect.classifier.classifier">ibeis.algo.detect.classifier.classifier module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.classifier.html#module-ibeis.algo.detect.classifier.model">ibeis.algo.detect.classifier.model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.classifier.html#module-ibeis.algo.detect.classifier">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.algo.detect.labeler.html">ibeis.algo.detect.labeler package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.labeler.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.labeler.html#module-ibeis.algo.detect.labeler.labeler">ibeis.algo.detect.labeler.labeler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.labeler.html#module-ibeis.algo.detect.labeler.model">ibeis.algo.detect.labeler.model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.labeler.html#module-ibeis.algo.detect.labeler">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ibeis.algo.detect.orientation.html">ibeis.algo.detect.orientation package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.orientation.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.orientation.html#module-ibeis.algo.detect.orientation.model">ibeis.algo.detect.orientation.model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.orientation.html#module-ibeis.algo.detect.orientation.orientation">ibeis.algo.detect.orientation.orientation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.orientation.html#module-ibeis.algo.detect.orientation.tester">ibeis.algo.detect.orientation.tester module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.orientation.html#module-ibeis.algo.detect.orientation.utils">ibeis.algo.detect.orientation.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ibeis.algo.detect.orientation.html#module-ibeis.algo.detect.orientation">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -196,13 +233,13 @@
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.detect.grabmodels --test-ensure_models
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.detect.grabmodels --test-ensure_models
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">modeldir</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">modeldir</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">ensure_models</span><span class="p">(</span><span class="n">modeldir</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
@@ -232,19 +269,19 @@
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.detect.grabmodels --test-get_species_trees_paths
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.detect.grabmodels --test-get_species_trees_paths
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># ENABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># ENABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">modeldir</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">modeldir</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">trees_path</span> <span class="o">=</span> <span class="n">get_species_trees_paths</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">modeldir</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">trees_path</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
@@ -272,12 +309,12 @@
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.detect.grabmodels --test-redownload_models
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.detect.grabmodels --test-redownload_models
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># SCRIPT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># SCRIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.grabmodels</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">redownload_models</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -375,23 +412,23 @@ False: ibs.get_image_paths() is used</p>
 </tbody>
 </table>
 <p class="rubric">CommandLine:</p>
-<div class="highlight-bash"><div class="highlight"><pre>python -m ibeis.algo.detect.randomforest --test-detect_gid_list_with_species
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python -m ibeis.algo.detect.randomforest --test-detect_gid_list_with_species
 </pre></div>
 </div>
 <p class="rubric">Example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># DISABLE_DOCTEST</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.randomforest</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.randomforest</span> <span class="kn">import</span> <span class="n">_get_models</span>  <span class="c"># NOQA</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># DISABLE_DOCTEST</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.randomforest</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ibeis.algo.detect.randomforest</span> <span class="kn">import</span> <span class="n">_get_models</span>  <span class="c1"># NOQA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ibeis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># build test data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s">&#39;testdb1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># build test data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ibs</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">opendb</span><span class="p">(</span><span class="s1">&#39;testdb1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">TEST_SPECIES</span><span class="o">.</span><span class="n">ZEB_PLAIN</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_valid_gids</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">downsample</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># execute function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># execute function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">detect_gid_list_with_species</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid_list</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">downsample</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># verify results</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># verify results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -498,7 +535,7 @@ the newly trained trees</li>
 <p>Interface to pydarknet yolo object detection.</p>
 <dl class="function">
 <dt id="ibeis.algo.detect.yolo.detect">
-<code class="descclassname">ibeis.algo.detect.yolo.</code><code class="descname">detect</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/yolo.html#detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.yolo.detect" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ibeis.algo.detect.yolo.</code><code class="descname">detect</code><span class="sig-paren">(</span><em>gpath_list</em>, <em>detector=None</em>, <em>config_filepath=None</em>, <em>weight_filepath=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect/yolo.html#detect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.yolo.detect" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -552,6 +589,12 @@ False: ibs.get_image_paths() is used</p>
 <div class="section" id="module-ibeis.algo.detect">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ibeis.algo.detect" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
+<dt id="ibeis.algo.detect.reassign_submodule_attributes">
+<code class="descclassname">ibeis.algo.detect.</code><code class="descname">reassign_submodule_attributes</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect.html#reassign_submodule_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.reassign_submodule_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>why reloading all the modules doesnt do this I don&#8217;t know</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="ibeis.algo.detect.reload_subs">
 <code class="descclassname">ibeis.algo.detect.</code><code class="descname">reload_subs</code><span class="sig-paren">(</span><em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ibeis/algo/detect.html#reload_subs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ibeis.algo.detect.reload_subs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reloads ibeis.algo.detect and submodules</p>
@@ -573,7 +616,7 @@ False: ibs.get_image_paths() is used</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="ibeis.algo.hots.html" class="btn btn-neutral float-right" title="ibeis.algo.hots package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="ibeis.algo.detect.background.html" class="btn btn-neutral float-right" title="ibeis.algo.detect.background package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="ibeis.algo.html" class="btn btn-neutral" title="ibeis.algo package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -607,7 +650,7 @@ False: ibs.get_image_paths() is used</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

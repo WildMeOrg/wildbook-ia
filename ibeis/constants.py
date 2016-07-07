@@ -235,14 +235,16 @@ NEW_YELLOW_RGBA01     = NEW_YELLOW_RGBA255 / 255.0
 
 EXEMPLAR_IMAGESETTEXT         = '*Exemplars'
 ALL_IMAGE_IMAGESETTEXT        = '*All Images'
-UNREVIEWED_IMAGE_IMAGESETTEXT = '*Unreviewed Images'
-REVIEWED_IMAGE_IMAGESETTEXT   = '*Reviewed Images'
+UNREVIEWED_IMAGE_IMAGESETTEXT = '*Undetected Images'
+REVIEWED_IMAGE_IMAGESETTEXT   = '*Reviewed Detections'
 UNGROUPED_IMAGES_IMAGESETTEXT = '*Ungrouped Images'
-SPECIAL_IMAGESET_LABELS = [EXEMPLAR_IMAGESETTEXT,
-                           ALL_IMAGE_IMAGESETTEXT,
-                           UNREVIEWED_IMAGE_IMAGESETTEXT,
-                           REVIEWED_IMAGE_IMAGESETTEXT,
-                           UNGROUPED_IMAGES_IMAGESETTEXT]
+SPECIAL_IMAGESET_LABELS = [
+    EXEMPLAR_IMAGESETTEXT,
+    ALL_IMAGE_IMAGESETTEXT,
+    UNREVIEWED_IMAGE_IMAGESETTEXT,
+    REVIEWED_IMAGE_IMAGESETTEXT,
+    UNGROUPED_IMAGES_IMAGESETTEXT
+]
 NEW_IMAGESET_IMAGESETTEXT = 'NEW IMAGESET'
 
 #IMAGE_THUMB_SUFFIX = '_thumb.png'
@@ -257,12 +259,14 @@ INTRA_OCCUR_KEY = 'intra_occurrence'
 
 HARD_NOTE_TAG = '<HARDCASE>'
 
+# HACK
 if ut.get_computer_name() == 'ibeis.cs.uic.edu':
-    WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default='prod',
-                                    help_='specify the Wildbook target deployment')
+    #_DEFAULT_WILDBOOK_TARGET = 'prod'
+    _DEFAULT_WILDBOOK_TARGET = 'lewa2'
 else:
-    WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default='ibeis',
-                                    help_='specify the Wildbook target deployment')
+    _DEFAULT_WILDBOOK_TARGET = 'ibeis'
+WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default=_DEFAULT_WILDBOOK_TARGET,
+                                help_='specify the Wildbook target deployment')
 
 
 class ZIPPED_URLS(object):

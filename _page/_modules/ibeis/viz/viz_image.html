@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.viz_image &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.viz.viz_image &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.viz" href="../viz.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,7 +131,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.viz.viz_image</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
@@ -140,13 +140,13 @@
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">viz_image2</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">ibeis.viz</span> <span class="kn">import</span> <span class="n">viz_helpers</span> <span class="k">as</span> <span class="n">vh</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[viz_img]&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[viz_img]&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="draw_image_overlay"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_image.draw_image_overlay">[docs]</a><span class="k">def</span> <span class="nf">draw_image_overlay</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="p">,</span> <span class="n">draw_lbls</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;use pt.viz_image2.draw_image_overlay&#39;</span><span class="p">)</span>
-        <span class="c"># draw chips in the image</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;use pt.viz_image2.draw_image_overlay&#39;</span><span class="p">)</span>
+        <span class="c1"># draw chips in the image</span>
         <span class="n">aid_list</span>    <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
         <span class="n">bbox_list</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
         <span class="n">theta_list</span>  <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
@@ -155,26 +155,26 @@
         <span class="n">sel_list</span>    <span class="o">=</span> <span class="p">[</span><span class="n">aid</span> <span class="ow">in</span> <span class="n">sel_aids</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">]</span>
 
         <span class="n">viz_image2</span><span class="o">.</span><span class="n">draw_image_overlay</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">text_list</span><span class="p">,</span> <span class="n">sel_list</span><span class="p">,</span> <span class="n">draw_lbls</span><span class="p">,</span> <span class="n">annote</span><span class="p">)</span>
-        <span class="c"># Draw all chip indexes in the image</span>
+        <span class="c1"># Draw all chip indexes in the image</span>
         <span class="k">if</span> <span class="n">annote</span><span class="p">:</span>
             <span class="n">annotation_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">,</span> <span class="n">theta_list</span><span class="p">,</span> <span class="n">text_list</span><span class="p">,</span> <span class="n">sel_list</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">is_sel</span> <span class="ow">in</span> <span class="n">annotation_iter</span><span class="p">:</span>
                 <span class="n">viz_image2</span><span class="o">.</span><span class="n">draw_chip_overlay</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">lbl</span><span class="p">,</span> <span class="n">is_sel</span><span class="p">)</span>
-        <span class="c"># Put annotation centers in the axis</span>
-        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;annotation_centers&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">annotation_centers</span><span class="p">))</span>
-        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;annotation_bbox_list&#39;</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">)</span>
-        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid_list&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+        <span class="c1"># Put annotation centers in the axis</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;annotation_centers&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">annotation_centers</span><span class="p">))</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;annotation_bbox_list&#39;</span><span class="p">,</span> <span class="n">bbox_list</span><span class="p">)</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;aid_list&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s">&#39;error drawing image overlay&#39;</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;ibs&#39;</span><span class="p">,</span> <span class="s">&#39;ax&#39;</span><span class="p">,</span> <span class="s">&#39;gid&#39;</span><span class="p">,</span> <span class="s">&#39;sel_aids&#39;</span><span class="p">])</span>
+        <span class="n">ut</span><span class="o">.</span><span class="n">printex</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="s1">&#39;error drawing image overlay&#39;</span><span class="p">,</span> <span class="n">key_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ibs&#39;</span><span class="p">,</span> <span class="s1">&#39;ax&#39;</span><span class="p">,</span> <span class="s1">&#39;gid&#39;</span><span class="p">,</span> <span class="s1">&#39;sel_aids&#39;</span><span class="p">])</span>
         <span class="k">raise</span>
 
 </div>
 <div class="viewcode-block" id="get_annot_annotations"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_image.get_annot_annotations">[docs]</a><span class="k">def</span> <span class="nf">get_annot_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[],</span> <span class="n">draw_lbls</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="n">annotekw</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;bbox_list&#39;</span>  <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
-        <span class="s">&#39;theta_list&#39;</span> <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
-        <span class="s">&#39;text_list&#39;</span> <span class="p">:</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_annot_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">draw_lbls</span><span class="p">),</span>
-        <span class="s">&#39;sel_list&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="n">aid</span> <span class="ow">in</span> <span class="n">sel_aids</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">],</span>
+        <span class="s1">&#39;bbox_list&#39;</span>  <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_bboxes</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="s1">&#39;theta_list&#39;</span> <span class="p">:</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_thetas</span><span class="p">(</span><span class="n">aid_list</span><span class="p">),</span>
+        <span class="s1">&#39;text_list&#39;</span> <span class="p">:</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_annot_text</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">draw_lbls</span><span class="p">),</span>
+        <span class="s1">&#39;sel_list&#39;</span>   <span class="p">:</span> <span class="p">[</span><span class="n">aid</span> <span class="ow">in</span> <span class="n">sel_aids</span> <span class="k">for</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">aid_list</span><span class="p">],</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">annotekw</span>
 
@@ -204,16 +204,16 @@
 <span class="sd">        &gt;&gt;&gt; drive_test_script(ibs)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">ibeis</span>
-    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="s">&#39;default:pername=1&#39;</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Running with (annot) aid_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
+    <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibeis</span><span class="o">.</span><span class="n">testdata_aids</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="s1">&#39;default:pername=1&#39;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Running with (annot) aid_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">))</span>
     <span class="n">gid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_gids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Running with (image) gid_list = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Running with (image) gid_list = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid_list</span><span class="p">))</span>
     <span class="n">avuuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_visual_uuids</span><span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
     <span class="n">guuid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_uuids</span><span class="p">(</span><span class="n">gid_list</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Running with annot_visual_uuid_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">avuuid_list</span><span class="p">))))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Running with image_uuid_list = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">guuid_list</span><span class="p">))))</span>
-    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;progress &#39;</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">gid, aid, nid = </span><span class="si">%r</span><span class="s">, </span><span class="si">%r</span><span class="s">, </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Running with annot_visual_uuid_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">aid_list</span><span class="p">,</span> <span class="n">avuuid_list</span><span class="p">))))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Running with image_uuid_list = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">list_str</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">guuid_list</span><span class="p">))))</span>
+    <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">aid</span> <span class="ow">in</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gid_list</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">),</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;progress &#39;</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">gid, aid, nid = </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">, </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">aid</span><span class="p">,</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_nids</span><span class="p">(</span><span class="n">aid</span><span class="p">),))</span>
         <span class="n">show_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">rich_title</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">show_if_requested</span><span class="p">()</span>
 
@@ -256,35 +256,35 @@
         <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">pt</span><span class="o">.</span><span class="n">imshow_null</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span>
-    <span class="c"># Trigger computation of all chips in parallel</span>
-    <span class="c">#ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)</span>
+    <span class="c1"># Trigger computation of all chips in parallel</span>
+    <span class="c1">#ibsfuncs.ensure_annotation_data(ibs, aid_list, chips=(not in_image or annote), feats=annote)</span>
 
-    <span class="n">rc</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--rc&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="n">rc</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--rc&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">rc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span> <span class="o">=</span> <span class="n">ph</span><span class="o">.</span><span class="n">get_square_row_cols</span><span class="p">(</span><span class="n">nGids</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span> <span class="o">=</span> <span class="n">rc</span>
-    <span class="c">#notitle = ut.get_argflag(&#39;--notitle&#39;)</span>
-    <span class="c">#draw_lbls = not ut.get_argflag(&#39;--no-draw_lbls&#39;)</span>
-    <span class="c">#show_chip_kw = dict(annote=annote, in_image=in_image, notitle=notitle, draw_lbls=draw_lbls)</span>
-    <span class="c">#print(&#39;[viz_name] * r=%r, c=%r&#39; % (nRows, nCols))</span>
-    <span class="c">#gs2 = gridspec.GridSpec(nRows, nCols)</span>
+    <span class="c1">#notitle = ut.get_argflag(&#39;--notitle&#39;)</span>
+    <span class="c1">#draw_lbls = not ut.get_argflag(&#39;--no-draw_lbls&#39;)</span>
+    <span class="c1">#show_chip_kw = dict(annote=annote, in_image=in_image, notitle=notitle, draw_lbls=draw_lbls)</span>
+    <span class="c1">#print(&#39;[viz_name] * r=%r, c=%r&#39; % (nRows, nCols))</span>
+    <span class="c1">#gs2 = gridspec.GridSpec(nRows, nCols)</span>
     <span class="n">pnum_</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">get_pnum_func</span><span class="p">(</span><span class="n">nRows</span><span class="p">,</span> <span class="n">nCols</span><span class="p">)</span>
     <span class="n">fig</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">px</span><span class="p">,</span> <span class="n">gid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gid_list</span><span class="p">):</span>
         <span class="k">print</span><span class="p">(</span><span class="n">pnum_</span><span class="p">(</span><span class="n">px</span><span class="p">))</span>
         <span class="n">_fig</span><span class="p">,</span> <span class="n">_ax1</span> <span class="o">=</span> <span class="n">show_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="n">fnum</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="n">pnum_</span><span class="p">(</span><span class="n">px</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="c">#ax = pt.gca()</span>
-        <span class="c">#if aid in sel_aids:</span>
-        <span class="c">#    pt.draw_border(ax, pt.GREEN, 4)</span>
-        <span class="c">#if ut.get_argflag(&#39;--numlbl&#39;) and not DOBOTH:</span>
-        <span class="c">#    ax.set_xlabel(&#39;(&#39; + str(px + 1) + &#39;)&#39;)</span>
-        <span class="c">#plot_aid3(ibs, aid)</span>
+        <span class="c1">#ax = pt.gca()</span>
+        <span class="c1">#if aid in sel_aids:</span>
+        <span class="c1">#    pt.draw_border(ax, pt.GREEN, 4)</span>
+        <span class="c1">#if ut.get_argflag(&#39;--numlbl&#39;) and not DOBOTH:</span>
+        <span class="c1">#    ax.set_xlabel(&#39;(&#39; + str(px + 1) + &#39;)&#39;)</span>
+        <span class="c1">#plot_aid3(ibs, aid)</span>
     <span class="k">pass</span>
 
 
-<span class="c">#@ut.indent_func</span></div>
+<span class="c1">#@ut.indent_func</span></div>
 <div class="viewcode-block" id="show_image"><a class="viewcode-back" href="../../../ibeis.viz.html#ibeis.viz.viz_image.show_image">[docs]</a><span class="k">def</span> <span class="nf">show_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">sel_aids</span><span class="o">=</span><span class="p">[],</span> <span class="n">fnum</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">annote</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">draw_lbls</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                <span class="n">notitle</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
                <span class="n">rich_title</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">pnum</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -334,35 +334,35 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">fnum</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">fnum</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">next_fnum</span><span class="p">()</span>
-    <span class="c"># Read Image</span>
+    <span class="c1"># Read Image</span>
     <span class="n">img</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
     <span class="n">aid_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_image_aids</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">sel_aids</span> <span class="o">==</span> <span class="s">&#39;all&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">sel_aids</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
         <span class="n">sel_aids</span> <span class="o">=</span> <span class="n">aid_list</span>
     <span class="n">annotekw</span> <span class="o">=</span> <span class="n">get_annot_annotations</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">,</span> <span class="n">sel_aids</span><span class="p">,</span> <span class="n">draw_lbls</span><span class="p">)</span>
-    <span class="n">annotation_centers</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_bbox_centers</span><span class="p">(</span><span class="n">annotekw</span><span class="p">[</span><span class="s">&#39;bbox_list&#39;</span><span class="p">])</span>
+    <span class="n">annotation_centers</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_bbox_centers</span><span class="p">(</span><span class="n">annotekw</span><span class="p">[</span><span class="s1">&#39;bbox_list&#39;</span><span class="p">])</span>
     <span class="n">title</span> <span class="o">=</span> <span class="n">vh</span><span class="o">.</span><span class="n">get_image_titles</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">rich_title</span><span class="p">:</span>
-        <span class="n">title</span> <span class="o">+=</span> <span class="s">&#39;, aids=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
-        <span class="n">title</span> <span class="o">+=</span> <span class="s">&#39;, db=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">())</span>
+        <span class="n">title</span> <span class="o">+=</span> <span class="s1">&#39;, aids=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">aid_list</span><span class="p">)</span>
+        <span class="n">title</span> <span class="o">+=</span> <span class="s1">&#39;, db=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_dbname</span><span class="p">())</span>
     <span class="n">showkw</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s">&#39;title&#39;</span>      <span class="p">:</span> <span class="n">title</span><span class="p">,</span>
-        <span class="s">&#39;annote&#39;</span>     <span class="p">:</span> <span class="n">annote</span><span class="p">,</span>
-        <span class="s">&#39;fnum&#39;</span>       <span class="p">:</span> <span class="n">fnum</span><span class="p">,</span>
-        <span class="s">&#39;pnum&#39;</span>       <span class="p">:</span> <span class="n">pnum</span><span class="p">,</span>
+        <span class="s1">&#39;title&#39;</span>      <span class="p">:</span> <span class="n">title</span><span class="p">,</span>
+        <span class="s1">&#39;annote&#39;</span>     <span class="p">:</span> <span class="n">annote</span><span class="p">,</span>
+        <span class="s1">&#39;fnum&#39;</span>       <span class="p">:</span> <span class="n">fnum</span><span class="p">,</span>
+        <span class="s1">&#39;pnum&#39;</span>       <span class="p">:</span> <span class="n">pnum</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="k">if</span> <span class="n">notitle</span><span class="p">:</span>
-        <span class="k">del</span> <span class="n">showkw</span><span class="p">[</span><span class="s">&#39;title&#39;</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">showkw</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
     <span class="n">showkw</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">annotekw</span><span class="p">)</span>
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">viz_image2</span><span class="o">.</span><span class="n">show_image</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="o">**</span><span class="n">showkw</span><span class="p">)</span>
-    <span class="c"># Label the axis with data</span>
-    <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;annotation_centers&#39;</span><span class="p">,</span> <span class="n">annotation_centers</span><span class="p">)</span>
-    <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;aid_list&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
-    <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;viztype&#39;</span><span class="p">,</span> <span class="s">&#39;image&#39;</span><span class="p">)</span>
-    <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s">&#39;gid&#39;</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span>
+    <span class="c1"># Label the axis with data</span>
+    <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;annotation_centers&#39;</span><span class="p">,</span> <span class="n">annotation_centers</span><span class="p">)</span>
+    <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;aid_list&#39;</span><span class="p">,</span> <span class="n">aid_list</span><span class="p">)</span>
+    <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;viztype&#39;</span><span class="p">,</span> <span class="s1">&#39;image&#39;</span><span class="p">)</span>
+    <span class="n">ph</span><span class="o">.</span><span class="n">set_plotdat</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;gid&#39;</span><span class="p">,</span> <span class="n">gid</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span>
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CommandLine:</span>
 <span class="sd">        python -m ibeis.viz.viz_image</span>
@@ -370,8 +370,8 @@
 <span class="sd">        python -m ibeis.viz.viz_image --allexamples --noface --nosrc</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
-    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c"># for win32</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>  <span class="c1"># for win32</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -406,7 +406,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

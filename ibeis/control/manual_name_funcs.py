@@ -18,7 +18,7 @@ import vtool as vt
 from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_name]')
+print, rrr, profile = ut.inject2(__name__, '[manual_name]')
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
@@ -572,7 +572,7 @@ def get_name_gids(ibs, nid_list):
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/name/uuids/', methods=['GET'])
-def get_name_uuids(ibs, name_rowid_list):
+def get_name_uuids(ibs, nid_list):
     r"""
     Returns:
         list_ (list): uuids_list - name uuids
@@ -581,7 +581,7 @@ def get_name_uuids(ibs, name_rowid_list):
         Method: GET
         URL:    /api/name/uuids/
     """
-    uuids_list = ibs.db.get(const.NAME_TABLE, (NAME_UUID,), name_rowid_list)
+    uuids_list = ibs.db.get(const.NAME_TABLE, (NAME_UUID,), nid_list)
     #notes_list = ibs.get_lblannot_notes(nid_list)
     return uuids_list
 
@@ -931,7 +931,8 @@ def get_name_rowids_from_text_(ibs, name_text_list, ensure=True):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_name_rowids_from_uuid(ibs, name_uuid_list, nid_hack=False, ensure=True):
+@register_api('/api/name/nids_from_uuid/', methods=['GET'])
+def get_name_rowids_from_uuid(ibs, uuid_list, nid_hack=False, ensure=True):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -941,11 +942,11 @@ def get_name_rowids_from_uuid(ibs, name_uuid_list, nid_hack=False, ensure=True):
         name_rowid_list (list):
     """
     name_rowid_list = ibs.db.get(const.NAME_TABLE, (NAME_ROWID,),
-                                 name_uuid_list, id_colname=NAME_UUID)
+                                 uuid_list, id_colname=NAME_UUID)
     if nid_hack:
         name_rowid_list = [
             name_uuid if name_rowid is None else name_rowid
-            for name_uuid, name_rowid in zip(name_uuid_list, name_rowid_list)
+            for name_uuid, name_rowid in zip(uuid_list, name_rowid_list)
         ]
     return name_rowid_list
 

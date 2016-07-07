@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.constants &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.constants &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,72 +129,72 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.constants</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">It is better to use constant variables instead of hoping you spell the same</span>
 <span class="sd">string correctly every time you use it. (Also it makes it much easier if a</span>
 <span class="sd">string name changes)</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
-<span class="c"># import utool</span>
+<span class="c1"># import utool</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="s">&#39;[const]&#39;</span><span class="p">)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="s1">&#39;[const]&#39;</span><span class="p">)</span>
 
 
 <span class="n">PI</span>  <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
 <span class="n">TAU</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">PI</span>
 
-<span class="c"># Mapping of semantic viewpoints to yaw angles</span>
+<span class="c1"># Mapping of semantic viewpoints to yaw angles</span>
 <span class="n">VIEWTEXT_TO_YAW_RADIANS</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
-    <span class="p">(</span><span class="s">&#39;right&#39;</span>      <span class="p">,</span> <span class="mf">0.000</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-    <span class="p">(</span><span class="s">&#39;frontright&#39;</span> <span class="p">,</span> <span class="mf">0.125</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-    <span class="p">(</span><span class="s">&#39;front&#39;</span>      <span class="p">,</span> <span class="mf">0.250</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-    <span class="p">(</span><span class="s">&#39;frontleft&#39;</span>  <span class="p">,</span> <span class="mf">0.375</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-    <span class="p">(</span><span class="s">&#39;left&#39;</span>       <span class="p">,</span> <span class="mf">0.500</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-    <span class="p">(</span><span class="s">&#39;backleft&#39;</span>   <span class="p">,</span> <span class="mf">0.625</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-    <span class="p">(</span><span class="s">&#39;back&#39;</span>       <span class="p">,</span> <span class="mf">0.750</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
-    <span class="p">(</span><span class="s">&#39;backright&#39;</span>  <span class="p">,</span> <span class="mf">0.875</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+    <span class="p">(</span><span class="s1">&#39;right&#39;</span>      <span class="p">,</span> <span class="mf">0.000</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+    <span class="p">(</span><span class="s1">&#39;frontright&#39;</span> <span class="p">,</span> <span class="mf">0.125</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+    <span class="p">(</span><span class="s1">&#39;front&#39;</span>      <span class="p">,</span> <span class="mf">0.250</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+    <span class="p">(</span><span class="s1">&#39;frontleft&#39;</span>  <span class="p">,</span> <span class="mf">0.375</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+    <span class="p">(</span><span class="s1">&#39;left&#39;</span>       <span class="p">,</span> <span class="mf">0.500</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+    <span class="p">(</span><span class="s1">&#39;backleft&#39;</span>   <span class="p">,</span> <span class="mf">0.625</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+    <span class="p">(</span><span class="s1">&#39;back&#39;</span>       <span class="p">,</span> <span class="mf">0.750</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
+    <span class="p">(</span><span class="s1">&#39;backright&#39;</span>  <span class="p">,</span> <span class="mf">0.875</span> <span class="o">*</span> <span class="n">TAU</span><span class="p">,),</span>
 <span class="p">])</span>
 
-<span class="c">#VIEWTEXT_TO_QT_VIEWTEXT = {</span>
-<span class="c">#    &#39;right&#39;      : &#39;right&#39;,</span>
-<span class="c">#    &#39;frontright&#39; : &#39;frontright&#39;,</span>
-<span class="c">#    &#39;front&#39;      : &#39;front&#39;,</span>
-<span class="c">#    &#39;frontleft&#39;  : &#39;frontleft&#39;,</span>
-<span class="c">#    &#39;left&#39;       : &#39;left&#39;,</span>
-<span class="c">#    &#39;backleft&#39;   : &#39;backleft&#39;,</span>
-<span class="c">#    &#39;back&#39;       : &#39;back&#39;,</span>
-<span class="c">#    &#39;backright&#39;  : &#39;backright&#39;,</span>
-<span class="c">#}</span>
+<span class="c1">#VIEWTEXT_TO_QT_VIEWTEXT = {</span>
+<span class="c1">#    &#39;right&#39;      : &#39;right&#39;,</span>
+<span class="c1">#    &#39;frontright&#39; : &#39;frontright&#39;,</span>
+<span class="c1">#    &#39;front&#39;      : &#39;front&#39;,</span>
+<span class="c1">#    &#39;frontleft&#39;  : &#39;frontleft&#39;,</span>
+<span class="c1">#    &#39;left&#39;       : &#39;left&#39;,</span>
+<span class="c1">#    &#39;backleft&#39;   : &#39;backleft&#39;,</span>
+<span class="c1">#    &#39;back&#39;       : &#39;back&#39;,</span>
+<span class="c1">#    &#39;backright&#39;  : &#39;backright&#39;,</span>
+<span class="c1">#}</span>
 
-<span class="n">YAWALIAS</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;frontleft&#39;</span><span class="p">:</span> <span class="s">&#39;FL&#39;</span><span class="p">,</span> <span class="s">&#39;frontright&#39;</span><span class="p">:</span> <span class="s">&#39;FR&#39;</span><span class="p">,</span> <span class="s">&#39;backleft&#39;</span><span class="p">:</span> <span class="s">&#39;BL&#39;</span><span class="p">,</span> <span class="s">&#39;backright&#39;</span><span class="p">:</span> <span class="s">&#39;BR&#39;</span><span class="p">,</span>
-            <span class="s">&#39;front&#39;</span><span class="p">:</span> <span class="s">&#39;F&#39;</span><span class="p">,</span> <span class="s">&#39;left&#39;</span><span class="p">:</span> <span class="s">&#39;L&#39;</span><span class="p">,</span> <span class="s">&#39;back&#39;</span><span class="p">:</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;right&#39;</span><span class="p">:</span> <span class="s">&#39;R&#39;</span><span class="p">,</span> <span class="p">}</span>
+<span class="n">YAWALIAS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;frontleft&#39;</span><span class="p">:</span> <span class="s1">&#39;FL&#39;</span><span class="p">,</span> <span class="s1">&#39;frontright&#39;</span><span class="p">:</span> <span class="s1">&#39;FR&#39;</span><span class="p">,</span> <span class="s1">&#39;backleft&#39;</span><span class="p">:</span> <span class="s1">&#39;BL&#39;</span><span class="p">,</span> <span class="s1">&#39;backright&#39;</span><span class="p">:</span> <span class="s1">&#39;BR&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;front&#39;</span><span class="p">:</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="s1">&#39;back&#39;</span><span class="p">:</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="p">}</span>
 
-<span class="n">QUAL_EXCELLENT</span> <span class="o">=</span> <span class="s">&#39;excellent&#39;</span>
-<span class="n">QUAL_GOOD</span>      <span class="o">=</span> <span class="s">&#39;good&#39;</span>
-<span class="n">QUAL_OK</span>        <span class="o">=</span> <span class="s">&#39;ok&#39;</span>
-<span class="n">QUAL_POOR</span>      <span class="o">=</span> <span class="s">&#39;poor&#39;</span>
-<span class="n">QUAL_JUNK</span>      <span class="o">=</span> <span class="s">&#39;junk&#39;</span>
-<span class="n">QUAL_UNKNOWN</span>   <span class="o">=</span> <span class="s">&#39;UNKNOWN&#39;</span>
+<span class="n">QUAL_EXCELLENT</span> <span class="o">=</span> <span class="s1">&#39;excellent&#39;</span>
+<span class="n">QUAL_GOOD</span>      <span class="o">=</span> <span class="s1">&#39;good&#39;</span>
+<span class="n">QUAL_OK</span>        <span class="o">=</span> <span class="s1">&#39;ok&#39;</span>
+<span class="n">QUAL_POOR</span>      <span class="o">=</span> <span class="s1">&#39;poor&#39;</span>
+<span class="n">QUAL_JUNK</span>      <span class="o">=</span> <span class="s1">&#39;junk&#39;</span>
+<span class="n">QUAL_UNKNOWN</span>   <span class="o">=</span> <span class="s1">&#39;UNKNOWN&#39;</span>
 
 <span class="n">QUALITY_INT_TO_TEXT</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
     <span class="p">(</span><span class="mi">5</span><span class="p">,</span>  <span class="n">QUAL_EXCELLENT</span><span class="p">,),</span>
     <span class="p">(</span><span class="mi">4</span><span class="p">,</span>  <span class="n">QUAL_GOOD</span><span class="p">,),</span>
     <span class="p">(</span><span class="mi">3</span><span class="p">,</span>  <span class="n">QUAL_OK</span><span class="p">,),</span>
     <span class="p">(</span><span class="mi">2</span><span class="p">,</span>  <span class="n">QUAL_POOR</span><span class="p">,),</span>
-    <span class="c"># oops forgot 1. will be mapped to poor</span>
+    <span class="c1"># oops forgot 1. will be mapped to poor</span>
     <span class="p">(</span><span class="mi">0</span><span class="p">,</span>  <span class="n">QUAL_JUNK</span><span class="p">,),</span>
     <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">QUAL_UNKNOWN</span><span class="p">,),</span>
 <span class="p">])</span>
 
 <span class="n">QUALITY_TEXT_TO_INT</span>       <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="p">)</span>
 <span class="n">QUALITY_INT_TO_TEXT</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>    <span class="o">=</span> <span class="n">QUAL_JUNK</span>
-<span class="c">#QUALITY_TEXT_TO_INTS      = ut.invert_dict(QUALITY_INT_TO_TEXT)</span>
+<span class="c1">#QUALITY_TEXT_TO_INTS      = ut.invert_dict(QUALITY_INT_TO_TEXT)</span>
 <span class="n">QUALITY_TEXT_TO_INTS</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">group_items</span><span class="p">(</span>
     <span class="nb">list</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
     <span class="nb">list</span><span class="p">(</span><span class="n">QUALITY_INT_TO_TEXT</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
@@ -203,37 +203,36 @@
 
 
 <span class="n">SEX_INT_TO_TEXT</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="bp">None</span><span class="p">:</span> <span class="s">&#39;UNKNOWN NAME&#39;</span><span class="p">,</span>
-    <span class="o">-</span><span class="mi">1</span>  <span class="p">:</span> <span class="s">&#39;UNKNOWN SEX&#39;</span><span class="p">,</span>
-    <span class="mi">0</span>   <span class="p">:</span> <span class="s">&#39;Female&#39;</span><span class="p">,</span>
-    <span class="mi">1</span>   <span class="p">:</span> <span class="s">&#39;Male&#39;</span><span class="p">,</span>
+    <span class="bp">None</span><span class="p">:</span> <span class="s1">&#39;UNKNOWN NAME&#39;</span><span class="p">,</span>
+    <span class="o">-</span><span class="mi">1</span>  <span class="p">:</span> <span class="s1">&#39;UNKNOWN SEX&#39;</span><span class="p">,</span>
+    <span class="mi">0</span>   <span class="p">:</span> <span class="s1">&#39;Female&#39;</span><span class="p">,</span>
+    <span class="mi">1</span>   <span class="p">:</span> <span class="s1">&#39;Male&#39;</span><span class="p">,</span>
 <span class="p">}</span>
 <span class="n">SEX_TEXT_TO_INT</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">invert_dict</span><span class="p">(</span><span class="n">SEX_INT_TO_TEXT</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="PATH_NAMES"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.PATH_NAMES">[docs]</a><span class="k">class</span> <span class="nc">PATH_NAMES</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Path names for internal IBEIS database &quot;&quot;&quot;</span>
-    <span class="n">sqldb</span>      <span class="o">=</span> <span class="s">&#39;_ibeis_database.sqlite3&#39;</span>
-    <span class="n">sqldbcache</span> <span class="o">=</span> <span class="s">&#39;_ibeis_database_cache.sqlite3&#39;</span>
-    <span class="n">_ibsdb</span>     <span class="o">=</span> <span class="s">&#39;_ibsdb&#39;</span>
-    <span class="n">cache</span>      <span class="o">=</span> <span class="s">&#39;_ibeis_cache&#39;</span>
-    <span class="n">backups</span>    <span class="o">=</span> <span class="s">&#39;_ibeis_backups&#39;</span>
-    <span class="n">chips</span>      <span class="o">=</span> <span class="s">&#39;chips&#39;</span>
-    <span class="n">figures</span>    <span class="o">=</span> <span class="s">&#39;figures&#39;</span>
-    <span class="n">flann</span>      <span class="o">=</span> <span class="s">&#39;flann&#39;</span>
-    <span class="n">images</span>     <span class="o">=</span> <span class="s">&#39;images&#39;</span>
-    <span class="n">trees</span>      <span class="o">=</span> <span class="s">&#39;trees&#39;</span>
-    <span class="n">nets</span>       <span class="o">=</span> <span class="s">&#39;nets&#39;</span>
-    <span class="n">uploads</span>    <span class="o">=</span> <span class="s">&#39;uploads&#39;</span>
-    <span class="n">detectimg</span>  <span class="o">=</span> <span class="s">&#39;detectimg&#39;</span>
-    <span class="n">thumbs</span>     <span class="o">=</span> <span class="s">&#39;thumbs&#39;</span>
-    <span class="n">trashdir</span>   <span class="o">=</span> <span class="s">&#39;trashed_images&#39;</span>
-    <span class="n">distinctdir</span> <span class="o">=</span> <span class="s">&#39;distinctiveness_model&#39;</span>
-    <span class="n">scorenormdir</span> <span class="o">=</span> <span class="s">&#39;scorenorm&#39;</span>
-    <span class="n">smartpatrol</span> <span class="o">=</span> <span class="s">&#39;smart_patrol&#39;</span>
-    <span class="c"># Query Results (chipmatch dirs)</span>
-    <span class="n">qres</span>       <span class="o">=</span> <span class="s">&#39;qres_new&#39;</span>
-    <span class="n">bigcache</span>   <span class="o">=</span> <span class="s">&#39;qres_bigcache_new&#39;</span>
+    <span class="n">sqldb</span>      <span class="o">=</span> <span class="s1">&#39;_ibeis_database.sqlite3&#39;</span>
+    <span class="n">_ibsdb</span>     <span class="o">=</span> <span class="s1">&#39;_ibsdb&#39;</span>
+    <span class="n">cache</span>      <span class="o">=</span> <span class="s1">&#39;_ibeis_cache&#39;</span>
+    <span class="n">backups</span>    <span class="o">=</span> <span class="s1">&#39;_ibeis_backups&#39;</span>
+    <span class="n">chips</span>      <span class="o">=</span> <span class="s1">&#39;chips&#39;</span>
+    <span class="n">figures</span>    <span class="o">=</span> <span class="s1">&#39;figures&#39;</span>
+    <span class="n">flann</span>      <span class="o">=</span> <span class="s1">&#39;flann&#39;</span>
+    <span class="n">images</span>     <span class="o">=</span> <span class="s1">&#39;images&#39;</span>
+    <span class="n">trees</span>      <span class="o">=</span> <span class="s1">&#39;trees&#39;</span>
+    <span class="n">nets</span>       <span class="o">=</span> <span class="s1">&#39;nets&#39;</span>
+    <span class="n">uploads</span>    <span class="o">=</span> <span class="s1">&#39;uploads&#39;</span>
+    <span class="n">detectimg</span>  <span class="o">=</span> <span class="s1">&#39;detectimg&#39;</span>
+    <span class="n">thumbs</span>     <span class="o">=</span> <span class="s1">&#39;thumbs&#39;</span>
+    <span class="n">trashdir</span>   <span class="o">=</span> <span class="s1">&#39;trashed_images&#39;</span>
+    <span class="n">distinctdir</span> <span class="o">=</span> <span class="s1">&#39;distinctiveness_model&#39;</span>
+    <span class="n">scorenormdir</span> <span class="o">=</span> <span class="s1">&#39;scorenorm&#39;</span>
+    <span class="n">smartpatrol</span> <span class="o">=</span> <span class="s1">&#39;smart_patrol&#39;</span>
+    <span class="c1"># Query Results (chipmatch dirs)</span>
+    <span class="n">qres</span>       <span class="o">=</span> <span class="s1">&#39;qres_new&#39;</span>
+    <span class="n">bigcache</span>   <span class="o">=</span> <span class="s1">&#39;qres_bigcache_new&#39;</span>
 
 </div>
 <div class="viewcode-block" id="REL_PATHS"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.REL_PATHS">[docs]</a><span class="k">class</span> <span class="nc">REL_PATHS</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -243,12 +242,12 @@
     <span class="n">figures</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">figures</span><span class="p">)</span>
     <span class="n">cache</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">cache</span><span class="p">)</span>
     <span class="n">backups</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">backups</span><span class="p">)</span>
-    <span class="c">#chips    = join(_ibsdb, PATH_NAMES.chips)</span>
+    <span class="c1">#chips    = join(_ibsdb, PATH_NAMES.chips)</span>
     <span class="n">images</span>   <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">images</span><span class="p">)</span>
     <span class="n">trees</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">trees</span><span class="p">)</span>
     <span class="n">nets</span>     <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">nets</span><span class="p">)</span>
     <span class="n">uploads</span>  <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">uploads</span><span class="p">)</span>
-    <span class="c"># All computed dirs live in &lt;dbdir&gt;/_ibsdb/_ibeis_cache</span>
+    <span class="c1"># All computed dirs live in &lt;dbdir&gt;/_ibsdb/_ibeis_cache</span>
     <span class="n">chips</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">chips</span><span class="p">)</span>
     <span class="n">thumbs</span>   <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">thumbs</span><span class="p">)</span>
     <span class="n">flann</span>    <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">flann</span><span class="p">)</span>
@@ -257,101 +256,102 @@
     <span class="n">distinctdir</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">distinctdir</span><span class="p">)</span>
 
 
-<span class="c"># Directories that should be excluded from copy operations</span></div>
+<span class="c1"># Directories that should be excluded from copy operations</span></div>
 <span class="n">EXCLUDE_COPY_REL_DIRS</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">chips</span><span class="p">,</span>
     <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">cache</span><span class="p">,</span>
     <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">backups</span><span class="p">,</span>
     <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">figures</span><span class="p">,</span>
     <span class="n">REL_PATHS</span><span class="o">.</span><span class="n">nets</span><span class="p">,</span>
-    <span class="c">#&#39;_ibsdb/_ibeis_cache&#39;,</span>
-    <span class="s">&#39;_ibsdb/chips&#39;</span><span class="p">,</span>  <span class="c"># old path for caches</span>
-    <span class="s">&#39;./images&#39;</span><span class="p">,</span>  <span class="c"># the hotspotter images dir</span>
+    <span class="n">join</span><span class="p">(</span><span class="n">PATH_NAMES</span><span class="o">.</span><span class="n">_ibsdb</span><span class="p">,</span> <span class="s1">&#39;_ibeis_cache*&#39;</span><span class="p">),</span>
+    <span class="c1">#&#39;_ibsdb/_ibeis_cache&#39;,</span>
+    <span class="s1">&#39;_ibsdb/chips&#39;</span><span class="p">,</span>  <span class="c1"># old path for caches</span>
+    <span class="s1">&#39;./images&#39;</span><span class="p">,</span>  <span class="c1"># the hotspotter images dir</span>
 <span class="p">]</span>
 
 
-<span class="c"># TODO: Remove anything under this block completely</span>
+<span class="c1"># TODO: Remove anything under this block completely</span>
 
 
 <span class="n">UNKNOWN_LBLANNOT_ROWID</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">UNKNOWN_NAME_ROWID</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">UNKNOWN_SPECIES_ROWID</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="c"># Names normalized to the standard UNKNOWN_NAME</span>
-<span class="n">ACCEPTED_UNKNOWN_NAMES</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s">&#39;Unassigned&#39;</span><span class="p">])</span>
+<span class="c1"># Names normalized to the standard UNKNOWN_NAME</span>
+<span class="n">ACCEPTED_UNKNOWN_NAMES</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;Unassigned&#39;</span><span class="p">])</span>
 
-<span class="n">INDIVIDUAL_KEY</span> <span class="o">=</span> <span class="s">&#39;INDIVIDUAL_KEY&#39;</span>
-<span class="n">SPECIES_KEY</span>    <span class="o">=</span> <span class="s">&#39;SPECIES_KEY&#39;</span>
-<span class="n">EMPTY_KEY</span>      <span class="o">=</span> <span class="s">&#39;&#39;</span>
-<span class="n">UNKNOWN</span>        <span class="o">=</span> <span class="s">&#39;____&#39;</span>
+<span class="n">INDIVIDUAL_KEY</span> <span class="o">=</span> <span class="s1">&#39;INDIVIDUAL_KEY&#39;</span>
+<span class="n">SPECIES_KEY</span>    <span class="o">=</span> <span class="s1">&#39;SPECIES_KEY&#39;</span>
+<span class="n">EMPTY_KEY</span>      <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="n">UNKNOWN</span>        <span class="o">=</span> <span class="s1">&#39;____&#39;</span>
 <span class="n">KEY_DEFAULTS</span>   <span class="o">=</span> <span class="p">{</span>
     <span class="n">INDIVIDUAL_KEY</span> <span class="p">:</span> <span class="n">UNKNOWN</span><span class="p">,</span>
     <span class="n">SPECIES_KEY</span>    <span class="p">:</span> <span class="n">UNKNOWN</span><span class="p">,</span>
 <span class="p">}</span>
 
-<span class="c"># &lt;UNFINISHED METADATA&gt;</span>
-<span class="c"># We are letting wildbook do this metadata instead</span>
-<span class="c"># Define the special metadata for annotation</span>
+<span class="c1"># &lt;UNFINISHED METADATA&gt;</span>
+<span class="c1"># We are letting wildbook do this metadata instead</span>
+<span class="c1"># Define the special metadata for annotation</span>
 
 <span class="n">ROSEMARY_ANNOT_METADATA</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">(</span><span class="s">&#39;local_name&#39;</span>    <span class="p">,</span> <span class="s">&#39;Local name:&#39;</span><span class="p">,</span>    <span class="nb">str</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;sun&#39;</span>           <span class="p">,</span> <span class="s">&#39;Sun:&#39;</span><span class="p">,</span>           <span class="p">[</span><span class="s">&#39;FS&#39;</span><span class="p">,</span> <span class="s">&#39;PS&#39;</span><span class="p">,</span> <span class="s">&#39;NS&#39;</span><span class="p">]),</span>
-    <span class="p">(</span><span class="s">&#39;wind&#39;</span>          <span class="p">,</span> <span class="s">&#39;Wind:&#39;</span><span class="p">,</span>          <span class="p">[</span><span class="s">&#39;NW&#39;</span><span class="p">,</span> <span class="s">&#39;LW&#39;</span><span class="p">,</span> <span class="s">&#39;MW&#39;</span><span class="p">,</span> <span class="s">&#39;SW&#39;</span><span class="p">]),</span>
-    <span class="p">(</span><span class="s">&#39;rain&#39;</span>          <span class="p">,</span> <span class="s">&#39;Rain:&#39;</span><span class="p">,</span>          <span class="p">[</span><span class="s">&#39;NR&#39;</span><span class="p">,</span> <span class="s">&#39;LR&#39;</span><span class="p">,</span> <span class="s">&#39;MR&#39;</span><span class="p">,</span> <span class="s">&#39;HR&#39;</span><span class="p">]),</span>
-    <span class="p">(</span><span class="s">&#39;cover&#39;</span>         <span class="p">,</span> <span class="s">&#39;Cover:&#39;</span><span class="p">,</span>         <span class="nb">float</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;grass&#39;</span>         <span class="p">,</span> <span class="s">&#39;Grass:&#39;</span><span class="p">,</span>         <span class="p">[</span><span class="s">&#39;less hf&#39;</span><span class="p">,</span> <span class="s">&#39;less hk&#39;</span><span class="p">,</span> <span class="s">&#39;less belly&#39;</span><span class="p">]),</span>
-    <span class="p">(</span><span class="s">&#39;grass_color&#39;</span>   <span class="p">,</span> <span class="s">&#39;Grass Colour:&#39;</span><span class="p">,</span>  <span class="p">[</span><span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;BG&#39;</span><span class="p">,</span> <span class="s">&#39;GB&#39;</span><span class="p">,</span> <span class="s">&#39;G&#39;</span><span class="p">]),</span>
-    <span class="p">(</span><span class="s">&#39;grass_species&#39;</span> <span class="p">,</span> <span class="s">&#39;Grass Species:&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;bush_type&#39;</span>     <span class="p">,</span> <span class="s">&#39;Bush type:&#39;</span><span class="p">,</span>     <span class="p">[</span><span class="s">&#39;OG&#39;</span><span class="p">,</span> <span class="s">&#39;LB&#39;</span><span class="p">,</span> <span class="s">&#39;MB&#39;</span><span class="p">,</span> <span class="s">&#39;TB&#39;</span><span class="p">]),</span>
-    <span class="p">(</span><span class="s">&#39;bit&#39;</span>           <span class="p">,</span> <span class="s">&#39;Bit:&#39;</span><span class="p">,</span>           <span class="nb">int</span><span class="p">),</span>
-    <span class="p">(</span><span class="s">&#39;other_speceis&#39;</span> <span class="p">,</span> <span class="s">&#39;Other Species:&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;local_name&#39;</span>    <span class="p">,</span> <span class="s1">&#39;Local name:&#39;</span><span class="p">,</span>    <span class="nb">str</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;sun&#39;</span>           <span class="p">,</span> <span class="s1">&#39;Sun:&#39;</span><span class="p">,</span>           <span class="p">[</span><span class="s1">&#39;FS&#39;</span><span class="p">,</span> <span class="s1">&#39;PS&#39;</span><span class="p">,</span> <span class="s1">&#39;NS&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;wind&#39;</span>          <span class="p">,</span> <span class="s1">&#39;Wind:&#39;</span><span class="p">,</span>          <span class="p">[</span><span class="s1">&#39;NW&#39;</span><span class="p">,</span> <span class="s1">&#39;LW&#39;</span><span class="p">,</span> <span class="s1">&#39;MW&#39;</span><span class="p">,</span> <span class="s1">&#39;SW&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;rain&#39;</span>          <span class="p">,</span> <span class="s1">&#39;Rain:&#39;</span><span class="p">,</span>          <span class="p">[</span><span class="s1">&#39;NR&#39;</span><span class="p">,</span> <span class="s1">&#39;LR&#39;</span><span class="p">,</span> <span class="s1">&#39;MR&#39;</span><span class="p">,</span> <span class="s1">&#39;HR&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;cover&#39;</span>         <span class="p">,</span> <span class="s1">&#39;Cover:&#39;</span><span class="p">,</span>         <span class="nb">float</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;grass&#39;</span>         <span class="p">,</span> <span class="s1">&#39;Grass:&#39;</span><span class="p">,</span>         <span class="p">[</span><span class="s1">&#39;less hf&#39;</span><span class="p">,</span> <span class="s1">&#39;less hk&#39;</span><span class="p">,</span> <span class="s1">&#39;less belly&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;grass_color&#39;</span>   <span class="p">,</span> <span class="s1">&#39;Grass Colour:&#39;</span><span class="p">,</span>  <span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;BG&#39;</span><span class="p">,</span> <span class="s1">&#39;GB&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;grass_species&#39;</span> <span class="p">,</span> <span class="s1">&#39;Grass Species:&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;bush_type&#39;</span>     <span class="p">,</span> <span class="s1">&#39;Bush type:&#39;</span><span class="p">,</span>     <span class="p">[</span><span class="s1">&#39;OG&#39;</span><span class="p">,</span> <span class="s1">&#39;LB&#39;</span><span class="p">,</span> <span class="s1">&#39;MB&#39;</span><span class="p">,</span> <span class="s1">&#39;TB&#39;</span><span class="p">]),</span>
+    <span class="p">(</span><span class="s1">&#39;bit&#39;</span>           <span class="p">,</span> <span class="s1">&#39;Bit:&#39;</span><span class="p">,</span>           <span class="nb">int</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;other_speceis&#39;</span> <span class="p">,</span> <span class="s1">&#39;Other Species:&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
 <span class="p">]</span>
 
-<span class="c">#ROSEMARY_KEYS = utool.get_list_column(ROSEMARY_ANNOT_METADATA, 0)</span>
-<span class="c">#KEY_DEFAULTS.update(**{key: UNKNOWN for key in ROSEMARY_KEYS})</span>
-<span class="c"># &lt;/UNFINISHED METADATA&gt;</span>
+<span class="c1">#ROSEMARY_KEYS = utool.get_list_column(ROSEMARY_ANNOT_METADATA, 0)</span>
+<span class="c1">#KEY_DEFAULTS.update(**{key: UNKNOWN for key in ROSEMARY_KEYS})</span>
+<span class="c1"># &lt;/UNFINISHED METADATA&gt;</span>
 
-<span class="n">BASE_DATABASE_VERSION</span> <span class="o">=</span> <span class="s">&#39;0.0.0&#39;</span>
+<span class="n">BASE_DATABASE_VERSION</span> <span class="o">=</span> <span class="s1">&#39;0.0.0&#39;</span>
 
-<span class="c">#################################################################</span>
-<span class="c"># DO NOT DELETE FROM THE TABLE LIST, THE DATABASE UPDATER WILL BREAK!!!</span>
-<span class="c"># THIS GOES FOR OLD AND DEPRICATED TABLENAMES AS WELL!!!</span>
-<span class="c"># TODO:</span>
-<span class="c"># What should happen is when they are depricated they should go into a</span>
-<span class="c"># depricated tablename structure with the relevant versions suffixed</span>
-<span class="c">#################################################################</span>
-<span class="n">AL_RELATION_TABLE</span>    <span class="o">=</span> <span class="s">&#39;annotation_lblannot_relationship&#39;</span>
-<span class="n">GA_RELATION_TABLE</span>    <span class="o">=</span> <span class="s">&#39;annotgroup_annotation_relationship&#39;</span>
-<span class="n">ANNOTGROUP_TABLE</span>     <span class="o">=</span> <span class="s">&#39;annotgroups&#39;</span>
-<span class="n">ANNOTATION_TABLE</span>     <span class="o">=</span> <span class="s">&#39;annotations&#39;</span>
-<span class="n">CHIP_TABLE</span>           <span class="o">=</span> <span class="s">&#39;chips&#39;</span>
-<span class="n">CONFIG_TABLE</span>         <span class="o">=</span> <span class="s">&#39;configs&#39;</span>
-<span class="n">CONTRIBUTOR_TABLE</span>    <span class="o">=</span> <span class="s">&#39;contributors&#39;</span>
-<span class="n">GSG_RELATION_TABLE</span>   <span class="o">=</span> <span class="s">&#39;imageset_image_relationship&#39;</span>
-<span class="n">IMAGESET_TABLE</span>       <span class="o">=</span> <span class="s">&#39;imagesets&#39;</span>
-<span class="n">FEATURE_TABLE</span>        <span class="o">=</span> <span class="s">&#39;features&#39;</span>
-<span class="n">FEATURE_WEIGHT_TABLE</span> <span class="o">=</span> <span class="s">&#39;feature_weights&#39;</span>
-<span class="n">GL_RELATION_TABLE</span>    <span class="o">=</span> <span class="s">&#39;image_lblimage_relationship&#39;</span>
-<span class="n">IMAGE_TABLE</span>          <span class="o">=</span> <span class="s">&#39;images&#39;</span>
-<span class="n">LBLANNOT_TABLE</span>       <span class="o">=</span> <span class="s">&#39;lblannot&#39;</span>
-<span class="n">LBLIMAGE_TABLE</span>       <span class="o">=</span> <span class="s">&#39;lblimage&#39;</span>
-<span class="n">LBLTYPE_TABLE</span>        <span class="o">=</span> <span class="s">&#39;keys&#39;</span>
-<span class="n">METADATA_TABLE</span>       <span class="o">=</span> <span class="s">&#39;metadata&#39;</span>
-<span class="c"># Ugly move from name to names, need better way of versioning old table names</span>
-<span class="n">NAME_TABLE_v121</span>      <span class="o">=</span> <span class="s">&#39;name&#39;</span>
-<span class="n">NAME_TABLE_v130</span>      <span class="o">=</span> <span class="s">&#39;names&#39;</span>
+<span class="c1">#################################################################</span>
+<span class="c1"># DO NOT DELETE FROM THE TABLE LIST, THE DATABASE UPDATER WILL BREAK!!!</span>
+<span class="c1"># THIS GOES FOR OLD AND DEPRICATED TABLENAMES AS WELL!!!</span>
+<span class="c1"># TODO:</span>
+<span class="c1"># What should happen is when they are depricated they should go into a</span>
+<span class="c1"># depricated tablename structure with the relevant versions suffixed</span>
+<span class="c1">#################################################################</span>
+<span class="n">AL_RELATION_TABLE</span>    <span class="o">=</span> <span class="s1">&#39;annotation_lblannot_relationship&#39;</span>
+<span class="n">GA_RELATION_TABLE</span>    <span class="o">=</span> <span class="s1">&#39;annotgroup_annotation_relationship&#39;</span>
+<span class="n">ANNOTGROUP_TABLE</span>     <span class="o">=</span> <span class="s1">&#39;annotgroups&#39;</span>
+<span class="n">ANNOTATION_TABLE</span>     <span class="o">=</span> <span class="s1">&#39;annotations&#39;</span>
+<span class="n">CHIP_TABLE</span>           <span class="o">=</span> <span class="s1">&#39;chips&#39;</span>
+<span class="n">CONFIG_TABLE</span>         <span class="o">=</span> <span class="s1">&#39;configs&#39;</span>
+<span class="n">CONTRIBUTOR_TABLE</span>    <span class="o">=</span> <span class="s1">&#39;contributors&#39;</span>
+<span class="n">GSG_RELATION_TABLE</span>   <span class="o">=</span> <span class="s1">&#39;imageset_image_relationship&#39;</span>
+<span class="n">IMAGESET_TABLE</span>       <span class="o">=</span> <span class="s1">&#39;imagesets&#39;</span>
+<span class="n">FEATURE_TABLE</span>        <span class="o">=</span> <span class="s1">&#39;features&#39;</span>
+<span class="n">FEATURE_WEIGHT_TABLE</span> <span class="o">=</span> <span class="s1">&#39;feature_weights&#39;</span>
+<span class="n">GL_RELATION_TABLE</span>    <span class="o">=</span> <span class="s1">&#39;image_lblimage_relationship&#39;</span>
+<span class="n">IMAGE_TABLE</span>          <span class="o">=</span> <span class="s1">&#39;images&#39;</span>
+<span class="n">LBLANNOT_TABLE</span>       <span class="o">=</span> <span class="s1">&#39;lblannot&#39;</span>
+<span class="n">LBLIMAGE_TABLE</span>       <span class="o">=</span> <span class="s1">&#39;lblimage&#39;</span>
+<span class="n">LBLTYPE_TABLE</span>        <span class="o">=</span> <span class="s1">&#39;keys&#39;</span>
+<span class="n">METADATA_TABLE</span>       <span class="o">=</span> <span class="s1">&#39;metadata&#39;</span>
+<span class="c1"># Ugly move from name to names, need better way of versioning old table names</span>
+<span class="n">NAME_TABLE_v121</span>      <span class="o">=</span> <span class="s1">&#39;name&#39;</span>
+<span class="n">NAME_TABLE_v130</span>      <span class="o">=</span> <span class="s1">&#39;names&#39;</span>
 <span class="n">NAME_TABLE</span>           <span class="o">=</span> <span class="n">NAME_TABLE_v130</span>
-<span class="n">ANNOTMATCH_TABLE</span>     <span class="o">=</span> <span class="s">&#39;annotmatch&#39;</span>
-<span class="n">SPECIES_TABLE</span>        <span class="o">=</span> <span class="s">&#39;species&#39;</span>
-<span class="n">RESIDUAL_TABLE</span>       <span class="o">=</span> <span class="s">&#39;residuals&#39;</span>
-<span class="n">VERSIONS_TABLE</span>       <span class="o">=</span> <span class="s">&#39;versions&#39;</span>
-<span class="c">#</span>
-<span class="n">PARTY_CONTRIB_RELATION_TABLE</span> <span class="o">=</span> <span class="s">&#39;party_contrib_relation&#39;</span>
-<span class="n">PARTY_TABLE</span>                  <span class="o">=</span> <span class="s">&#39;party&#39;</span>
-<span class="c">#################################################################</span>
+<span class="n">ANNOTMATCH_TABLE</span>     <span class="o">=</span> <span class="s1">&#39;annotmatch&#39;</span>
+<span class="n">SPECIES_TABLE</span>        <span class="o">=</span> <span class="s1">&#39;species&#39;</span>
+<span class="n">RESIDUAL_TABLE</span>       <span class="o">=</span> <span class="s1">&#39;residuals&#39;</span>
+<span class="n">VERSIONS_TABLE</span>       <span class="o">=</span> <span class="s1">&#39;versions&#39;</span>
+<span class="c1">#</span>
+<span class="n">PARTY_CONTRIB_RELATION_TABLE</span> <span class="o">=</span> <span class="s1">&#39;party_contrib_relation&#39;</span>
+<span class="n">PARTY_TABLE</span>                  <span class="o">=</span> <span class="s1">&#39;party&#39;</span>
+<span class="c1">#################################################################</span>
 
 
-<span class="c"># DEPCACHE TABLENAMES</span>
-<span class="c">#CHIPTHUMB_TABLE = &#39;chipthumb&#39;</span>
+<span class="c1"># DEPCACHE TABLENAMES</span>
+<span class="c1">#CHIPTHUMB_TABLE = &#39;chipthumb&#39;</span>
 
 
 <span class="n">UNKNOWN_PURPLE_RGBA255</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">102</span><span class="p">,</span>   <span class="mi">0</span><span class="p">,</span> <span class="mi">153</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
@@ -364,49 +364,47 @@
 <span class="n">NAME_RED_RGBA01</span>       <span class="o">=</span> <span class="n">NAME_RED_RGBA255</span> <span class="o">/</span> <span class="mf">255.0</span>
 <span class="n">NEW_YELLOW_RGBA01</span>     <span class="o">=</span> <span class="n">NEW_YELLOW_RGBA255</span> <span class="o">/</span> <span class="mf">255.0</span>
 
-<span class="n">EXEMPLAR_IMAGESETTEXT</span>         <span class="o">=</span> <span class="s">&#39;*Exemplars&#39;</span>
-<span class="n">ALL_IMAGE_IMAGESETTEXT</span>        <span class="o">=</span> <span class="s">&#39;*All Images&#39;</span>
-<span class="n">UNREVIEWED_IMAGE_IMAGESETTEXT</span> <span class="o">=</span> <span class="s">&#39;*Unreviewed Images&#39;</span>
-<span class="n">REVIEWED_IMAGE_IMAGESETTEXT</span>   <span class="o">=</span> <span class="s">&#39;*Reviewed Images&#39;</span>
-<span class="n">UNGROUPED_IMAGES_IMAGESETTEXT</span> <span class="o">=</span> <span class="s">&#39;*Ungrouped Images&#39;</span>
+<span class="n">EXEMPLAR_IMAGESETTEXT</span>         <span class="o">=</span> <span class="s1">&#39;*Exemplars&#39;</span>
+<span class="n">ALL_IMAGE_IMAGESETTEXT</span>        <span class="o">=</span> <span class="s1">&#39;*All Images&#39;</span>
+<span class="n">UNREVIEWED_IMAGE_IMAGESETTEXT</span> <span class="o">=</span> <span class="s1">&#39;*Unreviewed Images&#39;</span>
+<span class="n">REVIEWED_IMAGE_IMAGESETTEXT</span>   <span class="o">=</span> <span class="s1">&#39;*Reviewed Images&#39;</span>
+<span class="n">UNGROUPED_IMAGES_IMAGESETTEXT</span> <span class="o">=</span> <span class="s1">&#39;*Ungrouped Images&#39;</span>
 <span class="n">SPECIAL_IMAGESET_LABELS</span> <span class="o">=</span> <span class="p">[</span><span class="n">EXEMPLAR_IMAGESETTEXT</span><span class="p">,</span>
                            <span class="n">ALL_IMAGE_IMAGESETTEXT</span><span class="p">,</span>
                            <span class="n">UNREVIEWED_IMAGE_IMAGESETTEXT</span><span class="p">,</span>
                            <span class="n">REVIEWED_IMAGE_IMAGESETTEXT</span><span class="p">,</span>
                            <span class="n">UNGROUPED_IMAGES_IMAGESETTEXT</span><span class="p">]</span>
-<span class="n">NEW_IMAGESET_IMAGESETTEXT</span> <span class="o">=</span> <span class="s">&#39;NEW IMAGESET&#39;</span>
+<span class="n">NEW_IMAGESET_IMAGESETTEXT</span> <span class="o">=</span> <span class="s1">&#39;NEW IMAGESET&#39;</span>
 
-<span class="c">#IMAGE_THUMB_SUFFIX = &#39;_thumb.png&#39;</span>
-<span class="c">#CHIP_THUMB_SUFFIX  = &#39;_chip_thumb.png&#39;</span>
-<span class="n">IMAGE_THUMB_SUFFIX</span> <span class="o">=</span> <span class="s">&#39;_thumb.jpg&#39;</span>
-<span class="n">IMAGE_BARE_THUMB_SUFFIX</span> <span class="o">=</span> <span class="s">&#39;_thumb_bare.jpg&#39;</span>
-<span class="n">CHIP_THUMB_SUFFIX</span>  <span class="o">=</span> <span class="s">&#39;_chip_thumb.jpg&#39;</span>
+<span class="c1">#IMAGE_THUMB_SUFFIX = &#39;_thumb.png&#39;</span>
+<span class="c1">#CHIP_THUMB_SUFFIX  = &#39;_chip_thumb.png&#39;</span>
+<span class="n">IMAGE_THUMB_SUFFIX</span> <span class="o">=</span> <span class="s1">&#39;_thumb.jpg&#39;</span>
+<span class="n">IMAGE_BARE_THUMB_SUFFIX</span> <span class="o">=</span> <span class="s1">&#39;_thumb_bare.jpg&#39;</span>
+<span class="n">CHIP_THUMB_SUFFIX</span>  <span class="o">=</span> <span class="s1">&#39;_chip_thumb.jpg&#39;</span>
 
 
-<span class="n">VS_EXEMPLARS_KEY</span> <span class="o">=</span> <span class="s">&#39;vs_exemplars&#39;</span>
-<span class="n">INTRA_OCCUR_KEY</span> <span class="o">=</span> <span class="s">&#39;intra_occurrence&#39;</span>
+<span class="n">VS_EXEMPLARS_KEY</span> <span class="o">=</span> <span class="s1">&#39;vs_exemplars&#39;</span>
+<span class="n">INTRA_OCCUR_KEY</span> <span class="o">=</span> <span class="s1">&#39;intra_occurrence&#39;</span>
 
-<span class="n">HARD_NOTE_TAG</span> <span class="o">=</span> <span class="s">&#39;&lt;HARDCASE&gt;&#39;</span>
+<span class="n">HARD_NOTE_TAG</span> <span class="o">=</span> <span class="s1">&#39;&lt;HARDCASE&gt;&#39;</span>
 
-<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;ibeis.cs.uic.edu&#39;</span><span class="p">:</span>
-    <span class="n">WILDBOOK_TARGET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--wildbook-target&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;prod&#39;</span><span class="p">,</span>
-                                    <span class="n">help_</span><span class="o">=</span><span class="s">&#39;specify the Wildbook target deployment&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;ibeis.cs.uic.edu&#39;</span><span class="p">:</span>
+    <span class="n">WILDBOOK_TARGET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--wildbook-target&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;prod&#39;</span><span class="p">,</span>
+                                    <span class="n">help_</span><span class="o">=</span><span class="s1">&#39;specify the Wildbook target deployment&#39;</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="n">WILDBOOK_TARGET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s">&#39;--wildbook-target&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">&#39;ibeis&#39;</span><span class="p">,</span>
-                                    <span class="n">help_</span><span class="o">=</span><span class="s">&#39;specify the Wildbook target deployment&#39;</span><span class="p">)</span>
+    <span class="n">WILDBOOK_TARGET</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argval</span><span class="p">(</span><span class="s1">&#39;--wildbook-target&#39;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;ibeis&#39;</span><span class="p">,</span>
+                                    <span class="n">help_</span><span class="o">=</span><span class="s1">&#39;specify the Wildbook target deployment&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="ZIPPED_URLS"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.ZIPPED_URLS">[docs]</a><span class="k">class</span> <span class="nc">ZIPPED_URLS</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="n">PZ_MTEST</span>       <span class="o">=</span> <span class="s">&#39;https://lev.cs.rpi.edu/public/databases/PZ_MTEST.zip&#39;</span>
-    <span class="n">NAUTS</span>          <span class="o">=</span> <span class="s">&#39;https://lev.cs.rpi.edu/public/databases/NAUT_test.zip&#39;</span>
-    <span class="n">WDS</span>            <span class="o">=</span> <span class="s">&#39;https://lev.cs.rpi.edu/public/databases/wd_peter2.zip&#39;</span>
-    <span class="c">#PZ_MTEST       = &#39;https://www.dropbox.com/s/xdae2yvsp57l4t2/PZ_MTEST.zip&#39;</span>
-    <span class="c">#NAUTS          = &#39;https://www.dropbox.com/s/8gt3eaiw8rb31rh/NAUT_test.zip&#39;</span>
-    <span class="n">PZ_DISTINCTIVE</span> <span class="o">=</span> <span class="s">&#39;https://www.dropbox.com/s/gbp24qks9z3fzm6/distinctivness_zebra_plains.zip&#39;</span>
-    <span class="n">GZ_DISTINCTIVE</span> <span class="o">=</span> <span class="s">&#39;https://www.dropbox.com/s/nb5gv7wibwo3ib4/distinctivness_zebra_grevys.zip&#39;</span>
+    <span class="n">PZ_MTEST</span>       <span class="o">=</span> <span class="s1">&#39;https://lev.cs.rpi.edu/public/databases/PZ_MTEST.zip&#39;</span>
+    <span class="n">NAUTS</span>          <span class="o">=</span> <span class="s1">&#39;https://lev.cs.rpi.edu/public/databases/NAUT_test.zip&#39;</span>
+    <span class="n">WDS</span>            <span class="o">=</span> <span class="s1">&#39;https://lev.cs.rpi.edu/public/databases/wd_peter2.zip&#39;</span>
+    <span class="n">PZ_DISTINCTIVE</span> <span class="o">=</span> <span class="s1">&#39;https://lev.cs.rpi.edu/public/models/distinctivness_zebra_plains.zip&#39;</span>
+    <span class="n">GZ_DISTINCTIVE</span> <span class="o">=</span> <span class="s1">&#39;https://lev.cs.rpi.edu/public/models/distinctivness_zebra_grevys.zip&#39;</span>
 </div>
 <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
-    <span class="n">__STR__</span> <span class="o">=</span> <span class="nb">unicode</span>  <span class="c"># change to str if needed</span>
+    <span class="n">__STR__</span> <span class="o">=</span> <span class="nb">unicode</span>  <span class="c1"># change to str if needed</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="n">__STR__</span> <span class="o">=</span> <span class="nb">str</span>
 
@@ -417,38 +415,38 @@
 
 
 <span class="n">TRUTH_INT_TO_TEXT</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">TRUTH_UNKNOWN</span>   <span class="p">:</span> <span class="s">&#39;Unknown&#39;</span><span class="p">,</span>
-    <span class="n">TRUTH_NOT_MATCH</span> <span class="p">:</span> <span class="s">&#39;Not Matched&#39;</span><span class="p">,</span>
-    <span class="n">TRUTH_MATCH</span>     <span class="p">:</span> <span class="s">&#39;Matched&#39;</span><span class="p">,</span>
+    <span class="n">TRUTH_UNKNOWN</span>   <span class="p">:</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">,</span>
+    <span class="n">TRUTH_NOT_MATCH</span> <span class="p">:</span> <span class="s1">&#39;Not Matched&#39;</span><span class="p">,</span>
+    <span class="n">TRUTH_MATCH</span>     <span class="p">:</span> <span class="s1">&#39;Matched&#39;</span><span class="p">,</span>
 <span class="p">}</span>
 
 
-<span class="c"># Turn off features at Lewa :(</span>
-<span class="n">SIMPLIFY_INTERFACE</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;ibeis.cs.uic.edu&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s">&#39;--simplify&#39;</span><span class="p">)</span>
+<span class="c1"># Turn off features at Lewa :(</span>
+<span class="n">SIMPLIFY_INTERFACE</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">get_computer_name</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;ibeis.cs.uic.edu&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_argflag</span><span class="p">(</span><span class="s1">&#39;--simplify&#39;</span><span class="p">)</span>
 
 
-<span class="c"># For candidacy document</span>
+<span class="c1"># For candidacy document</span>
 <span class="n">DBNAME_ALIAS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="c">#&#39;NNP_MasterGIRM_core&#39;: &#39;NNP_GIRM&#39;</span>
-    <span class="c">#&#39;NNP_MasterGIRM_core&#39;: &#39;GIRM&#39;,</span>
-    <span class="s">&#39;NNP_MasterGIRM_core&#39;</span><span class="p">:</span> <span class="s">&#39;GIRM&#39;</span><span class="p">,</span>
-    <span class="s">&#39;PZ_Master1&#39;</span><span class="p">:</span> <span class="s">&#39;PZ&#39;</span><span class="p">,</span>
-    <span class="s">&#39;GZ_Master1&#39;</span><span class="p">:</span> <span class="s">&#39;GZ&#39;</span><span class="p">,</span>
-    <span class="s">&#39;GIRM_Master1&#39;</span><span class="p">:</span> <span class="s">&#39;GIRM&#39;</span><span class="p">,</span>
-    <span class="s">&#39;GZ_ALL&#39;</span><span class="p">:</span> <span class="s">&#39;GZ&#39;</span><span class="p">,</span>
+    <span class="c1">#&#39;NNP_MasterGIRM_core&#39;: &#39;NNP_GIRM&#39;</span>
+    <span class="c1">#&#39;NNP_MasterGIRM_core&#39;: &#39;GIRM&#39;,</span>
+    <span class="s1">&#39;NNP_MasterGIRM_core&#39;</span><span class="p">:</span> <span class="s1">&#39;GIRM&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;PZ_Master1&#39;</span><span class="p">:</span> <span class="s1">&#39;PZ&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;GZ_Master1&#39;</span><span class="p">:</span> <span class="s1">&#39;GZ&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;GIRM_Master1&#39;</span><span class="p">:</span> <span class="s1">&#39;GIRM&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;GZ_ALL&#39;</span><span class="p">:</span> <span class="s1">&#39;GZ&#39;</span><span class="p">,</span>
 <span class="p">}</span>
 
 
 <div class="viewcode-block" id="TEST_SPECIES"><a class="viewcode-back" href="../../ibeis.html#ibeis.constants.TEST_SPECIES">[docs]</a><span class="k">class</span> <span class="nc">TEST_SPECIES</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="n">BEAR_POLAR</span>      <span class="o">=</span> <span class="s">&#39;bear_polar&#39;</span>
-    <span class="n">BUILDING</span>        <span class="o">=</span> <span class="s">&#39;building&#39;</span>
-    <span class="n">GIR_RETICULATED</span> <span class="o">=</span> <span class="s">&#39;giraffe_reticulated&#39;</span>
-    <span class="n">GIR_MASAI</span>       <span class="o">=</span> <span class="s">&#39;giraffe_masai&#39;</span>
-    <span class="n">WHALE_FLUKE</span>     <span class="o">=</span> <span class="s">&#39;whale_fluke&#39;</span><span class="p">,</span>
-    <span class="n">WHALE_HUMPBACK</span>  <span class="o">=</span> <span class="s">&#39;whale_humpback&#39;</span><span class="p">,</span>
-    <span class="n">ZEB_GREVY</span>       <span class="o">=</span> <span class="s">&#39;zebra_grevys&#39;</span>
-    <span class="n">ZEB_HYBRID</span>      <span class="o">=</span> <span class="s">&#39;zebra_hybrid&#39;</span>
-    <span class="n">ZEB_PLAIN</span>       <span class="o">=</span> <span class="s">&#39;zebra_plains&#39;</span>
+    <span class="n">BEAR_POLAR</span>      <span class="o">=</span> <span class="s1">&#39;bear_polar&#39;</span>
+    <span class="n">BUILDING</span>        <span class="o">=</span> <span class="s1">&#39;building&#39;</span>
+    <span class="n">GIR_RETICULATED</span> <span class="o">=</span> <span class="s1">&#39;giraffe_reticulated&#39;</span>
+    <span class="n">GIR_MASAI</span>       <span class="o">=</span> <span class="s1">&#39;giraffe_masai&#39;</span>
+    <span class="n">WHALE_FLUKE</span>     <span class="o">=</span> <span class="s1">&#39;whale_fluke&#39;</span><span class="p">,</span>
+    <span class="n">WHALE_HUMPBACK</span>  <span class="o">=</span> <span class="s1">&#39;whale_humpback&#39;</span><span class="p">,</span>
+    <span class="n">ZEB_GREVY</span>       <span class="o">=</span> <span class="s1">&#39;zebra_grevys&#39;</span>
+    <span class="n">ZEB_HYBRID</span>      <span class="o">=</span> <span class="s1">&#39;zebra_hybrid&#39;</span>
+    <span class="n">ZEB_PLAIN</span>       <span class="o">=</span> <span class="s1">&#39;zebra_plains&#39;</span>
     <span class="n">UNKNOWN</span>         <span class="o">=</span> <span class="n">UNKNOWN</span>
 
 </div>
@@ -491,7 +489,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

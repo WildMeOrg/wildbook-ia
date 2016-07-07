@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.nn_weights &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.hots.nn_weights &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.hots.nn_weights</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">unicode_literals</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
@@ -141,8 +141,8 @@
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">scoring</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">hstypes</span>
 <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">_pipeline_helpers</span> <span class="k">as</span> <span class="n">plh</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>  <span class="c"># NOQA</span>
-<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[nnweight]&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="kn">import</span> <span class="nb">zip</span><span class="p">,</span> <span class="nb">range</span><span class="p">,</span> <span class="nb">map</span>  <span class="c1"># NOQA</span>
+<span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[nnweight]&#39;</span><span class="p">)</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">TODO: replace testdata_pre_weight_neighbors with</span>
@@ -167,9 +167,9 @@
 <span class="sd">    Used for LNBNN</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">global</span> <span class="n">NN_WEIGHT_FUNC_DICT</span>
-    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_fn&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_fn&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nn_weights] registering norm func: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[nn_weights] registering norm func: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
     <span class="n">filtfunc</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">nn_normalized_weight</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
     <span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">filtfunc</span>
     <span class="k">return</span> <span class="n">func</span>
@@ -179,17 +179,17 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Used for things that dont require a normalizer like const, cos, and borda</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_match_weighter&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_match_weighter&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nn_weights] registering simple func: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[nn_weights] registering simple func: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
     <span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
     <span class="k">return</span> <span class="n">func</span>
 
 
 <span class="k">def</span> <span class="nf">_register_misc_weight_func</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;_match_weighter&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">filtkey</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">get_funcname</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_match_weighter&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[nn_weights] registering simple func: </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[nn_weights] registering simple func: </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filtkey</span><span class="p">,))</span>
     <span class="n">MISC_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">filtkey</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span>
     <span class="k">return</span> <span class="n">func</span>
 
@@ -207,8 +207,8 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">constvote_weight_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c"># K = qreq_.qparams.K  # Dont use K because K is dynamic per query</span>
-    <span class="c"># Subtract Knorm from size instead</span>
+    <span class="c1"># K = qreq_.qparams.K  # Dont use K because K is dynamic per query</span>
+    <span class="c1"># Subtract Knorm from size instead</span>
     <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
 
     <span class="k">for</span> <span class="n">nns</span> <span class="ow">in</span> <span class="p">(</span><span class="n">nns_list</span><span class="p">):</span>
@@ -231,7 +231,7 @@
 <span class="sd">        &gt;&gt;&gt; print(result)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">bordavote_weight_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c"># FIXME: K</span>
+    <span class="c1"># FIXME: K</span>
     <span class="n">K</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">K</span>
     <span class="n">_branks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">K</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">bordavote_weight_list</span> <span class="o">=</span> <span class="p">[</span>
@@ -262,14 +262,14 @@
     <span class="n">cos_weight_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
     <span class="n">qconfig2_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_query_config2</span><span class="p">()</span>
-    <span class="c"># Database feature index to chip index</span>
+    <span class="c1"># Database feature index to chip index</span>
     <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">nns</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">):</span>
         <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">nns</span>
         <span class="n">qfx2_qvec</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_vecs</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">qconfig2_</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
-        <span class="c"># database forground weights</span>
-        <span class="c"># avoid using K due to its more dynamic nature by using -Knorm</span>
+        <span class="c1"># database forground weights</span>
+        <span class="c1"># avoid using K due to its more dynamic nature by using -Knorm</span>
         <span class="n">qfx2_dvec</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_vecs</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[:</span><span class="o">-</span><span class="n">Knorm</span><span class="p">])</span>
-        <span class="c"># Component-wise dot product + selectivity function</span>
+        <span class="c1"># Component-wise dot product + selectivity function</span>
         <span class="n">alpha</span> <span class="o">=</span> <span class="mf">3.0</span>
         <span class="n">qfx2_cosweight</span> <span class="o">=</span> <span class="n">scoring</span><span class="o">.</span><span class="n">sift_selectivity_score</span><span class="p">(</span><span class="n">qfx2_qvec</span><span class="p">,</span> <span class="n">qfx2_dvec</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
         <span class="n">cos_weight_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qfx2_cosweight</span><span class="p">)</span>
@@ -297,15 +297,15 @@
     <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
     <span class="n">config2_</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_query_config2</span><span class="p">()</span>
-    <span class="c"># Database feature index to chip index</span>
+    <span class="c1"># Database feature index to chip index</span>
     <span class="n">fgvotes_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">nns</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qaid_list</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">):</span>
         <span class="p">(</span><span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">qfx2_dist</span><span class="p">)</span> <span class="o">=</span> <span class="n">nns</span>
-        <span class="c"># database forground weights</span>
+        <span class="c1"># database forground weights</span>
         <span class="n">qfx2_dfgw</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_fgws</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="n">Knorm</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="c"># query forground weights</span>
+        <span class="c1"># query forground weights</span>
         <span class="n">qfx2_qfgw</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_fgweights</span><span class="p">([</span><span class="n">qaid</span><span class="p">],</span> <span class="n">ensure</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="c"># feature match forground weight</span>
+        <span class="c1"># feature match forground weight</span>
         <span class="n">qfx2_fgvote_weight</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">qfx2_qfgw</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">qfx2_dfgw</span><span class="p">)</span>
         <span class="n">fgvotes_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qfx2_fgvote_weight</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">fgvotes_list</span>
@@ -363,7 +363,7 @@
 <span class="sd">        &gt;&gt;&gt; weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; weights2 = weights_list2[0]</span>
 <span class="sd">        &gt;&gt;&gt; assert np.all(weights1 == weights2)</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(weights1.sum(), 200, 300)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(weights1.sum(), 100, 310)</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
@@ -378,11 +378,11 @@
 <span class="sd">        &gt;&gt;&gt; weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)</span>
 <span class="sd">        &gt;&gt;&gt; weights2 = weights_list2[0]</span>
 <span class="sd">        &gt;&gt;&gt; assert np.all(weights1 == weights2)</span>
-<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(weights1.sum(), 2700, 4000)</span>
+<span class="sd">        &gt;&gt;&gt; ut.assert_inbounds(weights1.sum(), 1500, 4500)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span>
     <span class="n">normalizer_rule</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">normalizer_rule</span>
-    <span class="c"># Database feature index to chip index</span>
+    <span class="c1"># Database feature index to chip index</span>
     <span class="n">qaid_list</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_internal_qaids</span><span class="p">()</span>
     <span class="n">normk_list</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">get_normk</span><span class="p">(</span><span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">normalizer_rule</span><span class="p">)</span>
@@ -401,16 +401,16 @@
 <span class="sd">    Get positions of the LNBNN/ratio tests normalizers</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="n">Knorm</span>
-    <span class="k">assert</span> <span class="n">K</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;K=</span><span class="si">%r</span><span class="s"> cannot be 0&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">K</span><span class="p">,)</span>
-    <span class="c"># qfx2_nndist = qfx2_dist.T[0:K].T</span>
-    <span class="k">if</span> <span class="n">normalizer_rule</span> <span class="o">==</span> <span class="s">&#39;last&#39;</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">K</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;K=</span><span class="si">%r</span><span class="s1"> cannot be 0&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">K</span><span class="p">,)</span>
+    <span class="c1"># qfx2_nndist = qfx2_dist.T[0:K].T</span>
+    <span class="k">if</span> <span class="n">normalizer_rule</span> <span class="o">==</span> <span class="s1">&#39;last&#39;</span><span class="p">:</span>
         <span class="n">qfx2_normk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">),</span> <span class="n">hstypes</span><span class="o">.</span><span class="n">FK_DTYPE</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">normalizer_rule</span> <span class="o">==</span> <span class="s">&#39;name&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">normalizer_rule</span> <span class="o">==</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span>
         <span class="n">qfx2_normk</span> <span class="o">=</span> <span class="n">get_name_normalizers</span><span class="p">(</span><span class="n">qaid</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">Knorm</span><span class="p">,</span> <span class="n">qfx2_idx</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">normalizer_rule</span> <span class="o">==</span> <span class="s">&#39;external&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">normalizer_rule</span> <span class="o">==</span> <span class="s1">&#39;external&#39;</span><span class="p">:</span>
         <span class="k">pass</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;[nn_weights] no normalizer_rule=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">normalizer_rule</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;[nn_weights] no normalizer_rule=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">normalizer_rule</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qfx2_normk</span>
 
 </div>
@@ -436,7 +436,7 @@
 <span class="sd">        &gt;&gt;&gt; # ENABLE_DOCTEST</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots.nn_weights import *  # NOQA</span>
 <span class="sd">        &gt;&gt;&gt; from ibeis.algo.hots import nn_weights</span>
-<span class="sd">        &gt;&gt;&gt; cfgdict = {&#39;K&#39;:10, &#39;Knorm&#39;: 10, &#39;normalizer_rule&#39;: &#39;name&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; cfgdict = {&#39;K&#39;:10, &#39;Knorm&#39;: 10, &#39;normalizer_rule&#39;: &#39;name&#39;, &#39;dim_size&#39;: 450, &#39;resize_dim&#39;: &#39;area&#39;}</span>
 <span class="sd">        &gt;&gt;&gt; tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)</span>
 <span class="sd">        &gt;&gt;&gt; ibs, qreq_, nns_list, nnvalid0_list = tup</span>
 <span class="sd">        &gt;&gt;&gt; qaid = qreq_.get_external_qaids()[0]</span>
@@ -454,8 +454,8 @@
         <span class="p">[</span><span class="n">dists</span><span class="p">[</span><span class="n">normk</span><span class="p">]</span> <span class="k">for</span> <span class="p">(</span><span class="n">dists</span><span class="p">,</span> <span class="n">normk</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">qfx2_dist</span><span class="p">,</span> <span class="n">qfx2_normk</span><span class="p">)])</span>
     <span class="n">qfx2_normdist</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">qfx2_nndist</span> <span class="o">=</span> <span class="n">qfx2_dist</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">K</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
-    <span class="n">vdist</span> <span class="o">=</span> <span class="n">qfx2_nndist</span>    <span class="c"># voting distance</span>
-    <span class="n">ndist</span> <span class="o">=</span> <span class="n">qfx2_normdist</span>  <span class="c"># normalizer distance</span>
+    <span class="n">vdist</span> <span class="o">=</span> <span class="n">qfx2_nndist</span>    <span class="c1"># voting distance</span>
+    <span class="n">ndist</span> <span class="o">=</span> <span class="n">qfx2_normdist</span>  <span class="c1"># normalizer distance</span>
     <span class="n">qfx2_normweight</span> <span class="o">=</span> <span class="n">normweight_fn</span><span class="p">(</span><span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">qfx2_normweight</span>
 
@@ -485,23 +485,23 @@
 <span class="sd">        &gt;&gt;&gt; qaid = qreq_.get_external_qaids()[0]</span>
 <span class="sd">        &gt;&gt;&gt; qfx2_normk = get_name_normalizers(qaid, qreq_, Knorm, qfx2_idx)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="n">Knorm</span> <span class="o">==</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span><span class="p">,</span> <span class="s">&#39;inconsistency in qparams&#39;</span>
-    <span class="c"># Get the top names you do not want your normalizer to be from</span>
+    <span class="k">assert</span> <span class="n">Knorm</span> <span class="o">==</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">qparams</span><span class="o">.</span><span class="n">Knorm</span><span class="p">,</span> <span class="s1">&#39;inconsistency in qparams&#39;</span>
+    <span class="c1"># Get the top names you do not want your normalizer to be from</span>
     <span class="n">qnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qaid</span><span class="p">)</span>
     <span class="n">K</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="n">Knorm</span>
-    <span class="k">assert</span> <span class="n">K</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;K cannot be 0&#39;</span>
-    <span class="c"># Get the 0th - Kth matching neighbors</span>
+    <span class="k">assert</span> <span class="n">K</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;K cannot be 0&#39;</span>
+    <span class="c1"># Get the 0th - Kth matching neighbors</span>
     <span class="n">qfx2_topidx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">K</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
-    <span class="c"># Get tke Kth - KNth normalizing neighbors</span>
+    <span class="c1"># Get tke Kth - KNth normalizing neighbors</span>
     <span class="n">qfx2_normidx</span> <span class="o">=</span> <span class="n">qfx2_idx</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="o">-</span><span class="n">Knorm</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
-    <span class="c"># Apply temporary uniquish name</span>
+    <span class="c1"># Apply temporary uniquish name</span>
     <span class="n">qfx2_topaid</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_topidx</span><span class="p">)</span>
     <span class="n">qfx2_normaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">get_nn_aids</span><span class="p">(</span><span class="n">qfx2_normidx</span><span class="p">)</span>
     <span class="n">qfx2_topnid</span>  <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qfx2_topaid</span><span class="p">)</span>
     <span class="n">qfx2_normnid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">ibs</span><span class="o">.</span><span class="n">get_annot_name_rowids</span><span class="p">(</span><span class="n">qfx2_normaid</span><span class="p">)</span>
-    <span class="c"># Inspect the potential normalizers</span>
+    <span class="c1"># Inspect the potential normalizers</span>
     <span class="n">qfx2_selnorm</span> <span class="o">=</span> <span class="n">mark_name_valid_normalizers</span><span class="p">(</span><span class="n">qnid</span><span class="p">,</span> <span class="n">qfx2_topnid</span><span class="p">,</span> <span class="n">qfx2_normnid</span><span class="p">)</span>
-    <span class="n">qfx2_normk</span> <span class="o">=</span> <span class="n">qfx2_selnorm</span> <span class="o">+</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span><span class="p">)</span>  <span class="c"># convert form negative to pos indexes</span>
+    <span class="n">qfx2_normk</span> <span class="o">=</span> <span class="n">qfx2_selnorm</span> <span class="o">+</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="n">Knorm</span><span class="p">)</span>  <span class="c1"># convert form negative to pos indexes</span>
     <span class="k">return</span> <span class="n">qfx2_normk</span>
 
 </div>
@@ -559,13 +559,13 @@
 <span class="sd">        print(ut.doctest_repr(qfx2_normnid, &#39;qfx2_normnid&#39;, verbose=False))</span>
 <span class="sd">        print(ut.doctest_repr(qfx2_topnid, &#39;qfx2_topnid&#39;, verbose=False))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># TODO?: warn if any([np.any(flags) for flags in qfx2_invalid]), (</span>
-    <span class="c">#    &#39;Normalizers are potential matches. Increase Knorm&#39;)</span>
+    <span class="c1"># TODO?: warn if any([np.any(flags) for flags in qfx2_invalid]), (</span>
+    <span class="c1">#    &#39;Normalizers are potential matches. Increase Knorm&#39;)</span>
     <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="o">.</span><span class="n">reduce</span><span class="p">([</span><span class="n">col1</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">]</span> <span class="o">!=</span> <span class="n">qfx2_normnid</span>
                                         <span class="k">for</span> <span class="n">col1</span> <span class="ow">in</span> <span class="n">qfx2_topnid</span><span class="o">.</span><span class="n">T</span><span class="p">])</span>
-    <span class="c"># Mark self as invalid, if given that information</span>
+    <span class="c1"># Mark self as invalid, if given that information</span>
     <span class="n">qfx2_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">qfx2_normnid</span> <span class="o">!=</span> <span class="n">qnid</span><span class="p">,</span> <span class="n">qfx2_valid</span><span class="p">)</span>
-    <span class="c"># For each query feature find its best normalizer (using negative indices)</span>
+    <span class="c1"># For each query feature find its best normalizer (using negative indices)</span>
     <span class="n">Knorm</span> <span class="o">=</span> <span class="n">qfx2_normnid</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">qfx2_validxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">normrow</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">normrow</span> <span class="ow">in</span> <span class="n">qfx2_valid</span><span class="p">]</span>
     <span class="n">qfx2_selnorm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">validxs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">Knorm</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">validxs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
@@ -724,7 +724,7 @@
 <span class="sd">                  [ 0.77,  0.77,  0.77]])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">ndist</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">vdist</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
-    <span class="c">#return ndist[None, 0:1]</span>
+    <span class="c1">#return ndist[None, 0:1]</span>
 
 </div>
 <div class="viewcode-block" id="testdata_vn_dists"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.nn_weights.testdata_vn_dists">[docs]</a><span class="k">def</span> <span class="nf">testdata_vn_dists</span><span class="p">(</span><span class="n">nfeats</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
@@ -759,7 +759,7 @@
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">vdist</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nfeats</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
     <span class="n">ndist</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nfeats</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="c"># Ensure distance increases</span>
+    <span class="c1"># Ensure distance increases</span>
     <span class="n">vdist</span> <span class="o">=</span> <span class="n">vdist</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">ndist</span> <span class="o">=</span> <span class="p">(</span><span class="n">ndist</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">vdist</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
     <span class="n">Z</span> <span class="o">=</span> <span class="n">ndist</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
@@ -769,25 +769,25 @@
     <span class="k">return</span> <span class="n">vdist</span><span class="p">,</span> <span class="n">ndist</span>
 
 
-<span class="c">#@_register_nn_normalized_weight_func</span>
-<span class="c">#def dist_fn(vdist, ndist):</span>
-<span class="c">#    &quot;&quot;&quot; the euclidian distance between the features &quot;&quot;&quot;</span>
-<span class="c">#    return vdist</span>
+<span class="c1">#@_register_nn_normalized_weight_func</span>
+<span class="c1">#def dist_fn(vdist, ndist):</span>
+<span class="c1">#    &quot;&quot;&quot; the euclidian distance between the features &quot;&quot;&quot;</span>
+<span class="c1">#    return vdist</span>
 
 
-<span class="c">#@_register_nn_simple_weight_func</span></div>
+<span class="c1">#@_register_nn_simple_weight_func</span></div>
 <div class="viewcode-block" id="gravity_match_weighter"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.nn_weights.gravity_match_weighter">[docs]</a><span class="k">def</span> <span class="nf">gravity_match_weighter</span><span class="p">(</span><span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">):</span>
-    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s">&#39;have not finished gv weighting&#39;</span><span class="p">)</span>
-    <span class="c">#qfx2_nnkpts = qreq_.indexer.get_nn_kpts(qfx2_nnidx)</span>
-    <span class="c">#qfx2_nnori = ktool.get_oris(qfx2_nnkpts)</span>
-    <span class="c">#qfx2_kpts  = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_internal_query_config2())  # FIXME: Highly inefficient</span>
-    <span class="c">#qfx2_oris  = ktool.get_oris(qfx2_kpts)</span>
-    <span class="c">## Get the orientation distance</span>
-    <span class="c">#qfx2_oridist = vt.rowwise_oridist(qfx2_nnori, qfx2_oris)</span>
-    <span class="c">## Normalize into a weight (close orientations are 1, far are 0)</span>
-    <span class="c">#qfx2_gvweight = (TAU - qfx2_oridist) / TAU</span>
-    <span class="c">## Apply gravity vector weight to the score</span>
-    <span class="c">#qfx2_score *= qfx2_gvweight</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;have not finished gv weighting&#39;</span><span class="p">)</span>
+    <span class="c1">#qfx2_nnkpts = qreq_.indexer.get_nn_kpts(qfx2_nnidx)</span>
+    <span class="c1">#qfx2_nnori = ktool.get_oris(qfx2_nnkpts)</span>
+    <span class="c1">#qfx2_kpts  = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_internal_query_config2())  # FIXME: Highly inefficient</span>
+    <span class="c1">#qfx2_oris  = ktool.get_oris(qfx2_kpts)</span>
+    <span class="c1">## Get the orientation distance</span>
+    <span class="c1">#qfx2_oridist = vt.rowwise_oridist(qfx2_nnori, qfx2_oris)</span>
+    <span class="c1">## Normalize into a weight (close orientations are 1, far are 0)</span>
+    <span class="c1">#qfx2_gvweight = (TAU - qfx2_oridist) / TAU</span>
+    <span class="c1">## Apply gravity vector weight to the score</span>
+    <span class="c1">#qfx2_score *= qfx2_gvweight</span>
 
 </div>
 <div class="viewcode-block" id="test_all_normalized_weights"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.nn_weights.test_all_normalized_weights">[docs]</a><span class="k">def</span> <span class="nf">test_all_normalized_weights</span><span class="p">():</span>
@@ -802,43 +802,43 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">ibeis.algo.hots</span> <span class="kn">import</span> <span class="n">nn_weights</span>
     <span class="kn">import</span> <span class="nn">six</span>
-    <span class="c">#ibs, qreq_, nns_list, nnvalid0_list = plh.testdata_pre_weight_neighbors()</span>
+    <span class="c1">#ibs, qreq_, nns_list, nnvalid0_list = plh.testdata_pre_weight_neighbors()</span>
 
-    <span class="n">qreq_</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testdata_pre</span><span class="p">(</span><span class="s">&#39;weight_neighbors&#39;</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="s">&#39;testdb1&#39;</span><span class="p">,</span>
-                                    <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default:qindex=0:1,dindex=0:5,hackerrors=False&#39;</span><span class="p">],</span>
-                                    <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;default:codename=vsmany,bar_l2_on=True,fg_on=False&#39;</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">qreq_</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">plh</span><span class="o">.</span><span class="n">testdata_pre</span><span class="p">(</span><span class="s1">&#39;weight_neighbors&#39;</span><span class="p">,</span> <span class="n">defaultdb</span><span class="o">=</span><span class="s1">&#39;testdb1&#39;</span><span class="p">,</span>
+                                    <span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default:qindex=0:1,dindex=0:5,hackerrors=False&#39;</span><span class="p">],</span>
+                                    <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default:codename=vsmany,bar_l2_on=True,fg_on=False&#39;</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">nns_list</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">nns_list</span>
     <span class="n">nnvalid0_list</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">nnvalid0_list</span>
     <span class="n">qaid</span> <span class="o">=</span> <span class="n">qreq_</span><span class="o">.</span><span class="n">get_external_qaids</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">test_weight_fn</span><span class="p">(</span><span class="n">nn_weight</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">):</span>
-        <span class="n">normweight_fn</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">nn_weight</span> <span class="o">+</span> <span class="s">&#39;_fn&#39;</span><span class="p">]</span>
+        <span class="n">normweight_fn</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">nn_weight</span> <span class="o">+</span> <span class="s1">&#39;_fn&#39;</span><span class="p">]</span>
         <span class="n">weight_list1</span><span class="p">,</span> <span class="n">nomx_list1</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">nn_normalized_weight</span><span class="p">(</span><span class="n">normweight_fn</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">weights1</span> <span class="o">=</span> <span class="n">weight_list1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="c">#---</span>
-        <span class="c"># test NN_WEIGHT_FUNC_DICT</span>
-        <span class="c">#---</span>
+        <span class="c1">#---</span>
+        <span class="c1"># test NN_WEIGHT_FUNC_DICT</span>
+        <span class="c1">#---</span>
         <span class="n">nn_normonly_weight</span> <span class="o">=</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">[</span><span class="n">nn_weight</span><span class="p">]</span>
         <span class="n">weight_list2</span><span class="p">,</span> <span class="n">nomx_list2</span> <span class="o">=</span> <span class="n">nn_normonly_weight</span><span class="p">(</span><span class="n">nns_list</span><span class="p">,</span> <span class="n">nnvalid0_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">)</span>
         <span class="n">weights2</span> <span class="o">=</span> <span class="n">weight_list2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">weights1</span> <span class="o">==</span> <span class="n">weights2</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">nn_weight</span> <span class="o">+</span> <span class="s">&#39; passed&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">nn_weight</span> <span class="o">+</span> <span class="s1">&#39; passed&#39;</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">nn_weight</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">(</span><span class="n">nn_weights</span><span class="o">.</span><span class="n">NN_WEIGHT_FUNC_DICT</span><span class="p">):</span>
-        <span class="n">normweight_key</span> <span class="o">=</span> <span class="n">nn_weight</span> <span class="o">+</span> <span class="s">&#39;_fn&#39;</span>
+        <span class="n">normweight_key</span> <span class="o">=</span> <span class="n">nn_weight</span> <span class="o">+</span> <span class="s1">&#39;_fn&#39;</span>
         <span class="k">if</span> <span class="n">normweight_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nn_weights</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="n">test_weight_fn</span><span class="p">(</span><span class="n">nn_weight</span><span class="p">,</span> <span class="n">nns_list</span><span class="p">,</span> <span class="n">qreq_</span><span class="p">,</span> <span class="n">qaid</span><span class="p">)</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    python -m ibeis.algo.hots.nn_weights --allexamples</span>
 <span class="sd">    python -m ibeis.algo.hots.nn_weights</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">multiprocessing</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">freeze_support</span><span class="p">()</span>
-    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>  <span class="c1"># NOQA</span>
     <span class="n">ut</span><span class="o">.</span><span class="n">doctest_funcs</span><span class="p">()</span>
 </pre></div>
 
@@ -873,7 +873,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

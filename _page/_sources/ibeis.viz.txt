@@ -11,6 +11,14 @@ Subpackages
 Submodules
 ----------
 
+ibeis.viz._grave module
+-----------------------
+
+.. automodule:: ibeis.viz._grave
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.viz.viz_chip module
 -------------------------
 
@@ -75,6 +83,14 @@ ibeis.viz.viz_nearest_descriptors module
     :undoc-members:
     :show-inheritance:
 
+ibeis.viz.viz_other module
+--------------------------
+
+.. automodule:: ibeis.viz.viz_other
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.viz.viz_qres module
 -------------------------
 
@@ -87,6 +103,14 @@ ibeis.viz.viz_sver module
 -------------------------
 
 .. automodule:: ibeis.viz.viz_sver
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.viz.viz_tmp module
+------------------------
+
+.. automodule:: ibeis.viz.viz_tmp
     :members:
     :undoc-members:
     :show-inheritance:

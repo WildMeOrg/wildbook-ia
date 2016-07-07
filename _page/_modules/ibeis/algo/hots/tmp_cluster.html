@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.hots.tmp_cluster &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.hots.tmp_cluster &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.hots" href="../hots.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.hots.tmp_cluster</h1><div class="highlight"><pre>
-<div class="viewcode-block" id="flow"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.tmp_cluster.flow">[docs]</a><span class="k">def</span> <span class="nf">flow</span><span class="p">():</span>
+<div class="viewcode-block" id="flow"><a class="viewcode-back" href="../../../../ibeis.algo.hots.html#ibeis.algo.hots.tmp_cluster.flow">[docs]</a><span></span><span class="k">def</span> <span class="nf">flow</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    http://pmneila.github.io/PyMaxflow/maxflow.html#maxflow-fastmin</span>
 
@@ -141,12 +141,12 @@
 <span class="sd">    pip install pystruct</span>
 <span class="sd">    pip install hdbscan</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c"># Toy problem representing attempting to discover names via annotation</span>
-    <span class="c"># scores</span>
+    <span class="c1"># Toy problem representing attempting to discover names via annotation</span>
+    <span class="c1"># scores</span>
 
-    <span class="kn">import</span> <span class="nn">pystruct</span>  <span class="c"># NOQA</span>
-    <span class="kn">import</span> <span class="nn">pystruct.models</span>  <span class="c"># NOQA</span>
-    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">netx</span>  <span class="c"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">pystruct</span>  <span class="c1"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">pystruct.models</span>  <span class="c1"># NOQA</span>
+    <span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">netx</span>  <span class="c1"># NOQA</span>
 
     <span class="kn">import</span> <span class="nn">vtool</span> <span class="kn">as</span> <span class="nn">vt</span>
     <span class="n">num_annots</span> <span class="o">=</span> <span class="mi">10</span>
@@ -155,8 +155,8 @@
     <span class="n">unique_nids</span><span class="p">,</span> <span class="n">groupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">hidden_nids</span><span class="p">)</span>
 
     <span class="n">toy_params</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">:</span> <span class="mf">2.2</span><span class="p">},</span>
-        <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">7.0</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}</span>
+        <span class="bp">True</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="mf">2.2</span><span class="p">},</span>
+        <span class="bp">False</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">7.0</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="o">.</span><span class="mi">9</span><span class="p">}</span>
     <span class="p">}</span>
 
     <span class="k">if</span> <span class="bp">True</span><span class="p">:</span>
@@ -164,14 +164,14 @@
         <span class="n">xdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
         <span class="n">tp_pdf</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">gauss_func1d</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="o">**</span><span class="n">toy_params</span><span class="p">[</span><span class="bp">True</span><span class="p">])</span>
         <span class="n">fp_pdf</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">gauss_func1d</span><span class="p">(</span><span class="n">xdata</span><span class="p">,</span> <span class="o">**</span><span class="n">toy_params</span><span class="p">[</span><span class="bp">False</span><span class="p">])</span>
-        <span class="n">pt</span><span class="o">.</span><span class="n">plot_probabilities</span><span class="p">([</span><span class="n">tp_pdf</span><span class="p">,</span> <span class="n">fp_pdf</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;TP&#39;</span><span class="p">,</span> <span class="s">&#39;TF&#39;</span><span class="p">],</span> <span class="n">xdata</span><span class="o">=</span><span class="n">xdata</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">.</span><span class="n">plot_probabilities</span><span class="p">([</span><span class="n">tp_pdf</span><span class="p">,</span> <span class="n">fp_pdf</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;TP&#39;</span><span class="p">,</span> <span class="s1">&#39;TF&#39;</span><span class="p">],</span> <span class="n">xdata</span><span class="o">=</span><span class="n">xdata</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">metric</span><span class="p">(</span><span class="n">aidx1</span><span class="p">,</span> <span class="n">aidx2</span><span class="p">,</span> <span class="n">hidden_nids</span><span class="o">=</span><span class="n">hidden_nids</span><span class="p">,</span> <span class="n">toy_params</span><span class="o">=</span><span class="n">toy_params</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">aidx1</span> <span class="o">==</span> <span class="n">aidx2</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">0</span>
         <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">aidx1</span> <span class="o">+</span> <span class="n">aidx2</span><span class="p">))</span>
         <span class="n">same</span> <span class="o">=</span> <span class="n">hidden_nids</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">aidx1</span><span class="p">)]</span> <span class="o">==</span> <span class="n">hidden_nids</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">aidx2</span><span class="p">)]</span>
-        <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">toy_params</span><span class="p">[</span><span class="n">same</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;mu&#39;</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">])</span>
+        <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_take</span><span class="p">(</span><span class="n">toy_params</span><span class="p">[</span><span class="n">same</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
 
     <span class="n">pairwise_aidxs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">iprod</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_annots</span><span class="p">)))</span>
@@ -181,12 +181,12 @@
     <span class="k">if</span> <span class="n">num_annots</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">:</span>
         <span class="k">print</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">repr2</span><span class="p">(</span><span class="n">pairwise_scores_mat</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
-    <span class="c">#aids = list(range(num_annots))</span>
-    <span class="c">#g = netx.DiGraph()</span>
-    <span class="c">#g.add_nodes_from(aids)</span>
-    <span class="c">#g.add_edges_from([(tup[0], tup[1], {&#39;weight&#39;: score}) for tup, score in zip(pairwise_aidxs, pairwise_scores) if tup[0] != tup[1]])</span>
-    <span class="c">#netx.draw_graphviz(g)</span>
-    <span class="c">#pr = netx.pagerank(g)</span>
+    <span class="c1">#aids = list(range(num_annots))</span>
+    <span class="c1">#g = netx.DiGraph()</span>
+    <span class="c1">#g.add_nodes_from(aids)</span>
+    <span class="c1">#g.add_edges_from([(tup[0], tup[1], {&#39;weight&#39;: score}) for tup, score in zip(pairwise_aidxs, pairwise_scores) if tup[0] != tup[1]])</span>
+    <span class="c1">#netx.draw_graphviz(g)</span>
+    <span class="c1">#pr = netx.pagerank(g)</span>
 
     <span class="n">X</span> <span class="o">=</span> <span class="n">pairwise_scores</span>
     <span class="n">Y</span> <span class="o">=</span> <span class="n">pairwise_labels</span>
@@ -195,12 +195,12 @@
     <span class="n">encoder</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
     <span class="n">encoder</span><span class="o">.</span><span class="n">visualize</span><span class="p">()</span>
 
-    <span class="c"># meanshift clustering</span>
+    <span class="c1"># meanshift clustering</span>
     <span class="kn">import</span> <span class="nn">sklearn</span>
-    <span class="n">bandwidth</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">estimate_bandwidth</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">])</span>  <span class="c"># , quantile=quantile, n_samples=500)</span>
-    <span class="k">assert</span> <span class="n">bandwidth</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;bandwidth is 0. Cannot cluster&#39;</span><span class="p">)</span>
-    <span class="c"># bandwidth is with respect to the RBF used in clustering</span>
-    <span class="c">#ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)</span>
+    <span class="n">bandwidth</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">estimate_bandwidth</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">])</span>  <span class="c1"># , quantile=quantile, n_samples=500)</span>
+    <span class="k">assert</span> <span class="n">bandwidth</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;bandwidth is 0. Cannot cluster&#39;</span><span class="p">)</span>
+    <span class="c1"># bandwidth is with respect to the RBF used in clustering</span>
+    <span class="c1">#ms = sklearn.cluster.MeanShift(bandwidth=bandwidth, bin_seeding=True, cluster_all=True)</span>
     <span class="n">ms</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">cluster</span><span class="o">.</span><span class="n">MeanShift</span><span class="p">(</span><span class="n">bandwidth</span><span class="o">=</span><span class="n">bandwidth</span><span class="p">,</span> <span class="n">bin_seeding</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">cluster_all</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">ms</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">])</span>
     <span class="n">label_arr</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">labels_</span>
@@ -211,13 +211,13 @@
 
     <span class="n">X_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_annots</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
 
-    <span class="c">#graph = pystruct.models.GraphCRF(</span>
-    <span class="c">#    n_states=None,</span>
-    <span class="c">#    n_features=None,</span>
-    <span class="c">#    inference_method=&#39;lp&#39;,</span>
-    <span class="c">#    class_weight=None,</span>
-    <span class="c">#    directed=False,</span>
-    <span class="c">#)</span>
+    <span class="c1">#graph = pystruct.models.GraphCRF(</span>
+    <span class="c1">#    n_states=None,</span>
+    <span class="c1">#    n_features=None,</span>
+    <span class="c1">#    inference_method=&#39;lp&#39;,</span>
+    <span class="c1">#    class_weight=None,</span>
+    <span class="c1">#    directed=False,</span>
+    <span class="c1">#)</span>
 
     <span class="kn">import</span> <span class="nn">scipy</span>
     <span class="kn">import</span> <span class="nn">scipy.cluster</span>
@@ -228,11 +228,11 @@
     <span class="n">unique_lbls</span><span class="p">,</span> <span class="n">lblgroupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">groupxs</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">lblgroupxs</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;groupdiff = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">compare_groupings</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;common groups = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">find_grouping_consistencies</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
-    <span class="c">#X_data, seconds_thresh, criterion=&#39;distance&#39;)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;groupdiff = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">compare_groupings</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;common groups = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">find_grouping_consistencies</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
+    <span class="c1">#X_data, seconds_thresh, criterion=&#39;distance&#39;)</span>
 
-    <span class="c">#help(hdbscan.HDBSCAN)</span>
+    <span class="c1">#help(hdbscan.HDBSCAN)</span>
 
     <span class="kn">import</span> <span class="nn">hdbscan</span>
     <span class="n">alg</span> <span class="o">=</span> <span class="n">hdbscan</span><span class="o">.</span><span class="n">HDBSCAN</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span> <span class="n">min_cluster_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">gen_min_span_tree</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_samples</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -241,33 +241,33 @@
     <span class="n">unique_lbls</span><span class="p">,</span> <span class="n">lblgroupxs</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">group_indices</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">groupxs</span><span class="p">)</span>
     <span class="k">print</span><span class="p">(</span><span class="n">lblgroupxs</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;groupdiff = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">compare_groupings</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;common groups = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">find_grouping_consistencies</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;groupdiff = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">compare_groupings</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;common groups = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">find_grouping_consistencies</span><span class="p">(</span><span class="n">groupxs</span><span class="p">,</span> <span class="n">lblgroupxs</span><span class="p">),))</span>
 
-    <span class="c">#import ddbscan</span>
-    <span class="c">#help(ddbscan.DDBSCAN)</span>
-    <span class="c">#alg = ddbscan.DDBSCAN(2, 2)</span>
+    <span class="c1">#import ddbscan</span>
+    <span class="c1">#help(ddbscan.DDBSCAN)</span>
+    <span class="c1">#alg = ddbscan.DDBSCAN(2, 2)</span>
 
-    <span class="c">#D = np.zeros((len(aids), len(aids) + 1))</span>
-    <span class="c">#D.T[-1] = np.arange(len(aids))</span>
+    <span class="c1">#D = np.zeros((len(aids), len(aids) + 1))</span>
+    <span class="c1">#D.T[-1] = np.arange(len(aids))</span>
 
-    <span class="c">## Can alpha-expansion be used when the pairwise potentials are not in a grid?</span>
+    <span class="c1">## Can alpha-expansion be used when the pairwise potentials are not in a grid?</span>
 
-    <span class="c">#hidden_ut.group_items(aids, hidden_nids)</span>
+    <span class="c1">#hidden_ut.group_items(aids, hidden_nids)</span>
     <span class="k">if</span> <span class="bp">False</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">maxflow</span>
-        <span class="c">#from maxflow import fastmin</span>
-        <span class="c"># Create a graph with integer capacities.</span>
+        <span class="c1">#from maxflow import fastmin</span>
+        <span class="c1"># Create a graph with integer capacities.</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">maxflow</span><span class="o">.</span><span class="n">Graph</span><span class="p">[</span><span class="nb">int</span><span class="p">](</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="c"># Add two (non-terminal) nodes. Get the index to the first one.</span>
+        <span class="c1"># Add two (non-terminal) nodes. Get the index to the first one.</span>
         <span class="n">nodes</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-        <span class="c"># Create two edges (forwards and backwards) with the given capacities.</span>
-        <span class="c"># The indices of the nodes are always consecutive.</span>
+        <span class="c1"># Create two edges (forwards and backwards) with the given capacities.</span>
+        <span class="c1"># The indices of the nodes are always consecutive.</span>
         <span class="n">g</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="c"># Set the capacities of the terminal edges...</span>
-        <span class="c"># ...for the first node.</span>
+        <span class="c1"># Set the capacities of the terminal edges...</span>
+        <span class="c1"># ...for the first node.</span>
         <span class="n">g</span><span class="o">.</span><span class="n">add_tedge</span><span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
-        <span class="c"># ...for the second node.</span>
+        <span class="c1"># ...for the second node.</span>
         <span class="n">g</span><span class="o">.</span><span class="n">add_tedge</span><span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">maxflow</span><span class="o">.</span><span class="n">Graph</span><span class="p">[</span><span class="nb">float</span><span class="p">](</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">g</span><span class="o">.</span><span class="n">maxflow</span><span class="p">()</span>
@@ -306,7 +306,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

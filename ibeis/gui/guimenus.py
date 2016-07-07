@@ -126,18 +126,6 @@ def setup_file_menu(mainwin, back):
 def setup_view_menu(mainwin, back):
     mainwin.menuView = guitool.newMenu(mainwin, mainwin.menubar, 'menuView', 'View')
     menu = mainwin.menuView
-    #mainwin.menuActions.addSeparator()
-    #mainwin.menuActions.addSeparator()
-    #mainwin.menuActions.newAction(
-    #    name='actionNext',
-    #    text='Select Next',
-    #    shortcut='Ctrl+N',
-    #    slot_fn=back.select_next)
-    #mainwin.menuActions.newAction(
-    #    name='actionPrev',
-    #    text='Select Previous',
-    #    shortcut='Ctrl+P',
-    #    slot_fn=back.select_prev)
     menu.addSeparator()
     menu.newAction(
         name='actionExpandNamesTree',
@@ -165,13 +153,13 @@ def setup_actions_menu(mainwin, back):
         name='actionCompute_Occurrences',
         text='Group Occurrences',
         #shortcut='Ctrl+2',
-        slot_fn=back.compute_occurrences)
+        slot_fn=back.do_group_occurrence_step)
     menu.addSeparator()  # ---------
     menu.newAction(
         name='actionDetect',
         text='Run Detection',
         #shortcut='Ctrl+3',
-        slot_fn=back.run_detection)
+        slot_fn=back.run_detection_step)
     menu.addSeparator()  # ---------
     menu.newAction(
         name='actionQuery',
@@ -537,10 +525,10 @@ def setup_depricated_menu(mainwin, back):
     #    #shortcut='Ctrl+4',
     #    slot_fn=back.compute_queries)
     menu.addSeparator()  # ---------
-    menu.newAction(
-        text='Query: Incremental',
-        slot_fn=back.incremental_query
-    )
+    # menu.newAction(
+    #     text='Query: Incremental',
+    #     slot_fn=back.incremental_query
+    # )
     menu.newAction(
         text='Import Cropped Images As Annotations (select file(s))',
         slot_fn=back.import_images_as_annots_from_file)
@@ -549,9 +537,6 @@ def setup_depricated_menu(mainwin, back):
         text='Developer Reload',
         shortcut='Ctrl+Shift+R',
         slot_fn=back.dev_reload)
-    menu.newAction(
-        text='Reviewed All Occurrence Images',
-        slot_fn=back.imageset_reviewed_all_images)
 
 if __name__ == '__main__':
     """

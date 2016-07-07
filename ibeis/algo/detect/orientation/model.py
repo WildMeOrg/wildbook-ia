@@ -294,14 +294,14 @@ class Orientation_Model(JPCNN_Default_Model):
             l_pool12,
             num_units=256,
             nonlinearity=_lasagne.nonlinearities.rectify,
-            W=_lasagne.init.Orthogonal('relu'),
+            # W=_lasagne.init.Orthogonal('relu'),
         )
 
         l_hidden2 = _lasagne.layers.DenseLayer(
             l_hidden1,
             num_units=256,
             nonlinearity=_lasagne.nonlinearities.rectify,
-            W=_lasagne.init.Orthogonal('relu'),
+            # W=_lasagne.init.Orthogonal('relu'),
         )
 
         l_out = _lasagne.layers.DenseLayer(
@@ -311,7 +311,7 @@ class Orientation_Model(JPCNN_Default_Model):
             # nonlinearity=_lasagne.nonlinearities.sigmoid,
             # nonlinearity=clipped_linear,
             nonlinearity=modded_linear,
-            W=_lasagne.init.Orthogonal(1.0),
+            # W=_lasagne.init.Orthogonal(1.0),
         )
 
         return l_out

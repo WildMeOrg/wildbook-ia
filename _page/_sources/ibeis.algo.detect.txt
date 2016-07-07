@@ -1,6 +1,16 @@
 ibeis.algo.detect package
 =========================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    ibeis.algo.detect.background
+    ibeis.algo.detect.classifier
+    ibeis.algo.detect.labeler
+    ibeis.algo.detect.orientation
+
 Submodules
 ----------
 

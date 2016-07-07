@@ -143,6 +143,7 @@ def get_dbinfo(ibs, verbose=True,
 
     # Basic variables
     request_annot_subset = False
+    _input_aid_list = aid_list  # NOQA
     if aid_list is None:
         valid_aids = ibs.get_valid_aids()
         valid_nids = ibs.get_valid_nids()
@@ -224,13 +225,15 @@ def get_dbinfo(ibs, verbose=True,
         occurid2_aids = {oid: ut.flatten(ut.take(gid2_aids, gids)) for oid, gids in occurid2_gids.items()}
         return occurid2_aids
 
-    occurid2_aids = compute_annot_occurrence_ids(ibs, aid_list)
-    occur_nids = ibs.unflat_map(ibs.get_annot_nids, occurid2_aids.values())
-    occur_unique_nids = [ut.unique(nids) for nids in occur_nids]
-    nid2_occurxs = ut.ddict(list)
-    for occurx, nids in enumerate(occur_unique_nids):
-        for nid in nids:
-            nid2_occurxs[nid].append(occurx)
+    import utool
+    with utool.embed_on_exception_context:
+        occurid2_aids = compute_annot_occurrence_ids(ibs, valid_aids)
+        occur_nids = ibs.unflat_map(ibs.get_annot_nids, occurid2_aids.values())
+        occur_unique_nids = [ut.unique(nids) for nids in occur_nids]
+        nid2_occurxs = ut.ddict(list)
+        for occurx, nids in enumerate(occur_unique_nids):
+            for nid in nids:
+                nid2_occurxs[nid].append(occurx)
 
     nid2_occurx_single = {nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) <= 1}
     nid2_occurx_resight = {nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) > 1}

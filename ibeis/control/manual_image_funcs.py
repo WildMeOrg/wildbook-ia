@@ -29,6 +29,8 @@ from ibeis.web import routes_ajax
 print, rrr, profile = ut.inject2(__name__, '[manual_image]')
 
 
+DEBUG_THUMB = False
+
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
@@ -746,10 +748,10 @@ def get_images(ibs, gid_list, force_orient=False, **kwargs):
         (715, 1047, 3)
     """
     orient_list = ibs.get_image_orientation(gid_list)
-    orient_list = [ orient if force_orient else False for orient in orient_list ]
+    orient_list = [orient if force_orient else False for orient in orient_list]
     gpath_list = ibs.get_image_paths(gid_list)
     zipped = zip(gpath_list, orient_list)
-    image_list = [ vt.imread(gpath, orient=orient) for gpath, orient in zipped ]
+    image_list = [vt.imread(gpath, orient=orient) for gpath, orient in zipped]
     return image_list
 
 
@@ -765,6 +767,8 @@ def get_image_thumbtup(ibs, gid_list, **kwargs):
         Method: GET
         URL:    /api/image/thumbtup/
     """
+    if DEBUG_THUMB:
+        print('{TUPPLE} get thumbtup kwargs = %r' % (kwargs,))
     # print('gid_list = %r' % (gid_list,))
     aids_list = ibs.get_image_aids(gid_list)
     bboxes_list = ibs.unflat_map(ibs.get_annot_bboxes, aids_list)
@@ -777,13 +781,15 @@ def get_image_thumbtup(ibs, gid_list, **kwargs):
         for thumb_path, img_path, img_size, bboxes, thetas in
         zip(thumb_gpaths, image_paths, gsize_list, bboxes_list, thetas_list)
     ]
+    # if DEBUG_THUMB:
+    #     print('{TUPPLE} get thumbtup_list = %r' % (thumbtup_list,))
     return thumbtup_list
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/image/thumbpath/', methods=['GET'])
-def get_image_thumbpath(ibs, gid_list, **config):
+def get_image_thumbpath(ibs, gid_list, ensure_paths=False, **config):
     r"""
     Returns:
         list_ (list): the thumbnail path of each gid
@@ -792,7 +798,10 @@ def get_image_thumbpath(ibs, gid_list, **config):
         Method: GET
         URL:    /api/image/thumbpath/
     """
-    print('get_image_thumbpath for %d gids' % (len(gid_list)))
+    if DEBUG_THUMB:
+        print('[GET} get_image_thumbpath for %d gids' % (len(gid_list)))
+        print('[GET} get thumbtup config = %r' % (config,))
+        print('[GET} get thumbtup ensure_paths = %r' % (ensure_paths,))
     #raise Exception("FOOBAR")
     depc = ibs.depc_image
     # Do not force computation just ask where the thumbs will go
@@ -803,12 +812,17 @@ def get_image_thumbpath(ibs, gid_list, **config):
     # FIXME: I think Qt will end up computing these thumbnails and writing them
     # to where the depcache expects them. I think the depcache will then
     # override them but this may cause unexpected results.
+    # FIXME: Thumbnails may have annotations drawn on them! This is not
+    # represented anywhere in the depcache.
     thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
-                               read_extern=False, ensure=False, hack_paths=True)
+                              read_extern=False, ensure=ensure_paths,
+                              hack_paths=not ensure_paths)
     #except dtool.ExternalStorageException:
     #    # TODO; this check might go in dtool itself
     #    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
     #                               read_extern=False)
+    if DEBUG_THUMB:
+        print('[GET} thumbpath_list = %r' % (thumbpath_list,))
     return thumbpath_list
 
 
@@ -1697,7 +1711,8 @@ def delete_image_thumbs(ibs, gid_list, **config2_):
         >>> gid_list = ibs.add_images(gpath_list)
         >>> bbox_list = [(0, 0, 100, 100)] * len(gid_list)
         >>> name_list = ['a', 'b', 'a', 'd']
-        >>> aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
+        >>> aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list,
+        >>>                           name_list=name_list)
         >>> assert len(aid_list) != 0, "No annotations added"
         >>> thumbpath_list = ibs.get_image_thumbpath(gid_list)
         >>> gpath_list = ibs.get_image_paths(gid_list)
@@ -1709,7 +1724,23 @@ def delete_image_thumbs(ibs, gid_list, **config2_):
         >>> for path in gpath_list:
         >>>     utool.assertpath(path)
     """
-    ibs.depc_image.delete_property('thumbnails', gid_list, config=config2_)
+    if ut.NOT_QUIET:
+        print('[ibs] deleting %d image thumbnails' % len(gid_list))
+        if DEBUG_THUMB:
+            print('{THUMB DELETE} config2_ = %r' % (config2_,))
+    num_deleted = ibs.depc_image.delete_property('thumbnails', gid_list,
+                                                 config=config2_)
+
+    # HACK: Remove paths computed by QT and not the depcache.
+    thumbpath_list = ibs.get_image_thumbpath(gid_list, **config2_)
+    print('thumbpath_list = %r' % (thumbpath_list,))
+    #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='image_thumbs')
+    ut.remove_existing_fpaths(thumbpath_list, quiet=True,
+                              lbl='image_thumbs')
+
+    if DEBUG_THUMB:
+        print('num_deleted = %r' % (num_deleted,))
+        print('{THUMB DELETE} DONE DELETE')
 
 
 @register_ibs_method

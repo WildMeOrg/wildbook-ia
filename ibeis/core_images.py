@@ -249,6 +249,9 @@ def compute_localizations(depc, gid_list, config=None):
     CommandLine:
         ibeis compute_localizations
 
+    CommandLine:
+        python -m ibeis.core_images compute_localizations --show
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
@@ -257,7 +260,7 @@ def compute_localizations(depc, gid_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
-        >>> gid_list = ibs.get_valid_gids()[0:8]
+        >>> gid_list = ibs.get_valid_gids()[0:1]
         >>> config = {'algo': 'yolo'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
@@ -486,26 +489,30 @@ def compute_detections(depc, gid_list, config=None):
         >>> detects = depc.get_property('detections', gid_list, None)
         >>> print(detects)
     """
+    from ibeis.web.apis_detect import USE_LOCALIZATIONS
     print('[ibs] Preprocess Detections')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
 
-    # Filter the gids by annotations
-    prediction_list = depc.get_property('classifier', gid_list, 'class')
-    confidence_list = depc.get_property('classifier', gid_list, 'score')
-    confidence_list = [
-        confidence if prediction == 'positive' else 1.0 - confidence
-        for prediction, confidence  in zip(prediction_list, confidence_list)
-    ]
-    gid_list_ = [
-        gid
-        for gid, confidence in zip(gid_list, confidence_list)
-        if confidence >= config['classifier_sensitivity']
-    ]
-    gid_set_ = set(gid_list_)
+    if not USE_LOCALIZATIONS:
+        # Filter the gids by annotations
+        prediction_list = depc.get_property('classifier', gid_list, 'class')
+        confidence_list = depc.get_property('classifier', gid_list, 'score')
+        confidence_list = [
+            confidence if prediction == 'positive' else 1.0 - confidence
+            for prediction, confidence  in zip(prediction_list, confidence_list)
+        ]
+        gid_list_ = [
+            gid
+            for gid, confidence in zip(gid_list, confidence_list)
+            if confidence >= config['classifier_sensitivity']
+        ]
+    else:
+        gid_list_ = list(gid_list)
 
+    gid_set_ = set(gid_list_)
     # Get the localizations for the good gids and add formal annotations
     localizer_config = {
         'config_filepath' : config['localizer_config_filepath'],
@@ -516,10 +523,18 @@ def compute_detections(depc, gid_list, config=None):
     thetas_list  = depc.get_property('localizations', gid_list_, 'thetas',    config=localizer_config)
     confses_list = depc.get_property('localizations', gid_list_, 'confs',     config=localizer_config)
 
-    # depc.delete_property('labeler', gid_list_, config=localizer_config)
-    specieses_list     = depc.get_property('labeler', gid_list_, 'species',   config=localizer_config)
-    viewpoints_list    = depc.get_property('labeler', gid_list_, 'viewpoint', config=localizer_config)
-    scores_list        = depc.get_property('labeler', gid_list_, 'score',     config=localizer_config)
+    if not USE_LOCALIZATIONS:
+        # depc.delete_property('labeler', gid_list_, config=localizer_config)
+        specieses_list     = depc.get_property('labeler', gid_list_, 'species',   config=localizer_config)
+        viewpoints_list    = depc.get_property('labeler', gid_list_, 'viewpoint', config=localizer_config)
+        scores_list        = depc.get_property('labeler', gid_list_, 'score',     config=localizer_config)
+    else:
+        specieses_list     = depc.get_property('localizations', gid_list_, 'classes',   config=localizer_config)
+        viewpoints_list    = [
+            [-1] * len(bbox_list)
+            for bbox_list in bboxes_list
+        ]
+        scores_list        = depc.get_property('localizations', gid_list_, 'confs',     config=localizer_config)
 
     # Collect the detections, filtering by the localization confidence
     empty_list = [0.0, np.array([]), np.array([]), np.array([]), np.array([]), np.array([])]
@@ -543,7 +558,7 @@ def compute_detections(depc, gid_list, config=None):
         zipped = [
             [bbox, theta, species, viewpoint, conf * score]
             for bbox, theta, species, viewpoint, conf, score in zipped
-            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity']
+            if conf >= config['localizer_sensitivity'] and score >= config['labeler_sensitivity'] and max(bbox[2], bbox[3]) / min(bbox[2], bbox[3]) < 20.0
         ]
         if len(zipped) == 0:
             detect_list = list(empty_list)

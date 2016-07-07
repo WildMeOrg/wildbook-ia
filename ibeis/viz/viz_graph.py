@@ -99,10 +99,11 @@ def ensure_names_are_connected(graph, aids_list):
 
 
 def make_netx_graph_from_aid_groups(ibs, aids_list, only_reviewed_matches=True,
-                                    invis_edges=None, ensure_edges=None, temp_nids=None, allow_directed=False):
+                                    invis_edges=None, ensure_edges=None,
+                                    temp_nids=None, allow_directed=False):
     r"""
     Args:
-        ibs (ibeis.IBEISController):  image analysis api
+        ibs (ibeis.IBEISController): image analysis api
         aids_list (list):
 
     Example:
@@ -267,22 +268,29 @@ def augment_graph_mst(ibs, graph):
 
 
 def ensure_node_images(ibs, graph):
-    aid_list = sorted(list(graph.nodes()))
+    node_to_aid = nx.get_node_attributes(graph, 'aid')
+    node_list = sorted(list(graph.nodes()))
+    aid_list = [node_to_aid.get(node, node) for node in node_list]
+    #aid_list = sorted(list(graph.nodes()))
     imgpath_list = ibs.depc_annot.get_property('chips', aid_list, 'img',
                                                config=dict(dim_size=200),
                                                read_extern=False)
-    nx.set_node_attributes(graph, 'image', dict(zip(aid_list, imgpath_list)))
+    nx.set_node_attributes(graph, 'image', dict(zip(node_list, imgpath_list)))
+    if True:
+        nx.set_node_attributes(graph, 'shape', 'rect')
 
 
-def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
+def viz_netx_chipgraph(ibs, graph, fnum=None, use_image=False, layout=None,
                        zoom=None, prog='neato', as_directed=False,
-                       augment_graph=True, layoutkw=None, framewidth=True, **kwargs):
+                       augment_graph=True, layoutkw=None, framewidth=3.0, **kwargs):
     r"""
+    DEPRICATE or improve
+
     Args:
         ibs (IBEISController):  ibeis controller object
         graph (nx.DiGraph):
         fnum (int):  figure number(default = None)
-        with_images (bool): (default = False)
+        use_image (bool): (default = False)
         zoom (float): (default = 0.4)
 
     Returns:
@@ -292,8 +300,10 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
         python -m ibeis --tf viz_netx_chipgraph --show
 
     Cand:
-        ibeis review_tagged_joins --save figures4/mergecase.png --figsize=15,15 --clipwhite --diskshow
-        ibeis compute_occurrence_groups --save figures4/occurgraph.png --figsize=40,40 --clipwhite --diskshow
+        ibeis review_tagged_joins --save figures4/mergecase.png --figsize=15,15
+            --clipwhite --diskshow
+        ibeis compute_occurrence_groups --save figures4/occurgraph.png
+            --figsize=40,40 --clipwhite --diskshow
         ~/code/ibeis/ibeis/algo/preproc/preproc_occurrence.py
 
     Example:
@@ -303,7 +313,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> nid_list = ibs.get_valid_nids()[0:10]
         >>> fnum = None
-        >>> with_images = True
+        >>> use_image = True
         >>> zoom = 0.4
         >>> make_name_graph_interaction(ibs, nid_list, prog='neato')
         >>> ut.show_if_requested()
@@ -318,7 +328,7 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
         layout = 'agraph'
     print('layout = %r' % (layout,))
 
-    if with_images:
+    if use_image:
         ensure_node_images(ibs, graph)
     nx.set_node_attributes(graph, 'shape', 'rect')
 
@@ -334,34 +344,25 @@ def viz_netx_chipgraph(ibs, graph, fnum=None, with_images=False, layout=None,
                           ax=ax,
                           # img_dict=img_dict,
                           layout=layout,
-                          # hacknonode=bool(with_images),
+                          # hacknonode=bool(use_image),
                           layoutkw=layoutkw,
                           as_directed=as_directed,
                           framewidth=framewidth,
                           )
-
-    offset_img_list = []
-    if with_images:
-        offset_img_list = plotinfo['imgdat']['offset_img_list']
-        artist_list = plotinfo['imgdat']['artist_list']
-        aid_list_ = plotinfo['imgdat']['node_list']
-        for artist, aid in zip(artist_list, aid_list_):
-            pt.set_plotdat(artist, 'aid', aid)
-    # TODO; make part of interaction
-    pt.zoom_factory(ax, offset_img_list)
-    #pt.plt.tight_layout()
-    ax.autoscale()
     return plotinfo
 
 
 def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                                 with_all=True, invis_edges=None,
-                                ensure_edges=None, with_images=True,
+                                ensure_edges=None, use_image=True,
+                                split_check=None,
                                 temp_nids=None, **kwargs):
     """
     CommandLine:
         python -m ibeis --tf make_name_graph_interaction --db PZ_MTEST \
             --aids=1,2,3,4,5,6,7,8,9 --show
+
+        python -m ibeis --tf make_name_graph_interaction --db LEWA_splits --nids=1 --show --split
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -369,17 +370,38 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
         >>> import ibeis
         >>> import plottool as pt
         >>> exec(ut.execstr_funckw(make_name_graph_interaction), globals())
-        >>> aids = ut.get_argval('--aids', type_=list, default=None)
         >>> defaultdb='testdb1'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
-        >>> nids = None if aids is not None else ibs.get_valid_nids()[0:5]
+        >>> aids = ut.get_argval('--aids', type_=list, default=None)
+        >>> nids = ut.get_argval('--nids', type_=list, default=ibs.get_valid_nids()[0:5])
+        >>> nids = None if aids is not None else nids
         >>> with_all = not ut.get_argflag('--no-with-all')
         >>> make_name_graph_interaction(ibs, nids, aids, with_all=with_all)
+        >>> #pt.zoom_factory()
         >>> ut.show_if_requested()
     """
     import plottool as pt
     from plottool.abstract_interaction import AbstractInteraction
     print('aids = %r' % (aids,))
+
+    if split_check is None:
+        split_check = ut.get_argflag('--split')
+
+    def exec_split_check(ibs, aid_list):
+        cfgdict = {
+            'can_match_samename': True,
+            'K': 3,
+            'Knorm': 3,
+            'prescore_method': 'csum',
+            'score_method': 'csum'
+        }
+        qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
+        cm_list = qreq_.execute()
+        from ibeis.algo.hots import graph_iden
+        infr = graph_iden.AnnotInference(qreq_, cm_list)
+        infr.initialize_graph_and_model()
+        #print("BUILT SPLIT GRAPH")
+        return infr
 
     class NameGraphInteraction(AbstractInteraction):
         def __init__(self, ibs, nids=None, aids=None, selected_aids=[]):
@@ -388,8 +410,53 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
             self.selected_aids = selected_aids
             self._nids = nids if nids is not None else []
             self._aids = aids if aids is not None else []
-            self.with_images = with_images
+            self.use_image = use_image
             self._aids2 = None
+
+        def make_hud(self):
+            """ Creates heads up display """
+            import plottool as pt
+            hl_slot, hr_slot = pt.make_bbox_positioners(
+                y=.02, w=.10, h=.03, xpad=.05, startx=0, stopx=1)
+            # Create buttons
+            self.append_button('Auto Infer', callback=self.make_inference, rect=hl_slot(0))
+            self.append_button('Break', callback=self.break_links, rect=hl_slot(1))
+            self.append_button('Link', callback=self.make_links, rect=hl_slot(2))
+            self.append_button('Accept', callback=self.confirm, rect=hr_slot(0))
+            self.append_button('Deselect', callback=self.unselect_all, rect=hr_slot(1))
+            self.append_button('Show', callback=self.show_selected, rect=hr_slot(2))
+            #self.append_button(next_text, callback=next_callback, rect=next_rect)
+
+        def make_inference(self, event):
+            print('self.selected_aids = %r' % (self.selected_aids,))
+            self.infer_cut()
+            self.show_page()
+
+        def break_links(self, event):
+            print('self.selected_aids = %r' % (self.selected_aids,))
+
+        def make_links(self, event):
+            print('self.selected_aids = %r' % (self.selected_aids,))
+
+        def unselect_all(self, event):
+            print('self.selected_aids = %r' % (self.selected_aids,))
+            for aid in self.selected_aids[:]:
+                self.toggle_selected_aid(aid)
+
+        def confirm(self, event):
+            print('Not done yet')
+
+        def show_selected(self, event):
+            import plottool as pt
+            print('show_selected')
+            from ibeis.viz import viz_chip
+            fnum = pt.ensure_fnum(None)
+            print('fnum = %r' % (fnum,))
+            pt.figure(fnum=fnum)
+            viz_chip.show_many_chips(self.ibs, self.selected_aids)
+            pt.update()
+            #fig.canvas.update()
+            #pt.iup()
 
         def update_netx_graph(self):
             nids_list = []
@@ -405,55 +472,82 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
                 aids_list = ibs.get_name_aids(nids)
             else:
                 aids_list = ibs.group_annots_by_name(self._aids)[0]
-            self.graph = make_netx_graph_from_aid_groups(ibs, aids_list,
-                                                         invis_edges=invis_edges,
-                                                         ensure_edges=ensure_edges,
-                                                         temp_nids=temp_nids)
+
+            self.graph = make_netx_graph_from_aid_groups(
+                ibs, aids_list, invis_edges=invis_edges,
+                ensure_edges=ensure_edges, temp_nids=temp_nids)
+            aid_list = ut.flatten(aids_list)
+            if split_check:
+                self.infr = exec_split_check(ibs, aid_list)
+                ut.graph_info(self.graph, 1)
+                ut.graph_info(self.infr.model.graph, 1)
+                self._aids2 = sorted(list(self.graph.nodes()))
+                self.aid2_node = {key: val for val, key in enumerate(self._aids2)}
+                graph = self.infr.model.graph
+                node_to_aid = nx.get_node_attributes(graph, 'aid')
+            else:
+                graph = self.graph
+                node_to_aid = dict(zip(graph.nodes(), graph.nodes()))
+                #self._aids2 = sorted(list(self.graph.nodes()))
+                #self.aid2_node = {key: val for val, key in enumerate(self._aids2)}
+
+            node_list = sorted(list(graph.nodes()))
+            self._aids2 = [node_to_aid.get(node, node) for node in node_list]
+            self.aid2_node = dict(zip(self._aids2, node_list))
+            self.node2_aid = node_to_aid
+
+            #self.graph = make_netx_graph_from_aid_groups(
+            #    ibs, aids_list, invis_edges=invis_edges,
+            #    ensure_edges=ensure_edges, temp_nids=temp_nids)
+            pass
             # TODO: allow for a subset of grouped aids to be shown
             #self.graph = make_netx_graph_from_nids(ibs, nids)
-            self._aids2 = sorted(list(self.graph.nodes()))
-            self.aid2_index = {key: val for val, key in enumerate(self._aids2)}
 
         def plot(self, fnum, pnum):
-            from ibeis.viz.viz_graph import viz_netx_chipgraph
             self.update_netx_graph()
-            self.plotinfo = viz_netx_chipgraph(self.ibs, self.graph,
-                                               fnum=self.fnum,
-                                               with_images=self.with_images,
-                                               **kwargs)
-            self.ax = pt.gca()
+            #if split_check:
 
-            # FIXME: this doesn't work anymore
+            #{self.infr.model.graph}
+            if split_check:
+                layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
+                self.plotinfo = pt.show_nx(self.infr.model.graph,
+                                           as_directed=False, fnum=self.fnum,
+                                           layoutkw=layoutkw,
+                                           use_image=self.use_image, verbose=0)
+                #ax = pt.gca()
+                #pt.zoom_factory()
+            else:
+                self.plotinfo = viz_netx_chipgraph(self.ibs, self.graph,
+                                                   fnum=self.fnum,
+                                                   use_image=self.use_image,
+                                                   **kwargs)
+            ax = pt.gca()
+            self.enable_pan_and_zoom(ax)
+            ax.autoscale()
+
             for aid in self.selected_aids:
                 self.highlight_aid(aid)
-                pass
 
+            self.make_hud()
             #self.static_plot(fnum, pnum)
 
         def highlight_aid(self, aid, color=pt.ORANGE):
-            ax = self.ax
-            index = self.aid2_index[aid]
-            try:
-                artist = ax.artists[index]
-                import matplotlib as mpl
-                if isinstance(artist, mpl.patches.Rectangle):
-                    patch = artist
-                    patch.set_facecolor(color)
-                    patch.set_edgecolor(color)
-                else:
-                    artist.patch.set_facecolor(color)
-                    artist.patch.set_edgecolor(color)
-            except IndexError:
-                pass
+            node = self.aid2_node[aid]
+            #import utool
+            #utool.embed()
+            frame = self.plotinfo['patch_frame_dict'][node]
+            frame.set_facecolor(color)
+            frame.set_edgecolor(color)
 
         def toggle_images(self):
-            self.with_images = not self.with_images
+            self.use_image = not self.use_image
             self.show_page()
 
         def toggle_selected_aid(self, aid):
             if aid in self.selected_aids:
                 self.selected_aids.remove(aid)
-                self.highlight_aid(aid, pt.WHITE)
+                #self.highlight_aid(aid, pt.WHITE)
+                self.highlight_aid(aid, pt.DARK_BLUE)
             else:
                 self.selected_aids.append(aid)
                 self.highlight_aid(aid, pt.ORANGE)
@@ -494,8 +588,8 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
             #print(event.x)
             #print(event.y)
             pos = self.plotinfo['node']['pos']
-            aids = list(pos.keys())
-            pos_list = ut.dict_take(pos, aids)
+            nodes = list(pos.keys())
+            pos_list = ut.dict_take(pos, nodes)
 
             # TODO: FIXME
             #x = 10
@@ -505,8 +599,9 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
             point = np.array([x, y])
             pos_list = np.array(pos_list)
             index, dist = vt.closest_point(point, pos_list, distfunc=vt.L2)
-            print('dist = %r' % (dist,))
-            aid = aids[index]
+            #print('dist = %r' % (dist,))
+            node = nodes[index]
+            aid = self.node2_aid[node]
             context_shown = False
 
             CHECK_PAIR = True
@@ -526,8 +621,8 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
 
             SELECT_ANNOT = dist < 35
             if SELECT_ANNOT:
-                print(ut.obj_str(ibs.get_annot_info(aid, default=True,
-                                                    name=False, gname=False)))
+                #print(ut.obj_str(ibs.get_annot_info(aid, default=True,
+                #                                    name=False, gname=False)))
 
                 if self.event.button == 1:
                     self.toggle_selected_aid(aid)
@@ -554,6 +649,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
 
     self = NameGraphInteraction(ibs, nids, aids, selected_aids=selected_aids)
     self.show_page()
+    #self.make_hud()
     self.show()
 
     #ax = self.fig.axes[0]

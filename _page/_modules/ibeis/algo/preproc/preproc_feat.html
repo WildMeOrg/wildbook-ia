@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.algo.preproc.preproc_feat &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.algo.preproc.preproc_feat &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.algo.preproc" href="../preproc.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.algo.preproc.preproc_feat</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">Computes patch based features based on Hesaff, SIFT, or convnets.</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -142,12 +142,12 @@
 <span class="kn">import</span> <span class="nn">pyhesaff</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="c">#ut.noinject(&#39;[preproc_feat]&#39;)</span>
-<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[preproc_feat]&#39;</span><span class="p">)</span>
+<span class="c1">#ut.noinject(&#39;[preproc_feat]&#39;)</span>
+<span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[preproc_feat]&#39;</span><span class="p">)</span>
 
 
-<span class="c">#USE_OPENMP = not utool.WIN32</span>
-<span class="n">USE_OPENMP</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># do not use openmp until we have the gravity vector</span>
+<span class="c1">#USE_OPENMP = not utool.WIN32</span>
+<span class="n">USE_OPENMP</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c1"># do not use openmp until we have the gravity vector</span>
 
 
 <div class="viewcode-block" id="generate_feat_properties"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_feat.generate_feat_properties">[docs]</a><span class="k">def</span> <span class="nf">generate_feat_properties</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -248,23 +248,23 @@
     <span class="k">if</span> <span class="n">nInput</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">config2_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="c"># Get config from config2_ object</span>
-        <span class="c">#print(&#39;id(config2_) = &#39; + str(id(config2_)))</span>
-        <span class="n">feat_cfgstr</span>     <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;feat_cfgstr&#39;</span><span class="p">)</span>
-        <span class="n">hesaff_params</span>   <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;hesaff_params&#39;</span><span class="p">)</span>
-        <span class="n">feat_type</span>       <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;feat_type&#39;</span><span class="p">)</span>
-        <span class="n">bgmethod</span>        <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;bgmethod&#39;</span><span class="p">)</span>
+        <span class="c1"># Get config from config2_ object</span>
+        <span class="c1">#print(&#39;id(config2_) = &#39; + str(id(config2_)))</span>
+        <span class="n">feat_cfgstr</span>     <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;feat_cfgstr&#39;</span><span class="p">)</span>
+        <span class="n">hesaff_params</span>   <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hesaff_params&#39;</span><span class="p">)</span>
+        <span class="n">feat_type</span>       <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;feat_type&#39;</span><span class="p">)</span>
+        <span class="n">bgmethod</span>        <span class="o">=</span> <span class="n">config2_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bgmethod&#39;</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">feat_cfgstr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
         <span class="k">assert</span> <span class="n">hesaff_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c"># TODO: assert False here</span>
-        <span class="c"># Get config from IBEIS controller</span>
+        <span class="c1"># TODO: assert False here</span>
+        <span class="c1"># Get config from IBEIS controller</span>
         <span class="n">bgmethod</span>        <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">bgmethod</span>
         <span class="n">feat_type</span>       <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">feat_type</span>
         <span class="n">feat_cfgstr</span>     <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_cfgstr</span><span class="p">()</span>
         <span class="n">hesaff_params</span>   <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">feat_cfg</span><span class="o">.</span><span class="n">get_hesaff_params</span><span class="p">()</span>
 
-    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="s">&#39;cid_list&#39;</span><span class="p">)</span>
+    <span class="n">ut</span><span class="o">.</span><span class="n">assert_all_not_None</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="s1">&#39;cid_list&#39;</span><span class="p">)</span>
     <span class="n">chip_fpath_list</span> <span class="o">=</span> <span class="n">ibs</span><span class="o">.</span><span class="n">get_chip_fpath</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">check_external_storage</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">bgmethod</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
@@ -274,27 +274,27 @@
         <span class="n">probchip_fpath_list</span> <span class="o">=</span> <span class="p">(</span><span class="bp">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInput</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">NOT_QUIET</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[preproc_feat] feat_cfgstr = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">feat_cfgstr</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[preproc_feat] feat_cfgstr = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">feat_cfgstr</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ut</span><span class="o">.</span><span class="n">VERYVERBOSE</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;hesaff_params = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">hesaff_params</span><span class="p">))</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;hesaff_params = &#39;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">dict_str</span><span class="p">(</span><span class="n">hesaff_params</span><span class="p">))</span>
 
-    <span class="k">if</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s">&#39;hesaff+sift&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;hesaff+sift&#39;</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">USE_OPENMP</span><span class="p">:</span>
-            <span class="c"># Use Avi&#39;s openmp parallelization</span>
-            <span class="k">assert</span> <span class="n">bgmethod</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;not implemented&#39;</span>
+            <span class="c1"># Use Avi&#39;s openmp parallelization</span>
+            <span class="k">assert</span> <span class="n">bgmethod</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;not implemented&#39;</span>
             <span class="n">featgen_mp</span> <span class="o">=</span> <span class="n">gen_feat_openmp</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">chip_fpath_list</span><span class="p">,</span> <span class="n">hesaff_params</span><span class="p">)</span>
-            <span class="n">featgen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">featgen_mp</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s">&#39;openmp feat&#39;</span><span class="p">)</span>
+            <span class="n">featgen</span> <span class="o">=</span> <span class="n">ut</span><span class="o">.</span><span class="n">ProgressIter</span><span class="p">(</span><span class="n">featgen_mp</span><span class="p">,</span> <span class="n">lbl</span><span class="o">=</span><span class="s1">&#39;openmp feat&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c"># Multiprocessing parallelization</span>
+            <span class="c1"># Multiprocessing parallelization</span>
             <span class="n">featgen</span> <span class="o">=</span> <span class="n">extract_hesaff_sift_feats</span><span class="p">(</span>
                 <span class="n">chip_fpath_list</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span>
                 <span class="n">hesaff_params</span><span class="o">=</span><span class="n">hesaff_params</span><span class="p">,</span> <span class="n">nInput</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s">&#39;hesaff+siam128&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">feat_type</span> <span class="o">==</span> <span class="s1">&#39;hesaff+siam128&#39;</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">ibeis_cnn</span> <span class="kn">import</span> <span class="n">_plugin</span>
-        <span class="k">assert</span> <span class="n">bgmethod</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s">&#39;not implemented&#39;</span>
+        <span class="k">assert</span> <span class="n">bgmethod</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;not implemented&#39;</span>
         <span class="n">featgen</span> <span class="o">=</span> <span class="n">_plugin</span><span class="o">.</span><span class="n">generate_siam_l2_128_feats</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">cid_list</span><span class="p">,</span> <span class="n">config2_</span><span class="o">=</span><span class="n">config2_</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&#39;unknown feat_type=</span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">feat_type</span><span class="p">,))</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s1">&#39;unknown feat_type=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">feat_type</span><span class="p">,))</span>
 
     <span class="k">for</span> <span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span> <span class="ow">in</span> <span class="n">featgen</span><span class="p">:</span>
         <span class="k">yield</span> <span class="p">(</span><span class="n">nFeat</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,)</span>
@@ -319,22 +319,22 @@
         <span class="n">nInput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">)</span>
     <span class="n">dictargs_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">hesaff_params</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nInput</span><span class="p">))</span>
     <span class="n">arg_iter</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">,</span> <span class="n">probchip_fpath_list</span><span class="p">,</span> <span class="n">dictargs_iter</span><span class="p">)</span>
-    <span class="c"># eager evaluation.</span>
-    <span class="c"># TODO: Check if there is any benefit to just passing in the iterator.</span>
+    <span class="c1"># eager evaluation.</span>
+    <span class="c1"># TODO: Check if there is any benefit to just passing in the iterator.</span>
     <span class="n">arg_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">arg_iter</span><span class="p">)</span>
     <span class="n">featgen</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">util_parallel</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">gen_feat_worker</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">nTasks</span><span class="o">=</span><span class="n">nInput</span><span class="p">,</span>
                                            <span class="n">freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">featgen</span>
 
 
-<span class="c">#def gen_feat_worker(tup):</span>
-<span class="c">#    r&quot;&quot;&quot;</span>
-<span class="c">#    Function to be parallelized by multiprocessing / joblib / whatever.</span>
-<span class="c">#    Must take in one argument to be used by multiprocessing.map_async</span>
-<span class="c">#    &quot;&quot;&quot;</span>
-<span class="c">#    cid, cpath, hesaff_params = tup</span>
-<span class="c">#    kpts, vecs = pyhesaff.detect_kpts(cpath, **hesaff_params)</span>
-<span class="c">#    return (cid, len(kpts), kpts, vecs)</span>
+<span class="c1">#def gen_feat_worker(tup):</span>
+<span class="c1">#    r&quot;&quot;&quot;</span>
+<span class="c1">#    Function to be parallelized by multiprocessing / joblib / whatever.</span>
+<span class="c1">#    Must take in one argument to be used by multiprocessing.map_async</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    cid, cpath, hesaff_params = tup</span>
+<span class="c1">#    kpts, vecs = pyhesaff.detect_kpts(cpath, **hesaff_params)</span>
+<span class="c1">#    return (cid, len(kpts), kpts, vecs)</span>
 
 </div>
 <div class="viewcode-block" id="gen_feat_worker"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_feat.gen_feat_worker">[docs]</a><span class="k">def</span> <span class="nf">gen_feat_worker</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
@@ -399,7 +399,7 @@
 <span class="sd">    Function to be parallelized by multiprocessing / joblib / whatever.</span>
 <span class="sd">    Must take in one argument to be used by multiprocessing.map_async</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c">#import vtool as vt</span>
+    <span class="c1">#import vtool as vt</span>
     <span class="n">chip_fpath</span><span class="p">,</span> <span class="n">probchip_fpath</span><span class="p">,</span> <span class="n">hesaff_params</span> <span class="o">=</span> <span class="n">tup</span>
     <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span> <span class="o">=</span> <span class="n">pyhesaff</span><span class="o">.</span><span class="n">detect_kpts</span><span class="p">(</span><span class="n">chip_fpath</span><span class="p">,</span> <span class="o">**</span><span class="n">hesaff_params</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">kpts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span><span class="p">)</span>
@@ -409,7 +409,7 @@
     <span class="sd">r&quot;&quot;&quot;</span>
 <span class="sd">    Compute features in parallel on the C++ side, return generator here</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Detecting </span><span class="si">%r</span><span class="s"> features in parallel: &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Detecting </span><span class="si">%r</span><span class="s1"> features in parallel: &#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">cid_list</span><span class="p">))</span>
     <span class="n">kpts_list</span><span class="p">,</span> <span class="n">desc_list</span> <span class="o">=</span> <span class="n">pyhesaff</span><span class="o">.</span><span class="n">detect_kpts_list</span><span class="p">(</span><span class="n">chip_fpath_list</span><span class="p">,</span> <span class="o">**</span><span class="n">hesaff_params</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">cid</span><span class="p">,</span> <span class="n">kpts</span><span class="p">,</span> <span class="n">vecs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cid_list</span><span class="p">,</span> <span class="n">kpts_list</span><span class="p">,</span> <span class="n">desc_list</span><span class="p">):</span>
         <span class="n">nFeat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpts</span><span class="p">)</span>
@@ -417,12 +417,12 @@
 
 </div>
 <div class="viewcode-block" id="on_delete"><a class="viewcode-back" href="../../../../ibeis.algo.preproc.html#ibeis.algo.preproc.preproc_feat.on_delete">[docs]</a><span class="k">def</span> <span class="nf">on_delete</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">fid_list</span><span class="p">):</span>
-    <span class="c"># remove dependants of these rowids</span>
-    <span class="c"># No external data to remove</span>
+    <span class="c1"># remove dependants of these rowids</span>
+    <span class="c1"># No external data to remove</span>
     <span class="k">return</span> <span class="mi">0</span>
 
 </div>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    python -m ibeis.algo.preproc.preproc_feat</span>
 <span class="sd">    python -m ibeis.algo.preproc.preproc_feat --allexamples</span>
@@ -463,7 +463,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

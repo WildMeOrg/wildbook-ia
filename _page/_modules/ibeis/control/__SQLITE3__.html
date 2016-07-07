@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.control.__SQLITE3__ &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.control.__SQLITE3__ &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../index.html"/>
         <link rel="up" title="ibeis.control" href="../control.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -131,7 +131,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.control.__SQLITE3__</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">custom sqlite3 module that supports numpy types</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -141,49 +141,49 @@
 <span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="c">#from utool.util_inject import inject_print_functions</span>
-<span class="c">#print, print_, printDBG = inject_print_functions(__name__, &#39;[SQLITE3]&#39;, DEBUG=False)</span>
+<span class="c1">#from utool.util_inject import inject_print_functions</span>
+<span class="c1">#print, print_, printDBG = inject_print_functions(__name__, &#39;[SQLITE3]&#39;, DEBUG=False)</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
-<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[ibeis.control.__SQLITE3__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">ut</span><span class="o">.</span><span class="n">noinject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[ibeis.control.__SQLITE3__]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
-<span class="n">VERBOSE_SQL</span> <span class="o">=</span> <span class="s">&#39;--veryverbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s">&#39;--verbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s">&#39;--verbsql&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">VERBOSE_SQL</span> <span class="o">=</span> <span class="s1">&#39;--veryverbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s1">&#39;--verbose&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="ow">or</span> <span class="s1">&#39;--verbsql&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
 <span class="n">TRY_NEW_SQLITE3</span> <span class="o">=</span> <span class="bp">False</span>
 
-<span class="c"># SQL This should be the only file which imports sqlite3</span>
+<span class="c1"># SQL This should be the only file which imports sqlite3</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">TRY_NEW_SQLITE3</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">sqlite3</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
+    <span class="kn">from</span> <span class="nn">sqlite3</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># NOQA</span>
 
-<span class="c">#try:</span>
-<span class="c">#    # Try to import the correct version of sqlite3</span>
-<span class="c">#    if VERBOSE_SQL:</span>
-<span class="c">#        from pysqlite2 import dbapi2</span>
-<span class="c">#        import sqlite3</span>
-<span class="c">#        print(&#39;dbapi2.sqlite_version  = %r&#39; % dbapi2.sqlite_version)</span>
-<span class="c">#        print(&#39;sqlite3.sqlite_version = %r&#39; % sqlite3.sqlite_version)</span>
-<span class="c">#        print(&#39;using dbapi2 as lite&#39;)</span>
-<span class="c">#        # Clean namespace</span>
-<span class="c">#        del sqlite3</span>
-<span class="c">#        del dbapi2</span>
-<span class="c">#    if not TRY_NEW_SQLITE3:</span>
-<span class="c">#        raise ImportError(&#39;user wants python sqlite3&#39;)</span>
-<span class="c">#    from pysqlite2.dbapi2 import *  # NOQA</span>
-<span class="c">#except ImportError as ex:</span>
-<span class="c">#    if VERBOSE_SQL:</span>
-<span class="c">#        print(ex)</span>
-<span class="c">#    # Fallback</span>
-<span class="c">#    from sqlite3 import *  # NOQA</span>
-<span class="c">#    if VERBOSE_SQL:</span>
-<span class="c">#        print(&#39;using sqlite3 as lite&#39;)</span>
+<span class="c1">#try:</span>
+<span class="c1">#    # Try to import the correct version of sqlite3</span>
+<span class="c1">#    if VERBOSE_SQL:</span>
+<span class="c1">#        from pysqlite2 import dbapi2</span>
+<span class="c1">#        import sqlite3</span>
+<span class="c1">#        print(&#39;dbapi2.sqlite_version  = %r&#39; % dbapi2.sqlite_version)</span>
+<span class="c1">#        print(&#39;sqlite3.sqlite_version = %r&#39; % sqlite3.sqlite_version)</span>
+<span class="c1">#        print(&#39;using dbapi2 as lite&#39;)</span>
+<span class="c1">#        # Clean namespace</span>
+<span class="c1">#        del sqlite3</span>
+<span class="c1">#        del dbapi2</span>
+<span class="c1">#    if not TRY_NEW_SQLITE3:</span>
+<span class="c1">#        raise ImportError(&#39;user wants python sqlite3&#39;)</span>
+<span class="c1">#    from pysqlite2.dbapi2 import *  # NOQA</span>
+<span class="c1">#except ImportError as ex:</span>
+<span class="c1">#    if VERBOSE_SQL:</span>
+<span class="c1">#        print(ex)</span>
+<span class="c1">#    # Fallback</span>
+<span class="c1">#    from sqlite3 import *  # NOQA</span>
+<span class="c1">#    if VERBOSE_SQL:</span>
+<span class="c1">#        print(&#39;using sqlite3 as lite&#39;)</span>
 
 
 <span class="k">def</span> <span class="nf">REGISTER_SQLITE3_TYPES</span><span class="p">():</span>
     <span class="k">def</span> <span class="nf">_read_numpy_from_sqlite3</span><span class="p">(</span><span class="n">blob</span><span class="p">):</span>
-        <span class="c"># INVESTIGATE: Is memory freed up correctly here?</span>
+        <span class="c1"># INVESTIGATE: Is memory freed up correctly here?</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">blob</span><span class="p">)</span>
         <span class="n">out</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="c">#return np.load(out)</span>
-        <span class="c"># Is this better?</span>
+        <span class="c1">#return np.load(out)</span>
+        <span class="c1"># Is this better?</span>
         <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
         <span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">arr</span>
@@ -193,7 +193,7 @@
             <span class="n">out</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
             <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
             <span class="n">out</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-            <span class="c">#return buffer(out.read())</span>
+            <span class="c1">#return buffer(out.read())</span>
             <span class="k">return</span> <span class="n">Binary</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">def</span> <span class="nf">_write_numpy_to_sqlite3</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
@@ -207,7 +207,7 @@
 
     <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
         <span class="k">def</span> <span class="nf">_write_uuid_to_sqlite3</span><span class="p">(</span><span class="n">uuid_</span><span class="p">):</span>
-            <span class="c">#return buffer(uuid_.bytes_le)</span>
+            <span class="c1">#return buffer(uuid_.bytes_le)</span>
             <span class="k">return</span> <span class="n">Binary</span><span class="p">(</span><span class="n">uuid_</span><span class="o">.</span><span class="n">bytes_le</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span><span class="p">:</span>
         <span class="k">def</span> <span class="nf">_write_uuid_to_sqlite3</span><span class="p">(</span><span class="n">uuid_</span><span class="p">):</span>
@@ -215,7 +215,7 @@
 
     <span class="k">def</span> <span class="nf">register_numpy_dtypes</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">VERBOSE_SQL</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Register NUMPY dtypes with SQLite3&#39;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Register NUMPY dtypes with SQLite3&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span>
                       <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
@@ -223,19 +223,19 @@
             <span class="k">elif</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span><span class="p">:</span>
                 <span class="n">register_adapter</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
 
-    <span class="c"># Tell SQL how to deal with numpy arrays</span>
+    <span class="c1"># Tell SQL how to deal with numpy arrays</span>
     <span class="k">def</span> <span class="nf">register_numpy</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot; Utility function allowing numpy arrays to be stored as raw blob data &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">VERBOSE_SQL</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Register NUMPY with SQLite3&#39;</span><span class="p">)</span>
-        <span class="n">register_converter</span><span class="p">(</span><span class="s">&#39;NUMPY&#39;</span><span class="p">,</span> <span class="n">_read_numpy_from_sqlite3</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Register NUMPY with SQLite3&#39;</span><span class="p">)</span>
+        <span class="n">register_converter</span><span class="p">(</span><span class="s1">&#39;NUMPY&#39;</span><span class="p">,</span> <span class="n">_read_numpy_from_sqlite3</span><span class="p">)</span>
         <span class="n">register_adapter</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">_write_numpy_to_sqlite3</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">register_uuid</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot; Utility function allowing uuids to be stored in sqlite &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">VERBOSE_SQL</span><span class="p">:</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;Register UUID with SQLite3&#39;</span><span class="p">)</span>
-        <span class="n">register_converter</span><span class="p">(</span><span class="s">&#39;UUID&#39;</span><span class="p">,</span> <span class="n">_read_uuid_from_sqlite3</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Register UUID with SQLite3&#39;</span><span class="p">)</span>
+        <span class="n">register_converter</span><span class="p">(</span><span class="s1">&#39;UUID&#39;</span><span class="p">,</span> <span class="n">_read_uuid_from_sqlite3</span><span class="p">)</span>
         <span class="n">register_adapter</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span> <span class="n">_write_uuid_to_sqlite3</span><span class="p">)</span>
 
     <span class="n">register_numpy_dtypes</span><span class="p">()</span>
@@ -248,13 +248,13 @@
     <span class="sd">&quot;&quot;&quot; wrapper around lite.connect &quot;&quot;&quot;</span>
     <span class="n">connection</span> <span class="o">=</span> <span class="n">connect</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">detect_types</span><span class="o">=</span><span class="n">PARSE_DECLTYPES</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">connection</span>
-    <span class="c">#timeout=5,</span>
-    <span class="c"># check_same_thread=False)</span>
-    <span class="c"># isolation_level=&#39;DEFERRED&#39;,</span>
-    <span class="c"># cached_statements=1000</span>
+    <span class="c1">#timeout=5,</span>
+    <span class="c1"># check_same_thread=False)</span>
+    <span class="c1"># isolation_level=&#39;DEFERRED&#39;,</span>
+    <span class="c1"># cached_statements=1000</span>
 
 
-<span class="c"># Clean namespace</span></div>
+<span class="c1"># Clean namespace</span></div>
 <span class="k">del</span> <span class="n">REGISTER_SQLITE3_TYPES</span>
 </pre></div>
 
@@ -289,7 +289,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

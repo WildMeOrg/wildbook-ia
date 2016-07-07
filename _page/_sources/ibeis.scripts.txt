@@ -4,6 +4,14 @@ ibeis.scripts package
 Submodules
 ----------
 
+ibeis.scripts._grave module
+---------------------------
+
+.. automodule:: ibeis.scripts._grave
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.scripts.gen_cand_expts module
 -----------------------------------
 
@@ -20,10 +28,26 @@ ibeis.scripts.getshark module
     :undoc-members:
     :show-inheritance:
 
+ibeis.scripts.name_recitifer module
+-----------------------------------
+
+.. automodule:: ibeis.scripts.name_recitifer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ibeis.scripts.rsync_ibeisdb module
 ----------------------------------
 
 .. automodule:: ibeis.scripts.rsync_ibeisdb
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ibeis.scripts.specialdraw module
+--------------------------------
+
+.. automodule:: ibeis.scripts.specialdraw
     :members:
     :undoc-members:
     :show-inheritance:

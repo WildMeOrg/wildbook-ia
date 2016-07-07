@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.all_imports &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.all_imports &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../index.html"/>
         <link rel="up" title="ibeis" href="../ibeis.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -129,8 +129,8 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.all_imports</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="c"># flake8: noqa</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># flake8: noqa</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">TODO DEPRICATE</span>
 
@@ -139,7 +139,7 @@
 <span class="sd">want to use is imported / exists.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="c"># Python</span>
+<span class="c1"># Python</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">namedtuple</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">realpath</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">normpath</span><span class="p">,</span> <span class="n">splitext</span><span class="p">,</span>
                      <span class="n">expanduser</span><span class="p">,</span> <span class="n">relpath</span><span class="p">,</span> <span class="n">isabs</span><span class="p">,</span> <span class="n">commonprefix</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
@@ -179,25 +179,25 @@
 <span class="kn">import</span> <span class="nn">urllib</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">zipfile</span>
-<span class="k">if</span> <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;win32&#39;</span><span class="p">):</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;win32&#39;</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">resource</span>
-<span class="c"># PIPI</span>
+<span class="c1"># PIPI</span>
 <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">functools32</span>
 <span class="kn">import</span> <span class="nn">psutil</span>
-<span class="c"># Qt</span>
+<span class="c1"># Qt</span>
 <span class="kn">import</span> <span class="nn">sip</span>
 <span class="kn">from</span> <span class="nn">guitool</span> <span class="kn">import</span> <span class="n">__PYQT__</span>
 <span class="kn">from</span> <span class="nn">guitool.__PYQT__</span> <span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
 <span class="kn">from</span> <span class="nn">guitool.__PYQT__.QtCore</span> <span class="kn">import</span> <span class="n">Qt</span>
-<span class="c"># Matplotlib</span>
+<span class="c1"># Matplotlib</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">__MPL_INIT__</span>
 <span class="n">__MPL_INIT__</span><span class="o">.</span><span class="n">init_matplotlib</span><span class="p">()</span>
-<span class="c">#mpl.use(&#39;Qt4Agg&#39;)  # pyinstaller hack</span>
+<span class="c1">#mpl.use(&#39;Qt4Agg&#39;)  # pyinstaller hack</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="kn">as</span> <span class="nn">mpl</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
-<span class="c"># Scientific</span>
+<span class="c1"># Scientific</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">numpy.linalg</span> <span class="kn">as</span> <span class="nn">npl</span>
 <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">rollaxis</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">ones</span><span class="p">,</span> <span class="n">diag</span><span class="p">)</span>
@@ -207,21 +207,21 @@
 <span class="kn">from</span> <span class="nn">PIL.ExifTags</span> <span class="kn">import</span> <span class="n">TAGS</span>
 <span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="kn">import</span> <span class="n">fclusterdata</span>
 <span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">MeanShift</span><span class="p">,</span> <span class="n">estimate_bandwidth</span>
-<span class="c">#import statsmodels</span>
-<span class="c">#import pandas as pd</span>
-<span class="c">#import networkx as netx</span>
-<span class="c">#try:</span>
-<span class="c">#    import graph_tool</span>
-<span class="c">#except ImportError as ex:</span>
-<span class="c">#    #print(&#39;Warning: %r&#39; % ex)</span>
-<span class="c">#    pass</span>
+<span class="c1">#import statsmodels</span>
+<span class="c1">#import pandas as pd</span>
+<span class="c1">#import networkx as netx</span>
+<span class="c1">#try:</span>
+<span class="c1">#    import graph_tool</span>
+<span class="c1">#except ImportError as ex:</span>
+<span class="c1">#    #print(&#39;Warning: %r&#39; % ex)</span>
+<span class="c1">#    pass</span>
 
-<span class="c"># WEB</span>
+<span class="c1"># WEB</span>
 <span class="kn">import</span> <span class="nn">tornado</span>
 <span class="kn">import</span> <span class="nn">flask</span>
 <span class="kn">import</span> <span class="nn">simplejson</span>
 
-<span class="c"># Tools</span>
+<span class="c1"># Tools</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="kn">import</span> <span class="nn">utool</span> <span class="kn">as</span> <span class="nn">ut</span>
 <span class="kn">import</span> <span class="nn">detecttools</span>
@@ -234,7 +234,7 @@
 <span class="kn">import</span> <span class="nn">pyhesaff</span>
 <span class="kn">import</span> <span class="nn">pyflann</span>
 
-<span class="c"># VTool</span>
+<span class="c1"># VTool</span>
 <span class="kn">import</span> <span class="nn">vtool</span>
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">chip</span> <span class="k">as</span> <span class="n">ctool</span>
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">image</span> <span class="k">as</span> <span class="n">gtool</span>
@@ -248,7 +248,7 @@
 <span class="kn">from</span> <span class="nn">vtool</span> <span class="kn">import</span> <span class="n">spatial_verification</span> <span class="k">as</span> <span class="n">sverif</span>
 <span class="kn">from</span> <span class="nn">vtool.tests</span> <span class="kn">import</span> <span class="n">grabdata</span>
 
-<span class="c"># PlotTool</span>
+<span class="c1"># PlotTool</span>
 <span class="kn">import</span> <span class="nn">plottool</span>
 <span class="kn">import</span> <span class="nn">plottool</span> <span class="kn">as</span> <span class="nn">pt</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">plot_helpers</span> <span class="k">as</span> <span class="n">ph</span>
@@ -259,35 +259,35 @@
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">fig_presenter</span>
 
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject2</span><span class="p">(</span>
-    <span class="n">__name__</span><span class="p">,</span> <span class="s">&#39;[all_imports]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">__name__</span><span class="p">,</span> <span class="s1">&#39;[all_imports]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 <div class="viewcode-block" id="find_unregisterd"><a class="viewcode-back" href="../../ibeis.html#ibeis.all_imports.find_unregisterd">[docs]</a><span class="k">def</span> <span class="nf">find_unregisterd</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">sys</span>
     <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">all_imports</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
 
     <span class="n">sys_module_strs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">)))</span>
     <span class="n">all_module_strs</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">attrname</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">all_imports</span><span class="p">):</span>
         <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">all_imports</span><span class="p">,</span> <span class="n">attrname</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">attr</span><span class="p">))</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;&lt;type </span><span class="se">\&#39;</span><span class="s">module</span><span class="se">\&#39;</span><span class="s">&gt;&#39;</span><span class="p">):</span>
-            <span class="c">#print(attr)</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">attr</span><span class="p">))</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;&lt;type </span><span class="se">\&#39;</span><span class="s1">module</span><span class="se">\&#39;</span><span class="s1">&gt;&#39;</span><span class="p">):</span>
+            <span class="c1">#print(attr)</span>
             <span class="n">sys_module_strs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">attr</span><span class="p">))</span>
     <span class="nb">set</span><span class="p">(</span><span class="n">sys_module_strs</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">all_module_strs</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="reload_all"><a class="viewcode-back" href="../../ibeis.html#ibeis.all_imports.reload_all">[docs]</a><span class="k">def</span> <span class="nf">reload_all</span><span class="p">():</span>
-    <span class="c"># reload self</span>
+    <span class="c1"># reload self</span>
     <span class="n">rrr</span><span class="p">()</span>
-    <span class="c"># This should reload modules roughtly in the order they were imported</span>
-    <span class="c"># reload utool first so class functions will be reregistered</span>
+    <span class="c1"># This should reload modules roughtly in the order they were imported</span>
+    <span class="c1"># reload utool first so class functions will be reregistered</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
     <span class="n">guiback</span><span class="o">.</span><span class="n">rrr</span><span class="p">()</span>
     <span class="n">vtool</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
     <span class="n">guitool</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
     <span class="n">plottool</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
-    <span class="c"># reload ibeis last</span>
+    <span class="c1"># reload ibeis last</span>
     <span class="n">ibeis</span><span class="o">.</span><span class="n">reload_subs</span><span class="p">()</span>
 </div>
 <div class="viewcode-block" id="class_reload"><a class="viewcode-back" href="../../ibeis.html#ibeis.all_imports.class_reload">[docs]</a><span class="k">def</span> <span class="nf">class_reload</span><span class="p">():</span>
@@ -296,25 +296,25 @@
 
     <span class="n">mod_id_0</span>   <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">IBEISControl</span><span class="p">)</span>
     <span class="n">class_id_0</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">)</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s">&#39;mod_id_0&#39;</span><span class="p">)</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s">&#39;class_id_0&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s1">&#39;mod_id_0&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s1">&#39;class_id_0&#39;</span><span class="p">)</span>
 
     <span class="n">reload_all</span><span class="p">()</span>
 
     <span class="n">mod_id_1</span>   <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">IBEISControl</span><span class="p">)</span>
     <span class="n">class_id_1</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">IBEISControl</span><span class="o">.</span><span class="n">IBEISController</span><span class="p">)</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s">&#39;mod_id_1&#39;</span><span class="p">)</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s">&#39;class_id_1&#39;</span><span class="p">)</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s">&#39;mod_id_0&#39;</span><span class="p">)</span>
-    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s">&#39;class_id_0&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s1">&#39;mod_id_1&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s1">&#39;class_id_1&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s1">&#39;mod_id_0&#39;</span><span class="p">)</span>
+    <span class="n">utool</span><span class="o">.</span><span class="n">printvar2</span><span class="p">(</span><span class="s1">&#39;class_id_0&#39;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="embed"><a class="viewcode-back" href="../../ibeis.html#ibeis.all_imports.embed">[docs]</a><span class="k">def</span> <span class="nf">embed</span><span class="p">(</span><span class="n">back</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Allows for embedding in an environment with all imports &quot;&quot;&quot;</span>
     <span class="n">ibs</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">ibs</span>
     <span class="n">front</span> <span class="o">=</span> <span class="n">back</span><span class="o">.</span><span class="n">front</span>
     <span class="n">ibswgt</span> <span class="o">=</span> <span class="n">front</span>
-    <span class="c">#import IPython</span>
-    <span class="c">#IPython.embed()</span>
+    <span class="c1">#import IPython</span>
+    <span class="c1">#IPython.embed()</span>
     <span class="n">utool</span><span class="o">.</span><span class="n">embed</span><span class="p">()</span></div>
 </pre></div>
 
@@ -349,7 +349,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

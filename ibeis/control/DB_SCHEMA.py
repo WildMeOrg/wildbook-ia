@@ -1380,6 +1380,13 @@ def post_1_5_2(db, ibs=None, verbose=False):
         parse_and_update_image_exif_orientations(ibs, verbose=verbose)
 
 
+def update_1_5_3(db, ibs=None):
+    # Add reviewed flag to annotations
+    db.modify_table(const.ANNOTATION_TABLE, (
+        (13, 'annot_toggle_reviewed',        'INTEGER DEFAULT 0', None),
+    ))
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1421,6 +1428,7 @@ VALID_VERSIONS = ut.odict([
     ('1.5.0',    (None,                 update_1_5_0,       None                )),
     ('1.5.1',    (None,                 update_1_5_1,       None                )),
     ('1.5.2',    (None,                 update_1_5_2,       post_1_5_2          )),
+    ('1.5.3',    (None,                 update_1_5_3,       None                )),
 ])
 """
 SeeAlso:

@@ -25,7 +25,7 @@ def testdata_vocab():
     fid_list = depc.get_rowids('feat', aid_list)
     config = VocabConfig()
     vocab = compute_vocab(depc, fid_list, config)
-    return vocab
+    return ibs, aid_list, vocab
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -115,26 +115,35 @@ class VisualVocab(ut.NiceRepr):
             idx2_maws = [[1.0]] * len(idx2_wxs)
         return idx2_wxs, idx2_maws
 
-    def invert_assignment(self, idx2_wxs, *other_idx2_prop):
+    def invert_assignment(self, idx2_wxs, idx2_maws, *other_idx2_prop):
         """
         Inverts assignment of vectors to words into words to vectors.
 
         Example:
-            >>> wx2_idxs, wx2_maws = self.invert_assignment(idx2_wxs, idx2_maws)
+            >>> idx2_idx = np.arange(len(idx2_wxs))
+            >>> other_idx2_prop = (idx2_idx,)
+            >>> wx2_idxs, wx2_maws, wx2_idxs_ = self.invert_assignment(idx2_wxs, idx2_maws, idx2_idx)
+            >>> assert ut.dict_str(wx2_idxs) == ut.dict_str(wx2_idxs_)
         """
         # Invert mapping -- Group by word indexes
-        jagged_idxs = ([idx] * len(wxs)for idx, wxs in enumerate(idx2_wxs))
+        idx2_nAssign = [len(wxs) for wxs in idx2_wxs]
+        jagged_idxs = [[idx] * num for idx, num in enumerate(idx2_nAssign)]
         wx_keys, groupxs = vt.jagged_group(idx2_wxs)
         idxs_list = vt.apply_jagged_grouping(jagged_idxs, groupxs)
         wx2_idxs = dict(zip(wx_keys, idxs_list))
+        maws_list = vt.apply_jagged_grouping(idx2_maws, groupxs)
+        wx2_maws = dict(zip(wx_keys, maws_list))
+
         other_wx2_prop = []
         for idx2_prop in other_idx2_prop:
-            prop_list = vt.apply_jagged_grouping(idx2_prop, groupxs)
+            # Props are assumed to be non-jagged, so make them jagged
+            jagged_prop = [[prop] * num for prop, num in zip(idx2_prop, idx2_nAssign)]
+            prop_list = vt.apply_jagged_grouping(jagged_prop, groupxs)
             wx2_prop = dict(zip(wx_keys, prop_list))
             other_wx2_prop.append(wx2_prop)
         if ut.VERBOSE:
             print('[smk_index.assign] L___ End Assign vecs to words.')
-        assignment = (wx2_idxs,) + tuple(other_wx2_prop)
+        assignment = (wx2_idxs, wx2_maws) + tuple(other_wx2_prop)
         return assignment
 
     @staticmethod
@@ -279,15 +288,15 @@ class VocabConfig(dtool.Config):
     ]
 
 
-#@derived_attribute(
-#    tablename='vocab', parents=['feat*'],
-#    colnames=['words'], coltypes=[VisualVocab],
-#    configclass=VocabConfig,
-#    chunksize=1, fname='visual_vocab',
-#    single=True,
-#    # _internal_parent_ids=False,  # Give the function nicer ids to work with
-#    _internal_parent_ids=True,  # Give the function nicer ids to work with
-#)
+@derived_attribute(
+    tablename='vocab', parents=['feat*'],
+    colnames=['words'], coltypes=[VisualVocab],
+    configclass=VocabConfig,
+    chunksize=1, fname='visual_vocab',
+    # func_is_single=True,
+    # _internal_parent_ids=False,  # Give the function nicer ids to work with
+    # _internal_parent_ids=True,  # Give the function nicer ids to work with
+)
 def compute_vocab(depc, fid_list, config):
     r"""
     Args:
@@ -337,57 +346,240 @@ def compute_vocab(depc, fid_list, config):
     return vocab
 
 
-def visualize_vocab(depc, words, aid_list):
+@six.add_metaclass(ut.ReloadingMetaclass)
+class StackedFeatures(ut.NiceRepr):
+    def __init__(fstack, ibs, aid_list, config=None):
+        ax2_vecs = ibs.depc_annot.d.get_feat_vecs(aid_list, config=config)
+        fstack.config = config
+        fstack.ibs = ibs
+        fstack.ax2_aid = aid_list
+        fstack.ax2_nFeat = [len(vecs) for vecs in ax2_vecs]
+        fstack.idx2_fxs = ut.flatten([list(range(num)) for num in fstack.ax2_nFeat])
+        fstack.idx2_axs = ut.flatten([[ax] * num for ax, num in enumerate(fstack.ax2_nFeat)])
+        fstack.idx2_vec = np.vstack(ax2_vecs)
+        #fstack.idx2_fxs = vt.atleast_nd(fstack.idx2_fxs, 2)
+        #fstack.idx2_axs = vt.atleast_nd(fstack.idx2_axs, 2)
+        fstack.num_feat = sum(fstack.ax2_nFeat)
+
+    def __nice__(fstack):
+        return ' nA=%r nF=%r' % (ut.safelen(fstack.ax2_aid), fstack.num_feat)
+
+    def inverted_assignment(fstack, vocab, nAssign=1):
+        # do work
+        idx2_wxs, idx2_maws = vocab.assign_to_words(fstack.idx2_vec, nAssign)
+        # Pack into structure
+        forward_assign = (idx2_wxs, idx2_maws, fstack.idx2_fxs, fstack.idx2_axs)
+        invert_assign = vocab.invert_assignment(*forward_assign)
+        (wx2_idxs, wx2_maws, wx2_fxs, wx2_axs) = invert_assign
+        invassign = InvertedStackAssignment(fstack, vocab, wx2_idxs, wx2_maws, wx2_fxs, wx2_axs)
+        return invassign
+
+
+@six.add_metaclass(ut.ReloadingMetaclass)
+class InvertedStackAssignment(ut.NiceRepr):
+    def __init__(invassign, fstack, vocab, wx2_idxs, wx2_maws, wx2_fxs, wx2_axs):
+        invassign.fstack = fstack
+        invassign.vocab = vocab
+        invassign.wx2_idxs = wx2_idxs
+        invassign.wx2_maws = wx2_maws
+        invassign.wx2_fxs = wx2_fxs
+        invassign.wx2_axs = wx2_axs
+        invassign.wx2_num = ut.map_dict_vals(len, invassign.wx2_axs)
+        invassign.wx_list = sorted(invassign.wx2_num.keys())
+        invassign.num_list = ut.take(invassign.wx2_num, invassign.wx_list)
+        invassign.perword_stats = ut.get_stats(invassign.num_list)
+
+    def __nice__(invassign):
+        return ' nW=%r mean=%.2f' % (ut.safelen(invassign.wx2_idxs), invassign.perword_stats['mean'])
+
+    def get_vecs(invassign, wx):
+        vecs = invassign.fstack.idx2_vec.take(invassign.wx2_idxs[wx], axis=0)
+        return vecs
+
+    def get_patches(invassign, wx):
+        ax_list = invassign.wx2_axs[wx]
+        fx_list = invassign.wx2_fxs[wx]
+        config = invassign.fstack.config
+        ibs = invassign.fstack.ibs
+
+        unique_axs, groupxs = vt.group_indices(ax_list)
+        fxs_groups = vt.apply_grouping(fx_list, groupxs)
+
+        unique_aids = ut.take(invassign.fstack.ax2_aid, unique_axs)
+
+        all_kpts_list = ibs.depc.d.get_feat_kpts(unique_aids, config=config)
+        sub_kpts_list = vt.ziptake(all_kpts_list, fxs_groups, axis=0)
+
+        chip_list = ibs.depc_annot.d.get_chips_img(unique_aids)
+        # convert to approprate colorspace
+        #if colorspace is not None:
+        #    chip_list = vt.convert_image_list_colorspace(chip_list, colorspace)
+        # ut.print_object_size(chip_list, 'chip_list')
+        patch_size = 64
+        grouped_patches_list = [
+            vt.get_warped_patches(chip, kpts, patch_size=patch_size)[0]
+            for chip, kpts in ut.ProgIter(zip(chip_list, sub_kpts_list),
+                                          nTotal=len(unique_aids),
+                                          lbl='warping patches')
+        ]
+        # Make it correspond with original fx_list and ax_list
+        word_patches = vt.invert_apply_grouping(grouped_patches_list, groupxs)
+        return word_patches
+
+    def compute_nonagg_rvecs(invassign, wx, compress=False):
+        """
+        Driver function for nonagg residual computation
+
+        Args:
+            words (ndarray): array of words
+            idx2_vec (dict): stacked vectors
+            wx_sublist (list): words of interest
+            idxs_list (list): list of idxs grouped by wx_sublist
+
+        Returns:
+            tuple : (rvecs_list, flags_list)
+        """
+        # Pick out corresonding lists of residuals and words
+        vecs = invassign.get_vecs(wx)
+        word = invassign.vocab.wx2_word[wx]
+        # Compute nonaggregated normalized residuals
+        arr_float = np.subtract(word.astype(np.float), vecs.astype(np.float))
+        vt.normalize_rows(arr_float, out=arr_float)
+        if compress:
+            rvecs_list = np.clip(np.round(arr_float * 255.0), -127, 127).astype(np.int8)
+        else:
+            rvecs_list = arr_float
+        # Extract flags (rvecs_list which are all zeros) and rvecs_list
+        error_flags = ~np.any(rvecs_list, axis=1)
+        return rvecs_list, error_flags
+
+    def compute_agg_rvecs(invassign, wx):
+        """
+        Sums and normalizes all rvecs that belong to the same word and the same
+        annotation id
+        """
+        rvecs_list, error_flags = invassign.compute_nonagg_rvecs(wx)
+        ax_list = invassign.wx2_axs[wx]
+        maw_list = invassign.wx2_maws[wx]
+        # group members of each word by aid, we will collapse these groups
+        unique_ax, groupxs = vt.group_indices(ax_list)
+        # (weighted aggregation with multi-assign-weights)
+        grouped_maws = vt.apply_grouping(maw_list, groupxs)
+        grouped_rvecs = vt.apply_grouping(rvecs_list, groupxs)
+        grouped_flags = vt.apply_grouping(~error_flags, groupxs)
+
+        grouped_rvecs2_ = vt.zipcompress(grouped_rvecs, grouped_flags, axis=0)
+        grouped_maws2_ = vt.zipcompress(grouped_maws, grouped_flags)
+        is_good = [len(rvecs) > 0 for rvecs in grouped_rvecs2_]
+        aggvecs = [aggregate_rvecs(rvecs, maws)[0] for rvecs, maws in zip(grouped_rvecs2_, grouped_maws2_)]
+        unique_ax2_ = unique_ax.compress(is_good)
+        ax2_aggvec = dict(zip(unique_ax2_, aggvecs))
+        # Need to recompute flags for consistency
+        # flag is true when aggvec is all zeros
+        return ax2_aggvec
+
+
+def aggregate_rvecs(rvecs, maws, compress=False):
+    r"""
+    helper for compute_agg_rvecs
+    """
+    if rvecs.shape[0] == 0:
+        rvecs_agg = np.empty((0, rvecs.shape[1]), dtype=np.float)
+    if rvecs.shape[0] == 1:
+        rvecs_agg = rvecs
+    else:
+        # Prealloc sum output (do not assign the result of sum)
+        arr_float = np.empty((1, rvecs.shape[1]), dtype=np.float)
+        out = arr_float[0]
+        # Take weighted average of multi-assigned vectors
+        total_weight = maws.sum()
+        weighted_sum = (maws[:, np.newaxis] * rvecs.astype(np.float)).sum(axis=0, out=out)
+        np.divide(weighted_sum, total_weight, out=out)
+        vt.normalize_rows(arr_float, out=arr_float)
+        if compress:
+            rvecs_agg = np.clip(np.round(arr_float * 255.0), -127, 127).astype(np.int8)
+        else:
+            rvecs_agg = arr_float
+    return rvecs_agg
+
+
+def visualize_vocab_word(ibs, invassign, wx, fnum=None):
     """
 
     Example:
-        >>> vocab = testdata_vocab()
-        >>> idx2_vec = depc.d.get_feat_vecs(aid_list[0:1])[0]
-        >>> idx2_patch = extract_patches(ibs, aid_list[0:1])[0]
-        >>> idx2_aid = [[aid_list[0]]] * len(idx2_vec)
-        >>> nAssign = 1
-        >>> idx2_wxs, idx2_maws = vocab.assign_to_words(idx2_vec, nAssign)
-        >>> wx2_idxs, wx2_maws, wx2_aid = vocab.invert_assignment(idx2_wxs, idx2_maws, idx2_aid)
-        >>> # convert idxs to aids and fxs
-        >>> aid = aid_list[0]
-        >>> wx2_assigned = {wx: [idx, aid for idx in idxs] for wx, idxs in wx2_idxs.items()}
+        >>> from ibeis.new_annots import *  # NOQA
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> ibs, aid_list, vocab = testdata_vocab()
+        >>> #aid_list = aid_list[0:1]
+        >>> fstack = StackedFeatures(ibs, aid_list)
+        >>> nAssign = 2
+        >>> invassign = fstack.inverted_assignment(vocab, nAssign)
+        >>> sortx = ut.argsort(invassign.num_list)[::-1]
+        >>> wx_list = ut.take(invassign.wx_list, sortx)
+        >>> wx = wx_list[0]
     """
-    #patches_list = extract_patches()
-    #vecs_list = depc.d.get_feat_vecs(aid_list)
-    #flann_params = {}
-    #flann = vt.build_flann_index(words, flann_params)
-
-    #wx2_assigned = ut.ddict(list)
-    #for aid, vecs in zip(aid_list, vecs_list):
-    #    vx2_wx, vx2_dist = flann.nn_index(vecs)
-    #    vx2_wx = vt.atleast_nd(vx2_wx, 2)
-    #    vx_list = np.arange(len(vx2_wx))
-    #    for vx, wxs in zip(vx_list, vx2_wx):
-    #        for wx in wxs:
-    #            wx2_assigned[wx].append((aid, vx))
-
-    aid2_ax = ut.make_index_lookup(aid_list)
-    sortx = ut.argsort(list(map(len, wx2_assigned.values())))
-    wxs = list(wx2_assigned.keys())
-
     import plottool as pt
     pt.qt4ensure()
-    wx_list = ut.take(sortx, wxs)
+    vecs = invassign.get_vecs(wx)
+    word = invassign.vocab.wx2_word[wx]
 
+    word_patches = invassign.get_patches(wx)
+    average_patch = np.mean(word_patches, axis=0)
+
+    average_vec = vecs.mean(axis=0)
+    average_vec = word
+
+    word
+
+    with_sift = True
+    fnum = 2
+    fnum = pt.ensure_fnum(fnum)
+    if with_sift:
+        patch_img = pt.render_sift_on_patch(average_patch, average_vec)
+        #sift_word_patches = [pt.render_sift_on_patch(patch, vec) for patch, vec in ut.ProgIter(list(zip(word_patches, vecs)))]
+        #stacked_patches = vt.stack_square_images(word_patches)
+        #stacked_patches = vt.stack_square_images(sift_word_patches)
+    else:
+        patch_img = average_patch
+    stacked_patches = vt.stack_square_images(word_patches)
+    solidbar = np.zeros((patch_img.shape[0], int(patch_img.shape[1] * .1), 3), dtype=patch_img.dtype)
+    border_color = (100, 10, 10)  # bgr, darkblue
+    if ut.is_float(solidbar):
+        solidbar[:, :, :] = (np.array(border_color) / 255)[None, None]
+    else:
+        solidbar[:, :, :] = np.array(border_color)[None, None]
+    word_img = vt.stack_image_list([patch_img, solidbar, stacked_patches], vert=False, modifysize=True)
+    pt.imshow(word_img, fnum=fnum)
+    #pt.imshow(patch_img, pnum=(1, 2, 1), fnum=fnum)
+    #patch_size = 64
+    #half_size = patch_size / 2
+    #pt.imshow(stacked_patches, pnum=(1, 2, 2), fnum=fnum)
+    pt.iup()
+
+
+def test_visualize_vocab_interact():
+    """
+    python -m ibeis.new_annots --exec-test_visualize_vocab_interact --show
+
+    Example:
+        >>> from ibeis.new_annots import *  # NOQA
+        >>> test_visualize_vocab_interact()
+        >>> ut.show_if_requested()
+    """
+    import plottool as pt
+    pt.qt4ensure()
+    ibs, aid_list, vocab = testdata_vocab()
+    #aid_list = aid_list[0:1]
+    fstack = StackedFeatures(ibs, aid_list)
+    nAssign = 2
+    invassign = fstack.inverted_assignment(vocab, nAssign)
+    sortx = ut.argsort(invassign.num_list)[::-1]
+    wx_list = ut.take(invassign.wx_list, sortx)
+    wx = wx_list[0]
+    fnum = 1
     for wx in ut.InteractiveIter(wx_list):
-        assigned = wx2_assigned[wx]
-        aids = ut.take_column(assigned, 0)
-        fxs = ut.take_column(assigned, 1)
-
-        word_patches = []
-        for aid, fxs in ut.group_items(fxs, aids).items():
-            ax = aid2_ax[aid]
-            word_patches.extend(ut.take(patches_list[ax], fxs))
-            pass
-
-        stacked_img = vt.stack_square_images(word_patches)
-        pt.imshow(stacked_img)
-        pt.iup()
+        visualize_vocab_word(ibs, invassign, wx, fnum)
 
 
 def extract_patches(ibs, aid_list, fxs_list=None, patch_size=None, colorspace=None):
@@ -417,3 +609,15 @@ def extract_patches(ibs, aid_list, fxs_list=None, patch_size=None, colorspace=No
                                       lbl='warping patches')
     ]
     return patches_list
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.new_annots
+        python -m ibeis.new_annots --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

@@ -20,6 +20,7 @@ def sync_ibeisdb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=
     print('  * remote_uri=%r' % (remote_uri,))
     print('  * mode=%r' % (mode))
     import ibeis
+    assert dbname is not None, 'must specify a database name'
     # Excluded temporary and cached data
     exclude_dirs = list(map(ut.ensure_unixslash, ibeis.const.EXCLUDE_COPY_REL_DIRS))
     # Specify local workdir
@@ -49,22 +50,38 @@ def sync_ibeisdb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=
 def rsync_ibsdb_main():
     import sys
     default_user = ut.get_user_name()
-    default_db = 'MUGU_Master'
-    if len(sys.argv) < 2:
+    # default_db = 'MUGU_Master'
+    default_db = None
+
+    # Get positional commandline arguments
+    cmdline_varags = ut.get_cmdline_varargs()
+    if len(cmdline_varags) > 0 and cmdline_varags[0] == 'rsync':
+        # ignore rsync as first command (b/c we are calling from ibeis.__main__)
+        cmdline_varags = cmdline_varags[1:]
+
+    valid_modes = ['push', 'pull', 'list']
+
+    if len(cmdline_varags) < 1:
         print('Usage: '
-              'python -m ibeis.scripts.rsync_ibeisdb'
-              '[push, pull] --db <db=%s> --user <user=%s>' %
-              (default_db, default_user,))
+              # 'python -m ibeis.scripts.rsync_ibeisdb'
+              'python -m ibeis rsync'
+              '%s --db <db=%s> --user <user=%s>' %
+              (valid_modes, default_db, default_user,))
         sys.exit(1)
+
+    varargs_dict = dict(enumerate(cmdline_varags))
+
+    mode = varargs_dict.get(0, None)
+    default_db = varargs_dict.get(1, None)
+
     user = ut.get_argval('--user', type_=str, default=default_user)
     port = ut.get_argval('--port', type_=int, default=22)
     dbname = ut.get_argval(('--db', '--dbname'), type_=str, default=default_db)
     workdir = ut.get_argval(('--workdir', '--dbname'), type_=str, default=None,
                             help_='local work dir override')
     dry_run = ut.get_argflag(('--dryrun', '--dry-run', '--dry'))
-    mode = sys.argv[1]
 
-    assert mode in ['push', 'pull'], 'mode=%r must be push or pull' % (mode,)
+    assert mode in valid_modes, 'mode=%r must be in %r' % (mode, valid_modes)
     remote_key = ut.get_argval('--remote', type_=str, default='hyrule')
     remote_map = {
         'hyrule': 'hyrule.cs.rpi.edu',
@@ -87,37 +104,44 @@ def rsync_ibsdb_main():
     remote = remote_map.get(remote_key_, remote_key_)
     remote_uri = user + '@' + remote + ':' + remote_workdir
 
-    ut.change_term_title('RSYNC IBEISDB %r' % (dbname,))
-    sync_ibeisdb(remote_uri, dbname, mode, workdir, port, dry_run)
+    if mode == 'list':
+        print('remote = %r' % (remote,))
+        print('need to list')
+        remote_paths = ut.list_remote(remote_uri)
+        print('REMOTE LS -- TODO need to get only ibeis dirs')
+        print('\n'.join(remote_paths))
+    elif mode in ['push', 'pull']:
+        ut.change_term_title('RSYNC IBEISDB %r' % (dbname,))
+        sync_ibeisdb(remote_uri, dbname, mode, workdir, port, dry_run)
 
 
 if __name__ == '__main__':
     """
     CommandLine:
         ib
-        python -m ibeis.scripts.rsync_ibeisdb push
-        python -m ibeis.scripts.rsync_ibeisdb pull --db MUGU_Master
-        python -m ibeis.scripts.rsync_ibeisdb pull --db GIRM_MUGU_20
-        python -m ibeis.scripts.rsync_ibeisdb pull --db PZ_MUGU_ALL
-        python -m ibeis.scripts.rsync_ibeisdb push --db MUGU_Master  --user joncrall --dryrun
+        ibeis rsync push
+        ibeis rsync pull --db MUGU_Master
+        ibeis rsync pull --db GIRM_MUGU_20
+        ibeis rsync pull --db PZ_MUGU_ALL
+        ibeis rsync push --db MUGU_Master  --user joncrall --dryrun
 
         mv "NNP_Master3_nids=arr((3)wjybfvpk)_1" NNP_Master3_nids=arr__3_wjybfvpk__1
 
-        python -m ibeis.scripts.rsync_ibeisdb pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy --dryrun
-        python -m ibeis.scripts.rsync_ibeisdb pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy
-        python -m ibeis.scripts.rsync_ibeisdb pull --db NNP_Master3 --user jonc --remote pachy
-        python -m ibeis.scripts.rsync_ibeisdb pull --db testdb3 --user joncrall --remote hyrule
-        python -m ibeis.scripts.rsync_ibeisdb pull --db NNP_MasterGIRM_core --user jonc --remote pachy
+        ibeis rsync pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy --dryrun
+        ibeis rsync pull --db NNP_Master3_nids=arr__3_wjybfvpk__1 --user jonc  --remote pachy
+        ibeis rsync pull --db NNP_Master3 --user jonc --remote pachy
+        ibeis rsync pull --db testdb3 --user joncrall --remote hyrule
+        ibeis rsync pull --db NNP_MasterGIRM_core --user jonc --remote pachy
 
-        #python -m ibeis.scripts.rsync_ibeisdb push --db lewa_grevys --user joncrall --remote hyrule --port 1022 --workdir=/data/ibeis --dryrun
-        python -m ibeis.scripts.rsync_ibeisdb pull --db lewa_grevys --user jonathan --remote lewa --port 1022 --dryrun
+        #ibeis rsync push --db lewa_grevys --user joncrall --remote hyrule --port 1022 --workdir=/data/ibeis --dryrun
+        ibeis rsync pull --db lewa_grevys --user jonathan --remote lewa --port 1022 --dryrun
 
-        python -m ibeis.scripts.rsync_ibeisdb push --db ELEPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk --dryrun
-        python -m ibeis.scripts.rsync_ibeisdb push --db ELPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk
+        ibeis rsync push --db ELEPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk --dryrun
+        ibeis rsync push --db ELPH_Master --user jonc --remote pachy --workdir=/raid/work2/Turk
 
-        python -m ibeis.scripts.rsync_ibeisdb pull --db PZ_ViewPoints --user joncrall --remote hyrule --dryrun
+        ibeis rsync pull --db PZ_ViewPoints --user joncrall --remote hyrule --dryrun
 
-        python -m ibeis.scripts.rsync_ibeisdb push --db PZ_Master1 --user joncrall --remote lev --dryrun
+        ibeis rsync push --db PZ_Master1 --user joncrall --remote lev --dryrun
 
 
         stty -echo; ssh jonc@pachy.cs.uic.edu sudo -v; stty echo
@@ -133,14 +157,16 @@ if __name__ == '__main__':
         rsync -avhzP -e "ssh -p 22" joncrall@hyrule.cs.rpi.edu/raid/raw_rsync/iberian-lynx .
         rsync -avhzP joncrall@hyrule.cs.rpi.edu:/raid/raw_rsync/iberian-lynx .
 
-        python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/ --dryrun
-        python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/
+        ibeis rsync pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/ --dryrun
+        ibeis rsync pull --db humpbacks --user joncrall --remote lev:/home/zach/data/IBEIS/
 
-        python -m ibeis.scripts.rsync_ibeisdb pull --db humpbacks_fb --user joncrall --remote lev:/media/hdd/zach/data/IBEIS/
+        ibeis rsync pull --db humpbacks_fb --user joncrall --remote lev:/media/hdd/zach/data/IBEIS/
 
         /home/zach/data/IBEIS/humpbacks_fb
 
-        python -m ibeis.scripts.rsync_ibeisdb pull --db seaturtles2 --user 'ubuntu' --remote drewami:/data/ibeis
+        ibeis rsync pull --db seaturtles2 --user 'ubuntu' --remote drewami:/data/ibeis
+
+        ibeis rsync pull --db testdb3 --user joncrall --remote hyrule
 
     Fix Patchy
         pachy

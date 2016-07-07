@@ -192,15 +192,15 @@ def compress_normvec_uint8(arr_float):
         >>> arr_int8 = compress_normvec_uint8(arr_float)
         >>> result = arr_int8
         >>> print(result)
-        [[ 127   29   70 -128 -128]
-         [-128 -128  -27  -18   73]]
+        [[ 126   29   70  127  127]
+         [-127  127  -27  -18   73]]
     """
     # Trick / hack: use 2 * max (psuedo_max), and clip because most components
     # will be less than 2 * max. This will reduce quantization error
     # rvec_max = 128
     # rvec_pseudo_max = rvec_max * 2 = 256
     # TODO: not sure if rounding or floor is the correct operation
-    return np.clip(np.round(arr_float * 256.0), -128, 128).astype(np.int8)
+    return np.clip(np.round(arr_float * 255.0), -127, 127).astype(np.int8)
     #return np.clip(np.round((arr_float * (hstypes.RVEC_PSEUDO_MAX))),
     #               hstypes.RVEC_MIN, hstypes.RVEC_MAX).astype(np.int8)
 
@@ -240,15 +240,16 @@ def aggregate_rvecs(rvecs, maws):
         >>> rvecs_agg = aggregate_rvecs(rvecs, maws)
         >>> result = ut.numpy_str2(rvecs_agg, linewidth=70)
         >>> print(result)
-        np.array([[28, 28, 33, 16, 16, 16, 12, 31, 27, 29, 20, 28, 21, 24, 15,
+        np.array([[28, 27, 32, 16, 16, 16, 12, 31, 27, 29, 19, 27, 21, 24, 15,
                    21, 17, 37, 13, 40, 38, 33, 17, 30, 13, 23,  9, 25, 19, 15,
-                   20, 17, 19, 18, 13, 25, 37, 29, 21, 16, 20, 21, 35, 11, 28,
+                   20, 17, 19, 18, 13, 25, 37, 29, 21, 16, 20, 21, 34, 11, 28,
                    19, 17, 12, 14, 24, 21, 11, 27, 11, 24, 10, 23, 20, 28, 12,
-                   16, 14, 30, 22, 18, 26, 22, 20, 18,  9, 30, 20, 25, 19, 23,
-                   20,  7, 13, 23, 22, 15, 20, 22, 16, 27, 10, 16, 20, 25, 26,
-                   26, 28, 22, 38, 24, 16, 14, 19, 24, 14, 22, 19, 20, 33, 21,
-                   22, 18, 22, 25, 25, 22, 23, 32, 16, 25, 15, 29, 22, 25, 20,
-                   22, 31, 29, 24, 25, 25, 21, 14]], dtype=np.int8)
+                   16, 14, 30, 22, 18, 26, 21, 20, 18,  9, 29, 20, 25, 19, 23,
+                   20,  7, 13, 22, 22, 15, 20, 22, 16, 27, 10, 16, 20, 25, 25,
+                   26, 28, 22, 38, 24, 16, 14, 19, 24, 14, 22, 19, 19, 33, 21,
+                   22, 18, 22, 25, 25, 22, 23, 32, 16, 25, 15, 29, 21, 25, 20,
+                   22, 31, 29, 24, 24, 25, 20, 14]], dtype=np.int8)
+
     """
     if rvecs.shape[0] == 1:
         return rvecs

@@ -1,0 +1,22 @@
+ibeis.algo.detect.background package
+====================================
+
+Submodules
+----------
+
+ibeis.algo.detect.background.extract_mini_48 module
+---------------------------------------------------
+
+.. automodule:: ibeis.algo.detect.background.extract_mini_48
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ibeis.algo.detect.background
+    :members:
+    :undoc-members:
+    :show-inheritance:

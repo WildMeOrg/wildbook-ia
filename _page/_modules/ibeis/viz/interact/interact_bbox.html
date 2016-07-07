@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ibeis.viz.interact.interact_bbox &mdash; ibeis 1.5.1 documentation</title>
+  <title>ibeis.viz.interact.interact_bbox &mdash; ibeis 1.5.2 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="ibeis 1.5.1 documentation" href="../../../../index.html"/>
+    <link rel="top" title="ibeis 1.5.2 documentation" href="../../../../index.html"/>
         <link rel="up" title="ibeis.viz.interact" href="../interact.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
             
           
@@ -133,7 +133,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ibeis.viz.interact.interact_bbox</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">interact_helpers</span> <span class="k">as</span> <span class="n">ih</span>
 <span class="kn">from</span> <span class="nn">ibeis</span> <span class="kn">import</span> <span class="n">viz</span>
@@ -141,39 +141,39 @@
 <span class="kn">from</span> <span class="nn">plottool</span> <span class="kn">import</span> <span class="n">fig_presenter</span>
 <span class="kn">import</span> <span class="nn">utool</span>
 <span class="p">(</span><span class="k">print</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">printDBG</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">profile</span><span class="p">)</span> <span class="o">=</span> <span class="n">utool</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span>
-                                                       <span class="s">&#39;[interact_bbox]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                                                       <span class="s1">&#39;[interact_bbox]&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
 
-<span class="c">#================</span>
+<span class="c1">#================</span>
 <div class="viewcode-block" id="iselect_bbox"><a class="viewcode-back" href="../../../../ibeis.viz.interact.html#ibeis.viz.interact.interact_bbox.iselect_bbox">[docs]</a><span class="k">def</span> <span class="nf">iselect_bbox</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">fnum</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                 <span class="n">figtitle</span><span class="o">=</span><span class="s">&#39;Image View - Select ANNOTATION (click two points)&#39;</span><span class="p">,</span>
+                 <span class="n">figtitle</span><span class="o">=</span><span class="s1">&#39;Image View - Select ANNOTATION (click two points)&#39;</span><span class="p">,</span>
                  <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="c">#from matplotlib.backend_bases import mplDeprecation</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[*interact] select_bbox(gid=</span><span class="si">%r</span><span class="s">, fnum=</span><span class="si">%r</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">fnum</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;[*interact] Define a Rectanglular ANNOTATION by clicking two points.&#39;</span><span class="p">)</span>
-    <span class="c"># Show the image</span>
-    <span class="n">fig</span> <span class="o">=</span> <span class="n">ih</span><span class="o">.</span><span class="n">begin_interaction</span><span class="p">(</span><span class="s">&#39;select_bbox&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="p">)</span>
+    <span class="c1">#from matplotlib.backend_bases import mplDeprecation</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[*interact] select_bbox(gid=</span><span class="si">%r</span><span class="s1">, fnum=</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">fnum</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[*interact] Define a Rectanglular ANNOTATION by clicking two points.&#39;</span><span class="p">)</span>
+    <span class="c1"># Show the image</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">ih</span><span class="o">.</span><span class="n">begin_interaction</span><span class="p">(</span><span class="s1">&#39;select_bbox&#39;</span><span class="p">,</span> <span class="n">fnum</span><span class="p">)</span>
     <span class="n">fig_presenter</span><span class="o">.</span><span class="n">bring_to_front</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
     <span class="n">viz</span><span class="o">.</span><span class="n">show_image</span><span class="p">(</span><span class="n">ibs</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">viz</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
         <span class="n">pts</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">ginput</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[*guitools] ginput(2) = </span><span class="si">%r</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pts</span><span class="p">,))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[*guitools] ginput(2) = </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pts</span><span class="p">,))</span>
         <span class="p">[(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">),</span> <span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">)]</span> <span class="o">=</span> <span class="n">pts</span>
         <span class="n">xm</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
         <span class="n">xM</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
         <span class="n">ym</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
         <span class="n">yM</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
         <span class="n">bbox</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="nb">round</span><span class="p">,</span> <span class="p">(</span><span class="n">xm</span><span class="p">,</span> <span class="n">ym</span><span class="p">,</span> <span class="n">xM</span> <span class="o">-</span> <span class="n">xm</span><span class="p">,</span> <span class="n">yM</span> <span class="o">-</span> <span class="n">ym</span><span class="p">))))</span>
-        <span class="c"># Reconnect the old button press events</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[*interact] bbox = </span><span class="si">%r</span><span class="s"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bbox</span><span class="p">,))</span>
+        <span class="c1"># Reconnect the old button press events</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[*interact] bbox = </span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bbox</span><span class="p">,))</span>
         <span class="k">return</span> <span class="n">bbox</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;!!!&gt;&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[*interact] Caught: </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">ex</span><span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;[*interact] ANNOTATION selection Failed:&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">&#39;&lt;/!!!&gt;&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;&lt;!!!&gt;&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[*interact] Caught: </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="n">ex</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;[*interact] ANNOTATION selection Failed:&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;&lt;/!!!&gt;&#39;</span><span class="p">)</span>
         <span class="k">raise</span></div>
 </pre></div>
 
@@ -208,7 +208,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'1.5.1',
+            VERSION:'1.5.2',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
