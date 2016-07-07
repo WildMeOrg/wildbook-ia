@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-import cStringIO as StringIO
+from six.moves import cStringIO as StringIO
+# import cStringIO as StringIO
 import flask
 import random
 from ibeis.constants import TAU
@@ -78,7 +79,7 @@ def embed_image_html(imgBGR, target_width=TARGET_WIDTH):
         imgBGR = _resize(imgBGR, target_width)
     imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(imgRGB)
-    string_buf = StringIO.StringIO()
+    string_buf = StringIO()
     pil_img.save(string_buf, format='jpeg')
     data = string_buf.getvalue().encode('base64').replace('\n', '')
     return 'data:image/jpeg;base64,' + data
@@ -173,9 +174,21 @@ def get_turk_annot_args(is_reviewed_func):
 
     group_review_flag = src_ag is not None and dst_ag is not None
     if not group_review_flag:
-        gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-        reviewed_list = is_reviewed_func(ibs, aid_list)
+        print('NOT GROUP_REVIEW')
+        # gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+        # aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+
+        with ut.Timer():
+            aid_list = ibs.get_valid_aids()
+            # unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
+            # sort_list = zip(unixtime_list, aid_list)
+            # sort_list = sorted(sort_list)
+            # half = len(sort_list) // 2
+            # print(len(aid_list))
+            # aid_list = sort_list[:half]
+            # print(len(aid_list))
+            # aid_list = [_[1] for _ in aid_list]
+            reviewed_list = is_reviewed_func(ibs, aid_list)
     else:
         src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
         dst_gar_rowid_list = ibs.get_annotgroup_gar_rowids(dst_ag)

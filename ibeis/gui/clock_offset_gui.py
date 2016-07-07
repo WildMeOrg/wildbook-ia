@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function
 from functools import partial
 #from guitool import qtype, APIItemWidget, APIItemModel, FilterProxyModel, ChangeLayoutContext
 from guitool.__PYQT__ import QtGui  # , QtCore
+from guitool.__PYQT__ import QtWidgets  # , QtCore
 from guitool.__PYQT__.QtCore import Qt
 #from ibeis.other import ibsfuncs
 #from ibeis.expt import results_organizer
@@ -25,22 +26,22 @@ from time import mktime
 (print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[co_gui]')
 
 
-class ClockOffsetWidget(QtGui.QWidget):
+class ClockOffsetWidget(QtWidgets.QWidget):
 
     def __init__(co_wgt, ibs, gid_list, parent=None, hack=False):
         print('[co_gui] Initializing')
         print('[co_gui] gid_list = %r' % (gid_list,))
 
-        QtGui.QWidget.__init__(co_wgt, parent=parent)
+        QtWidgets.QWidget.__init__(co_wgt, parent=parent)
 
         co_wgt.fnum = next_fnum()
 
-        co_wgt.main_layout = QtGui.QVBoxLayout(co_wgt)
+        co_wgt.main_layout = QtWidgets.QVBoxLayout(co_wgt)
 
         co_wgt.text_layout = guitool.newWidget(co_wgt, orientation=Qt.Vertical, verticalStretch=10)
         co_wgt.main_layout.addWidget(co_wgt.text_layout)
 
-        co_wgt.control_layout = guitool.newWidget(co_wgt, orientation=Qt.Vertical, verticalSizePolicy=QtGui.QSizePolicy.MinimumExpanding)
+        co_wgt.control_layout = guitool.newWidget(co_wgt, orientation=Qt.Vertical, verticalSizePolicy=QtWidgets.QSizePolicy.MinimumExpanding)
         co_wgt.main_layout.addWidget(co_wgt.control_layout)
 
         co_wgt.button_layout = guitool.newWidget(co_wgt, orientation=Qt.Horizontal)

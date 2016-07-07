@@ -267,7 +267,10 @@ class IBEISController(BASE_CLASS):
         #ibs.allow_override = 'override+warn'
         ibs.allow_override = True
         if force_serial is None:
-            force_serial = not ut.in_main_process()
+            if ut.get_argflag(('--utool-force-serial', '--force-serial', '--serial')):
+                force_serial = True
+            else:
+                force_serial = not ut.in_main_process()
         ibs.force_serial = force_serial
         # observer_weakref_list keeps track of the guibacks connected to this
         # controller
@@ -536,14 +539,14 @@ class IBEISController(BASE_CLASS):
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
         if request_dbversion is None:
-            ibs.db_version_expected = '1.5.3'
+            ibs.db_version_expected = '1.5.4'
         else:
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
         if backup_idx is None:
             new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
                 ibs.get_dbname(), ibs.get_ibsdir(),
-                ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.3')
+                ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.4')
             ibs.db_version_expected = new_version
             ibs.sqldb_fname = new_fname
         if sqldb_fpath is None:
@@ -723,7 +726,7 @@ class IBEISController(BASE_CLASS):
     # --- DIRS ----
     #--------------
 
-    @register_api('/api/core/dbname/', methods=['GET'])
+    @register_api('/api/core/db/name/', methods=['GET'])
     def get_dbname(ibs):
         """
         Returns:
@@ -731,7 +734,7 @@ class IBEISController(BASE_CLASS):
 
         RESTful:
             Method: GET
-            URL:    /api/core/dbname/
+            URL:    /api/core/db/name/
         """
         return ibs.dbname
 
@@ -972,7 +975,7 @@ class IBEISController(BASE_CLASS):
         return text
 
     @accessor_decors.default_decorator
-    @register_api('/api/core/dbinfo/', methods=['GET'])
+    @register_api('/api/core/db/info/', methods=['GET'])
     def get_dbinfo(ibs):
         from ibeis.other import dbinfo
         locals_ = dbinfo.get_dbinfo(ibs)

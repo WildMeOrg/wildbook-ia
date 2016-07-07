@@ -10,17 +10,20 @@ from ibeis.viz import viz_helpers as vh
 def _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches, **kwargs):
     kpts1 = kwargs.get('kpts1', None)
     kpts2 = kwargs.get('kpts2', None)
+    as_fpath = kwargs.get('as_fpath', False)
     kpts2_list = None if kpts2 is None else [kpts2]
     rchip1, kpts1 = get_query_annot_pair_info(ibs, aid1, qreq_, draw_fmatches,
-                                              kpts1=kpts1)
+                                              kpts1=kpts1, as_fpath=as_fpath)
     annot2_data_list = get_data_annot_pair_info(ibs, [aid2], qreq_,
                                                 draw_fmatches,
+                                                as_fpath=as_fpath,
                                                 kpts2_list=kpts2_list)
     rchip2, kpts2 = ut.get_list_column(annot2_data_list , 0)
     return rchip1, rchip2, kpts1, kpts2
 
 
-def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None):
+def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None,
+                              as_fpath=False):
     #print('!!! qqreq_ = %r' % (qreq_,))
     query_config2_ = (None if qreq_ is None
                       else qreq_.get_external_query_config2())
@@ -34,7 +37,8 @@ def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None):
             rchip1 = ibs.depc_annot.get_property('chips', qaid, 'img', config=query_config2_)
             draw_fmatches = False
     else:
-        rchip1 = vh.get_chips(ibs, [qaid], config2_=query_config2_)[0]
+        rchip1 = vh.get_chips(ibs, [qaid], config2_=query_config2_,
+                              as_fpath=as_fpath)[0]
     if draw_fmatches:
         if kpts1 is None:
             kpts1 = vh.get_kpts(ibs, [qaid], config2_=query_config2_)[0]
@@ -44,7 +48,7 @@ def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None):
 
 
 def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches,
-                             scale_down=False, kpts2_list=None):
+                             scale_down=False, kpts2_list=None, as_fpath=False):
     data_config2_ = (None if qreq_ is None else
                      qreq_.get_external_data_config2())
     #print('!!! data_config2_ = %r' % (data_config2_,))
@@ -60,7 +64,8 @@ def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches,
             draw_fmatches = False
         #vh.get_chips(ibs, aid_list, config2_=data_config2_)
     else:
-        rchip2_list = vh.get_chips(ibs, aid_list, config2_=data_config2_)
+        rchip2_list = vh.get_chips(ibs, aid_list, config2_=data_config2_,
+                                   as_fpath=as_fpath)
     if draw_fmatches:
         if kpts2_list is None:
             kpts2_list = vh.get_kpts(ibs, aid_list, config2_=data_config2_)

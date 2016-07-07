@@ -509,6 +509,45 @@ class _ChipMatchVisualization(object):
         return img_fpath
 
     @profile
+    def imwrite_single_annotmatch2(cm, qreq_, aid, fpath, **kwargs):
+        """
+        users newer rendering based code
+        """
+        import plottool as pt
+        import matplotlib as mpl
+        # Pop save kwargs from kwargs
+        save_keys = ['dpi', 'figsize', 'saveax', 'verbose']
+        save_vals = ut.dict_take_pop(kwargs, save_keys, None)
+        savekw = dict(zip(save_keys, save_vals))
+        was_interactive = mpl.is_interactive()
+        if was_interactive:
+            mpl.interactive(False)
+        # Make new figure
+        fnum = pt.ensure_fnum(kwargs.pop('fnum', None))
+        # Create figure --- this takes about 19% - 11% of the time depending on settings
+        fig = pt.plt.figure(fnum)
+        fig.clf()
+        #
+        # Draw Matches --- this takes about 48% - 67% of the time depending on settings
+        # wrapped call to show_matches2
+        cm.show_single_annotmatch(qreq_, aid, colorbar_=False, fnum=fnum, **kwargs)
+        # Write matplotlib axes to an image
+        axes_extents = pt.extract_axes_extents(fig)
+        assert len(axes_extents) == 1, 'more than one axes'
+        extent = axes_extents[0]
+        #with io.BytesIO() as stream:
+        # This call takes 23% - 15% of the time depending on settings
+        fig.savefig(fpath, bbox_inches=extent, **savekw)
+        #stream.seek(0)
+        #data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+        #image = cv2.imdecode(data, 1)
+        # Ensure that this figure will not pop up
+        pt.plt.close(fig)
+        if was_interactive:
+            mpl.interactive(was_interactive)
+        #return image
+
+    @profile
     def render_single_annotmatch(cm, qreq_, aid, **kwargs):
         """
         CommandLine:
@@ -1861,8 +1900,8 @@ class ChipMatch(_ChipMatchVisualization,
             for fxs_list in filtnorm_fxs
         ]
 
-        assert len(filtnorm_aids) == len(fsv_col_lbls), 'bad normer'
-        assert len(filtnorm_fxs) == len(fsv_col_lbls), 'bad normer'
+        # assert len(filtnorm_aids) == len(fsv_col_lbls), 'bad normer %r %r' % (len(filtnorm_aids), len(fsv_col_lbls))
+        # assert len(filtnorm_fxs) == len(fsv_col_lbls), 'bad normer %r %r' % (len(filtnorm_aids), len(fsv_col_lbls))
 
         cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list,
                  fsv_col_lbls=fsv_col_lbls, filtnorm_aids=filtnorm_aids,

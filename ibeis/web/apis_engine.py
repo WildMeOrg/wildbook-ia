@@ -39,7 +39,7 @@ def ensure_simple_server(port=5832):
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api('/api/engine/check_uuids/', methods=['GET', 'POST'])
+@register_api('/api/engine/uuid/check/', methods=['GET', 'POST'])
 def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_list=[]):
     r"""
     Args:
@@ -99,13 +99,13 @@ def web_check_uuids(ibs, image_uuid_list=[], qannot_uuid_list=[], dannot_uuid_li
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api('/api/engine/start_identify_annots/', methods=['GET', 'POST'])
+@register_api('/api/engine/query/annot/rowid/', methods=['GET', 'POST'])
 def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
                           pipecfg={}, callback_url=None, callback_method=None):
     r"""
     REST:
         Method: GET
-        URL: /api/engine/start_identify_annots/
+        URL: /api/engine/query/annot/rowid/
 
     Args:
         qannot_uuid_list (list) : specifies the query annotations to
@@ -168,7 +168,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
         >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:2]
-        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
+        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuid/', type_='get', aid_list=aids)
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)
         >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
         >>> data = dict(
@@ -179,7 +179,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         >>> # Start callback server
         >>> bgserver = ensure_simple_server()
         >>> # --
-        >>> jobid = web_ibs.send_ibeis_request('/api/engine/start_identify_annots/', **data)
+        >>> jobid = web_ibs.send_ibeis_request('/api/engine/query/annot/rowid/', **data)
         >>> status_response = web_ibs.wait_for_results(jobid, delays=[1, 5, 30])
         >>> print('status_response = %s' % (status_response,))
         >>> result_response = web_ibs.read_engine_results(jobid)
@@ -191,7 +191,7 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
     Ignore:
         qaids = daids = ibs.get_valid_aids()
-        http://127.0.1.1:5000/api/engine/start_identify_annots/'
+        http://127.0.1.1:5000/api/engine/query/annot/rowid/'
         jobid = ibs.start_identify_annots(**payload)
     """
     # Check UUIDs
@@ -282,7 +282,7 @@ def start_identify_annots_query(ibs,
         >>> domain = None
         >>> web_ibs = ibeis.opendb_bg_web('testdb1', domain=domain)  # , domain='http://52.33.105.88')
         >>> aids = web_ibs.send_ibeis_request('/api/annot/', 'get')[0:3]
-        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuids/', type_='get', aid_list=aids)
+        >>> uuid_list = web_ibs.send_ibeis_request('/api/annot/uuid/', type_='get', aid_list=aids)
         >>> quuid_list = ut.get_argval('--quuids', type_=list, default=uuid_list)[0:1]
         >>> duuid_list = ut.get_argval('--duuids', type_=list, default=uuid_list)
         >>> query_config_dict = {

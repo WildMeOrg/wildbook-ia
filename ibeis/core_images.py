@@ -48,7 +48,7 @@ register_preproc = register_preprocs['image']
 class ThumbnailConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('draw_annots', True, hideif=True),
-        ut.ParamInfo('thumbsize', None, hideif=None),
+        ut.ParamInfo('thumbsize', None, type_=None, hideif=None),
         ut.ParamInfo('ext', '.png', hideif='.png'),
         ut.ParamInfo('force_serial', False, hideif=False),
     ]
@@ -166,7 +166,7 @@ class ClassifierConfig(dtool.Config):
     coltypes=[float, str],
     configclass=ClassifierConfig,
     fname='detectcache',
-    chunksize=128,
+    chunksize=1024,
 )
 def compute_classifications(depc, gid_list, config=None):
     r"""
@@ -325,7 +325,7 @@ class LabelerConfig(dtool.Config):
     coltypes=[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, list],
     configclass=LabelerConfig,
     fname='detectcache',
-    chunksize=128,
+    chunksize=1024,
 )
 def compute_labels_localizations(depc, loc_id_list, config=None):
     r"""
@@ -457,7 +457,7 @@ class DetectorConfig(dtool.Config):
     coltypes=[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray],
     configclass=DetectorConfig,
     fname='detectcache',
-    chunksize=256,
+    chunksize=1024,
 )
 def compute_detections(depc, gid_list, config=None):
     r"""
@@ -484,7 +484,7 @@ def compute_detections(depc, gid_list, config=None):
         >>> # dbdir = '/media/danger/GGR/GGR-IBEIS-TEST/'
         >>> # ibs = ibeis.opendb(dbdir=dbdir)
         >>> depc = ibs.depc_image
-        >>> gid_list = ibs.get_valid_gids()[0:10]
+        >>> gid_list = ibs.get_valid_gids()[0:2]
         >>> depc.delete_property('detections', gid_list)
         >>> detects = depc.get_property('detections', gid_list, None)
         >>> print(detects)

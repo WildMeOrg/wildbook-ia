@@ -182,7 +182,7 @@ def close_job_manager(ibs):
 
 
 @register_ibs_method
-@register_api('/api/engine/job/status/', methods=['GET', 'POST'])
+@register_api('/api/engine/job/status/', methods=['GET', 'POST'], __api_plural_check__=False)
 def get_job_status(ibs, jobid):
     """
     Web call that returns the status of a job

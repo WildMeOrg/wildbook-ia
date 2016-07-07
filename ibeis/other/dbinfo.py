@@ -168,29 +168,11 @@ def get_dbinfo(ibs, verbose=True,
         )
         valid_gids = list(set(ibs.get_annot_gids(aid_list)))
     #associated_nids = ibs.get_valid_nids(filter_empty=True)  # nids with at least one annotation
-    FILTER_HACK = True
-    if FILTER_HACK:
-        # HUGE HACK - get only images and names with filtered aids
-        valid_aids_ = ibs.filter_aids_custom(valid_aids)
-        valid_nids_ = ibs.filter_nids_custom(valid_nids)
-        valid_gids_ = ibs.filter_gids_custom(valid_gids)
-        if verbose:
-            print('Filtered %d names' % (len(valid_nids) - len(valid_nids_)))
-            print('Filtered %d images' % (len(valid_gids) - len(valid_gids_)))
-            print('Filtered %d annots' % (len(valid_aids) - len(valid_aids_)))
-        valid_gids = valid_gids_
-        valid_nids = valid_nids_
-        valid_aids = valid_aids_
-        #associated_nids = ut.compress(associated_nids, map(any,
-        #ibs.unflat_map(ibs.get_annot_custom_filterflags,
-        #               ibs.get_name_aids(associated_nids))))
 
     # Image info
     if verbose:
         print('Checking Image Info')
     gx2_aids = ibs.get_image_aids(valid_gids)
-    if FILTER_HACK:
-        gx2_aids = [ibs.filter_aids_custom(aids) for aids in gx2_aids]  # HACK FOR FILTER
     if request_annot_subset:
         # remove annots not in this subset
         valid_aids_set = set(valid_aids)
@@ -205,8 +187,6 @@ def get_dbinfo(ibs, verbose=True,
     if verbose:
         print('Checking Name Info')
     nx2_aids = ibs.get_name_aids(valid_nids)
-    if FILTER_HACK:
-        nx2_aids =  [ibs.filter_aids_custom(aids) for aids in nx2_aids]    # HACK FOR FILTER
     if request_annot_subset:
         # remove annots not in this subset
         valid_aids_set = set(valid_aids)

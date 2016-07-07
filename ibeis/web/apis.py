@@ -6,13 +6,13 @@ from __future__ import absolute_import, division, print_function
 from os.path import join, exists
 import zipfile
 import time
-import cStringIO as StringIO
+from six.moves import cStringIO as StringIO
 from flask import request, current_app, send_file
 from ibeis.control import controller_inject
 from ibeis.web import appfuncs as appf
 import utool as ut
 import vtool as vt
-import uuid
+import uuid as uuid_module
 import six
 print, rrr, profile = ut.inject2(__name__, '[apis]')
 
@@ -23,8 +23,8 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 # Special function that is a route only to ignore the JSON response, but is
 # actually (and should be) an API call
-@register_route('/api/image/src/<gid>/', methods=['GET'], __api_prefix_check__=False)
-def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
+@register_route('/api/image/src/<rowid>/', methods=['GET'], __api_prefix_check__=False)
+def image_src_api(rowid=None, thumbnail=False, fresh=False, **kwargs):
     r"""
     Returns the image file of image <gid>
 
@@ -39,21 +39,21 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
 
     RESTful:
         Method: GET
-        URL:    /api/image/src/<gid>/
+        URL:    /api/image/src/<rowid>/
     """
     from PIL import Image  # NOQA
     thumbnail = thumbnail or 'thumbnail' in request.args or 'thumbnail' in request.form
     ibs = current_app.ibs
     if thumbnail:
-        gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
+        gpath = ibs.get_image_thumbpath(rowid, ensure_paths=True)
         fresh = fresh or 'fresh' in request.args or 'fresh' in request.form
         if fresh:
             #import os
             #os.remove(gpath)
             ut.delete(gpath)
-            gpath = ibs.get_image_thumbpath(gid, ensure_paths=True)
+            gpath = ibs.get_image_thumbpath(rowid, ensure_paths=True)
     else:
-        gpath = ibs.get_image_paths(gid)
+        gpath = ibs.get_image_paths(rowid)
 
     # Load image
     assert gpath is not None, 'image path should not be None'
@@ -63,7 +63,7 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
 
     # Encode image
     image_pil = Image.fromarray(image)
-    img_io = StringIO.StringIO()
+    img_io = StringIO()
     image_pil.save(img_io, 'JPEG', quality=100)
     img_io.seek(0)
     return send_file(img_io, mimetype='image/jpeg')
@@ -72,8 +72,8 @@ def image_src_api(gid=None, thumbnail=False, fresh=False, **kwargs):
 
 # Special function that is a route only to ignore the JSON response, but is
 # actually (and should be) an API call
-@register_route('/api/image/src/json/<image_uuid>/', methods=['GET'], __api_prefix_check__=False)
-def image_src_api_json(image_uuid=None, **kwargs):
+@register_route('/api/image/src/json/<uuid>/', methods=['GET'], __api_prefix_check__=False)
+def image_src_api_json(uuid=None, **kwargs):
     r"""
     Returns the image file of image <gid>
 
@@ -92,9 +92,9 @@ def image_src_api_json(image_uuid=None, **kwargs):
     """
     ibs = current_app.ibs
     try:
-        if isinstance(image_uuid, six.string_types):
-            image_uuid = uuid.UUID(image_uuid)
-        gid = ibs.get_image_gids_from_uuid(image_uuid)
+        if isinstance(uuid, six.string_types):
+            uuid = uuid_module.UUID(uuid)
+        gid = ibs.get_image_gids_from_uuid(uuid)
         return image_src_api(gid, **kwargs)
     except:
         from ibeis.control.controller_inject import translate_ibeis_webreturn

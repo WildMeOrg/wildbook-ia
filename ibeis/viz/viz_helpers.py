@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
-#from ibeis import constants as const
-from six.moves import zip
-import plottool.draw_func2 as df2
-from plottool import plot_helpers as ph
 import utool as ut
 import vtool.keypoint as ktool
+import plottool.draw_func2 as df2
+from six.moves import zip, map
+from plottool import plot_helpers as ph
 from ibeis.other import ibsfuncs
 from ibeis.control.accessor_decors import getter, getter_vector_output
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[viz_helpers]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[viz_helpers]')
 
 
 NO_LBL_OVERRIDE = ut.get_argval('--no-lbl-override', type_=bool, default=None)
@@ -54,12 +53,18 @@ def get_annot_kpts_in_imgspace(ibs, aid_list, config2_=None, ensure=True):
 
 
 @getter_vector_output
-def get_chips(ibs, aid_list, in_image=False, config2_=None):
+def get_chips(ibs, aid_list, in_image=False, config2_=None, as_fpath=False):
     #print('config2_ = %r' % (config2_,))
-    if in_image:
-        return ibs.get_annot_images(aid_list)
+    if as_fpath:
+        if in_image:
+            return ibs.get_annot_image_paths(aid_list)
+        else:
+            return ibs.get_annot_chip_fpath(aid_list, config2_=config2_)
     else:
-        return ibs.get_annot_chips(aid_list, config2_=config2_)
+        if in_image:
+            return ibs.get_annot_images(aid_list)
+        else:
+            return ibs.get_annot_chips(aid_list, config2_=config2_)
 
 
 @getter_vector_output
@@ -220,10 +225,10 @@ def get_annot_texts(ibs, aid_list, **kwargs):
         >>> result = ut.list_str(annotation_text_list)
         >>> print(result)
         [
-            'aid1, gname=easy1.JPG, name=____, nid=-1, , nGt=0, quality=UNKNOWN, yaw=None',
-            'aid4, gname=hard1.JPG, name=____, nid=-4, , nGt=0, quality=UNKNOWN, yaw=None',
+            'aid1, gname=easy1.JPG, name=____, nid=-1, , nGt=0, quality=UNKNOWN, yaw=left',
+            'aid4, gname=hard1.JPG, name=____, nid=-4, , nGt=0, quality=UNKNOWN, yaw=left',
             'aid7, gname=jeff.png, name=jeff, nid=3, EX, nGt=0, quality=UNKNOWN, yaw=None',
-            'aid10, gname=occl2.JPG, name=occl, nid=5, EX, nGt=0, quality=UNKNOWN, yaw=None',
+            'aid10, gname=occl2.JPG, name=occl, nid=5, EX, nGt=0, quality=UNKNOWN, yaw=left',
             'aid13, gname=zebra.jpg, name=zebra, nid=7, EX, nGt=0, quality=UNKNOWN, yaw=None',
         ]
     """

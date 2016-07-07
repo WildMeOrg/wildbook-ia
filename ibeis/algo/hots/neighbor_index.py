@@ -25,81 +25,139 @@ NOCACHE_FLANN = ut.get_argflag('--nocache-flann') and USE_HOTSPOTTER_CACHE
 
 
 def get_support_data(qreq_, daid_list):
-    # TODO: look into ut.cached_func
-    vecs_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.get_internal_data_config2())
+    """
+
+    CommandLine:
+        python -m ibeis.algo.hots.neighbor_index get_support_data --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+        >>> import ibeis
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', p='default:fgw_thresh=.9,maxscale_thresh=10', a='default:size=2')
+        >>> daid_list = qreq_.daids
+        >>> tup  = get_support_data(qreq_, daid_list)
+        >>> vecs_list, fgws_list, fxs_list = tup
+        >>> assert all([np.all(fgws > .9) for fgws in fgws_list])
+        >>> result = ut.depth_profile(tup)
+        >>> print('depth_profile = %r' % (result,))
+        depth_profile = [[(83, 128), (129, 128)], [83, 129], [83, 129]]
+    """
+    config2_ = qreq_.get_internal_data_config2()
+    vecs_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=config2_)
+    # Create corresponding feature indicies
+    fxs_list = [np.arange(len(vecs)) for vecs in vecs_list]
     # <HACK:featweight>
     #hack to get  feature weights. returns None if feature weights are turned
     #off in config settings
+
+    if config2_.minscale_thresh is not None or config2_.maxscale_thresh is not None:
+        min_ = -np.inf if config2_.minscale_thresh is None else config2_.minscale_thresh
+        max_ = np.inf if config2_.maxscale_thresh is None else config2_.maxscale_thresh
+        kpts_list = qreq_.ibs.get_annot_kpts(daid_list, config2_=config2_)
+        # kpts_list = vt.ziptake(kpts_list, fxs_list, axis=0)  # not needed for first filter
+        scales_list = [vt.get_scales(kpts) for kpts in kpts_list]
+        # Remove data under the threshold
+        flags_list = [np.logical_and(scales >= min_, scales <= max_) for scales in scales_list]
+        vecs_list = vt.zipcompress(vecs_list, flags_list, axis=0)
+        fxs_list = vt.zipcompress(fxs_list, flags_list, axis=0)
+
     if qreq_.qparams.fg_on:
         fgws_list = qreq_.ibs.get_annot_fgweights(
-            daid_list, config2_=qreq_.get_internal_data_config2(), ensure=True)
-        assert list(map(len, fgws_list)) == list(map(len, vecs_list)), 'bad corresponding vecs'
+            daid_list, config2_=config2_, ensure=True)
+        fgws_list = vt.ziptake(fgws_list, fxs_list, axis=0)
+        # assert list(map(len, fgws_list)) == list(map(len, vecs_list)), 'bad corresponding vecs'
+        if config2_.fgw_thresh is not None and config2_.fgw_thresh > 0:
+            flags_list = [fgws > config2_.fgw_thresh for fgws in fgws_list]
+            # Remove data under the threshold
+            fgws_list = vt.zipcompress(fgws_list, flags_list, axis=0)
+            vecs_list = vt.zipcompress(vecs_list, flags_list, axis=0)
+            fxs_list = vt.zipcompress(fxs_list, flags_list, axis=0)
     else:
         fgws_list = None
     # </HACK:featweight>
-    return vecs_list, fgws_list
+    return vecs_list, fgws_list, fxs_list
 
 
-def prepare_index_data(aid_list, vecs_list, fgws_list, verbose=True):
-    r"""
-    flattens vecs_list and builds a reverse index from the flattened indices
-    (idx) to the original aids and fxs
-    """
-    print('[nnindex] Preparing data for indexing / loading index')
-    # Check input
-    assert len(aid_list) == len(vecs_list), 'invalid input. bad len'
-    assert len(aid_list) > 0, ('len(aid_list) == 0.'
-                                    'Cannot invert index without features!')
-    # Create indexes into the input aids
-    ax_list = np.arange(len(aid_list))
-    idx2_vec, idx2_ax, idx2_fx = invert_index(
-        vecs_list, ax_list, verbose=verbose)
-    # <HACK:fgweights>
-    if fgws_list is not None:
-        idx2_fgw = np.hstack(fgws_list)
-        try:
-            assert len(idx2_fgw) == len(idx2_vec), 'error. weights and vecs do not correspond'
-        except Exception as ex:
-            ut.printex(ex, keys=[(len, 'idx2_fgw'), (len, 'idx2_vec')])
-            raise
-    else:
-        idx2_fgw = None
-    # </HACK:fgweights>
-    ax2_aid = np.array(aid_list)
-    _preptup = (ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx)
-    return _preptup
-
-
-def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
+def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
     r"""
     Aggregates descriptors of input annotations and returns inverted information
 
     Args:
         vecs_list (list):
+        fgws_list (list):
         ax_list (list):
+        fxs_list (list):
         verbose (bool):  verbosity flag(default = True)
 
     Returns:
-        tuple: (idx2_vec, idx2_ax, idx2_fx)
+        tuple: (idx2_vec, idx2_fgw, idx2_ax, idx2_fx)
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index --test-invert_index
+        python -m ibeis.algo.hots.neighbor_index invert_index
 
     Example:
-        >>> # SLOW_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-        >>> import vtool as vt
-        >>> num = 100
-        >>> rng = np.random.RandomState(0)
-        >>> ax_list = np.arange(num)
-        >>> vecs_list = [vt.tests.dummy.get_dummy_dpts(rng.randint(100)) for ax in ax_list]
+        >>> rng = np.random.RandomState(42)
+        >>> DIM_SIZE = 16
+        >>> nFeat_list = [3, 0, 4, 1]
+        >>> vecs_list = [rng.randn(nFeat, DIM_SIZE) for nFeat in nFeat_list]
+        >>> fgws_list = [rng.randn(nFeat) for nFeat in nFeat_list]
+        >>> fxs_list = [np.arange(nFeat) for nFeat in nFeat_list]
+        >>> ax_list = np.arange(len(vecs_list))
+        >>> fgws_list = None
         >>> verbose = True
-        >>> (idx2_vec, idx2_ax, idx2_fx) = invert_index(vecs_list, ax_list, verbose)
+        >>> tup = invert_index(vecs_list, fgws_list, ax_list, fxs_list)
+        >>> (idx2_vec, idx2_fgw, idx2_ax, idx2_fx) = tup
+        >>> result = 'output depth_profile = %s' % (ut.depth_profile(tup),)
+        >>> print(result)
+        output depth_profile = [(8, 16), 1, 8, 8]
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
+        >>> import ibeis
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', a='default:species=zebra_plains', p='default:fgw_thresh=.999')
+        >>> vecs_list, fgws_list, fxs_list = get_support_data(qreq_, qreq_.daids)
+        >>> ax_list = np.arange(len(vecs_list))
+        >>> input_ = vecs_list, fgws_list, ax_list, fxs_list
+        >>> print('input depth_profile = %s' % (ut.depth_profile(input_),))
+        >>> tup = invert_index(*input_)
+        >>> (idx2_vec, idx2_fgw, idx2_ax, idx2_fx) = tup
+        >>> result = 'output depth_profile = %s' % (ut.depth_profile(tup),)
+        >>> print(result)
+
+        output depth_profile = [(1912, 128), 1912, 1912, 1912]
     """
     if ut.VERYVERBOSE:
         print('[nnindex] stacking descriptors from %d annotations' % len(ax_list))
     try:
-        idx2_vec, idx2_ax, idx2_fx = vt.invertible_stack(vecs_list, ax_list)
+        nFeat_list = np.array(list(map(len, vecs_list)))
+        # Remove input without any features
+        is_valid = nFeat_list > 0
+        nFeat_list = nFeat_list.compress(is_valid)
+        vecs_list = ut.compress(vecs_list, is_valid)
+        if fgws_list is not None:
+            fgws_list = ut.compress(fgws_list, is_valid)
+        ax_list = ut.compress(ax_list, is_valid)
+        fxs_list = ut.compress(fxs_list, is_valid)
+
+        # Flatten into inverted index
+        axs_list = [[ax] * nFeat for (ax, nFeat) in zip(ax_list, nFeat_list)]
+        nFeats = sum(nFeat_list)
+        idx2_ax = np.fromiter(ut.iflatten(axs_list), np.int32, nFeats)
+        idx2_fx = np.fromiter(ut.iflatten(fxs_list), np.int32, nFeats)
+        idx2_vec = np.vstack(vecs_list)
+        if fgws_list is None:
+            idx2_fgw = None
+        else:
+            idx2_fgw = np.hstack(fgws_list)
+            try:
+                assert len(idx2_fgw) == len(idx2_vec), 'error. weights and vecs do not correspond'
+            except Exception as ex:
+                ut.printex(ex, keys=[(len, 'idx2_fgw'), (len, 'idx2_vec')])
+                raise
         assert idx2_vec.shape[0] == idx2_ax.shape[0]
         assert idx2_vec.shape[0] == idx2_fx.shape[0]
     except MemoryError as ex:
@@ -111,7 +169,7 @@ def invert_index(vecs_list, ax_list, verbose=ut.NOT_QUIET):
         print('[nnindex] idx2_vecs.dtype = {}'.format(idx2_vec.dtype))
         print('[nnindex] memory(idx2_vecs) = {}'.format(
             ut.byte_str2(idx2_vec.size * idx2_vec.dtype.itemsize)))
-    return idx2_vec, idx2_ax, idx2_fx
+    return idx2_vec, idx2_fgw, idx2_ax, idx2_fx
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -151,13 +209,30 @@ class NeighborIndex(object):
         nnindexer.flann_fpath = None
         nnindexer.max_distance_sqrd = None  # max possible distance^2 for normalization
 
-    def init_support(nnindexer, aid_list, vecs_list, fgws_list, verbose=True):
+    def init_support(nnindexer, aid_list, vecs_list, fgws_list, fxs_list, verbose=True):
         r"""
         prepares inverted indicies and FLANN data structure
+
+        flattens vecs_list and builds a reverse index from the flattened indices
+        (idx) to the original aids and fxs
         """
         assert nnindexer.flann is None, 'already initalized'
-        _preptup = prepare_index_data(aid_list, vecs_list, fgws_list, verbose=verbose)
-        (ax2_aid, idx2_vec, idx2_fgw, idx2_ax, idx2_fx) = _preptup
+
+        print('[nnindex] Preparing data for indexing / loading index')
+        # Check input
+        assert len(aid_list) == len(vecs_list), 'invalid input. bad len'
+        assert len(aid_list) > 0, ('len(aid_list) == 0.'
+                                        'Cannot invert index without features!')
+        # Create indexes into the input aids
+        ax_list = np.arange(len(aid_list))
+
+        # Invert indicies
+        tup = invert_index(vecs_list, fgws_list, ax_list, fxs_list,
+                           verbose=verbose)
+        idx2_vec, idx2_fgw, idx2_ax, idx2_fx = tup
+
+        ax2_aid = np.array(aid_list)
+
         nnindexer.flann    = pyflann.FLANN()  # Approximate search structure
         nnindexer.ax2_aid  = ax2_aid   # (A x 1) Mapping to original annot ids
         nnindexer.idx2_vec = idx2_vec  # (M x D) Descriptors to index
@@ -196,7 +271,7 @@ class NeighborIndex(object):
             if verbose:
                 print('[nnindex] Nothing to do')
         else:
-            new_vecs_list, new_fgws_list = get_support_data(qreq_, new_daid_list_)
+            new_vecs_list, new_fgws_list, new_fxs_list = get_support_data(qreq_, new_daid_list_)
             nnindexer.add_support(new_daid_list_, new_vecs_list, new_fgws_list, verbose=verbose)
 
     @ut.tracefunc_xml
@@ -269,7 +344,7 @@ class NeighborIndex(object):
         if ut.DEBUG2:
             print('DONE REMOVE POINTS')
 
-    def add_support(nnindexer, new_daid_list, new_vecs_list, new_fgws_list,
+    def add_support(nnindexer, new_daid_list, new_vecs_list, new_fgws_list, new_fxs_list,
                     verbose=ut.NOT_QUIET):
         r"""
         adds support data (aka data to be indexed)
@@ -292,7 +367,7 @@ class NeighborIndex(object):
             >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> # get before data
             >>> (qfx2_idx1, qfx2_dist1) = nnindexer.knn(qfx2_vec, K)
-            >>> new_vecs_list, new_fgws_list = get_support_data(qreq_, new_daid_list)
+            >>> new_vecs_list, new_fgws_list, new_fxs_list = get_support_data(qreq_, new_daid_list)
             >>> # execute test function
             >>> nnindexer.add_support(new_daid_list, new_vecs_list, new_fgws_list)
             >>> # test before data vs after data
@@ -304,8 +379,9 @@ class NeighborIndex(object):
         nVecs = nnindexer.num_indexed_vecs()
         nNewAnnots = len(new_daid_list)
         new_ax_list = np.arange(nAnnots, nAnnots + nNewAnnots)
-        new_idx2_vec, new_idx2_ax, new_idx2_fx = \
-                invert_index(new_vecs_list, new_ax_list, verbose=verbose)
+        tup = invert_index(new_vecs_list, new_fgws_list, new_ax_list, new_fxs_list,
+                           verbose=verbose)
+        new_idx2_vec, new_idx2_ax, new_idx2_fx = tup
         nNewVecs = len(new_idx2_vec)
         if verbose or ut.VERYVERBOSE:
             print(('[nnindex] Adding %d vecs from %d annots to nnindex '
@@ -345,7 +421,7 @@ class NeighborIndex(object):
             print('DONE ADD POINTS')
 
     def ensure_indexer(nnindexer, cachedir, verbose=True, force_rebuild=False,
-                       memtrack=None):
+                       memtrack=None, prog_hook=None):
         r"""
         Ensures that you get a neighbor indexer. It either loads a chached
         indexer or rebuilds a new one.
@@ -367,8 +443,12 @@ class NeighborIndex(object):
                 nAnnots = nnindexer.num_indexed_annots()
                 print('...nnindex flann cache miss: %d vectors, %d annots' %
                       (nVecs, nAnnots))
+            if prog_hook is not None:
+                prog_hook.set_progress(1, 2, 'Building new indexer (may take some time)')
             nnindexer.build_and_save(cachedir, verbose=verbose,
                                      memtrack=memtrack)
+        if prog_hook is not None:
+            prog_hook.set_progress(2, 2, 'Finished loading indexer')
 
     def build_and_save(nnindexer, cachedir, verbose=True, memtrack=None):
         nnindexer.reindex(memtrack=memtrack)

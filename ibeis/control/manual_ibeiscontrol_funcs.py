@@ -44,9 +44,7 @@ def new_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> print(qreq_.get_external_qaids())
         >>> result = str(qreq_.get_query_hashid())
         >>> print(result)
-        _QSUUIDS((1)nozvwbdokngephfk)
-
-        _QSUUIDS((1)nztoqb6&7apjltd1)
+        _QSUUIDS((1)zlwcrbyhubzjdjfn)
     """
     from ibeis.algo.hots import query_request
     qreq_ = query_request.new_ibeis_query_request(

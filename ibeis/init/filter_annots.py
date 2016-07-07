@@ -14,15 +14,16 @@ import six
 from ibeis.control import controller_inject
 (print, rrr, profile) = ut.inject2(__name__, '[main_helpers]')
 
-VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td')
+VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td', 'acfg')
 
 # TODO: Make these configurable
 SEED1 = 0
 SEED2 = 42
 
-if ut.is_developer():
+if False and ut.is_developer():
     USE_ACFG_CACHE = not ut.get_argflag(('--nocache-annot', '--nocache-aid',
                                          '--nocache')) and ut.USE_CACHE
+    USE_ACFG_CACHE = False
 else:
     USE_ACFG_CACHE = False
 
@@ -817,15 +818,40 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                 avail_aids, invert=not aidcfg['is_known'])
         avail_aids = sorted(avail_aids)
 
+    if aidcfg.get('is_exemplar') is not None:
+        flags = ibs.get_annot_exemplar_flags(avail_aids)
+        is_valid = [flag == aidcfg['is_exemplar'] for flag in flags]
+        with VerbosityContext('is_exemplar'):
+            avail_aids = ut.compress(avail_aids, is_valid)
+        avail_aids = sorted(avail_aids)
+
+    if aidcfg.get('reviewed') is not None:
+        flags = ibs.get_annot_reviewed(avail_aids)
+        is_valid = [flag == aidcfg['reviewed'] for flag in flags]
+        with VerbosityContext('reviewed'):
+            avail_aids = ut.compress(avail_aids, is_valid)
+        avail_aids = sorted(avail_aids)
+
+    if aidcfg.get('multiple') is not None:
+        flags = ibs.get_annot_multiple(avail_aids)
+        is_valid = [flag == aidcfg['multiple'] for flag in flags]
+        with VerbosityContext('multiple'):
+            avail_aids = ut.compress(avail_aids, is_valid)
+        avail_aids = sorted(avail_aids)
+
     if aidcfg.get('require_timestamp') is True:
         with VerbosityContext('require_timestamp'):
             avail_aids = ibs.filter_aids_without_timestamps(avail_aids)
         avail_aids = sorted(avail_aids)
 
-    metadata = ut.LazyDict(
-        species=lambda: expand_species(ibs, aidcfg['species'], None))
+    cfg_species = aidcfg.get('species')
+    if isinstance(cfg_species, six.string_types) and cfg_species.lower() == 'none':
+        cfg_species = None
 
-    if aidcfg.get('species') is not None:
+    metadata = ut.LazyDict(
+        species=lambda: expand_species(ibs, cfg_species, None))
+
+    if cfg_species is not None:
         species = metadata['species']
         with VerbosityContext('species', species=species):
             avail_aids = ibs.filter_aids_to_species(avail_aids, species)
@@ -876,29 +902,90 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
             view = ibsfuncs.get_primary_species_viewpoint(metadata['species'], 1)
         else:
             view = aidcfg['view']
-        view_ext1 = (aidcfg['view_ext']
-                     if aidcfg['view_ext1'] is None else
-                     aidcfg['view_ext1'])
-        view_ext2 = (aidcfg['view_ext']
-                     if aidcfg['view_ext2'] is None else
-                     aidcfg['view_ext2'])
-        valid_yaws = ibsfuncs.get_extended_viewpoints(
-            view, num1=view_ext1, num2=view_ext2)
-        unknown_ok = not aidcfg['require_viewpoint']
-        with VerbosityContext('view', 'require_viewpoint', 'view_ext',
-                              'view_ext1', 'view_ext2', valid_yaws=valid_yaws):
-            avail_aids = ibs.filter_aids_to_viewpoint(
-                avail_aids, valid_yaws, unknown_ok=unknown_ok)
+        if isinstance(view, six.string_types) and view.lower() == 'none':
+            view = None
+        OLD = False
+        if OLD:
+            view_ext1 = (aidcfg['view_ext']
+                         if aidcfg['view_ext1'] is None else
+                         aidcfg['view_ext1'])
+            view_ext2 = (aidcfg['view_ext']
+                         if aidcfg['view_ext2'] is None else
+                         aidcfg['view_ext2'])
+            valid_yaws = ibsfuncs.get_extended_viewpoints(
+                view, num1=view_ext1, num2=view_ext2)
+            unknown_ok = not aidcfg['require_viewpoint']
+            with VerbosityContext('view', 'require_viewpoint', 'view_ext',
+                                  'view_ext1', 'view_ext2', valid_yaws=valid_yaws):
+                avail_aids = ibs.filter_aids_to_viewpoint(
+                    avail_aids, valid_yaws, unknown_ok=unknown_ok)
+            avail_aids = sorted(avail_aids)
+        else:
+            def rectify_view(vstr):
+                # FIXME: I stopped implementing the += stuff
+                vstr_num = vstr.lower()
+                num = 0
+                if not vstr_num.endswith('1'):
+                    vstr = vstr_num
+                else:
+                    if '+' in vstr:
+                        vstr, numstr = vstr_num.split('+')
+                        num = int(numstr)
+                    if '-' in vstr:
+                        vstr, numstr = vstr_num.split('+')
+                        num = -int(numstr)
+                assert num == 0, 'cant do += yet'
+                if vstr == 'primary':
+                    return ibsfuncs.get_primary_species_viewpoint(metadata['species'])
+                for yawtxt, other_yawtxt in ibs.const.YAWALIAS.items():
+                    other_yawtxt = ut.ensure_iterable(other_yawtxt)
+                    if vstr == yawtxt.lower():
+                        return yawtxt
+                    for x in other_yawtxt:
+                        if vstr == x.lower():
+                            return yawtxt
+                raise ValueError('unknown viewpoint vstr=%r' % (vstr,))
+
+            if view is None:
+                valid_yaw_txts = None
+            else:
+                valid_yaw_txts = [
+                    rectify_view(vstr)
+                    for vstr in ut.smart_cast(view, list)
+                ]
+            unknown_ok = not aidcfg['require_viewpoint']
+            yaw_flags = ibs.get_viewpoint_filterflags(
+                avail_aids, valid_yaw_txts, unknown_ok=unknown_ok)
+            yaw_flags = list(yaw_flags)
+            with VerbosityContext('view', 'require_viewpoint', 'view_ext',
+                                  'view_ext1', 'view_ext2', valid_yaws=valid_yaw_txts):
+                avail_aids = ut.compress(avail_aids, yaw_flags)
+
+    #if aidcfg.get('exclude_view') is not None:
+    #    raise NotImplementedError('view tag resolution of exclude_view')
+    #    # Filter viewpoint
+    #    # TODO need to resolve viewpoints
+    #    exclude_view = aidcfg.get('exclude_view')
+    #    with VerbosityContext('exclude_view', hack=True):
+    #        avail_aids = ibs.remove_aids_of_viewpoint(
+    #            avail_aids, exclude_view)
+
+    if aidcfg.get('min_pername_global') is not None:
+        # Keep annots with at least this many groundtruths in the database
+        min_pername_global = aidcfg.get('min_pername_global')
+        num_gt_global_list = ibs.get_annot_num_groundtruth(avail_aids, noself=False)
+        flag_list = np.array(num_gt_global_list) >= min_pername_global
+        with VerbosityContext('exclude_view'):
+            avail_aids = ut.compress(avail_aids, flag_list)
         avail_aids = sorted(avail_aids)
 
-    if aidcfg.get('exclude_view') is not None:
-        raise NotImplementedError('view tag resolution of exclude_view')
-        # Filter viewpoint
-        # TODO need to resolve viewpoints
-        exclude_view = aidcfg.get('exclude_view')
-        with VerbosityContext('exclude_view', hack=True):
-            avail_aids = ibs.remove_aids_of_viewpoint(
-                avail_aids, exclude_view)
+    if aidcfg.get('max_pername_global') is not None:
+        max_pername_global = aidcfg.get('max_pername_global')
+        num_gt_global_list = ibs.get_annot_num_groundtruth(avail_aids, noself=False)
+        flag_list = np.array(num_gt_global_list) <= max_pername_global
+        with VerbosityContext('exclude_view'):
+            avail_aids = ut.compress(avail_aids, flag_list)
+        avail_aids = sorted(avail_aids)
 
     # FILTER HACK integrating some notion of tag functions
     # TODO: further integrate
@@ -1395,7 +1482,8 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         # For the database we have to do something different
         grouped_aids = ibs.group_annots_by_name(avail_aids)[0]
         # Order based on some preference (like random)
-        rng = np.random.RandomState(SEED1)
+        sample_seed = get_cfg('sample_seed')
+        rng = np.random.RandomState(sample_seed)
         # + --- Get nested sample indicies ---
         if sample_rule == 'random':
             preference_idxs_list = [

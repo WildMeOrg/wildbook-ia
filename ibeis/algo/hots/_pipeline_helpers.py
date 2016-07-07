@@ -159,13 +159,14 @@ def testdata_sparse_matchinfo_nonagg(defaultdb='testdb1', p=['default']):
     # daid = qreq_.daids[1]
     qaid = qreq_.get_external_qaids()[0]
     daid = qreq_.get_external_daids()[1]
-    qfx2_idx, qfx2_dist = args.nns_list[internal_index]
-    qfx2_valid0         = args.nnvalid0_list[internal_index]
-    qfx2_score_list     = args.filtweights_list[internal_index]
-    qfx2_valid_list     = args.filtvalids_list[internal_index]
-    qfx2_normk          = args.filtnormks_list[internal_index]
+    nns                 = args.nns_list[internal_index]
+    neighb_idx, neighb_dist = args.nns_list[internal_index]
+    neighb_valid0         = args.nnvalid0_list[internal_index]
+    neighb_score_list     = args.filtweights_list[internal_index]
+    neighb_valid_list     = args.filtvalids_list[internal_index]
+    neighb_normk          = args.filtnormks_list[internal_index]
     Knorm = qreq_.qparams.Knorm
-    args = (qfx2_idx, qfx2_valid0, qfx2_score_list, qfx2_valid_list, qfx2_normk, Knorm)
+    args = (nns, neighb_idx, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk, Knorm)
     return qreq_, qaid, daid, args
 
 
@@ -257,38 +258,6 @@ def testdata_matching(*args, **kwargs):
     prior_cm      = cm_shortlist[0]
     return ibs, qreq_, prior_cm
 #L_______
-
-
-def print_nearest_neighbor_assignments(qvecs_list, nns_list):
-    nQAnnots = len(qvecs_list)
-    nTotalDesc = sum(map(len, qvecs_list))
-    nTotalNN = sum([qfx2_idx.size for (qfx2_idx, qfx2_dist) in nns_list])
-    print('[hs] * assigned %d desc (from %d annots) to %r nearest neighbors'
-          % (nTotalDesc, nQAnnots, nTotalNN))
-
-
-def _self_verbose_check(qfx2_notsamechip, qfx2_valid0):
-    nInvalidChips = ((True - qfx2_notsamechip)).sum()
-    nNewInvalidChips = (qfx2_valid0 * (True - qfx2_notsamechip)).sum()
-    total = qfx2_valid0.size
-    print('[hs] * self invalidates %d/%d assignments' % (nInvalidChips, total))
-    print('[hs] * %d are newly invalided by self' % (nNewInvalidChips))
-
-
-def _samename_verbose_check(qfx2_notsamename, qfx2_valid0):
-    nInvalidNames = ((True - qfx2_notsamename)).sum()
-    nNewInvalidNames = (qfx2_valid0 * (True - qfx2_notsamename)).sum()
-    total = qfx2_valid0.size
-    print('[hs] * nid invalidates %d/%d assignments' % (nInvalidNames, total))
-    print('[hs] * %d are newly invalided by nid' % nNewInvalidNames)
-
-
-def _sameimg_verbose_check(qfx2_notsameimg, qfx2_valid0):
-    nInvalidImgs = ((True - qfx2_notsameimg)).sum()
-    nNewInvalidImgs = (qfx2_valid0 * (True - qfx2_notsameimg)).sum()
-    total = qfx2_valid0.size
-    print('[hs] * gid invalidates %d/%d assignments' % (nInvalidImgs, total))
-    print('[hs] * %d are newly invalided by gid' % nNewInvalidImgs)
 
 
 if __name__ == '__main__':

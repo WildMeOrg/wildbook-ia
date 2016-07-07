@@ -50,6 +50,9 @@ ANNOTMATCH_PROPS_OTHER = [
     'BadShoulder',  # gf is a bad shoulder match
     'BadTail',  # gf is a bad tail match
     'TimeDeltaError',
+
+    # These annots have almost the same information
+    'NearDuplicate'
 ]
 
 OLD_ANNOTMATCH_PROPS = [
@@ -319,17 +322,19 @@ def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
         annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(aid_pairs.T[0], aid_pairs.T[1])
         tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowid)
     else:
-        expanded_aid_pairs = np.vstack([aid_pairs, aid_pairs[:, ::-1]])
-        expanded_annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(
-            expanded_aid_pairs.T[0], expanded_aid_pairs.T[1])
-        expanded_edgeids = vt.get_undirected_edge_ids(expanded_aid_pairs)
-        unique_edgeids, groupxs = vt.group_indices(expanded_edgeids)
-        expanded_tags_list = ibs.get_annotmatch_case_tags(expanded_annotmatch_rowid)
-        grouped_tags = vt.apply_grouping(np.array(expanded_tags_list, dtype=object), groupxs)
-        undirected_tags = [list(set(ut.flatten(tags))) for tags in grouped_tags]
-        edgeid2_tags = dict(zip(unique_edgeids, undirected_tags))
-        input_edgeids = expanded_edgeids[:len(aid_pairs)]
-        tags_list = ut.dict_take(edgeid2_tags, input_edgeids)
+        annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey(aid_pairs.T[0], aid_pairs.T[1])
+        if False:
+            expanded_aid_pairs = np.vstack([aid_pairs, aid_pairs[:, ::-1]])
+            expanded_annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(
+                expanded_aid_pairs.T[0], expanded_aid_pairs.T[1])
+            expanded_edgeids = vt.get_undirected_edge_ids(expanded_aid_pairs)
+            unique_edgeids, groupxs = vt.group_indices(expanded_edgeids)
+            expanded_tags_list = ibs.get_annotmatch_case_tags(expanded_annotmatch_rowid)
+            grouped_tags = vt.apply_grouping(np.array(expanded_tags_list, dtype=object), groupxs)
+            undirected_tags = [list(set(ut.flatten(tags))) for tags in grouped_tags]
+            edgeid2_tags = dict(zip(unique_edgeids, undirected_tags))
+            input_edgeids = expanded_edgeids[:len(aid_pairs)]
+            tags_list = ut.dict_take(edgeid2_tags, input_edgeids)
     return tags_list
 
 
@@ -701,6 +706,7 @@ def set_annotmatch_prop(ibs, prop, annotmatch_rowids, flags):
     """
     hacky setter for dynamic properties of annotmatches using notes table
     """
+    print('[ibs] set_annotmatch_prop prop=%s for %d pairs' % (prop, len(annotmatch_rowids)))
     if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:
         setter = getattr(ibs, 'set_annotmatch_is_' + prop.lower())
         return setter(annotmatch_rowids, flags)

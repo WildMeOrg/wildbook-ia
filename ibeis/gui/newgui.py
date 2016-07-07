@@ -20,10 +20,10 @@ from os.path import isdir
 import sys
 from ibeis import constants as const
 import functools
-from guitool.__PYQT__ import QtGui, QtCore
+from guitool.__PYQT__ import QtCore
+from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__.QtCore import Qt
-from guitool.__PYQT__.QtGui import QSizePolicy
-from guitool import signal_, slot_, checks_qt_error, ChangeLayoutContext, BlockContext  # NOQA
+from guitool import slot_, checks_qt_error, ChangeLayoutContext, BlockContext  # NOQA
 from ibeis.other import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
@@ -46,29 +46,19 @@ VERBOSE_GUI = ut.VERBOSE or ut.get_argflag(('--verbose-gui', '--verbgui'))
 WITH_GUILOG = ut.get_argflag('--guilog')
 #WITH_GUILOG = not ut.get_argflag('--noguilog')
 
-"""
-from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE,
-                                  NAME_TABLE, NAMES_TREE, IMAGESET_TABLE)
-ibsgwt = back.front
-view   = ibsgwt.views[IMAGE_TABLE]
-model  = ibsgwt.models[IMAGE_TABLE]
-row = model.get_row_from_id(3)
-view.selectRow(row)
-"""
-
 #############################
 ###### Tab Widgets #######
 #############################
 
 
-class APITabWidget(QtGui.QTabWidget):
+class APITabWidget(QtWidgets.QTabWidget):
     """
     Holds the table-tabs
 
     use setCurrentIndex to change the selection
     """
     def __init__(tabwgt, parent=None, horizontalStretch=1):
-        QtGui.QTabWidget.__init__(tabwgt, parent)
+        QtWidgets.QTabWidget.__init__(tabwgt, parent)
         tabwgt.ibswgt = parent
         tabwgt._sizePolicy = guitool.newSizePolicy(
             tabwgt, horizontalStretch=horizontalStretch)
@@ -87,7 +77,7 @@ class APITabWidget(QtGui.QTabWidget):
         tabwgt.ibswgt.back._clear_selection()
         view = tabwgt.ibswgt.views[tblname]
         selected = view.selectionModel().selection()
-        deselected = QtGui.QItemSelection()
+        deselected = QtCore.QItemSelection()
         tabwgt.ibswgt.update_selection(selected, deselected)
         #tabwgt.ibswgt.back.update_selection_texts()
 
@@ -96,15 +86,15 @@ class APITabWidget(QtGui.QTabWidget):
     #    print('Set %r current Index: %r ' % (tblname, index))
     #    #model = tabwgt.ibswgt.models[tblname]
     #    #with ChangeLayoutContext([model]):
-    #    #    QtGui.QTabWidget.setCurrentIndex(tabwgt, index)
+    #    #    QtWidgets.QTabWidget.setCurrentIndex(tabwgt, index)
 
 
-class ImagesetTabWidget(QtGui.QTabWidget):
+class ImagesetTabWidget(QtWidgets.QTabWidget):
     """
     Handles the super-tabs for the imagesets that hold the table-tabs
     """
     def __init__(imageset_tabwgt, parent=None, horizontalStretch=1):
-        QtGui.QTabWidget.__init__(imageset_tabwgt, parent)
+        QtWidgets.QTabWidget.__init__(imageset_tabwgt, parent)
         imageset_tabwgt.ibswgt = parent
         imageset_tabwgt.setTabsClosable(True)
         imageset_tabwgt.setMaximumSize(9999, guitool.get_cplat_tab_height())
@@ -162,7 +152,7 @@ class ImagesetTabWidget(QtGui.QTabWidget):
         print('[_add_imageset_tab] imgsetid=%r, imagesettext=%r' % (imgsetid, imagesettext))
         if imgsetid not in imageset_tabwgt.imgsetid_list:
             tab_name = str(imagesettext)
-            imageset_tabwgt.addTab(QtGui.QWidget(), tab_name)
+            imageset_tabwgt.addTab(QtWidgets.QWidget(), tab_name)
 
             imageset_tabwgt.imgsetid_list.append(imgsetid)
             index = len(imageset_tabwgt.imgsetid_list) - 1
@@ -183,13 +173,16 @@ class ImagesetTabWidget(QtGui.QTabWidget):
 #############################
 
 
-class IBEISMainWindow(QtGui.QMainWindow):
-    quitSignal = signal_()
-    dropSignal = signal_(list)
+class IBEISMainWindow(QtWidgets.QMainWindow):
+    quitSignal = QtCore.pyqtSignal()
+    dropSignal = QtCore.pyqtSignal(list)
     def __init__(mainwin, back=None, ibs=None, parent=None):
-        QtGui.QMainWindow.__init__(mainwin, parent)
+        super(IBEISMainWindow, mainwin).__init__(parent)
         # Menus
-        mainwin.setUnifiedTitleAndToolBarOnMac(False)
+        try:
+            mainwin.setUnifiedTitleAndToolBarOnMac(False)
+        except AttributeError as ex:
+            ut.printex(ex, 'setUnifiedTitleAndToolBarOnMac is not working', iswarning=True)
         guimenus.setup_menus(mainwin, back)
         # Central Widget
         mainwin.ibswgt = IBEISGuiWidget(back=back, ibs=ibs, parent=mainwin)
@@ -236,7 +229,7 @@ class IBEISMainWindow(QtGui.QMainWindow):
 #############################
 
 
-IBEIS_WIDGET_BASE = QtGui.QWidget
+IBEIS_WIDGET_BASE = QtWidgets.QWidget
 
 
 class IBEISGuiWidget(IBEIS_WIDGET_BASE):
@@ -248,13 +241,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     """
     def __init__(ibswgt, back=None, ibs=None, parent=None):
-        IBEIS_WIDGET_BASE.__init__(ibswgt, parent)
+        super(IBEISGuiWidget, ibswgt).__init__(parent)
         ibswgt.ibs = ibs
         ibswgt.back = back
         # Structures that will hold models and views
         ibswgt.models       = {}
         ibswgt.views        = {}
-        ibswgt.redirects    = {}
 
         # FIXME: Duplicate models
         # Create models and views
@@ -292,120 +284,21 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # DO INITALIZATION
         # Create and layout components
         ibswgt._init_components()
-        ibswgt._init_layout()
         # Connect signals and slots
         ibswgt._connect_signals_and_slots()
         # Connect the IBEIS control
         ibswgt.connect_ibeis_control(ibswgt.ibs)
 
-    def _connect_signals_and_slots(ibswgt):
-        print('[newgui] _connect_signals_and_slots')
-        for tblname in ibswgt.super_tblname_list:
-            tblview = ibswgt.views[tblname]
-            tblview.doubleClicked.connect(ibswgt.on_doubleclick)
-            tblview.contextMenuClicked.connect(ibswgt.on_contextMenuClicked)
-            if tblname != gh.IMAGESET_TABLE:
-                tblview.selectionModel().selectionChanged.connect(ibswgt.update_selection)
-            #front.printSignal.connect(back.backend_print)
-            #front.raiseExceptionSignal.connect(back.backend_exception)
-            # CONNECT HOOK TO GET NUM ROWS
-            tblview.rows_updated.connect(ibswgt.on_rows_updated)
-
-    @slot_(QtGui.QItemSelection, QtGui.QItemSelection)
-    def update_selection(ibswgt, selected, deselected):
-        """
-        Quirky behavior: if you select two columns in a row and then unselect
-        only one, the whole row is unselected, because this function only deals
-        with deltas.
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.gui.newgui import *  # NOQA
-            >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
-            >>> ibswgt.set_table_tab(gh.NAMES_TREE)
-            >>> view = ibswgt.views[gh.NAMES_TREE]
-            >>> view.expandAll()
-            >>> AUTOSELECT = False
-            >>> if AUTOSELECT:
-            ...     view.selectAll()
-            >>> selmodel = view.selectionModel()
-            >>> selected = selmodel.selection()
-            >>> deselected = QtGui.QItemSelection()
-            >>> # verify results
-            >>> print(result)
-
-        """
-        #print('selected = ' + str(selected.indexes()))
-        #print('deselected = ' + str(deselected.indexes()))
-        deselected_model_index_list_ = deselected.indexes()
-        selected_model_index_list_   = selected.indexes()
-
-        def get_selection_info(model_index_list_):
-            model_index_list = [qtindex for qtindex in model_index_list_ if qtindex.isValid()]
-            model_list       = [qtindex.model() for qtindex in model_index_list]
-            tablename_list   = [model.name for model in model_list]
-            level_list       = [model._get_level(qtindex)
-                                for model, qtindex in zip(model_list, model_index_list)]
-            rowid_list       = [model._get_row_id(qtindex)
-                                for model, qtindex in zip(model_list, model_index_list)]
-            table_key_list = list(zip(tablename_list, level_list))
-            return table_key_list, rowid_list
-
-        select_table_key_list, select_rowid_list = get_selection_info(
-            selected_model_index_list_)
-        deselect_table_key_list, deselect_rowid_list = get_selection_info(
-            deselected_model_index_list_)
-
-        table_key2_selected_rowids   = dict(ut.group_items(select_rowid_list,
-                                                           select_table_key_list))
-        table_key2_deselected_rowids = dict(ut.group_items(deselect_rowid_list,
-                                                           deselect_table_key_list))
-
-        table_key2_selected_rowids   = {key: list(set(val))
-                                        for key, val in six.iteritems(table_key2_selected_rowids)}
-        table_key2_deselected_rowids = {key: list(set(val))
-                                        for key, val in six.iteritems(table_key2_deselected_rowids)}
-        if ut.VERBOSE:
-            print('table_key2_selected_rowids = ' + ut.dict_str(table_key2_selected_rowids))
-            print('table_key2_deselected_rowids = ' + ut.dict_str(table_key2_deselected_rowids))
-
-        gh_const_tablename_map = {
-            (IMAGE_TABLE, 0)         : const.IMAGE_TABLE,
-            (IMAGE_GRID, 0)          : const.IMAGE_TABLE,
-            (gh.ANNOTATION_TABLE, 0) : const.ANNOTATION_TABLE,
-            (NAME_TABLE, 0)          : const.NAME_TABLE,
-            (NAMES_TREE, 0)          : const.NAME_TABLE,
-            (NAMES_TREE, 1)          : const.ANNOTATION_TABLE,
-        }
-        # here tablename is a backend const tablename
-        for table_key, id_list in six.iteritems(table_key2_deselected_rowids):
-            tablename = gh_const_tablename_map[table_key]
-            ibswgt.back._set_selection3(tablename, id_list, mode='diff')
-        for table_key, id_list in six.iteritems(table_key2_selected_rowids):
-            tablename = gh_const_tablename_map[table_key]
-            ibswgt.back._set_selection3(tablename, id_list, mode='add')
-        ibswgt.back.update_selection_texts()
-
-        #tblview.selectionModel().selectedIndexes()
-
     def _init_components(ibswgt):
-        """ Defines gui components """
+        """ Defines gui components and inits layout """
         # Layout
-        ibswgt.vlayout = QtGui.QVBoxLayout(ibswgt)
-        #ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
-        ibswgt.hsplitter = guitool.newSplitter(ibswgt, Qt.Horizontal, verticalStretch=18)
-        ibswgt.vsplitter = guitool.newSplitter(ibswgt, Qt.Vertical)
-        #ibswgt.hsplitter = guitool.newWidget(ibswgt, Qt.Horizontal, verticalStretch=18)
-        #ibswgt.vsplitter = guitool.newWidget(ibswgt)
+        ibswgt.vlayout = QtWidgets.QVBoxLayout(ibswgt)
+        ibswgt.vsplitter = guitool.newSplitter(ibswgt, orientation=Qt.Vertical)
+        ibswgt.hsplitter = guitool.newSplitter(ibswgt, orientation=Qt.Horizontal, verticalStretch=18)
         #
         # Tables Tab
         ibswgt._table_tab_wgt = APITabWidget(ibswgt, horizontalStretch=81)
-        #guitool.newTabWidget(ibswgt, horizontalStretch=81)
         for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
-            #widget = WidgetClass(parent=ibswgt)
-            #ibswgt.widgets[tblname] = widget
-            #ibswgt.models[tblname]  = widget.model
-            #ibswgt.views[tblname]   = widget.view
             ibswgt.views[tblname]  = ViewClass(parent=ibswgt)  # Make view first to pass as parent
             # FIXME: It is very bad to give the model a view. Only the view should have a model
             ibswgt.models[tblname] = ModelClass(parent=ibswgt.views[tblname])
@@ -414,18 +307,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.views[tblname].setModel(ibswgt.models[tblname])
         # Add Image, ANNOTATION, and Names as tabs
         for tblname in ibswgt.tblname_list:
-            #ibswgt._table_tab_wgt.addTab(ibswgt.widgets[tblname], tblname)
             ibswgt._table_tab_wgt.addTab(ibswgt.views[tblname], tblname)
         # Custom ImageSet Tab Wiget
         ibswgt.imageset_tabwgt = ImagesetTabWidget(parent=ibswgt, horizontalStretch=19)
-        # Other components
-        ibswgt.outputLog   = guitool.newOutputLog(ibswgt, pointSize=8,
-                                                  visible=WITH_GUILOG, verticalStretch=6)
-        ibswgt.progressBar = guitool.newProgressBar(ibswgt, visible=False, verticalStretch=1)
-        # New widget has black magic (for implicit layouts) in it
-        ibswgt.status_wgt  = guitool.newWidget(ibswgt, Qt.Vertical,
-                                               verticalStretch=6,
-                                               horizontalSizePolicy=QSizePolicy.Maximum)
+
+        ibswgt.vlayout.addWidget(ibswgt.imageset_tabwgt)
+        ibswgt.vlayout.addWidget(ibswgt.vsplitter)
+        ibswgt.vsplitter.addWidget(ibswgt.hsplitter)
+
+        # Horizontal Upper
+        ibswgt.hsplitter.addWidget(ibswgt.views[IMAGESET_TABLE])
+        ibswgt.hsplitter.addWidget(ibswgt._table_tab_wgt)
 
         _NEWLBL = functools.partial(guitool.newLabel, ibswgt)
         _NEWBUT = functools.partial(guitool.newButton, ibswgt)
@@ -553,8 +445,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             enabled=enable_complete)
 
         ibswgt.control_widget_lists = [
-            [
-            ],
+            #[
+            #],
             [
                 ibswgt.import_button,
                 ibswgt.imageset_button,
@@ -565,6 +457,17 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ibswgt.batch_vsexemplar_query_button,
                 ibswgt.reviewed_button,
             ],
+            [
+                _NEWBUT(
+                    'Advanced ID Interface',
+                    # ibswgt.back.special_query_funcs['intra_occurrence'],
+                    back.show_advanced_id_interface,
+                    bgcolor=color_funcs.adjust_hsv_of_rgb255(identify_color),
+                    fgcolor=(0, 0, 0),
+                    # fontkw=advanced_fontkw
+                    fontkw=primary_fontkw
+                )
+            ]
             # [
             # _NEWLBL('Species Selector: ', align='right', fontkw=primary_fontkw),
             # ibswgt.species_combo,
@@ -578,31 +481,135 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # ],
         ]
 
-    def _init_layout(ibswgt):
-        """ Lays out the defined components """
-        # Add elements to the layout
-        ibswgt.vlayout.addWidget(ibswgt.imageset_tabwgt)
-        ibswgt.vlayout.addWidget(ibswgt.vsplitter)
-        ibswgt.vsplitter.addWidget(ibswgt.hsplitter)
-        ibswgt.vsplitter.addWidget(ibswgt.status_wgt)
-        # Horizontal Upper
-        ibswgt.hsplitter.addWidget(ibswgt.views[IMAGESET_TABLE])
-        ibswgt.hsplitter.addWidget(ibswgt._table_tab_wgt)
-        # Horizontal Lower
-        ibswgt.status_wgt.addWidget(ibswgt.outputLog)
-        ibswgt.status_wgt.addWidget(ibswgt.progressBar)
+        # Other components
+        # New widget has black magic (for implicit layouts) in it
+        ibswgt.status_wgt = status_wgt = guitool.newWidget(ibswgt.vsplitter,
+                                                           orientation=Qt.Vertical,
+                                                           spacing=3, margin=0,
+                                                           verticalStretch=6,
+                                                           horizontalSizePolicy=QtWidgets.QSizePolicy.Maximum,
+                                                           name='StatusWidget')
+        ibswgt.vsplitter.addWidget(status_wgt)
+
         # Add control widgets (import, group, species selector, etc...)
-        ibswgt.control_layout_list = []
-        for control_widgets in ibswgt.control_widget_lists:
-            ibswgt.control_layout_list.append(QtGui.QHBoxLayout(ibswgt))
-            ibswgt.status_wgt.addLayout(ibswgt.control_layout_list[-1])
+        for count, control_widgets in enumerate(ibswgt.control_widget_lists):
+            _container = status_wgt.addNewWidget(orientation=Qt.Horizontal,
+                                                 margin=0,
+                                                 name='ControlContainer%d' %
+                                                 (count,))
             for widget in control_widgets:
-                ibswgt.control_layout_list[-1].addWidget(widget)
+                _container.addWidget(widget)
+
+        # Output log (turned off by default)
+        ibswgt.outputLog = guitool.newOutputLog(
+            status_wgt, pointSize=8, visible=WITH_GUILOG,
+            verticalStretch=6)
+        status_wgt.addWidget(ibswgt.outputLog)
+
         # Add selected ids status widget
-        ibswgt.selectionStatusLayout = QtGui.QHBoxLayout(ibswgt)
-        ibswgt.status_wgt.addLayout(ibswgt.selectionStatusLayout)
+        ibswgt.selectionStatusWidget = status_wgt.addNewWidget(orientation=Qt.Horizontal,
+                                                               margin=3,
+                                                               name='SelectionStatus')
         for widget in ibswgt.status_widget_list:
-            ibswgt.selectionStatusLayout.addWidget(widget)
+            ibswgt.selectionStatusWidget.addWidget(widget)
+
+        # Progress bar is at the bottom
+        ibswgt.progbar = status_wgt.addNewProgressBar(visible=False,
+                                                      verticalStretch=1,
+                                                      name='progbar')
+
+        #ibswgt.vsplitter.print_widget_heirarchy(max_depth=4)
+
+    def _connect_signals_and_slots(ibswgt):
+        print('[newgui] _connect_signals_and_slots')
+        for tblname in ibswgt.super_tblname_list:
+            tblview = ibswgt.views[tblname]
+            tblview.doubleClicked.connect(ibswgt.on_doubleclick)
+            tblview.contextMenuClicked.connect(ibswgt.on_contextMenuClicked)
+            if tblname != gh.IMAGESET_TABLE:
+                tblview.selectionModel().selectionChanged.connect(ibswgt.update_selection)
+            #front.printSignal.connect(back.backend_print)
+            #front.raiseExceptionSignal.connect(back.backend_exception)
+            # CONNECT HOOK TO GET NUM ROWS
+            tblview.rows_updated.connect(ibswgt.on_rows_updated)
+
+    @slot_(QtCore.QItemSelection, QtCore.QItemSelection)
+    def update_selection(ibswgt, selected, deselected):
+        """
+        Quirky behavior: if you select two columns in a row and then unselect
+        only one, the whole row is unselected, because this function only deals
+        with deltas.
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.gui.newgui import *  # NOQA
+            >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront()
+            >>> ibswgt.set_table_tab(gh.NAMES_TREE)
+            >>> view = ibswgt.views[gh.NAMES_TREE]
+            >>> view.expandAll()
+            >>> AUTOSELECT = False
+            >>> if AUTOSELECT:
+            ...     view.selectAll()
+            >>> selmodel = view.selectionModel()
+            >>> selected = selmodel.selection()
+            >>> deselected = QtCore.QItemSelection()
+            >>> # verify results
+            >>> print(result)
+
+        """
+        print('[ibswgt] update selection')
+        #print('selected = ' + str(selected.indexes()))
+        #print('deselected = ' + str(deselected.indexes()))
+        deselected_model_index_list_ = deselected.indexes()
+        selected_model_index_list_   = selected.indexes()
+
+        def get_selection_info(model_index_list_):
+            model_index_list = [qtindex for qtindex in model_index_list_ if qtindex.isValid()]
+            model_list       = [qtindex.model() for qtindex in model_index_list]
+            tablename_list   = [model.name for model in model_list]
+            level_list       = [model._get_level(qtindex)
+                                for model, qtindex in zip(model_list, model_index_list)]
+            rowid_list       = [model._get_row_id(qtindex)
+                                for model, qtindex in zip(model_list, model_index_list)]
+            table_key_list = list(zip(tablename_list, level_list))
+            return table_key_list, rowid_list
+
+        select_table_key_list, select_rowid_list = get_selection_info(
+            selected_model_index_list_)
+        deselect_table_key_list, deselect_rowid_list = get_selection_info(
+            deselected_model_index_list_)
+
+        table_key2_selected_rowids   = dict(ut.group_items(select_rowid_list,
+                                                           select_table_key_list))
+        table_key2_deselected_rowids = dict(ut.group_items(deselect_rowid_list,
+                                                           deselect_table_key_list))
+
+        table_key2_selected_rowids   = {key: list(set(val))
+                                        for key, val in six.iteritems(table_key2_selected_rowids)}
+        table_key2_deselected_rowids = {key: list(set(val))
+                                        for key, val in six.iteritems(table_key2_deselected_rowids)}
+        if ut.VERBOSE:
+            print('table_key2_selected_rowids = ' + ut.dict_str(table_key2_selected_rowids))
+            print('table_key2_deselected_rowids = ' + ut.dict_str(table_key2_deselected_rowids))
+
+        gh_const_tablename_map = {
+            (IMAGE_TABLE, 0)         : const.IMAGE_TABLE,
+            (IMAGE_GRID, 0)          : const.IMAGE_TABLE,
+            (gh.ANNOTATION_TABLE, 0) : const.ANNOTATION_TABLE,
+            (NAME_TABLE, 0)          : const.NAME_TABLE,
+            (NAMES_TREE, 0)          : const.NAME_TABLE,
+            (NAMES_TREE, 1)          : const.ANNOTATION_TABLE,
+        }
+        # here tablename is a backend const tablename
+        for table_key, id_list in six.iteritems(table_key2_deselected_rowids):
+            tablename = gh_const_tablename_map[table_key]
+            ibswgt.back._set_selection3(tablename, id_list, mode='diff')
+        for table_key, id_list in six.iteritems(table_key2_selected_rowids):
+            tablename = gh_const_tablename_map[table_key]
+            ibswgt.back._set_selection3(tablename, id_list, mode='add')
+        ibswgt.back.update_selection_texts()
+
+        #tblview.selectionModel().selectedIndexes()
 
     def changing_models_gen(ibswgt, tblnames=None):
         """
@@ -635,7 +642,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     def connect_ibeis_control(ibswgt, ibs):
         """ Connects a new ibscontroler to the models """
-        print('[newgui] connecting ibs control. ibs=%r' % (ibs,))
+        print('[newgui] connect_ibeis_control(ibs=%r)' % (ibs,))
         ibswgt.imageset_tabwgt._close_all_tabs()
         if ibs is None:
             print('[newgui] invalid ibs')
@@ -653,8 +660,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             with ut.Timer('make headers'):
                 header_dict, declare_tup = gh.make_ibeis_headers_dict(ibswgt.ibs)
             ibswgt.declare_tup = declare_tup
-            # Enable the redirections between tables
-            #ibswgt._init_redirects()
             title = ibsfuncs.get_title(ibswgt.ibs)
             ibswgt.setWindowTitle(title)
             if ut.VERBOSE:
@@ -1538,11 +1543,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             print('updated_config = %r' % (updated_config,))
             gid_list = ingestable.execute(ibs=ibs)
             ibswgt.back._process_new_images(refresh=True, gid_list=gid_list, clock_offset=False)
-
-    def register_redirect(ibswgt, src_table, src_table_col, dst_table, mapping_func):
-        if src_table not in ibswgt.redirects.keys():
-            ibswgt.redirects[src_table] = {}
-        ibswgt.redirects[src_table][src_table_col] = (dst_table, mapping_func)
 
     def select_table_id(ibswgt, table_key, level, id_, imgsetid):
         select_func_dict = {

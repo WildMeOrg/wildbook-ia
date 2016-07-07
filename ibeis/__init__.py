@@ -63,7 +63,6 @@ try:
     from ibeis import algo
 
     from ibeis import expt
-    from ibeis import species
     from ibeis import templates
     from ibeis.templates import generate_notebook
     from ibeis.control.controller_inject import register_preprocs
@@ -301,7 +300,7 @@ rrrr = reload_subs
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
 __version__ = VERSION_CURRENT
-__version__ = '1.5.3'
+__version__ = '1.5.4'
 
 if __version__ != VERSION_CURRENT:
     raise AssertionError(

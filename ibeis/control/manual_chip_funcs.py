@@ -42,9 +42,9 @@ NEW_DEPC = True
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annot_chip/fpath/', methods=['GET'])
+# register_api('/api/chip/fpath/', methods=['GET'])
 def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None,
-                         check_external_storage=False, extra_tries=0):
+                         check_external_storage=False, num_retries=1):
     r"""
     Returns the cached chip uri based off of the current
     configuration.
@@ -54,21 +54,21 @@ def get_annot_chip_fpath(ibs, aid_list, ensure=True, config2_=None,
 
     RESTful:
         Method: GET
-        URL:    /api/annot_chip/fpath/
+        URL:    /api/chip/fpath/
     """
-    import dtool
-    try:
-        return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
-                                  ensure=ensure, read_extern=False)
-    except dtool.ExternalStorageException:
-        # TODO; this check might go in dtool itself
-        return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
-                                  ensure=ensure, read_extern=False)
+    #import dtool
+    #try:
+    return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
+                              ensure=ensure, read_extern=False)
+    #except dtool.ExternalStorageException:
+    #    # TODO; this check might go in dtool itself
+    #    return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,
+    #                              ensure=ensure, read_extern=False)
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annot_chip/', methods=['GET'])
+# @register_api('/api/chip/', methods=['GET'])
 def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, eager=True):
     r"""
     Args:
@@ -87,7 +87,7 @@ def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, ea
 
     RESTful:
         Method: GET
-        URL:    /api/annot_chip/
+        URL:    /api/chip/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -108,7 +108,7 @@ def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, ea
 @register_ibs_method
 @accessor_decors.getter_1to1
 #@cache_getter(const.ANNOTATION_TABLE, 'chipsizes')
-@register_api('/api/annot_chip/sizes/', methods=['GET'])
+# @register_api('/api/chip/sizes/', methods=['GET'])
 def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
     r"""
     Args:
@@ -121,10 +121,6 @@ def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
 
     CommandLine:
         python -m ibeis.control.manual_chip_funcs --test-get_annot_chip_sizes
-
-    RESTful:
-        Method: GET
-        URL:    /api/annot_chip/sizes/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -146,7 +142,7 @@ def get_annot_chip_sizes(ibs, aid_list, ensure=True, config2_=None):
 
 
 @register_ibs_method
-@register_api('/api/annot_chip/dlensqrd/', methods=['GET'])
+# @register_api('/api/chip/dlensqrd/', methods=['GET'])
 def get_annot_chip_dlensqrd(ibs, aid_list, config2_=None):
     r"""
     Args:
@@ -161,7 +157,7 @@ def get_annot_chip_dlensqrd(ibs, aid_list, config2_=None):
 
     RESTful:
         Method: GET
-        URL:    /api/annot_chip/dlensqrd/
+        URL:    /api/chip/dlensqrd/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -184,7 +180,7 @@ def get_annot_chip_dlensqrd(ibs, aid_list, config2_=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annot_chip/thumbpath/', methods=['GET'])
+# @register_api('/api/chip/thumbpath/', methods=['GET'])
 def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, config2_=None):
     r"""
     just constructs the path. does not compute it. that is done by
@@ -192,7 +188,7 @@ def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, config2_=None):
 
     RESTful:
         Method: GET
-        URL:    /api/annot_chip/thumbpath/
+        URL:    /api/chip/thumbpath/
     """
     if thumbsize is None:
         thumbsize = ibs.cfg.other_cfg.thumb_size
@@ -206,7 +202,7 @@ def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, config2_=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/annot_chip/thumbtup/', methods=['GET'])
+# @register_api('/api/chip/thumbtup/', methods=['GET'])
 def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
     r"""
     get chip thumb info
@@ -225,7 +221,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
 
     RESTful:
         Method: GET
-        URL:    /api/annot_chip/thumbtup/
+        URL:    /api/chip/thumbtup/
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -262,14 +258,14 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
 
 @register_ibs_method
 @accessor_decors.deleter
-@register_api('/api/annot_chip/', methods=['DELETE'])
+# @register_api('/api/chip/', methods=['DELETE'])
 def delete_annot_chips(ibs, aid_list, config2_=None):
     r"""
     Clears annotation data (does not remove the annotation)
 
     RESTful:
         Method: DELETE
-        URL:    /api/annot_chip/
+        URL:    /api/chip/
     """
     thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
     print(thumbpath_list)
@@ -335,9 +331,9 @@ def delete_annot_chips(ibs, aid_list, config2_=None):
 #        >>> # But trying it again will work.
 #        >>> assert not any([ut.checkpath(cfpath) for cfpath in cfpath_list2])
 #        >>> try:
-#        >>>     fids1 = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, extra_tries=0)
+#        >>>     fids1 = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, num_retries=0)
 #        >>> except controller_inject.ExternalStorageException:
-#        >>>     fids1 = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, extra_tries=0)
+#        >>>     fids1 = ibs.get_annot_feat_rowids(aid_list, config2_=config2_, num_retries=0)
 #        >>> else:
 #        >>>     assert False, 'Should have gotten external storage execpetion'
 #        >>> print(result)

@@ -31,7 +31,7 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 @register_ibs_method
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
-@register_api('/api/detect/random_forest/', methods=['PUT', 'GET'])
+@register_api('/api/detect/randomforest/', methods=['PUT', 'GET'])
 def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
     """
     Runs animal detection in each image. Adds annotations to the database
@@ -50,7 +50,7 @@ def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
 
     RESTful:
         Method: PUT, GET
-        URL:    /api/detect/random_forest/
+        URL:    /api/detect/randomforest/
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -388,7 +388,7 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, **kwargs):
 @register_ibs_method
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
-@register_api('/api/detect/cnn/yolo/exists/', methods=['GET'])
+@register_api('/api/detect/cnn/yolo/exists/', methods=['GET'], __api_plural_check__=False)
 def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
     """
     Checks to see if a detection has been completed.
@@ -486,8 +486,41 @@ def commit_detection_results(ibs, gid_list, results_list, note=None):
 
 
 @register_ibs_method
+def commit_detection_results_filtered(ibs, gid_list, filter_species_list=None, filter_viewpoint_list=None, note=None):
+    depc = ibs.depc_image
+    results_list = depc.get_property('detections', gid_list, None)
+    zipped_list = zip(gid_list, results_list)
+    aids_list = []
+    for gid, (score, bbox_list, theta_list, species_list, viewpoint_list, conf_list) in zipped_list:
+        aid_list = []
+        result_list = zip(bbox_list, theta_list, species_list, viewpoint_list, conf_list)
+        for bbox, theta, species, viewpoint, conf in result_list:
+            if not (filter_species_list is None or species in filter_species_list):
+                continue
+            if not (filter_viewpoint_list is None or viewpoint in filter_viewpoint_list):
+                continue
+            note_ = None if note is None else [note]
+            temp_list = ibs.add_annots(
+                [gid],
+                [bbox],
+                [theta],
+                [species],
+                detect_confidence_list=[conf],
+                notes_list=note_,
+                quiet_delete_thumbs=True,
+                skip_cleaning=True
+            )
+            aid = temp_list[0]
+            ibs.set_annot_yaw_texts([aid], [viewpoint])
+            aid_list.append(aid)
+        aids_list.append(aid_list)
+    ibs._clean_species()
+    return aids_list
+
+
+@register_ibs_method
 @accessor_decors.default_decorator
-@register_api('/api/detect/species/enabled/', methods=['GET'])
+@register_api('/api/detect/species/enabled/', methods=['GET'], __api_plural_check__=False)
 def has_species_detector(ibs, species_text):
     """
     TODO: extend to use non-constant species
@@ -502,7 +535,7 @@ def has_species_detector(ibs, species_text):
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api('/api/detect/species/', methods=['GET'])
+@register_api('/api/detect/species/', methods=['GET'], __api_plural_check__=False)
 def get_species_with_detectors(ibs):
     """
     RESTful:
@@ -515,7 +548,7 @@ def get_species_with_detectors(ibs):
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@register_api('/api/detect/species/working/', methods=['GET'])
+@register_api('/api/detect/species/working/', methods=['GET'], __api_plural_check__=False)
 def get_working_species(ibs):
     """
     RESTful:

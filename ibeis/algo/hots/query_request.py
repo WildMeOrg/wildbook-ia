@@ -78,7 +78,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
-        PZ_MTEST_DSUUIDS((5)kmptegpfuwaibfvt)
+        PZ_MTEST_DSUUIDS((5)tfjaqcfcqithqemu)
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -114,10 +114,10 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
-        PZ_MTEST_DSUUIDS((5)kmptegpfuwaibfvt)
+        PZ_MTEST_DSUUIDS((5)tfjaqcfcqithqemu)
 
     Ignore:
-        # This is supposed to be the begginings of the code to transition the
+        # This is supposed to be the beginings of the code to transition the
         # pipeline configuration into the new minimal dict based structure that
         # supports different configs for query and database annotations.
         dcfg = qreq_.get_external_data_config2()
@@ -382,6 +382,15 @@ class QueryRequest(object):
     def get_shortinfo_cfgstr(qreq_):
         shortinfo_cfgstr = '_'.join(qreq_.get_shortinfo_parts())
         return shortinfo_cfgstr
+
+    def get_bigcache_info(qreq_):
+        bc_dpath = qreq_.ibs.get_big_cachedir()
+        # TODO: SYSTEM : semantic should only be used if name scoring is on
+        bc_fname = 'BIG_MC4_' + qreq_.get_shortinfo_cfgstr()
+        #bc_cfgstr = ibs.cfg.query_cfg.get_cfgstr()  # FIXME, rectify w/ qparams
+        bc_cfgstr = qreq_.get_full_cfgstr()
+        bc_info = bc_dpath, bc_fname, bc_cfgstr
+        return bc_info
 
     #def __nice__(qreq_):
     #    parts = qreq_.get_shortinfo_parts()
@@ -755,10 +764,10 @@ class QueryRequest(object):
     #@ut.memoize
     def get_data_hashid(qreq_):
         daids = qreq_.get_external_daids()
-        try:
-            assert len(daids) > 0, 'QRequest not populated. len(daids)=0'
-        except AssertionError as ex:
-            ut.printex(ex, iswarning=True)
+        #try:
+        #    assert len(daids) > 0, 'QRequest not populated. len(daids)=0'
+        #except AssertionError as ex:
+        #    ut.printex(ex, iswarning=True)
         # TODO: SYSTEM : semantic should only be used if name scoring is on
         data_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(
             daids, prefix='D')
@@ -780,7 +789,7 @@ class QueryRequest(object):
             >>> print(result)
         """
         qaids = qreq_.get_external_qaids()
-        assert len(qaids) > 0, 'QRequest not populated. len(qaids)=0'
+        #assert len(qaids) > 0, 'QRequest not populated. len(qaids)=0'
         # TODO: SYSTEM : semantic should only be used if name scoring is on
         query_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(
             qaids, prefix='Q')
@@ -840,7 +849,7 @@ class QueryRequest(object):
             >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
             >>> daids = ibs.get_valid_aids(species=species)
             >>> qaids = ibs.get_valid_aids(species=species)
-            >>> qreq_ = ibs.new_query_request(qaids, daids)
+            >>> qreq_ = ibs.new_query_request(qaids, daids, cfgdict={'fgw_thresh': .3})
             >>> with_input = True
             >>> cfgstr = qreq_.get_cfgstr(with_input)
             >>> result = ('cfgstr = %s' % (str(cfgstr),))
@@ -873,7 +882,7 @@ class QueryRequest(object):
     # --- Lazy Loading ---
 
     @profile
-    def lazy_preload(qreq_, verbose=ut.NOT_QUIET):
+    def lazy_preload(qreq_, prog_hook=None, verbose=ut.NOT_QUIET):
         """
         feature weights and normalizers should be loaded before vsone queries
         are issued. They do not depened only on qparams
@@ -882,13 +891,32 @@ class QueryRequest(object):
         """
         if verbose:
             print('[qreq] lazy preloading')
-        qreq_.ensure_features(verbose=verbose)
+        if prog_hook is not None:
+            prog_hook.initialize_subhooks(4)
+
+        subhook = None if prog_hook is None else prog_hook.next_subhook()
+        qreq_.ensure_features(verbose=verbose, prog_hook=subhook)
+
+        subhook = None if prog_hook is None else prog_hook.next_subhook()
+        if subhook is not None:
+            subhook(0, 1, 'preload featweights')
         if qreq_.qparams.fg_on is True:
             qreq_.ensure_featweights(verbose=verbose)
+
+        subhook = None if prog_hook is None else prog_hook.next_subhook()
+        if subhook is not None:
+            subhook(0, 1, 'finishing preload')
         if qreq_.qparams.score_normalization is True:
             qreq_.load_score_normalizer(verbose=verbose)
+
         if qreq_.qparams.use_external_distinctiveness:
             qreq_.load_distinctiveness_normalizer(verbose=verbose)
+
+        subhook = None if prog_hook is None else prog_hook.next_subhook()
+        if subhook is not None:
+            subhook(0, 1, 'finished preload')
+        #if hook is not None:
+        #    hook.set_progress(4, 4, lbl='preloading features')
 
     @profile
     def lazy_load(qreq_, verbose=ut.NOT_QUIET):
@@ -896,7 +924,6 @@ class QueryRequest(object):
         Performs preloading of all data needed for a batch of queries
         """
         print('[qreq] lazy loading')
-        #with ut.Indenter('[qreq.lazy_load]'):
         qreq_.hasloaded = True
         #qreq_.ibs = ibs  # HACK
         qreq_.lazy_preload(verbose=verbose)
@@ -907,20 +934,20 @@ class QueryRequest(object):
 
     # load query data structures
     @profile
-    def ensure_chips(qreq_, verbose=ut.NOT_QUIET, extra_tries=1):
+    def ensure_chips(qreq_, verbose=ut.NOT_QUIET, num_retries=1):
         r"""
         ensure chips are computed (used in expt, not used in pipeline)
 
         Args:
             verbose (bool):  verbosity flag(default = True)
-            extra_tries (int): (default = 0)
+            num_retries (int): (default = 0)
 
         CommandLine:
             python -m ibeis.algo.hots.query_request --test-ensure_chips
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> # Delete chips (accidentally) then try to run a query
+            >>> # Delete chips (accidentally), then try to run a query
             >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
@@ -928,34 +955,34 @@ class QueryRequest(object):
             >>> qaids = ibs.get_valid_aids()[0:6]
             >>> qreq_ = ibs.new_query_request(qaids, daids)
             >>> verbose = True
-            >>> extra_tries = 1
+            >>> num_retries = 1
             >>> qchip_fpaths = ibs.get_annot_chip_fpath(qaids, config2_=qreq_.extern_query_config2)
             >>> dchip_fpaths = ibs.get_annot_chip_fpath(daids, config2_=qreq_.extern_data_config2)
             >>> ut.remove_file_list(qchip_fpaths)
             >>> ut.remove_file_list(dchip_fpaths)
-            >>> result = qreq_.ensure_chips(verbose, extra_tries)
+            >>> result = qreq_.ensure_chips(verbose, num_retries)
             >>> print(result)
         """
         if verbose:
             print('[qreq] ensure_chips')
-        external_qaids = qreq_.get_external_qaids()
-        external_daids = qreq_.get_external_daids()
+        external_qaids = qreq_.qaids
+        external_daids = qreq_.daids
         #np.union1d(external_qaids, external_daids)
         # TODO check if configs are the same
         externgetkw = dict(
             ensure=True,
             check_external_storage=True,
-            extra_tries=extra_tries
+            num_retries=num_retries
         )
         q_chip_fpath = qreq_.ibs.get_annot_chip_fpath(  # NOQA
             external_qaids,
-            config2_=qreq_.get_external_query_config2(), **externgetkw)
+            config2_=qreq_.extern_query_config2, **externgetkw)
         d_chip_fpath = qreq_.ibs.get_annot_chip_fpath(  # NOQA
             external_daids,
-            config2_=qreq_.get_external_data_config2(), **externgetkw)
+            config2_=qreq_.extern_data_config2, **externgetkw)
 
     @profile
-    def ensure_features(qreq_, verbose=ut.NOT_QUIET):
+    def ensure_features(qreq_, verbose=ut.NOT_QUIET, prog_hook=None):
         r""" ensure features are computed
         Args:
             verbose (bool):  verbosity flag(default = True)
@@ -968,11 +995,11 @@ class QueryRequest(object):
             >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='testdb1')
-            >>> daids = ibs.get_valid_aids()[0:3]
-            >>> qaids = ibs.get_valid_aids()[0:6]
+            >>> daids = ibs.get_valid_aids()[0:2]
+            >>> qaids = ibs.get_valid_aids()[0:3]
             >>> qreq_ = ibs.new_query_request(qaids, daids)
-            >>> ibs.delete_annot_feats(qaids,  config2_=qreq_.get_external_query_config2())  # Remove the chips
-            >>> ut.remove_file_list(ibs.get_annot_chip_fpath(qaids, config2_=qreq_.get_external_query_config2()))
+            >>> ibs.delete_annot_feats(qaids,  config2_=qreq_.extern_query_config2)  # Remove the chips
+            >>> ut.remove_file_list(ibs.get_annot_chip_fpath(qaids, config2_=qreq_.extern_query_config2))
             >>> verbose = True
             >>> result = qreq_.ensure_features(verbose)
             >>> print(result)
@@ -980,21 +1007,29 @@ class QueryRequest(object):
         #with ut.EmbedOnException():
         if verbose:
             print('[qreq] ensure_features')
+        if prog_hook is not None:
+            prog_hook(0, 3, 'ensure features')
         external_qaids = qreq_.get_external_qaids()
         external_daids = qreq_.get_external_daids()
+        if prog_hook is not None:
+            prog_hook(1, 3, 'ensure query features')
         qfids = qreq_.ibs.get_annot_feat_rowids(  # NOQA
             external_qaids, ensure=True,
-            config2_=qreq_.get_external_query_config2())
+            config2_=qreq_.extern_query_config2)
+        if prog_hook is not None:
+            prog_hook(2, 3, 'ensure database features')
         dfids = qreq_.ibs.get_annot_feat_rowids(  # NOQA
             external_daids, ensure=True,
-            config2_=qreq_.get_external_data_config2())
+            config2_=qreq_.extern_data_config2)
+        if prog_hook is not None:
+            prog_hook(3, 3, 'computed features')
         if ut.DEBUG2:
             qkpts = qreq_.ibs.get_annot_kpts(
                 external_qaids, ensure=False,
-                config2_=qreq_.get_external_query_config2())
+                config2_=qreq_.extern_query_config2)
             dkpts = qreq_.ibs.get_annot_kpts(  # NOQA
                 external_daids, ensure=False,
-                config2_=qreq_.get_external_data_config2())
+                config2_=qreq_.extern_data_config2)
             #if verbose:
             try:
                 assert len(qkpts) > 0, 'no query keypoint'
@@ -1045,17 +1080,21 @@ class QueryRequest(object):
             #print(ut.hashstr27(str(dfeatweights)))
 
     @profile
-    def load_indexer(qreq_, verbose=ut.NOT_QUIET, force=False):
+    def load_indexer(qreq_, verbose=ut.NOT_QUIET, force=False, prog_hook=None):
         if not force and qreq_.indexer is not None:
+            if prog_hook is not None:
+                prog_hook.set_progress(1, 1, lbl='Indexer is loaded')
             return False
         else:
             index_method = qreq_.qparams.index_method
+            if prog_hook is not None:
+                prog_hook.set_progress(0, 1, lbl='Loading %s indexer' % (index_method,))
             if index_method == 'single':
                 # TODO: SYSTEM updatable indexer
                 if ut.VERYVERBOSE or verbose:
                     print('[qreq] loading single indexer normalizer')
                 indexer = neighbor_index_cache.request_ibeis_nnindexer(
-                    qreq_, verbose=verbose, **qreq_._indexer_request_params)
+                    qreq_, verbose=verbose, prog_hook=prog_hook, **qreq_._indexer_request_params)
             elif index_method == 'multi':
                 if ut.VERYVERBOSE or verbose:
                     print('[qreq] loading multi indexer normalizer')
@@ -1063,6 +1102,8 @@ class QueryRequest(object):
                     qreq_, verbose=verbose)
             else:
                 raise AssertionError('uknown index_method=%r' % (index_method,))
+            #if qreq_.prog_hook is not None:
+            #    hook.set_progress(4, 4, lbl='building indexer')
             qreq_.indexer = indexer
             return True
 

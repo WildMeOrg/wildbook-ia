@@ -157,9 +157,7 @@ def make_annot_semantic_uuid(semantic_infotup):
         >>> annot_semantic_uuid_list = make_annot_semantic_uuid(semantic_infotup)
         >>> result = str(annot_semantic_uuid_list[0])
         >>> print(result)
-        bf774bf3-582d-dbce-6ca6-329adeb086a6
-
-        215ab5f9-fe53-d7d1-59b8-d6b5ce7e6ca6
+        0a41bee7-1760-0995-c220-f4b5ddf189ba
     """
     assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
     annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]

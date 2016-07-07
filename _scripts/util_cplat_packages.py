@@ -621,16 +621,23 @@ def check_python_installed(pkg, target_version=None):
 
 
 def __install_command_pip(pkg, upgrade=None):
-    if FEDORA_FAMILY:
-        pipcmd = 'pip27'
-    if ARCH:
-        pipcmd = 'pip2'  # Otherwise it will default to using Python 3
+    import platform
+    python_version = platform.python_version()
+    PYTHON3 = python_version.startswith('3')
+    if PYTHON3:
+        pipcmd = 'pip3'
     else:
-        pipcmd = 'pip'
+        if FEDORA_FAMILY:
+            pipcmd = 'pip27'
+        if ARCH:
+            pipcmd = 'pip2'  # Otherwise it will default to using Python 3
+        else:
+            pipcmd = 'pip'
     fmtstr_install_pip = pipcmd + ' install %s'
+    # TODO: test if in virtualenv instead of using nosudo commandline
     WITH_SUDO = not WIN32 and '--nosudo' not in sys.argv
     if WITH_SUDO:
-        fmtstr_install_pip = 'sudo -H ' + fmtstr_install_pip
+        fmtstr_install_pip = 'sudo ' + fmtstr_install_pip
     # First check if we already have this package
     if upgrade is None:
         upgrade = UPGRADE_PIP

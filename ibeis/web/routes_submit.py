@@ -22,7 +22,7 @@ def submit_detection():
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
     gid = int(request.form['detection-gid'])
-    turk_id = request.cookies.get('turk_id', -1)
+    turk_id = request.cookies.get('ia-turk_id', -1)
 
     if method.lower() == 'delete':
         # ibs.delete_images(gid)
@@ -100,7 +100,7 @@ def submit_viewpoint():
     dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
 
     aid = int(request.form['viewpoint-aid'])
-    turk_id = request.cookies.get('turk_id', -1)
+    turk_id = request.cookies.get('ia-turk_id', -1)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
         print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
@@ -173,7 +173,7 @@ def submit_viewpoint():
 @register_route('/submit/annotation/', methods=['POST'])
 def submit_annotation():
     ibs = current_app.ibs
-    method = request.form.get('annotation-submit', '')
+    method = request.form.get('ia-annotation-submit', '')
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
@@ -182,8 +182,8 @@ def submit_annotation():
     dst_ag = request.args.get('dst_ag', '')
     dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
 
-    aid = int(request.form['annotation-aid'])
-    turk_id = request.cookies.get('turk_id', -1)
+    aid = int(request.form['ia-annotation-aid'])
+    turk_id = request.cookies.get('ia-turk_id', -1)
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
         print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
@@ -239,20 +239,28 @@ def submit_annotation():
         if src_ag is not None and dst_ag is not None:
             appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
         try:
-            viewpoint = int(request.form['viewpoint-value'])
+            viewpoint = int(request.form['ia-viewpoint-value'])
         except ValueError:
-            viewpoint = int(float(request.form['viewpoint-value']))
+            viewpoint = int(float(request.form['ia-viewpoint-value']))
         yaw = appf.convert_old_viewpoint_to_yaw(viewpoint)
-        species_text = request.form['annotation-species']
+        species_text = request.form['ia-annotation-species']
         ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
         ibs.set_annot_species([aid], [species_text])
         try:
-            quality = int(request.form['quality-value'])
+            quality = int(request.form['ia-quality-value'])
         except ValueError:
-            quality = int(float(request.form['quality-value']))
+            quality = int(float(request.form['ia-quality-value']))
+        if quality == 1:
+            quality = 2
+        elif quality == 2:
+            quality = 4
+        else:
+            raise ValueError('quality must be 1 or 2')
         ibs.set_annot_qualities([aid], [quality])
+        multiple = 1 if 'ia-multiple-value' in request.form else 0
+        ibs.set_annot_multiple([aid], [multiple])
         ibs.set_annot_reviewed([aid], [1])
-        print('[web] turk_id: %s, aid: %d, yaw: %d, quality: %d' % (turk_id, aid, yaw, quality))
+        print('[web] turk_id: %s, aid: %d, yaw: %d, quality: %d, multiple: %r' % (turk_id, aid, yaw, quality, multiple))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
@@ -269,7 +277,7 @@ def submit_quality():
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
     aid = int(request.form['quality-aid'])
-    turk_id = request.cookies.get('turk_id', -1)
+    turk_id = request.cookies.get('ia-turk_id', -1)
 
     src_ag = request.args.get('src_ag', '')
     src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
@@ -302,7 +310,7 @@ def submit_additional():
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
     aid = int(request.form['additional-aid'])
-    turk_id = request.cookies.get('turk_id', -1)
+    turk_id = request.cookies.get('ia-turk_id', -1)
 
     if method.lower() == 'delete':
         ibs.delete_annots(aid)
