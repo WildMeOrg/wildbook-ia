@@ -365,7 +365,8 @@ def hack_extra(ibs, expanded_aids):
     return expanded_aids
 
 
-def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None, use_cache=None, verbose=None):
+def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
+                              use_cache=None, verbose=None):
     """
     Expands a set of configurations such that they are comparable
 

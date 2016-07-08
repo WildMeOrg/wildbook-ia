@@ -169,7 +169,7 @@ def sight_resight_count(nvisit1, nvisit2, resight):
     import math
     try:
         pl_index = int(math.ceil( (nvisit1 * nvisit2) / resight ))
-        pl_error_num = float(nvisit1 * nvisit1 * nvisit2 * (nvisit2 - resight))
+        pl_error_num = float((nvisit1 ** 2) * nvisit2 * (nvisit2 - resight))
         pl_error_dom = float(resight ** 3)
         pl_error = int(math.ceil( 1.96 * math.sqrt(pl_error_num / pl_error_dom) ))
     except ZeroDivisionError:
@@ -192,15 +192,18 @@ def estimate_ggr_count(ibs):
     day1 = datetime.date(2016, 1, 30)
     day2 = datetime.date(2016, 1, 31)
 
-    ggr_filter_kw = {
+    filter_kw = {
         'multiple': False,
         'minqual': 'good',
         'is_known': True,
-        'min_pername': 2,
+        'min_pername': 1,
         'view': ['right'],
     }
-    ggr_filter_kw['multiple'] = None
-    filter_kw = ggr_filter_kw
+    print('Excluding Multiple:')
+    estimate_twoday_count(ibs, day1, day2, filter_kw)
+
+    print('\nIncluding Multiple:')
+    filter_kw['multiple'] = None
     estimate_twoday_count(ibs, day1, day2, filter_kw)
 
 
@@ -226,25 +229,48 @@ def estimate_twoday_count(ibs, day1, day2, filter_kw):
         nids = ibs.get_annot_name_rowids(aids)
         grouped_aids = ut.group_items(aids, nids)
         unique_nids = ut.unique(list(grouped_aids.keys()))
-        # Further filtering within names
-        #ibs.get_unflat_annots_timedist_list(aid_groups_day1)
 
+        if False:
+            aids_list = ut.take(grouped_aids, unique_nids)
+            for aids in aids_list:
+                if len(aids) > 30:
+                    break
+            timedeltas_list = ibs.get_unflat_annots_timedelta_list(aids_list)
+            # Do the five second rule
+            marked_thresh = 5
+            flags = []
+            for nid, timedeltas in zip(unique_nids, timedeltas_list):
+                flags.append(timedeltas.max() > marked_thresh)
+            print('Unmarking %d names' % (len(flags) - sum(flags)))
+            unique_nids = ut.compress(unique_nids, flags)
+            grouped_aids = ut.dict_subset(grouped_aids, unique_nids)
+
+        unique_aids = ut.flatten(list(grouped_aids.values()))
         info = {
             'unique_nids': unique_nids,
             'grouped_aids': grouped_aids,
-            'aids': aids,
+            'unique_aids': unique_aids,
         }
         visit_info_list_.append(info)
 
     # Estimate statistics
     from ibeis.other import dbinfo
-    aids_day1, aids_day2 = ut.take_column(visit_info_list_, 'aids')
+    aids_day1, aids_day2 = ut.take_column(visit_info_list_, 'unique_aids')
     nids_day1, nids_day2 = ut.take_column(visit_info_list_, 'unique_nids')
     resight_nids = ut.isect(nids_day1, nids_day2)
     nsight1 = len(nids_day1)
     nsight2 = len(nids_day2)
     resight = len(resight_nids)
     lp_index, lp_error = dbinfo.sight_resight_count(nsight1, nsight2, resight)
+
+    if False:
+        from ibeis.other import dbinfo
+        print('DAY 1 STATS:')
+        _ = dbinfo.get_dbinfo(ibs, aid_list=aids_day1)  # NOQA
+        print('DAY 2 STATS:')
+        _ = dbinfo.get_dbinfo(ibs, aid_list=aids_day2)  # NOQA
+        print('COMBINED STATS:')
+        _ = dbinfo.get_dbinfo(ibs, aid_list=aids_day1 + aids_day2)  # NOQA
 
     print('%d annots on day 1' % (len(aids_day1)) )
     print('%d annots on day 2' % (len(aids_day2)) )
@@ -651,15 +677,29 @@ def get_dbinfo(ibs, verbose=True,
     singlesight_annot_stats = ut.get_stats(list(map(len, singlesight_encounters)), use_median=True, use_sum=True)
     resight_name_stats = ut.get_stats(list(map(len, nid2_occurx_resight.values())), use_median=True, use_sum=True)
 
+    # Encounter Info
+    def break_annots_into_encounters(aids):
+        from ibeis.algo.preproc import occurrence_blackbox
+        import datetime
+        thresh_sec = datetime.timedelta(minutes=30).seconds
+        posixtimes = np.array(ibs.get_annot_image_unixtimes_asfloat(aids))
+        #latlons = ibs.get_annot_image_gps(aids)
+        labels = occurrence_blackbox.cluster_timespace2(posixtimes, None, thresh_sec=thresh_sec)
+        return labels
+        #ave_enc_time = [np.mean(times) for lbl, times in ut.group_items(posixtimes, labels).items()]
+        #ut.square_pdist(ave_enc_time)
+
     try:
-        aid_pairs = ibs.filter_aidpairs_by_tags(min_num=0)
+        am_rowids = ibs.get_annotmatch_rowids_between_groups([valid_aids], [valid_aids])[0]
+        aid_pairs = ibs.filter_aidpairs_by_tags(min_num=0, am_rowids=am_rowids)
         undirected_tags = ibs.get_aidpair_tags(aid_pairs.T[0], aid_pairs.T[1], directed=False)
         tagged_pairs = list(zip(aid_pairs.tolist(), undirected_tags))
         tag_dict = ut.groupby_tags(tagged_pairs, undirected_tags)
         pair_tag_info = ut.map_dict_vals(len, tag_dict)
 
-        num_reviewed_pairs = sum(ibs.get_annot_pair_is_reviewed(aid_pairs.T[0], aid_pairs.T[1]))
-        pair_tag_info['num_reviewed'] = num_reviewed_pairs
+        reviewed_type_hist = ut.dict_hist(ibs.get_annot_pair_is_reviewed(aid_pairs.T[0], aid_pairs.T[1]))
+
+        pair_tag_info['reviewed_type_hist'] = reviewed_type_hist
     except Exception:
         pair_tag_info = {}
 

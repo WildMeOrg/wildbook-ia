@@ -211,8 +211,15 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None, force
         # This is much much faster than the other methods for large queries
         import vtool as vt
         all_annotmatch_rowids = np.array(ibs._get_all_annotmatch_rowids())
-        aids1 = np.array(ibs.get_annotmatch_aid1(all_annotmatch_rowids))
-        aids2 = np.array(ibs.get_annotmatch_aid2(all_annotmatch_rowids))
+        # FIXME: aids1 returns with Nones sometimes...
+        aids1 = ibs.get_annotmatch_aid1(all_annotmatch_rowids)
+        aids2 = ibs.get_annotmatch_aid2(all_annotmatch_rowids)
+
+        # FIXME: these should never have Nones
+        flags = ut.not_list(ut.or_lists(ut.flag_None_items(aids1), ut.flag_None_items(aids2)))
+        aids1 = np.array(ut.compress(aids1, flags))
+        aids2 = np.array(ut.compress(aids2, flags))
+
         unique_aid1, groupxs1 = vt.group_indices(aids1)
         unique_aid2, groupxs2 = vt.group_indices(aids2)
         rowids1_ = vt.apply_grouping(all_annotmatch_rowids, groupxs1)
@@ -272,15 +279,22 @@ def get_annotmatch_rowids_between_groups(ibs, aids1_list, aids2_list):
     ams_list = []
     lbl = 'loading between group am rowids'
     for aids1, aids2 in ut.ProgIter(list(zip(aids1_list, aids2_list)), lbl=lbl):
-        edges = list(ut.product_nonsame(aids1, aids2))
-        if len(edges) == 0:
-            ams = []
+        if len(aids1) * len(aids2) > 5000:
+            am_rowids1 = ut.flatten(ibs.get_annotmatch_rowids_from_aid(aids1))
+            am_rowids2 = ut.flatten(ibs.get_annotmatch_rowids_from_aid(aids2))
+            am_rowids1 = ut.filter_Nones(am_rowids1)
+            am_rowids2 = ut.filter_Nones(am_rowids2)
+            ams = ut.isect(am_rowids1, am_rowids2)
         else:
-            aids1_, aids2_ = ut.listT(edges)
-            ams = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1_, aids2_)
-            if ams is None:
+            edges = list(ut.product_nonsame(aids1, aids2))
+            if len(edges) == 0:
                 ams = []
-            ams = ut.filter_Nones(ams)
+            else:
+                aids1_, aids2_ = ut.listT(edges)
+                ams = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1_, aids2_)
+                if ams is None:
+                    ams = []
+                ams = ut.filter_Nones(ams)
         ams_list.append(ams)
     return ams_list
 

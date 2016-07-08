@@ -323,6 +323,7 @@ def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
         tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowid)
     else:
         annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey(aid_pairs.T[0], aid_pairs.T[1])
+        tags_list = ibs.get_annotmatch_case_tags(annotmatch_rowid)
         if False:
             expanded_aid_pairs = np.vstack([aid_pairs, aid_pairs[:, ::-1]])
             expanded_annotmatch_rowid = ibs.get_annotmatch_rowid_from_superkey(
@@ -339,14 +340,14 @@ def get_aidpair_tags(ibs, aid1_list, aid2_list, directed=True):
 
 
 @register_ibs_method
-def filter_aidpairs_by_tags(ibs, has_any=None, has_all=None, min_num=None, max_num=None):
+def filter_aidpairs_by_tags(ibs, has_any=None, has_all=None, min_num=None, max_num=None, am_rowids=None):
     """
     list(zip(aid_pairs, undirected_tags))
     """
     #annotmatch_rowids = ibs.get_annotmatch_rowids_from_aid(aid_list)
 
     filtered_annotmatch_rowids = filter_annotmatch_by_tags(
-        ibs, None, has_any=has_any, has_all=has_all, min_num=min_num,
+        ibs, am_rowids, has_any=has_any, has_all=has_all, min_num=min_num,
         max_num=max_num)
     aid1_list = np.array(ibs.get_annotmatch_aid1(filtered_annotmatch_rowids))
     aid2_list = np.array(ibs.get_annotmatch_aid2(filtered_annotmatch_rowids))

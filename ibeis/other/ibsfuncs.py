@@ -3728,28 +3728,6 @@ def get_unflat_annots_hourdists_list(ibs, aids_list):
 
 
 @register_ibs_method
-def get_unflat_annots_timedist_list(ibs, aids_list):
-    """
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> ibs = testdata_ibs('testdb1')
-        >>> nid_list = ibs.get_valid_nids()
-        >>> aids_list_ = ibs.get_name_aids(nid_list)
-        >>> aids_list = [(aids) for aids in aids_list_]
-        >>> ibs.get_unflat_annots_hourdists_list(aids_list)
-
-    """
-    assert all(list(map(ut.isunique, aids_list)))
-    unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
-    #assert all(list(map(ut.isunique, unixtimes_list)))
-    unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
-    timedist_list = [ut.safe_pdist(unixtime_arr, metric=ut.absdiff) for
-                     unixtime_arr in unixtime_arrs]
-    return timedist_list
-
-
-@register_ibs_method
 def get_unflat_annots_timedelta_list(ibs, aids_list):
     """
     Example:
@@ -4075,12 +4053,10 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
     #min_timedelta = 60 * 10
     grouped_aids = ibs.group_annots_by_name(aid_list)[0]
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
-    chosen_idxs_list = []
     # Find the maximum size subset such that all timedeltas are less than a given value
-    for unixtimes in unixtimes_list:
-        chosen_idxs = ut.maximin_distance_subset1d(unixtimes, min_thresh=min_timedelta)[0]
-        #chsoen_idxs = ut.max_size_max_distance_subset(unixtimes, min_thresh=min_timedelta)
-        chosen_idxs_list.append(chosen_idxs)
+    chosen_idxs_list = [
+        ut.maximin_distance_subset1d(unixtimes, min_thresh=min_timedelta)[0]
+        for unixtimes in unixtimes_list]
     filtered_groups = vt.ziptake(grouped_aids, chosen_idxs_list)
     filtered_aids = ut.flatten(filtered_groups)
     if ut.DEBUG2:

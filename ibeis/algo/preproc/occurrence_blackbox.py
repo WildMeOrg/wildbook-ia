@@ -122,7 +122,7 @@ def cluster_timespace(X_data, thresh, km_per_sec=.02):
         >>>     (0, 42.849809, -73.758486),  # CP3
         >>> ])
         >>> thresh = 5.0  # kilometers
-        >>> X_labels = cluster_timespace(X_data, thresh)
+        >>> X_labels = cluster_timespace_(X_data, thresh)
         >>> result = ('X_labels = %r' % (X_labels,))
         >>> print(result)
         X_labels = array([3, 2, 2, 2, 2, 2, 1, 1, 1], dtype=int32)
@@ -135,6 +135,46 @@ def cluster_timespace(X_data, thresh, km_per_sec=.02):
                                                   method='single')
     # Cluster linkages
     X_labels = scipy.cluster.hierarchy.fcluster(linkage_mat, thresh,
+                                                criterion='distance')
+    return X_labels
+
+
+def cluster_timespace2(posixtimes, latlons, thresh_sec=5, km_per_sec=.02):
+    """
+    from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
+    """
+    import vtool as vt
+    posixtimes = vt.atleast_nd(posixtimes, 2)
+    if latlons is not None:
+        latlons = np.array(latlons)
+        X_data = np.hstack([posixtimes, latlons])
+
+        def timespace_distance_seconds(pt1, pt2, km_per_sec=.02):
+            # Return in seconds
+            (sec1, lat1, lon1) = pt1
+            (sec2, lat2, lon2) = pt2
+            # Get pure gps distance and convert to seconds
+            km_dist = haversine((lat1, lon1), (lat2, lon2))
+            km_dist = km_dist / km_per_sec
+            # Get distance in seconds
+            sec_dist = np.abs(sec1 - sec2)
+            # Add distances
+            timespace_dist = km_dist + sec_dist
+            return timespace_dist
+
+        dist_func = functools.partial(timespace_distance, km_per_sec=km_per_sec)
+    else:
+        def dist_func(sec1, sec2):
+            return np.abs(sec1 - sec2)
+        X_data = posixtimes
+
+    # Compute pairwise distances between all inputs
+    condenced_dist_mat = distance.pdist(X_data, dist_func)
+    # Compute heirarchical linkages
+    linkage_mat = scipy.cluster.hierarchy.linkage(condenced_dist_mat,
+                                                  method='single')
+    # Cluster linkages
+    X_labels = scipy.cluster.hierarchy.fcluster(linkage_mat, thresh_sec,
                                                 criterion='distance')
     return X_labels
 

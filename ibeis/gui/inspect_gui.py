@@ -1281,7 +1281,7 @@ def make_qres_api(ibs, cm_list, review_cfg, qreq_=None):
         'qaid',
         'aid',
         'rank',
-        'timedist',
+        'timedelta',
         'dnGt',
         'qnGt',
         'tags',
@@ -1294,7 +1294,7 @@ def make_qres_api(ibs, cm_list, review_cfg, qreq_=None):
         ('aid',        int),
         ('dnGt',      int),
         ('qnGt',      int),
-        ('timedist',   float),
+        ('timedelta',   float),
         #('review',     'BUTTON'),
         (MATCHED_STATUS_TEXT, str),
         (REVIEWED_STATUS_TEXT, str),
@@ -1308,16 +1308,16 @@ def make_qres_api(ibs, cm_list, review_cfg, qreq_=None):
         ('opt',        int),
         ('result_index',  int),
     ])
-    timedist_list = np.array(ut.take_column(ibs.get_unflat_annots_timedist_list(list(zip(qaids, daids))), 0))
+    timedelta_list = np.array(ut.take_column(ibs.get_unflat_annots_timedelta_list(list(zip(qaids, daids))), 0))
     # TODO: make a display role
-    #timediff_list = [ut.get_posix_timedelta_str(t, year=True, approx=True) for t in (timedist_list * 60 * 60)]
+    #timediff_list = [ut.get_posix_timedelta_str(t, year=True, approx=True) for t in (timedelta_list * 60 * 60)]
 
     col_getter_dict = dict([
         ('qaid',       np.array(qaids)),
         ('aid',        np.array(daids)),
         ('dnGt',      ibs.get_annot_num_groundtruth),
         ('qnGt',      ibs.get_annot_num_groundtruth),
-        ('timedist', np.array(timedist_list)),
+        ('timedelta', np.array(timedelta_list)),
         #('review',     lambda rowid: get_buttontup),
         (MATCHED_STATUS_TEXT,  partial(get_match_status, ibs)),
         (REVIEWED_STATUS_TEXT,  partial(get_reviewed_status, ibs)),
@@ -1345,7 +1345,7 @@ def make_qres_api(ibs, cm_list, review_cfg, qreq_=None):
         'qname': 60,
         'name': 60,
         'dnGt': 50,
-        'timedist': 75,
+        'timedelta': 75,
         'tags': 75,
         'qnGt': 50,
     }
@@ -1426,7 +1426,7 @@ def make_qres_api(ibs, cm_list, review_cfg, qreq_=None):
         return ibs.cfg.other_cfg.thumb_size
 
     col_display_role_func_dict = {
-        'timedist': ut.partial(ut.get_posix_timedelta_str, year=True, approx=2),
+        'timedelta': ut.partial(ut.get_posix_timedelta_str, year=True, approx=2),
     }
 
     # Insert info into dict
