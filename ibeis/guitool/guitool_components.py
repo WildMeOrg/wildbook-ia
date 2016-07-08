@@ -1152,7 +1152,7 @@ class ConfigConfirmWidget(GuitoolWidget):
         kwargs['verticalSizePolicy'] = QtWidgets.QSizePolicy.Expanding
         super(ConfigConfirmWidget, self).__init__(*args, **kwargs)
 
-    def initialize(self, title, msg, config, options=None, default=None, detailed_msg=None):
+    def initialize(self, title, msg, config, options=None, default=None, detailed_msg=None, with_spoiler=True):
         #import copy
         from guitool import PrefWidget2
         self.msg = msg
@@ -1180,19 +1180,19 @@ class ConfigConfirmWidget(GuitoolWidget):
 
         if 1 and config is not None:
             self.editConfig = PrefWidget2.EditConfigWidget(config=self.config, user_mode=True)
-            #if not ut.get_argflag('--nospoiler'):
-            self.spoiler = Spoiler(self, title='Advanced Configuration')
-            #self.spoiler.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,
-            #                                         QtWidgets.QSizePolicy.Preferred,
-            #                                         verticalStretch=0))
-            self.spoiler.setObjectName('spoiler')
-            self.spoiler.setContentLayout(self.editConfig)
-            #self.layout().addStretch(1)
-            self.addWidget(self.spoiler)
-            #self.addWidget(self.spoiler, alignment=Qt.AlignTop)
-            self.spoiler.toggle_finished.connect(self._size_adjust_slot)
-            #else:
-            #    self.addWidget(self.editConfig)
+            if with_spoiler:
+                self.spoiler = Spoiler(self, title='Advanced Configuration')
+                #self.spoiler.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                #                                         QtWidgets.QSizePolicy.Preferred,
+                #                                         verticalStretch=0))
+                self.spoiler.setObjectName('spoiler')
+                self.spoiler.setContentLayout(self.editConfig)
+                #self.layout().addStretch(1)
+                self.addWidget(self.spoiler)
+                #self.addWidget(self.spoiler, alignment=Qt.AlignTop)
+                self.spoiler.toggle_finished.connect(self._size_adjust_slot)
+            else:
+                self.addWidget(self.editConfig)
 
         if 1 and detailed_msg is not None:
             detailed_msg_widget = newTextEdit(text=detailed_msg, editable=False)
