@@ -33,16 +33,27 @@ import dtool
 (print, rrr, profile) = ut.inject2(__name__, '[nxhelpers]')
 
 
+LARGE_GRAPH = 100
+
+
 def dump_nx_ondisk(graph, fpath):
-    agraph = make_agraph(graph)
+    agraph = make_agraph(graph.copy())
     agraph.layout(prog='dot')
     agraph.draw(ut.truepath(fpath))
 
 
-def fix_hex_color(color):
-    if isinstance(color, six.string_types) and color.startswith('#'):
+def ensure_nonhex_color(orig_color):
+    # TODO: move to ensure color
+    if isinstance(orig_color, six.string_types) and orig_color.startswith('#'):
+        hex_color = orig_color
         import matplotlib.colors as colors
-        color = colors.hex2color(color[0:7])
+        color = colors.hex2color(hex_color[0:7])
+        if len(hex_color) > 8:
+            alpha_hex = hex_color[7:9]
+            alpha_float = int(alpha_hex, 16) / 255.0
+            color = color + (alpha_float,)
+    else:
+        color = orig_color
     return color
 
 
@@ -386,12 +397,17 @@ def apply_graph_layout_attrs(graph, layout_info):
     graph.graph.update(graph_attrs)
 
 
-def make_agraph(graph):
-    # FIXME; use this in nx_agraph_layout instead to comparementalize more
+def make_agraph(graph_):
+    # FIXME; make this not an inplace operation
     import networkx as nx
     import pygraphviz
     # Convert to agraph format
-    graph_ = graph.copy()
+
+    num_nodes = len(graph_)
+    is_large = num_nodes > LARGE_GRAPH
+
+    if is_large:
+        print('Making agraph for large graph %d nodes. May take time' % (num_nodes))
 
     ut.nx_ensure_agraph_color(graph_)
     # Reduce size to be in inches not pixels
@@ -425,24 +441,45 @@ def make_agraph(graph):
     agraph = nx.nx_agraph.to_agraph(graph_)
     # Add subgraphs labels
     # TODO: subgraph attrs
+    group_attrs = graph_.graph.get('groupattrs', {})
     for groupid, nodes in groupid_to_nodes.items():
-        subgraph_attrs = {}
-        #subgraph_attrs = dict(rankdir='LR')
-        #subgraph_attrs['rank'] = 'min'
-        subgraph_attrs['rank'] = 'same'
+        # subgraph_attrs = {}
+        subgraph_attrs = group_attrs.get(groupid, {}).copy()
+        cluster_flag = True
+        # FIXME: make this more natural to specify
+        if 'cluster' in subgraph_attrs:
+            cluster_flag = subgraph_attrs['cluster']
+            del subgraph_attrs['cluster']
+        # subgraph_attrs = dict(rankdir='LR')
+        # subgraph_attrs = dict(rankdir='LR')
+        # subgraph_attrs['rank'] = 'min'
+        # subgraph_attrs['rank'] = 'source'
         name = groupid
-        name = 'cluster_' + groupid
+        if cluster_flag:
+            # graphviz treast subgraphs labeld with cluster differently
+            name = 'cluster_' + groupid
+        else:
+            name = groupid
         agraph.add_subgraph(nodes, name, **subgraph_attrs)
+
     for node in graph_.nodes():
         # force pinning of node points
         anode = pygraphviz.Node(agraph, node)
         if anode.attr['pin'] == 'true':
-            if anode.attr['pos'] is not None and not anode.attr['pos'].endswith('!'):
+            if (anode.attr['pos'] is not None and
+                 len(anode.attr['pos']) > 0 and
+                 not anode.attr['pos'].endswith('!')):
                 import re
                 #utool.embed()
-                ptstr = anode.attr['pos'].strip('[]').strip(' ')
-                ptstr_list = re.split(r'\s+', ptstr)
-                pt_arr = np.array(list(map(float, ptstr_list))) / 72.0
+                ptstr_ = anode.attr['pos']
+                #print('ptstr_ = %r' % (ptstr_,))
+                ptstr = ptstr_.strip('[]').strip(' ').strip('()')
+                #print('ptstr = %r' % (ptstr,))
+                ptstr_list = [x.rstrip(',') for x in re.split(r'\s+', ptstr)]
+                #print('ptstr_list = %r' % (ptstr_list,))
+                pt_list = list(map(float, ptstr_list))
+                #print('pt_list = %r' % (pt_list,))
+                pt_arr = np.array(pt_list) / 72.0
                 #print('pt_arr = %r' % (pt_arr,))
                 new_ptstr_list = list(map(str, pt_arr))
                 new_ptstr = ','.join(new_ptstr_list) + '!'
@@ -464,7 +501,8 @@ def make_agraph_args(kwargs):
     return args
 
 
-def nx_agraph_layout(orig_graph, inplace=False, verbose=None, **kwargs):
+def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
+                     return_agraph=False, **layoutkw):
     r"""
     orig_graph = graph
     graph = layout_graph
@@ -472,113 +510,59 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None, **kwargs):
     References:
         http://www.graphviz.org/content/attrs
         http://www.graphviz.org/doc/info/attrs.html
+
+    >>> from plottool.nx_helpers import *  # NOQA
+
     """
-    import networkx as nx
+    #import networkx as nx
     import pygraphviz
 
     #only_explicit = True
     #if only_explicit:
-    graph = get_explicit_graph(orig_graph)
-    #explicit_graph = get_explicit_graph(graph)
+    graph_ = get_explicit_graph(orig_graph).copy()
+    num_nodes = len(graph_)
+    is_large = num_nodes > LARGE_GRAPH
 
-    kwargs = kwargs.copy()
-    prog = kwargs.pop('prog', 'dot')
+    layoutkw = layoutkw.copy()
+    draw_implicit = layoutkw.pop('draw_implicit', True)
+
+    prog = layoutkw.pop('prog', 'dot')
     if prog != 'dot':
-        kwargs['overlap'] = kwargs.get('overlap', 'false')
-    kwargs['splines'] = kwargs.get('splines', 'spline')
-    kwargs['notranslate'] = 'true'  # for neato postprocessing
+        layoutkw['overlap'] = layoutkw.get('overlap', 'false')
+    layoutkw['splines'] = layoutkw.get('splines', 'spline')
+    if prog == 'neato':
+        layoutkw['notranslate'] = 'true'  # for neato postprocessing
     argparts = ['-G%s=%s' % (key, str(val))
-                for key, val in kwargs.items()]
+                for key, val in layoutkw.items()]
     args = ' '.join(argparts)
-    splines = kwargs['splines']
+    splines = layoutkw['splines']
+
     if verbose is None:
         verbose = ut.VERBOSE
-    if verbose:
-        print('args = %r' % (args,))
+    if verbose or is_large:
+        print('[nx_agraph_layout] args = %r' % (args,))
     # Convert to agraph format
-    graph_ = graph.copy()
 
-    ut.nx_ensure_agraph_color(graph_)
-
-    # Reduce size to be in inches not pixels
-    # FIXME: make robust to param settings
-    # Hack to make the w/h of the node take thae max instead of
-    # dot which takes the minimum
-    shaped_nodes = [n for n, d in graph_.nodes(data=True) if 'width' in d]
-    node_attrs = ut.dict_take(graph_.node, shaped_nodes)
-    width_px = np.array(ut.take_column(node_attrs, 'width'))
-    height_px = np.array(ut.take_column(node_attrs, 'height'))
-    scale = np.array(ut.dict_take_column(node_attrs, 'scale', default=1.0))
-
-    width_in = width_px / 72.0 * scale
-    height_in = height_px / 72.0 * scale
-    width_in_dict = dict(zip(shaped_nodes, width_in))
-    height_in_dict = dict(zip(shaped_nodes, height_in))
-    nx.set_node_attributes(graph_, 'width', width_in_dict)
-    nx.set_node_attributes(graph_, 'height', height_in_dict)
-    ut.nx_delete_node_attr(graph_, 'scale')
-
-    # Check for any nodes with groupids
-    node_to_groupid = nx.get_node_attributes(graph_, 'groupid')
-    if node_to_groupid:
-        groupid_to_nodes = ut.group_items(*zip(*node_to_groupid.items()))
-    else:
-        groupid_to_nodes = {}
-    # Initialize agraph format
-    #import utool
-    #utool.embed()
-    ut.nx_delete_None_edge_attr(graph_)
-    agraph = nx.nx_agraph.to_agraph(graph_)
-    # Add subgraphs labels
-    # TODO: subgraph attrs
-    group_attrs = graph.graph.get('groupattrs', {})
-    for groupid, nodes in groupid_to_nodes.items():
-        # subgraph_attrs = {}
-        subgraph_attrs = group_attrs.get(groupid, {}).copy()
-        cluster_flag = True
-        # FIXME: make this more natural to specify
-        if 'cluster' in subgraph_attrs:
-            cluster_flag = subgraph_attrs['cluster']
-            del subgraph_attrs['cluster']
-        # subgraph_attrs = dict(rankdir='LR')
-        # subgraph_attrs = dict(rankdir='LR')
-        # subgraph_attrs['rank'] = 'min'
-        # subgraph_attrs['rank'] = 'source'
-        name = groupid
-        if cluster_flag:
-            # graphviz treast subgraphs labeld with cluster differently
-            name = 'cluster_' + groupid
-        else:
-            name = groupid
-        agraph.add_subgraph(nodes, name, **subgraph_attrs)
-    for node in graph_.nodes():
-        # force pinning of node points
-        anode = pygraphviz.Node(agraph, node)
-        if anode.attr['pin'] == 'true':
-            if anode.attr['pos'] is not None and len(anode.attr['pos']) > 0 and not anode.attr['pos'].endswith('!'):
-                import re
-                #utool.embed()
-                ptstr_ = anode.attr['pos']
-                #print('ptstr_ = %r' % (ptstr_,))
-                ptstr = ptstr_.strip('[]').strip(' ').strip('()')
-                #print('ptstr = %r' % (ptstr,))
-                ptstr_list = [x.rstrip(',') for x in re.split(r'\s+', ptstr)]
-                #print('ptstr_list = %r' % (ptstr_list,))
-                pt_list = list(map(float, ptstr_list))
-                #print('pt_list = %r' % (pt_list,))
-                pt_arr = np.array(pt_list) / 72.0
-                #print('pt_arr = %r' % (pt_arr,))
-                new_ptstr_list = list(map(str, pt_arr))
-                new_ptstr = ','.join(new_ptstr_list) + '!'
-                #print('new_ptstr = %r' % (new_ptstr,))
-                anode.attr['pos'] = new_ptstr
+    agraph = make_agraph(graph_)
 
     # Run layout
     #print('prog = %r' % (prog,))
+
     if ut.VERBOSE or verbose > 0:
         print('BEFORE LAYOUT\n' + str(agraph))
+
+    if is_large:
+        print('Preforming agraph layout on graph with %d nodes. May take time' % (num_nodes))
+
     agraph.layout(prog=prog, args=args)
-    agraph.draw(ut.truepath('~/test_graphviz_draw.png'))
+
+    if is_large:
+        print('Finished agraph layout.')
+
+    if 0:
+        test_fpath = ut.truepath('~/test_graphviz_draw.png')
+        agraph.draw(test_fpath)
+        ut.startfile(test_fpath)
     if ut.VERBOSE or verbose > 1:
         print('AFTER LAYOUT\n' + str(agraph))
 
@@ -601,7 +585,7 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None, **kwargs):
         for key, val in edge_attrs.items():
             edge_layout_attrs[key][edge] = val
 
-    if orig_graph is not None and kwargs.get('draw_implicit', True):
+    if draw_implicit:
         # ADD IN IMPLICIT EDGES
         layout_edges = set(ut.nx_edges(graph_, keys=True))
         orig_edges = set(ut.nx_edges(orig_graph, keys=True))
@@ -629,15 +613,23 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None, **kwargs):
             node1_attr1 = parse_anode_layout_attrs(control_node)
             #print('node1_attr1 = %r' % (node1_attr1,))
 
-            implicit_kw = kwargs.copy()
+            implicit_kw = layoutkw.copy()
             implicit_kw['overlap'] = 'true'
             #del implicit_kw['overlap']  # can cause node positions to change
             argparts = ['-G%s=%s' % (key, str(val))
                         for key, val in implicit_kw.items()]
             args = ' '.join(argparts)
 
+            if is_large:
+                print('[nx_agraph_layout] About to draw implicit layout for large graph.')
+
             agraph.layout(prog='neato', args='-n ' + args)
-            agraph.draw(ut.truepath('~/implicit_test_graphviz_draw.png'))
+
+            if is_large:
+                print('[nx_agraph_layout] done with implicit layout for large graph.')
+
+            if False:
+                agraph.draw(ut.truepath('~/implicit_test_graphviz_draw.png'))
             if ut.VERBOSE or verbose:
                 print('AFTER IMPLICIT LAYOUT\n' + str(agraph))
 
@@ -672,7 +664,13 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None, **kwargs):
 
     if inplace:
         apply_graph_layout_attrs(orig_graph, layout_info)
-    return graph, layout_info
+        graph = orig_graph
+    else:
+        graph = graph_
+    if return_agraph:
+        return graph, layout_info, agraph
+    else:
+        return graph, layout_info
 
 
 def parse_point(ptstr):
@@ -810,7 +808,10 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         as_directed = graph.is_directed()
 
     # Draw nodes
-    for node, nattrs in graph.nodes(data=True):
+    large_graph = len(graph) > LARGE_GRAPH
+    #for edge, pts in ut.ProgIter(edge_pos.items(), nTotal=len(edge_pos), enabled=large_graph, lbl='drawing edges'):
+
+    for node, nattrs in ut.ProgIter(graph.nodes(data=True), nTotal=len(graph), lbl='drawing nodes'):
         # shape = nattrs.get('shape', 'circle')
         if nattrs is None:
             nattrs = {}
@@ -829,7 +830,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         else:
             alpha_ = alpha
 
-        node_color = fix_hex_color(node_color)
+        node_color = ensure_nonhex_color(node_color)
         #intcolor = int(node_color.replace('#', '0x'), 16)
         node_color = node_color[0:3]
         patch_kw = dict(alpha=alpha_, color=node_color)
@@ -892,7 +893,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             framewidth = nattrs.get('framewidth', 0)
             if framewidth > 0:
                 framecolor = nattrs.get('framecolor', node_color)
-                framecolor = fix_hex_color(framecolor)
+                framecolor = ensure_nonhex_color(framecolor)
 
                 #print('framecolor = %r' % (framecolor,))
                 alpha = 1.0
@@ -913,7 +914,10 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         #import utool
         #utool.embed()
         picker = nattrs.get('picker', True)
+        zorder = nattrs.get('zorder', None)
         patch.set_picker(picker)
+        if zorder is not None:
+            patch.set_zorder(zorder)
         pt.set_plotdat(patch, 'node_data', nattrs)
         pt.set_plotdat(patch, 'node', node)
 
@@ -944,7 +948,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     # NEW WAY OF DRAWING EDGEES
     edge_pos = layout_info['edge'].get('ctrl_pts', None)
     if edge_pos is not None:
-        for edge, pts in edge_pos.items():
+        for edge, pts in ut.ProgIter(edge_pos.items(), nTotal=len(edge_pos), enabled=large_graph, lbl='drawing edges'):
             data = get_default_edge_data(graph, edge)
 
             if data.get('style', None) == 'invis':
@@ -962,7 +966,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             color = data.get('color', defaultcolor)
             if color is None:
                 color = defaultcolor
-            color = fix_hex_color(color)
+            color = ensure_nonhex_color(color)
             color = color[0:3]
 
             #layout_info['edge']['ctrl_pts'][edge]
@@ -994,7 +998,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             verts = [start_point] + other_points
             codes = [astart_code] + [CODE] * len(other_points)
 
-            end_pt = layout_info['edge']['end_pt'][edge]
+            end_pt = layout_info['edge'].get('end_pt', {}).get(edge, None)
 
             # HACK THE ENDPOINTS TO TOUCH THE BOUNDING BOXES
             if end_pt is not None:
@@ -1105,6 +1109,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             #    pass
 
             picker = data.get('picker', 5)
+            zorder = data.get('zorder', 5)
             patch = mpl.patches.PathPatch(path, facecolor='none', lw=lw,
                                           path_effects=path_effects,
                                           edgecolor=color,
@@ -1113,7 +1118,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                                           linestyle=linestyle,
                                           alpha=alpha,
                                           joinstyle='bevel',
-                                          hatch=hatch)
+                                          hatch=hatch,
+                                          zorder=zorder)
             pt.set_plotdat(patch, 'edge_data', data)
             pt.set_plotdat(patch, 'edge', edge)
 
@@ -1139,7 +1145,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 #ax.add_patch(patch1)
                 patch_dict['arrow_patch_list'][edge] = (patch1)
 
-            taillabel = layout_info['edge']['taillabel'][edge]
+            taillabel = layout_info['edge'].get('taillabel', {}).get(edge, None)
             #ha = 'left'
             #ha = 'right'
             ha = 'center'
@@ -1147,7 +1153,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             labelcolor = color  # TODO allow for different colors
 
             labelcolor = data.get('labelcolor', color)
-            labelcolor = fix_hex_color(labelcolor)
+            labelcolor = ensure_nonhex_color(labelcolor)
             labelcolor = labelcolor[0:3]
 
             if taillabel:
@@ -1155,13 +1161,13 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 ax.annotate(taillabel, xy=taillabel_pos, xycoords='data',
                             color=labelcolor,
                             va=va, ha=ha, fontproperties=font_prop)
-            headlabel = layout_info['edge']['headlabel'][edge]
+            headlabel = layout_info['edge'].get('headlabel', {}).get(edge, None)
             if headlabel:
                 headlabel_pos = layout_info['edge']['head_lp'][edge]
                 ax.annotate(headlabel, xy=headlabel_pos, xycoords='data',
                             color=labelcolor,
                             va=va, ha=ha, fontproperties=font_prop)
-            label = layout_info['edge']['label'][edge]
+            label = layout_info['edge'].get('label', {}).get(edge, None)
             if label:
                 label_pos = layout_info['edge']['lp'][edge]
                 ax.annotate(label, xy=label_pos, xycoords='data',
