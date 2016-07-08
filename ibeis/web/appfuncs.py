@@ -79,7 +79,7 @@ def embed_image_html(imgBGR, target_width=TARGET_WIDTH):
         imgBGR = _resize(imgBGR, target_width)
     imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(imgRGB)
-    string_buf = StringIO.StringIO()
+    string_buf = StringIO()
     pil_img.save(string_buf, format='jpeg')
     data = string_buf.getvalue().encode('base64').replace('\n', '')
     return 'data:image/jpeg;base64,' + data

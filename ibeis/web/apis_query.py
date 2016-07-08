@@ -89,10 +89,10 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         >>> import requests
         >>> # Start up the web instance
         >>> web_instance = ibeis.opendb_in_background(db='testdb1', web=True, browser=False)
-        >>> time.sleep(.5)
+        >>> time.sleep(10)
         >>> baseurl = 'http://127.0.1.1:5000'
         >>> data = dict(qaid_list=[1])
-        >>> resp = requests.get(baseurl + '/api/query/chip/simple_dict/', data=data)
+        >>> resp = requests.get(baseurl + '/api/query/chip/simple/dict/', data=data)
         >>> print(resp)
         >>> web_instance.terminate()
         >>> json_dict = resp.json()
