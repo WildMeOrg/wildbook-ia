@@ -495,7 +495,11 @@ class QueryResultsWidget(APIItemWidget):
             qres_wgt.qres_api.get_thumb_size())
 
         # super call
-        APIItemWidget.change_headers(qres_wgt, headers)
+        #QueryResultsWidget
+        #super(
+        qres_wgt.change_headers(headers)
+        qres_wgt.setWindowTitle(headers.get('nice', '') + 'nRows=%d' % (qres_wgt.model.rowCount()))
+        #APIItemWidget.
         #qres_wgt.change_headers(headers)
 
         # HACK IN COL SIZE
