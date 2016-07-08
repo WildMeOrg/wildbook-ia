@@ -414,7 +414,7 @@ class QueryResultsWidget(APIItemWidget):
         qres_wgt.layout().addWidget(bottom_bar)
         bottom_bar.addWidget(lbl)
         bottom_bar.addNewButton('Mark all above as correct', pressed=qres_wgt.mark_unreviewed_above_score_as_correct)
-        bottom_bar.addNewButton('Hide Reviewed', pressed=qres_wgt.hide_reviewed)
+        bottom_bar.addNewButton('Repopulate', pressed=qres_wgt.repopulate)
 
         qres_wgt.name_scoring = name_scoring
         qres_wgt.cm_list = cm_list
@@ -498,7 +498,8 @@ class QueryResultsWidget(APIItemWidget):
         #QueryResultsWidget
         #super(
         qres_wgt.change_headers(headers)
-        qres_wgt.setWindowTitle(headers.get('nice', '') + 'nRows=%d' % (qres_wgt.model.rowCount()))
+        qres_wgt.setWindowTitle(headers.get('nice', '') + ' nRows=%d' %
+                                (qres_wgt.model.rowCount()))
         #APIItemWidget.
         #qres_wgt.change_headers(headers)
 
@@ -693,8 +694,8 @@ class QueryResultsWidget(APIItemWidget):
         fig = match_interaction.fig
         fig_presenter.bring_to_front(fig)
 
-    def hide_reviewed(qres_wgt):
-        print('hide_reviewed')
+    def repopulate(qres_wgt):
+        print('repopulate')
         # Really just reloads the widget
         qreq_ = qres_wgt.qreq_
         qres_wgt.set_query_results(qreq_.ibs, qres_wgt.cm_list,
@@ -1266,8 +1267,9 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         'aid',
         'rank',
         'timedist',
-        'd_nGt',
-        'q_nGt',
+        'dnGt',
+        'qnGt',
+        'tags',
         'qname',
         'name',
     ]
@@ -1275,8 +1277,8 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     col_types_dict = dict([
         ('qaid',       int),
         ('aid',        int),
-        ('d_nGt',      int),
-        ('q_nGt',      int),
+        ('dnGt',      int),
+        ('qnGt',      int),
         ('timedist',   float),
         #('review',     'BUTTON'),
         (MATCHED_STATUS_TEXT, str),
@@ -1298,8 +1300,8 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     col_getter_dict = dict([
         ('qaid',       np.array(qaids)),
         ('aid',        np.array(daids)),
-        ('d_nGt',      ibs.get_annot_num_groundtruth),
-        ('q_nGt',      ibs.get_annot_num_groundtruth),
+        ('dnGt',      ibs.get_annot_num_groundtruth),
+        ('qnGt',      ibs.get_annot_num_groundtruth),
         ('timedist', np.array(timedist_list)),
         #('review',     lambda rowid: get_buttontup),
         (MATCHED_STATUS_TEXT,  partial(get_match_status, ibs)),
@@ -1311,6 +1313,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         ('score',      np.array(scores)),
         ('rank',       np.array(ranks)),
         ('result_index',       np.arange(len(ranks))),
+        ('tags', lambda aid_pair: ibs.get_annotmatch_tag_text(ibs.get_annotmatch_rowid_from_undirected_superkey([aid_pair[0]], [aid_pair[1]]))[0]),
         #('truth',     truths),
         #('opt',       opts),
     ])
@@ -1326,9 +1329,10 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         'result_index': 42,
         'qname': 60,
         'name': 60,
-        'd_nGt': 42,
+        'dnGt': 50,
         'timedist': 75,
-        'q_nGt': 42,
+        'tags': 75,
+        'qnGt': 50,
     }
 
     USE_MATCH_THUMBS = 1
@@ -1387,9 +1391,10 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     col_ider_dict = {
         MATCHED_STATUS_TEXT     : ('qaid', 'aid'),
         REVIEWED_STATUS_TEXT    : ('qaid', 'aid'),
+        'tags'    : ('qaid', 'aid'),
         QUERY_THUMB_TEXT : ('qaid'),
-        'd_nGt'      : ('aid'),
-        'q_nGt'      : ('qaid'),
+        'dnGt'      : ('aid'),
+        'qnGt'      : ('qaid'),
         'ResThumb'   : ('aid'),
         'qname'      : ('qaid'),
         'name'       : ('aid'),
@@ -1549,6 +1554,14 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
            'directed={directed},'
            'ranks_lt={ranks_lt},'
            ).format(**locals()))
+
+    automatch_kw = {
+        'filter_duplicate_namepair_matches': filter_duplicate_namepair_matches,
+        'directed': directed,
+        'ranks_lt': ranks_lt,
+        'filter_reviewed': filter_reviewed,
+        'filter_photobombs': True,
+    }
     print('[resorg] len(cm_list) = %d' % (len(cm_list)))
     qaids_stack  = []
     daids_stack  = []
@@ -1630,8 +1643,82 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         score_arr = score_arr.take(unique_rowx2)
         rank_arr  = rank_arr.take(unique_rowx2)
 
+    if automatch_kw['filter_photobombs']:
+        unique_aids = ut.unique(ut.flatten([qaid_arr, daid_arr]))
+        #grouped_aids, unique_nids = ibs.group_annots_by_name(unique_aids)
+        invalid_nid_map = get_photobomber_map(ibs, qaid_arr)
+
+        nid2_aids = ut.group_items(unique_aids, ibs.get_annot_nids(unique_aids))
+
+        expanded_aid_map = ut.ddict(set)
+        for nid1, other_nids in invalid_nid_map.items():
+            for aid1 in nid2_aids[nid1]:
+                for nid2 in other_nids:
+                    for aid2 in nid2_aids[nid2]:
+                        expanded_aid_map[aid1].add(aid2)
+                        expanded_aid_map[aid2].add(aid1)
+
+        valid_flags = [daid not in expanded_aid_map[qaid] for qaid, daid in zip(qaid_arr, daid_arr)]
+        qaid_arr  = qaid_arr.compress(valid_flags)
+        daid_arr   = daid_arr.compress(valid_flags)
+        score_arr = score_arr.compress(valid_flags)
+        rank_arr  = rank_arr.compress(valid_flags)
+
     candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)
     return candidate_matches
+
+
+def get_photobomber_map(ibs, aids):
+    """
+    python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show --db PZ_MTEST -a default:qindex=0
+
+    >>> import ibeis
+    >>> dbdir = ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
+    >>> ibs = ibeis.opendb(dbdir='/home/joncrall/lev/media/danger/GGR/GGR-IBEIS')
+    >>> filter_kw = {
+    >>>     'multiple': False,
+    >>>     'minqual': 'good',
+    >>>     'is_known': True,
+    >>>     'min_pername': 2,
+    >>>     'view': ['right'],
+    >>> }
+    >>> aids = ibs.filter_annots_general(ibs.get_valid_aids(), filter_kw=filter_kw)
+    """
+    ams_list = ibs.get_annotmatch_rowids_from_aid(aids)
+    flags_list = ibs.unflat_map(ut.partial(ibs.get_annotmatch_prop, 'Photobomb'), ams_list)
+    pb_ams = ut.zipcompress(ams_list, flags_list)
+    has_pb_ams = [len(ams) > 0 for ams in pb_ams]
+    pb_ams_ = ut.compress(pb_ams, has_pb_ams)
+    #aids_ = ut.compress(aids, has_pb_ams)
+    pb_ams_flat, ungrouper = ut.invertible_flatten2(pb_ams_)
+    #pb_ams_flat = ibs._get_all_annotmatch_rowids()
+
+    pb_aids1_ = ibs.get_annotmatch_aid1(pb_ams_flat)
+    pb_aids2_ = ibs.get_annotmatch_aid2(pb_ams_flat)
+
+    pb_aid_pairs_ = list(zip(pb_aids1_, pb_aids2_))
+    pb_nid_pairs_ = ibs.unflat_map(ibs.get_annot_nids, pb_aid_pairs_)
+
+    #invalid_aid_map = ut.ddict(set)
+    #for aid1, aid2 in pb_aid_pairs_:
+    #    if aid1 != aid2:
+    #        invalid_aid_map[aid1].add(aid2)
+    #        invalid_aid_map[aid2].add(aid1)
+
+    invalid_nid_map = ut.ddict(set)
+    for nid1, nid2 in pb_nid_pairs_:
+        if nid1 != nid2:
+            invalid_nid_map[nid1].add(nid2)
+            invalid_nid_map[nid2].add(nid1)
+
+    #invalid_aid_map = ut.ddict(set)
+    #for aid1, aid2 in pb_aid_pairs_:
+    #    if aid1 != aid2:
+    #        invalid_aid_map[aid1].add(aid2)
+    #        invalid_aid_map[aid2].add(aid1)
+
+    return invalid_nid_map
+    #pb_aid_pairs = ut.unflatten2(pb_aid_pairs_, ungrouper)
 
 
 def test_inspect_matches(qreq_):
@@ -1682,7 +1769,9 @@ def test_inspect_matches(qreq_):
     #ut.view_directory(ibs.get_match_thumbdir())
     qres_wgt = inspect_gui.QueryResultsWidget(
         qreq_.ibs, cm_list, ranks_lt=ranks_lt, qreq_=qreq_,
-        filter_reviewed=True, filter_duplicate_namepair_matches=False)
+        #filter_reviewed=True,
+        filter_reviewed=0,
+        filter_duplicate_namepair_matches=False)
     print('[inspect_matches] show')
     qres_wgt.show()
     print('[inspect_matches] raise')

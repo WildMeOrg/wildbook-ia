@@ -1963,6 +1963,70 @@ class MainWindowBackend(GUIBACK_BASE):
         #    raise guiexcept.UserCancel
         #back.compute_queries(qaid_list=wgt.qaids, daid_list=back.daids)
 
+    def confirm_query_dialog2(back, species2_expanded_aids=None, cfgdict=None,
+                              query_msg=None, query_title=None, review_cfg={}):
+        """
+        Asks the user to confirm starting the identification query
+        """
+        msg_str, detailed_msg = back.make_confirm_query_msg2(
+            species2_expanded_aids, cfgdict=cfgdict, query_title=query_title)
+        if query_title is None:
+            query_title = 'custom'
+        confirm_kw = dict(use_msg=msg_str, title='Begin %s ID' % (query_title,),
+                          default='Yes', detailed_msg=detailed_msg)
+
+        # TODO better confirm dialog
+        if True:
+            import dtool
+            ibs = back.ibs   # NOQA
+            #class TmpIDConfig(dtool.Config):
+            #    _param_info_list = [
+            #        #ut.ParamInfo('K', ibs.cfg.query_cfg.nn_cfg.K),
+            #        #ut.ParamInfo('Knorm', ibs.cfg.query_cfg.nn_cfg.Knorm),
+            #        #ut.ParamInfo('chip_size', ibs.cfg.chip_cfg.dim_size),
+            #    ]
+            #**back.ibs.cfg.to_dict())
+            #config = TmpIDConfig()
+
+            review_config = {
+                'filter_reviewed': review_cfg.get('filter_reviewed', ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True)),
+                'ranks_lt': review_cfg.get('ranks_lt', ibs.cfg.other_cfg.ensure_attr('ranks_lt', 2)),
+            }
+
+            tmpdict = cfgdict.copy()
+            tmpdict.update(review_config)
+
+            config = dtool.Config.from_dict(tmpdict)
+
+            #print('config = %r' % (config,))
+            options = [
+                'Start ID',
+            ]
+
+            if ut.get_argflag(('--yes', '-y')):
+                reply = options[0]
+                new_config = config
+            else:
+                reply, new_config = back.user_option(
+                    title='Begin %s ID' % (query_title,),
+                    msg=msg_str,
+                    config=config,
+                    options=options,
+                    default=options[0],
+                    detailed_msg=detailed_msg,
+                )
+                print('reply = %r' % (reply,))
+            updated_config = new_config.asdict()
+            updated_review_cfg = ut.dict_subset(updated_config, review_config.keys())
+            ut.delete_dict_keys(updated_config, review_config.keys())
+
+            if reply not in options:
+                raise guiexcept.UserCancel
+            return updated_config, updated_review_cfg
+        else:
+            if not back.are_you_sure(**confirm_kw):
+                raise guiexcept.UserCancel
+
     @blocking_slot()
     def compute_queries(back, refresh=True, daids_mode=None,
                         query_is_known=None, qaid_list=None,
@@ -2156,69 +2220,6 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] ... valid_kw = ' + ut.dict_str(valid_kw))
         daid_list = back.ibs.get_valid_aids(**valid_kw)
         return daid_list
-
-    def confirm_query_dialog2(back, species2_expanded_aids=None, cfgdict=None,
-                              query_msg=None, query_title=None, review_cfg={}):
-        """
-        Asks the user to confirm starting the identification query
-        """
-        msg_str, detailed_msg = back.make_confirm_query_msg2(
-            species2_expanded_aids, cfgdict=cfgdict, query_title=query_title)
-        if query_title is None:
-            query_title = 'custom'
-        confirm_kw = dict(use_msg=msg_str, title='Begin %s ID' % (query_title,),
-                          default='Yes', detailed_msg=detailed_msg)
-
-        # TODO better confirm dialog
-        if True:
-            import dtool
-            ibs = back.ibs   # NOQA
-            #class TmpIDConfig(dtool.Config):
-            #    _param_info_list = [
-            #        #ut.ParamInfo('K', ibs.cfg.query_cfg.nn_cfg.K),
-            #        #ut.ParamInfo('Knorm', ibs.cfg.query_cfg.nn_cfg.Knorm),
-            #        #ut.ParamInfo('chip_size', ibs.cfg.chip_cfg.dim_size),
-            #    ]
-            #**back.ibs.cfg.to_dict())
-            #config = TmpIDConfig()
-
-            review_config = {
-                'filter_reviewed': review_cfg.get('filter_reviewed', ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True))
-            }
-
-            tmpdict = cfgdict.copy()
-            tmpdict.update(review_config)
-
-            config = dtool.Config.from_dict(tmpdict)
-
-            #print('config = %r' % (config,))
-            options = [
-                'Start ID',
-            ]
-
-            if ut.get_argflag(('--yes', '-y')):
-                reply = options[0]
-                new_config = config
-            else:
-                reply, new_config = back.user_option(
-                    title='Begin %s ID' % (query_title,),
-                    msg=msg_str,
-                    config=config,
-                    options=options,
-                    default=options[0],
-                    detailed_msg=detailed_msg,
-                )
-                print('reply = %r' % (reply,))
-            updated_config = new_config.asdict()
-            updated_review_cfg = ut.dict_subset(updated_config, review_config.keys())
-            ut.delete_dict_keys(updated_config, review_config.keys())
-
-            if reply not in options:
-                raise guiexcept.UserCancel
-            return updated_config, updated_review_cfg
-        else:
-            if not back.are_you_sure(**confirm_kw):
-                raise guiexcept.UserCancel
 
     def make_confirm_query_msg2(back, species2_expanded_aids,
                                 cfgdict=None, query_msg=None,
