@@ -273,7 +273,22 @@ def bbox_from_xywh(xy, wh, xy_rel_pos=[0, 0]):
 
 #def tlbr_from_bbox(bbox):
 def extent_from_bbox(bbox):
-    """ returns tlbr_x, tlbr_y from tlwh """
+    """
+    Args:
+        bbox (ndarray): tl_x, tl_y, w, h
+
+    Returns:
+        extent (ndarray): tl_x, br_x, tl_y, br_y
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.geometry import *  # NOQA
+        >>> bbox = [0, 0, 10, 10]
+        >>> extent = extent_from_bbox(bbox)
+        >>> result = ('extent = %s' % (ut.repr2(extent),))
+        >>> print(result)
+        extent = [0, 10, 0, 10]
+    """
     tl_x, tl_y, w, h = bbox
     br_x = tl_x + w
     br_y = tl_y + h
@@ -283,11 +298,26 @@ def extent_from_bbox(bbox):
 
 #def tlbr_from_bbox(bbox):
 def bbox_from_extent(extent):
-    """ returns tlbr_x, tlbr_y from tlwh """
+    """
+    Args:
+        extent (ndarray): tl_x, br_x, tl_y, br_y
+
+    Returns:
+        bbox (ndarray): tl_x, tl_y, w, h
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.geometry import *  # NOQA
+        >>> extent = [0, 10, 0, 10]
+        >>> bbox = bbox_from_extent(extent)
+        >>> result = ('bbox = %s' % (ut.repr2(bbox),))
+        >>> print(result)
+        bbox = [0, 0, 10, 10]
+    """
     tl_x, br_x, tl_y, br_y = extent
     w = br_x - tl_x
     h = br_y - tl_y
-    bbox = [tl_x, br_x, w, h]
+    bbox = [tl_x, tl_y, w, h]
     return bbox
 
 
