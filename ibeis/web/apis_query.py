@@ -48,7 +48,7 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
 
     RESTful:
         Method: GET
-        URL:    /api/query/chip/simple/dict/
+        URL:    /api/query/chip/dict/simple/
 
     SeeAlso:
         query_chips
