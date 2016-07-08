@@ -48,9 +48,7 @@ REVIEW_CFG_DEFAULTS = {
 }
 
 
-def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
-                                     marking_mode=False,
-                                     aid_list=None, **kwargs):
+def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None, aid_list=None, **kwargs):
     """ assert that the ampersand cannot have duplicate keys
 
     Args:

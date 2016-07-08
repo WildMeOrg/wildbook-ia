@@ -1045,7 +1045,7 @@ class MainWindowBackend(GUIBACK_BASE):
         viz.draw()
 
     @blocking_slot()
-    def review_queries(back, cm_list, qreq_=None, **kwargs):
+    def review_queries(back, cm_list, qreq_=None, review_cfg={}, query_title=''):
         # Qt QueryResults Interaction
         from ibeis.gui import inspect_gui
         ibs = back.ibs
@@ -1060,26 +1060,23 @@ class MainWindowBackend(GUIBACK_BASE):
                 ut.printex(ex, 'Wildbook call did not work. Maybe not connected?')
             back.front.update_tables()
 
-        kwargs['ranks_lt'] = kwargs.get('ranks_lt', ibs.cfg.other_cfg.ranks_lt)
-        kwargs['qreq_'] = kwargs.get('qreq_', qreq_)
-
-        #ibs.cfg.other_cfg.ranks_lt = 2
         # Overwrite
-        ranks_lt = kwargs.pop('ranks_lt', ibs.cfg.other_cfg.ensure_attr('ranks_lt', 2))
-        kwargs = kwargs.copy()
-        filter_reviewed = kwargs.pop('filter_reviewed', None)
+        review_cfg = review_cfg.copy()
+        filter_reviewed = review_cfg.pop('filter_reviewed', None)
         if filter_reviewed is None:
             filter_reviewed = ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True)
             if filter_reviewed is None:
                 # only filter big queries if not specified
                 filter_reviewed = len(cm_list) > 6
         print('REVIEW QUERIES')
-        print('**kwargs = %s' % (ut.repr3(kwargs),))
+        print('review_cfg = %s' % (ut.repr3(review_cfg),))
         print('filter_reviewed = %s' % (filter_reviewed,))
-        print('ranks_lt = %s' % (ranks_lt,))
-        review_cfg = dict(ranks_lt=ranks_lt, filter_reviewed=filter_reviewed, **kwargs)
+        review_cfg['filter_reviewed'] = filter_reviewed
+        review_cfg['ranks_lt'] = review_cfg.get('ranks_lt', ibs.cfg.other_cfg.ranks_lt)
         back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list,
                                                        callback=finished_review_callback,
+                                                       qreq_=qreq_,
+                                                       query_title=query_title,
                                                        review_cfg=review_cfg)
         back.qres_wgt.show()
         back.qres_wgt.raise_()

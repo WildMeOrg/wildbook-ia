@@ -106,10 +106,13 @@ def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
         >>> ut.show_if_requested()
     """
     from ibeis.control import _autogen_annotmatch_funcs
+
     if force_method is None:
         force_method = 9000
     if nInput is None:
         nInput = len(aid2_list)
+    if nInput == 0:
+        return []
     if (force_method != 2) and (nInput < 128 or (force_method == 1)):
         colnames = (_autogen_annotmatch_funcs.ANNOTMATCH_ROWID,)
         # FIXME: col_rowid is not correct
@@ -118,7 +121,7 @@ def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
         annotmatch_rowid_list = ibs.db.get_where2(
             ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, andwhere_colnames,
             eager=eager, nInput=nInput, unpack_scalars=False)
-    elif force_method == 2:
+    else:
         import vtool as vt
         all_annotmatch_rowids = np.array(ibs._get_all_annotmatch_rowids())
         aids2 = np.array(ibs.get_annotmatch_aid2(all_annotmatch_rowids))
@@ -127,7 +130,9 @@ def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
         rowids2_ = [_.tolist() for _ in rowids2_]
         maping2 = ut.defaultdict(list, zip(unique_aid2, rowids2_))
         annotmatch_rowid_list = ut.dict_take(maping2, aid2_list)
-    annotmatch_rowid_list = list(map(sorted, annotmatch_rowid_list))
+    import utool
+    with utool.embed_on_exception_context:
+        annotmatch_rowid_list = list(map(sorted, annotmatch_rowid_list))
     return annotmatch_rowid_list
 
 
@@ -195,7 +200,8 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None, force
         force_method = 9000
     if nInput is None:
         nInput = len(aid_list)
-
+    if nInput == 0:
+        return []
     if (force_method != 2) and (nInput < 256 or (force_method == 1)):
         rowids1 = ibs.get_annotmatch_rowids_from_aid1(aid_list)
         # This one is slow because aid2 is the second part of the index
