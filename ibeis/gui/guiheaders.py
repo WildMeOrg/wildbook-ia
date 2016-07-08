@@ -383,7 +383,7 @@ def make_ibeis_headers_dict(ibs):
         'img_gname'    : ibs.get_image_gnames,
         'nAids'        : ibs.get_image_num_annotations,
         'unixtime'     : ibs.get_image_unixtime,
-        'datetime'     : ibs.get_image_datetime,
+        'datetime'     : ibs.get_image_datetime_str,
         'gdconf'       : ibs.get_image_detect_confidence,
         'imgnotes'     : ibs.get_image_notes,
         'image_uuid'   : ibs.get_image_uuids,
@@ -434,7 +434,7 @@ def make_ibeis_headers_dict(ibs):
         'exemplar'            : ibs.get_annot_exemplar_flags,
         'annot_visual_uuid'   : ibs.get_annot_visual_uuids,
         'annot_semantic_uuid' : ibs.get_annot_semantic_uuids,
-        'datetime'            : ibs.get_annot_image_datetime,
+        'datetime'            : ibs.get_annot_image_datetime_str,
     }
     infer_unspecified_getters(ANNOTATION_TABLE, 'annot')
     setters[ANNOTATION_TABLE] = {

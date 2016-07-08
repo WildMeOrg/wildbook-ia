@@ -1180,9 +1180,19 @@ def get_image_unixtime(ibs, gid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_image_datetime(ibs, gid_list):
+def get_image_datetime_str(ibs, gid_list):
     unixtime_list = ibs.get_image_unixtime(gid_list)
-    datetime_list = list(map(ut.unixtime_to_datetimestr, unixtime_list))
+    datestr_list = list(map(ut.unixtime_to_datetimestr, unixtime_list))
+    return datestr_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+def get_image_datetime(ibs, gid_list):
+    import datetime
+    unixtime_list = ibs.get_image_unixtime(gid_list)
+    datetime_list = [None if ts is None or ts == -1 else
+                     datetime.datetime.fromtimestamp(ts) for ts in unixtime_list]
     return datetime_list
 
 

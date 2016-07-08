@@ -5239,7 +5239,7 @@ def get_annot_pair_lazy_dict(ibs, qaid, daid, qconfig2_=None, dconfig2_=None):
     metadata = ut.LazyDict({
         'annot1': get_annot_lazy_dict(ibs, qaid, config2_=qconfig2_),
         'annot2': get_annot_lazy_dict(ibs, daid, config2_=dconfig2_),
-    })
+    }, reprkw=dict(truncate=True))
     return metadata
 
 
@@ -5272,13 +5272,14 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
     metadata = ut.LazyDict({
         'aid': aid,
         'name': lambda: ibs.get_annot_names([aid])[0],
+        'nid': lambda: ibs.get_annot_name_rowids([aid])[0],
         'rchip_fpath': lambda: ibs.get_annot_chip_fpath([aid], config2_=config2_)[0],
         'rchip': lambda: ibs.get_annot_chips([aid], config2_=config2_)[0],
         'vecs': lambda:  ibs.get_annot_vecs([aid], config2_=config2_)[0],
         'kpts': lambda:  ibs.get_annot_kpts([aid], config2_=config2_)[0],
         'dlen_sqrd': lambda: ibs.get_annot_chip_dlensqrd([aid], config2_=config2_)[0],
         'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
-    })
+    }, reprkw=dict(truncate=True))
     return metadata
 
 
@@ -5307,6 +5308,7 @@ def get_image_lazydict(ibs, gid, config=None):
     metadata = ut.LazyDict({
         'gid': gid,
         'unixtime': lambda: ibs.get_image_unixtime(gid),
+        'datetime': lambda: ibs.get_image_datetime(gid),
         'aids': lambda: ibs.get_image_aids(gid),
         'size': lambda: ibs.get_image_sizes(gid),
         'uri': lambda: ibs.get_image_uris(gid),
@@ -5314,7 +5316,7 @@ def get_image_lazydict(ibs, gid, config=None):
         'gps': lambda: ibs.get_image_gps(gid),
         'orientation': lambda: ibs.get_image_orientation(gid),
         #'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
-    })
+    }, reprkw=dict(truncate=True))
     return metadata
 
 

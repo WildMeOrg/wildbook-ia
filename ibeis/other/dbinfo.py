@@ -38,6 +38,428 @@ def print_qd_info(ibs, qaid_list, daid_list, verbose=False):
         print(d_info_str)
 
 
+def sight_resight_prob(N_range, nvisit1, nvisit2, resight):
+    """
+    https://en.wikipedia.org/wiki/Talk:Mark_and_recapture#Statistical_treatment
+    http://stackoverflow.com/questions/31439875/infinite-summation-in-python/31442749
+    """
+    k, K, n  = resight, nvisit1, nvisit2
+    from scipy.misc import comb
+    N_range = np.array(N_range)
+
+    def integers(start, blk_size=10000, pos=True, neg=False):
+        x = np.arange(start, start + blk_size)
+        while True:
+            if pos:
+                yield x
+            if neg:
+                yield -x - 1
+            x += blk_size
+
+    def converge_inf_sum(func, x_strm, eps=1e-5, axis=0):
+        # Can still be very slow
+        total = np.sum(func(x_strm.next()), axis=axis)
+        #for x_blk in ut.ProgIter(x_strm, lbl='converging'):
+        for x_blk in x_strm:
+            diff = np.sum(func(x_blk), axis=axis)
+            total += diff
+            #error = abs(np.linalg.norm(diff))
+            #print('error = %r' % (error,))
+            if np.sqrt(diff.ravel().dot(diff.ravel())) <= eps:
+                # Converged
+                break
+        return total
+
+    numers = (comb(N_range - K, n - k) / comb(N_range, n))
+
+    @ut.memoize
+    def func(N_):
+        return (comb(N_ - K, n - k) / comb(N_, n))
+
+    denoms = []
+    for N in ut.ProgIter(N_range, lbl='denoms'):
+        x_strm = integers(start=(N + n - k), blk_size=100)
+        denom = converge_inf_sum(func, x_strm, eps=1e-3)
+        denoms.append(denom)
+
+    #denom = sum([func(N_) for N_ in range(N_start, N_start * 2)])
+    probs = numers / np.array(denoms)
+    return probs
+
+
+def sight_resight_count(nvisit1, nvisit2, resight):
+    r"""
+    Lincoln Petersen Index
+
+    The Lincoln-Peterson index is a method used to estimate the total number of
+    individuals in a population given two independent sets observations.  The
+    likelihood of a population size is a hypergeometric distribution given by
+    assuming a uniform sampling distribution.
+
+    Args:
+        nvisit1 (int): the number of individuals seen on visit 1.
+        nvisit2 (int): be the number of individuals seen on visit 2.
+        resight (int): the number of (matched) individuals seen on both visits.
+
+    Returns:
+        tuple: (pl_index, pl_error)
+
+    LaTeX:
+        \begin{equation}\label{eqn:lpifull}
+            L(\poptotal \given \nvisit_1, \nvisit_2, \resight) =
+            \frac{
+                \binom{\nvisit_1}{\resight}
+                \binom{\poptotal - \nvisit_1}{\nvisit_2 - \resight}
+            }{
+                \binom{\poptotal}{\nvisit_2}
+            }
+        \end{equation}
+        Assuming that $T$ has a uniform prior distribution, the maximum
+          likelihood estimation of population size given two visits to a
+          location is:
+        \begin{equation}\label{eqn:lpi}
+            \poptotal \approx
+            \frac{\nvisit_1 \nvisit_2}{\resight} \pm 1.96 \sqrt{\frac{{(\nvisit_1)}^2 (\nvisit_2) (\nvisit_2 - \resight)}{\resight^3}}
+        \end{equation}
+
+    References:
+        https://en.wikipedia.org/wiki/Mark_and_recapture
+        https://en.wikipedia.org/wiki/Talk:Mark_and_recapture#Statistical_treatment
+        https://mail.google.com/mail/u/0/#search/lincoln+peterse+n/14c6b50227f5209f
+        https://probabilityandstats.wordpress.com/tag/maximum-likelihood-estimate/
+        http://math.arizona.edu/~jwatkins/o-mle.pdf
+
+    CommandLine:
+        python -m ibeis.other.dbinfo sight_resight_count --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.other.dbinfo import *  # NOQA
+        >>> nvisit1 = 100
+        >>> nvisit2 = 20
+        >>> resight = 10
+        >>> (pl_index, pl_error) = sight_resight_count(nvisit1, nvisit2, resight)
+        >>> result = ('(pl_index, pl_error) = %s' % (ut.repr2((pl_index, pl_error)),))
+        >>> pl_low = max(pl_index - pl_error, 1)
+        >>> pl_high = pl_index + pl_error
+        >>> print('pl_low = %r' % (pl_low,))
+        >>> print('pl_high = %r' % (pl_high,))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> import scipy, scipy.stats
+        >>> x = pl_index  # np.array([10, 11, 12])
+        >>> k, N, K, n = resight, x, nvisit1, nvisit2
+        >>> #k, M, n, N = k, N, k, n  # Wiki to SciPy notation
+        >>> #prob = scipy.stats.hypergeom.cdf(k, N, K, n)
+        >>> fig = pt.figure(1)
+        >>> fig.clf()
+        >>> N_range = np.arange(1, pl_high * 2)
+        >>> # Something seems to be off
+        >>> probs = sight_resight_prob(N_range, nvisit1, nvisit2, resight)
+        >>> pl_prob = sight_resight_prob([pl_index], nvisit1, nvisit2, resight)[0]
+        >>> pt.plot(N_range, probs, 'b-', label='probability of population size')
+        >>> pt.plt.title('nvisit1=%r, nvisit2=%r, resight=%r' % (nvisit1, nvisit2, resight))
+        >>> pt.plot(pl_index, pl_prob, 'rx', label='Lincoln Peterson Estimate')
+        >>> pt.plot([pl_low, pl_high], [pl_prob, pl_prob], 'gx-', label='Lincoln Peterson Error Bar')
+        >>> pt.legend()
+        >>> ut.show_if_requested()
+
+    """
+    import math
+    try:
+        pl_index = int(math.ceil( (nvisit1 * nvisit2) / resight ))
+        pl_error_num = float(nvisit1 * nvisit1 * nvisit2 * (nvisit2 - resight))
+        pl_error_dom = float(resight ** 3)
+        pl_error = int(math.ceil( 1.96 * math.sqrt(pl_error_num / pl_error_dom) ))
+    except ZeroDivisionError:
+        # pl_index = 'Undefined - Zero recaptured (k = 0)'
+        pl_index = 0
+        pl_error = 0
+    return pl_index, pl_error
+
+
+def estimate_ggr_count(ibs):
+    """
+    Example:
+        >>> # DISABLE_DOCTEST GGR
+        >>> import ibeis
+        >>> dbdir = ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
+        >>> ibs = ibeis.opendb(dbdir='/home/joncrall/lev/media/danger/GGR/GGR-IBEIS')
+    """
+    import datetime
+    day1 = datetime.date(2016, 1, 30)
+    day2 = datetime.date(2016, 1, 31)
+
+    ggr_filter_kw = {
+        'multiple': False,
+        'minqual': 'good',
+        'is_known': True,
+        'min_pername': 2,
+        'view': ['right'],
+    }
+    filter_kw = ggr_filter_kw
+    verbose = 0
+
+    gid_list = ibs.get_valid_gids()
+    images = ibs.get_image_lazydict(gid_list)
+    datetimes = images['datetime']
+    dates = [dt.date() for dt in datetimes]
+    date2_gids = ut.group_items(gid_list, dates)
+    date2_gids = ut.sort_dict(date2_gids)
+    # date_hist = ut.map_dict_vals(len, date2_gids)
+    # print('date_hist = %s' % (ut.repr2(date_hist, nl=2),))
+
+    visit_dates = [day1, day2]
+    visit_info_list_ = []
+    for day in visit_dates:
+        images = ibs.get_image_lazydict(date2_gids[day])
+
+        aids = ut.flatten(images['aids'])
+        aids = ibs.filter_annots_general(aids, filter_kw=filter_kw,
+                                         verbose=verbose)
+        nids = ibs.get_annot_name_rowids(aids)
+        grouped_aids = ut.group_items(aids, nids)
+        unique_nids = ut.unique(list(grouped_aids.keys()))
+        # Further filtering within names
+        #ibs.get_unflat_annots_timedist_list(aid_groups_day1)
+
+        info = {
+            'unique_nids': unique_nids,
+            'grouped_aids': grouped_aids,
+            'aids': aids,
+        }
+        visit_info_list_.append(info)
+
+    #for aids in aid_groups_day1:
+    #    pass
+
+    # Estimate statistics
+    from ibeis.other import dbinfo
+    aids_day1, aids_day2 = ut.take_column(visit_info_list_, 'aids')
+    nids_day1, nids_day2 = ut.take_column(visit_info_list_, 'unique_nids')
+    resight_nids = ut.isect(nids_day1, nids_day2)
+    nsight1 = len(nids_day1)
+    nsight2 = len(nids_day2)
+    resight = len(resight_nids)
+    lp_index, lp_error = dbinfo.sight_resight_count(nsight1, nsight2, resight)
+
+    print('%d annots on day 1' % (len(aids_day1)) )
+    print('%d annots on day 2' % (len(aids_day2)) )
+    print('%d names on day 1' % (nsight1,))
+    print('%d names on day 2' % (nsight2,))
+    print('resight = %r' % (resight,))
+    print('lp_index = %r ± %r' % (lp_index, lp_error))
+
+    import copy
+
+    visit_info_list = copy.deepcopy(visit_info_list_)
+
+    if False:
+        # HACK REMOVE DATA TO MAKE THIS FASTER
+        num = 20
+        for info in visit_info_list:
+            non_resight_nids = list(set(info['unique_nids']) - set(resight_nids))
+            sample_nids2 = non_resight_nids[0:num] + resight_nids[:num]
+            info['grouped_aids'] = ut.dict_subset(info['grouped_aids'], sample_nids2)
+            info['unique_nids'] = sample_nids2
+
+    # Build a graph of matches
+    if False:
+
+        debug = False
+
+        for info in visit_info_list:
+            edges = []
+            grouped_aids = info['grouped_aids']
+
+            aids_list = list(grouped_aids.values())
+            ams_list = ibs.get_annotmatch_rowids_in_cliques(aids_list)
+            aids1_list = ibs.unflat_map(ibs.get_annotmatch_aid1, ams_list)
+            aids2_list = ibs.unflat_map(ibs.get_annotmatch_aid2, ams_list)
+            for ams, aids, aids1, aids2 in zip(ams_list, aids_list, aids1_list, aids2_list):
+                edge_nodes = set(aids1 + aids2)
+                ##if len(edge_nodes) != len(set(aids)):
+                #    #print('--')
+                #    #print('aids = %r' % (aids,))
+                #    #print('edge_nodes = %r' % (edge_nodes,))
+                bad_aids = edge_nodes - set(aids)
+                if len(bad_aids) > 0:
+                    print('bad_aids = %r' % (bad_aids,))
+                unlinked_aids = set(aids) - edge_nodes
+                mst_links = list(ut.itertwo(list(unlinked_aids) + list(edge_nodes)[:1]))
+                bad_aids.add(None)
+                user_links = [(u, v) for (u, v) in zip(aids1, aids2) if u not in bad_aids and v not in bad_aids]
+                new_edges = mst_links + user_links
+                new_edges = [(int(u), int(v)) for u, v in new_edges if u not in bad_aids and v not in bad_aids]
+                edges += new_edges
+            info['edges'] = edges
+
+        # Add edges between days
+        grouped_aids1, grouped_aids2 = ut.take_column(visit_info_list, 'grouped_aids')
+        nids_day1, nids_day2 = ut.take_column(visit_info_list, 'unique_nids')
+        resight_nids = ut.isect(nids_day1, nids_day2)
+
+        resight_aids1 = ut.take(grouped_aids1, resight_nids)
+        resight_aids2 = ut.take(grouped_aids2, resight_nids)
+        #resight_aids3 = [list(aids1) + list(aids2) for aids1, aids2 in zip(resight_aids1, resight_aids2)]
+
+        ams_list = ibs.get_annotmatch_rowids_between_groups(resight_aids1, resight_aids2)
+        aids1_list = ibs.unflat_map(ibs.get_annotmatch_aid1, ams_list)
+        aids2_list = ibs.unflat_map(ibs.get_annotmatch_aid2, ams_list)
+
+        between_edges = []
+        for ams, aids1, aids2, rawaids1, rawaids2 in zip(ams_list, aids1_list, aids2_list, resight_aids1, resight_aids2):
+            link_aids = aids1 + aids2
+            rawaids3 = rawaids1 + rawaids2
+            badaids = ut.setdiff(link_aids, rawaids3)
+            assert not badaids
+            user_links = [(int(u), int(v)) for (u, v) in zip(aids1, aids2)
+                          if u is not None and v is not None]
+            # HACK THIS OFF
+            user_links = []
+            if len(user_links) == 0:
+                # Hack in an edge
+                between_edges += [(rawaids1[0], rawaids2[0])]
+            else:
+                between_edges += user_links
+
+        assert np.all(0 == np.diff(np.array(ibs.unflat_map(ibs.get_annot_nids, between_edges)), axis=1))
+
+        import plottool as pt
+        import networkx as nx
+        #pt.qt4ensure()
+        #len(list(nx.connected_components(graph1)))
+        #print(ut.graph_info(graph1))
+
+        # Layout graph
+        layoutkw = dict(
+            prog='neato',
+            draw_implicit=False, splines='line',
+            #splines='curved',
+            #splines='spline',
+            #sep=10 / 72,
+            #prog='dot', rankdir='TB',
+        )
+
+        def translate_graph_to_origin(graph):
+            x, y, w, h = ut.get_graph_bounding_box(graph)
+            ut.translate_graph(graph, (-x, -y))
+
+        def stack_graphs(graph_list, vert=False, pad=None):
+            graph_list_ = [g.copy() for g in graph_list]
+            for g in graph_list_:
+                translate_graph_to_origin(g)
+            bbox_list = [ut.get_graph_bounding_box(g) for g in graph_list_]
+            if vert:
+                dim1 = 3
+                dim2 = 2
+            else:
+                dim1 = 2
+                dim2 = 3
+            dim1_list = np.array([bbox[dim1] for bbox in bbox_list])
+            dim2_list = np.array([bbox[dim2] for bbox in bbox_list])
+            if pad is None:
+                pad = np.mean(dim1_list) / 2
+            offset1_list = ut.cumsum([0] + [d + pad for d in dim1_list[:-1]])
+            max_dim2 = max(dim2_list)
+            offset2_list = [(max_dim2 - d2) / 2 for d2 in dim2_list]
+            if vert:
+                t_xy_list = [(d2, d1) for d1, d2 in zip(offset1_list, offset2_list)]
+            else:
+                t_xy_list = [(d1, d2) for d1, d2 in zip(offset1_list, offset2_list)]
+
+            for g, t_xy in zip(graph_list_, t_xy_list):
+                ut.translate_graph(g, t_xy)
+                ut.pin_nodes(g)
+
+            new_graph = nx.compose_all(graph_list_)
+            #pt.show_nx(new_graph, layout='custom', node_labels=False, as_directed=False)  # NOQA
+            return new_graph
+
+        # Construct graph
+        for count, info in enumerate(visit_info_list):
+            graph = nx.Graph()
+            edges = [(int(u), int(v)) for u, v in info['edges']
+                     if u is not None and v is not None]
+            graph.add_edges_from(edges, attr_dict={'zorder': 10})
+            nx.set_node_attributes(graph, 'zorder', 20)
+
+            # Layout in neato
+            _ = pt.nx_agraph_layout(graph, inplace=True, **layoutkw)  # NOQA
+
+            # Extract compoments and then flatten in nid ordering
+            ccs = list(nx.connected_components(graph))
+            root_aids = []
+            cc_graphs = []
+            for cc_nodes in ccs:
+                cc = graph.subgraph(cc_nodes)
+                try:
+                    root_aids.append(list(ut.nx_source_nodes(cc.to_directed()))[0])
+                except nx.NetworkXUnfeasible:
+                    root_aids.append(list(cc.nodes())[0])
+                cc_graphs.append(cc)
+
+            root_nids = ibs.get_annot_nids(root_aids)
+            nid2_graph = dict(zip(root_nids, cc_graphs))
+
+            resight_nids_ = set(resight_nids).intersection(set(root_nids))
+            noresight_nids_ = set(root_nids) - resight_nids_
+
+            n_graph_list = ut.take(nid2_graph, sorted(noresight_nids_))
+            r_graph_list = ut.take(nid2_graph, sorted(resight_nids_))
+
+            if len(n_graph_list) > 0:
+                n_graph = nx.compose_all(n_graph_list)
+                _ = pt.nx_agraph_layout(n_graph, inplace=True, **layoutkw)  # NOQA
+                n_graphs = [n_graph]
+            else:
+                n_graphs = []
+
+            r_graphs = [stack_graphs(chunk) for chunk in ut.ichunks(r_graph_list, 100)]
+            if count == 0:
+                new_graph = stack_graphs(n_graphs + r_graphs, vert=True)
+            else:
+                new_graph = stack_graphs(r_graphs[::-1] + n_graphs, vert=True)
+
+            #pt.show_nx(new_graph, layout='custom', node_labels=False, as_directed=False)  # NOQA
+            info['graph'] = new_graph
+
+        graph1_, graph2_ = ut.take_column(visit_info_list, 'graph')
+        if False:
+            _ = pt.show_nx(graph1_, layout='custom', node_labels=False, as_directed=False)  # NOQA
+            _ = pt.show_nx(graph2_, layout='custom', node_labels=False, as_directed=False)  # NOQA
+
+        graph_list = [graph1_, graph2_]
+        twoday_graph = stack_graphs(graph_list, vert=True, pad=None)
+        ut.pin_nodes(twoday_graph)
+
+        if debug:
+            ut.nx_delete_None_edge_attr(twoday_graph)
+            ut.nx_delete_None_node_attr(twoday_graph)
+            print('twoday_graph(pre) info' + ut.repr3(ut.graph_info(twoday_graph), nl=2))
+
+        # Hack, no idea why there are nodes that dont exist here
+        between_edges_ = [edge for edge in between_edges
+                          if twoday_graph.has_node(edge[0]) and twoday_graph.has_node(edge[1])]
+
+        twoday_graph.add_edges_from(between_edges_, attr_dict={'alpha': .2, 'zorder': 0})
+        ut.nx_ensure_agraph_color(twoday_graph)
+
+        layoutkw['splines'] = 'line'
+        layoutkw['prog'] = 'neato'
+        agraph = pt.nx_agraph_layout(twoday_graph, inplace=True, return_agraph=True, **layoutkw)[-1]  # NOQA
+        if False:
+            fpath = ut.truepath('~/ggr_graph.png')
+            agraph.draw(fpath)
+            ut.startfile(fpath)
+
+        if debug:
+            print('twoday_graph(post) info' + ut.repr3(ut.graph_info(twoday_graph)))
+
+        _ = pt.show_nx(twoday_graph, layout='custom', node_labels=False, as_directed=False)  # NOQA
+
+
 def get_dbinfo(ibs, verbose=True,
                with_imgsize=False,
                with_bytes=False,

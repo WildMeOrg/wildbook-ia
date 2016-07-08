@@ -613,7 +613,7 @@ class AnnotGraphInteraction(AbstractInteraction):
             color = pt.DARK_BLUE
             color = self.infr.graph.node[node]['color']
             #color = fix_color(color)
-            color = pt.fix_hex_color(color)
+            color = pt.ensure_nonhex_color(color)
             frame.set_linewidth(framewidth)
         else:
             frame.set_linewidth(framewidth * 2)

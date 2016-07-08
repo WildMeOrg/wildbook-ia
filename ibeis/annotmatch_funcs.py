@@ -251,6 +251,35 @@ def get_annotmatch_rowid_from_undirected_superkey(ibs, aids1, aids2):
 
 
 @register_ibs_method
+def get_annotmatch_rowids_in_cliques(ibs, aids_list):
+    # Equivalent call:
+    #ibs.get_annotmatch_rowids_between_groups(ibs, aids_list, aids_list)
+    import itertools
+    ams_list = [ibs.get_annotmatch_rowid_from_undirected_superkey(*zip(*itertools.combinations(aids, 2)))
+                for aids in ut.ProgIter(aids_list, lbl='loading clique am rowids')]
+    ams_list = [[] if ams is None else ut.filter_Nones(ams) for ams in ams_list]
+    return ams_list
+
+
+@register_ibs_method
+def get_annotmatch_rowids_between_groups(ibs, aids1_list, aids2_list):
+    ams_list = []
+    lbl = 'loading between group am rowids'
+    for aids1, aids2 in ut.ProgIter(list(zip(aids1_list, aids2_list)), lbl=lbl):
+        edges = list(ut.product_nonsame(aids1, aids2))
+        if len(edges) == 0:
+            ams = []
+        else:
+            aids1_, aids2_ = ut.listT(edges)
+            ams = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1_, aids2_)
+            if ams is None:
+                ams = []
+            ams = ut.filter_Nones(ams)
+        ams_list.append(ams)
+    return ams_list
+
+
+@register_ibs_method
 def add_annotmatch_undirected(ibs, aids1, aids2):
     am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
     idxs = ut.where([r is None for r in am_rowids])

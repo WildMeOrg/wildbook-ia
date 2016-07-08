@@ -1991,7 +1991,7 @@ def get_annot_image_unixtimes_asfloat(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-def get_annot_image_datetime(ibs, aid_list):
+def get_annot_image_datetime_str(ibs, aid_list):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -2001,7 +2001,7 @@ def get_annot_image_datetime(ibs, aid_list):
         list: datetime_list
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_image_datetime
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_image_datetime_str
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2011,13 +2011,13 @@ def get_annot_image_datetime(ibs, aid_list):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> # execute function
-        >>> datetime_list = get_annot_image_datetime(ibs, aid_list)
+        >>> datetime_list = get_annot_image_datetime_str(ibs, aid_list)
         >>> # verify results
         >>> result = str(datetime_list)
         >>> print(result)
     """
     gid_list = ibs.get_annot_gids(aid_list)
-    datetime_list = ibs.get_image_datetime(gid_list)
+    datetime_list = ibs.get_image_datetime_str(gid_list)
     return datetime_list
 
 

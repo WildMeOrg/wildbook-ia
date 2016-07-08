@@ -6,7 +6,7 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.algo.hots import neighbor_index_cache
-from ibeis.algo.hots import multi_index
+#from ibeis.algo.hots import multi_index
 from ibeis.algo.hots import scorenorm
 from ibeis.algo.hots import distinctiveness_normalizer
 from ibeis.algo.hots import query_params
@@ -1095,11 +1095,11 @@ class QueryRequest(object):
                     print('[qreq] loading single indexer normalizer')
                 indexer = neighbor_index_cache.request_ibeis_nnindexer(
                     qreq_, verbose=verbose, prog_hook=prog_hook, **qreq_._indexer_request_params)
-            elif index_method == 'multi':
-                if ut.VERYVERBOSE or verbose:
-                    print('[qreq] loading multi indexer normalizer')
-                indexer = multi_index.request_ibeis_mindexer(
-                    qreq_, verbose=verbose)
+            #elif index_method == 'multi':
+            #    if ut.VERYVERBOSE or verbose:
+            #        print('[qreq] loading multi indexer normalizer')
+            #    indexer = multi_index.request_ibeis_mindexer(
+            #        qreq_, verbose=verbose)
             else:
                 raise AssertionError('uknown index_method=%r' % (index_method,))
             #if qreq_.prog_hook is not None:

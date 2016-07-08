@@ -267,7 +267,7 @@ def print_uuid_cache(qreq_):
     print(candidate_uuids)
 
 
-def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True, force_rebuild=False, prog_hook=None):
+def request_ibeis_nnindexer(qreq_, verbose=True, **kwargs):
     """
     CALLED BY QUERYREQUST::LOAD_INDEXER
     IBEIS interface into neighbor_index_cache
@@ -291,21 +291,15 @@ def request_ibeis_nnindexer(qreq_, verbose=True, use_memcache=True, force_rebuil
     if not hasattr(qreq_.qparams, 'use_augmented_indexer'):
         qreq_.qparams.use_augmented_indexer = True
     if False and qreq_.qparams.use_augmented_indexer:
-        nnindexer = request_augmented_ibeis_nnindexer(qreq_, daid_list,
-                                                      verbose=verbose,
-                                                      use_memcache=use_memcache,
-                                                      force_rebuild=force_rebuild)
+        nnindexer = request_augmented_ibeis_nnindexer(qreq_, daid_list, **kwargs)
     else:
-        nnindexer = request_memcached_ibeis_nnindexer(qreq_, daid_list,
-                                                      verbose=verbose,
-                                                      use_memcache=use_memcache,
-                                                      force_rebuild=force_rebuild,
-                                                      prog_hook=prog_hook)
+        nnindexer = request_memcached_ibeis_nnindexer(qreq_, daid_list, **kwargs)
     return nnindexer
 
 
 def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
-                                      use_memcache=True, force_rebuild=False, memtrack=None):
+                                      use_memcache=True, force_rebuild=False,
+                                      memtrack=None):
     r"""
     DO NOT USE. THIS FUNCTION CAN CURRENTLY CAUSE A SEGFAULT
 
@@ -417,8 +411,7 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
 
 def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
                                       verbose=ut.NOT_QUIET, veryverbose=False,
-                                      force_rebuild=False,
-                                      allow_memfallback=True, memtrack=None,
+                                      force_rebuild=False, memtrack=None,
                                       prog_hook=None):
     r"""
     FOR INTERNAL USE ONLY
@@ -465,7 +458,8 @@ def request_memcached_ibeis_nnindexer(qreq_, daid_list, use_memcache=True,
         # Write to inverse uuid
         nnindexer = request_diskcached_ibeis_nnindexer(
             qreq_, daid_list, nnindex_cfgstr, verbose,
-            force_rebuild=force_rebuild, memtrack=memtrack, prog_hook=None)
+            force_rebuild=force_rebuild, memtrack=memtrack,
+            prog_hook=prog_hook)
         NEIGHBOR_CACHE_WRITE = True
         if NEIGHBOR_CACHE_WRITE:
             # Write to memcache

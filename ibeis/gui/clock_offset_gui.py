@@ -5,7 +5,7 @@ Small GUI for asking the user to enter the clock time shown, and moving along a 
 from __future__ import absolute_import, division, print_function
 from functools import partial
 #from guitool import qtype, APIItemWidget, APIItemModel, FilterProxyModel, ChangeLayoutContext
-from guitool.__PYQT__ import QtGui  # , QtCore
+from guitool.__PYQT__ import QtGui  # NOQA
 from guitool.__PYQT__ import QtWidgets  # , QtCore
 from guitool.__PYQT__.QtCore import Qt
 #from ibeis.other import ibsfuncs
@@ -62,7 +62,7 @@ class ClockOffsetWidget(QtWidgets.QWidget):
         co_wgt.current_gindex = 0
         co_wgt.offset = 0
         # Set image datetime with first image
-        co_wgt.get_image_datetime()
+        co_wgt.get_image_datetime_()
         co_wgt.add_label()
         co_wgt.add_combo_boxes()
         co_wgt.add_buttons()
@@ -76,7 +76,7 @@ class ClockOffsetWidget(QtWidgets.QWidget):
                 co_wgt.image_label._on_resize_slot()
         #print('resizeEvent')
 
-    def get_image_datetime(co_wgt):
+    def get_image_datetime_(co_wgt):
         # Function that extracts the unixtime from an image and stores it
         utime = co_wgt.ibs.get_image_unixtime(co_wgt.gid_list[co_wgt.current_gindex])
         if not isinstance(utime, (float, int)) or utime is None:
@@ -232,14 +232,14 @@ class ClockOffsetWidget(QtWidgets.QWidget):
     def go_prev(co_wgt):
         # Decrement current gid index, then call update
         co_wgt.current_gindex -= 1
-        co_wgt.get_image_datetime()
+        co_wgt.get_image_datetime_()
         co_wgt.update_ui()
 
     @guitool.slot_()
     def go_next(co_wgt):
         # Increment current gid index, then call update
         co_wgt.current_gindex += 1
-        co_wgt.get_image_datetime()
+        co_wgt.get_image_datetime_()
         co_wgt.update_ui()
 
     @guitool.slot_()
