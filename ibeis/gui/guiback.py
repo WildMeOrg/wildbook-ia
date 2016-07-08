@@ -180,6 +180,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.review_cfg = dtool.Config.from_dict({
             'filter_reviewed': True,
             'ranks_lt': 1,
+            'filter_true_matches': True,
         })
         self.info_cfg = dtool.Config.from_dict({
             key: False for key in ibs.parse_annot_config_stats_filter_kws()
@@ -641,7 +642,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             cm_list = ibs.query_chips(qreq_=qreq_, prog_hook=ctx.prog_hook)
 
         qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list, qreq_=qreq_,
-                                                  **review_cfg)
+                                                  review_cfg=review_cfg)
         self.qres_wgt = qres_wgt
         qres_wgt.show()
         qres_wgt.raise_()
@@ -658,7 +659,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         ibs = self.ibs
         cm_list = [qaid2_cm[qaid] for qaid in qreq_.qaids]
         qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list, qreq_=qreq_,
-                                                  **review_cfg)
+                                                  review_cfg=review_cfg)
         self.qres_wgt = qres_wgt
         qres_wgt.show()
         qres_wgt.raise_()
@@ -1076,11 +1077,10 @@ class MainWindowBackend(GUIBACK_BASE):
         print('**kwargs = %s' % (ut.repr3(kwargs),))
         print('filter_reviewed = %s' % (filter_reviewed,))
         print('ranks_lt = %s' % (ranks_lt,))
+        review_cfg = dict(ranks_lt=ranks_lt, filter_reviewed=filter_reviewed, **kwargs)
         back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list,
                                                        callback=finished_review_callback,
-                                                       ranks_lt=ranks_lt,
-                                                       filter_reviewed=filter_reviewed,
-                                                       **kwargs)
+                                                       review_cfg=review_cfg)
         back.qres_wgt.show()
         back.qres_wgt.raise_()
 
@@ -1991,6 +1991,7 @@ class MainWindowBackend(GUIBACK_BASE):
             review_config = {
                 'filter_reviewed': review_cfg.get('filter_reviewed', ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True)),
                 'ranks_lt': review_cfg.get('ranks_lt', ibs.cfg.other_cfg.ensure_attr('ranks_lt', 2)),
+                'filter_true_matches': review_cfg.get('filter_true_matches', False),
             }
 
             tmpdict = cfgdict.copy()
@@ -2127,6 +2128,7 @@ class MainWindowBackend(GUIBACK_BASE):
                 'There are no pairs of query and database annotations with the same species')
 
         review_cfg = kwargs.copy()
+        review_cfg['filter_true_matches'] = (daids_mode == const.VS_EXEMPLARS_KEY)
 
         cfgdict, review_cfg = back.confirm_query_dialog2(species2_expanded_aids,
                                                          query_msg=query_msg,
@@ -2170,11 +2172,10 @@ class MainWindowBackend(GUIBACK_BASE):
         for key in query_results.keys():
             (cm_list, qreq_) = query_results[key]
             # Filter duplicate names if running vsexemplar
-            filter_duplicate_namepair_matches = (daids_mode == const.VS_EXEMPLARS_KEY)
             back.review_queries(
                 cm_list,
-                filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
-                qreq_=qreq_, query_title=query_title + ' ' + str(key), **review_cfg)
+                qreq_=qreq_, query_title=query_title + ' ' + str(key),
+                review_cfg=review_cfg)
         if refresh:
             back.front.update_tables()
         print('[back] FINISHED compute_queries: imgsetid=%r' % (imgsetid,))
@@ -2350,6 +2351,7 @@ class MainWindowBackend(GUIBACK_BASE):
         review_cfg = {
             'filter_reviewed': False,
             'ranks_lt': ranks_lt,
+            'name_scoring': False,
         }
         ibs = back.ibs
         cfgdict, review_cfg = back.confirm_query_dialog2(
@@ -2360,9 +2362,8 @@ class MainWindowBackend(GUIBACK_BASE):
         qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
         cm_list = qreq_.execute()
         back.review_queries(cm_list, qreq_=qreq_,
-                            name_scoring=False,
                             query_title='Annot Splits',
-                            **review_cfg)
+                            review_cfg=review_cfg)
 
         #if False:
         #    from ibeis.viz import viz_graph

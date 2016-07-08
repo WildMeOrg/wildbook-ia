@@ -87,9 +87,8 @@ class Interact_QueryResult(object):
     def init_candidates(self, qaid2_qres):
         self.qaid2_qres = qaid2_qres
         from ibeis.gui import inspect_gui
-        self.cand_match_list = inspect_gui.get_automatch_candidates(self.qaid2_qres,
-                                                                    ranks_lt=self.ranks_lt,
-                                                                    directed=False)
+        review_cfg = dict(ranks_lt=self.ranks_lt, directed=False)
+        self.cand_match_list = inspect_gui.get_automatch_candidates(self.qaid2_qres, review_cfg=review_cfg)
         (qaids, aids, scores, ranks) = self.cand_match_list
         self.qaids = qaids
         self.aids = aids

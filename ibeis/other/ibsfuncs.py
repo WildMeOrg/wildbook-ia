@@ -3446,7 +3446,7 @@ def detect_join_cases(ibs):
         >>> import guitool
         >>> from ibeis.gui import inspect_gui
         >>> guitool.ensure_qapp()
-        >>> qres_wgt = inspect_gui.launch_review_matches_interface(qreq_, cm_list, filter_reviewed=False)
+        >>> qres_wgt = inspect_gui.launch_review_matches_interface(qreq_, cm_list, review_cfg=dict(filter_reviewed=False))
         >>> qres_wgt.show()
         >>> qres_wgt.raise_()
         >>> guitool.qtapp_loop(qres_wgt)

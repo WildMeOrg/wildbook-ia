@@ -37,6 +37,17 @@ REVIEWED_STATUS_TEXT = 'Reviewed'
 USE_FILTER_PROXY = False
 
 
+REVIEW_CFG_DEFAULTS = {
+    'ranks_lt': 5,
+    'directed': False,
+    'name_scoring': True,
+    'filter_reviewed': True,
+    'filter_photobombs': True,
+    'filter_true_matches': True,
+    'filter_duplicate_true_matches': False,
+}
+
+
 def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
                                      marking_mode=False,
                                      aid_list=None, **kwargs):
@@ -367,19 +378,30 @@ class QueryResultsWidget(APIItemWidget):
     """
 
     def __init__(qres_wgt, ibs, cm_list, parent=None, callback=None,
-                 name_scoring=False, qreq_=None, **kwargs):
+                 qreq_=None, query_title='', review_cfg={}):
+        if ut.VERBOSE:
+            print('[qres_wgt] Init QueryResultsWidget')
+        import guitool as gt
+        from guitool.__PYQT__.QtCore import Qt
 
         assert not isinstance(cm_list, dict)
         assert qreq_ is not None, 'must specify qreq_'
 
-        if ut.VERBOSE:
-            print('[qres_wgt] Init QueryResultsWidget')
         # Uncomment below to turn on FilterProxyModel
         if USE_FILTER_PROXY:
             APIItemWidget.__init__(qres_wgt, parent=parent,
                                     model_class=CustomFilterModel)
         else:
             APIItemWidget.__init__(qres_wgt, parent=parent)
+
+        qres_wgt.cm_list = cm_list
+        qres_wgt.ibs = ibs
+        qres_wgt.qreq_ = qreq_
+        qres_wgt.query_title = query_title
+        qres_wgt.qaid2_cm = dict([(cm.qaid, cm) for cm in cm_list])
+
+        qres_wgt.review_cfg = REVIEW_CFG_DEFAULTS.copy()
+        qres_wgt.review_cfg = ut.update_existing(qres_wgt.review_cfg, review_cfg, assert_exists=True)
 
         qres_wgt.OLD_CLICK_BEHAVIOR = False
 
@@ -397,8 +419,11 @@ class QueryResultsWidget(APIItemWidget):
             qres_wgt.add_checkboxes(qres_wgt.show_new, qres_wgt.show_join,
                                     qres_wgt.show_split)
 
-        lbl = QtWidgets.QLabel('\'T\' marks as correct match. \'F\' marks as incorrect match. Alt brings up context menu. Double click a row to inspect matches.')
-        from guitool.__PYQT__.QtCore import Qt
+        lbl = gt.newLineEdit(
+            qres_wgt,
+            text='\'T\' marks as correct match. \'F\' marks as incorrect match. Alt brings up context menu. Double click a row to inspect matches.',
+            editable=False, enabled=False
+        )
         qres_wgt.layout().setSpacing(0)
         qres_wgt.layout().setMargin(0)
         bottom_bar = guitool.newWidget(qres_wgt, orientation=Qt.Horizontal, spacing=0, margin=0)
@@ -406,7 +431,6 @@ class QueryResultsWidget(APIItemWidget):
         bottom_bar.layout().setMargin(0)
         #import utool
         #utool.embed()
-        import guitool as gt
         lbl.setMinimumSize(0, 0)
         lbl.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Ignored)
         #lbl.setSizePolicy(gt.newSizePolicy())
@@ -415,16 +439,10 @@ class QueryResultsWidget(APIItemWidget):
         bottom_bar.addWidget(lbl)
         bottom_bar.addNewButton('Mark all above as correct', pressed=qres_wgt.mark_unreviewed_above_score_as_correct)
         bottom_bar.addNewButton('Repopulate', pressed=qres_wgt.repopulate)
-
-        qres_wgt.name_scoring = name_scoring
-        qres_wgt.cm_list = cm_list
-        qres_wgt.qreq_ = qreq_
-        qres_wgt.kwargs = kwargs
+        bottom_bar.addNewButton('Edit Filters', pressed=qres_wgt.edit_filters)
 
         qres_wgt.setSizePolicy(gt.newSizePolicy())
-
-        qres_wgt.set_query_results(ibs, cm_list, name_scoring=name_scoring,
-                                   qreq_=qreq_, **kwargs)
+        qres_wgt.repopulate()
         qres_wgt.connect_signals_and_slots()
         if callback is None:
             callback = partial(ut.identity, None)
@@ -473,18 +491,35 @@ class QueryResultsWidget(APIItemWidget):
         logger.info('NUM PAIRS TO REVIEW (nRows=%d)' % (qres_wgt.qres_api.nRows,))
         logger.info('PARENT QUERY REQUEST (cfgstr=%s)' % (qres_wgt.qreq_.get_cfgstr(with_input=True),))
 
-    def set_query_results(qres_wgt, ibs, cm_list, name_scoring=False,
-                          qreq_=None, **kwargs):
-        print('[qres_wgt] set_query_results()')
-        tblnice = 'Query Results: ' + kwargs.get('query_title', '')
-        ut.delete_dict_keys(kwargs, ['query_title'])
+    def edit_filters(qres_wgt):
+        import dtool
+        config = dtool.Config.from_dict(qres_wgt.review_cfg)
+        dlg = guitool.ConfigConfirmWidget.as_dialog(qres_wgt,
+                                                    title='Edit Filters',
+                                                    msg='Edit Filters',
+                                                    with_spoiler=False,
+                                                    config=config)
+        dlg.resize(700, 500)
+        self = dlg.widget
+        dlg.exec_()
+        print('config = %r' % (config,))
+        updated_config = self.config  # NOQA
+        print('updated_config = %r' % (updated_config,))
+        qres_wgt.review_cfg = updated_config.asdict()
+        qres_wgt.repopulate()
 
-        qres_wgt.ibs = ibs
-        qres_wgt.qaid2_cm = dict([(cm.qaid, cm) for cm in cm_list])
+    def repopulate(qres_wgt):
+        print('repopulate')
+        # Really just reloads the widget
+        qreq_ = qres_wgt.qreq_
+
+        print('[qres_wgt] repopulate set_query_results()')
+        tblnice = 'Query Results: ' + qres_wgt.query_title
+
         qres_wgt.qreq_ = qreq_
-        qres_wgt.qres_api = make_qres_api(ibs, cm_list,
-                                          name_scoring=name_scoring,
-                                          qreq_=qreq_, **kwargs)
+        qres_wgt.qres_api = make_qres_api(qres_wgt.ibs, qres_wgt.cm_list,
+                                          qreq_=qres_wgt.qreq_,
+                                          review_cfg=qres_wgt.review_cfg)
 
         headers = qres_wgt.qres_api.make_headers(tblname='qres_api',
                                                  tblnice=tblnice)
@@ -495,13 +530,9 @@ class QueryResultsWidget(APIItemWidget):
             qres_wgt.qres_api.get_thumb_size())
 
         # super call
-        #QueryResultsWidget
-        #super(
         qres_wgt.change_headers(headers)
         qres_wgt.setWindowTitle(headers.get('nice', '') + ' nRows=%d' %
                                 (qres_wgt.model.rowCount()))
-        #APIItemWidget.
-        #qres_wgt.change_headers(headers)
 
         # HACK IN COL SIZE
         horizontal_header = qres_wgt.view.horizontalHeader()
@@ -693,14 +724,6 @@ class QueryResultsWidget(APIItemWidget):
             qres_wgt.qreq_, daid, mode=0)
         fig = match_interaction.fig
         fig_presenter.bring_to_front(fig)
-
-    def repopulate(qres_wgt):
-        print('repopulate')
-        # Really just reloads the widget
-        qreq_ = qres_wgt.qreq_
-        qres_wgt.set_query_results(qreq_.ibs, qres_wgt.cm_list,
-                                   name_scoring=qres_wgt.name_scoring,
-                                   qreq_=qres_wgt.qreq_, **qres_wgt.kwargs)
 
     def mark_unreviewed_above_score_as_correct(qres_wgt):
         selected_qtindex_list = qres_wgt.selectedRows()
@@ -1207,11 +1230,8 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
     return fpath, nosql_draw, main_thread_load
 
 
-def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
-                  filter_reviewed=False,
-                  filter_duplicate_namepair_matches=False,
-                  qreq_=None,
-                  ):
+def make_qres_api(ibs, cm_list, review_cfg, qreq_=None):
+    #ranks_lt=None, #name_scoring=False, #filter_reviewed=False, #filter_true_matches=False, #qreq_=None, #):
     """
     Builds columns which are displayable in a ColumnListTableWidget
 
@@ -1229,6 +1249,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
         >>> tblname = 'chipmatch'
         >>> name_scoring = False
         >>> ranks_lt = 5
+        >>> review_cfg = dict(ranks_lt=ranks_lt, name_scoring=name_scoring)
         >>> qres_api = make_qres_api(qreq_.ibs, cm_list, ranks_lt, name_scoring, qreq_=qreq_)
         >>> print('qres_api = %r' % (qres_api,))
     """
@@ -1244,11 +1265,7 @@ def make_qres_api(ibs, cm_list, ranks_lt=None, name_scoring=False,
     #    filter_reviewed = len(cm_list) > 6
     #ranks_lt = ranks_lt if ranks_lt is not None else ranks_lt_
 
-    candidate_matches = get_automatch_candidates(
-        cm_list, ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs,
-        directed=False, filter_reviewed=filter_reviewed,
-        filter_duplicate_namepair_matches=filter_duplicate_namepair_matches
-    )
+    candidate_matches = get_automatch_candidates(cm_list, ibs=ibs, review_cfg=review_cfg)
     # Get extra info
     (qaids, daids, scores, ranks) = candidate_matches
 
@@ -1439,9 +1456,10 @@ def launch_review_matches_interface(ibs, cm_list, dodraw=False, filter_reviewed=
     guitool.ensure_qapp()
     #backend_callback = back.front.update_tables
     backend_callback = None
+    review_cfg = dict(filter_reviewed=filter_reviewed)
     qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list,
                                               callback=backend_callback,
-                                              filter_reviewed=filter_reviewed)
+                                              review_cfg=review_cfg)
     if dodraw:
         qres_wgt.show()
         qres_wgt.raise_()
@@ -1449,10 +1467,12 @@ def launch_review_matches_interface(ibs, cm_list, dodraw=False, filter_reviewed=
 
 
 @profile
-def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
-                             name_scoring=False, ibs=None,
-                             filter_reviewed=False,
-                             filter_duplicate_namepair_matches=False):
+def get_automatch_candidates(cm_list, ibs=None, review_cfg={}):
+    #ranks_lt=5,
+    #directed=True,
+    #name_scoring=False, ,
+    #filter_reviewed=False,
+    #filter_true_matches=False):
     """
     Needs to be moved to a better file. Maybe something to do with
     identification.
@@ -1470,8 +1490,7 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         tuple: candidate_matches = (qaid_arr, daid_arr, score_arr, rank_arr)
 
     CommandLine:
-        python -m ibeis.expt.results_organizer --test-get_automatch_candidates:2
-        python -m ibeis.expt.results_organizer --test-get_automatch_candidates:0
+        python -m ibeis.gui.inspect_gui get_automatch_candidates:0
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -1480,10 +1499,8 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_()
         >>> cm_list = qreq_.execute()
-        >>> ranks_lt = 5
-        >>> directed = True
-        >>> name_scoring = False
-        >>> candidate_matches = get_automatch_candidates(cm_list, ranks_lt, directed, ibs=ibs)
+        >>> review_cfg = dict(ranks_lt=5, directed=True, name_scoring=False, filter_true_matches=True)
+        >>> candidate_matches = get_automatch_candidates(cm_list, ibs=ibs, review_cfg=review_cfg)
         >>> print(candidate_matches)
 
     Example1:
@@ -1494,16 +1511,9 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         >>> qaid_list = ibs.get_valid_aids()[0:5]
         >>> daid_list = ibs.get_valid_aids()[0:20]
         >>> cm_list = ibs.query_chips(qaid_list, daid_list)
-        >>> ranks_lt = 5
-        >>> directed = False
-        >>> name_scoring = False
-        >>> filter_reviewed = False
-        >>> filter_duplicate_namepair_matches = True
-        >>> candidate_matches = get_automatch_candidates(
-        ...    cm_list, ranks_lt, directed, name_scoring=name_scoring,
-        ...    filter_reviewed=filter_reviewed,
-        ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
-        ...    ibs=ibs)
+        >>> review_cfg = dict(ranks_lt=5, directed=True, name_scoring=False,
+        >>>                   filter_reviewed=False, filter_true_matches=True)
+        >>> candidate_matches = get_automatch_candidates(cm_list, review_cfg=review_cfg, ibs=ibs)
         >>> print(candidate_matches)
 
     Example3:
@@ -1514,16 +1524,9 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         >>> qaid_list = ibs.get_valid_aids()[0:1]
         >>> daid_list = ibs.get_valid_aids()[10:100]
         >>> qaid2_cm = ibs.query_chips(qaid_list, daid_list)
-        >>> ranks_lt = 1
-        >>> directed = False
-        >>> name_scoring = False
-        >>> filter_reviewed = False
-        >>> filter_duplicate_namepair_matches = True
-        >>> candidate_matches = get_automatch_candidates(
-        ...    cm_list, ranks_lt, directed, name_scoring=name_scoring,
-        ...    filter_reviewed=filter_reviewed,
-        ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
-        ...    ibs=ibs)
+        >>> review_cfg = dict(ranks_lt=1, directed=False, name_scoring=False,
+        >>>                   filter_reviewed=False, filter_true_matches=True)
+        >>> candidate_matches = get_automatch_candidates(cm_list, review_cfg=review_cfg, ibs=ibs)
         >>> print(candidate_matches)
 
     Example4:
@@ -1535,33 +1538,16 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         >>> daid_list = ibs.get_valid_aids()[0:10]
         >>> qres_list = ibs.query_chips(qaid_list, daid_list)
         >>> ranks_lt = 3
-        >>> directed = False
-        >>> name_scoring = False
-        >>> filter_reviewed = False
-        >>> filter_duplicate_namepair_matches = True
-        >>> candidate_matches = get_automatch_candidates(
-        ...    qaid2_cm, ranks_lt, directed, name_scoring=name_scoring,
-        ...    filter_reviewed=filter_reviewed,
-        ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
-        ...    ibs=ibs)
+        >>> review_cfg = dict(ranks_lt=3, directed=False, name_scoring=False,
+        >>>                   filter_reviewed=False, filter_true_matches=True)
+        >>> candidate_matches = get_automatch_candidates(cm_list, review_cfg=review_cfg, ibs=ibs)
         >>> print(candidate_matches)
     """
     import vtool as vt
     from ibeis.algo.hots import chip_match
-    print(('[resorg] get_automatch_candidates('
-           'filter_reviewed={filter_reviewed},'
-           'filter_duplicate_namepair_matches={filter_duplicate_namepair_matches},'
-           'directed={directed},'
-           'ranks_lt={ranks_lt},'
-           ).format(**locals()))
-
-    automatch_kw = {
-        'filter_duplicate_namepair_matches': filter_duplicate_namepair_matches,
-        'directed': directed,
-        'ranks_lt': ranks_lt,
-        'filter_reviewed': filter_reviewed,
-        'filter_photobombs': True,
-    }
+    automatch_kw = REVIEW_CFG_DEFAULTS.copy()
+    automatch_kw = ut.update_existing(automatch_kw, review_cfg)
+    print('[resorg] get_automatch_candidates(%s)' % (ut.repr2(automatch_kw)))
     print('[resorg] len(cm_list) = %d' % (len(cm_list)))
     qaids_stack  = []
     daids_stack  = []
@@ -1577,13 +1563,15 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
 
     for cm in cm_list:
         if isinstance(cm, chip_match.ChipMatch):
-            daids  = cm.get_top_aids(ntop=ranks_lt)
-            scores = cm.get_top_scores(ntop=ranks_lt)
+            daids  = cm.get_top_aids(ntop=automatch_kw['ranks_lt'])
+            scores = cm.get_top_scores(ntop=automatch_kw['ranks_lt'])
             ranks  = np.arange(len(daids))
             qaids  = np.full(daids.shape, cm.qaid, dtype=daids.dtype)
         else:
             (qaids, daids, scores, ranks) = cm.get_match_tbldata(
-                ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs)
+                ranks_lt=automatch_kw['ranks_lt'],
+                name_scoring=automatch_kw['name_scoring'],
+                ibs=ibs)
         qaids_stack.append(qaids)
         daids_stack.append(daids)
         scores_stack.append(scores)
@@ -1602,7 +1590,7 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
     score_arr = score_arr[sortx]
     rank_arr  = rank_arr[sortx]
 
-    if filter_reviewed:
+    if automatch_kw['filter_reviewed']:
         _is_reviewed = ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(), daid_arr.tolist())
         is_unreviewed = ~np.array(_is_reviewed, dtype=np.bool)
         qaid_arr  = qaid_arr.compress(is_unreviewed)
@@ -1611,7 +1599,7 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         rank_arr  = rank_arr.compress(is_unreviewed)
 
     # Remove directed edges
-    if not directed:
+    if not automatch_kw['directed']:
         #nodes = np.unique(directed_edges.flatten())
         directed_edges = np.vstack((qaid_arr, daid_arr)).T
         #idx1, idx2 = vt.intersect2d_indices(directed_edges, directed_edges[:, ::-1])
@@ -1624,10 +1612,10 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         rank_arr  = rank_arr.take(unique_rowx)
 
     # Filter Double Name Matches
-    if filter_duplicate_namepair_matches:
+    if automatch_kw['filter_duplicate_true_matches']:
         qnid_arr = ibs.get_annot_nids(qaid_arr)
         dnid_arr = ibs.get_annot_nids(daid_arr)
-        if not directed:
+        if not automatch_kw['directed']:
             directed_name_edges = np.vstack((qnid_arr, dnid_arr)).T
             unique_rowx2 = vt.find_best_undirected_edge_indexes(directed_name_edges, score_arr)
         else:
@@ -1642,6 +1630,16 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         daid_arr  = daid_arr.take(unique_rowx2)
         score_arr = score_arr.take(unique_rowx2)
         rank_arr  = rank_arr.take(unique_rowx2)
+
+    # Filter all true matches
+    if automatch_kw['filter_true_matches']:
+        qnid_arr = ibs.get_annot_nids(qaid_arr)
+        dnid_arr = ibs.get_annot_nids(daid_arr)
+        valid_flags = qnid_arr != dnid_arr
+        qaid_arr  = qaid_arr.compress(valid_flags)
+        daid_arr   = daid_arr.compress(valid_flags)
+        score_arr = score_arr.compress(valid_flags)
+        rank_arr  = rank_arr.compress(valid_flags)
 
     if automatch_kw['filter_photobombs']:
         unique_aids = ut.unique(ut.flatten([qaid_arr, daid_arr]))
@@ -1767,11 +1765,13 @@ def test_inspect_matches(qreq_):
     guitool.ensure_qapp()
     print('[inspect_matches] make_qres_widget')
     #ut.view_directory(ibs.get_match_thumbdir())
-    qres_wgt = inspect_gui.QueryResultsWidget(
-        qreq_.ibs, cm_list, ranks_lt=ranks_lt, qreq_=qreq_,
+    review_cfg = dict(
+        ranks_lt=ranks_lt,
         #filter_reviewed=True,
-        filter_reviewed=0,
-        filter_duplicate_namepair_matches=False)
+        filter_reviewed=True,
+        #filter_true_matches=False,
+    )
+    qres_wgt = inspect_gui.QueryResultsWidget(qreq_.ibs, cm_list, qreq_=qreq_, review_cfg=review_cfg)
     print('[inspect_matches] show')
     qres_wgt.show()
     print('[inspect_matches] raise')
