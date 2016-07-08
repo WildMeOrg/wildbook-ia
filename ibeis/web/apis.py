@@ -124,7 +124,7 @@ def image_upload(cleanup=True, **kwargs):
     ibs = current_app.ibs
     print('request.files = %s' % (request.files,))
 
-    filestore = request.files.get('image_zip_archive', None)
+    filestore = request.files.get('image', None)
     if filestore is None:
         raise IOError('Image not given')
 
