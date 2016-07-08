@@ -3171,15 +3171,9 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         aid_list = ibs.get_valid_aids(imgsetid=imgsetid)
     HACK = ibs.cfg.other_cfg.enable_custom_filter
     assert not HACK, 'enable_custom_filter is no longer supported'
-    new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(
+    new_flag_list = get_annot_quality_viewpoint_subset(
         ibs, aid_list=aid_list, annots_per_view=exemplars_per_view,
         verbose=verbose, prog_hook=prog_hook)
-    #else:
-    #    # HACK
-    #    new_exemplar_aids = ibs.get_prioritized_name_subset(aid_list, exemplars_per_view)
-    #    new_nonexemplar_aids = list(set(aid_list) - set(new_exemplar_aids))
-    #    new_aid_list = new_nonexemplar_aids + new_exemplar_aids
-    #    new_flag_list = [0] * len(new_nonexemplar_aids) + [1] * len(new_exemplar_aids)
 
     # Hack ensure each name has at least 1 exemplar
     #if False:
@@ -3197,128 +3191,14 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
     #    print('(exemplars) num_hacked = %r' % (num_hacked,))
 
     if not dry_run:
-        ibs.set_annot_exemplar_flags(new_aid_list, new_flag_list)
-    return new_aid_list, new_flag_list
+        ibs.set_annot_exemplar_flags(aid_list, new_flag_list)
+    return new_flag_list
 
 
 @register_ibs_method
-def get_prioritized_name_subset(ibs, aid_list=None, annots_per_name=None):
-    """
-    TODO: this needs to be integrated more cleanly with a nonhacky way of
-    getting a subset of exemplars. Currently ther is duplicate code in guiback
-    and here to use left side only when custom filter is on.
-
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-get_prioritized_name_subset
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> annots_per_name = 2
-        >>> aid_subset = get_prioritized_name_subset(ibs, aid_list, annots_per_name)
-        >>> qualtexts = ibs.get_annot_quality_texts(aid_subset)
-        >>> yawtexts = ibs.get_annot_yaw_texts(aid_subset)
-        >>> assert 'junk' not in qualtexts
-        >>> assert 'right' not in yawtexts
-        >>> result = len(aid_subset)
-        >>> print(result)
-        28
-
-    Exeample:
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> aid_list = ut.compress(aid_list, ibs.is_aid_unknown(aid_list))
-        >>> annots_per_name = 2
-        >>> aid_subset = get_prioritized_name_subset(ibs, aid_list, annots_per_name)
-        >>> qualtexts = ibs.get_annot_quality_texts(aid_list)
-        >>> yawtexts = ibs.get_annot_yaw_texts(aid_list)
-    """
-    if annots_per_name is None:
-        annots_per_name = ibs.cfg.other_cfg.prioritized_subset_annots_per_name
-    if aid_list is None:
-        aid_list = ibs.get_valid_aids()
-
-    # Paramaterize?
-    qualtext2_weight = {
-        const.QUAL_EXCELLENT : 7,
-        const.QUAL_GOOD      : 6,
-        const.QUAL_OK        : 5,
-        const.QUAL_POOR      : 0,
-        const.QUAL_UNKNOWN   : 0,
-        const.QUAL_JUNK      : 0,
-    }
-
-    yawtext2_weight = {
-        'right'      : 0,
-        'frontright' : 0,
-        'front'      : 0,
-        'frontleft'  : 3,
-        'left'       : 6,
-        'backleft'   : 0,
-        'back'       : 0,
-        'backright'  : 0,
-        None         : 0,
-    }
-
-    weight_thresh = 7
-
-    qualtext_list = ibs.get_annot_quality_texts(aid_list)
-    yawtext_list = ibs.get_annot_yaw_texts(aid_list)
-
-    nid_list = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=True))
-    unique_nids, groupxs_list = vt.group_indices(nid_list)
-    grouped_aids_     = vt.apply_grouping(np.array(aid_list), groupxs_list)
-    grouped_qualtexts = vt.apply_grouping(np.array(qualtext_list), groupxs_list)
-    grouped_yawtexts  = vt.apply_grouping(np.array(yawtext_list), groupxs_list)
-    yaw_weights_list = [
-        np.array(ut.dict_take(yawtext2_weight, yawtexts))
-        for yawtexts in grouped_yawtexts
-    ]
-    qual_weights_list = [
-        np.array(ut.dict_take(qualtext2_weight, yawtexts))
-        for yawtexts in grouped_qualtexts
-    ]
-    weights_list = [
-        yaw_weights + qual_weights
-        for yaw_weights, qual_weights in zip(yaw_weights_list, qual_weights_list)
-    ]
-
-    sortx_list = [
-        weights.argsort()[::-1]
-        for weights in weights_list
-    ]
-
-    sorted_weight_list = [
-        weights.take(order)
-        for weights, order in zip(weights_list, sortx_list)
-    ]
-
-    sorted_aids_list = [
-        aids.take(order)
-        for aids, order in zip(grouped_aids_, sortx_list)
-    ]
-
-    passed_thresh_list = [
-        weights > weight_thresh
-        for weights in sorted_weight_list
-    ]
-
-    valid_ordered_aids_list = [
-        ut.listclip(aids.compress(passed), annots_per_name)
-        for aids, passed in zip(sorted_aids_list, passed_thresh_list)
-    ]
-
-    aid_subset = ut.flatten(valid_ordered_aids_list)
-    return aid_subset
-
-
-@register_ibs_method
-def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, verbose=False, prog_hook=None):
+def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
+                                       max_annots=None, verbose=False,
+                                       prog_hook=None):
     """
     CommandLine:
         python -m ibeis.other.ibsfuncs --exec-get_annot_quality_viewpoint_subset --show
@@ -3329,7 +3209,7 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
         >>> import ibeis
         >>> ut.exec_funckw(get_annot_quality_viewpoint_subset, globals())
         >>> ibs = ibeis.opendb('testdb2')
-        >>> new_aid_list, new_flag_list = get_annot_quality_viewpoint_subset(ibs)
+        >>> new_flag_list = get_annot_quality_viewpoint_subset(ibs)
         >>> result = sum(new_flag_list)
         >>> print(result)
         38
@@ -3407,17 +3287,27 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2, ve
     for aids_, nid in _iter:
         if ibs.is_nid_unknown(nid):
             # do not change unknown animals
-            continue
-        # subgroup the names by viewpoints
-        yawtexts  = ibs.get_annot_yaw_texts(aids_)
-        yawtext2_aids = ut.group_items(aids_, yawtexts)
-        for yawtext, aids in six.iteritems(yawtext2_aids):
-            flags = get_chosen_flags(aids)
-            new_aid_list.extend(aids)
-            new_flag_list.extend(flags)
+            new_aid_list.extend(aids_)
+            new_flag_list.extend([False] * len(aids_))
+        else:
+            # subgroup the names by viewpoints
+            yawtexts  = ibs.get_annot_yaw_texts(aids_)
+            yawtext2_aids = ut.group_items(aids_, yawtexts)
+            for yawtext, aids in six.iteritems(yawtext2_aids):
+                flags = get_chosen_flags(aids)
+                new_aid_list.extend(aids)
+                new_flag_list.extend(flags)
+
+    aid2_idx = ut.make_index_lookup(aid_list)
+    new_idxs = ut.take(aid2_idx, new_aid_list)
+
+    # Re-order flags to agree with the input
+    flag_list = ut.ungroup([new_flag_list], [new_idxs])
+    assert ut.sortedby(new_flag_list, new_aid_list) == ut.sortedby(flag_list, aid_list)
+
     if verbose:
-        print('Found %d exemplars for %d names' % (sum(new_flag_list), len(unique_nids)))
-    return new_aid_list, new_flag_list
+        print('Found %d exemplars for %d names' % (sum(flag_list), len(unique_nids)))
+    return flag_list
 
 
 def detect_join_cases(ibs):

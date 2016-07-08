@@ -1496,16 +1496,24 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
             unixtime_list = unflat_get_annot_unixtimes(grouped_aids)
             preference_idxs_list = vt.argsort_groups(unixtime_list,
                                                      reverse=True, rng=rng)
+        elif sample_rule == 'qual_and_view':
+            if sample_rule != 'qual_and_view':
+                # Hacked in
+                with VerbosityContext('sample_per_name', 'sample_rule',
+                                      'sample_offset'):
+                    flags = ibs.get_annot_quality_viewpoint_subset(avail_aids, annots_per_view=sample_per_name)
+                    avail_aids = ut.compress(avail_aids, flags)
         else:
             raise ValueError('Unknown sample_rule=%r' % (sample_rule,))
         # L ___
-        sample_idxs_list = list(ut.iget_list_column_slice(
-            preference_idxs_list, offset, offset + sample_per_name))
-        sample_aids = ut.list_ziptake(grouped_aids, sample_idxs_list)
+        if sample_rule != 'qual_and_view':
+            sample_idxs_list = list(ut.iget_list_column_slice(
+                preference_idxs_list, offset, offset + sample_per_name))
+            sample_aids = ut.list_ziptake(grouped_aids, sample_idxs_list)
 
-        with VerbosityContext('sample_per_name', 'sample_rule',
-                              'sample_offset'):
-            avail_aids = ut.flatten(sample_aids)
+            with VerbosityContext('sample_per_name', 'sample_rule',
+                                  'sample_offset'):
+                avail_aids = ut.flatten(sample_aids)
         avail_aids = sorted(avail_aids)
 
     if sample_size is not None:

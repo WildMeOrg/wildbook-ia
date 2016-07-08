@@ -183,6 +183,7 @@ def estimate_ggr_count(ibs):
     """
     Example:
         >>> # DISABLE_DOCTEST GGR
+        >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
         >>> dbdir = ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
         >>> ibs = ibeis.opendb(dbdir='/home/joncrall/lev/media/danger/GGR/GGR-IBEIS')
@@ -198,9 +199,12 @@ def estimate_ggr_count(ibs):
         'min_pername': 2,
         'view': ['right'],
     }
+    ggr_filter_kw['multiple'] = None
     filter_kw = ggr_filter_kw
-    verbose = 0
+    estimate_twoday_count(ibs, day1, day2, filter_kw)
 
+
+def estimate_twoday_count(ibs, day1, day2, filter_kw):
     gid_list = ibs.get_valid_gids()
     images = ibs.get_image_lazydict(gid_list)
     datetimes = images['datetime']
@@ -209,6 +213,7 @@ def estimate_ggr_count(ibs):
     date2_gids = ut.sort_dict(date2_gids)
     # date_hist = ut.map_dict_vals(len, date2_gids)
     # print('date_hist = %s' % (ut.repr2(date_hist, nl=2),))
+    verbose = 0
 
     visit_dates = [day1, day2]
     visit_info_list_ = []
@@ -231,9 +236,6 @@ def estimate_ggr_count(ibs):
         }
         visit_info_list_.append(info)
 
-    #for aids in aid_groups_day1:
-    #    pass
-
     # Estimate statistics
     from ibeis.other import dbinfo
     aids_day1, aids_day2 = ut.take_column(visit_info_list_, 'aids')
@@ -251,9 +253,14 @@ def estimate_ggr_count(ibs):
     print('resight = %r' % (resight,))
     print('lp_index = %r ± %r' % (lp_index, lp_error))
 
-    import copy
 
+def draw_twoday_count(ibs, visit_info_list_):
+    import copy
     visit_info_list = copy.deepcopy(visit_info_list_)
+
+    aids_day1, aids_day2 = ut.take_column(visit_info_list_, 'aids')
+    nids_day1, nids_day2 = ut.take_column(visit_info_list_, 'unique_nids')
+    resight_nids = ut.isect(nids_day1, nids_day2)
 
     if False:
         # HACK REMOVE DATA TO MAKE THIS FASTER

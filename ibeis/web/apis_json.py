@@ -708,8 +708,8 @@ def set_exemplars_from_quality_and_viewpoint_json(ibs, annot_uuid_list,
         # Set names for query annotations
         nid_list = ibs.add_names(annot_name_list)
         ibs.set_annot_name_rowids(aid_list, nid_list)
-    new_aid_list, new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(aid_list, **kwargs)
-    new_annot_uuid_list = ibs.get_annot_uuids(new_aid_list)
+    new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(aid_list, **kwargs)
+    new_annot_uuid_list = ibs.get_annot_uuids(aid_list)
     return new_annot_uuid_list, new_flag_list
 
 

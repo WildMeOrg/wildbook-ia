@@ -2449,9 +2449,9 @@ class MainWindowBackend(GUIBACK_BASE):
             ]
             aid_list = ut.flatten(grouped_aids2)
         else:
-            new_aid_list, new_flag_list = ibs.get_annot_quality_viewpoint_subset(
+            new_flag_list = ibs.get_annot_quality_viewpoint_subset(
                 aid_list, updated_config['exemplars_per_name'])
-            aid_list = ut.compress(new_aid_list, new_flag_list)
+            aid_list = ut.compress(aid_list, new_flag_list)
 
         ibs.print_annot_stats(aid_list)
 
@@ -2507,9 +2507,9 @@ class MainWindowBackend(GUIBACK_BASE):
 
         if use_prioritized_name_subset:
             # Pick only a few queries per name to execute
-            new_aid_list, new_flag_list = back.ibs.get_annot_quality_viewpoint_subset(
+            new_flag_list = back.ibs.get_annot_quality_viewpoint_subset(
                 aid_list=qaid_list, annots_per_view=2, verbose=True)
-            qaid_list = ut.compress(qaid_list, qaid_list)
+            qaid_list = ut.compress(qaid_list, new_flag_list)
 
         print('[back] Found len(qaid_list) = %r' % (len(qaid_list),))
         # Group annotations by species
