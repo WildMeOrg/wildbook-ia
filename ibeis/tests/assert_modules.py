@@ -277,9 +277,7 @@ def PyQt4_version():
 @checkinfo('0.15.1')
 def pandas_version():
     import pandas
-    version = pandas.version.version
-    return module_stdinfo_dict(pandas, version=version)
-
+    return module_stdinfo_dict(pandas)
 
 @checkinfo('0.6.1')
 def statsmodels_version():
