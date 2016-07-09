@@ -199,7 +199,12 @@ def estimate_ggr_count(ibs):
         'min_pername': 1,
         'view': ['right'],
     }
-    print('Excluding Multiple:')
+    print('\nOnly Singles:')
+    filter_kw['multiple'] = False
+    estimate_twoday_count(ibs, day1, day2, filter_kw)
+
+    print('\nOnly Multis:')
+    filter_kw['multiple'] = True
     estimate_twoday_count(ibs, day1, day2, filter_kw)
 
     print('\nIncluding Multiple:')

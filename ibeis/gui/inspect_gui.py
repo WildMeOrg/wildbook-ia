@@ -44,6 +44,7 @@ REVIEW_CFG_DEFAULTS = {
     'filter_reviewed': True,
     'filter_photobombs': True,
     'filter_true_matches': True,
+    'show_chips': True,
     'filter_duplicate_true_matches': False,
 }
 
@@ -1275,8 +1276,15 @@ def make_qres_api(ibs, cm_list, review_cfg, qreq_=None):
         'result_index',
         'score',
         REVIEWED_STATUS_TEXT,
-        MATCHED_STATUS_TEXT,
-        QUERY_THUMB_TEXT,
+    ]
+
+    if review_cfg.get('show_chips', True):
+        col_name_list += [
+            MATCHED_STATUS_TEXT,
+            QUERY_THUMB_TEXT,
+        ]
+
+    col_name_list += [
         RES_THUMB_TEXT,
         'qaid',
         'aid',
@@ -1408,9 +1416,9 @@ def make_qres_api(ibs, cm_list, review_cfg, qreq_=None):
         REVIEWED_STATUS_TEXT    : ('qaid', 'aid'),
         'tags'    : ('qaid', 'aid'),
         QUERY_THUMB_TEXT : ('qaid'),
+        RES_THUMB_TEXT : ('aid'),
         'dnGt'      : ('aid'),
         'qnGt'      : ('qaid'),
-        'ResThumb'   : ('aid'),
         'qname'      : ('qaid'),
         'name'       : ('aid'),
     }
@@ -1428,6 +1436,16 @@ def make_qres_api(ibs, cm_list, review_cfg, qreq_=None):
     col_display_role_func_dict = {
         'timedelta': ut.partial(ut.get_posix_timedelta_str, year=True, approx=2),
     }
+
+    if not review_cfg.get('show_chips', True):
+        del col_getter_dict[QUERY_THUMB_TEXT]
+        del col_getter_dict[RES_THUMB_TEXT]
+        del col_types_dict[RES_THUMB_TEXT]
+        del col_types_dict[QUERY_THUMB_TEXT]
+        del col_ider_dict[RES_THUMB_TEXT]
+        del col_ider_dict[QUERY_THUMB_TEXT]
+        # del col_bgrole_dict[RES_THUMB_TEXT]
+        # del col_bgrole_dict[QUERY_THUMB_TEXT]
 
     # Insert info into dict
     qres_api = guitool.CustomAPI(
