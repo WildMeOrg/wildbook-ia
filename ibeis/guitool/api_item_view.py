@@ -155,6 +155,9 @@ def infer_delegates(view, **headers):
         else:
             if VERBOSE:
                 print('[view] colx=%r does not have a delgate' % colx)
+            # Effectively unsets any existing delegates
+            default_delegate = QtWidgets.QStyledItemDelegate(view)
+            view.setItemDelegateForColumn(colx, default_delegate)
 
 
 @register_view_method
