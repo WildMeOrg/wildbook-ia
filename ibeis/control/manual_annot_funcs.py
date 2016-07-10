@@ -3088,7 +3088,7 @@ def set_annot_age_months_est_max(ibs, aid_list, annot_age_months_est_max_list,
 
 @register_ibs_method
 @accessor_decors.getter
-# @register_api('/api/annot/image/contributor/tag/', methods=['GET'])
+@register_api('/api/annot/image/contributor/tag/', methods=['GET'])
 def get_annot_image_contributor_tag(ibs, aid_list):
     r"""
     Auto-docstr for 'get_annot_image_contributor_tag'
