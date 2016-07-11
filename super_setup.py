@@ -271,7 +271,7 @@ def ensure_utool():
     print('pulling utool')
     syscmd('git pull')
     print('installing utool for development')
-    cmdstr = '{pythoncmd} setup.py develop'.format(**locals())
+    cmdstr = '{pythoncmd} setup.py develop'.format(pythoncmd=pythoncmd)
     in_virtual_env = hasattr(sys, 'real_prefix')
     if not WIN32 and not in_virtual_env:
         cmdstr = 'sudo ' + cmdstr
