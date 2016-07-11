@@ -37,6 +37,7 @@ from plottool import interact_keypoints
 from plottool import interact_multi_image
 from plottool import interactions
 from plottool import interact_impaint
+from plottool import color_funcs
 #from plottool import abstract_iteraction
 
 
