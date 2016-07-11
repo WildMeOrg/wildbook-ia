@@ -579,6 +579,95 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
     return mask2
 
 
+class HOGConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('orientations', 8),
+        ut.ParamInfo('pixels_per_cell', (16, 16)),
+        ut.ParamInfo('cells_per_block', (1, 1)),
+    ]
+
+
+def make_hog_block_image(hog, config):
+    """
+    References:
+        https://github.com/scikit-image/scikit-image/blob/master/skimage/feature/_hog.py
+    """
+
+    from skimage import draw
+
+    cx, cy = config['pixels_per_cell']
+
+    normalised_blocks = hog
+    (n_blocksy, n_blocksx, by, bx, orientations) = normalised_blocks.shape
+
+    n_cellsx = (n_blocksx - 1) + bx
+    n_cellsy = (n_blocksy - 1) + by
+
+    # Undo the normalization step
+    orientation_histogram = np.zeros((n_cellsy, n_cellsx, orientations))
+
+    for x in range(n_blocksx):
+        for y in range(n_blocksy):
+            norm_block = normalised_blocks[y, x, :]
+            # hack, this only works right for block sizes of 1
+            orientation_histogram[y:y + by, x:x + bx, :] = norm_block
+
+    sx = n_cellsx * cx
+    sy = n_cellsy * cy
+
+    radius = min(cx, cy) // 2 - 1
+    orientations_arr = np.arange(orientations)
+    dx_arr = radius * np.cos(orientations_arr / orientations * np.pi)
+    dy_arr = radius * np.sin(orientations_arr / orientations * np.pi)
+    hog_image = np.zeros((sy, sx), dtype=float)
+    for x in range(n_cellsx):
+        for y in range(n_cellsy):
+            for o, dx, dy in zip(orientations_arr, dx_arr, dy_arr):
+                centre = tuple([y * cy + cy // 2, x * cx + cx // 2])
+                rr, cc = draw.line(int(centre[0] - dx),
+                                   int(centre[1] + dy),
+                                   int(centre[0] + dx),
+                                   int(centre[1] - dy))
+                hog_image[rr, cc] += orientation_histogram[y, x, o]
+
+
+@derived_attribute(
+    tablename='hog', parents=['chips'],
+    colnames=['hog'],
+    coltypes=[np.ndarray],
+    configclass=HOGConfig,
+    fname='hogcache', chunksize=32,
+)
+def compute_hog(depc, cid_list, config=None):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> ibs, depc, aid_list = testdata_core()
+        >>> chip_config = {}
+        >>> config = HOGConfig()
+        >>> cid_list = depc.get_rowids('chips', aid_list, config=chip_config)
+        >>> hoggen = compute_hog(depc, cid_list, config)
+        >>> hog = list(hoggen)[0]
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> hog_image = make_hog_block_image(hog, config)
+        >>> ut.show_if_requested()
+    """
+    import skimage.feature
+    orientations     = config['orientations']
+
+    ut.assert_all_not_None(cid_list, 'cid_list')
+    chip_fpath_list = depc.get_native('chips', cid_list, 'img', read_extern=False)
+
+    for chip_fpath in chip_fpath_list:
+        chip = vt.imread(chip_fpath, grayscale=True) / 255.0
+        hog = skimage.feature.hog(chip, feature_vector=False,
+                                  orientations=orientations,
+                                  pixels_per_cell=(16, 16), cells_per_block=(1, 1))
+        yield (hog,)
+
+
 class FeatConfig(dtool.Config):
     r"""
     Example:

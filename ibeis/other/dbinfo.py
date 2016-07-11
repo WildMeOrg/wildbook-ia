@@ -199,15 +199,15 @@ def estimate_ggr_count(ibs):
         'min_pername': 1,
         'view': ['right'],
     }
-    print('\nOnly Singles:')
+    print('\nOnly Single-Animal-In-Annotation:')
     filter_kw['multiple'] = False
     estimate_twoday_count(ibs, day1, day2, filter_kw)
 
-    print('\nOnly Multis:')
+    print('\nOnly Multi-Animal-In-Annotation:')
     filter_kw['multiple'] = True
     estimate_twoday_count(ibs, day1, day2, filter_kw)
 
-    print('\nIncluding Multiple:')
+    print('\nUsing Both:')
     filter_kw['multiple'] = None
     estimate_twoday_count(ibs, day1, day2, filter_kw)
 
