@@ -655,14 +655,14 @@ class QueryRequest(object):
         if qreq_.internal_daids_mask is None:
             return qreq_.internal_daids
         else:
-            return qreq_.internal_daids[qreq_.internal_daids_mask]
+            return qreq_.internal_daids.compress(qreq_.internal_daids_mask, axis=0)
 
     @profile
     def get_internal_qaids(qreq_):
         if qreq_.internal_qaids_mask is None:
             return qreq_.internal_qaids
         else:
-            return qreq_.internal_qaids[qreq_.internal_qaids_mask]
+            return qreq_.internal_qaids.compress(qreq_.internal_qaids_mask, axis=0)
 
     @profile
     def get_internal_duuids(qreq_):
