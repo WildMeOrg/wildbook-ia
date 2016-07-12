@@ -5788,9 +5788,9 @@ def compute_ggr_imagesets(ibs, gid_list=None):
 
     for zone, gid_list in imageset_dict.iteritems():
         imageset_str = 'GGR Special Zone %d' % (zone, )
-        args = (imageset_str, len(gid_list), )
-        print('Creating new GGR imageset: %r with %d images' % args)
         imageset_id = ibs.add_imagesets(imageset_str)
+        args = (imageset_str, imageset_id, len(gid_list), )
+        print('Creating new GGR imageset: %r (ID %d) with %d images' % args)
         ibs.delete_gsgr_imageset_relations(imageset_id)
         ibs.set_image_imgsetids(gid_list, [imageset_id] * len(gid_list))
 
