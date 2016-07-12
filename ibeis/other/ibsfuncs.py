@@ -5800,6 +5800,51 @@ def compute_ggr_imagesets(ibs, gid_list=None):
     print('SKIPPED %d IMAGES' % (skipped, ))
 
 
+def compute_ggr_fix_gps(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 hours
+    # Get all aids
+    aid_list = ibs.get_valid_aids()
+    num_all = len(aid_list)
+    gps_list = ibs.get_annot_image_gps(aid_list)
+    flag_list = [ gps == (-1, -1) for gps in gps_list ]
+    # Get bad GPS aids
+    aid_list = ut.filter_items(aid_list, flag_list)
+    num_bad = len(aid_list)
+    nid_list = ibs.get_annot_name_rowids(aid_list)
+    flag_list = [ nid != const.UNKNOWN_NAME_ROWID for nid in nid_list ]
+    # Get KNOWN and bad GPS aids
+    aid_list = ut.filter_items(aid_list, flag_list)
+    num_known = len(aid_list)
+    # Find close GPS
+    num_found = 0
+    for aid in aid_list:
+        # Get annotation information
+        unixtime = ibs.get_annot_image_unixtimes(aid)
+        nid = ibs.get_annot_name_rowids(aid)
+        # Get other sightings
+        aid_list_ = ibs.get_name_aids(nid)
+        unixtime_list = ibs.get_annot_image_unixtimes(aid_list_)
+        gps_list = ibs.get_annot_image_gps(aid_list_)
+        # Find closest
+        closest_diff, closest_gps = np.inf, None
+        for unixtime_, gps_ in zip(unixtime_list, gps_list):
+            diff = abs(unixtime - unixtime_)
+            if diff < closest_diff:
+                closest_diff = diff
+                closest_gps = gps_
+        # Assign closest
+        if closest_gps is not None and closest_diff <= min_diff:
+            num_found += 1
+            h = min_diff // 3600
+            min_diff %= 3600
+            m = min_diff // 60
+            min_diff %= 60
+            s = min_diff
+            print('FOUND LOCATION FOR AID %d' % (aid, ))
+            print('\tDIFF   : %d H, %d M, %d S' % (h, m, s, ))
+            print('\tNEW GPS: %s' % (closest_gps, ))
+    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_known, num_found, ))
+
+
 if __name__ == '__main__':
     """
     CommandLine:
