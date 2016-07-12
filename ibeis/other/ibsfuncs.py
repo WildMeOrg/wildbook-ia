@@ -5822,13 +5822,14 @@ def compute_ggr_fix_gps(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 h
         nid = ibs.get_annot_name_rowids(aid)
         # Get other sightings
         aid_list_ = ibs.get_name_aids(nid)
+        aid_list_.rempve(aid)
         unixtime_list = ibs.get_annot_image_unixtimes(aid_list_)
         gps_list = ibs.get_annot_image_gps(aid_list_)
         # Find closest
         closest_diff, closest_gps = np.inf, None
         for unixtime_, gps_ in zip(unixtime_list, gps_list):
             diff = abs(unixtime - unixtime_)
-            if diff < closest_diff:
+            if diff < closest_diff and gps_ != (-1, -1):
                 closest_diff = diff
                 closest_gps = gps_
         # Assign closest
