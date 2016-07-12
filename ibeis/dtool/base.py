@@ -410,17 +410,33 @@ class IBEISRequestHacks(object):
             return None
         return request.depc.controller
 
-    def get_external_data_config2(request):
-        # HACK
-        #return None
-        #print('[d] request.params = %r' % (request.params,))
-        return request.params
+    @property
+    def qannots(self):
+        return self.ibs.annots(self.qaids, self.params)
 
-    def get_external_query_config2(request):
-        # HACK
-        #return None
-        #print('[q] request.params = %r' % (request.params,))
-        return request.params
+    @property
+    def dannots(self):
+        return self.ibs.annots(self.daids, self.params)
+
+    def get_qreq_annot_nids(self, aids):
+        # VERY HACKY. To be just hacky it should store
+        # the nids as a state, but whatever...
+        # devleopment time constraints and whatnot
+        return self.ibs.get_annot_nids(aids)
+        #return self.ibs.annots(self.daids, self.params)
+    #
+
+    #def get_external_data_config2(request):
+    #    # HACK
+    #    #return None
+    #    #print('[d] request.params = %r' % (request.params,))
+    #    return request.params
+
+    #def get_external_query_config2(request):
+    #    # HACK
+    #    #return None
+    #    #print('[q] request.params = %r' % (request.params,))
+    #    return request.params
 
 
 def config_graph_subattrs(cfg, depc):
