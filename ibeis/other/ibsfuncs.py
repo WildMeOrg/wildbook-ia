@@ -5836,11 +5836,11 @@ def compute_ggr_fix_gps(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 h
         # Assign closest
         if closest_gps is not None and closest_diff <= min_diff:
             num_found += 1
-            h = min_diff // 3600
-            min_diff %= 3600
-            m = min_diff // 60
-            min_diff %= 60
-            s = min_diff
+            h = closest_diff // 3600
+            closest_diff %= 3600
+            m = closest_diff // 60
+            closest_diff %= 60
+            s = closest_diff
             print('FOUND LOCATION FOR AID %d' % (aid, ))
             print('\tDIFF   : %d H, %d M, %d S' % (h, m, s, ))
             print('\tNEW GPS: %s' % (closest_gps, ))
