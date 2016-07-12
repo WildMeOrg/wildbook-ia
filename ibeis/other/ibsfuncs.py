@@ -5775,7 +5775,11 @@ def compute_ggr_imagesets(ibs, gid_list=None):
         gid_list = ibs.get_valid_gids()
     gps_list = ibs.get_image_gps(gid_list)
 
+    skipped = 0
     for gid, point in zip(gid_list, gps_list):
+        if point == (-1, -1):
+            skipped += 1
+            continue
         found = False
         for zone in sorted(path_dict.keys()):
             path = path_dict[zone]
@@ -5793,6 +5797,7 @@ def compute_ggr_imagesets(ibs, gid_list=None):
         print('Creating new GGR imageset: %r (ID %d) with %d images' % args)
         ibs.delete_gsgr_imageset_relations(imageset_id)
         ibs.set_image_imgsetids(gid_list, [imageset_id] * len(gid_list))
+    print('SKIPPED %d IMAGES' % (skipped, ))
 
 
 if __name__ == '__main__':
