@@ -144,6 +144,7 @@ reg_std_version_check(None, 'wget')
 reg_std_version_check(None, 'pygco')
 reg_std_version_check('6.0.8', 'pip')
 reg_std_version_check('1.1.1', 'utool')
+reg_std_version_check('0.12.3', 'skimage')
 
 
 # @checkinfo('1.1.1')
@@ -278,6 +279,7 @@ def PyQt4_version():
 def pandas_version():
     import pandas
     return module_stdinfo_dict(pandas)
+
 
 @checkinfo('0.6.1')
 def statsmodels_version():
