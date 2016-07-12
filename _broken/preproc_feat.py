@@ -67,8 +67,8 @@ def generate_feat_properties(ibs, cid_list, config2_=None, nInput=None):
         >>> cfgdict = {}
         >>> cfgdict['feat_type'] = 'hesaff+siam128'
         >>> qreq_ = ibs.new_query_request([1], [1, 2, 3], cfgdict)
-        >>> query_config2 = qreq_.get_external_query_config2()
-        >>> data_config2 = qreq_.get_external_data_config2()
+        >>> query_config2 = qreq_.extern_query_config2
+        >>> data_config2 = qreq_.extern_data_config2
         >>> cid_list = ibs.get_annot_chip_rowids(ibs.get_valid_aids())
         >>> config2_ = query_config2
         >>> nInput = None

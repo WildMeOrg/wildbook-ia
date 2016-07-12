@@ -26,7 +26,7 @@ def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None,
                               as_fpath=False):
     #print('!!! qqreq_ = %r' % (qreq_,))
     query_config2_ = (None if qreq_ is None
-                      else qreq_.get_external_query_config2())
+                      else qreq_.extern_query_config2)
     tblhack = getattr(qreq_, 'tablename', None)
     #print('!!! query_config2_ = %r' % (query_config2_,))
     if (not tblhack or tblhack == 'BC_DTW') and getattr(qreq_, '_isnewreq', None):
@@ -50,7 +50,7 @@ def get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches, kpts1=None,
 def get_data_annot_pair_info(ibs, aid_list, qreq_, draw_fmatches,
                              scale_down=False, kpts2_list=None, as_fpath=False):
     data_config2_ = (None if qreq_ is None else
-                     qreq_.get_external_data_config2())
+                     qreq_.extern_data_config2)
     #print('!!! data_config2_ = %r' % (data_config2_,))
     #print('!!! dqreq_ = %r' % (qreq_,))
     tblhack = getattr(qreq_, 'tablename', None)
@@ -308,7 +308,7 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
 
         #if not show_query and xywh1 is None:
         #    data_config2 = None if qreq_ is None else
-        #    qreq_.get_external_data_config2()
+        #    qreq_.extern_data_config2
         #    kpts2 = ibs.get_annot_kpts([aid2], config2_=data_config2)[0]
         #    #pt.draw_kpts2(kpts2.take(fm.T[1], axis=0))
         #    # Draw any selected matches
@@ -418,7 +418,7 @@ def annotate_matches2(ibs, aid1, aid2, fm, fs,
 
             if not show_query and xywh1 is None:
                 data_config2 = (None if qreq_ is None else
-                                qreq_.get_external_data_config2())
+                                qreq_.extern_data_config2)
                 # FIXME, pass data in
                 kpts2 = ibs.get_annot_kpts([aid2], config2_=data_config2)[0]
                 #pt.draw_kpts2(kpts2.take(fm.T[1], axis=0))

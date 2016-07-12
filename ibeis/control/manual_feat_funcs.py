@@ -131,26 +131,26 @@ def get_annot_kpts(ibs, aid_list, ensure=True, eager=True, nInput=None,
         ...     print('qreq2 params: ' + qreq2_.qparams.feat_cfgstr)
         ...     print('id(qreq1): ' + str(id(qreq1_)))
         ...     print('id(qreq2): ' + str(id(qreq2_)))
-        ...     #print('feat_config_rowid1 = %r' % (ibs.get_feat_config_rowid(config2_=qreq1_.get_external_query_config2()),))
-        ...     #print('feat_config_rowid2 = %r' % (ibs.get_feat_config_rowid(config2_=qreq2_.get_external_query_config2()),))
+        ...     #print('feat_config_rowid1 = %r' % (ibs.get_feat_config_rowid(config2_=qreq1_.extern_query_config2),))
+        ...     #print('feat_config_rowid2 = %r' % (ibs.get_feat_config_rowid(config2_=qreq2_.extern_query_config2),))
         >>> # Force recomputation of features
         >>> with ut.Indenter('[DELETE1]'):
-        ...     ibs.delete_annot_feats(aid_list, config2_=qreq1_.get_external_query_config2())
+        ...     ibs.delete_annot_feats(aid_list, config2_=qreq1_.extern_query_config2)
         >>> with ut.Indenter('[DELETE2]'):
-        ...     ibs.delete_annot_feats(aid_list, config2_=qreq2_.get_external_query_config2())
+        ...     ibs.delete_annot_feats(aid_list, config2_=qreq2_.extern_query_config2)
         >>> eager, ensure, nInput = True, True, None
         >>> # execute function
         >>> with ut.Indenter('[GET1]'):
-        ...     kpts1_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq1_.get_external_query_config2())
+        ...     kpts1_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq1_.extern_query_config2)
         >>> with ut.Indenter('[GET2]'):
-        ...     kpts2_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq2_.get_external_query_config2())
+        ...     kpts2_list = get_annot_kpts(ibs, aid_list, ensure, eager, nInput, qreq2_.extern_query_config2)
         >>> # verify results
         >>> assert not np.all(vt.get_oris(kpts1_list[0]) == 0)
         >>> assert np.all(vt.get_oris(kpts2_list[0]) == 0)
         >>> ut.quit_if_noshow()
         >>> #ibeis.viz.viz_chip.show_chip(ibs, aid_list[0], config2_=qreq1_, ori=True)
-        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq1_.get_external_query_config2(), ori=True, fnum=1)
-        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq2_.get_external_query_config2(), ori=True, fnum=2)
+        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq1_.extern_query_config2, ori=True, fnum=1)
+        >>> ibeis.viz.interact.interact_chip.ishow_chip(ibs, aid_list[0], config2_=qreq2_.extern_query_config2, ori=True, fnum=2)
         >>> ut.show_if_requested()
     """
     return ibs.depc_annot.get('feat', aid_list, 'kpts', config=config2_,

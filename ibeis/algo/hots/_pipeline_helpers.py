@@ -237,7 +237,7 @@ def testdata_scoring(defaultdb='PZ_MTEST', qaid_list=[1], daid_list='all'):
     ibs, qreq_, prior_cm = testdata_matching(defaultdb=defaultdb, qaid_list=qaid_list, daid_list=daid_list)
     config = qreq_.qparams
     cm = vsone_pipeline.refine_matches(qreq_, prior_cm, config)
-    cm.evaluate_dnids(qreq_.ibs)
+    cm.evaluate_dnids(qreq_)
     return qreq_, cm
 
 

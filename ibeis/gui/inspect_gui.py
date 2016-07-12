@@ -132,8 +132,8 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None, aid_list=N
         if qreq_ is None:
             config2_list_ = [None, None]
         else:
-            config2_list_ = [qreq_.get_external_query_config2(),
-                             qreq_.get_external_data_config2()]
+            config2_list_ = [qreq_.extern_query_config2,
+                             qreq_.extern_data_config2]
 
         #interact_chip_options = []
         #for count, (aid, config2_) in enumerate(zip(aid_list2,

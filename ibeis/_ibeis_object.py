@@ -79,12 +79,24 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs):
 
 
 class PrimaryObject(ut.NiceRepr):
-    def __init__(self, _rowids, ibs, config=None):
-        self._rowids = _rowids
+    def __init__(self, rowids, ibs, config=None):
+        self._rowids = rowids
         self._ibs = ibs
         self._islist = True
         self._config = config
         self._internal_attrs = {}
+        self._rowid_to_idx = None
+        #ut.make_index_lookup(self._rowids)
+
+    def lookup_idxs(self, rowids):
+        if self._rowid_to_idx is None:
+            self._rowid_to_idx = ut.make_index_lookup(self._rowids)
+        idx_list = ut.take(self._rowid_to_idx, rowids)
+        return idx_list
+
+    def lookup(self, rowids):
+        idxs = self.lookup_idxs(rowids)
+        return self.take(idxs)
 
     def __nice__(self):
         return '(num=%r)' % (len(self))
@@ -122,8 +134,6 @@ class PrimaryObject(ut.NiceRepr):
     def chunks(self,  chunksize):
         for idxs in ut.ichunks(self, range(len(self))):
             yield self.take(idxs)
-        #for _rowids in ut.ichunks(self, chunksize):
-        #    yield self.__class__(_rowids, self._ibs, self._config)
 
     def groupby(self, labels):
         unique_labels, groupxs = ut.group_indices(labels)

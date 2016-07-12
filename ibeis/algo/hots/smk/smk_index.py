@@ -76,7 +76,7 @@ def learn_visual_words(ibs, config2_=None, use_cache=USE_CACHE_WORDS, memtrack=N
     """
     #if memtrack is None:
     #    memtrack = ut.MemoryTracker('[learn_visual_words]')
-    #config2_ = qreq_.get_external_data_config2()
+    #config2_ = qreq_.extern_data_config2
     nWords = config2_.nWords
     # TODO: Incorporated taids (vocab training ids) into qreq
     if config2_.vocab_taids == 'all':

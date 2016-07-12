@@ -114,9 +114,9 @@ class MatchInteraction(object):
 
         # Read properties
         self.query_config2_ = (None if self.qreq_ is None else
-                               self.qreq_.get_external_query_config2())
+                               self.qreq_.extern_query_config2)
         self.data_config2_ = (None if self.qreq_ is None else
-                              self.qreq_.get_external_data_config2())
+                              self.qreq_.extern_data_config2)
         self.rchip1 = vh.get_chips(ibs, [self.qaid], config2_=self.query_config2_)[0]
         self.rchip2 = vh.get_chips(ibs, [self.daid], config2_=self.data_config2_)[0]
         # Begin Interaction

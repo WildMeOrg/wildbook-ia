@@ -253,7 +253,7 @@ def compute_localizations(depc, gid_list, config=None):
         python -m ibeis.core_images compute_localizations --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
@@ -475,7 +475,7 @@ def compute_detections(depc, gid_list, config=None):
         ibeis compute_detections
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # SLOW_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'

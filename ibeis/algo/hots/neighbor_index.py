@@ -39,9 +39,11 @@ def get_support_data(qreq_, daid_list):
         >>> tup  = get_support_data(qreq_, daid_list)
         >>> vecs_list, fgws_list, fxs_list = tup
         >>> assert all([np.all(fgws > .9) for fgws in fgws_list])
-        >>> result = ut.depth_profile(tup)
-        >>> print('depth_profile = %r' % (result,))
+        >>> result = ('depth_profile = %r' % (ut.depth_profile(tup),))
+        >>> print(result)
         depth_profile = [[(83, 128), (129, 128)], [83, 129], [83, 129]]
+
+        depth_profile = [[(13, 128), (104, 128)], [13, 104], [13, 104]]
     """
     config2_ = qreq_.get_internal_data_config2()
     vecs_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=config2_)

@@ -1284,7 +1284,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
             H_list=[H],
             fsv_col_lbls=['L2_SIFT'])
         match._update_daid_index()
-        match.evaluate_dnids(ibs)
+        match.evaluate_dnids(ibs=ibs)
         match._update_daid_index()
         match.set_cannonical_name_score([score], [score])
 

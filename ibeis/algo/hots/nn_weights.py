@@ -132,12 +132,13 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
     for nns in nns_list:
         qfx2_qvec = qreq_.ibs.get_annot_vecs(nns.qaid, config2_=qconfig2_)
         qvecs = qfx2_qvec.take(nns.qfx_list, axis=0)
+        qvecs = qvecs[np.newaxis, :, :]
         # database forground weights
         # avoid using K due to its more dynamic nature by using -Knorm
-        neighb_dvec = qreq_.indexer.get_nn_vecs(nns.neighb_idxs.T[:-Knorm])
+        dvecs = qreq_.indexer.get_nn_vecs(nns.neighb_idxs.T[:-Knorm])
         # Component-wise dot product + selectivity function
         alpha = 3.0
-        neighb_cosweight = scoring.sift_selectivity_score(qvecs[np.newaxis, :, :], neighb_dvec, alpha)
+        neighb_cosweight = scoring.sift_selectivity_score(qvecs, dvecs, alpha)
         cos_weight_list.append(neighb_cosweight)
     return cos_weight_list
 
@@ -271,7 +272,8 @@ def get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name', 'dim_size': 450, 'resize_dim': 'area'}
+        >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name',
+        >>>            'dim_size': 450, 'resize_dim': 'area'}
         >>> tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> (neighb_idx, neighb_dist) = nns_list[0]
@@ -304,7 +306,8 @@ def apply_normweight(normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm
     Args:
         normweight_fn (func):  chosen weight function e.g. lnbnn
         qaid (int):  query annotation id
-        neighb_idx (ndarray[int32_t, ndims=2]):  mapping from query feature index to db neighbor index
+        neighb_idx (ndarray[int32_t, ndims=2]):  mapping from query feature
+            index to db neighbor index
         neighb_dist (ndarray):  mapping from query feature index to dist
         Knorm (int):
         qreq_ (QueryRequest):  query request object with hyper-parameters
@@ -319,7 +322,8 @@ def apply_normweight(normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
         >>> from ibeis.algo.hots import nn_weights
-        >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name', 'dim_size': 450, 'resize_dim': 'area'}
+        >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name',
+        >>>            'dim_size': 450, 'resize_dim': 'area'}
         >>> tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> qaid = qreq_.qaids[0]
@@ -349,7 +353,7 @@ def get_name_normalizers(qaid, qreq_, Knorm, neighb_idx):
 
     Args:
         qaid (int): query annotation id
-        qreq_ (QueryRequest): hyper-parameters
+        qreq_ (ibeis.QueryRequest): hyper-parameters
         Knorm (int):
         neighb_idx (ndarray):
 
@@ -370,7 +374,8 @@ def get_name_normalizers(qaid, qreq_, Knorm, neighb_idx):
     """
     assert Knorm == qreq_.qparams.Knorm, 'inconsistency in qparams'
     # Get the top names you do not want your normalizer to be from
-    qnid = qreq_.ibs.get_annot_name_rowids(qaid)
+    #qnid = qreq_.internal_qannots.lookup([qaid]).nids[0]
+    qnid = qreq_.get_qreq_annot_nids(qaid)
     K = len(neighb_idx.T) - Knorm
     assert K > 0, 'K cannot be 0'
     # Get the 0th - Kth matching neighbors
@@ -380,8 +385,8 @@ def get_name_normalizers(qaid, qreq_, Knorm, neighb_idx):
     # Apply temporary uniquish name
     neighb_topaid  = qreq_.indexer.get_nn_aids(neighb_topidx)
     neighb_normaid = qreq_.indexer.get_nn_aids(neighb_normidx)
-    neighb_topnid  = qreq_.ibs.get_annot_name_rowids(neighb_topaid)
-    neighb_normnid = qreq_.ibs.get_annot_name_rowids(neighb_normaid)
+    neighb_topnid  = qreq_.get_qreq_annot_nids(neighb_topaid)
+    neighb_normnid = qreq_.get_qreq_annot_nids(neighb_normaid)
     # Inspect the potential normalizers
     neighb_selnorm = mark_name_valid_normalizers(qnid, neighb_topnid, neighb_normnid)
     neighb_normk = neighb_selnorm + (K + Knorm)  # convert form negative to pos indexes

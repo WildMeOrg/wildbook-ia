@@ -322,7 +322,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
     cant_match_self     = True
     internal_qaids = qreq_.get_internal_qaids()
     internal_daids = qreq_.get_internal_daids()
-    internal_data_nids  = qreq_.ibs.get_annot_nids(internal_daids)
+    internal_data_nids  = qreq_.get_qreq_annot_nids(internal_daids)
 
     _impossible_daid_lists = []
     if cant_match_self:
@@ -346,7 +346,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
                 np.setdiff1d(aids, qaid)
                 for aids, qaid in zip(contact_aids_list, internal_qaids)]
             nonself_contact_nids = qreq_.ibs.unflat_map(
-                qreq_.ibs.get_annot_nids, nonself_contact_aids)
+                qreq_.get_qreq_annot_nids, nonself_contact_aids)
             contact_aids_gt_list = [
                 internal_daids.compress(
                     vt.get_covered_mask(internal_data_nids, nids))
@@ -355,8 +355,8 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
             _impossible_daid_lists.append(contact_aids_gt_list)
 
     if not can_match_samename:
-        internal_data_nids  = qreq_.ibs.get_annot_nids(internal_daids)
-        internal_query_nids = qreq_.ibs.get_annot_nids(internal_qaids)
+        internal_data_nids  = qreq_.get_qreq_annot_nids(internal_daids)
+        internal_query_nids = qreq_.get_qreq_annot_nids(internal_qaids)
         gt_aids = [
             internal_daids.compress(internal_data_nids == nid)
             for nid in internal_query_nids
@@ -494,27 +494,37 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
 def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, single_name_condition, verbose):
     """
     Logic for computing neighbors if there is a cache miss
+
+    >>> flags_list = [True] * len(Kpad_list)
+    >>> flags_list = [True, False, True]
     """
     # Cant do this here because of get_nn_aids. bleh
     # Could make this slightly more efficient
     #qreq_.load_indexer(verbose=verbose)
 
-    internal_qaids = qreq_.get_internal_qaids()
+    #internal_qaids = qreq_.get_internal_qaids()
+    #internal_qaids = internal_qaids.compress(flags_list)
+
     # Get only the data that needs to be computed
-    internal_qaids = internal_qaids.compress(flags_list)
+    internal_qannots = qreq_.internal_qannots
+    internal_qannots = internal_qannots.compress(flags_list)
+
     Kpad_list = ut.compress(Kpad_list, flags_list)
     # do computation
     num_neighbors_list = [K + Kpad + Knorm for Kpad in Kpad_list]
     config2_ = qreq_.get_internal_query_config2()
-    qvecs_list = qreq_.ibs.get_annot_vecs(
-        internal_qaids, config2_=config2_)
+    #qvecs_list = qreq_.ibs.get_annot_vecs(
+    #    internal_qaids, config2_=config2_)
+    qvecs_list = internal_qannots.vecs
+    #ibs.get_annot_vecs(internal_qaids, config2_=config2_)
 
     qfxs_list = [np.arange(len(qvecs)) for qvecs in qvecs_list]
 
     if config2_.minscale_thresh is not None or config2_.maxscale_thresh is not None:
         min_ = -np.inf if config2_.minscale_thresh is None else config2_.minscale_thresh
         max_ = np.inf if config2_.maxscale_thresh is None else config2_.maxscale_thresh
-        qkpts_list = qreq_.ibs.get_annot_kpts(internal_qaids, config2_=config2_)
+        #qkpts_list = qreq_.ibs.get_annot_kpts(internal_qaids, config2_=config2_)
+        qkpts_list = internal_qannots.kpts
         qkpts_list = vt.ziptake(qkpts_list, qfxs_list, axis=0)
         # kpts_list = vt.ziptake(kpts_list, fxs_list, axis=0)  # not needed for first filter
         scales_list = [vt.get_scales(kpts) for kpts in qkpts_list]
@@ -524,8 +534,9 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, single_name_
         qfxs_list = vt.zipcompress(qfxs_list, flags_list, axis=0)
 
     if config2_.fgw_thresh is not None:
-        qfgw_list = qreq_.ibs.get_annot_fgweights(
-            internal_qaids, config2_=config2_)
+        #qfgw_list = qreq_.ibs.get_annot_fgweights(
+        #    internal_qaids, config2_=config2_)
+        qfgw_list = internal_qannots.fgweights
         qfgw_list = vt.ziptake(qfgw_list, qfxs_list, axis=0)
         fgw_thresh = config2_.fgw_thresh
         flags_list = [fgws >= fgw_thresh for fgws in qfgw_list]
@@ -533,7 +544,7 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, single_name_
         qvecs_list = vt.zipcompress(qvecs_list, flags_list, axis=0)
 
     if verbose:
-        if len(internal_qaids) == 1:
+        if len(qvecs_list) == 1:
             print('[hs] depth(qvecs_list) = %r' %
                   (ut.depth_profile(qvecs_list),))
     # Mark progress ane execute nearest indexer nearest neighbor code
@@ -550,7 +561,7 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm, single_name_
 
     # Move into new object structure
     nns_list = [Neighbors(qaid, idxs, dists, qfxs)
-                for qaid, qfxs, (idxs, dists) in zip(internal_qaids, qfxs_list, idx_dist_list)]
+                for qaid, qfxs, (idxs, dists) in zip(internal_qannots.aid, qfxs_list, idx_dist_list)]
 
     return nns_list
 
@@ -587,7 +598,7 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     """
     K      = qreq_.qparams.K
     Knorm  = qreq_.qparams.Knorm
-    single_name_condition   = qreq_.qparams.single_name_condition
+    single_name_condition = qreq_.qparams.single_name_condition
     #checks = qreq_.qparams.checks
     # Get both match neighbors (including padding) and normalizing neighbors
     if verbose:
@@ -748,7 +759,6 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>>                                a=['default:qindex=0:1,dindex=0:5,hackerrors=False'],
         >>>                                p=['default:codename=vsone,fg_on=False,ratio_thresh=.625'], verbose=True)
         >>> nns_list, nnvalid0_list = args
-        >>> ibs = qreq_.ibs
         >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list)
         >>> filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret
         >>> nFiltKeys = len(filtkey_list)
@@ -787,7 +797,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     _filtvalid_list  = []
     _filtnormk_list  = []
 
-    config2_ = qreq_.get_external_data_config2()
+    config2_ = qreq_.extern_data_config2
 
     # soft_weights = ['lnbnn', 'normonly', 'bar_l2', 'const', 'borda', 'fg']
     # for filtname in soft_weights:
@@ -1074,12 +1084,14 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
         >>> verbose = True
         >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(p=['default:codename=vsone'])
         >>> nns, neighb_idx, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list, Knorm = args
+        >>> qannot = qreq_.ibs.annots([qaid], qreq_.qparams)
+        >>> dannot = qreq_.ibs.annots([daid], qreq_.qparams)
         >>> # execute function
         >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)
         >>> # check results
         >>> assert ut.allsame(list(map(len, vmt[:-2]))), 'need same num rows'
-        >>> ut.assert_inbounds(vmt.dfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
-        >>> ut.assert_inbounds(vmt.qfx, -1, qreq_.ibs.get_annot_num_feats(daid, config2_=qreq_.qparams))
+        >>> ut.assert_inbounds(vmt.dfx, -1, qannot.num_feats)
+        >>> ut.assert_inbounds(vmt.qfx, -1, dannot.num_feats)
         >>> ut.quit_if_noshow()
         >>> daid_list = [daid]
         >>> vmt_list = [vmt]
@@ -1099,10 +1111,12 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
         >>> nns, neighb_idx, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list, Knorm = args
         >>> # execute function
         >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)
+        >>> qannot = qreq_.ibs.annots([qaid], qreq_.qparams)
+        >>> dannot = qreq_.ibs.annots(vmt.daid, qreq_.qparams)
         >>> # check results
         >>> assert ut.allsame(list(map(len, vmt[:-2]))), 'need same num rows'
-        >>> ut.assert_inbounds(vmt.qfx, -1, qreq_.ibs.get_annot_num_feats(qaid, config2_=qreq_.qparams))
-        >>> ut.assert_inbounds(vmt.dfx, -1, np.array(qreq_.ibs.get_annot_num_feats(vmt.daid, config2_=qreq_.qparams)))
+        >>> ut.assert_inbounds(vmt.qfx, -1, qannot.num_feats)
+        >>> ut.assert_inbounds(vmt.dfx, -1, np.array(dannot.num_feats))
         >>> cm = chip_match.ChipMatch.from_vsmany_match_tup(vmt, qaid=qaid)
         >>> cm.assert_self(verbose=False)
         >>> ut.quit_if_noshow()
@@ -1269,7 +1283,7 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     # FIXME: 'csum' is much faster than 'nsum'
     # and probably should be used pre-verification
     #for cm in cm_list:
-    #    cm.evaluate_dnids(qreq_.ibs)
+    #    cm.evaluate_dnids(qreq_)
     #prescore_method = 'csum'
     scoring.score_chipmatch_list(qreq_, cm_list, prescore_method)
     cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list,
@@ -1373,10 +1387,10 @@ def sver_single_chipmatch(qreq_, cm):
         >>> fm = cm.fm_list[idx]
         >>> aid1 = cm.qaid
         >>> aid2 = daid
-        >>> rchip1, = ibs.get_annot_chips([aid1], config2_=qreq_.get_external_query_config2())
-        >>> kpts1,  = ibs.get_annot_kpts([aid1], config2_=qreq_.get_external_query_config2())
-        >>> rchip2, = ibs.get_annot_chips([aid2], config2_=qreq_.get_external_data_config2())
-        >>> kpts2, = ibs.get_annot_kpts([aid2], config2_=qreq_.get_external_data_config2())
+        >>> rchip1, = ibs.get_annot_chips([aid1], config2_=qreq_.extern_query_config2)
+        >>> kpts1,  = ibs.get_annot_kpts([aid1], config2_=qreq_.extern_query_config2)
+        >>> rchip2, = ibs.get_annot_chips([aid2], config2_=qreq_.extern_data_config2)
+        >>> kpts2, = ibs.get_annot_kpts([aid2], config2_=qreq_.extern_data_config2)
         >>> import plottool as pt
         >>> show_aff = not ut.get_argflag('--noaff')
         >>> refine_method = qreq_.qparams.refine_method if not ut.get_argflag('--norefinelbl') else ''
@@ -1395,15 +1409,15 @@ def sver_single_chipmatch(qreq_, cm):
     refine_method         = qreq_.qparams.refine_method
     sver_output_weighting = qreq_.qparams.sver_output_weighting
     # Precompute sver cmtup_old
-    kpts1 = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_external_query_config2())
+    kpts1 = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.extern_query_config2)
     kpts2_list = qreq_.ibs.get_annot_kpts(cm.daid_list,
-                                          config2_=qreq_.get_external_data_config2())
+                                          config2_=qreq_.extern_data_config2)
     if use_chip_extent:
         top_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(
-            cm.daid_list, config2_=qreq_.get_external_data_config2())
+            cm.daid_list, config2_=qreq_.extern_data_config2)
     else:
         top_dlen_sqrd_list = compute_matching_dlen_extent(qreq_, cm.fm_list, kpts2_list)
-    config2_ = qreq_.get_external_query_config2()
+    config2_ = qreq_.extern_query_config2
     if qreq_.qparams.weight_inliers:
         # Weights for inlier scoring
         qweights = scoring.get_annot_kpts_baseline_weights(
@@ -1532,7 +1546,7 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
         >>> cm.set_cannonical_annot_score(cm.get_num_matches_list())
         >>> cm.sortself()
         >>> fm_list = cm.fm_list
-        >>> kpts_list = qreq_.ibs.get_annot_kpts(cm.daid_list.tolist(), config2_=qreq_.get_external_data_config2())
+        >>> kpts_list = qreq_.ibs.get_annot_kpts(cm.daid_list.tolist(), config2_=qreq_.extern_data_config2)
         >>> topx2_dlen_sqrd = compute_matching_dlen_extent(qreq_, fm_list, kpts_list)
         >>> ut.assert_inbounds(np.sqrt(topx2_dlen_sqrd)[0:5], 600, 1500)
 

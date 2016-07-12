@@ -82,7 +82,7 @@ def compute_csum_score(cm, qreq_=None):
         >>> from ibeis.algo.hots.scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
         >>> cm = cm_list[0]
-        >>> cm.evaluate_dnids(qreq_.ibs)
+        >>> cm.evaluate_dnids(qreq_)
         >>> cm.qnid = 1   # Hack for testdb1 names
         >>> gt_flags = cm.get_groundtruth_flags()
         >>> annot_score_list = compute_csum_score(cm)
@@ -186,13 +186,6 @@ def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, sco
     for cm in cm_list:
         assert cm.score_list is not None, 'score list must be computed'
         assert cm.annot_score_list is not None, 'annot_score_list must be computed'
-        #nscore_tup = name_scoring.group_scores_by_name(qreq_.ibs, cm.daid_list, cm.score_list)
-        #(sorted_nids, sorted_nscore, sorted_aids, sorted_scores) = nscore_tup
-        # Clip number of names
-        #_top_aids_list  = ut.listclip(sorted_aids, nNameShortList)
-        # Clip number of annots per name
-        #_top_clipped_aids_list = [ut.listclip(aids, nAnnotPerName) for aids in _top_aids_list]
-        #top_aids = ut.flatten(_top_clipped_aids_list)
         if score_method == 'nsum':
             top_aids = cm.get_name_shortlist_aids(nNameShortList, nAnnotPerName)
         elif score_method == 'csum':
@@ -337,7 +330,7 @@ def compute_name_coverage_score(qreq_, cm, config={}):
         >>> # (IMPORTANT)
         >>> from ibeis.algo.hots.scoring import *  # NOQA
         >>> qreq_, cm = plh.testdata_scoring()
-        >>> cm.evaluate_dnids(qreq_.ibs)
+        >>> cm.evaluate_dnids(qreq_)
         >>> config = qreq_.qparams
         >>> dnid_list, score_list = compute_name_coverage_score(qreq_, cm, config)
         >>> ut.assert_inbounds(np.array(score_list), 0, 1, eq=True)
@@ -444,10 +437,10 @@ def general_coverage_mask_generator(make_mask_func, qreq_, qaid, id_list, fm_lis
         print('[acov] make_mask_func = %r' % (make_mask_func,))
         print('[acov] cov_cfg = %s' % (ut.dict_str(cov_cfg),))
     # Distinctivness and foreground weight
-    qweights = get_annot_kpts_baseline_weights(qreq_.ibs, [qaid], config2_=qreq_.get_external_query_config2(), config=config)[0]
+    qweights = get_annot_kpts_baseline_weights(qreq_.ibs, [qaid], config2_=qreq_.extern_query_config2, config=config)[0]
     # Denominator weight mask
-    chipsize    = qreq_.ibs.get_annot_chip_sizes(qaid, config2_=qreq_.get_external_query_config2())
-    qkpts       = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_external_query_config2())
+    chipsize    = qreq_.ibs.get_annot_chip_sizes(qaid, config2_=qreq_.extern_query_config2)
+    qkpts       = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.extern_query_config2)
     weight_mask = make_mask_func(qkpts, chipsize, qweights, resize=False, **cov_cfg)
     # Prealloc data for loop
     weight_mask_m = weight_mask.copy()
@@ -592,10 +585,10 @@ def show_annot_weights(qreq_, aid, config={}):
     """
     #import plottool as pt
     fnum = 1
-    chipsize = qreq_.ibs.get_annot_chip_sizes(aid, config2_=qreq_.get_external_query_config2())
-    chip  = qreq_.ibs.get_annot_chips(aid, config2_=qreq_.get_external_query_config2())
-    qkpts = qreq_.ibs.get_annot_kpts(aid, config2_=qreq_.get_external_query_config2())
-    weights = get_annot_kpts_baseline_weights(qreq_.ibs, [aid], config2_=qreq_.get_external_query_config2(), config=config)[0]
+    chipsize = qreq_.ibs.get_annot_chip_sizes(aid, config2_=qreq_.extern_query_config2)
+    chip  = qreq_.ibs.get_annot_chips(aid, config2_=qreq_.extern_query_config2)
+    qkpts = qreq_.ibs.get_annot_kpts(aid, config2_=qreq_.extern_query_config2)
+    weights = get_annot_kpts_baseline_weights(qreq_.ibs, [aid], config2_=qreq_.extern_query_config2, config=config)[0]
     make_mask_func, cov_cfg = get_mask_func(config)
     mask = make_mask_func(qkpts, chipsize, weights, resize=True, **cov_cfg)
     coverage_kpts.show_coverage_map(chip, mask, None, qkpts, fnum, ell_alpha=.2, show_mask_kpts=False)

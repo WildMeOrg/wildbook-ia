@@ -376,8 +376,8 @@ class MultiNeighborIndex(object):
 
         Ignore:
             qreq_vsmany_ = ut.search_stack_for_localvar('qreq_vsmany_')
-            qreq_vsmany_.get_external_daids()
-            qreq_vsmany_.get_external_qaids()
+            qreq_vsmany_.daids
+            qreq_vsmany_.qaids
             qreq_vsmany_.ibs.get_annot_exemplar_flags(new_aid_list)
         """
         indexed_aids_list = mxer.get_multi_indexed_aids()

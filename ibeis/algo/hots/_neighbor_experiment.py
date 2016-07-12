@@ -390,7 +390,6 @@ def test_incremental_add(ibs):
     nnindexer2 = neighbor_index_cache.request_ibeis_nnindexer(ibs.new_query_request(aids2, aids2))  # NOQA
 
     # TODO: SYSTEM use visual uuids
-    #daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()
     items = ibs.get_annot_visual_uuids(aids3)
     uuid_map_fpath = neighbor_index_cache.get_nnindexer_uuid_map_fpath(qreq_)
     candidate_uuids = neighbor_index_cache.read_uuid_map(uuid_map_fpath, 0)
@@ -405,7 +404,6 @@ def test_incremental_add(ibs):
     nnindexer3 = neighbor_index_cache.request_ibeis_nnindexer(ibs.new_query_request(uncovered_aids, uncovered_aids))  # NOQA
 
     # TODO: SYSTEM use visual uuids
-    #daids_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(daid_list)  # get_internal_data_hashid()
     items = ibs.get_annot_visual_uuids(sample_aids)
     uuid_map_fpath = neighbor_index_cache.get_nnindexer_uuid_map_fpath(qreq_)
     #contextlib.closing(shelve.open(uuid_map_fpath)) as uuid_map:

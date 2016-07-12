@@ -675,7 +675,7 @@ class _ChipMatchScorers(object):
     @profile
     def evaluate_nsum_score(cm, qreq_):
         """ Calls name scoring logic """
-        cm.evaluate_dnids(qreq_.ibs)
+        cm.evaluate_dnids(qreq_)
         nsum_nid_list, nsum_score_list = name_scoring.compute_nsum_score(cm, qreq_=qreq_)
         assert np.all(cm.unique_nids == nsum_nid_list), 'name score not in alignment'
 
@@ -718,7 +718,7 @@ class _ChipMatchScorers(object):
 
     @profile
     def score_maxcsum(cm, qreq_):
-        cm.evaluate_dnids(qreq_.ibs)
+        cm.evaluate_dnids(qreq_)
         cm.score_csum(qreq_)
         cm.maxcsum_score_list = np.array([
             scores.max()
@@ -788,7 +788,7 @@ class _ChipMatchScorers(object):
 
     @profile
     def evaluate_ncov_score(cm, qreq_):
-        cm.evaluate_dnids(qreq_.ibs)
+        cm.evaluate_dnids(qreq_)
         ncov_nid_list, ncov_score_list = scoring.compute_name_coverage_score(
             qreq_, cm, qreq_.qparams)
         assert np.all(cm.unique_nids == ncov_nid_list)
@@ -1057,9 +1057,18 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
         inverse_idx_list = nidx_list.argsort()
         cm.name_groupxs = ut.take(name_groupxs_, inverse_idx_list)
 
-    def evaluate_dnids(cm, ibs):
-        cm.qnid = ibs.get_annot_name_rowids(cm.qaid)
-        dnid_list = ibs.get_annot_name_rowids(cm.daid_list)
+    def evaluate_dnids(cm, qreq_=None, ibs=None):
+        if qreq_ is not None:
+            #cm.qnid = qreq_.qannots.lookup([cm.qaid]).nids[0]
+            #dnid_list = qreq_.dannots.lookup(cm.daid_list).nids
+            cm.qnid = qreq_.get_qreq_annot_nids(cm.qaid)
+            dnid_list = qreq_.get_qreq_annot_nids(cm.daid_list)
+            #ibs = qreq_.ibs
+        elif ibs is not None:
+            cm.qnid = ibs.get_annot_name_rowids(cm.qaid)
+            dnid_list = ibs.get_annot_name_rowids(cm.daid_list)
+        else:
+            assert False, 'no source of dnids'
         cm.dnid_list = np.array(dnid_list, dtype=hstypes.INDEX_TYPE)
         cm._update_unique_nid_index()
 
@@ -2580,16 +2589,16 @@ class ChipMatch(_ChipMatchVisualization,
                 if strict or qreq_.indexer is not None:
                     nExternalQVecs = qreq_.ibs.get_annot_vecs(
                         external_qaids[0],
-                        config2_=qreq_.get_external_query_config2()).shape[0]
+                        config2_=qreq_.extern_query_config2).shape[0]
                     assert qreq_.indexer.idx2_vec.shape[0] == nExternalQVecs, (
                         'did not index query descriptors properly')
                 testlog.log_passed('vsone daids are ok are ok')
 
             nFeats1 = qreq_.ibs.get_annot_num_feats(
-                cm.qaid, config2_=qreq_.get_external_query_config2())
+                cm.qaid, config2_=qreq_.extern_query_config2)
             nFeats2_list = np.array(
                 qreq_.ibs.get_annot_num_feats(
-                    cm.daid_list, config2_=qreq_.get_external_data_config2()))
+                    cm.daid_list, config2_=qreq_.extern_data_config2))
             if False:
                 # This does not need to be the case especially if the daid_list
                 # was exteneded

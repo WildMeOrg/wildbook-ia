@@ -85,21 +85,21 @@
                 DUMP_QANNOT         = DUMP_EXTRA
                 if DUMP_QANNOT:
                     _show_chip(qres.qaid, 'QUERY_', config2_=qreq_.qparams, **dumpkw)
-                    _show_chip(qres.qaid, 'QUERY_CXT_', in_image=True, config2_=qreq_.get_external_query_config2(), **dumpkw)
+                    _show_chip(qres.qaid, 'QUERY_CXT_', in_image=True, config2_=qreq_.extern_query_config2, **dumpkw)
 
                 DUMP_QANNOT_DUMP_GT = DUMP_EXTRA
                 if DUMP_QANNOT_DUMP_GT:
                     gtaids = ibs.get_annot_groundtruth(qres.qaid)
                     for aid in gtaids:
                         rank = qres.get_aid_ranks(aid)
-                        _show_chip(aid, 'GT_CXT_', rank=rank, in_image=True, config2_=qreq_.get_external_data_config2(), **dumpkw)
+                        _show_chip(aid, 'GT_CXT_', rank=rank, in_image=True, config2_=qreq_.extern_data_config2, **dumpkw)
 
                 DUMP_TOP_CONTEXT    = DUMP_EXTRA
                 if DUMP_TOP_CONTEXT:
                     topids = qres.get_top_aids(num=3)
                     for aid in topids:
                         rank = qres.get_aid_ranks(aid)
-                        _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, config2_=qreq_.get_external_data_config2(), **dumpkw)
+                        _show_chip(aid, 'TOP_CXT_', rank=rank, in_image=True, config2_=qreq_.extern_data_config2, **dumpkw)
             flush_copy_tasks()
         flush_copy_tasks()
         # </FOR RCITER>

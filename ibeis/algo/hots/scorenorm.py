@@ -538,6 +538,7 @@ def get_topannot_training_idxs(cm, num=2):
         >>> (tp_idxs, tn_idxs) = get_topannot_training_idxs(cm, num)
         >>> result = ('(tp_idxs, tn_idxs) = %s' % (ut.repr2((tp_idxs, tn_idxs), nl=1),))
         >>> print(result)
+
         (tp_idxs, tn_idxs) = (
             np.array([0, 1], dtype=np.int64),
             np.array([3, 4], dtype=np.int64),
@@ -593,6 +594,7 @@ def get_topname_training_idxs(cm, num=5):
         >>> (tp_idxs, tn_idxs) = get_topname_training_idxs(cm, num)
         >>> result = ('(tp_idxs, tn_idxs) = %s' % (ut.repr2((tp_idxs, tn_idxs), nl=1),))
         >>> print(result)
+
         (tp_idxs, tn_idxs) = (
             np.array([0, 1, 2, 3], dtype=np.int64),
             [4, 5, 6, 7],

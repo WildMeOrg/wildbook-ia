@@ -402,7 +402,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
                     #viz_matches.show_matches(ibs, cm, aid, qreq_=qreq_, **_kwshow)
             else:
                 # Draw each match by themselves
-                data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
+                data_config2_ = None if qreq_ is None else qreq_.extern_data_config2
                 #_kwshow['draw_border'] = kwargs.get('draw_border', True)
                 #_kwshow['notitle'] = ut.get_argflag(('--no-title', '--notitle'))
                 viz_chip.show_chip(ibs, aid, annote=False, notitle=True,
@@ -413,7 +413,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         if aid_list is None:
             return
         # Do lazy load before show
-        #data_config2_ = None if qreq_ is None else qreq_.get_external_data_config2()
+        #data_config2_ = None if qreq_ is None else qreq_.extern_data_config2
 
         tblhack = getattr(qreq_, 'tablename', None)
         # HACK FOR HUMPBACKS

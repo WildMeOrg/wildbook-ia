@@ -136,7 +136,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
         >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> # Check that config2 actually gets you different vectors in the cache
         >>> qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict={'affine_invariance': False})
-        >>> config2_ = qreq_.get_external_query_config2()
+        >>> config2_ = qreq_.extern_query_config2
         >>> kpts_list1 = ibs.get_annot_kpts(aid_list, config2_=None)
         >>> kpts_list2 = ibs.get_annot_kpts(aid_list, config2_=config2_)
         >>> kp1 = kpts_list1[0][0:1]

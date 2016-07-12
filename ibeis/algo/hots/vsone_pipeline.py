@@ -263,8 +263,8 @@ def unsupervised_similarity(ibs, aids):
     # qreq_ = ibs.new_query_request(aids, aids, cfgdict=dict())
     qreq_ = ibs.new_query_request(aids, aids, cfgdict=dict(affine_invariance=True, augment_queryside_hack=True))
 
-    qconfig2_ = qreq_.get_external_query_config2()
-    dconfig2_ = qreq_.get_external_query_config2()
+    qconfig2_ = qreq_.extern_query_config2
+    dconfig2_ = qreq_.extern_query_config2
     qaid, daid = aids[2:4]
 
     # [0:8]
@@ -493,8 +493,8 @@ def vsone_single(qaid, daid, qreq_, use_ibscache=False, verbose=None):
         >>> ut.show_if_requested()
     """
     ibs = qreq_.ibs
-    qconfig2_ = qreq_.get_external_query_config2()
-    dconfig2_ = qreq_.get_external_query_config2()
+    qconfig2_ = qreq_.extern_query_config2
+    dconfig2_ = qreq_.extern_query_config2
     return vsone_single2(ibs, qaid, daid, qconfig2_, dconfig2_, use_ibscache, verbose)
 
 
@@ -545,7 +545,7 @@ def vsone_name_independant_hack(ibs, nids, qreq_=None):
         aid2 = aids[idx2]
         #vsone_independant_pair_hack(ibs, aid1, aid2, qreq_)
         cfgdict = dict(codename='vsone', fg_on=False)
-        cfgdict.update(**qreq_.get_external_data_config2().hesaff_params)
+        cfgdict.update(**qreq_.extern_data_config2.hesaff_params)
         vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
         cm_vsone = ibs.query_chips(qreq_=vsone_qreq_)[0]
         cm_vsone = cm_vsone.extend_results(vsone_qreq_)
@@ -603,7 +603,7 @@ def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
     cfgdict = dict(codename='vsone', fg_on=False)
     # FIXME: update this cfgdict a little better
     if qreq_ is not None:
-        cfgdict.update(**qreq_.get_external_data_config2().hesaff_params)
+        cfgdict.update(**qreq_.extern_data_config2.hesaff_params)
     vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
     cm_vsone = ibs.query_chips(qreq_=vsone_qreq_)[0]
     cm_vsone = cm_vsone.extend_results(vsone_qreq_)
@@ -699,8 +699,8 @@ def marge_matches_lists(fmfs_A, fmfs_B):
 
 
 def get_selectivity_score_list(qreq_, qaid, daid_list, fm_list, cos_power):
-    vecs1 = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.get_external_query_config2())
-    vecs2_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.get_external_data_config2())
+    vecs1 = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.extern_query_config2)
+    vecs2_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.extern_data_config2)
     vecs1_m_iter = (vecs1.take(fm.T[0], axis=0) for fm in fm_list)
     vecs2_m_iter = (vecs2.take(fm.T[1], axis=0) for fm, vecs2 in zip(fm_list, vecs2_list))
     # Rescore constrained using selectivity function
@@ -722,10 +722,10 @@ def sver_fmfs_merge(qreq_, qaid, daid_list, fmfs_merge, config={}):
     # input data
     fm_list, fs_list = fmfs_merge
     fsv_list   = matching.ensure_fsv_list(fs_list)
-    kpts1      = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_external_query_config2())
-    kpts2_list = qreq_.ibs.get_annot_kpts(daid_list, config2_=qreq_.get_external_data_config2())
+    kpts1      = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.extern_query_config2)
+    kpts2_list = qreq_.ibs.get_annot_kpts(daid_list, config2_=qreq_.extern_data_config2)
     chip2_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(
-        daid_list, config2_=qreq_.get_external_data_config2())
+        daid_list, config2_=qreq_.extern_data_config2)
     # chip diagonal length
     res_list = []
     # homog_inliers
@@ -913,10 +913,10 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
         # Apply score weights
         data_baseline_weight_list = scoring.get_annot_kpts_baseline_weights(
             qreq_.ibs, unscored_cm.daid_list,
-            config2_=qreq_.get_external_data_config2(), config=config)
+            config2_=qreq_.extern_data_config2, config=config)
         query_baseline_weight = scoring.get_annot_kpts_baseline_weights(
             qreq_.ibs, [unscored_cm.qaid],
-            config2_=qreq_.get_external_query_config2(), config=config)[0]
+            config2_=qreq_.extern_query_config2, config=config)[0]
         qfx_list = [fm.T[0] for fm in unscored_cm.fm_list]
         dfx_list = [fm.T[1] for fm in unscored_cm.fm_list]
 
@@ -981,8 +981,8 @@ def compute_query_unconstrained_matches(qreq_, qaid, daid_list, config):
     """
     unc_ratio_thresh = config['unc_ratio_thresh']
     #, .625)
-    qvecs = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.get_external_query_config2())
-    dvecs_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.get_external_data_config2())
+    qvecs = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.extern_query_config2)
+    dvecs_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.extern_data_config2)
     #print(len(qvecs))
     flann = quick_vsone_flann(qreq_.ibs.get_flann_cachedir(), qvecs)
     rat_kwargs = {
@@ -1039,12 +1039,12 @@ def compute_query_constrained_matches(qreq_, qaid, daid_list, H_list, config):
     scr_norm_xy_min      = config.get('scr_norm_xy_min', 0.1)
     scr_norm_xy_max      = config.get('scr_norm_xy_max', 1.0)
     scr_norm_xy_bounds = (scr_norm_xy_min, scr_norm_xy_max)
-    vecs1 = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.get_external_query_config2())
-    kpts1 = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.get_external_query_config2())
-    vecs2_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.get_external_data_config2())
-    kpts2_list = qreq_.ibs.get_annot_kpts(daid_list, config2_=qreq_.get_external_data_config2())
+    vecs1 = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.extern_query_config2)
+    kpts1 = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.extern_query_config2)
+    vecs2_list = qreq_.ibs.get_annot_vecs(daid_list, config2_=qreq_.extern_data_config2)
+    kpts2_list = qreq_.ibs.get_annot_kpts(daid_list, config2_=qreq_.extern_data_config2)
     chip2_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(
-        daid_list, config2_=qreq_.get_external_data_config2())  # chip diagonal length
+        daid_list, config2_=qreq_.extern_data_config2)  # chip diagonal length
     # build flann for query vectors
     flann = quick_vsone_flann(qreq_.ibs.get_flann_cachedir(), vecs1)
     # match database chips to query chip
