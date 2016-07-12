@@ -5783,7 +5783,7 @@ def compute_ggr_imagesets(ibs, gid_list=None):
         found = False
         for zone in sorted(path_dict.keys()):
             path = path_dict[zone]
-            if path.contrains_point(point):
+            if path.contains_point(point):
                 found = True
                 imageset_dict[zone].append(gid)
                 break
