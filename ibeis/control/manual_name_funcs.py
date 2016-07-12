@@ -1355,7 +1355,7 @@ def get_name_max_speed(ibs, nid_list):
         >>> from ibeis.control.manual_name_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> nid_list = ibs._get_all_known_nids())
+        >>> nid_list = ibs._get_all_known_nids()
         >>> maxspeed_list = ibs.get_name_max_speed(nid_list)
         >>> result = maxspeed_list
         >>> print(maxspeed_list)

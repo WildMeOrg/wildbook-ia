@@ -1307,10 +1307,10 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix='', pathsafe=False):
         >>> result += ('semantic_uuid_hashid = %s' % (str(semantic_uuid_hashid),))
         >>> print(result)
         [
-            UUID('bf774bf3-582d-dbce-6ca6-329adeb086a6'),
-            UUID('60f10a02-1bd1-c2b4-75bb-a34c0a4b6867'),
+            UUID('0a41bee7-1760-0995-c220-f4b5ddf189ba'),
+            UUID('8150d84c-2ec3-c9ff-3e0f-30a8274a2392'),
         ]
-        semantic_uuid_hashid = _SUUIDS((2)biovwevqycuemoik)
+        semantic_uuid_hashid = _SUUIDS((2)gqxovcbwzimfzovy)
     """
     semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
     label = ''.join(('_', prefix, 'SUUIDS'))

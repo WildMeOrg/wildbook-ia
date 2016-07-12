@@ -78,7 +78,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
-        PZ_MTEST_DSUUIDS((5)tfjaqcfcqithqemu)
+        PZ_MTEST_DSUUIDS((5)dzxhkrbpwgaxkvid)
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -114,7 +114,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
-        PZ_MTEST_DSUUIDS((5)tfjaqcfcqithqemu)
+        PZ_MTEST_DSUUIDS((5)dzxhkrbpwgaxkvid)
 
     Ignore:
         # This is supposed to be the beginings of the code to transition the
@@ -337,6 +337,8 @@ class QueryRequest(object):
         state_dict = qreq_.__dict__.copy()
         state_dict['dbdir'] = qreq_.ibs.get_dbdir()
         state_dict['ibs'] = None
+        state_dict['internal_dannots'] = None
+        state_dict['internal_qannots'] = None
         state_dict['prog_hook'] = None
         state_dict['indexer'] = None
         state_dict['normalizer'] = None
@@ -442,7 +444,7 @@ class QueryRequest(object):
             >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import ibeis
             >>> qreq_, ibs = testdata_qreq()
-            >>> qreq2_ = qreq_.shallowcopy(qaid=1)
+            >>> qreq2_ = qreq_.shallowcopy(qaids=1)
             >>> assert qreq_.get_external_daids() is qreq2_.get_external_daids()
             >>> assert len(qreq_.get_external_qaids()) != len(qreq2_.get_external_qaids())
             >>> #assert qreq_.metadata is not qreq2_.metadata

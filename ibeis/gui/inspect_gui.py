@@ -1249,7 +1249,7 @@ def make_qres_api(ibs, cm_list, review_cfg, qreq_=None):
         >>> name_scoring = False
         >>> ranks_lt = 5
         >>> review_cfg = dict(ranks_lt=ranks_lt, name_scoring=name_scoring)
-        >>> qres_api = make_qres_api(qreq_.ibs, cm_list, ranks_lt, name_scoring, qreq_=qreq_)
+        >>> qres_api = make_qres_api(qreq_.ibs, cm_list, review_cfg, qreq_=qreq_)
         >>> print('qres_api = %r' % (qres_api,))
     """
     # TODO: Add in timedelta to column info

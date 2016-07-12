@@ -574,9 +574,9 @@ def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
         >>> aid_list1 = [aid for aid, gt_aids in zip(aid_list, gt_aids_list) if len(gt_aids) > 0][0:5]
         >>> aid_list2 = [gt_aids[0] for gt_aids in gt_aids_list if len(gt_aids) > 0][0:5]
         >>> timedelta_list = ibs.get_annot_pair_timdelta(aid_list1, aid_list2)
-        >>> result = ut.numpy_str(timedelta_list, precision=2)
+        >>> result = ut.repr2(timedelta_list, precision=2)
         >>> print(result)
-        np.array([  7.57e+07,   7.57e+07,   2.41e+06,   1.98e+08,   7.57e+07], dtype=np.float64)
+        np.array([  7.57e+07,   7.57e+07,   2.41e+06,   1.98e+08,   9.69e+07])
 
     """
     #unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)

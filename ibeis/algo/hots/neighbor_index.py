@@ -369,7 +369,7 @@ class NeighborIndex(object):
             >>> (qfx2_idx1, qfx2_dist1) = nnindexer.knn(qfx2_vec, K)
             >>> new_vecs_list, new_fgws_list, new_fxs_list = get_support_data(qreq_, new_daid_list)
             >>> # execute test function
-            >>> nnindexer.add_support(new_daid_list, new_vecs_list, new_fgws_list)
+            >>> nnindexer.add_support(new_daid_list, new_vecs_list, new_fgws_list, new_fxs_list)
             >>> # test before data vs after data
             >>> (qfx2_idx2, qfx2_dist2) = nnindexer.knn(qfx2_vec, K)
             >>> assert qfx2_idx2.max() > qfx2_idx1.max()
@@ -381,7 +381,7 @@ class NeighborIndex(object):
         new_ax_list = np.arange(nAnnots, nAnnots + nNewAnnots)
         tup = invert_index(new_vecs_list, new_fgws_list, new_ax_list, new_fxs_list,
                            verbose=verbose)
-        new_idx2_vec, new_idx2_ax, new_idx2_fx = tup
+        new_idx2_vec, new_idx2_fgw, new_idx2_ax, new_idx2_fx = tup
         nNewVecs = len(new_idx2_vec)
         if verbose or ut.VERYVERBOSE:
             print(('[nnindex] Adding %d vecs from %d annots to nnindex '

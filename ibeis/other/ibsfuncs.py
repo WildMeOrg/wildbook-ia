@@ -3126,11 +3126,11 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         >>> dry_run = True
         >>> verbose = False
         >>> old_sum = sum(ibs.get_annot_exemplar_flags(ibs.get_valid_aids()))
-        >>> new_aid_list, new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(dry_run=dry_run)
+        >>> new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(dry_run=dry_run)
         >>> new_sum = sum(new_flag_list)
         >>> print('old_sum = %r' % (old_sum,))
         >>> print('new_sum = %r' % (new_sum,))
-        >>> zero_aid_list, zero_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(exemplars_per_view=0, dry_run=dry_run)
+        >>> zero_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(exemplars_per_view=0, dry_run=dry_run)
         >>> assert sum(zero_flag_list) == 0
         >>> result = new_sum
 
@@ -3142,10 +3142,9 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         >>> dry_run = True
         >>> verbose = False
         >>> old_sum = sum(ibs.get_annot_exemplar_flags(ibs.get_valid_aids()))
-        >>> new_aid_list, new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(dry_run=dry_run)
-        >>> assert len(new_aid_list) == len(new_flag_list)
+        >>> new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(dry_run=dry_run)
         >>> # 2 of the 11 annots are unknown and should not be exemplars
-        >>> ut.assert_eq(len(new_aid_list), 9)
+        >>> ut.assert_eq(sum(new_flag_list), 9)
 
     Example2:
         >>> # DISABLE_DOCTEST
@@ -3155,9 +3154,10 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         >>> dry_run = True
         >>> verbose = False
         >>> imgsetid = None
-        >>> new_aid_list, new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(dry_run=dry_run)
-        >>> old_flag_list = ibs.get_annot_exemplar_flags(new_aid_list)
-        >>> new_exemplar_aids = ut.compress(new_aid_list, new_flag_list)
+        >>> aid_list = ibs.get_valid_aids(imgsetid=imgsetid)
+        >>> new_flag_list = ibs.set_exemplars_from_quality_and_viewpoint(aid_list, dry_run=dry_run)
+        >>> old_flag_list = ibs.get_annot_exemplar_flags(aid_list)
+        >>> new_exemplar_aids = ut.compress(aid_list, new_flag_list)
         >>> new_exemplar_qualtexts = ibs.get_annot_quality_texts(new_exemplar_aids)
         >>> assert 'junk' not in new_exemplar_qualtexts, 'should not have junk exemplars'
         >>> assert 'poor' not in new_exemplar_qualtexts, 'should not have poor exemplars'
