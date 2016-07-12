@@ -5736,29 +5736,29 @@ def compute_ggr_imagesets(ibs, gid_list=None):
     from matplotlib.path import Path
 
     point_dict = {
-        1  : [-0.171510, 36.133787],
-        2  : [-0.171510, 37.165353],
-        3  : [-0.171510, 38.566150],
+        1  : [-0.829843, 35.732721],
+        2  : [-0.829843, 37.165353],
+        3  : [-0.829843, 38.566150],
         4  : [ 0.405015, 37.165353],
         5  : [ 0.405015, 38.566150],
-        6  : [ 1.292767, 36.133787],
+        6  : [ 1.292767, 35.732721],
         7  : [ 1.292767, 36.701444],
         8  : [ 1.292767, 37.029463],
         9  : [ 1.292767, 37.415937],
         10 : [ 1.292767, 38.566150],
-        11 : [ 2.199409, 36.133787],
-        12 : [ 2.199409, 37.029463],
-        13 : [ 2.199409, 37.415937],
-        14 : [ 2.199409, 38.566150],
+        11 : [ 2.641838, 35.732721],
+        12 : [ 2.641838, 37.029463],
+        13 : [ 2.641838, 37.415937],
+        14 : [ 2.641838, 38.566150],
     }
 
     zone_dict = {
-        1 : [1, 2, 4, 6, 7],
-        2 : [2, 3, 4, 5],
-        3 : [4, 5, 7, 10],
-        4 : [6, 8, 11, 12],
-        5 : [8, 9, 12, 13],
-        6 : [9, 10, 13, 14],
+        1 : [1, 2, 4, 7, 6],
+        2 : [2, 3, 5, 4],
+        3 : [4, 5, 10, 7],
+        4 : [6, 8, 12, 11],
+        5 : [8, 9, 13, 12],
+        6 : [9, 10, 14, 13],
     }
 
     zone_list = sorted(zone_dict.keys()) + [7]
@@ -5791,7 +5791,7 @@ def compute_ggr_imagesets(ibs, gid_list=None):
             imageset_dict[7].append(gid)
 
     for zone, gid_list in imageset_dict.iteritems():
-        imageset_str = 'GGR Special Zone %d' % (zone, )
+        imageset_str = 'GGR Special Zone %s' % (zone, )
         imageset_id = ibs.add_imagesets(imageset_str)
         args = (imageset_str, imageset_id, len(gid_list), )
         print('Creating new GGR imageset: %r (ID %d) with %d images' % args)
