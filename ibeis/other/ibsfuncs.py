@@ -5800,6 +5800,7 @@ def compute_ggr_imagesets(ibs, gid_list=None):
     print('SKIPPED %d IMAGES' % (skipped, ))
 
 
+@register_ibs_method
 def compute_ggr_fix_gps(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 hours
     # Get all aids
     aid_list = ibs.get_valid_aids()
@@ -5822,7 +5823,7 @@ def compute_ggr_fix_gps(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 h
         nid = ibs.get_annot_name_rowids(aid)
         # Get other sightings
         aid_list_ = ibs.get_name_aids(nid)
-        aid_list_.rempve(aid)
+        aid_list_.remove(aid)
         unixtime_list = ibs.get_annot_image_unixtimes(aid_list_)
         gps_list = ibs.get_annot_image_gps(aid_list_)
         # Find closest
