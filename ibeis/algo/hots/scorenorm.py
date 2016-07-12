@@ -594,8 +594,8 @@ def get_topname_training_idxs(cm, num=5):
         >>> result = ('(tp_idxs, tn_idxs) = %s' % (ut.repr2((tp_idxs, tn_idxs), nl=1),))
         >>> print(result)
         (tp_idxs, tn_idxs) = (
-            np.array([0, 1, 2], dtype=np.int64),
-            [3, 4, 5, 6],
+            np.array([0, 1, 2, 3], dtype=np.int64),
+            [4, 5, 6, 7],
         )
     """
     if num is None:

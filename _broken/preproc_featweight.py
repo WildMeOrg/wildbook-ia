@@ -24,7 +24,7 @@ def test_featweight_worker():
     ibs = qreq_.ibs
     config2_ = qreq_.qparams
     lazy = True
-    aid_list            = qreq_.get_external_qaids()
+    aid_list            = qreq_.qaids
     #aid_list = ibs.get_valid_aids()[0:30]
     kpts_list           = ibs.get_annot_kpts(aid_list)
     chipsize_list       = ibs.get_annot_chip_sizes(aid_list, config2_=config2_)

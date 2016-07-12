@@ -41,7 +41,7 @@ def execute_query(ibs, qreq_, verbose, save_qcache):
 @profile
 def execute_nonvsone_query(ibs, qreq_, verbose, save_qcache):
     # execute non-vsone queries
-    all_qaids = qreq_.get_external_qaids()
+    all_qaids = qreq_.qaids
 
     chunksize = 64
     if len(all_qaids) <= chunksize:
@@ -77,7 +77,7 @@ def execute_nonvsone_query(ibs, qreq_, verbose, save_qcache):
 
 
 def execute_vsone_query(ibs, qreq_, verbose, save_qcache):
-    qaid_list = qreq_.get_external_qaids()
+    qaid_list = qreq_.qaids
     qaid2_qres = {}
     chunksize = 4
     qres_gen = generate_vsone_qreqs(ibs, qreq_, qaid_list, chunksize,

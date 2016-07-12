@@ -32,7 +32,7 @@ def name_scoring_dense_old(nns_list, nnvalid0_list, qreq_):
         >>> # Test Function Call
         >>> dupvote_weight_list = name_scoring_dense_old(nns_list, nnvalid0_list, qreq_)
         >>> # Check consistency
-        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> qaid = qreq_.qaids[0]
         >>> qfx2_dupvote_weight = dupvote_weight_list[0]
         >>> flags = qfx2_dupvote_weight  > .5
         >>> qfx2_topnid = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(nns_list[0][0]))
@@ -105,7 +105,7 @@ def dupvote_match_weighter(nns_list, nnvalid0_list, qreq_):
         >>> dupvote_weight_list = nn_weights.dupvote_match_weighter(nns_list, nnvalid0_list, qreq_)
         >>> print(ut.numpy_str(dupvote_weight_list[0], precision=1))
         >>> # Check consistency
-        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> qaid = qreq_.qaids[0]
         >>> qfx2_dupvote_weight = dupvote_weight_list[0]
         >>> flags = qfx2_dupvote_weight  > .5
         >>> qfx2_topnid = ibs.get_annot_name_rowids(qreq_.indexer.get_nn_aids(nns_list[0][0]))
@@ -134,7 +134,7 @@ def baseline_neighbor_filter(qreq_, nns_list, verbose=VERB_PIPELINE):
         >>> from ibeis.model.hots.pipeline import *   # NOQA
         >>> qreq_, nns_list = plh.testdata_pre_baselinefilter(qaid_list=[1, 2, 3, 4], codename='vsmany')
         >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list)
-        >>> assert len(nnvalid0_list) == len(qreq_.get_external_qaids())
+        >>> assert len(nnvalid0_list) == len(qreq_.qaids)
         >>> assert qreq_.qparams.K == 4
         >>> assert nnvalid0_list[0].shape[1] == qreq_.qparams.K
         >>> assert not np.any(nnvalid0_list[0][:, 0]), (
@@ -148,7 +148,7 @@ def baseline_neighbor_filter(qreq_, nns_list, verbose=VERB_PIPELINE):
         >>> from ibeis.model.hots.pipeline import *   # NOQA
         >>> qreq_, nns_list = plh.testdata_pre_baselinefilter(codename='vsone')
         >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list)
-        >>> assert len(nnvalid0_list) == len(qreq_.get_external_daids())
+        >>> assert len(nnvalid0_list) == len(qreq_.daids)
         >>> assert qreq_.qparams.K == 1
         >>> assert nnvalid0_list[0].shape[1] == qreq_.qparams.K
         >>> ut.assert_eq(nnvalid0_list[0].sum(), 0, 'no self matches')

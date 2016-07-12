@@ -265,7 +265,7 @@ class DistinctivnessNormalizer(ut.Cachable):
             >>> # SLOW_DOCTEST
             >>> from ibeis.algo.hots.distinctiveness_normalizer import *  # NOQA
             >>> dstcnvs_normer, qreq_ = testdata_distinctiveness()
-            >>> qaid = qreq_.get_external_qaids()[0]
+            >>> qaid = qreq_.qaids[0]
             >>> qfx2_vec = qreq_.ibs.get_annot_vecs(qaid, config2_=qreq_.qparams)
             >>> default_dict = {'dcvs_power': .25, 'dcvs_K': 5, 'dcvs_max_clip': .5}
             >>> kwargs = ut.argparse_dict(default_dict)

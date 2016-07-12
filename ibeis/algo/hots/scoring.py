@@ -47,7 +47,7 @@ def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
         >>> # (IMPORTANT)
         >>> from ibeis.algo.hots.scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
-        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> qaid = qreq_.qaids[0]
         >>> cm = cm_list[0]
         >>> score_method = qreq_.qparams.score_method
         >>> score_chipmatch_list(qreq_, cm_list, score_method)
@@ -585,7 +585,7 @@ def show_annot_weights(qreq_, aid, config={}):
         >>> import ibeis
         >>> qreq_ = ibeis.testdata_qreq_()
         >>> ibs = qreq_.ibs
-        >>> aid = qreq_.get_external_qaids()[0]
+        >>> aid = qreq_.qaids[0]
         >>> config = qreq_.qparams
         >>> show_annot_weights(qreq_, aid, config)
         >>> pt.show_if_requested()

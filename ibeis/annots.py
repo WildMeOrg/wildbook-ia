@@ -10,10 +10,10 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 @register_ibs_method
-def annots(ibs, aids=None):
+def annots(ibs, aids=None, config=None):
     if aids is None:
         aids = ibs.get_valid_aids()
-    return Annots(aids, ibs)
+    return Annots(aids, ibs, config)
 
 
 BASE_TYPE = type
@@ -24,8 +24,9 @@ class AnnotIBIESPropertyInjector(BASE_TYPE):
         super(AnnotIBIESPropertyInjector, metaself).__init__(name, bases, dct)
         metaself.rrr = rrr
         attrs = [
-            # 'aid',
-            # 'parent_aid',
+            'aid',
+            'parent_aid',
+
             'uuids', 'hashid_uuid', 'visual_uuids', 'hashid_visual_uuid',
             'semantic_uuids', 'hashid_semantic_uuid', 'verts', 'thetas',
             'species_uuids', 'species', 'species_rowids', 'species_texts',

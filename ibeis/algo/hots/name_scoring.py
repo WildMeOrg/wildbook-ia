@@ -142,9 +142,9 @@ def compute_nsum_score(cm, qreq_=None):
         >>> ibs = qreq_.ibs
         >>> # Ensure there is only one aid per database name
         >>> assert isinstance(ibs, ibeis.control.IBEISControl.IBEISController)
-        >>> #stats_dict = ibs.get_annot_stats_dict(qreq_.get_external_daids(), prefix='d')
+        >>> #stats_dict = ibs.get_annot_stats_dict(qreq_.daids, prefix='d')
         >>> #stats = stats_dict['dper_name']
-        >>> stats = ibs.get_annot_per_name_stats(qreq_.get_external_daids())
+        >>> stats = ibs.get_annot_per_name_stats(qreq_.daids)
         >>> print('per_name_stats = %s' % (ut.dict_str(stats, nl=False),))
         >>> assert stats['mean'] == 1 and stats['std'] == 0, 'this test requires one annot per name in the database'
         >>> cm.evaluate_dnids(qreq_.ibs)

@@ -97,7 +97,7 @@ def score_chipmatch_nsum(qaid, chipmatch, qreq_):
         aids_list = qreq_.ibs.get_name_aids(nid_list, enable_unknown_fix=True)
         aid2_nscore = {}
         daids = np.intersect1d(list(six.iterkeys(aid2_csum)),
-                               qreq_.get_external_daids())
+                               qreq_.daids)
         for nid, nsum, aids in zip(nid_list, nsum_list, aids_list):
             aids_ = np.intersect1d(aids, daids)
             if len(aids_) == 1:

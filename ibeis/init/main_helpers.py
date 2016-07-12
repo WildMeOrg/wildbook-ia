@@ -123,7 +123,7 @@ def testdata_cm(defaultdb=None, default_qaids=None, t=None, p=None, a=None):
     cm_list, qreq_ = testdata_cmlist(defaultdb=defaultdb,
                                      default_qaids=default_qaids, t=t, p=p,
                                      a=a)
-    qaids = qreq_.get_external_qaids()
+    qaids = qreq_.qaids
     print('qaids = %r' % (qaids,))
     assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)
     cm = cm_list[0]

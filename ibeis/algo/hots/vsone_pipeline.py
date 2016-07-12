@@ -1162,7 +1162,7 @@ def gridsearch_single_vsone_rerank():
     import ibeis
     ibs, qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', p=p, a=['default:qsize=1,mingt=2'])
 
-    qaid_list = qreq_.get_external_qaids().tolist()
+    qaid_list = qreq_.qaids.tolist()
     qaid = qaid_list[0]
     daid_list = qreq_.ibs.get_annot_groundtruth(qaid)[0:1]
     #
@@ -1289,7 +1289,7 @@ def gridsearch_unconstrained_matches():
     # Get pipeline testdata for this configuration
     p = 'default' + ut.get_cfg_lbl(cfgdict_)
     ibs, qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', p=p, a=['default:qsize=1,mingt=2,dsize=1'])
-    qaid_list = qreq_.get_external_qaids().tolist()
+    qaid_list = qreq_.qaids.tolist()
     qaid = qaid_list[0]
     daid_list = qreq_.get_external_query_groundtruth(qaid)[0:1]
     #

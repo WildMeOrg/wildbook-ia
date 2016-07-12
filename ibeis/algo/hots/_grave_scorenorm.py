@@ -867,7 +867,7 @@ def cached_annotscore_normer(qreq_, use_cache=True, **learnkw):
     except Exception as ex:
         print('cannot load noramlizer so computing on instead')
         ut.printex(ex, iswarning=True)
-        #qaid_list = qreq_.get_external_qaids()
+        #qaid_list = qreq_.qaids
         normalizer = learn_ibeis_score_normalizer(qreq_, cfgstr,
                                                   prefix, **learnkw)
         normalizer.save(cachedir)

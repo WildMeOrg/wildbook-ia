@@ -6,8 +6,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 ut.noinject(__name__, '[ibeis.algo.hots.__init__]')
 
-from ibeis.algo.hots import automated_helpers
-from ibeis.algo.hots import automated_matcher
+#from ibeis.algo.hots import automated_helpers
+#from ibeis.algo.hots import automated_matcher
 from ibeis.algo.hots import exceptions
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import match_chips4
@@ -25,8 +25,8 @@ print, rrr, profile = ut.inject2(__name__, '[ibeis.algo.hots]')
 def reload_subs(verbose=True):
     """ Reloads ibeis.algo.hots and submodules """
     rrr(verbose=verbose)
-    getattr(automated_helpers, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(automated_matcher, 'rrr', lambda verbose: None)(verbose=verbose)
+    #getattr(automated_helpers, 'rrr', lambda verbose: None)(verbose=verbose)
+    #getattr(automated_matcher, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(exceptions, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(hstypes, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(match_chips4, 'rrr', lambda verbose: None)(verbose=verbose)
@@ -41,8 +41,8 @@ def reload_subs(verbose=True):
 rrrr = reload_subs
 
 IMPORT_TUPLES = [
-    ('automated_helpers', None),
-    ('automated_matcher', None),
+    #('automated_helpers', None),
+    #('automated_matcher', None),
     ('exceptions', None, False),
     ('hstypes', None, False),
     ('match_chips4', None, False),

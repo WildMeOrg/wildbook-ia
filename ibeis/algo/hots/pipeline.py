@@ -629,7 +629,7 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
         >>> import ibeis
         >>> qreq_, nns_list, impossible_daids_list = plh.testdata_pre_baselinefilter(qaid_list=[1, 2, 3, 4], codename='vsmany')
         >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list)
-        >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.get_external_qaids()))
+        >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.qaids))
         >>> #ut.assert_eq(nnvalid0_list[0].shape[1], qreq_.qparams.K, 'does not match k')
         >>> #ut.assert_eq(qreq_.qparams.K, 4, 'k is not 4')
         >>> assert not np.any(nnvalid0_list[0][:, 0]), (
@@ -644,7 +644,7 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
         >>> import ibeis
         >>> qreq_, nns_list, impossible_daids_list = plh.testdata_pre_baselinefilter(codename='vsone')
         >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list)
-        >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.get_external_daids()))
+        >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.daids))
         >>> ut.assert_eq(qreq_.qparams.K, 1, 'k is not 1')
         >>> ut.assert_eq(nnvalid0_list[0].shape[1], qreq_.qparams.K, 'does not match k')
         >>> ut.assert_eq(nnvalid0_list[0].sum(), 0, 'no self matches')
@@ -1025,8 +1025,8 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
     ]
     # Iterate over INTERNAL query annotation ids
     internal_qaids = qreq_.get_internal_qaids()
-    external_qaids = qreq_.get_external_qaids()
-    external_daids = qreq_.get_external_daids()
+    external_qaids = qreq_.qaids
+    external_daids = qreq_.daids
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
     intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL,
                                        prog_hook=prog_hook, **PROGKW)

@@ -67,7 +67,7 @@ def execute_smk_L5(qreq_):
         python dev.py -t smk_8k_compare --allgt --db PZ_Mothers --index 20:30 --view-hard
     """
     memtrack = ut.MemoryTracker('[SMK ENTRY]')
-    qaids = qreq_.get_external_qaids()
+    qaids = qreq_.qaids
     ibs   = qreq_.ibs
     # Params
     qparams = qreq_.qparams
@@ -103,7 +103,7 @@ def prepare_qreq(qreq_, annots_df, memtrack):
     else:
         # Load vocabulary
         qparams = qreq_.qparams
-        daids = qreq_.get_external_daids()
+        daids = qreq_.daids
         words = smk_index.learn_visual_words(annots_df, qreq_, memtrack=memtrack)
         memtrack.report('[SMK LEARN VWORDS]')
         # Index database annotations

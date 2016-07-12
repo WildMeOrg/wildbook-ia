@@ -41,7 +41,7 @@ def new_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> verbose = True
         >>> qreq_ = new_query_request(ibs, qaid_list, daid_list, cfgdict, verbose)
         >>> qreq_.set_external_qaid_mask(qaid_list[1:2])
-        >>> print(qreq_.get_external_qaids())
+        >>> print(qreq_.qaids)
         >>> result = str(qreq_.get_query_hashid())
         >>> print(result)
         _QSUUIDS((1)zlwcrbyhubzjdjfn)

@@ -998,7 +998,7 @@ def query_smk_test(annots_df, invindex, qreq_):
     """
     from ibeis.algo.hots import pipeline
     from ibeis.algo.hots.smk import smk_match  # NOQA
-    qaids = qreq_.get_external_qaids()
+    qaids = qreq_.qaids
     qaid2_chipmatch = {}
     qaid2_scores    = {}
     aggregate = qreq_.qparams.aggregate

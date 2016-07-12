@@ -191,7 +191,7 @@ def distinctiveness_match_weighter(qreq_):
     raise NotImplementedError('Not finished')
     dstcnvs_normer = qreq_.dstcnvs_normer
     assert dstcnvs_normer is not None
-    qaid_list = qreq_.get_external_qaids()
+    qaid_list = qreq_.qaids
     vecs_list = qreq_.ibs.get_annot_vecs(qaid_list, config2_=qreq_.get_internal_query_config2())
     # TODO: need to filter on nn.fxs_list if features were threshed away
     dstcvs_list = []
@@ -275,7 +275,7 @@ def get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule):
         >>> tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> (neighb_idx, neighb_dist) = nns_list[0]
-        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> qaid = qreq_.qaids[0]
         >>> K = qreq_.qparams.K
         >>> Knorm = qreq_.qparams.Knorm
         >>> neighb_normk1 = get_normk(qreq_, qaid, neighb_idx, Knorm, 'last')
@@ -322,7 +322,7 @@ def apply_normweight(normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm
         >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name', 'dim_size': 450, 'resize_dim': 'area'}
         >>> tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
-        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> qaid = qreq_.qaids[0]
         >>> Knorm = qreq_.qparams.Knorm
         >>> normweight_fn = lnbnn_fn
         >>> normalizer_rule  = qreq_.qparams.normalizer_rule
@@ -365,7 +365,7 @@ def get_name_normalizers(qaid, qreq_, Knorm, neighb_idx):
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> Knorm = qreq_.qparams.Knorm
         >>> (neighb_idx, neighb_dist) = nns_list[0]
-        >>> qaid = qreq_.get_external_qaids()[0]
+        >>> qaid = qreq_.qaids[0]
         >>> neighb_normk = get_name_normalizers(qaid, qreq_, Knorm, neighb_idx)
     """
     assert Knorm == qreq_.qparams.Knorm, 'inconsistency in qparams'
@@ -692,7 +692,7 @@ def test_all_normalized_weights():
                                     p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
     nns_list = args.nns_list
     nnvalid0_list = args.nnvalid0_list
-    qaid = qreq_.get_external_qaids()[0]
+    qaid = qreq_.qaids[0]
 
     def test_weight_fn(nn_weight, nns_list, qreq_, qaid):
         normweight_fn = nn_weights.__dict__[nn_weight + '_fn']

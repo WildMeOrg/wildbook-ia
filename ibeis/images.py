@@ -10,10 +10,10 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 @register_ibs_method
-def images(ibs, gids=None):
+def images(ibs, gids=None, config=None):
     if gids is None:
         gids = ibs.get_valid_gids()
-    return Images(gids, ibs)
+    return Images(gids, ibs, config)
 
 BASE_TYPE = type
 

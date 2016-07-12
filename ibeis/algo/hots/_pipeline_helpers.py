@@ -157,8 +157,8 @@ def testdata_sparse_matchinfo_nonagg(defaultdb='testdb1', p=['default']):
     internal_index = 1 if qreq_.qparams.vsone else 0
     # qaid = qreq_.qaids[0]
     # daid = qreq_.daids[1]
-    qaid = qreq_.get_external_qaids()[0]
-    daid = qreq_.get_external_daids()[1]
+    qaid = qreq_.qaids[0]
+    daid = qreq_.daids[1]
     nns                 = args.nns_list[internal_index]
     neighb_idx, neighb_dist = args.nns_list[internal_index]
     neighb_valid0         = args.nnvalid0_list[internal_index]
@@ -222,9 +222,9 @@ def testdata_pre_vsonerr(defaultdb='PZ_MTEST', qaid_list=[1], daid_list='all'):
     p = 'default' + ut.get_cfg_lbl(cfgdict)
     qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list, default_daids=daid_list, p=p)
     ibs = qreq_.ibs
-    qaid_list = qreq_.get_external_qaids().tolist()
+    qaid_list = qreq_.qaids.tolist()
     qaid = qaid_list[0]
-    #daid_list = qreq_.get_external_daids().tolist()
+    #daid_list = qreq_.daids.tolist()
     if len(ibs.get_annot_groundtruth(qaid)) == 0:
         print('WARNING: qaid=%r has no groundtruth' % (qaid,))
     locals_ = testrun_pipeline_upto(qreq_, 'vsone_reranking')
