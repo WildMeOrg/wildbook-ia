@@ -4326,14 +4326,14 @@ def get_annot_qual_stats(ibs, aid_list):
     key_order = list(const.QUALITY_TEXT_TO_INT.keys())
     prop_getter = ibs.get_annot_quality_texts
     qualtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
-    #annot_qualtext_list = ibs.get_annot_quality_texts(aid_list)
-    #qualtext2_aids = ut.group_items(aid_list, annot_qualtext_list)
-    #qual_keys = list(const.QUALITY_TEXT_TO_INT.keys())
-    #assert set(qual_keys) >= set(qualtext2_aids), (
-    #    'bad keys: ' + str(set(qualtext2_aids) - set(qual_keys)))
-    #qualtext2_nAnnots = ut.odict([(key, len(qualtext2_aids.get(key, []))) for key in qual_keys])
-    ## Filter 0's
-    #qualtext2_nAnnots = {key: val for key, val in six.iteritems(qualtext2_nAnnots) if val != 0}
+    # annot_qualtext_list = ibs.get_annot_quality_texts(aid_list)
+    # qualtext2_aids = ut.group_items(aid_list, annot_qualtext_list)
+    # qual_keys = list(const.QUALITY_TEXT_TO_INT.keys())
+    # assert set(qual_keys) >= set(qualtext2_aids), (
+    #     'bad keys: ' + str(set(qualtext2_aids) - set(qual_keys)))
+    # qualtext2_nAnnots = ut.odict([(key, len(qualtext2_aids.get(key, []))) for key in qual_keys])
+    # # Filter 0's
+    # qualtext2_nAnnots = {key: val for key, val in six.iteritems(qualtext2_nAnnots) if val != 0}
     return qualtext2_nAnnots
 
 
@@ -4342,20 +4342,20 @@ def get_annot_yaw_stats(ibs, aid_list):
     key_order = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
     prop_getter = ibs.get_annot_yaw_texts
     yawtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
-    #annot_yawtext_list = ibs.get_annot_yaw_texts(aid_list)
-    #yawtext2_aids = ut.group_items(aid_list, annot_yawtext_list)
-    # Order keys
-    #yaw_keys = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
-    #assert set(yaw_keys) >= set(annot_yawtext_list), (
-    #    'bad keys: ' + str(set(annot_yawtext_list) - set(yaw_keys)))
-    #yawtext2_nAnnots = ut.odict(
-    #    [(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
-    ## Filter 0's
-    #yawtext2_nAnnots = {
-    #    const.YAWALIAS.get(key, key): val
-    #    for key, val in six.iteritems(yawtext2_nAnnots) if val != 0
-    #}
-    #yawtext2_nAnnots = {key: val for key, val in six.iteritems(yawtext2_nAnnots) if val != 0}
+    # annot_yawtext_list = ibs.get_annot_yaw_texts(aid_list)
+    # yawtext2_aids = ut.group_items(aid_list, annot_yawtext_list)
+    #  Order keys
+    # yaw_keys = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+    # assert set(yaw_keys) >= set(annot_yawtext_list), (
+    #     'bad keys: ' + str(set(annot_yawtext_list) - set(yaw_keys)))
+    # yawtext2_nAnnots = ut.odict(
+    #     [(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
+    # # Filter 0's
+    # yawtext2_nAnnots = {
+    #     const.YAWALIAS.get(key, key): val
+    #     for key, val in six.iteritems(yawtext2_nAnnots) if val != 0
+    # }
+    # yawtext2_nAnnots = {key: val for key, val in six.iteritems(yawtext2_nAnnots) if val != 0}
     return yawtext2_nAnnots
 
 
@@ -5729,6 +5729,70 @@ def compute_occurrences(ibs, seconds_thresh=None):
     # CAREFUL THIS BLOWS AWAY SMART DATA
     ibs.update_imageset_info(ibs.get_valid_imgsetids())
     print('[ibs] Finished computing and adding imagesets.')
+
+
+@register_ibs_method
+def compute_ggr_imagesets(ibs, gid_list=None):
+    from matplotlib.path import Path
+
+    point_dict = {
+        1  : [-0.171510, 36.133787],
+        2  : [-0.171510, 37.165353],
+        3  : [-0.171510, 38.566150],
+        4  : [ 0.405015, 37.165353],
+        5  : [ 0.405015, 38.566150],
+        6  : [ 1.292767, 36.133787],
+        7  : [ 1.292767, 36.701444],
+        8  : [ 1.292767, 37.029463],
+        9  : [ 1.292767, 37.415937],
+        10 : [ 1.292767, 38.566150],
+        11 : [ 2.199409, 36.133787],
+        12 : [ 2.199409, 37.029463],
+        13 : [ 2.199409, 37.415937],
+        14 : [ 2.199409, 38.566150],
+    }
+
+    zone_dict = {
+        1 : [1, 2, 4, 6, 7],
+        2 : [2, 3, 4, 5],
+        3 : [4, 5, 7, 10],
+        4 : [6, 8, 11, 12],
+        5 : [8, 9, 12, 13],
+        6 : [9, 10, 13, 14],
+    }
+
+    zone_list = sorted(zone_dict.keys()) + [7]
+    imageset_dict = { zone : [] for zone in zone_list }
+
+    path_dict = {
+        zone : Path(np.array(
+            [ point_dict[vertex] for vertex in zone_dict[zone] ]
+        ))
+        for zone in zone_dict
+    }
+
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+    gps_list = ibs.get_image_gps(gid_list)
+
+    for gid, point in zip(gid_list, gps_list):
+        found = False
+        for zone in sorted(path_dict.keys()):
+            path = path_dict[zone]
+            if path.contrains_point(point):
+                found = True
+                imageset_dict[zone].append(gid)
+                break
+        if not found:
+            imageset_dict[7].append(gid)
+
+    for zone, gid_list in imageset_dict.iteritems():
+        imageset_str = 'GGR Special Zone %d' % (zone, )
+        args = (imageset_str, len(gid_list), )
+        print('Creating new GGR imageset: %r with %d images' % args)
+        imageset_id = ibs.add_imagesets(imageset_str)
+        ibs.delete_gsgr_imageset_relations(imageset_id)
+        ibs.set_image_imgsetids(gid_list, [imageset_id] * len(gid_list))
 
 
 if __name__ == '__main__':
