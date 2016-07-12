@@ -403,7 +403,33 @@ class QueryRequest(object):
         return '<' + qreq_._custom_str() + '>'
 
     @profile
-    def shallowcopy(qreq_, qaids=None, qx=None, dx=None):
+    def set_external_daids(qreq_, daid_list):
+        if qreq_.qparams.vsmany:
+            qreq_._set_internal_daids(daid_list)
+        else:
+            qreq_._set_internal_qaids(daid_list)
+
+    @profile
+    def set_external_qaids(qreq_, qaid_list):
+        if qreq_.qparams.vsmany:
+            qreq_._set_internal_qaids(qaid_list)
+        else:
+            qreq_._set_internal_daids(qaid_list)
+
+    @profile
+    def _set_internal_daids(qreq_, daid_list):
+        qreq_.internal_daids_mask = None  # Invalidate mask
+        qreq_.internal_daids = np.array(daid_list)
+        qreq_.internal_dannots = qreq_.ibs.annots(qreq_.internal_daids)
+
+    @profile
+    def _set_internal_qaids(qreq_, qaid_list):
+        qreq_.internal_qaids_mask = None  # Invalidate mask
+        qreq_.internal_qaids = np.array(qaid_list)
+        qreq_.internal_qannots = qreq_.ibs.annots(qreq_.internal_qaids)
+
+    @profile
+    def shallowcopy(qreq_, qaids=None):
         """
         Creates a copy of qreq with the same qparams object and a subset of the
         qx and dx objects.  used to generate chunks of vsone and vsmany queries
@@ -416,7 +442,7 @@ class QueryRequest(object):
             >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import ibeis
             >>> qreq_, ibs = testdata_qreq()
-            >>> qreq2_ = qreq_.shallowcopy(qx=0)
+            >>> qreq2_ = qreq_.shallowcopy(qaid=1)
             >>> assert qreq_.get_external_daids() is qreq2_.get_external_daids()
             >>> assert len(qreq_.get_external_qaids()) != len(qreq2_.get_external_qaids())
             >>> #assert qreq_.metadata is not qreq2_.metadata
@@ -424,23 +450,10 @@ class QueryRequest(object):
         #qreq2_ = copy.copy(qreq_)  # copy calls setstate and getstate
         qreq2_ = QueryRequest()
         qreq2_.__dict__.update(qreq_.__dict__)
-        if qx is not None:
-            qaid_list  = qreq2_.get_external_qaids()
-            qaid_list  = qaid_list[qx:qx + 1]
-            qreq2_.set_external_qaids(qaid_list)  # , quuid_list)
-        elif qaids is not None:
-            assert qx is None, 'cannot specify both qx and qaids'
-            qaids = [qaids] if not ut.isiterable(qaids) else qaids
-            _intersect = np.intersect1d(qaids, qreq2_.get_external_qaids())
-            assert len(_intersect) == len(qaids), 'not a subset'
-            qreq2_.set_external_qaids(qaids)  # , quuid_list)
-        if dx is not None:
-            daid_list  = qreq2_.get_external_daids()
-            daid_list  = daid_list[dx:dx + 1]
-            #duuid_list = qreq2_.get_external_duuids()
-            #duuid_list = duuid_list[dx:dx + 1]
-            qreq2_.set_external_daids(daid_list)
-
+        qaids = [qaids] if not ut.isiterable(qaids) else qaids
+        _intersect = np.intersect1d(qaids, qreq2_.get_external_qaids())
+        assert len(_intersect) == len(qaids), 'not a subset'
+        qreq2_.set_external_qaids(qaids)  # , quuid_list)
         # The shallow copy does not bring over output / query data
         qreq2_.indexer = None
         #qreq2_.metadata = {}
@@ -509,20 +522,6 @@ class QueryRequest(object):
         if qreq_.indexer is not None:
             #qreq_.load_indexer(verbose=True)
             qreq_.indexer.add_ibeis_support(qreq_, new_daids)
-
-    @profile
-    def set_external_daids(qreq_, daid_list):
-        if qreq_.qparams.vsmany:
-            qreq_.set_internal_daids(daid_list)
-        else:
-            qreq_.set_internal_qaids(daid_list)
-
-    @profile
-    def set_external_qaids(qreq_, qaid_list):
-        if qreq_.qparams.vsmany:
-            qreq_.set_internal_qaids(qaid_list)
-        else:
-            qreq_.set_internal_daids(qaid_list)
 
     @profile
     def set_external_qaid_mask(qreq_, masked_qaid_list):
@@ -636,16 +635,6 @@ class QueryRequest(object):
             qreq_.internal_qaids_mask = flags
 
     # --- Internal Annotation IDs ----
-
-    @profile
-    def set_internal_daids(qreq_, daid_list):
-        qreq_.internal_daids_mask = None  # Invalidate mask
-        qreq_.internal_daids = np.array(daid_list)
-
-    @profile
-    def set_internal_qaids(qreq_, qaid_list):
-        qreq_.internal_qaids_mask = None  # Invalidate mask
-        qreq_.internal_qaids = np.array(qaid_list)
 
     # --- INTERNAL INTERFACE ---
     # For within pipeline use only
@@ -1023,21 +1012,21 @@ class QueryRequest(object):
             config2_=qreq_.extern_data_config2)
         if prog_hook is not None:
             prog_hook(3, 3, 'computed features')
-        if ut.DEBUG2:
-            qkpts = qreq_.ibs.get_annot_kpts(
-                external_qaids, ensure=False,
-                config2_=qreq_.extern_query_config2)
-            dkpts = qreq_.ibs.get_annot_kpts(  # NOQA
-                external_daids, ensure=False,
-                config2_=qreq_.extern_data_config2)
-            #if verbose:
-            try:
-                assert len(qkpts) > 0, 'no query keypoint'
-                assert qkpts[0].size > 0, (
-                    'Query keypoints are corrupted! qkpts=%r' % (qkpts,))
-            except Exception:
-                print('qkpts = %r' % (qkpts,))
-                raise
+        #if ut.DEBUG2:
+        #    qkpts = qreq_.ibs.get_annot_kpts(
+        #        external_qaids, ensure=False,
+        #        config2_=qreq_.extern_query_config2)
+        #    dkpts = qreq_.ibs.get_annot_kpts(  # NOQA
+        #        external_daids, ensure=False,
+        #        config2_=qreq_.extern_data_config2)
+        #    #if verbose:
+        #    try:
+        #        assert len(qkpts) > 0, 'no query keypoint'
+        #        assert qkpts[0].size > 0, (
+        #            'Query keypoints are corrupted! qkpts=%r' % (qkpts,))
+        #    except Exception:
+        #        print('qkpts = %r' % (qkpts,))
+        #        raise
 
     @profile
     def ensure_featweights(qreq_, verbose=ut.NOT_QUIET):

@@ -1,3 +1,5 @@
+![Logo](_installers/WildBook_logo_72dpi-03.png)
+
 # IBEIS - Image Analysis
 
 ## I.B.E.I.S. = Image Based Ecological Information System

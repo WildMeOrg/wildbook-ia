@@ -236,10 +236,14 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> import ibeis
         >>> cfgdict1 = dict(codename='vsmany', sv_on=False, prescore_method='csum')
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4, 5, 6, 7, 8, 9])
+        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3,
+        >>>                                                               4, 5, 6,
+        >>>                                                               7, 8, 9])
         >>> ibs = qreq_.ibs
         >>> use_cache, save_qcache, verbose = False, True, False
-        >>> qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose, batch_size=3)
+        >>> qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache,
+        >>>                                      save_qcache, verbose,
+        >>>                                      batch_size=3)
         >>> cm = qaid2_cm[1]
         >>> ut.delete(cm.get_fpath(qreq_))
         >>> cm = qaid2_cm[4]
@@ -249,7 +253,9 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> cm = qaid2_cm[6]
         >>> ut.delete(cm.get_fpath(qreq_))
         >>> print('Re-execute')
-        >>> qaid2_cm_ = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose, batch_size=3)
+        >>> qaid2_cm_ = execute_query_and_save_L1(ibs, qreq_, use_cache,
+        >>>                                       save_qcache, verbose,
+        >>>                                       batch_size=3)
         >>> assert all([qaid2_cm_[qaid] == qaid2_cm[qaid] for qaid in qreq_.qaids])
         >>> [ut.delete(fpath) for fpath in qreq_.get_chipmatch_fpaths(qreq_.qaids)]
 
@@ -278,7 +284,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
                 chip_match.ChipMatch.load_from_fpath(fpath, verbose=False)
                 for fpath in fpath_iter
             ]
-            assert all([qaid == cm.qaid for qaid, cm in zip(qaids_hit, cm_hit_list)]), 'inconsistent'
+            assert all([qaid == cm.qaid for qaid, cm in zip(qaids_hit, cm_hit_list)]), (
+                'inconsistent')
             qaid2_cm_hit = {cm.qaid: cm for cm in cm_hit_list}
         except chip_match.NeedRecomputeError:
             print('NeedRecomputeError: Some cached chips need to recompute')
@@ -294,7 +301,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
                     pass
                 else:
                     qaid2_cm_hit[cm.qaid] = cm
-            print('%d / %d cached matches need to be recomputed' % (len(qaids_hit) - len(qaid2_cm_hit), len(qaids_hit)))
+            print('%d / %d cached matches need to be recomputed' % (
+                len(qaids_hit) - len(qaid2_cm_hit), len(qaids_hit)))
         if len(qaid2_cm_hit) == len(external_qaids):
             return qaid2_cm_hit
         else:
@@ -332,7 +340,9 @@ def execute_query2(ibs, qreq_, verbose, save_qcache, batch_size=None):
             qreq_.prog_hook = query_hook
         else:
             preload_hook = None
+        # Load features / weights for all annotations
         qreq_.lazy_preload(prog_hook=preload_hook, verbose=verbose and ut.NOT_QUIET)
+
         all_qaids = qreq_.qaids
         print('len(missed_qaids) = %r' % (len(all_qaids),))
         qaid2_cm = {}
@@ -345,8 +355,8 @@ def execute_query2(ibs, qreq_, verbose, save_qcache, batch_size=None):
         else:
             hots_batch_size = batch_size
         chunksize = 1 if qreq_.qparams.vsone else hots_batch_size
+
         # Iterate over vsone queries in chunks.
-        # This minimizes lost computation if a qreq_ crashes
         nTotalChunks    = ut.get_nTotalChunks(len(all_qaids), chunksize)
         qaid_chunk_iter = ut.ichunks(all_qaids, chunksize)
         _qreq_iter = (qreq_.shallowcopy(qaids=qaids) for qaids in qaid_chunk_iter)

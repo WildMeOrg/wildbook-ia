@@ -42,7 +42,7 @@ class ImageIBEISPropertyInjector(BASE_TYPE):
         #     'gids_from_uuid',
         #]
         objname = 'image'
-        _ibeis_object._inject_getter_attrs(metaself, objname, attrs)
+        _ibeis_object._inject_getter_attrs(metaself, objname, attrs, [])
 
 
 @ut.reloadable_class
