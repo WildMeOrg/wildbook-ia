@@ -1146,6 +1146,15 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 patch_dict['arrow_patch_list'][edge] = (patch1)
 
             taillabel = layout_info['edge'].get('taillabel', {}).get(edge, None)
+            headlabel = layout_info['edge'].get('headlabel', {}).get(edge, None)
+            label = layout_info['edge'].get('label', {}).get(edge, None)
+            # hack
+            if isinstance(taillabel, six.string_types) and taillabel == 'None':
+                taillabel = None
+            if isinstance(headlabel, six.string_types) and headlabel == 'None':
+                headlabel = None
+            if isinstance(label, six.string_types) and label == 'None':
+                label = None
             #ha = 'left'
             #ha = 'right'
             ha = 'center'
@@ -1161,13 +1170,11 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                 ax.annotate(taillabel, xy=taillabel_pos, xycoords='data',
                             color=labelcolor,
                             va=va, ha=ha, fontproperties=font_prop)
-            headlabel = layout_info['edge'].get('headlabel', {}).get(edge, None)
             if headlabel:
                 headlabel_pos = layout_info['edge']['head_lp'][edge]
                 ax.annotate(headlabel, xy=headlabel_pos, xycoords='data',
                             color=labelcolor,
                             va=va, ha=ha, fontproperties=font_prop)
-            label = layout_info['edge'].get('label', {}).get(edge, None)
             if label:
                 label_pos = layout_info['edge']['lp'][edge]
                 ax.annotate(label, xy=label_pos, xycoords='data',
