@@ -490,7 +490,7 @@ def query_chips_test(ibs, **kwargs):
 @register_api('/api/query/graph/', methods=['GET'])
 def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                       query_config_dict={}, echo_query_params=True):
-    from ibeis.algo.hots.graph_iden import AnnotInference
+    from ibeis.algo.hots.orig_graph_iden import AnnotInference
     import uuid
 
     def convert_to_uuid(nid):

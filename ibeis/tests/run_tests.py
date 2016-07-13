@@ -58,7 +58,6 @@ def run_tests():
         # Run tests for installer
         doctest_modname_list_ = [
             'ibeis.ibsfuncs',
-            'ibeis.viz.interact.interact_qres2',
             'ibeis.viz.interact.interact_matches',
             'ibeis.viz.interact.interact_annotations2',
             'ibeis.viz.interact.interact_name',

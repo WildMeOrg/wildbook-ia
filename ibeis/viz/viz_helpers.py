@@ -108,7 +108,7 @@ def get_nidstrs(nid_list, **kwargs):
 
 
 def get_vsstr(qaid, aid):
-    return ibsfuncs.vsstr(qaid, aid)
+    return 'qaid%d-vs-aid%d' % (qaid, aid)
 
 
 def get_bbox_centers(bbox_list):

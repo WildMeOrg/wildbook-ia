@@ -552,7 +552,7 @@ class MatchVerificationInteraction(AbstractInteraction):
             self.append_button('review', callback=self.review, rect=next_rect2())
         self.append_button('reset', callback=self.reset_all_names, rect=next_rect2())
         self.dbname = ibs.get_dbname()
-        self.vsstr = ibsfuncs.vsstr(self.aid1, self.aid2)
+        self.vsstr = 'qaid%d-vs-aid%d' % (self.aid1, self.aid2)
         figtitle_fmt = '''
         Match Review Interface - {dbname}
         {match_text}:

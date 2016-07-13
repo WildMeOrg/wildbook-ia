@@ -541,7 +541,7 @@ class AnnotGraphInteraction(AbstractInteraction):
 
     def confirm(self, event):
         print('Not done yet')
-        print(self.infr.current_name_labels)
+        #print(self.infr.current_name_labels)
 
     def toggle_imgs(self, event=None):
         self.use_image = not self.use_image

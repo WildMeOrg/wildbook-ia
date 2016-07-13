@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 CommandLine:
-    python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show
+    #python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show
+    python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -13,7 +14,7 @@ import itertools
 from ibeis.algo.hots import graph_iden
 import guitool as gt
 from guitool.__PYQT__.QtCore import Qt
-from guitool.__PYQT__ import QtCore, QtWidgets
+from guitool.__PYQT__ import QtCore, QtWidgets  # NOQA
 from plottool import interact_helpers as ih
 from matplotlib.backend_bases import MouseEvent
 
@@ -74,6 +75,8 @@ class MatplotlibWidget(gt.GuitoolWidget):
 
 
 class AnnotGraphWidget(gt.GuitoolWidget):
+    signal_graph_update = QtCore.pyqtSignal()
+    signal_state_update = QtCore.pyqtSignal(bool)
 
     def initialize(self, infr=None, use_image=False):
         self.infr = infr
@@ -85,29 +88,45 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             node: 'aid=%r' % (aid)
             for node, aid in self.node2_aid.items()
         }
-        #self.show_cuts = False
-        self.use_image = use_image
-        self.show_cuts = False
         # self.config = InferenceConfig()
         nx.set_node_attributes(self.infr.graph, 'label', node2_label)
 
-        self.splitter = self.addNewSplitter(orientation=Qt.Horizontal)
+        self.splitter = self.newSplitter(orientation=Qt.Horizontal)
         splitter = self.splitter
         self.ctrls = splitter.addNewWidget(orientation=Qt.Vertical,
                                            vertical_stretch=1, margin=1,
                                            spacing=1)
 
-        graph_tables_widget = splitter.addNewTabWidget(verticalStretch=1)
-        edge_tab = graph_tables_widget.addNewTab('Edges')
-        node_tab = graph_tables_widget.addNewTab('Nodes')
+        graph_tables_widget = self.addNewTabWidget(verticalStretch=1)
+
+        self.status_bar = self.addNewWidget(orientation=Qt.Horizontal,
+                                            vertical_stretch=1, margin=1,
+                                            spacing=1)
+
+        #graph_tables_widget = splitter.addNewTabWidget(verticalStretch=1)
+        self.edge_tab = graph_tables_widget.addNewTab('Edges')
+        self.node_tab = graph_tables_widget.addNewTab('Nodes')
+        self.graph_tab = graph_tables_widget.addNewTab('Graph')
+
+        #self.addWidget(splitter)
+        self.graph_tab.addWidget(splitter)
         #self.edge_table = edge_tab.addNewTableWidget()
         #self.node_table = node_tab.addNewTableWidget()
+
         self.edge_api_widget = gt.APIItemWidget()
         self.node_api_widget = gt.APIItemWidget()
-        node_tab.addWidget(self.node_api_widget)
-        edge_tab.addWidget(self.edge_api_widget)
+
+        self.num_names_lbl = self.status_bar.addNewLabel('NUM_NAMES_LBL')
+        self.state_lbl = self.status_bar.addNewLabel('STATE_LBL')
+        self.status_bar.addNewButton('Filter')
+        self.status_bar.addNewButton('Accept', pressed=self.accept)
+
+        self.node_tab.addWidget(self.node_api_widget)
+        self.edge_tab.addWidget(self.edge_api_widget)
 
         self.mpl_wgt = MatplotlibWidget(parent=self)
+        self.mpl_wgt.installEventFilter(self)
+
         splitter.addWidget(self.mpl_wgt)
 
         ctrls = self.ctrls
@@ -140,16 +159,19 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         bbar2.addNewButton('Deselect', pressed=self.deselect)
         bbar2.addNewButton('Show Annots', pressed=self.show_selected)
-        bbar2.addNewButton('Infer Cut', pressed=self.cut)
+        bbar2.addNewButton('Infer Cut', pressed=self.infer_cut)
 
-        bbar2.addNewCheckBox('Show Cuts', changed=self.toggle_cuts,
-                             checked=self.show_cuts)
-        bbar2.addNewCheckBox('Show Img', changed=self.toggle_imgs,
-                             checked=self.use_image)
-        self.toggle_pin = bbar2.addNewCheckBox(changed=self.toggle_pin,
-                                               checked=False)
+        def refresh_via_cb(flag):
+            self.draw_graph()
 
-        bbar2.addNewButton('Accept', pressed=self.confirm)
+        self.show_cuts_cb = bbar2.addNewCheckBox(
+            'Show Cuts', changed=refresh_via_cb, checked=False)
+        self.show_review_cuts_cb =  bbar2.addNewCheckBox(
+            'Show Reviewed Cuts', changed=refresh_via_cb, checked=False)
+        self.use_image_cb = bbar2.addNewCheckBox(
+            'Show Img', changed=refresh_via_cb, checked=use_image)
+        self.toggle_pin_cb = bbar2.addNewCheckBox(
+            'Pin Positions', changed=self.set_pin_state, checked=False)
 
         #Debug row
         _simple_button3(self.reset_all)
@@ -160,15 +182,53 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         _simple_button3(self.infr.apply_weights)
         _simple_button3(self.infr.apply_cuts)
         _simple_button3(self.infr.apply_all)
-        _simple_button3(self.embed)
+        #bbar3.addNewButton('embed', pressed=self.embed)
+        self.status_bar.addNewButton('embed', pressed=self.embed)
 
+        self.mpl_needs_update = True
         self.cb = None
         self.mpl_wgt.click_inside_signal.connect(self.on_click_inside)
-        self.populate_node_model()
+
+        self.signal_graph_update.connect(self.draw_graph, type=Qt.UniqueConnection)
+        self.signal_state_update.connect(self.on_state_update)
+        self.edge_api_widget.view.doubleClicked.connect(self.edge_doubleclick)
+        self.edge_api_widget.view.contextMenuClicked.connect(self.edge_context)
+        self.edge_api_widget.view.connect_keypress_to_slot(self.edge_keypress)
+
+        #self.signal_state_update.emit(True)
+        self.update_state(structure_changed=True)
+        #self.edge_api_widget.resize_headers()
+
+    def update_state(self, structure_changed=False):
+        self.infr.apply_feedback()
+        self.infr.apply_weights()
+        num_names, num_inconsistent = self.infr.connected_compoment_relabel()
+        self.num_names_lbl.setText('Names: %d' % (num_names,))
+        if num_inconsistent:
+            self.state_lbl.setText('Inconsistent Names: %d' % (num_inconsistent,))
+            self.state_lbl.setColor('black', self.infr.truth_colors['nonmatch'][0:3] * 255)
+        else:
+            self.state_lbl.setText('Consistent')
+            self.state_lbl.setColor('black', self.infr.truth_colors['match'][0:3] * 255)
+        self.infr.apply_cuts()
+
+        self.signal_state_update.emit(structure_changed)
+
+    @QtCore.pyqtSlot(bool)
+    def on_state_update(self, structure_changed=False):
+        self.mpl_needs_update = True
+        #import networkx as nx
+        #ccs = list(nx.connected_components(self.infr.graph))
+        if structure_changed:
+            self.populate_node_model()
+            self.populate_edge_model()
 
     def reset_all(self):
         self.infr.initialize_graph()
-        self.toggle_pin.setChecked(False)
+        self.infr.reset_feedback()
+        #self.populate_node_model()
+        #self.populate_edge_model()
+        self.toggle_pin_cb.setChecked(False)
 
     def populate_node_model(self):
         aids = sorted(list(self.infr.graph.nodes()))
@@ -176,6 +236,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             'aid',
             'data',
             'thumb',
+            'name_label'
         ]
         def get_node_data(aid):
             data = self.infr.graph.node[aid].copy()
@@ -187,10 +248,12 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             'aid': np.array(aids),
             'data': get_node_data,
             'thumb': self.infr.ibs.get_annot_chip_thumbtup,
+            'name_label': lambda node: self.infr.graph.node[node].get('name_label', None)
         }
         col_ider_dict = {
             'thumb': 'aid',
             'data': 'aid',
+            'name_label': 'aid',
         }
         col_types_dict = {
             'thumb': 'PIXMAP',
@@ -202,84 +265,242 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                                 sortby='aid', sort_reverse=False)
         headers = node_api.make_headers(tblnice='Nodes')
         self.node_api_widget.change_headers(headers)
+
+        self.node_tab.setTabText(str('Nodes (%r)' % (self.node_api_widget.model.rowCount())))
         return node_api
 
     def populate_edge_model(self):
         graph = self.infr.graph
+        ibs = self.infr.ibs
         col_name_list = [
-            'aid1',
-            'aid2',
+            'index',
+            'aid1', 'aid2',
+            'score',
+            'rank',
+            'matched', 'reviewed',
+            'thumb1', 'thumb2',
+            'timedelta',
+            'tags',
             'data',
-            #'thumb',
         ]
         def get_edge_data(edge):
             aid1, aid2 = edge
             attrs = graph.get_edge_data(aid1, aid2).copy()
-            ut.delete_dict_keys(attrs, ['color',
-                                        'stroke', 'lw',
-                                        'end_pt', 'head_lp', 'alpha',
-                                        #'implicit',
-                                        #'style',
-                                        'ctrl_pts', 'pos'])
+            ut.delete_dict_keys(attrs, [
+                'implicit', 'style', 'tail_lp', 'taillabel', 'label', 'lp',
+                'headlabel', 'linestyle', 'color', 'stroke', 'lw', 'end_pt',
+                'head_lp', 'alpha', 'ctrl_pts', 'pos'])
             attrs = {k: v for k, v in attrs.items() if v is not None}
             return ut.repr2(attrs, precision=2)
+
+        def get_reviewed_status(ibs, aid_pair):
+            """ Data role for status column """
+            aid1, aid2 = aid_pair
+            assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
+            assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+            state = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
+            state_to_text = {
+                None: 'Unreviewed',
+                2: 'Auto-reviewed',
+                1: 'User-reviewed',
+            }
+            default = '??? unknown mode %r' % (state,)
+            text = state_to_text.get(state, default)
+            return text
+
+        def get_match_text(edge):
+            aid1, aid2 = edge
+            nid1 = graph.node[aid1]['name_label']
+            nid2 = graph.node[aid2]['name_label']
+            if nid1 == nid2:
+                return 'matched'
+            else:
+                return 'not matched'
+
+        def edge_attr_getter(attr, default=None):
+            def get_edge_attr(edge):
+                data = graph.get_edge_data(*edge)
+                return data.get(attr, default)
+            return get_edge_attr
+
+        def get_pair_tags(edge):
+            aid1, aid2 = edge
+            assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
+            assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+            am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(
+                [aid1], [aid2])
+            tag_text = ibs.get_annotmatch_tag_text(am_rowids)[0]
+            if tag_text is None:
+                tag_text = ''
+            return str(tag_text)
+
         uv_list = list(graph.edges())
         aids1 = ut.take_column(uv_list, 0)
         aids2 = ut.take_column(uv_list, 1)
         col_getter_dict = {
+            'index': np.arange(len(aids1)),
             'aid1': np.array(aids1),
             'aid2': np.array(aids2),
             'data': get_edge_data,
             #'thumb': self.infr.ibs.get_annot_chip_thumbtup,
+            'thumb1': ibs.get_annot_chip_thumbtup,
+            'thumb2': ibs.get_annot_chip_thumbtup,
+            'timedelta': lambda edge: ibs.get_unflat_annots_timedelta_list([edge])[0][0],
+            'matched':  lambda edge: get_match_text(edge),
+            #'reviewed':  lambda edge: get_reviewed_status(ibs, edge),
+            'score':  edge_attr_getter('score'),
+            'rank':  edge_attr_getter('rank', -1),
+            'reviewed':  edge_attr_getter('reviewed_state', 'unreviewed'),
+            'tags': lambda edge: get_pair_tags(edge),
         }
+
         col_ider_dict = {
-            #'thumb': 'aid',
+            'thumb1': 'aid1',
+            'thumb2': 'aid2',
             'data': ('aid1', 'aid2'),
+            'score': ('aid1', 'aid2'),
+            'rank': ('aid1', 'aid2'),
+            'timedelta': ('aid1', 'aid2'),
+            'matched'     : ('aid1', 'aid2'),
+            'reviewed'    : ('aid1', 'aid2'),
+            'tags': ('aid1', 'aid2'),
         }
         col_types_dict = {
-            #'thumb': 'PIXMAP',
+            'rank': int,
+            'score': float,
+            'timedelta': float,
+            'thumb1': 'PIXMAP',
+            'thumb2': 'PIXMAP',
         }
-        edge_api = gt.CustomAPI(col_name_list,
-                                col_ider_dict=col_ider_dict,
-                                col_types_dict=col_types_dict,
-                                col_getter_dict=col_getter_dict,
-                                sortby='aid1', sort_reverse=False)
+
+        col_display_role_func_dict = {
+            'timedelta': ut.partial(ut.get_posix_timedelta_str, year=True, approx=2),
+        }
+
+        def get_match_status_bgrole(ibs, aid_pair):
+            """ Background role for status column """
+            aid1, aid2 = aid_pair
+            #truth = ibs.get_match_truth(aid1, aid2)
+            #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
+            #truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=0.35)
+            nid1 = graph.node[aid1]['name_label']
+            nid2 = graph.node[aid2]['name_label']
+
+            color = self.infr.truth_colors['match' if nid1 == nid2 else 'nonmatch']
+            #graph.get_edge_data(*aid_pair).get('reviewed_state', 'unreviewed')]
+            lighten_amount = .35
+            if lighten_amount is not None:
+                color = pt.lighten_rgb(color, lighten_amount)
+            color = pt.to_base255(color)
+            return color
+
+        def get_reviewed_status_bgrole(ibs, aid_pair):
+            """ Background role for status column """
+            #aid1, aid2 = aid_pair
+            #truth = ibs.get_match_truth(aid1, aid2)
+            #annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
+            color = self.infr.truth_colors[graph.get_edge_data(*aid_pair).get('reviewed_state', 'unreviewed')]
+            lighten_amount = .35
+            if lighten_amount is not None:
+                color = pt.lighten_rgb(color, lighten_amount)
+            color = pt.to_base255(color)
+            #print('truth_color = %r' % (truth_color,))
+            #truth = ibs.get_annot_pair_truth([aid1], [aid2])[0]
+            #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
+            #if annotmach_reviewed == 0 or annotmach_reviewed is None:
+            #    lighten_amount = .9
+            #elif annotmach_reviewed == 2:
+            #    lighten_amount = .7
+            #else:
+            #    lighten_amount = .35
+            #truth_color = vh.get_truth_color(truth, base255=True,
+            #                                 lighten_amount=lighten_amount)
+            #truth = ibs.get_match_truth(aid1, aid2)
+            #print('get status bgrole: %r truth=%r' % (aid_pair, truth))
+            #truth_color = vh.get_truth_color(truth, base255=True, lighten_amount=0.35)
+            return color
+
+        col_bgrole_dict = {
+            'matched' : ut.partial(get_match_status_bgrole, ibs),
+            'reviewed': ut.partial(get_reviewed_status_bgrole, ibs),
+        }
+
+        col_width_dict = {
+            'index': 42,
+            'aid1': 42,
+            'aid2': 42,
+        }
+
+        edge_api = gt.CustomAPI(
+            col_name_list,
+            col_ider_dict=col_ider_dict,
+            col_types_dict=col_types_dict,
+            col_getter_dict=col_getter_dict,
+            col_bgrole_dict=col_bgrole_dict,
+            col_display_role_func_dict=col_display_role_func_dict,
+            col_width_dict=col_width_dict,
+            get_thumb_size=lambda: 221,
+            sortby='score',
+            #sortby='aid1',
+            sort_reverse=True
+        )
+        #api = edge_api
+
         headers = edge_api.make_headers(tblnice='Edges')
         self.edge_api_widget.change_headers(headers)
+        self.edge_api_widget.resize_headers(edge_api)
+        self.edge_tab.setTabText(str('Edges (%r)' % (self.edge_api_widget.model.rowCount())))
 
-    def populate_edge_table(self):
-        print('Updating saved query table')
-        from guitool.__PYQT__.QtCore import Qt
-        graph = self.infr.graph
-        horHeaders = ['aid1', 'aid2', 'score', 'weight', 'reviewed_weight', 'is_cut']
-        self.edge_table.setColumnCount(len(horHeaders))
-        print('Populating table')
-        uvd_list = list(graph.edges(data=True))
-        self.edge_table.setRowCount(len(uvd_list))
-        for row, uvd in enumerate(uvd_list):
-            aid1, aid2 = uvd[0:2]
-            attrs = uvd[2].copy()
-            attrs['aid1'] = aid1
-            attrs['aid2'] = aid2
-            # col_data = [aid1, aid2, attrs]
-            for col, colname in enumerate(horHeaders):
-                data = attrs.get(colname, None)
-                newitem = QtWidgets.QTableWidgetItem(str(data))
-                self.edge_table.setItem(row, col, newitem)
-                newitem.setFlags(newitem.flags() ^ Qt.ItemIsEditable)
-            ut.delete_dict_keys(attrs, horHeaders)
-            ut.delete_dict_keys(attrs, ['color', 'implicit', 'stroke', 'lw',
-                                        'style', 'ctrl_pts', 'pos'])
-            attrs = {key: val for key, val in attrs.items() if val is not None}
+    @gt.slot_(QtCore.QModelIndex, QtCore.QPoint)
+    def edge_context(qres_wgt, qtindex, qpoint):
+        print('context')
+        pass
 
-            newitem = QtWidgets.QTableWidgetItem(str(attrs))
-            self.edge_table.setItem(row, col, newitem)
-            newitem.setFlags(newitem.flags() ^ Qt.ItemIsEditable)
+    def edge_doubleclick(self, qtindex):
+        print('[qres_wgt] _on_doubleclick: ')
+        print('[qres_wgt] DoubleClicked: ' + str(gt.qtype.qindexinfo(qtindex)))
+        #col = qtindex.column()
+        #if qres_wgt.review_api.col_edit_list[col]:
+        #    print('do nothing special for editable columns')
+        #    return
+        #return self.show_match_at_qtindex(qtindex)
 
-        self.edge_table.setHorizontalHeaderLabels(horHeaders)
-        self.edge_table.resizeColumnsToContents()
-        self.edge_table.resizeRowsToContents()
-        print('Finished populating table')
+    def edge_keypress(self, view, event):
+        selected_qtindex_list = view.selectedRows()
+        print('selected_qtindex_list = %r' % (selected_qtindex_list,))
+        event_key = event.key()
+
+        def aid_pair_gen():
+            for qtindex in selected_qtindex_list:
+                model = qtindex.model()
+                aid1  = model.get_header_data('aid1', qtindex)
+                aid2  = model.get_header_data('aid2', qtindex)
+                yield aid1, aid2
+        if event_key == QtCore.Qt.Key_R:
+            print('R')
+        elif event_key == QtCore.Qt.Key_T:
+            print('T')
+            for aid1, aid2 in aid_pair_gen():
+                self.infr.add_feedback(aid1, aid2, 'match')
+        elif event_key == QtCore.Qt.Key_F:
+            print('F')
+            for aid1, aid2 in aid_pair_gen():
+                self.infr.add_feedback(aid1, aid2, 'nonmatch')
+        elif event_key == QtCore.Qt.Key_N:
+            print('N')
+            for aid1, aid2 in aid_pair_gen():
+                self.infr.add_feedback(aid1, aid2, 'notcomp')
+        else:
+            print('Key  not handled %r' % (event_key,))
+            return
+
+        self.update_state()
+
+        for qtindex in selected_qtindex_list:
+            # This should work by itself
+            self.edge_api_widget.model.dataChanged.emit(qtindex, qtindex)
+            # but it doesnt seem to be, but this seems to solve the issue
+            self.edge_api_widget.model.layoutChanged.emit()
 
     def on_click_inside(self, event, ax):
         pos = self.plotinfo['node']['pos']
@@ -354,23 +575,13 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         qwin = self.mpl_wgt.fig.canvas
         gt.popup_menu(qwin, qpoint, options)
 
-    def toggle_imgs(self, flag=False):
-        print('toggle toggle_imgs flag = %r' % (flag,))
-        self.use_image = flag
-        self.draw_graph()
-
-    def toggle_cuts(self, flag=False):
-        print('toggle show_cuts flag = %r' % (flag,))
-        self.show_cuts = flag
-        self.draw_graph()
-
-    def toggle_pin(self, flag):
+    def set_pin_state(self, flag):
         if flag:
             nx.set_node_attributes(self.infr.graph, 'pin', 'true')
         else:
             ut.nx_delete_node_attr(self.infr.graph, 'pin')
 
-    def cut(self):
+    def infer_cut(self):
         # keys = ['min_labels', 'max_labels']
         # infrkw = ut.dict_subset(self.config, keys)
         infrkw = {}
@@ -403,9 +614,33 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         for aid in self.selected_aids[:]:
             self.toggle_selected_aid(aid)
 
-    def confirm(self):
+    def accept(self):
         print('Not done yet')
-        print(self.infr.current_name_labels)
+        infr = self.infr
+        graph = infr.graph
+        num_names, num_inconsistent = self.infr.connected_compoment_relabel()
+        msg = ut.codeblock(
+            '''
+            Are you sure this is correct?
+            #orig_names=%r
+            #new_names=%r
+            #inconsistent=%r
+            ''') % (len(ut.unique(infr.orig_name_labels)), num_names, num_inconsistent)
+        if not gt.are_you_sure(msg=msg):
+            raise Exception('Cancel')
+        node_to_label = nx.get_node_attrs(graph, 'name_label')
+        unique_labels = set(node_to_label.values())
+        new_names = self.infr.ibs.make_next_name(num_names)
+        to_newname = dict(zip(unique_labels, new_names))
+        node_to_newname = {node: to_newname[label] for node, label in node_to_label.items()}
+        aid_list = list(node_to_newname.keys())
+        name_list = list(node_to_newname.values())
+
+        ibs = self.infr.ibs
+        if False:
+            ibs.set_annot_names(aid_list, name_list)
+        else:
+            print('DRY RUN. NOT DOING ANYTHING')
 
     def show_selected(self):
         print('show_selected')
@@ -447,7 +682,10 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def update_graph_layout(self):
         graph = self.infr.graph
-        self.infr.update_graph_visual_attributes(self.show_cuts)
+        self.infr.update_graph_visual_attributes(
+            show_cuts=self.show_cuts_cb.isChecked(),
+            show_reviewed_cuts=self.show_review_cuts_cb.isChecked(),
+        )
         layoutkw = dict(
             prog='neato',
             #defaultdist=100,
@@ -457,13 +695,25 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         )
         pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
+    def eventFilter(self, source, event):
+        #print("___EVENT___")
+        #print('event = %r' % (event,))
+        #print('source = %r' % (source,))
+        if event.type() == QtCore.QEvent.Show:
+            if self.mpl_needs_update:
+                self.signal_graph_update.emit()
+            #print('event = %r' % (event,))
+            #print('source = %r' % (source,))
+        return super(AnnotGraphWidget, self).eventFilter(source, event)
+
+    @QtCore.pyqtSlot()
     def draw_graph(self):
+        self.mpl_needs_update = False
         print('Start draw page')
         self.mpl_wgt.ax.cla()
         self.update_graph_layout()
 
         # Update Qt things
-        self.populate_edge_model()
         self.thresh_lbl.setText('%.2f' % (self.infr.thresh))
 
         # Update MPL things
@@ -477,7 +727,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                                    layoutkw=layoutkw,
                                    #node_labels=True,
                                    modify_ax=False,
-                                   use_image=self.use_image, verbose=0)
+                                   use_image=self.use_image_cb.isChecked(),
+                                   verbose=0)
         # self.mpl_wgt.ax.set_aspect('auto')
         self.mpl_wgt.ax.set_aspect('equal')
         # self.mpl_wgt.ax.set_aspect('scaled')
@@ -485,7 +736,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         for aid in self.selected_aids:
             self.highlight_aid(aid, True)
 
-        ut.util_graph.graph_info(self.infr.graph, verbose=True)
+        #ut.util_graph.graph_info(self.infr.graph, verbose=True)
         self.show_colorbar()
 
         print('End draw page')
@@ -564,12 +815,18 @@ def make_qt_graph_interface(ibs, aids=None, nids=None):
     if aids is None:
         aids = ibs.get_valid_aids()[0:40]
     print('make_qt_graph_interface aids = %r' % (aids,))
-    temp_nids = None
+    #temp_nids = None
     nids = ibs.get_annot_name_rowids(aids)
-    infr = graph_iden.AnnotInference2(ibs, aids, nids, temp_nids)
+    infr = graph_iden.AnnotInference2(ibs, aids, nids)
     infr.initialize_graph()
-    #infr.apply_scores()
-    # infr.apply_feedback()
+
+    infr.remove_name_labels()
+    infr.apply_scores()
+    #infr.apply_feedback()
+    #infr.apply_weights()
+    #infr.connected_compoment_relabel()
+    #infr.apply_cuts()
+
     # infr.apply_mst()
     #infr.apply_weights()
     #infr.apply_cuts()
@@ -579,7 +836,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None):
     print('infr = %r' % (infr,))
     win = AnnotGraphWidget(infr=infr, use_image=False)
     win.resize(900, 600)
-    win.draw_graph()
+    #win.draw_graph()
     win.show()
     return win
 

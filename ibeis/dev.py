@@ -186,7 +186,7 @@ def incremental_test(ibs, qaid_list, daid_list=None):
 def inspect_matches(ibs, qaid_list, daid_list):
     print('<inspect_matches>')
     from ibeis.gui import inspect_gui
-    return inspect_gui.test_inspect_matches(ibs, qaid_list, daid_list)
+    return inspect_gui.test_review_widget(ibs, qaid_list, daid_list)
 
 
 def get_ibslist(ibs):
