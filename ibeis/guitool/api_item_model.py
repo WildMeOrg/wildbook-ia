@@ -286,6 +286,9 @@ class APIItemModel(API_MODEL_BASE):
             #import utool
             #with utool.embed_on_exception_context:
             if True:
+                print('values = %r' % (values,))
+                if values is None:
+                    print("SORTING VALUES IS NONE. VERY WEIRD")
                 if type_ is float:
                     values = np.array(ut.replace_nones(values, np.nan))
                     values[np.isnan(values)] = -np.inf  # Force nan to be the smallest number

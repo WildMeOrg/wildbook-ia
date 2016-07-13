@@ -176,8 +176,8 @@ class CustomAPI(object):
             try:
                 colx = colname2_colx[colname]
                 # Col iders might have tuple input
-                ider_cols = ut.uinput_1to1(self.col_name_list.index, ider_colnames)
-                col_ider  = ut.uinput_1to1(lambda c: ut.partial(self.get, c), ider_cols)
+                ider_cols = self._uinput_1to1(self.col_name_list.index, ider_colnames)
+                col_ider  = self._uinput_1to1(lambda c: ut.partial(self.get, c), ider_cols)
                 self.col_ider_list[colx] = col_ider
                 del col_ider
                 del ider_cols
@@ -214,7 +214,37 @@ class CustomAPI(object):
             return row
         def iderfunc(func_):
             return func_(row)
-        return ut.uinput_1to1(iderfunc, ider_)
+        return self._uinput_1to1(iderfunc, ider_)
+
+    @staticmethod
+    def _uinput_1to1(func, input_):
+        """ universal input (really just accept list or tuple as input to a list
+        only function)
+
+        Move to guitool
+        """
+        if isinstance(input_, (tuple, list)):
+            output_ = list(map(func, input_))
+        else:
+            output_ = func(input_)
+        return output_
+
+    @staticmethod
+    def _general_get(getter, index, **kwargs):
+        """ Works with getter funcs or indexable read/write arrays """
+        if hasattr(getter, '__getitem__'):
+            val = getter[index]
+        else:
+            val = getter(index, **kwargs)
+        return val
+
+    @staticmethod
+    def _general_set(setter, index, val, **kwargs):
+        """ Works with setter funcs or indexable read/write arrays """
+        if hasattr(setter, '__setitem__'):
+            setter[index] = val
+        else:
+            setter(index, val, **kwargs)
 
     def get(self, column, row, **kwargs):
         """
@@ -225,7 +255,7 @@ class CustomAPI(object):
         column_getter = self.col_getter_list[column]
         # Columns might be getter funcs indexable read/write arrays
         try:
-            return ut.general_get(column_getter, index, **kwargs)
+            return self._general_get(column_getter, index, **kwargs)
         except Exception:
             # FIXME: There may be an issue on tuple-key getters when row input is
             # vectorized. Hack it away
@@ -239,14 +269,14 @@ class CustomAPI(object):
         index = self._infer_index(column, row)
         column_setter = self.col_setter_list[column]
         # Columns might be setter funcs or indexable read/write arrays
-        ut.general_set(column_setter, index, val)
+        self._general_set(column_setter, index, val)
 
     def get_bgrole(self, column, row):
         bgrole_getter = self.col_bgrole_getter_list[column]
         if bgrole_getter is None:
             return None
         index = self._infer_index(column, row)
-        return ut.general_get(bgrole_getter, index)
+        return self._general_get(bgrole_getter, index)
 
     def ider(self):
         return list(range(self.nRows))
@@ -315,6 +345,7 @@ class APIItemWidget(WIDGET_BASE):
         widget.api = api
         if autopopulate:
             widget.refresh_headers()
+            #widget.resize_headers()
             #headers = api.make_headers(tblnice=widget.tblnice)
             #widget.change_headers(headers)
             #print(ut.dict_str(headers))
@@ -341,6 +372,18 @@ class APIItemWidget(WIDGET_BASE):
         headers = widget.api.make_headers(tblnice=widget.tblnice)
         widget.change_headers(headers)
         #print(ut.dict_str(headers))
+
+    def resize_headers(self, api=None):
+        if api is None:
+            api = self.api
+        horizontal_header = self.view.horizontalHeader()
+        for col, width in six.iteritems(api.col_width_dict):
+            #horizontal_header.defaultSectionSize()
+            try:
+                index = api.col_name_list.index(col)
+            except ValueError:
+                pass
+            horizontal_header.resizeSection(index, width)
 
     @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuRequested(widget, index, pos):

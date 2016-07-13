@@ -1,7 +1,7 @@
 """
 CommandLine:
     rm -rf /media/raid/work/PZ_MTEST/_ibsdb/_ibeis_cache/match_thumbs/
-    python -m ibeis.gui.inspect_gui --test-test_inspect_matches --show --verbose-thumb
+    python -m ibeis.gui.inspect_gui --test-test_review_widget --show --verbose-thumb
 """
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui, QtCore

@@ -158,3 +158,14 @@ class APITableView(API_VIEW_BASE):
     def on_customMenuRequested(view, pos):
         index = view.indexAt(pos)
         view.contextMenuClicked.emit(index, pos)
+
+    def selectedRows(view):
+        selected_qtindex_list = view.selectedIndexes()
+        selected_qtindex_list2 = []
+        seen_ = set([])
+        for qindex in selected_qtindex_list:
+            row = qindex.row()
+            if row not in seen_:
+                selected_qtindex_list2.append(qindex)
+                seen_.add(row)
+        return selected_qtindex_list2
