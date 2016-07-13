@@ -67,11 +67,19 @@ def newTabWidget(parent, horizontalStretch=1, verticalStretch=1):
     setattr(tabwgt, '_guitool_sizepolicy', sizePolicy)
 
     def addNewTab(self, name):
-        tab = QtWidgets.QTabWidget()
+        #tab = QtWidgets.QTabWidget()
+        tab = GuitoolWidget(parent=tabwgt, margin=0, spacing=0)
+        #QtWidgets.QTabWidget()
         self.addTab(tab, str(name))
-        tab.setLayout(QtWidgets.QVBoxLayout())
+        #tab.setLayout(QtWidgets.QVBoxLayout())
         # tab.setSizePolicy(*cfg_size_policy)
-        _inject_new_widget_methods(tab)
+        #_inject_new_widget_methods(tab)
+        def setTabText(tab, text):
+            #tabwgt = tab.parent()
+            index = tabwgt.indexOf(tab)
+            tabwgt.setTabText(index, text)
+
+        ut.inject_func_as_method(tab, setTabText, 'setTabText')
         return tab
     ut.inject_func_as_method(tabwgt, addNewTab)
     return tabwgt
@@ -680,12 +688,26 @@ def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}):
         #ut.embed()
 
     def setColorFG(self, fgcolor):
+        """
+        fgcolor: a tuple or list of [R, G, B] in 255 format
+        """
         #current_sheet = self.styleSheet()
         style_sheet_str = make_style_sheet(bgcolor=None, fgcolor=fgcolor)
         if style_sheet_str is None:
             style_sheet_str = ''
         self.setStyleSheet(style_sheet_str)
+
+    def setColor(self, fgcolor=None, bgcolor=None):
+        """
+        fgcolor: a tuple or list of [R, G, B] in 255 format
+        """
+        #current_sheet = self.styleSheet()
+        style_sheet_str = make_style_sheet(bgcolor=bgcolor, fgcolor=fgcolor)
+        if style_sheet_str is None:
+            style_sheet_str = ''
+        self.setStyleSheet(style_sheet_str)
     ut.inject_func_as_method(label, setColorFG)
+    ut.inject_func_as_method(label, setColor)
     return label
 
 
@@ -1666,9 +1688,15 @@ def make_style_sheet(bgcolor=None, fgcolor=None):
     style_list = []
     fmtdict = {}
     if bgcolor is not None:
+        if isinstance(bgcolor, six.string_types):
+            import plottool as pt
+            bgcolor = getattr(pt, bgcolor.upper())[0:3] * 255
         style_list.append('background-color: rgb({bgcolor})')
         fmtdict['bgcolor'] = ','.join(map(str, bgcolor))
     if fgcolor is not None:
+        if isinstance(fgcolor, six.string_types):
+            import plottool as pt
+            fgcolor = getattr(pt, fgcolor.upper())[0:3] * 255
         style_list.append('color: rgb({fgcolor})')
         fmtdict['fgcolor'] = ','.join(map(str, fgcolor))
     if len(style_list) > 0:
