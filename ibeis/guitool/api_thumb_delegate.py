@@ -153,7 +153,11 @@ class APIThumbDelegate(DELEGATE_BASE):
             dgt.get_thumb_size = get_thumb_size  # 256
         dgt.last_thumbsize = None
         dgt.row_rezised_flags = {}  # SUPER HACK FOR RESIZE SHRINK
-        dgt.thumb_lru_cache = ut.LRUDict(256)
+        try:
+            import cachetools
+            dgt.thumb_cache = cachetools.TTLCache(256, ttl=5)
+        except ImportError:
+            dgt.thumb_cache = ut.LRUDict(256)
         #import utool
         #utool.embed()
 
@@ -173,11 +177,11 @@ class APIThumbDelegate(DELEGATE_BASE):
                 if view_would_not_be_visible(view, offset):
                     return None
                 # Read the precomputed thumbnail
-                if thumb_path in dgt.thumb_lru_cache:
-                    qimg = dgt.thumb_lru_cache[thumb_path]
+                if thumb_path in dgt.thumb_cache:
+                    qimg = dgt.thumb_cache[thumb_path]
                 else:
                     qimg = read_thumb_as_qimg(thumb_path)
-                    dgt.thumb_lru_cache[thumb_path] = qimg
+                    dgt.thumb_cache[thumb_path] = qimg
                 width, height = qimg.width(), qimg.height()
                 # Adjust the cell size to fit the image
                 dgt.adjust_thumb_cell_size(qtindex, width, height)

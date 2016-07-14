@@ -59,6 +59,13 @@ def newSplitter(widget=None, orientation=Qt.Horizontal, verticalStretch=1):
     return splitter
 
 
+def newScrollArea(parent, horizontalStretch=1, verticalStretch=1):
+    widget = QtWidgets.QScrollArea()
+    widget.setLayout(QtWidgets.QVBoxLayout())
+    _inject_new_widget_methods(widget)
+    return widget
+
+
 def newTabWidget(parent, horizontalStretch=1, verticalStretch=1):
     tabwgt = QtWidgets.QTabWidget(parent)
     sizePolicy = newSizePolicy(tabwgt, horizontalStretch=horizontalStretch,
@@ -871,6 +878,8 @@ def _inject_new_widget_methods(self):
         'Frame', 'Splitter', 'TabWidget', 'ProgressBar',
         ('EditConfigWidget', PrefWidget2.EditConfigWidget),
         ('TableWidget', QtWidgets.QTableWidget),
+        'ScrollArea',
+        #('ScrollArea', QtWidgets.QScrollArea),
     ]
     for guitype in guitype_list:
         if isinstance(guitype, tuple):
