@@ -21,7 +21,7 @@ from guitool import api_tree_node as _atn
 #printDBG = lambda *args: None
 # UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS
 # DO NOT INJECT THEM IN GUITOOL
-#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[APIItemModel]', DEBUG=False)
+#print, rrr, profile = ut.inject2(__name__, '[APIItemModel]')
 ut.noinject(__name__, '[APIItemModel]')
 
 #raise ImportError('refused to import guitool')
@@ -286,7 +286,7 @@ class APIItemModel(API_MODEL_BASE):
             #import utool
             #with utool.embed_on_exception_context:
             if True:
-                print('values = %r' % (values,))
+                #print('values = %r' % (values,))
                 if values is None:
                     print("SORTING VALUES IS NONE. VERY WEIRD")
                 if type_ is float:
@@ -956,10 +956,11 @@ class APIItemModel(API_MODEL_BASE):
             if column >= len(model.col_nice_list):
                 return []
             return model.col_nice_list[column]
-        #if orientation == Qt.Vertical and role == Qt.DisplayRole:
-        #    row = section
-        #    rowid = model._get_row_id(row)
-        #    return rowid
+        if orientation == Qt.Vertical and role == Qt.DisplayRole:
+            #row = section
+            #rowid = model._get_row_id(row)
+            #return rowid
+            return section
         return QVariantHack()
 
     @updater

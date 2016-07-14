@@ -58,6 +58,9 @@ class APITableView(API_VIEW_BASE):
     def _init_header_behavior(view):
         """ Header behavior
 
+        CommandLine:
+            python -m guitool.api_item_widget --test-simple_api_item_widget --show
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from guitool.api_table_view import *  # NOQA
@@ -66,15 +69,15 @@ class APITableView(API_VIEW_BASE):
         """
         # Row Headers
         verticalHeader = view.verticalHeader()
-        verticalHeader.setVisible(True)
+        verticalHeader.setVisible(False)
         #verticalHeader.setSortIndicatorShown(True)
         verticalHeader.setHighlightSections(True)
         try:
             verticalHeader.setResizeMode(QtWidgets.QHeaderView.Interactive)
-            verticalHeader.setMovable(True)
+            verticalHeader.setMovable(False)
         except AttributeError:
             verticalHeader.setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
-            verticalHeader.setSectionsMovable(True)
+            verticalHeader.setSectionsMovable(False)
         # TODO: get good estimate if there are thumbnails
         #verticalHeader.setDefaultSectionSize(256)
 

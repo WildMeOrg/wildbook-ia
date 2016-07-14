@@ -152,6 +152,10 @@ class APIThumbDelegate(DELEGATE_BASE):
         else:
             dgt.get_thumb_size = get_thumb_size  # 256
         dgt.last_thumbsize = None
+        dgt.row_rezised_flags = {}  # SUPER HACK FOR RESIZE SHRINK
+        dgt.thumb_lru_cache = ut.LRUDict(256)
+        #import utool
+        #utool.embed()
 
     def paint(dgt, painter, option, qtindex):
         """
@@ -169,7 +173,11 @@ class APIThumbDelegate(DELEGATE_BASE):
                 if view_would_not_be_visible(view, offset):
                     return None
                 # Read the precomputed thumbnail
-                qimg = read_thumb_as_qimg(thumb_path)
+                if thumb_path in dgt.thumb_lru_cache:
+                    qimg = dgt.thumb_lru_cache[thumb_path]
+                else:
+                    qimg = read_thumb_as_qimg(thumb_path)
+                    dgt.thumb_lru_cache[thumb_path] = qimg
                 width, height = qimg.width(), qimg.height()
                 # Adjust the cell size to fit the image
                 dgt.adjust_thumb_cell_size(qtindex, width, height)
@@ -337,8 +345,9 @@ class APIThumbDelegate(DELEGATE_BASE):
         view = dgt.parent()
         if isinstance(view, QtWidgets.QTableView):
             # dimensions of the table cells
+            row = qtindex.row()
             col_width = view.columnWidth(qtindex.column())
-            col_height = view.rowHeight(qtindex.row())
+            col_height = view.rowHeight(row)
             thumbsize = dgt.get_thumb_size()
             if thumbsize != dgt.last_thumbsize:
                 # has thumbsize changed?
@@ -353,12 +362,17 @@ class APIThumbDelegate(DELEGATE_BASE):
             # Let rows grow
             if height > col_height:
                 view.setRowHeight(qtindex.row(), height)
-            # Let rows shrink
-            # IF THERE IS MORE THAN ONE COLUMN WITH THUMBS THEN THIS WILL CAUSE
-            # COLS TO BE RESIZED MANY TIMES UNDER THE HOOD. THAT CAUSES
-            # MULTIPLE READS OF THE THUMBS WHICH CAUSES MAJOR SLOWDOWNS.
-            #if height < col_height:
-            #    view.setRowHeight(qtindex.row(), height)
+            if dgt.row_rezised_flags.get(row):
+                # HACK TO ONLY SHRINK ONCE WONT WORK WITH RESORT
+                return
+            else:
+                dgt.row_rezised_flags[row] = True
+                # Let rows shrink
+                # IF THERE IS MORE THAN ONE COLUMN WITH THUMBS THEN THIS WILL CAUSE
+                # COLS TO BE RESIZED MANY TIMES UNDER THE HOOD. THAT CAUSES
+                # MULTIPLE READS OF THE THUMBS WHICH CAUSES MAJOR SLOWDOWNS.
+                if height < col_height:
+                    view.setRowHeight(qtindex.row(), height)
         elif isinstance(view, QtWidgets.QTreeView):
             col_width = view.columnWidth(qtindex.column())
             col_height = view.rowHeight(qtindex)
