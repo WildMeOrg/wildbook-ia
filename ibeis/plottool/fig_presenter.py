@@ -106,7 +106,8 @@ def show_figure(fig):
         fig.show()
         fig.canvas.draw()
     except AttributeError as ex:
-        ut.printex(ex, 'probably registered made figure with Qt.', iswarning=True)
+        if not hasattr(fig, '_no_raise_plottool'):
+            ut.printex(ex, '[pt] probably registered made figure with Qt.', iswarning=True)
 
 
 def all_figures_tight_layout():
@@ -196,7 +197,8 @@ def all_figures_bring_to_front():
         for fig in iter(all_figures):
             bring_to_front(fig)
     except Exception as ex:
-        ut.printex(ex)
+        if not hasattr(fig, '_no_raise_plottool'):
+            ut.printex(ex, iswarning=True)
 
 
 def close_all_figures():

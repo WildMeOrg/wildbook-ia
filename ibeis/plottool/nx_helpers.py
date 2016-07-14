@@ -462,16 +462,14 @@ def make_agraph(graph_):
             name = groupid
         agraph.add_subgraph(nodes, name, **subgraph_attrs)
 
+    import re
     for node in graph_.nodes():
-        # force pinning of node points
         anode = pygraphviz.Node(agraph, node)
+        # TODO: Generally fix node positions
+        # force pinning of node points if pin attribute is set
         if anode.attr['pin'] == 'true':
-            if (anode.attr['pos'] is not None and
-                 len(anode.attr['pos']) > 0 and
-                 not anode.attr['pos'].endswith('!')):
-                import re
-                #utool.embed()
-                ptstr_ = anode.attr['pos']
+            ptstr_ = anode.attr['pos']
+            if (ptstr_ is not None and len(ptstr_) > 0 and not ptstr_.endswith('!')):
                 #print('ptstr_ = %r' % (ptstr_,))
                 ptstr = ptstr_.strip('[]').strip(' ').strip('()')
                 #print('ptstr = %r' % (ptstr,))
@@ -512,6 +510,8 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
         http://www.graphviz.org/doc/info/attrs.html
 
     >>> from plottool.nx_helpers import *  # NOQA
+    >>> orig_graph = graph
+    >>> layoutkw = {'prog': 'neato'}
 
     """
     #import networkx as nx
@@ -554,7 +554,27 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     if is_large:
         print('Preforming agraph layout on graph with %d nodes. May take time' % (num_nodes))
 
+    #import warnings
+    #warnings.filterwarnings("error")
+    #import warnings
+    #flag = False
+
+    #for node in graph_.nodes():
+    #    anode = pygraphviz.Node(agraph, node)
+    #    ptstr_ = anode.attr['pos']
+    #    print('ptstr_ = %r' % (ptstr_,))
+
+    #with warnings.catch_warnings(record=True):
+    #    warnings.filterwarnings("error")
+    #    try:
+    # FIXME; This spits out warnings on bad input
     agraph.layout(prog=prog, args=args)
+    #except RuntimeWarning as ex:
+    #    ut.printex(ex, iswarning=True)
+    #    flag = True
+    #if flag:
+    #    import utool
+    #    utool.embed()
 
     if is_large:
         print('Finished agraph layout.')
