@@ -196,7 +196,7 @@ def estimate_ggr_count(ibs):
         'multiple': False,
         'minqual': 'good',
         'is_known': True,
-        'min_pername': 1,
+        'min_pername': 2,
         'view': ['right'],
     }
     print('\nOnly Single-Animal-In-Annotation:')

@@ -863,72 +863,9 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
 
     with_match_tags = True
     if with_match_tags:
-        annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey(
-            [aid1], [aid2])[0]
-
-        if annotmatch_rowid is None:
-            tags = []
-        else:
-            tags = ibs.get_annotmatch_case_tags([annotmatch_rowid])[0]
-            tags = [_.lower() for _ in tags]
-        from ibeis import tag_funcs
-        standard, other = tag_funcs.get_cate_categories()
-        case_list = standard + other
-
-        #used_chars = gt.find_used_chars(ut.get_list_column(options, 0))
-        used_chars = []
-        case_hotlink_list = gt.make_word_hotlinks(case_list, used_chars)
-        case_options = []
-        if True or ut.VERBOSE:
-            print('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
-            print('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
-            print('[inspect_gui] tags = %r' % (tags,))
-        if ut.VERBOSE:
-            print('[inspect_gui] Making case hotlist: ' +
-                  ut.list_str(case_hotlink_list))
-
-        def _wrap_set_annotmatch_prop(prop, toggle_val):
-            if ut.VERBOSE:
-                print('[SETTING] Clicked set prop=%r to val=%r' %
-                      (prop, toggle_val,))
-            am_rowid = ibs.add_annotmatch_undirected([aid1], [aid2])[0]
-            if ut.VERBOSE:
-                print('[SETTING] aid1, aid2 = %r, %r' % (aid1, aid2,))
-                print('[SETTING] annotmatch_rowid = %r' % (am_rowid,))
-            ibs.set_annotmatch_prop(prop, [am_rowid], [toggle_val])
-            if ut.VERBOSE:
-                print('[SETTING] done')
-            if True:
-                # hack for reporting
-                if annotmatch_rowid is None:
-                    tags = []
-                else:
-                    tags = ibs.get_annotmatch_case_tags([annotmatch_rowid])[0]
-                    tags = [_.lower() for _ in tags]
-                print('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
-                print('[inspect_gui] annotmatch_rowid = %r' %
-                      (annotmatch_rowid,))
-                print('[inspect_gui] tags = %r' % (tags,))
-
-        for case, case_hotlink in zip(case_list, case_hotlink_list):
-            toggle_val = case.lower() not in tags
-            fmtstr = 'Flag %s case' if toggle_val else 'Unflag %s case'
-            case_options += [
-                #(fmtstr % (case_hotlink,), lambda:
-                #ibs.set_annotmatch_prop(case, _get_annotmatch_rowid(),
-                #                        [toggle_val])),
-                #(fmtstr % (case_hotlink,), partial(ibs.set_annotmatch_prop,
-                #case, [annotmatch_rowid], [toggle_val])),
-                (fmtstr % (case_hotlink,), partial(_wrap_set_annotmatch_prop,
-                                                   case, toggle_val)),
-            ]
-        if ut.VERBOSE:
-            print('Partial tag funcs:' +
-                  ut.list_str(
-                      [ut.func_str(func, func.args, func.keywords)
-                       for func in ut.get_list_column(case_options, 1)]))
+        pair_tag_options = make_aidpair_tag_context_options(ibs, aid1, aid2)
         options += [
-            ('Match Ta&gs', case_options)
+            ('Match Ta&gs', pair_tag_options)
         ]
 
     if ut.is_developer():
@@ -953,6 +890,74 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             ('dev pair context debug', dev_debug),
         ]
     return options
+
+
+def make_aidpair_tag_context_options(ibs, aid1, aid2):
+    from ibeis import tag_funcs
+    annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey(
+        [aid1], [aid2])[0]
+
+    if annotmatch_rowid is None:
+        tags = []
+    else:
+        tags = ibs.get_annotmatch_case_tags([annotmatch_rowid])[0]
+        tags = [_.lower() for _ in tags]
+    standard, other = tag_funcs.get_cate_categories()
+    case_list = standard + other
+
+    #used_chars = gt.find_used_chars(ut.get_list_column(options, 0))
+    used_chars = []
+    case_hotlink_list = gt.make_word_hotlinks(case_list, used_chars)
+    pair_tag_options = []
+    if True or ut.VERBOSE:
+        print('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
+        print('[inspect_gui] annotmatch_rowid = %r' % (annotmatch_rowid,))
+        print('[inspect_gui] tags = %r' % (tags,))
+    if ut.VERBOSE:
+        print('[inspect_gui] Making case hotlist: ' +
+              ut.list_str(case_hotlink_list))
+
+    def _wrap_set_annotmatch_prop(prop, toggle_val):
+        if ut.VERBOSE:
+            print('[SETTING] Clicked set prop=%r to val=%r' %
+                  (prop, toggle_val,))
+        am_rowid = ibs.add_annotmatch_undirected([aid1], [aid2])[0]
+        if ut.VERBOSE:
+            print('[SETTING] aid1, aid2 = %r, %r' % (aid1, aid2,))
+            print('[SETTING] annotmatch_rowid = %r' % (am_rowid,))
+        ibs.set_annotmatch_prop(prop, [am_rowid], [toggle_val])
+        if ut.VERBOSE:
+            print('[SETTING] done')
+        if True:
+            # hack for reporting
+            if annotmatch_rowid is None:
+                tags = []
+            else:
+                tags = ibs.get_annotmatch_case_tags([annotmatch_rowid])[0]
+                tags = [_.lower() for _ in tags]
+            print('[inspect_gui] aid1, aid2 = %r, %r' % (aid1, aid2,))
+            print('[inspect_gui] annotmatch_rowid = %r' %
+                  (annotmatch_rowid,))
+            print('[inspect_gui] tags = %r' % (tags,))
+
+    for case, case_hotlink in zip(case_list, case_hotlink_list):
+        toggle_val = case.lower() not in tags
+        fmtstr = 'Flag %s case' if toggle_val else 'Unflag %s case'
+        pair_tag_options += [
+            #(fmtstr % (case_hotlink,), lambda:
+            #ibs.set_annotmatch_prop(case, _get_annotmatch_rowid(),
+            #                        [toggle_val])),
+            #(fmtstr % (case_hotlink,), partial(ibs.set_annotmatch_prop,
+            #case, [annotmatch_rowid], [toggle_val])),
+            (fmtstr % (case_hotlink,), partial(_wrap_set_annotmatch_prop,
+                                               case, toggle_val)),
+        ]
+    if ut.VERBOSE:
+        print('Partial tag funcs:' +
+              ut.list_str(
+                  [ut.func_str(func, func.args, func.keywords)
+                   for func in ut.get_list_column(pair_tag_options, 1)]))
+    return pair_tag_options
 
 
 if __name__ == '__main__':

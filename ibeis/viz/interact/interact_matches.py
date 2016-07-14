@@ -18,7 +18,6 @@ import numpy as np
 import plottool as pt
 import six
 #import guitool
-from plottool import draw_func2 as df2
 from plottool import viz_featrow
 from plottool import interact_helpers as ih
 from plottool import plot_helpers as ph
@@ -63,6 +62,7 @@ def testdata_match_interact(**kwargs):
 # TODO inherit from AbstractInteraction
 
 @six.add_metaclass(ut.ReloadingMetaclass)
+#class MatchInteraction(AbstractInteraction):
 class MatchInteraction(object):
     """
     Plots a chip result and sets up callbacks for interaction.
@@ -73,12 +73,13 @@ class MatchInteraction(object):
     def __init__(self, ibs, cm, aid2=None, fnum=None,
                  figtitle='Match Interaction', same_fig=True,
                  qreq_=None, **kwargs):
+
+        #super(MatchInteraction, self).__init__()
         self.qres = cm
 
         self.ibs = ibs
         self.cm = cm
         self.qreq_ = qreq_
-        self.fnum = pt.ensure_fnum(fnum)
         # Unpack Args
         if aid2 is None:
             index = 0
@@ -121,7 +122,6 @@ class MatchInteraction(object):
         self.rchip2 = vh.get_chips(ibs, [self.daid], config2_=self.data_config2_)[0]
         # Begin Interaction
         # call doclf docla and make figure
-        self.fig = ih.begin_interaction('matches', self.fnum)
         self.xywh2_ptr  = [None]
         self.mode = kwargs.pop('mode', 0)
         # New state vars
@@ -130,10 +130,12 @@ class MatchInteraction(object):
         self.vert = kwargs.pop('vert', None)
         self.mx   = kwargs.pop('mx', None)
         self.last_fx = 0
-        self.fnum2 = pt.next_fnum()
         self.figtitle = figtitle
         self.kwargs = kwargs
 
+        self.fnum = pt.ensure_fnum(fnum)
+        self.fnum2 = pt.next_fnum()
+        self.fig = ih.begin_interaction('matches', self.fnum)
         abstract_interaction.register_interaction(self)
         ut.inject_func_as_method(self, AbstractInteraction.append_button.im_func)
         ut.inject_func_as_method(self, AbstractInteraction.show_popup_menu.im_func)
@@ -164,12 +166,19 @@ class MatchInteraction(object):
         self.set_callbacks()
         # FIXME: this should probably not be called here
         if dodraw:
-            ph.draw()  # ph-> adjust stuff draw -> fig_presenter.draw -> all figures show
+            #ph.draw()  # ph-> adjust stuff draw -> fig_presenter.draw -> all figures show
+            self.draw()
+            #self.fig.show()
+            #self.fig.canvas.draw()
 
     def set_callbacks(self):
         # TODO: view probchip
         #guitool.connect_context_menu(self.fig.canvas, options)
         ih.connect_callback(self.fig, 'button_press_event', self.on_click)
+
+    def draw(self):
+        self.fig.show()
+        self.fig.canvas.draw()
 
     # Callback
     def on_click(self, event):
@@ -190,7 +199,7 @@ class MatchInteraction(object):
             if not is_right_click:
                 print('... out of axis')
                 self.chipmatch_view()
-                viz.draw()
+                self.draw()
                 return
         else:
             in_axis = True
@@ -274,10 +283,10 @@ class MatchInteraction(object):
                 print('hs_fx = %r' % (hs_fx,))
                 print('hs_aid = %r' % (hs_aid,))
                 if hs_aid is not None and viztype == 'unwarped':
-                    ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=df2.next_fnum())
+                    ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=pt.next_fnum())
                 elif hs_aid is not None and viztype == 'warped':
                     viz.show_keypoint_gradient_orientations(ibs, hs_aid, hs_fx,
-                                                            fnum=df2.next_fnum())
+                                                            fnum=pt.next_fnum())
             elif viztype.startswith('colorbar'):
                 # Hack to get a specific scoring feature
                 sortx = self.fs.argsort()
@@ -292,8 +301,9 @@ class MatchInteraction(object):
                 self.select_ith_match(mx)
             else:
                 print('...Unknown viztype: %r' % viztype)
-            viz.draw()
+            pt.draw()
 
+    #def plot(self, fnum, pnum):
     def chipmatch_view(self, pnum=(1, 1, 1), **kwargs_):
         """
         just visualizes the matches using some type of lines
@@ -320,7 +330,7 @@ class MatchInteraction(object):
         draw_ell = mode >= 1
         draw_lines = mode == 2
         self.mode = (self.mode + 1) % 3
-        df2.figure(fnum=fnum, docla=True, doclf=True)
+        pt.figure(fnum=fnum, docla=True, doclf=True)
         show_matches_kw = self.kwargs.copy()
         show_matches_kw.update(
             dict(fnum=fnum, pnum=pnum, draw_lines=draw_lines,
@@ -341,7 +351,7 @@ class MatchInteraction(object):
         ax, xywh1, xywh2 = tup
         xywh2_ptr[0] = xywh2
 
-        df2.set_figtitle(figtitle + ' ' + vh.get_vsstr(qaid, aid))
+        pt.set_figtitle(figtitle + ' ' + vh.get_vsstr(qaid, aid))
 
     # Draw clicked selection
     def select_ith_match(self, mx):
@@ -436,14 +446,14 @@ class MatchInteraction(object):
         pnum1 = (nRows, 1, 1) if same_fig else (1, 1, 1)
         vert = self.vert if self.vert is not None else False
         self.chipmatch_view(pnum1, ell_alpha=.4, ell_linewidth=1.8,
-                            colors=df2.BLUE, sel_fm=sel_fm, vert=vert)
+                            colors=pt.BLUE, sel_fm=sel_fm, vert=vert)
         # Draw selected feature matches
         px = nCols * same_fig  # plot offset
         prevsift = None
         if not same_fig:
             #fnum2 = fnum + len(viz.FNUMS)
             fnum2 = self.fnum2
-            fig2 = df2.figure(fnum=fnum2, docla=True, doclf=True)
+            fig2 = pt.figure(fnum=fnum2, docla=True, doclf=True)
         else:
             fnum2 = fnum
         for (rchip, kp, sift, fx, aid, info) in extracted_list:
@@ -452,7 +462,7 @@ class MatchInteraction(object):
             prevsift = sift
         if not same_fig:
             ih.connect_callback(fig2, 'button_press_event', self.on_click)
-            df2.set_figtitle(figtitle + vh.get_vsstr(qaid, aid))
+            pt.set_figtitle(figtitle + vh.get_vsstr(qaid, aid))
 
     def sv_view(self, dodraw=True):
         """ spatial verification view
@@ -461,11 +471,12 @@ class MatchInteraction(object):
         #fnum = viz.FNUMS['special']
         aid = self.daid
         fnum = pt.next_fnum()
-        fig = df2.figure(fnum=fnum, docla=True, doclf=True)
+        fig = pt.figure(fnum=fnum, docla=True, doclf=True)
         ih.disconnect_callback(fig, 'button_press_event')
         viz.viz_sver.show_sver(self.ibs, self.qaid, aid2=aid, fnum=fnum)
         if dodraw:
-            viz.draw()
+            #self.draw()
+            pt.draw()
 
     def show_coverage(self, dodraw=True):
         """
@@ -483,19 +494,22 @@ class MatchInteraction(object):
         masks_list = scoring.get_masks(self.qreq_, self.cm)
         scoring.show_coverage_mask(self.qreq_, self.cm, masks_list)
         if dodraw:
-            viz.draw()
+            #self.draw()
+            pt.draw()
 
     def show_each_chip(self):
         viz_chip.show_chip(self.ibs, self.qaid, fnum=pt.next_fnum(), nokpts=True)
         viz_chip.show_chip(self.ibs, self.daid, fnum=pt.next_fnum(), nokpts=True)
-        viz.draw()
+        pt.draw()
+        #self.draw()
 
     def show_each_fgweight_chip(self):
         viz_chip.show_chip(self.ibs, self.qaid, fnum=pt.next_fnum(),
                            weight_label='fg_weights')
         viz_chip.show_chip(self.ibs, self.daid, fnum=pt.next_fnum(),
                            weight_label='fg_weights')
-        viz.draw()
+        #self.draw()
+        pt.draw()
 
     def show_each_dstncvs_chip(self, dodraw=True):
         """
@@ -521,12 +535,14 @@ class MatchInteraction(object):
         viz_chip.show_chip(self.ibs, self.daid, weights=dstncvs2,
                            fnum=pt.next_fnum(), **showkw)
         if dodraw:
-            viz.draw()
+            #self.draw()
+            pt.draw()
 
     def show_each_probchip(self):
         viz_hough.show_probability_chip(self.ibs, self.qaid, fnum=pt.next_fnum())
         viz_hough.show_probability_chip(self.ibs, self.daid, fnum=pt.next_fnum())
-        viz.draw()
+        pt.draw()
+        #self.draw()
 
     def dev_reload(self):
         ih.disconnect_callback(self.fig, 'button_press_event')
@@ -544,23 +560,25 @@ class MatchInteraction(object):
     def toggle_homog(self):
         self.use_homog = not self.use_homog
         self.chipmatch_view()
-        viz.draw()
+        self.draw()
 
     def toggle_samefig(self):
         self.same_fig = not self.same_fig
         if self.mx is not None:
             self.select_ith_match(self.mx)
-        pt.update()
+        #pt.update()
+        pt.draw()
 
     def query_last_feature(self):
         ibs      = self.ibs
         qaid     = self.qaid
-        viz.show_nearest_descriptors(ibs, qaid, self.last_fx, df2.next_fnum(),
+        viz.show_nearest_descriptors(ibs, qaid, self.last_fx, pt.next_fnum(),
                                      qreq_=self.qreq_, draw_chip=True)
-        fig3 = df2.gcf()
+        fig3 = pt.gcf()
         ih.connect_callback(fig3, 'button_press_event', self.on_click)
-        viz.draw()
-        #df2.update()
+        pt.draw()
+        #self.draw()
+        #pt.update()
 
 if __name__ == '__main__':
     """

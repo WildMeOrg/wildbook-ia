@@ -29,7 +29,8 @@ def _dz(a, b):
 
 
 def get_cm_breaking(qreq_, cm_list, top=None, bot=None):
-
+    """
+    """
     # Construct K-broken graph
     qaid_list = [cm.qaid for cm in cm_list]
     edges = []
@@ -354,6 +355,7 @@ class AnnotInference2(object):
     }
 
     def __init__(infr, ibs, aids, nids):
+        print('[infr] __init__')
         infr.ibs = ibs
         infr.aids = aids
         infr.orig_name_labels = nids
@@ -363,18 +365,12 @@ class AnnotInference2(object):
         assert len(aids) == len(nids)
         #assert len(aids) == len(current_nids)
         infr.graph = None
-        infr._extra_feedback = {
-            'aid1': [],
-            'aid2': [],
-            'p_match': [],
-            'p_nomatch': [],
-            'p_notcomp': [],
-        }
-        #infr._initial_feedback = infr._extra_feedback.copy()
-        infr._initial_feedback = {}
-        infr.initialize_user_feedback()
+        #infr._initial_feedback = infr._user_feedback.copy()
+        infr._initial_feedback = infr.load_user_feedback()
+        infr._user_feedback = infr._initial_feedback.copy()
         infr.thresh = .5
-        #infr._extra_feedback.copy()
+        infr.cm_list = None
+        infr.qreq_ = None
 
     def connected_compoment_subgraphs(infr):
         """
@@ -383,9 +379,15 @@ class AnnotInference2(object):
         algorithm is not run, then user review is all that matters.
         """
         graph = infr.graph
-        reviewed_states = nx.get_edge_attrs(graph, 'reviewed_state')
+        # Make a graph where connections do indicate same names
         graph2 = graph.copy()
+
+        reviewed_states = nx.get_edge_attrs(graph, 'reviewed_state')
+        #edge_to_ismst = nx.get_edge_attrs(graph, '_mst_edge')
+
         keep_edges = [key for key, val in reviewed_states.items() if val == 'match']
+        #keep_edges += list(edge_to_ismst.keys())
+
         graph2.remove_edges_from(list(graph2.edges()))
         graph2.add_edges_from(keep_edges)
         ccs = list(nx.connected_components(graph2))
@@ -393,6 +395,7 @@ class AnnotInference2(object):
         return cc_subgraphs
 
     def connected_compoment_relabel(infr):
+        print('[infr] connected_compoment_relabel')
         cc_subgraphs = infr.connected_compoment_subgraphs()
         num_inconsistent = 0
         num_names = len(cc_subgraphs)
@@ -409,7 +412,11 @@ class AnnotInference2(object):
             # Check for consistency
         return num_names, num_inconsistent
 
-    def initialize_user_feedback(infr):
+    def load_user_feedback(infr):
+        """
+        Loads feedback from annotmatch table
+        """
+        print('[infr] load_user_feedback')
         ibs = infr.ibs
         aids = infr.aids
         rowids1 = ibs.get_annotmatch_rowids_from_aid1(aids)
@@ -445,11 +452,10 @@ class AnnotInference2(object):
             ('p_notcomp', p_notcomp),
         ])
         print('user_feedback = %s' % (ut.repr2(user_feedback, nl=1),))
-        infr._initial_feedback = {
+        user_feedback = {
             lbl: x.tolist() if isinstance(x, np.ndarray) else x
             for lbl, x in user_feedback.items()
         }
-
         # split_aids_pairs = ibs.filter_aidpairs_by_tags(has_any='SplitCase')
         # for aid1, aid2 in split_aids_pairs:
         #     infr.add_feedback(aid1, aid2, 'nonmatch')
@@ -457,14 +463,15 @@ class AnnotInference2(object):
         # merge_aid_pairs = ibs.filter_aidpairs_by_tags(has_any='JoinCase')
         # for aid1, aid2 in merge_aid_pairs:
         #     infr.add_feedback(aid1, aid2, 'match')
+        return user_feedback
 
     @property
     def user_feedback(infr):
-        return ut.dict_union_combine(infr._initial_feedback,
-                                     infr._extra_feedback)
+        return infr._user_feedback
+        #return ut.dict_union_combine(infr._initial_feedback, infr._user_feedback)
 
     def initialize_graph(infr):
-        print('Init Graph')
+        print('[infr] initialize_graph')
         #infr.graph = graph = nx.DiGraph()
         infr.graph = graph = nx.Graph()
         graph.add_nodes_from(infr.aids)
@@ -480,12 +487,18 @@ class AnnotInference2(object):
         infr.initialize_visual_node_attrs()
 
     def reset_name_labels(infr):
+        print('[infr] reset_name_labels')
         graph = infr.graph
         orig_names = nx.get_node_attrs(graph, 'orig_name_label')
         nx.set_node_attrs(graph, 'name_label', orig_names)
 
     def reset_feedback(infr):
-        infr._extra_feedback = {
+        print('[infr] reset_feedback')
+        infr._user_feedback = infr._initial_feedback.copy()
+
+    def remove_feedback(infr):
+        print('[infr] remove_feedback')
+        infr._user_feedback = {
             'aid1': [],
             'aid2': [],
             'p_match': [],
@@ -493,7 +506,21 @@ class AnnotInference2(object):
             'p_notcomp': [],
         }
 
+    def lookup_cm(infr, aid1, aid2):
+        aid2_idx = ut.make_index_lookup(
+            [cm.qaid for cm in infr.cm_list])
+        try:
+            idx = aid2_idx[aid1]
+            cm = infr.cm_list[idx]
+        except KeyError:
+            # switch order
+            aid1, aid2 = aid2, aid1
+            idx = aid2_idx[aid1]
+            cm = infr.cm_list[idx]
+        return cm, aid1, aid2
+
     def remove_name_labels(infr):
+        print('[infr] remove_name_labels()')
         graph = infr.graph
         # make distinct names for all nodes
         #import utool
@@ -553,9 +580,8 @@ class AnnotInference2(object):
                                     logscale=False)
         return colors
 
-    def update_graph_visual_attributes(infr, show_cuts=False,
-                                       show_reviewed_cuts=True):
-        print('Update Visual Attrs')
+    def update_visual_attrs(infr, show_cuts=False, show_reviewed_cuts=True, only_reviewed=False):
+        print('[infr] update_visual_attrs')
         #edge2_weight = nx.get_edge_attrs(infr.graph, 'score')
         graph = infr.graph
         ut.nx_delete_edge_attr(graph, 'style')
@@ -563,6 +589,18 @@ class AnnotInference2(object):
         ut.nx_delete_edge_attr(graph, 'color')
         ut.nx_delete_edge_attr(graph, 'lw')
         ut.nx_delete_edge_attr(graph, 'stroke')
+        ut.nx_delete_edge_attr(graph, 'alpha')
+        ut.nx_delete_edge_attr(graph, 'linestyle')
+
+        # Set node labels
+        node2_aid = nx.get_node_attrs(infr.graph, 'aid')
+        node2_nid = nx.get_node_attrs(infr.graph, 'name_label')
+        node2_label = {
+            #node: '%d:aid=%r' % (node, aid)
+            node: 'aid=%r\nnid=%r' % (aid, node2_nid[node])
+            for node, aid in node2_aid.items()
+        }
+        nx.set_node_attributes(infr.graph, 'label', node2_label)
 
         # Color nodes by name label
         ut.color_nodes(graph, labelattr='name_label')
@@ -591,12 +629,22 @@ class AnnotInference2(object):
         nx.set_edge_attrs(graph, 'implicit', _dz(cut_edges, [True]))
         print('show_cuts = %r' % (show_cuts,))
         print('show_reviewed_cuts = %r' % (show_reviewed_cuts,))
+        nx.set_edge_attrs(graph, 'linestyle', _dz(cut_edges, ['dashed']))
+
+        # Non-matching edges should not impose a constraint on the graph layout
+        nonmatch_edges = {edge: state for edge, state in reviewed_states.items() if state == 'nonmatch'}
+        nx.set_edge_attrs(graph, 'implicit', _dz(nonmatch_edges, [True]))
+
+        if only_reviewed:
+            # only reviewed edges contribute
+            unreviewed_edges = ut.setdiff(edges, reviewed_states.keys())
+            nx.set_edge_attrs(graph, 'implicit', _dz(unreviewed_edges, [True]))
+            nx.set_edge_attrs(graph, 'style', _dz(unreviewed_edges, ['invis']))
+
         if show_cuts or show_reviewed_cuts:
             if not show_cuts:
-                # Show only ones we made though
                 nonfeedback_cuts = ut.setdiff(cut_edges, reviewed_states.keys())
                 nx.set_edge_attrs(graph, 'style', _dz(nonfeedback_cuts, ['invis']))
-            nx.set_edge_attrs(graph, 'linestyle', _dz(cut_edges, ['dashed']))
         else:
             nx.set_edge_attrs(graph, 'style', _dz(cut_edges, ['invis']))
 
@@ -606,6 +654,7 @@ class AnnotInference2(object):
         nx.set_edge_attrs(graph, 'alpha', _dz(mst_edges, [.5]))
 
     def remove_mst_edges(infr):
+        print('[infr] remove_mst_edges')
         graph = infr.graph
         edge_to_ismst = nx.get_edge_attrs(graph, '_mst_edge')
         mst_edges = [edge for edge, flag in edge_to_ismst.items() if flag]
@@ -613,7 +662,7 @@ class AnnotInference2(object):
 
     def exec_scoring(infr, vsone=False):
         """ Helper """
-        print('Exec Scoring')
+        print('[infr] exec_scoring')
         #from ibeis.algo.hots import graph_iden
         ibs = infr.ibs
         aid_list = infr.aids
@@ -647,22 +696,24 @@ class AnnotInference2(object):
 
     def add_feedback(infr, aid1, aid2, state):
         """ External helepr """
-        infr._extra_feedback['aid1'].append(aid1)
-        infr._extra_feedback['aid2'].append(aid2)
+        print('[infr] add_feedback(%r, %r, %r)' % (aid1, aid2, state))
+        infr._user_feedback['aid1'].append(aid1)
+        infr._user_feedback['aid2'].append(aid2)
 
-        assert state in infr.truth_texts.values(), 'state=%r is unknown' % (state,)
+        assert state in infr.truth_texts.values(), (
+            'state=%r is unknown' % (state,))
         if state == 'match':
-            infr._extra_feedback['p_match'].append(1.0)
-            infr._extra_feedback['p_nomatch'].append(0.0)
-            infr._extra_feedback['p_notcomp'].append(0.0)
+            infr._user_feedback['p_match'].append(1.0)
+            infr._user_feedback['p_nomatch'].append(0.0)
+            infr._user_feedback['p_notcomp'].append(0.0)
         elif state == 'nonmatch':
-            infr._extra_feedback['p_match'].append(0.0)
-            infr._extra_feedback['p_nomatch'].append(1.0)
-            infr._extra_feedback['p_notcomp'].append(0.0)
+            infr._user_feedback['p_match'].append(0.0)
+            infr._user_feedback['p_nomatch'].append(1.0)
+            infr._user_feedback['p_notcomp'].append(0.0)
         elif state == 'notcomp':
-            infr._extra_feedback['p_match'].append(0.0)
-            infr._extra_feedback['p_nomatch'].append(0.0)
-            infr._extra_feedback['p_notcomp'].append(1.0)
+            infr._user_feedback['p_match'].append(0.0)
+            infr._user_feedback['p_nomatch'].append(0.0)
+            infr._user_feedback['p_notcomp'].append(1.0)
 
     def get_feedback_probs(infr):
         """ Helper """
@@ -705,7 +756,7 @@ class AnnotInference2(object):
         return p_same_list, unique_pairs, review_state
 
     def apply_mst(infr):
-        print('Ensure MST')
+        print('[infr] apply_mst')
         # Remove old MST edges
         infr.remove_mst_edges()
         infr.ensure_mst()
@@ -716,6 +767,7 @@ class AnnotInference2(object):
 
         Needs to be applied after any operation that adds/removes edges
         """
+        print('[infr] ensure_mst')
         import networkx as nx
         # Find clusters by labels
         node2_label = nx.get_node_attrs(infr.graph, 'name_label')
@@ -729,32 +781,27 @@ class AnnotInference2(object):
         aug_graph.remove_edges_from(cut_edges)
 
         # Enumerate cliques inside labels
-        nodes_list = list(label2_nodes.values())
-        unflat_edges = [list(ut.product(nodes, nodes)) for nodes in nodes_list]
+        #unflat_edges = [list(ut.product(nodes, nodes)) for nodes in label2_nodes.values()]
+        unflat_edges = [list(ut.itertwo(nodes)) for nodes in label2_nodes.values()]
         node_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
 
-        # Find set of original (non-mst edges)
+        # Remove candidate MST edges that exist in the original graph
         orig_edges = list(aug_graph.edges())
-        # Candidate MST edges do not exist in the original graph
-        #candidate_mst_edges = ut.setdiff_ordered(node_pairs, orig_edges)
         candidate_mst_edges = [edge for edge in node_pairs if not aug_graph.has_edge(*edge)]
 
-        #preweighted_edges = nx.get_edge_attrs(aug_graph, 'weight')
-        #orig_edges = ut.setdiff(aug_graph.edges(), list(preweighted_edges.keys()))
-
-        # randomness gets rid of all notdes connecting to one
-        # visually looks better
+        # randomness prevents chains and visually looks better
         rng = np.random.RandomState(42)
 
         aug_graph.add_edges_from(candidate_mst_edges)
         # Weight edges in aug_graph such that existing edges are chosen
         # to be part of the MST first before suplementary edges.
         nx.set_edge_attributes(aug_graph, 'weight',
-                               dict([(edge, 0.1) for edge in orig_edges]))
+                               {edge: 0.1 for edge in orig_edges})
         nx.set_edge_attributes(aug_graph, 'weight',
-                               dict([(edge, 1.0 + rng.randint(1, 100))
-                                     for edge in candidate_mst_edges]))
+                               {edge: 10.0 + rng.randint(1, 100)
+                                for edge in candidate_mst_edges})
         new_mst_edges = []
+        print('[infr] adding %d MST edges' % (len(new_mst_edges)))
         for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
             mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
             for edge in mst_sub_graph.edges():
@@ -767,13 +814,92 @@ class AnnotInference2(object):
         infr.graph.add_edges_from(new_mst_edges)
         nx.set_edge_attrs(infr.graph, '_mst_edge', _dz(new_mst_edges, [True]))
 
-    def apply_scores(infr):
-        print('Score edges')
+    def mst_review(infr):
+        """
+        Adds implicit reviews to connect all ndoes with the same name label
+        """
+        print('[infr] ensure_mst')
+        import networkx as nx
+        # Find clusters by labels
+        node2_label = nx.get_node_attrs(infr.graph, 'name_label')
+        label2_nodes = ut.group_items(node2_label.keys(), node2_label.values())
+
+        aug_graph = infr.graph.copy().to_undirected()
+
+        # remove cut edges
+        edge_to_iscut = nx.get_edge_attrs(aug_graph, 'is_cut')
+        cut_edges = [edge for edge, flag in edge_to_iscut.items() if flag]
+        aug_graph.remove_edges_from(cut_edges)
+
+        # Enumerate chains inside labels
+        unflat_edges = [list(ut.itertwo(nodes)) for nodes in label2_nodes.values()]
+        node_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
+
+        # Remove candidate MST edges that exist in the original graph
+        orig_edges = list(aug_graph.edges())
+        candidate_mst_edges = [edge for edge in node_pairs if not aug_graph.has_edge(*edge)]
+
+        aug_graph.add_edges_from(candidate_mst_edges)
+        # Weight edges in aug_graph such that existing edges are chosen
+        # to be part of the MST first before suplementary edges.
+
+        def get_edge_mst_weights(edge):
+            state = aug_graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
+            is_mst = aug_graph.get_edge_data(*edge).get('_mst_edge', False)
+            normscore = aug_graph.get_edge_data(*edge).get('normscore', 0)
+
+            if state == 'match':
+                # favor reviewed edges
+                weight = .01
+            else:
+                # faveor states with high scores
+                weight = 1 + (1 - normscore)
+            if is_mst:
+                # try to not use mst edges
+                weight += 3.0
+            return weight
+
+        rng = np.random.RandomState(42)
+
+        nx.set_edge_attributes(aug_graph, 'weight',
+                               {edge: get_edge_mst_weights(edge) for edge in orig_edges})
+        nx.set_edge_attributes(aug_graph, 'weight',
+                               {edge: 10.0 + rng.randint(1, 100)
+                                for edge in candidate_mst_edges})
+        new_mst_edges = []
+        for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
+            mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
+            for edge in mst_sub_graph.edges():
+                data = aug_graph.get_edge_data(*edge)
+                state = data.get('reviewed_state', 'unreviewed')
+                # Append only if this edge needs a review flag
+                if state != 'match':
+                    new_mst_edges.append(edge)
+
+        print('[infr] reviewing %d MST edges' % (len(new_mst_edges)))
+
+        # Apply data / add edges if needed
+        graph = infr.graph
+        for edge in new_mst_edges:
+            redge = edge[::-1]
+            # Only add if this edge is not in the original graph
+            if graph.has_edge(*edge):
+                nx.set_edge_attrs(graph, 'reviewed_state', {edge: 'match'})
+                infr.add_feedback(edge[0], edge[1], 'match')
+            elif graph.has_edge(*redge):
+                nx.set_edge_attrs(graph, 'reviewed_state', {redge: 'match'})
+                infr.add_feedback(edge[0], edge[1], 'match')
+            else:
+                graph.add_edge(*edge, attr_dict={'_mst_edge': True, 'reviewed_state': 'match'})
+                infr.add_feedback(edge[0], edge[1], 'match')
+
+    def apply_scores(infr, review_cfg={}):
+        print('[infr] apply_scores')
         qreq_, cm_list = infr.exec_scoring(vsone=False)
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
-        top = 2
-        bot = 2
+        top = review_cfg.get('top', 2)
+        bot = review_cfg.get('bot', 2)
         undirected_edges = get_cm_breaking(qreq_, cm_list, top=top, bot=bot)
 
         # Do some normalization of scores
@@ -789,11 +915,11 @@ class AnnotInference2(object):
         # Remove existing attrs
         ut.nx_delete_edge_attr(infr.graph, 'score')
         ut.nx_delete_edge_attr(infr.graph, 'rank')
-        ut.nx_delete_edge_attr(infr.graph, 'normscores')
+        ut.nx_delete_edge_attr(infr.graph, 'normscore')
         # Add new attrs
         nx.set_edge_attrs(infr.graph, 'score', dict(zip(edges, edge_scores)))
         nx.set_edge_attrs(infr.graph, 'rank', dict(zip(edges, edge_ranks)))
-        nx.set_edge_attrs(infr.graph, 'normscores', dict(zip(edges, normscores)))
+        nx.set_edge_attrs(infr.graph, 'normscore', dict(zip(edges, normscores)))
         infr.thresh = infr.get_threshold()
 
         infr.ensure_mst()
@@ -802,7 +928,7 @@ class AnnotInference2(object):
         """
         Updates nx graph edge attributes for feedback
         """
-        print('Apply Feedback')
+        print('[infr] apply_feedback')
         infr.remove_mst_edges()
 
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_weight')
@@ -827,7 +953,7 @@ class AnnotInference2(object):
 
     def get_threshold(infr):
         # Only use the normalized scores to estimate a threshold
-        normscores = np.array(nx.get_edge_attrs(infr.graph, 'normscores').values())
+        normscores = np.array(nx.get_edge_attrs(infr.graph, 'normscore').values())
         print('len(normscores) = %r' % (len(normscores),))
         isvalid = ~np.isnan(normscores)
         curve = np.sort(normscores[isvalid])
@@ -842,13 +968,13 @@ class AnnotInference2(object):
         """
         Combines scores and user feedback into edge weights used in inference.
         """
-        print('Weight Edges')
+        print('[infr] apply_weights')
         ut.nx_delete_edge_attr(infr.graph, 'cut_weight')
         # mst not needed. No edges are removed
 
         edges = list(infr.graph.edges())
-        edge2_normscores = nx.get_edge_attrs(infr.graph, 'normscores')
-        normscores = np.array(ut.dict_take(edge2_normscores, edges, np.nan))
+        edge2_normscore = nx.get_edge_attrs(infr.graph, 'normscore')
+        normscores = np.array(ut.dict_take(edge2_normscore, edges, np.nan))
 
         edge2_reviewed_weight = nx.get_edge_attrs(infr.graph, 'reviewed_weight')
         reviewed_weights = np.array(ut.dict_take(edge2_reviewed_weight,
@@ -868,13 +994,26 @@ class AnnotInference2(object):
         scalars['reviewed_weight'] = nx.get_edge_attrs(
             infr.graph, 'reviewed_weight').values()
         scalars['score'] = nx.get_edge_attrs(infr.graph, 'score').values()
-        scalars['normscores'] = nx.get_edge_attrs(infr.graph, 'normscores').values()
+        scalars['normscore'] = nx.get_edge_attrs(infr.graph, 'normscore').values()
         scalars[CUT_WEIGHT_KEY] = nx.get_edge_attrs(infr.graph, CUT_WEIGHT_KEY).values()
         return scalars
 
-    def apply_cuts(infr):
-        # needs to be applied after anything that changes name labels
+    def remove_cuts(infr):
+        """
+        Undo all cuts HACK
+        """
+        print('[infr] apply_cuts')
         graph = infr.graph
+        infr.ensure_mst()
+        ut.nx_delete_edge_attr(graph, 'is_cut')
+
+    def apply_cuts(infr):
+        """
+        Cuts edges with different names and uncuts edges with the same name
+        """
+        print('[infr] apply_cuts')
+        graph = infr.graph
+        infr.ensure_mst()
         ut.nx_delete_edge_attr(graph, 'is_cut')
         node_to_label = nx.get_node_attrs(graph, 'name_label')
         edge_to_cut = {(u, v): node_to_label[u] != node_to_label[v]
@@ -882,8 +1021,11 @@ class AnnotInference2(object):
         nx.set_edge_attrs(graph, 'is_cut', edge_to_cut)
 
     def infer_cut(infr, **kwargs):
+        """
+        Applies name labels based on graph inference and then cuts edges
+        """
         from ibeis.algo.hots import graph_iden
-        print('Infer New Cut / labeling')
+        print('[infr] infer_cut')
 
         infr.remove_mst_edges()
         infr.model = graph_iden.InfrModel(infr.graph)
@@ -901,6 +1043,7 @@ class AnnotInference2(object):
         infr.ensure_mst()
 
     def apply_all(infr):
+        print('[infr] apply_all')
         infr.apply_mst()
         infr.apply_scores()
         infr.apply_feedback()

@@ -561,7 +561,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         #pt.iup()
 
     def plot(self, fnum, pnum):
-        self.infr.update_graph_visual_attributes(self.show_cuts)
+        self.infr.update_visual_attrs(self.show_cuts)
 
         layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
 

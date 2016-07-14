@@ -683,13 +683,18 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
         if check_func is not None and check_func():
             return
 
-        idx = cm.daid2_idx[daid]
-        fm   = cm.fm_list[idx]
-        fsv  = None if cm.fsv_list is None else cm.fsv_list[idx]
-        fs   = None if fsv is None else fsv.prod(axis=1)
+        try:
+            idx = cm.daid2_idx[daid]
+            fm   = cm.fm_list[idx]
+            fsv  = None if cm.fsv_list is None else cm.fsv_list[idx]
+            fs   = None if fsv is None else fsv.prod(axis=1)
+        except KeyError:
+            fm = []
+            fs = None
+            fsv = None
 
         maxnum = 200
-        if len(fs) > maxnum:
+        if fs is not None and len(fs) > maxnum:
             # HACK TO ONLY SHOW TOP MATCHES
             sortx = fs.argsort()[::-1]
             fm = fm.take(sortx[:maxnum], axis=0)
