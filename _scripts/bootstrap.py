@@ -11,9 +11,7 @@ cd ibeis
 ./_scripts/__install_prereqs__.sh
 ./super_setup.py --build --develop
 ./super_setup.py --build --develop
-"""
 
-"""
 pip list --outdated
 
 python -c
@@ -60,8 +58,6 @@ python setup.py install
 CommandLine:
     # upgrade pip packages
     ./_scripts/bootstrap.py --no-syspkg --upgrade
-
-
 """
 import sys
 import os
@@ -203,6 +199,8 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'pyfiglet',
         'Pygments',
         'colorama',
+        # Amazon server
+        'boto',
     ]
 
     import platform
