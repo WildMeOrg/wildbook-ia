@@ -772,7 +772,9 @@ class AnnotInference2(object):
         qreq_, cm_list = infr.exec_scoring(vsone=False)
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
-        undirected_edges = get_cm_breaking(qreq_, cm_list)
+        top = 2
+        bot = 2
+        undirected_edges = get_cm_breaking(qreq_, cm_list, top=top, bot=bot)
 
         # Do some normalization of scores
         edges = list(undirected_edges.keys())

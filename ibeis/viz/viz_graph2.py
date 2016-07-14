@@ -199,6 +199,19 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.update_state(structure_changed=True)
         #self.edge_api_widget.resize_headers()
 
+        self.pcfg = {
+            'can_match_samename': True,
+            'K': 3,
+            'Knorm': 3,
+            'prescore_method': 'csum',
+            'score_method': 'csum'
+        }
+
+        self.review_cfg = {
+            'top': 3,
+            'bot': 3,
+        }
+
     def update_state(self, structure_changed=False):
         self.infr.apply_feedback()
         self.infr.apply_weights()
@@ -399,7 +412,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             #aid1, aid2 = aid_pair
             #truth = ibs.get_match_truth(aid1, aid2)
             #annotmach_reviewed = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
-            color = self.infr.truth_colors[graph.get_edge_data(*aid_pair).get('reviewed_state', 'unreviewed')]
+            data = graph.get_edge_data(*aid_pair)
+            state = data.get('reviewed_state', 'unreviewed')
+            color = self.infr.truth_colors[state]
             lighten_amount = .35
             if lighten_amount is not None:
                 color = pt.lighten_rgb(color, lighten_amount)
@@ -429,6 +444,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             'index': 42,
             'aid1': 42,
             'aid2': 42,
+            'score': 60,
+            'rank': 42,
         }
 
         edge_api = gt.CustomAPI(
@@ -635,6 +652,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         node_to_newname = {node: to_newname[label] for node, label in node_to_label.items()}
         aid_list = list(node_to_newname.keys())
         name_list = list(node_to_newname.values())
+        print('aid_list = %r' % (aid_list,))
+        print('name_list = %r' % (name_list,))
 
         ibs = self.infr.ibs
         if False:
