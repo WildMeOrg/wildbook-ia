@@ -1723,6 +1723,7 @@ def get_special_imgsetids(ibs):
 
 
 @register_ibs_method
+@profile
 def get_ungrouped_gids(ibs):
     """
     CommandLine:
