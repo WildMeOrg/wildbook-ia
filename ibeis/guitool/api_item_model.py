@@ -31,6 +31,7 @@ profile = ut.profile
 API_MODEL_BASE = QtCore.QAbstractItemModel
 
 VERBOSE = ut.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
+VERBOSE = VERBOSE or ut.get_argflag(('--verbose-qt-api', '--verbqt-api'))
 
 
 class ChangeLayoutContext(object):
@@ -163,7 +164,7 @@ class APIItemModel(API_MODEL_BASE):
 
         model.ider_filters = None
 
-        model.lazy_updater = None
+        #model.lazy_updater = None
         if headers is not None:
             model._update_headers(**headers)
 
@@ -246,81 +247,82 @@ class APIItemModel(API_MODEL_BASE):
         Uses the current ider and col_sort_index to create
         row_indices
         """
-        if VERBOSE:
-            print('[APIItemModel] +-----------')
-            print('[APIItemModel] _update_rows')
-        # this is not slow
-        #print('UPDATE ROWS!')
-        if len(model.col_level_list) == 0:
-            return
-        #old_root = model.root_node  # NOQA
-        if rebuild_structure:
-            model.root_node = _atn.build_internal_structure(model)
-        if VERBOSE:
-            print('[APIItemModel] lazy_update_rows')
-        model.level_index_list = []
-        sort_index = 0 if model.col_sort_index is None else model.col_sort_index
-        #print('[item_model] sort_index=%r' % (sort_index,))
-        children = model.root_node.get_children()  # THIS IS THE LINE THAT TAKES FOREVER
-        id_list = [child.get_id() for child in children]
-        #print('ids_ generated')
-        nodes = []
-        if len(id_list) != 0:
+        with ut.Timer('[gt] update_rows (%s)' % (model.name,)):
             if VERBOSE:
-                print('[APIItemModel] lazy_update_rows len(id_list) = %r' % (len(id_list)))
-            # start sort
-            if model.col_sort_index is not None:
-                type_ = model.col_type_list[sort_index]
-                getter = model.col_getter_list[sort_index]
-                values = getter(id_list)
-                if type_ == 'PIXMAP':
-                    # TODO: find a better sorting metric for pixmaps
-                    values = ut.get_list_column(values, 0)
-            else:
-                type_ = int
-                values = id_list
-            reverse = model.col_sort_reverse
+                print('[APIItemModel] +-----------')
+                print('[APIItemModel] _update_rows')
+            # this is not slow
+            #print('UPDATE ROWS!')
+            if len(model.col_level_list) == 0:
+                return
+            #old_root = model.root_node  # NOQA
+            if rebuild_structure:
+                model.root_node = _atn.build_internal_structure(model)
+            if VERBOSE:
+                print('[APIItemModel] lazy_update_rows')
+            model.level_index_list = []
+            sort_index = 0 if model.col_sort_index is None else model.col_sort_index
+            #print('[item_model] sort_index=%r' % (sort_index,))
+            children = model.root_node.get_children()  # THIS IS THE LINE THAT TAKES FOREVER
+            id_list = [child.get_id() for child in children]
+            #print('ids_ generated')
+            nodes = []
+            if len(id_list) != 0:
+                if VERBOSE:
+                    print('[APIItemModel] lazy_update_rows len(id_list) = %r' % (len(id_list)))
+                # start sort
+                if model.col_sort_index is not None:
+                    type_ = model.col_type_list[sort_index]
+                    getter = model.col_getter_list[sort_index]
+                    values = getter(id_list)
+                    if type_ == 'PIXMAP':
+                        # TODO: find a better sorting metric for pixmaps
+                        values = ut.get_list_column(values, 0)
+                else:
+                    type_ = int
+                    values = id_list
+                reverse = model.col_sort_reverse
 
-            #ut.embed()
-            # <NUMPY MULTIARRAY SORT>
-            #import utool
-            #with utool.embed_on_exception_context:
-            if True:
-                #print('values = %r' % (values,))
-                if values is None:
-                    print("SORTING VALUES IS NONE. VERY WEIRD")
-                if type_ is float:
-                    values = np.array(ut.replace_nones(values, np.nan))
-                    values[np.isnan(values)] = -np.inf  # Force nan to be the smallest number
-                import vtool as vt
-                sortx = vt.argsort_records([values, id_list], reverse=reverse)
-                # </NUMPY MULTIARRAY SORT>
-                nodes = ut.take(children, sortx)
-                #sorted_pairs = sorted(zip(values, id_list, children), reverse=reverse)
-                #nodes = [child for (value, id_, child) in sorted_pairs]
-                level = model.col_level_list[sort_index]
-                #print("row_indices sorted")
-                if level == 0:
-                    model.root_node.set_children(nodes)
-                # end sort
-        if ut.USE_ASSERT:
-            assert nodes is not None, 'no indices'
-        model.level_index_list = nodes
-        #if VERBOSE:
-        #    print('[APIItemModel] lazy_update_rows emmiting _rows_updated')
-        # EMIT THE NUMERR OF ROWS AND THE NAME OF FOR THE VIEW TO DISPLAY
-        model._rows_updated.emit(model.name, len(model.level_index_list))
-        if VERBOSE:
-            print('[APIItemModel] finished _update_rows')
-            print('[APIItemModel] L__________')
+                #ut.embed()
+                # <NUMPY MULTIARRAY SORT>
+                #import utool
+                #with utool.embed_on_exception_context:
+                if True:
+                    #print('values = %r' % (values,))
+                    if values is None:
+                        print("SORTING VALUES IS NONE. VERY WEIRD")
+                    if type_ is float:
+                        values = np.array(ut.replace_nones(values, np.nan))
+                        values[np.isnan(values)] = -np.inf  # Force nan to be the smallest number
+                    import vtool as vt
+                    sortx = vt.argsort_records([values, id_list], reverse=reverse)
+                    # </NUMPY MULTIARRAY SORT>
+                    nodes = ut.take(children, sortx)
+                    #sorted_pairs = sorted(zip(values, id_list, children), reverse=reverse)
+                    #nodes = [child for (value, id_, child) in sorted_pairs]
+                    level = model.col_level_list[sort_index]
+                    #print("row_indices sorted")
+                    if level == 0:
+                        model.root_node.set_children(nodes)
+                    # end sort
+            if ut.USE_ASSERT:
+                assert nodes is not None, 'no indices'
+            model.level_index_list = nodes
+            #if VERBOSE:
+            #    print('[APIItemModel] lazy_update_rows emmiting _rows_updated')
+            # EMIT THE NUMERR OF ROWS AND THE NAME OF FOR THE VIEW TO DISPLAY
+            model._rows_updated.emit(model.name, len(model.level_index_list))
+            if VERBOSE:
+                print('[APIItemModel] finished _update_rows')
+                print('[APIItemModel] L__________')
 
     #@profile
-    def lazy_checks(model):
-        if model.lazy_updater is not None:
-            print('[model] lazy update %r caller %r: ' %
-                  (model.name, ut.get_caller_name(N=range(4))))
-            model.lazy_updater()
-            model.lazy_updater = None
+    #def lazy_checks(model):
+    #    if model.lazy_updater is not None:
+    #        print('[model] lazy update %r caller %r: ' %
+    #              (model.name, ut.get_caller_name(N=range(4))))
+    #        model.lazy_updater()
+    #        model.lazy_updater = None
 
     @updater
     def _set_iders(model, iders=None):
@@ -447,20 +449,23 @@ class APIItemModel(API_MODEL_BASE):
     def _about_to_change(model, force=False):
         #N = range(0, 10)  # NOQA
         if force or (not model._abouttochange and not model._changeblocked):
-            #printDBG('ABOUT TO CHANGE: %r' % (model.name,))
+            if VERBOSE:
+                print('ABOUT TO CHANGE: %r' % (model.name,))
             #printDBG('caller=%r' % (ut.get_caller_name(N=N)))
             model._abouttochange = True
             model.layoutAboutToBeChanged.emit()
             return True
         else:
-            #printDBG('NOT ABOUT TO CHANGE')
+            if VERBOSE:
+                print('NOT ABOUT TO CHANGE')
             return False
 
     @default_method_decorator
     def _change(model, force=False):
         #N = range(0, 10)  # NOQA
         if force or (model._abouttochange and not model._changeblocked):
-            #printDBG('LAYOUT CHANGED:  %r' % (model.name,))
+            if VERBOSE:
+                print('LAYOUT CHANGED:  %r' % (model.name,))
             #printDBG('caller=%r' % (ut.get_caller_name(N=N)))
             #model._abouttochange = False
             model._abouttochange = False
@@ -469,7 +474,8 @@ class APIItemModel(API_MODEL_BASE):
             model.layoutChanged.emit()
             return True
         else:
-            #printDBG('NOT CHANGING')
+            if VERBOSE:
+                print('NOT LAYOUT CHANGING')
             #print('NOT LAYOU CHANGED: %r, caller=%r' % (model.name, ut.get_caller_name(N=N)))
             return False
 
@@ -637,6 +643,19 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_data(model, qtindex, **kwargs):
+        if False:
+            if not hasattr(model, '_hack_timer'):
+                model._hack_timer = ut.Timer(verbose=False)
+                model._hack_timer.tic()
+                model._hack_timer.flag = True
+            if model._hack_timer.flag:
+                print('[api] getdata %r %s' % (model.name, str(qtype.qindexinfo(qtindex))))
+                #print('[model] lazy update %r caller %r: ' %
+                #      (model.name, ut.get_caller_name(N=range(4))))
+                model._hack_timer.flag = False
+            if model._hack_timer.toc() > 100:
+                model._hack_timer.tic()
+                model._hack_timer.flag = True
         #row = qtindex.row()
         col = qtindex.column()
         row_id = model._get_row_id(qtindex)  # row_id w.r.t. to sorting
@@ -647,10 +666,16 @@ class APIItemModel(API_MODEL_BASE):
             #data = getter((row_id,), **kwargs)[0]
             data = getter(row_id, **kwargs)
         except Exception as ex:
-            ut.printex(
-                ex,
-                '[api_item_model] problem getting in column %r' % (col,),
-                keys=['model.name', 'getter', 'row_id', 'col', 'qtindex'])
+            print(ex)
+            print('[api_item_model] problem getting in column %r' % (col,),)
+            print('model.name = %r' % (model.name,))
+            print('row_id = %r' % (row_id,))
+            print('qtindex = %r' % (qtype.qindexinfo(qtindex),))
+            print('qtindex = %r' % (qtindex,))
+            #ut.printex(
+            #    ex,
+            #    '[api_item_model] problem getting in column %r' % (col,),
+            #    keys=['model.name', 'getter', 'row_id', 'col', 'qtindex'])
             #getting from: %r' % ut.util_str.get_callable_name(getter))
             raise
         # <HACK: MODEL_CACHE>
@@ -712,7 +737,7 @@ class APIItemModel(API_MODEL_BASE):
             no parent, an invalid QModelIndex is returned.
         """
 
-        model.lazy_checks()
+        #model.lazy_checks()
         if qindex.isValid():
             node = qindex.internalPointer()
             #<HACK>
@@ -744,7 +769,7 @@ class APIItemModel(API_MODEL_BASE):
         NOTE:
             Object must be specified to sort delegates.
         """
-        model.lazy_checks()
+        #model.lazy_checks()
         if not parent.isValid():
             # This is a top level == 0 index
             #print('[model.index] ROOT: row=%r, col=%r' % (row, column))
@@ -794,7 +819,7 @@ class APIItemModel(API_MODEL_BASE):
     def columnCount(model, parent=QtCore.QModelIndex()):
         """ Qt Override """
         # FOR NOW THE COLUMN COUNT IS CONSTANT
-        model.lazy_checks()
+        #model.lazy_checks()
         return len(model.col_name_list)
 
     @default_method_decorator
@@ -950,7 +975,7 @@ class APIItemModel(API_MODEL_BASE):
             corresponds to the column number. Similarly, for vertical headers,
             the section number corresponds to the row number.
         """
-        model.lazy_checks()
+        #model.lazy_checks()
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             column = section
             if column >= len(model.col_nice_list):
@@ -966,7 +991,7 @@ class APIItemModel(API_MODEL_BASE):
     @updater
     def sort(model, column, order):
         """ Qt Override """
-        model.lazy_checks()
+        #model.lazy_checks()
         reverse = (order == QtCore.Qt.DescendingOrder)
         model._set_sort(column, reverse)
 

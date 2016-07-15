@@ -125,7 +125,7 @@ class TreeNode(TREE_NODE_BASE):
         # If the child is a generator, then the TreeNode hasn't been created yet
         # so create it
         if isinstance(self.child_nodes, GeneratorType):
-            #printDBG('[tree_node] lazy evaluation level=%r' % self.level)
+            print('[tree_node] lazy evaluation level=%r' % self.level)
             #print('[tree_node] lazy evaluation level=%r' % self.level)
             self.child_nodes = list(self.child_nodes)
 
@@ -228,6 +228,7 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
         >>> result = ut.hashstr(infostr)
         >>> print(result)
     """
+    print('_populate_tree_iterative')
     root_ids = ider_list[0]()
     parent_node_list = [root_node]
     ids_list = [root_ids]

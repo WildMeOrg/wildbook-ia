@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-from guitool.__PYQT__ import QtCore, QtGui
+from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__ import QtWidgets
 from guitool.guitool_decorators import signal_, slot_
 import utool
@@ -43,6 +43,8 @@ class APITreeView(API_VIEW_BASE):
         view.customContextMenuRequested.connect(view.on_customMenuRequested)
         #view.cornerButton = guitool_components.newButton(view)
         #view.setCornerWidget(view.cornerButton)
+
+        #view.setUniformRowHeights(True)
 
     #---------------
     # Initialization
