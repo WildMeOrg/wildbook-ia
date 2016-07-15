@@ -251,6 +251,7 @@ def delete_empty_nids(ibs):
 @register_ibs_method
 @accessor_decors.getter_1toM
 @register_api('/api/name/annot/rowid/', methods=['GET'])
+@profile
 def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     r"""
     # TODO: Rename to get_anot_rowids_from_name_rowid
@@ -427,8 +428,23 @@ def get_name_aids(ibs, nid_list, enable_unknown_fix=True):
     # TODO: should a query of the UNKNOWN_NAME_ROWID return anything?
     # TODO: don't even run negative aids as queries
     nid_list_ = [const.UNKNOWN_NAME_ROWID if nid <= 0 else nid for nid in nid_list]
+
+    NEW_INDEX_HACK = True
     USE_GROUPING_HACK = False
-    if USE_GROUPING_HACK:
+    if NEW_INDEX_HACK:
+        # FIXME: This index should when the database is defined.
+        # Ensure that an index exists on the image column of the annotation table
+        #print(len(nid_list_))
+        ibs.db.connection.execute(
+            '''
+            CREATE INDEX IF NOT EXISTS nid_to_aids ON annotations (name_rowid);
+            ''').fetchall()
+        aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,),
+                               nid_list_, id_colname=NAME_ROWID,
+                               unpack_scalars=False)
+        #%timeit ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), nid_list_, id_colname=NAME_ROWID, unpack_scalars=False)
+        # The index maxes the following query very efficient
+    elif USE_GROUPING_HACK:
         # This code doesn't work because it doesn't respect empty names
         input_list, inverse_unique = np.unique(nid_list_, return_inverse=True)
         input_str = ', '.join(list(map(str, input_list)))

@@ -44,6 +44,10 @@ IMAGE_TIMEDELTA_POSIX = 'image_timedelta_posix'
 PARTY_ROWID           = 'party_rowid'
 CONTRIBUTOR_ROWID     = 'contributor_rowid'
 
+ANNOT_ROWID = 'annot_rowid'
+ANNOT_ROWIDS = 'annot_rowids'
+IMAGE_ROWID = 'image_rowid'
+
 
 @register_ibs_method
 @accessor_decors.ider
@@ -1440,6 +1444,7 @@ def get_image_species_uuids(ibs, gid_list):
 @register_ibs_method
 @accessor_decors.getter_1toM
 @register_api('/api/image/imageset/rowid/', methods=['GET'])
+@profile
 def get_image_imgsetids(ibs, gid_list):
     r"""
     Returns:
@@ -1450,6 +1455,14 @@ def get_image_imgsetids(ibs, gid_list):
         URL:    /api/image/imageset/rowid/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+    NEW_INDEX_HACK = True
+    if NEW_INDEX_HACK:
+        # FIXME: This index should when the database is defined.
+        # Ensure that an index exists on the image column of the annotation table
+        ibs.db.connection.execute(
+            '''
+            CREATE INDEX IF NOT EXISTS gs_to_gids ON {GSG_RELATION_TABLE} ({IMAGE_ROWID});
+            '''.format(GSG_RELATION_TABLE=const.GSG_RELATION_TABLE, IMAGE_ROWID=IMAGE_ROWID)).fetchall()
     colnames = ('imageset_rowid',)
     imgsetids_list = ibs.db.get(const.GSG_RELATION_TABLE, colnames, gid_list,
                                 id_colname='image_rowid', unpack_scalars=False)
@@ -1485,16 +1498,12 @@ def get_image_imagesettext(ibs, gid_list):
     return imagesettext_list
 
 
-ANNOT_ROWID = 'annot_rowid'
-ANNOT_ROWIDS = 'annot_rowids'
-IMAGE_ROWID = 'image_rowid'
-
-
 @register_ibs_method
 @accessor_decors.getter_1toM
 @accessor_decors.cache_getter(const.IMAGE_TABLE, ANNOT_ROWIDS)
 #@profile
 @register_api('/api/image/annot/rowid/', methods=['GET'])
+@profile
 def get_image_aids(ibs, gid_list):
     r"""
     Returns:
@@ -1542,8 +1551,28 @@ def get_image_aids(ibs, gid_list):
     # FIXME: SLOW JUST LIKE GET_NAME_AIDS
     # print('gid_list = %r' % (gid_list,))
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+    NEW_INDEX_HACK = True
     USE_GROUPING_HACK = False
-    if USE_GROUPING_HACK:
+    if NEW_INDEX_HACK:
+        # FIXME: This index should when the database is defined.
+        # Ensure that an index exists on the image column of the annotation table
+        ibs.db.connection.execute(
+            '''
+            CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
+            ''').fetchall()
+        # The index maxes the following query very efficient
+        aids_list = ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
+                               gid_list, id_colname=IMAGE_ROWID,
+                               unpack_scalars=False)
+        #aids_list = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(
+        #    '''
+        #    SELECT annot_rowid
+        #    FROM annotations
+        #    WHERE image_rowid = ?''', (gid,)).fetchall()
+        #]
+        #    for gid in gid_list]
+
+    elif USE_GROUPING_HACK:
         input_list, inverse_unique = np.unique(gid_list, return_inverse=True)
         # This code doesn't work because it doesn't respect empty names
         input_str = ', '.join(list(map(str, input_list)))
@@ -1579,8 +1608,50 @@ def get_image_aids(ibs, gid_list):
             ]
         else:
             # SQL IMPL
-            aids_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list,
-                                       id_colname=IMAGE_ROWID, unpack_scalars=False)
+            aids_list = ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,),
+                                   gid_list, id_colname=IMAGE_ROWID,
+                                   unpack_scalars=False)
+            #%timeit ibs.db.get(ibs.const.ANNOTATION_TABLE, (ANNOT_ROWID,), gid_list, id_colname=IMAGE_ROWID, unpack_scalars=False)
+
+    if False:
+        #cur = ibs.db.connection.execute(' .indices annotations;')
+        #cur.fetchall()
+        #aid_list3 = ibs.db.connection.execute('''
+        #                               SELECT annot_rowid
+        #                               FROM annotations
+        #                               WHERE image_rowid IN
+        #                               ({input_str})
+        #                               GROUP BY image_rowid
+        #                               '''.format(input_str=', '.join(list(map(str, gid_list))))
+        #                              ).fetchall()
+        #%timeit ibs.db.connection.execute('''SELECT annot_rowid FROM annotations WHERE image_rowid IN ({input_str}) GROUP BY image_rowid'''.format(input_str=', '.join(list(map(str, gid_list))))).fetchall()
+        #aids_list3 = []
+        """
+        cur = ibs.db.connection.execute(
+            '''
+            SELECT * FROM sqlite_master WHERE type = 'index'
+            ''')
+        cur.fetchall()
+
+        cur = ibs.db.connection.execute(
+            '''
+            CREATE INDEX IF NOT EXISTS gid_to_aids ON annotations (image_rowid);
+            ''').fetchall()
+
+        gid_list = ibs.get_valid_gids()
+        gid_list_ = gid_list[0:15]
+        gid_list_ = gid_list
+        aids_list1 = ibs.get_image_aids(gid_list_)
+        aids_list2 = [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute(
+            '''
+            SELECT annot_rowid
+            FROM annotations
+            WHERE image_rowid = ?''', (gid,)).fetchall()] for gid in gid_list_]
+
+        %timeit ibs.get_image_aids(gid_list_)
+
+        %timeit [[wrapped_aids[0] for wrapped_aids in ibs.db.connection.execute('''SELECT annot_rowid FROM annotations WHERE image_rowid = ?''', (gid,)).fetchall()] for gid in gid_list_]
+        """
     #print('aids_list = %r' % (aids_list,))
     return aids_list
 
@@ -1601,6 +1672,7 @@ def get_image_annot_uuids(ibs, gid_list):
 @accessor_decors.getter_1toM
 #@cache_getter(const.IMAGE_TABLE)
 @register_api('/api/image/annot/rowid/species/', methods=['GET'], __api_plural_check__=False)
+@profile
 def get_image_aids_of_species(ibs, gid_list, species=None):
     r"""
     Returns:

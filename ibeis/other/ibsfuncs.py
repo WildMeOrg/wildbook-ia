@@ -1761,6 +1761,7 @@ def get_ungrouped_gids(ibs):
 @register_ibs_method
 #@ut.time_func
 #@profile
+@profile
 def update_ungrouped_special_imageset(ibs):
     """
     Args:
@@ -1799,7 +1800,7 @@ def update_ungrouped_special_imageset(ibs):
 
 @register_ibs_method
 @ut.time_func
-#@profile
+@profile
 def update_special_imagesets(ibs):
     if ut.get_argflag('--readonly-mode'):
         # SUPER HACK

@@ -484,6 +484,7 @@ def get_imageset_uuids(ibs, imgsetid_list):
 @accessor_decors.getter_1toM
 @accessor_decors.cache_getter(const.IMAGESET_TABLE, 'image_rowids')
 @register_api('/api/imageset/image/rowid/', methods=['GET'])
+@profile
 def get_imageset_gids(ibs, imgsetid_list):
     r"""
     Returns:
@@ -494,6 +495,14 @@ def get_imageset_gids(ibs, imgsetid_list):
         URL:    /api/imageset/image/rowid/
     """
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
+    NEW_INDEX_HACK = True
+    if NEW_INDEX_HACK:
+        # FIXME: This index should when the database is defined.
+        # Ensure that an index exists on the image column of the annotation table
+        ibs.db.connection.execute(
+            '''
+            CREATE INDEX IF NOT EXISTS gids_to_gs ON {GSG_RELATION_TABLE} (imageset_rowid);
+            '''.format(GSG_RELATION_TABLE=const.GSG_RELATION_TABLE)).fetchall()
     gids_list = ibs.db.get(const.GSG_RELATION_TABLE, ('image_rowid',), imgsetid_list, id_colname='imageset_rowid', unpack_scalars=False)
     #print('get_imageset_gids')
     #print('imgsetid_list = %r' % (imgsetid_list,))
@@ -583,6 +592,7 @@ def get_imageset_nids(ibs, imgsetid_list):
         >>> print(result)
         [[1, 2, 3], [4, 5, 6, 7]]
     """
+    # FIXME: SLOW
     aids_list = ibs.get_imageset_aids(imgsetid_list)
     nids_list = ibs.unflat_map(ibs.get_annot_name_rowids, aids_list)
     #nids_list_ = [[nid[0] for nid in nids if len(nid) > 0] for nids in nids_list]

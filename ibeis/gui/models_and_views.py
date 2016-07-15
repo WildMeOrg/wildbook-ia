@@ -18,18 +18,24 @@ class IBEISTableWidget(APIItemWidget):
     def __init__(widget, headers=None, parent=None, *args):
         widget.ibswin = parent
         widget.imgsetid = None
-        APIItemWidget.__init__(widget, headers=headers, parent=parent,
-                                model_class=IBEISStripeModel,
-                                view_class=IBEISTableView)
+        #APIItemWidget.__init__(widget, headers=headers, parent=parent,
+        #                        model_class=IBEISStripeModel,
+        #                        view_class=IBEISTableView)
+        super(IBEISTableWidget, widget).__init__(headers=headers, parent=parent,
+                                                 model_class=IBEISStripeModel,
+                                                 view_class=IBEISTableView)
 
 
 class IBEISTreeWidget(APIItemWidget):
     def __init__(widget, headers=None, parent=None, *args):
         widget.ibswin = parent
         widget.imgsetid = None
-        APIItemWidget.__init__(widget, headers=headers, parent=parent,
-                                model_class=IBEISItemModel,
-                                view_class=IBEISTreeView)
+        #APIItemWidget.__init__(widget, headers=headers, parent=parent,
+        #                        model_class=IBEISItemModel,
+        #                        view_class=IBEISTreeView)
+        super(IBEISTreeWidget, widget).__init__(headers=headers, parent=parent,
+                                                model_class=IBEISItemModel,
+                                                view_class=IBEISTreeView)
 
 
 IBEISSTRIPEMODEL_BASE = StripeProxyModel
@@ -40,7 +46,8 @@ IBEISITEMMODEL_BASE = APIItemModel
 class IBEISStripeModel(IBEISSTRIPEMODEL_BASE):
     """ Used for the image grid """
     def __init__(model, headers=None, parent=None, *args):
-        IBEISSTRIPEMODEL_BASE.__init__(model, parent=parent, numduplicates=1, *args)
+        #IBEISSTRIPEMODEL_BASE.__init__(model, parent=parent, numduplicates=1, *args)
+        super(IBEISStripeModel, model).__init__(parent=parent, numduplicates=1, *args)
         model.ibswin = parent
         model.imgsetid = -1  # negative one is an invalid imgsetid
         model.original_ider = None
@@ -69,7 +76,8 @@ class IBEISStripeModel(IBEISSTRIPEMODEL_BASE):
     def _change_imageset(model, imgsetid):
         model.imgsetid = imgsetid
         with ChangeLayoutContext([model]):
-            IBEISSTRIPEMODEL_BASE._update_rows(model)
+            #IBEISSTRIPEMODEL_BASE._update_rows(model)
+            super(IBEISStripeModel, model)._update_rows()
 
 
 class IBEISTableView(APITableView):
@@ -77,7 +85,8 @@ class IBEISTableView(APITableView):
     View for ANNOTATION / NAME / IMAGE Tables
     """
     def __init__(tblview, parent=None):
-        APITableView.__init__(tblview, parent)
+        super(IBEISTableView, tblview).__init__(parent=parent)
+        #APITableView.__init__(tblview, parent)
         tblview.ibswin = parent
 
     def _change_imageset(tblview, imgsetid):
@@ -90,7 +99,8 @@ class IBEISTableView(APITableView):
 
 class IBEISItemModel(IBEISITEMMODEL_BASE):
     def __init__(model, headers=None, parent=None, *args):
-        IBEISITEMMODEL_BASE.__init__(model, parent=parent, *args)
+        #IBEISITEMMODEL_BASE.__init__(model, parent=parent, *args)
+        super(IBEISItemModel, model).__init__(parent=parent, *args)
         model.ibswin = parent
         model.imgsetid = -1
         model.original_ider = None
@@ -106,7 +116,8 @@ class IBEISItemModel(IBEISITEMMODEL_BASE):
             model.new_iders = model.original_iders[:]
             model.new_iders[0] = model._ider
         headers['iders'] = model.new_iders
-        return IBEISITEMMODEL_BASE._update_headers(model, **headers)
+        super(IBEISItemModel, model)._update_headers(**headers)
+        #return IBEISITEMMODEL_BASE._update_headers(model, **headers)
 
     def _ider(model):
         """
@@ -119,7 +130,8 @@ class IBEISItemModel(IBEISITEMMODEL_BASE):
         print('[gui.IBEISItemModel] _change_imageset(%r)' % (imgsetid))
         model.imgsetid = imgsetid
         with ChangeLayoutContext([model]):
-            IBEISITEMMODEL_BASE._update_rows(model)
+            super(IBEISItemModel, model)._update_rows()
+            #IBEISITEMMODEL_BASE._update_rows(model)
 
 
 class IBEISTreeView(APITreeView):
@@ -127,10 +139,13 @@ class IBEISTreeView(APITreeView):
     View for NAME / ANNOTATION Tree
     """
     def __init__(treeview, parent=None):
+        # SUPER WEIRD, super doesn't work here
         APITreeView.__init__(treeview, parent)
+        #super(APITreeView, treeview).__init__(parent)
         treeview.ibswin = parent
 
     def _change_imageset(treeview, imgsetid):
+        print('[gui.IBEISTreeView] _change_imageset(%r)' % (imgsetid))
         treeview.verticalScrollBar().setSliderPosition(0)
         model = treeview.model()
         if model is not None:
@@ -147,16 +162,20 @@ class IBEISTreeView(APITreeView):
 class ImagesetTableWidget(APIItemWidget):
     def __init__(widget, headers=None, parent=None, *args):
         widget.ibswin = parent
-        APIItemWidget.__init__(widget, headers=headers, parent=parent,
-                                model_class=ImagesetTableModel,
-                                view_class=ImagesetTableView)
+        super(ImagesetTableWidget, widget).__init__(headers=headers, parent=parent,
+                                                    model_class=ImagesetTableModel,
+                                                    view_class=ImagesetTableView)
+        #APIItemWidget.__init__(widget, headers=headers, parent=parent,
+        #                        model_class=ImagesetTableModel,
+        #                        view_class=ImagesetTableView)
 
 
 class ImagesetTableModel(APIItemModel):
     def __init__(model, headers=None, parent=None):
         model.ibswin = parent
         model.headers = headers
-        APIItemModel.__init__(model, headers=headers, parent=parent)
+        #APIItemModel.__init__(model, headers=headers, parent=parent)
+        super(ImagesetTableModel, model).__init__(headers=headers, parent=parent)
 
 
 class ImagesetTableView(APITableView):
@@ -165,5 +184,6 @@ class ImagesetTableView(APITableView):
     """
     def __init__(tblview, parent=None):
         APITableView.__init__(tblview, parent)
+        #super(ImagesetTableView, tblview).__init__(parent)
         tblview.ibswin = parent
         #tblview.setMaximumSize(500, 9999)

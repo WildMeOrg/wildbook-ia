@@ -152,18 +152,19 @@ class ImageSetTabWidget(QtWidgets.QTabWidget):
         print('[_add_imageset_tab] imgsetid=%r, imagesettext=%r' % (imgsetid, imagesettext))
         if imgsetid not in imageset_tabwgt.imgsetid_list:
             print('[_add_imageset_tab] adding new image tab')
+            imageset_tabwgt.imgsetid_list.append(imgsetid)
+            index = len(imageset_tabwgt.imgsetid_list) - 1
             tab_name = str(imagesettext)
             # Only has a tab, doesn't actually contain anything
             hack_newtab = QtWidgets.QWidget(parent=imageset_tabwgt)
             imageset_tabwgt.addTab(hack_newtab, tab_name)
-
-            imageset_tabwgt.imgsetid_list.append(imgsetid)
-            index = len(imageset_tabwgt.imgsetid_list) - 1
         else:
             print('[_add_imageset_tab] using existing image tab')
             index = imageset_tabwgt.imgsetid_list.index(imgsetid)
 
+        print('[_add_imageset_tab] setCurrentIndex(index=%r)' % (index,))
         imageset_tabwgt.setCurrentIndex(index)
+        # Dont call this, it is triggered twice
         #imageset_tabwgt._on_imagesettab_change(index)
 
     def _update_imageset_tab_name(imageset_tabwgt, imgsetid, imagesettext):
@@ -712,16 +713,20 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     view.hide_cols()
             #ibswgt._tables_tab_widget.blockSignals(block_wgt_flag)
 
+            # Update species with ones enabled in database
+            if not ibs.readonly:
+                ibswgt.update_species_available()
+
             # FIXME: bad code
             # TODO: load previously loaded imageset or nothing
-            LOAD_IMAGESET_ON_START = True
+            LOAD_IMAGESET_ON_START = not ut.get_argflag('--fast')
             if LOAD_IMAGESET_ON_START:
                 imgsetid_list = ibs.get_valid_imgsetids(shipped=False)
                 if len(imgsetid_list) > 0:
                     DEFAULT_LARGEST_IMAGESET = False
                     if DEFAULT_LARGEST_IMAGESET:
                         numImg_list = ibs.get_imageset_num_gids(imgsetid_list)
-                        argx = ut.list_argsort(numImg_list)[-1]
+                        argx = ut.list_argsort(numImg_list, reverse=True)[0]
                         imgsetid = imgsetid_list[argx]
                     else:  # Grab "first" imageset
                         imgsetid = imgsetid_list[0]
@@ -729,10 +734,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ibswgt.select_imageset_tab(imgsetid)
                 else:
                     ibswgt._change_imageset(-1)
-
-            # Update species with ones enabled in database
-            if not ibs.readonly:
-                ibswgt.update_species_available()
 
     def update_species_available(ibswgt, reselect=False, reselect_new_name=None, deleting=False):
         ibs = ibswgt.ibs
@@ -1126,10 +1127,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         When the rows are updated change the tab names
         """
-        if VERBOSE_GUI:
-            print('[newgui] on_rows_updated: tblname=%12r nRows=%r ' % (tblname, nRows))
+        #if VERBOSE_GUI:
+        print('[newgui] on_rows_updated: tblname=%12r nRows=%r ' % (tblname, nRows))
         if tblname == IMAGESET_TABLE:  # Hack
-            print('... tblname == IMAGESET_TABLE, ...hack return')
+            #print('... tblname == IMAGESET_TABLE, ...hack return')
             return
         tblname = str(tblname)
         TABLE_NICE = ibswgt.declare_tup[1]  # hack
