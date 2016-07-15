@@ -151,17 +151,20 @@ class ImageSetTabWidget(QtWidgets.QTabWidget):
     def _add_imageset_tab(imageset_tabwgt, imgsetid, imagesettext):
         print('[_add_imageset_tab] imgsetid=%r, imagesettext=%r' % (imgsetid, imagesettext))
         if imgsetid not in imageset_tabwgt.imgsetid_list:
+            print('[_add_imageset_tab] adding new image tab')
             tab_name = str(imagesettext)
-            wgt = QtWidgets.QWidget(parent=imageset_tabwgt)
-            imageset_tabwgt.addTab(wgt, tab_name)
+            # Only has a tab, doesn't actually contain anything
+            hack_newtab = QtWidgets.QWidget(parent=imageset_tabwgt)
+            imageset_tabwgt.addTab(hack_newtab, tab_name)
 
             imageset_tabwgt.imgsetid_list.append(imgsetid)
             index = len(imageset_tabwgt.imgsetid_list) - 1
         else:
+            print('[_add_imageset_tab] using existing image tab')
             index = imageset_tabwgt.imgsetid_list.index(imgsetid)
 
         imageset_tabwgt.setCurrentIndex(index)
-        imageset_tabwgt._on_imagesettab_change(index)
+        #imageset_tabwgt._on_imagesettab_change(index)
 
     def _update_imageset_tab_name(imageset_tabwgt, imgsetid, imagesettext):
         for index, _id in enumerate(imageset_tabwgt.imgsetid_list):
@@ -262,7 +265,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.modelview_defs.append((IMAGE_TABLE, IBEISTableWidget,
                                           IBEISItemModel, IBEISTableView))
         # ADD IMAGE GRID
-        if not ut.get_argflag('--onlyimgtbl'):
+        USE_GRID = False
+        if USE_GRID and not ut.get_argflag('--onlyimgtbl'):
             ibswgt.tblname_list.append(IMAGE_GRID)
             ibswgt.modelview_defs.append((IMAGE_GRID, IBEISTableWidget,
                                           IBEISStripeModel, IBEISTableView))

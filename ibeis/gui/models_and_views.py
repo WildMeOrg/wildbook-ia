@@ -38,6 +38,7 @@ IBEISITEMMODEL_BASE = APIItemModel
 
 
 class IBEISStripeModel(IBEISSTRIPEMODEL_BASE):
+    """ Used for the image grid """
     def __init__(model, headers=None, parent=None, *args):
         IBEISSTRIPEMODEL_BASE.__init__(model, parent=parent, numduplicates=1, *args)
         model.ibswin = parent
@@ -80,6 +81,7 @@ class IBEISTableView(APITableView):
         tblview.ibswin = parent
 
     def _change_imageset(tblview, imgsetid):
+        print('[gui.IBEISTableView] _change_imageset(%r)' % (imgsetid))
         tblview.verticalScrollBar().setSliderPosition(0)
         model = tblview.model()
         if model is not None:
@@ -114,6 +116,7 @@ class IBEISItemModel(IBEISITEMMODEL_BASE):
         return model.original_iders[0](imgsetid=model.imgsetid)
 
     def _change_imageset(model, imgsetid):
+        print('[gui.IBEISItemModel] _change_imageset(%r)' % (imgsetid))
         model.imgsetid = imgsetid
         with ChangeLayoutContext([model]):
             IBEISITEMMODEL_BASE._update_rows(model)
