@@ -1438,7 +1438,7 @@ class MainWindowBackend(GUIBACK_BASE):
     @blocking_slot()
     def toggle_thumbnails(back):
         ibswgt = back.front
-        tabwgt = ibswgt._table_tab_wgt
+        tabwgt = ibswgt._tables_tab_widget
         index = tabwgt.currentIndex()
         tblname = ibswgt.tblname_list[index]
         view = ibswgt.views[tblname]

@@ -24,6 +24,7 @@ from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__.QtCore import Qt
 from guitool import slot_, checks_qt_error, ChangeLayoutContext, BlockContext  # NOQA
+import guitool as gt
 from ibeis.other import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
@@ -35,11 +36,10 @@ from ibeis.gui.models_and_views import (IBEISStripeModel, IBEISTableView,
                                         ImagesetTableModel, ImagesetTableView,
                                         IBEISTableWidget, IBEISTreeWidget,
                                         ImagesetTableWidget)
-import guitool
 from plottool import color_funcs
 import utool as ut
 import plottool as pt
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[newgui]')
+print, rrr, profile = ut.inject2(__name__, '[newgui]')
 
 
 VERBOSE_GUI = ut.VERBOSE or ut.get_argflag(('--verbose-gui', '--verbgui'))
@@ -58,9 +58,10 @@ class APITabWidget(QtWidgets.QTabWidget):
     use setCurrentIndex to change the selection
     """
     def __init__(tabwgt, parent=None, horizontalStretch=1):
-        QtWidgets.QTabWidget.__init__(tabwgt, parent)
+        #QtWidgets.QTabWidget.__init__(tabwgt, parent)
+        super(APITabWidget, tabwgt).__init__(parent)
         tabwgt.ibswgt = parent
-        tabwgt._sizePolicy = guitool.newSizePolicy(
+        tabwgt._sizePolicy = gt.newSizePolicy(
             tabwgt, horizontalStretch=horizontalStretch)
         tabwgt.setSizePolicy(tabwgt._sizePolicy)
         #tabwgt.currentChanged.connect(tabwgt.setCurrentIndex)
@@ -89,20 +90,20 @@ class APITabWidget(QtWidgets.QTabWidget):
     #    #    QtWidgets.QTabWidget.setCurrentIndex(tabwgt, index)
 
 
-class ImagesetTabWidget(QtWidgets.QTabWidget):
+class ImageSetTabWidget(QtWidgets.QTabWidget):
     """
-    Handles the super-tabs for the imagesets that hold the table-tabs
+    Handles tabs that contain individual image sets.
     """
     def __init__(imageset_tabwgt, parent=None, horizontalStretch=1):
         QtWidgets.QTabWidget.__init__(imageset_tabwgt, parent)
         imageset_tabwgt.ibswgt = parent
         imageset_tabwgt.setTabsClosable(True)
-        imageset_tabwgt.setMaximumSize(9999, guitool.get_cplat_tab_height())
+        imageset_tabwgt.setMaximumSize(9999, gt.get_cplat_tab_height())
         imageset_tabwgt.tabbar = imageset_tabwgt.tabBar()
         imageset_tabwgt.tabbar.setMovable(False)
         imageset_tabwgt.setStyleSheet('border: none;')
         imageset_tabwgt.tabbar.setStyleSheet('border: none;')
-        sizePolicy = guitool.newSizePolicy(imageset_tabwgt, horizontalStretch=horizontalStretch)
+        sizePolicy = gt.newSizePolicy(imageset_tabwgt, horizontalStretch=horizontalStretch)
         imageset_tabwgt.setSizePolicy(sizePolicy)
 
         imageset_tabwgt.tabCloseRequested.connect(imageset_tabwgt._close_tab)
@@ -118,7 +119,6 @@ class ImagesetTabWidget(QtWidgets.QTabWidget):
         print('[imageset_tab_widget] _onchange(index=%r)' % (index,))
         if 0 <= index and index < len(imageset_tabwgt.imgsetid_list):
             imgsetid = imageset_tabwgt.imgsetid_list[index]
-            #if ut.VERBOSE:
             print('[IMAGESETTAB.ONCHANGE] imgsetid = %r' % (imgsetid,))
             imageset_tabwgt.ibswgt._change_imageset(imgsetid)
         else:
@@ -152,7 +152,8 @@ class ImagesetTabWidget(QtWidgets.QTabWidget):
         print('[_add_imageset_tab] imgsetid=%r, imagesettext=%r' % (imgsetid, imagesettext))
         if imgsetid not in imageset_tabwgt.imgsetid_list:
             tab_name = str(imagesettext)
-            imageset_tabwgt.addTab(QtWidgets.QWidget(), tab_name)
+            wgt = QtWidgets.QWidget(parent=imageset_tabwgt)
+            imageset_tabwgt.addTab(wgt, tab_name)
 
             imageset_tabwgt.imgsetid_list.append(imgsetid)
             index = len(imageset_tabwgt.imgsetid_list) - 1
@@ -293,11 +294,13 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """ Defines gui components and inits layout """
         # Layout
         ibswgt.vlayout = QtWidgets.QVBoxLayout(ibswgt)
-        ibswgt.vsplitter = guitool.newSplitter(ibswgt, orientation=Qt.Vertical)
-        ibswgt.hsplitter = guitool.newSplitter(ibswgt, orientation=Qt.Horizontal, verticalStretch=18)
+        ibswgt.setLayout(ibswgt.vlayout)
+
+        ibswgt.vsplitter = gt.newSplitter(ibswgt, orientation=Qt.Vertical)
+        ibswgt.hsplitter = gt.newSplitter(ibswgt, orientation=Qt.Horizontal, verticalStretch=18)
         #
         # Tables Tab
-        ibswgt._table_tab_wgt = APITabWidget(ibswgt, horizontalStretch=81)
+        ibswgt._tables_tab_widget = APITabWidget(parent=ibswgt, horizontalStretch=81)
         for tblname, WidgetClass, ModelClass, ViewClass in ibswgt.modelview_defs:
             ibswgt.views[tblname]  = ViewClass(parent=ibswgt)  # Make view first to pass as parent
             # FIXME: It is very bad to give the model a view. Only the view should have a model
@@ -307,22 +310,38 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.views[tblname].setModel(ibswgt.models[tblname])
         # Add Image, ANNOTATION, and Names as tabs
         for tblname in ibswgt.tblname_list:
-            ibswgt._table_tab_wgt.addTab(ibswgt.views[tblname], tblname)
-        # Custom ImageSet Tab Wiget
-        ibswgt.imageset_tabwgt = ImagesetTabWidget(parent=ibswgt, horizontalStretch=19)
+            ibswgt._tables_tab_widget.addTab(ibswgt.views[tblname], tblname)
 
-        ibswgt.vlayout.addWidget(ibswgt.imageset_tabwgt)
+        # Custom ImageSet Tab Wiget
+        ibswgt.imageset_tabwgt = ImageSetTabWidget(parent=ibswgt)
         ibswgt.vlayout.addWidget(ibswgt.vsplitter)
         ibswgt.vsplitter.addWidget(ibswgt.hsplitter)
 
-        # Horizontal Upper
-        ibswgt.hsplitter.addWidget(ibswgt.views[IMAGESET_TABLE])
-        ibswgt.hsplitter.addWidget(ibswgt._table_tab_wgt)
+        ibswgt.status_wgt = status_wgt = gt.newWidget(
+            ibswgt.vsplitter, orientation=Qt.Vertical, spacing=3, margin=0,
+            name='StatusWidget')
+        ibswgt.vsplitter.addWidget(status_wgt)
 
-        _NEWLBL = functools.partial(guitool.newLabel, ibswgt)
-        _NEWBUT = functools.partial(guitool.newButton, ibswgt)
-        # _COMBO  = functools.partial(guitool.newComboBox, ibswgt)
-        _NEWTEXT = functools.partial(guitool.newLineEdit, ibswgt, verticalStretch=1)
+        # On the LEFT add the the table of ImageSets
+        imgset_table_view = ibswgt.views[IMAGESET_TABLE]
+        imgset_table_view.setSizePolicy(gt.newSizePolicy(hSizePolicy='Expanding',
+                                                         hStretch=2))
+
+        # On the RIGHT add the DataTables and tabs
+        right_hack_wgt = gt.newWidget()
+        right_hack_wgt.addWidget(ibswgt.imageset_tabwgt)
+        right_hack_wgt.addWidget(ibswgt._tables_tab_widget)
+        right_hack_wgt.setSizePolicy(gt.newSizePolicy(horizontalStretch=5))
+
+        # Hack because the tables aren't actually belonging to the tabs
+        # They are just controlled by the change
+        ibswgt.hsplitter.addWidget(imgset_table_view)
+        ibswgt.hsplitter.addWidget(right_hack_wgt)
+
+        _NEWLBL = functools.partial(gt.newLabel, ibswgt)
+        _NEWBUT = functools.partial(gt.newButton, ibswgt)
+        # _COMBO  = functools.partial(gt.newComboBox, ibswgt)
+        _NEWTEXT = functools.partial(gt.newLineEdit, ibswgt, verticalStretch=1)
 
         primary_fontkw = dict(bold=True, pointSize=11)
         secondary_fontkw = dict(bold=False, pointSize=9)
@@ -483,13 +502,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         # Other components
         # New widget has black magic (for implicit layouts) in it
-        ibswgt.status_wgt = status_wgt = guitool.newWidget(ibswgt.vsplitter,
-                                                           orientation=Qt.Vertical,
-                                                           spacing=3, margin=0,
-                                                           verticalStretch=6,
-                                                           horizontalSizePolicy=QtWidgets.QSizePolicy.Maximum,
-                                                           name='StatusWidget')
-        ibswgt.vsplitter.addWidget(status_wgt)
 
         # Add control widgets (import, group, species selector, etc...)
         for count, control_widgets in enumerate(ibswgt.control_widget_lists):
@@ -501,7 +513,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 _container.addWidget(widget)
 
         # Output log (turned off by default)
-        ibswgt.outputLog = guitool.newOutputLog(
+        ibswgt.outputLog = gt.newOutputLog(
             status_wgt, pointSize=8, visible=WITH_GUILOG,
             verticalStretch=6)
         status_wgt.addWidget(ibswgt.outputLog)
@@ -653,9 +665,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             #with ut.Indenter('[CONNECTING]'):
             # Give the frontend the new control
             ibswgt.ibs = ibs
-            with ut.Timer('update special'):
-                if not ibs.readonly:
-                    ibs.update_special_imagesets()
+            if not ut.get_argflag('--fast'):
+                with ut.Timer('update special'):
+                    if not ibs.readonly:
+                        ibs.update_special_imagesets()
+            else:
+                print('Skipping special imagesets')
             # Update the api models to use the new control
             with ut.Timer('make headers'):
                 header_dict, declare_tup = gh.make_ibeis_headers_dict(ibswgt.ibs)
@@ -664,7 +679,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt.setWindowTitle(title)
             if ut.VERBOSE:
                 print('[newgui] Calling model _update_headers')
-            #block_wgt_flag = ibswgt._table_tab_wgt.blockSignals(True)
+            #block_wgt_flag = ibswgt._tables_tab_widget.blockSignals(True)
 
             with ut.Timer('[newgui] update models'):
                 #for tblname in ibswgt.changing_models_gen(ibswgt.super_tblname_list):
@@ -691,7 +706,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     #    print(view)
                     #    continue
                     view.hide_cols()
-            #ibswgt._table_tab_wgt.blockSignals(block_wgt_flag)
+            #ibswgt._tables_tab_widget.blockSignals(block_wgt_flag)
 
             # FIXME: bad code
             # TODO: load previously loaded imageset or nothing
@@ -792,11 +807,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
     def get_table_tab_index(ibswgt, tblname):
         view = ibswgt.views[tblname]
-        index = ibswgt._table_tab_wgt.indexOf(view)
+        index = ibswgt._tables_tab_widget.indexOf(view)
         return index
 
     def set_status_text(ibswgt, key, text):
-        #printDBG('set_status_text[%r] = %r' % (index, text))
         index = ibswgt.tablename_to_status_widget_index[key]
         ibswgt.status_widget_list[index].setText(text)
 
@@ -813,8 +827,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             >>> ibswgt.set_table_tab(gh.ANNOTATION_TABLE)
         """
         print('[newgui] set_table_tab: %r ' % (tblname,))
-        index = ibswgt.get_table_tab_index(tblname)
-        ibswgt._table_tab_wgt.setCurrentIndex(index)
+        with ut.Timer('set table tab'):
+            index = ibswgt.get_table_tab_index(tblname)
+            ibswgt._tables_tab_widget.setCurrentIndex(index)
 
     def select_imageset_tab(ibswgt, imgsetid):
         if False:
@@ -852,7 +867,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             >>> imgsetid = 1
             >>> ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, imgsetid)
             >>> if ut.show_was_requested():
-            >>>    guitool.qtapp_loop(qwin=ibswgt)
+            >>>    gt.qtapp_loop(qwin=ibswgt)
         """
         gid = ibswgt.back.ibs.get_annot_gids(aid)
         if model is None:
@@ -1088,7 +1103,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         # Select the index if we are in the right table tab
         if len(id_list) == 1 and (
-           allow_table_change or ibswgt._table_tab_wgt.current_tblname == tblname):
+           allow_table_change or ibswgt._tables_tab_widget.current_tblname == tblname):
             if not ut.QUIET:
                 print('[newgui]  * attempting to select from rowid')
             #view = ibswgt.views[tblname]
@@ -1109,7 +1124,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         """
         if VERBOSE_GUI:
             print('[newgui] on_rows_updated: tblname=%12r nRows=%r ' % (tblname, nRows))
-        #printDBG('Rows updated in tblname=%r, nRows=%r' % (str(tblname), nRows))
         if tblname == IMAGESET_TABLE:  # Hack
             print('... tblname == IMAGESET_TABLE, ...hack return')
             return
@@ -1118,9 +1132,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         tblnice = TABLE_NICE[tblname]
         index = ibswgt.get_table_tab_index(tblname)
         text = tblnice + ' ' + str(nRows)
-        #printDBG('Rows updated in index=%r, text=%r' % (index, text))
         # CHANGE TAB NAME TO SHOW NUMBER OF ROWS
-        ibswgt._table_tab_wgt.setTabText(index, text)
+        ibswgt._tables_tab_widget.setTabText(index, text)
 
     def goto_table_id(ibswgt, tablename, _id):
         print('[newgui] goto_table_id(tablenamd=%r, _id=%r)' % (tablename, _id))
@@ -1140,7 +1153,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if not qtindex.isValid():
             return
 
-        #printDBG('[newgui] contextmenu')
         model = qtindex.model()
         tblview = ibswgt.views[model.name]
         context_options = []
@@ -1428,7 +1440,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         # Show the context menu
         #ut.print_list(context_options, nl=2)
         if len(context_options) > 0:
-            guitool.popup_menu(tblview, pos, context_options)
+            gt.popup_menu(tblview, pos, context_options)
 
     @slot_(QtCore.QModelIndex)
     def on_doubleclick(ibswgt, qtindex):
@@ -1442,7 +1454,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         if not qtindex.isValid():
             print('[doubleclick] invalid qtindex')
             return
-        #printDBG('on_doubleclick')
         model = qtindex.model()
         id_ = model._get_row_id(qtindex)
         if model.name == IMAGESET_TABLE:
@@ -1499,7 +1510,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 options = ['No', 'Yes']
                 title   = 'Non-Images dropped'
                 msg     = 'Recursively import from directories?'
-                ans = guitool.user_option(ibswgt, msg=msg, title=title,
+                ans = gt.user_option(ibswgt, msg=msg, title=title,
                                           options=options)
                 if ans == 'Yes':
                     unflat_gpaths = [ut.list_images(dir_, fullpath=True, recursive=True)
@@ -1528,10 +1539,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             if num_zips > 0:
                 confirm_list += [ut.quantstr('zip file', num_zips, 's')]
             confirm_msg = 'Import from: ' + ut.conj_phrase(confirm_list, 'and') + '.'
-            # guitool.rrrr()
+            # gt.rrrr()
             config = ingestable.ingest_config
             # cfg = config
-            dlg = guitool.ConfigConfirmWidget.as_dialog(ibswgt,
+            dlg = gt.ConfigConfirmWidget.as_dialog(ibswgt,
                                                         title='Confirm Import Images',
                                                         msg=confirm_msg,
                                                         config=config)
@@ -1632,10 +1643,10 @@ def testdata_guifront(defaultdb='testdb1'):
         locals_.update(locals__)
         globals_.update(globals__)
         if '--cmd' in sys.argv:
-            guitool.qtapp_loop(qwin=ibswgt, ipy=True)
+            gt.qtapp_loop(qwin=ibswgt, ipy=True)
             six.exec_(ut.ipython_execstr(), globals_, locals_)
         elif ut.show_was_requested():
-            guitool.qtapp_loop(qwin=ibswgt)
+            gt.qtapp_loop(qwin=ibswgt)
     return ibs, back, ibswgt, testdata_main_loop
 
 

@@ -143,6 +143,7 @@ if __name__ == '__main__':
 
         ibeis rsync push --db PZ_Master1 --user joncrall --remote lev --dryrun
         ibeis rsync push --db WS_ALL --user joncrall --remote lev --dryrun
+        ibeis rsync pull --db WS_ALL --user joncrall --remote lev --dryrun
 
 
         stty -echo; ssh jonc@pachy.cs.uic.edu sudo -v; stty echo

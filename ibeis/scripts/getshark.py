@@ -103,6 +103,11 @@ def get_injured_sharks():
     print(ut.repr3(key_to_category))
     print(ut.repr3(cat_hist))
 
+    key = bigkey = list(key_hist.keys())[-1]
+    url_list = ut.take_column(keyed_images[bigkey], 'url')
+    for url in ut.ProgIter(url_list, lbl='downloading imgs', freq=1):
+        fpath = ut.grab_file_url(url, download_dir='.')
+
     if False:
         # Show overlap matrix
         import plottool as pt
@@ -157,11 +162,6 @@ def get_injured_sharks():
 
     class TmpImage(ut.NiceRepr):
         pass
-
-    key = bigkey = list(key_hist.keys())[-1]
-    url_list = ut.take_column(keyed_images[bigkey], 'url')
-    for url in ut.ProgIter(url_list, lbl='downloading imgs', freq=1):
-        fpath = ut.grab_file_url(url, download_dir='.')
 
     from skimage.feature import hog
     from skimage import data, color, exposure
