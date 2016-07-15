@@ -822,6 +822,37 @@ class APIItemModel(API_MODEL_BASE):
         #model.lazy_checks()
         return len(model.col_name_list)
 
+    #@default_method_decorator
+    #def canFetchMore(model, parent):
+    #    """
+    #    Returns true if there is more data available for parent; otherwise returns false.
+    #    The default implementation always returns false.
+    #    If canFetchMore() returns true, the fetchMore() function should be called. This is the behavior of QAbstractItemView, for example.
+
+    #    http://doc.qt.io/qt-5/qtwidgets-itemviews-fetchmore-example.html
+    #    """
+    #    if not parent.isValid():
+    #        return False
+    #    flags = model.flags(qtindex)
+    #    #row = qtindex.row()
+    #    col = qtindex.column()
+    #    node = qtindex.internalPointer()
+    #    return False
+
+    #@default_method_decorator
+    #def fetchMore(model, parent):
+    #    """
+    #    Fetches any available data for the items with the parent specified by the parent index.
+    #    Reimplement this if you are populating your model incrementally.
+    #    The default implementation does nothing.
+    #    """
+    #    int remainder = fileList.size() - fileCount
+    #    int itemsToFetch = qMin(100, remainder)
+    #    beginInsertRows(QModelIndex(), fileCount, fileCount+itemsToFetch-1)
+    #    fileCount += itemsToFetch
+    #    model.endInsertRows()
+    #    model.numberPopulated.emit(itemsToFetch)
+
     @default_method_decorator
     def data(model, qtindex, role=Qt.DisplayRole, **kwargs):
         """
