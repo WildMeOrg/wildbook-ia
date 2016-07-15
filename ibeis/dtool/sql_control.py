@@ -702,22 +702,22 @@ class SQLDatabaseController(object):
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
         if where_clause is None:
-            fmtdict = {'tblname'  : tblname,
-                       'colnames' : ', '.join(colnames), }
             operation_fmt = '''
             SELECT {colnames}
             FROM {tblname}
             '''
+            fmtdict = {'tblname'  : tblname,
+                       'colnames' : ', '.join(colnames), }
             val_list = db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
         else:
-            fmtdict = { 'tblname'     : tblname,
-                        'colnames'    : ', '.join(colnames),
-                        'where_clauses' :  where_clause, }
             operation_fmt = '''
             SELECT {colnames}
             FROM {tblname}
             WHERE {where_clauses}
             '''
+            fmtdict = { 'tblname'     : tblname,
+                        'colnames'    : ', '.join(colnames),
+                        'where_clauses' :  where_clause, }
             val_list = db._executemany_operation_fmt(
                 operation_fmt, fmtdict, params_iter=params_iter,
                 unpack_scalars=unpack_scalars, eager=eager, **kwargs)
@@ -1136,17 +1136,43 @@ class SQLDatabaseController(object):
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
 
-    def add_table(db, tablename=None, coldef_list=None, **metadata_keyval):
-        """
-        add_table
+    def _make_add_table_str(db, tablename=None, coldef_list=None, **metadata_keyval):
+        r"""
+        TODO: Foreign keys and indexed columns
 
         Args:
-            tablename (str):
-            coldef_list (list):
-            constraint (list or None):
-            docstr (str):
-            superkeys (list or None): list of tuples of column names which
-                uniquely identifies a rowid
+            tablename (None): (default = None)
+            coldef_list (list): (default = None)
+
+        Returns:
+            ?: operation
+
+        CommandLine:
+            python -m dtool.sql_control _make_add_table_str --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.sql_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> tablename = 'keypoint'
+            >>> db = depc[tablename].db
+            >>> autogen_dict = db.get_table_autogen_dict(tablename)
+            >>> coldef_list = autogen_dict['coldef_list']
+            >>> operation = db._make_add_table_str(tablename, coldef_list)
+            >>> print(operation)
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.sql_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> tablename = 'keypoint'
+            >>> db = depc[tablename].db
+            >>> autogen_dict = db.get_table_autogen_dict(tablename)
+            >>> coldef_list = autogen_dict['coldef_list']
+            >>> operation = db._make_add_table_str(tablename, coldef_list)
+            >>> print(operation)
         """
         if len(coldef_list) == 0 or coldef_list is None:
             raise AssertionError('table %s is not given any columns' % (tablename,))
@@ -1193,7 +1219,28 @@ class SQLDatabaseController(object):
             assert isinstance(type_, six.string_types) and len(type_) > 0, (
                 'cannot have empty type. name=%r, type_=%r' % (name, type_))
 
-        body_list = ['%s %s' % (name, type_) for (name, type_) in coldef_list]
+        body_list = []
+        foreign_body = []
+        USE_FOREIGN_HACK = False
+        for (name, type_) in coldef_list:
+            if USE_FOREIGN_HACK and name.endswith('_rowid'):
+                # HACK THAT ONLY WORKS WITH IBEIS STRUCTURE
+                foreign_table = name[:-len('_rowid')]
+                if foreign_table != tablename:
+                    if False:
+                        foreign_body.append('FOREIGN KEY (%s) REFERENCES %s (%s)' % (name, foreign_table, name))
+                        coldef_line = '%s %s' % (name, type_)
+                    else:
+                        # alternative way to do this
+                        coldef_line = '%s %s REFERENCES %s' % (name, type_, foreign_table)
+                    body_list.append(coldef_line)
+            else:
+                #else:
+                coldef_line = '%s %s' % (name, type_)
+                body_list.append(coldef_line)
+
+        if USE_FOREIGN_HACK:
+            body_list += foreign_body
 
         table_body = ', '.join(body_list + constraint_list)
         fmtkw = {
@@ -1202,6 +1249,21 @@ class SQLDatabaseController(object):
         }
         op_fmtstr = 'CREATE TABLE IF NOT EXISTS {tablename} ({table_body})'
         operation = op_fmtstr.format(**fmtkw)
+        return operation
+
+    def add_table(db, tablename=None, coldef_list=None, **metadata_keyval):
+        """
+        add_table
+
+        Args:
+            tablename (str):
+            coldef_list (list):
+            constraint (list or None):
+            docstr (str):
+            superkeys (list or None): list of tuples of column names which
+                uniquely identifies a rowid
+        """
+        operation = db._make_add_table_str(tablename, coldef_list, **metadata_keyval)
         db.executeone(operation, [], verbose=False)
 
         # Handle table metdata
