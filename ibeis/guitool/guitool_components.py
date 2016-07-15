@@ -27,14 +27,42 @@ ALIGN_DICT = {
 }
 
 
-def newSizePolicy(widget=None, verticalSizePolicy=None, horizontalSizePolicy=None,
-                  horizontalStretch=None, verticalStretch=None):
+def newSizePolicy(widget=None,
+                  verticalSizePolicy=None, horizontalSizePolicy=None,
+                  horizontalStretch=None, verticalStretch=None,
+                  hSizePolicy=None, vSizePolicy=None, vStretch=None,
+                  hStretch=None):
     """
     """
+    if hStretch is not None:
+        horizontalStretch = hStretch
+    if vStretch is not None:
+        verticalStretch = vStretch
+    if vSizePolicy is not None:
+        verticalSizePolicy = vSizePolicy
+    if hSizePolicy is not None:
+        horizontalSizePolicy = hSizePolicy
+
     if verticalSizePolicy is None:
         verticalSizePolicy = QtWidgets.QSizePolicy.Expanding
     if horizontalSizePolicy is None:
         horizontalSizePolicy = QtWidgets.QSizePolicy.Expanding
+
+    policy_dict = {
+        'Fixed': QtWidgets.QSizePolicy.Fixed,
+        'Minimum': QtWidgets.QSizePolicy.Minimum,
+        'Maximum': QtWidgets.QSizePolicy.Maximum,
+        'Preferred': QtWidgets.QSizePolicy.Preferred,
+        'Expanding': QtWidgets.QSizePolicy.Expanding,
+        'MinimumExpanding': QtWidgets.QSizePolicy.MinimumExpanding,
+        'Ignored': QtWidgets.QSizePolicy.Ignored,
+    }
+
+    if isinstance(horizontalSizePolicy, six.string_types):
+        horizontalSizePolicy = policy_dict[horizontalSizePolicy]
+    if isinstance(verticalSizePolicy, six.string_types):
+        verticalSizePolicy = policy_dict[verticalSizePolicy]
+
     if verticalStretch is None:
         verticalStretch = 0
     if horizontalStretch is None:
@@ -960,9 +988,11 @@ class GuitoolWidget(WIDGET_BASE):
     closed = QtCore.pyqtSignal()
 
     def __init__(self, parent=None, orientation=Qt.Vertical,
-                 verticalSizePolicy=QtWidgets.QSizePolicy.Expanding,
-                 horizontalSizePolicy=QtWidgets.QSizePolicy.Expanding,
-                 verticalStretch=0, spacing=None, margin=None, name=None,
+                 verticalSizePolicy=None,
+                 horizontalSizePolicy=None,
+                 verticalStretch=None,
+                 horizontalStretch=None,
+                 spacing=None, margin=None, name=None,
                  ori=None,
                  **kwargs):
         super(GuitoolWidget, self).__init__(parent)
@@ -979,7 +1009,8 @@ class GuitoolWidget(WIDGET_BASE):
         #sizePolicy = newSizePolicy(self,
         #                           horizontalSizePolicy=horizontalSizePolicy,
         #                           verticalSizePolicy=verticalSizePolicy,
-        #                           verticalStretch=verticalStretch)
+        #                           verticalStretch=verticalStretch,
+        #                           horizontalStretch=horizontalStretch)
         #self.setSizePolicy(sizePolicy)
         #setattr(self, '_guitool_sizepolicy', sizePolicy)
         if orientation == Qt.Vertical:
