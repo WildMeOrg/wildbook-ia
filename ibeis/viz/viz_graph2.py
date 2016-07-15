@@ -558,7 +558,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         print('name_list = %r' % (name_list,))
 
         ibs = self.infr.ibs
-        if False:
+        dryrun = False
+        if not dryrun:
             ibs.set_annot_names(aid_list, name_list)
         else:
             print('DRY RUN. NOT DOING ANYTHING')
