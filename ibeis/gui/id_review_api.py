@@ -149,7 +149,8 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
     rank_arr  = rank_arr[sortx]
 
     if automatch_kw['filter_reviewed']:
-        _is_reviewed = ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(), daid_arr.tolist())
+        _is_reviewed = ibs.get_annot_pair_is_reviewed(qaid_arr.tolist(),
+                                                      daid_arr.tolist())
         is_unreviewed = ~np.array(_is_reviewed, dtype=np.bool)
         qaid_arr  = qaid_arr.compress(is_unreviewed)
         daid_arr   = daid_arr.compress(is_unreviewed)
@@ -162,7 +163,8 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         directed_edges = np.vstack((qaid_arr, daid_arr)).T
         #idx1, idx2 = vt.intersect2d_indices(directed_edges, directed_edges[:, ::-1])
 
-        unique_rowx = vt.find_best_undirected_edge_indexes(directed_edges, score_arr)
+        unique_rowx = vt.find_best_undirected_edge_indexes(directed_edges,
+                                                           score_arr)
 
         qaid_arr  = qaid_arr.take(unique_rowx)
         daid_arr  = daid_arr.take(unique_rowx)
@@ -171,6 +173,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
 
     # Filter Double Name Matches
     if automatch_kw['filter_duplicate_true_matches']:
+        # filter_dup_namepairs
         qnid_arr = ibs.get_annot_nids(qaid_arr)
         dnid_arr = ibs.get_annot_nids(daid_arr)
         if not automatch_kw['directed']:
@@ -751,8 +754,10 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
     return fpath, nosql_draw, main_thread_load
 
 
-def get_photobomber_map(ibs, aids):
+def get_photobomber_map(ibs, aids, aid_to_nid=None):
     """
+    Builds map of which names that photobomb other names.
+
     python -m ibeis.gui.id_review_api --test-test_review_widget --show --db PZ_MTEST -a default:qindex=0
 
     >>> import ibeis
@@ -773,14 +778,16 @@ def get_photobomber_map(ibs, aids):
     has_pb_ams = [len(ams) > 0 for ams in pb_ams]
     pb_ams_ = ut.compress(pb_ams, has_pb_ams)
     #aids_ = ut.compress(aids, has_pb_ams)
-    pb_ams_flat, ungrouper = ut.invertible_flatten2(pb_ams_)
-    #pb_ams_flat = ibs._get_all_annotmatch_rowids()
+    pb_ams_flat = ut.flatten(pb_ams_)
 
     pb_aids1_ = ibs.get_annotmatch_aid1(pb_ams_flat)
     pb_aids2_ = ibs.get_annotmatch_aid2(pb_ams_flat)
 
     pb_aid_pairs_ = list(zip(pb_aids1_, pb_aids2_))
-    pb_nid_pairs_ = ibs.unflat_map(ibs.get_annot_nids, pb_aid_pairs_)
+    if aid_to_nid is None:
+        pb_nid_pairs_ = ibs.unflat_map(ibs.get_annot_nids, pb_aid_pairs_)
+    else:
+        pb_nid_pairs_ = ibs.unflat_map(ut.partial(ut.take, aid_to_nid), pb_aid_pairs_)
 
     #invalid_aid_map = ut.ddict(set)
     #for aid1, aid2 in pb_aid_pairs_:
@@ -794,11 +801,4 @@ def get_photobomber_map(ibs, aids):
             invalid_nid_map[nid1].add(nid2)
             invalid_nid_map[nid2].add(nid1)
 
-    #invalid_aid_map = ut.ddict(set)
-    #for aid1, aid2 in pb_aid_pairs_:
-    #    if aid1 != aid2:
-    #        invalid_aid_map[aid1].add(aid2)
-    #        invalid_aid_map[aid2].add(aid1)
-
     return invalid_nid_map
-    #pb_aid_pairs = ut.unflatten2(pb_aid_pairs_, ungrouper)

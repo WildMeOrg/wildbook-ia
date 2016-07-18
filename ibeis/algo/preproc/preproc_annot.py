@@ -114,54 +114,31 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
     # Define arguments to insert
 
 
-def make_annot_visual_uuid(visual_infotup):
-    """
-    Args:
-        visual_infotup (tuple):  (image_uuid_list, verts_list, theta_list)
+#def make_annot_semantic_uuid(semantic_infotup):
+#    """
 
-    Returns:
-        list: annot_visual_uuid_list
+#    Args:
+#        semantic_infotup (tuple): (image_uuid_list, verts_list, theta_list, view_list, name_list, species_list)
 
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_annot import *  # NOQA
-        >>> ibs, aid_list = testdata_preproc_annot()
-        >>> visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
-        >>> annot_visual_uuid_list = make_annot_visual_uuid(visual_infotup)
-        >>> result = str(annot_visual_uuid_list[0])
-        >>> print(result)
-        8687dcb6-1f1f-fdd3-8b72-8f36f9f41905
-    """
-    assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
-    annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
-    return annot_visual_uuid_list
+#    Returns:
+#        list: annot_semantic_uuid_list
 
+#    CommandLine:
+#        python -m ibeis.algo.preproc.preproc_annot --test-make_annot_semantic_uuid
 
-def make_annot_semantic_uuid(semantic_infotup):
-    """
-
-    Args:
-        semantic_infotup (tuple): (image_uuid_list, verts_list, theta_list, view_list, name_list, species_list)
-
-    Returns:
-        list: annot_semantic_uuid_list
-
-    CommandLine:
-        python -m ibeis.algo.preproc.preproc_annot --test-make_annot_semantic_uuid
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.preproc.preproc_annot import *  # NOQA
-        >>> ibs, aid_list = testdata_preproc_annot()
-        >>> semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)
-        >>> annot_semantic_uuid_list = make_annot_semantic_uuid(semantic_infotup)
-        >>> result = str(annot_semantic_uuid_list[0])
-        >>> print(result)
-        0a41bee7-1760-0995-c220-f4b5ddf189ba
-    """
-    assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
-    annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
-    return annot_semantic_uuid_list
+#    Example:
+#        >>> # ENABLE_DOCTEST
+#        >>> from ibeis.algo.preproc.preproc_annot import *  # NOQA
+#        >>> ibs, aid_list = testdata_preproc_annot()
+#        >>> semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)
+#        >>> annot_semantic_uuid_list = make_annot_semantic_uuid(semantic_infotup)
+#        >>> result = str(annot_semantic_uuid_list[0])
+#        >>> print(result)
+#        0a41bee7-1760-0995-c220-f4b5ddf189ba
+#    """
+#    assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
+#    annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
+#    return annot_semantic_uuid_list
 
 
 def testdata_preproc_annot():

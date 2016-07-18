@@ -176,7 +176,7 @@ class QueryResultsWidget(gt.APIItemWidget):
 
         qres_wgt.layout().addWidget(bottom_bar)
         bottom_bar.addWidget(lbl)
-        bottom_bar.addNewButton('Mark all above as correct', pressed=qres_wgt.mark_unreviewed_above_score_as_correct)
+        bottom_bar.addNewButton('Mark unreviewed with higher scores as correct', pressed=qres_wgt.mark_unreviewed_above_score_as_correct)
         bottom_bar.addNewButton('Repopulate', pressed=qres_wgt.repopulate)
         bottom_bar.addNewButton('Edit Filters', pressed=qres_wgt.edit_filters)
 

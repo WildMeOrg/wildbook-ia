@@ -28,7 +28,7 @@ def _dz(a, b):
     return dict(zip(a, b))
 
 
-def get_cm_breaking(qreq_, cm_list, top=None, bot=None):
+def get_cm_breaking(qreq_, cm_list, ranks_top=None, ranks_bot=None):
     """
     """
     # Construct K-broken graph
@@ -36,19 +36,19 @@ def get_cm_breaking(qreq_, cm_list, top=None, bot=None):
     edges = []
     edge_data = []
 
-    if bot is None:
-        bot = 0
+    if ranks_bot is None:
+        ranks_bot = 0
 
-    #top = (infr.qreq_.qparams.K + 1) * 2
-    #top = (infr.qreq_.qparams.K) * 2
-    #top = (qreq_.qparams.K + 2)
+    #ranks_top = (infr.qreq_.qparams.K + 1) * 2
+    #ranks_top = (infr.qreq_.qparams.K) * 2
+    #ranks_top = (qreq_.qparams.K + 2)
     for count, cm in enumerate(cm_list):
         score_list = cm.annot_score_list
         rank_list = ut.argsort(score_list)[::-1]
         sortx = ut.argsort(rank_list)
 
-        top_sortx = sortx[:top]
-        bot_sortx = sortx[-bot:]
+        top_sortx = sortx[:ranks_top]
+        bot_sortx = sortx[-ranks_bot:]
         short_sortx = ut.unique(top_sortx + bot_sortx)
 
         score_list = ut.take(score_list, short_sortx)
@@ -365,12 +365,19 @@ class AnnotInference2(object):
         assert len(aids) == len(nids)
         #assert len(aids) == len(current_nids)
         infr.graph = None
-        #infr._initial_feedback = infr._user_feedback.copy()
         infr._initial_feedback = infr.load_user_feedback()
-        infr._user_feedback = infr._initial_feedback.copy()
+        infr.user_feedback = infr._initial_feedback.copy()
         infr.thresh = .5
         infr.cm_list = None
         infr.qreq_ = None
+
+    def reset_feedback(infr):
+        print('[infr] reset_feedback')
+        infr.user_feedback = infr._initial_feedback.copy()
+
+    def remove_feedback(infr):
+        print('[infr] remove_feedback')
+        infr.user_feedback = ut.ddict(list)
 
     def connected_compoment_subgraphs(infr):
         """
@@ -444,31 +451,37 @@ class AnnotInference2(object):
         p_nomatch = (truth == ibs.const.TRUTH_NOT_MATCH).astype(np.float)
         p_notcomp = (truth == ibs.const.TRUTH_UNKNOWN).astype(np.float)
 
-        user_feedback = ut.odict([
-            ('aid1', np.array(aids1)),
-            ('aid2', np.array(aids2)),
-            ('p_match', p_match),
-            ('p_nomatch', p_nomatch),
-            ('p_notcomp', p_notcomp),
-        ])
-        print('user_feedback = %s' % (ut.repr2(user_feedback, nl=1),))
-        user_feedback = {
-            lbl: x.tolist() if isinstance(x, np.ndarray) else x
-            for lbl, x in user_feedback.items()
-        }
+        #user_feedback = ut.odict([
+        #    ('aid1', np.array(aids1)),
+        #    ('aid2', np.array(aids2)),
+        #    ('p_match', p_match),
+        #    ('p_nomatch', p_nomatch),
+        #    ('p_notcomp', p_notcomp),
+        #])
+        #print('user_feedback = %s' % (ut.repr2(user_feedback, nl=1),))
+        #user_feedback = {
+        #    lbl: x.tolist() if isinstance(x, np.ndarray) else x
+        #    for lbl, x in user_feedback.items()
+        #}
         # split_aids_pairs = ibs.filter_aidpairs_by_tags(has_any='SplitCase')
         # for aid1, aid2 in split_aids_pairs:
         #     infr.add_feedback(aid1, aid2, 'nonmatch')
+
+        # CHANGE OF FORMAT
+        user_feedback = ut.ddict(list)
+        for count, (aid1, aid2) in enumerate(zip(aids1, aids2)):
+            edge = tuple(sorted([aid1, aid2]))
+            review = {
+                'p_match': p_match[count],
+                'p_nomatch': p_nomatch[count],
+                'p_notcomp': p_notcomp[count],
+            }
+            user_feedback[edge].append(review)
 
         # merge_aid_pairs = ibs.filter_aidpairs_by_tags(has_any='JoinCase')
         # for aid1, aid2 in merge_aid_pairs:
         #     infr.add_feedback(aid1, aid2, 'match')
         return user_feedback
-
-    @property
-    def user_feedback(infr):
-        return infr._user_feedback
-        #return ut.dict_union_combine(infr._initial_feedback, infr._user_feedback)
 
     def initialize_graph(infr):
         print('[infr] initialize_graph')
@@ -491,20 +504,6 @@ class AnnotInference2(object):
         graph = infr.graph
         orig_names = nx.get_node_attrs(graph, 'orig_name_label')
         nx.set_node_attrs(graph, 'name_label', orig_names)
-
-    def reset_feedback(infr):
-        print('[infr] reset_feedback')
-        infr._user_feedback = infr._initial_feedback.copy()
-
-    def remove_feedback(infr):
-        print('[infr] remove_feedback')
-        infr._user_feedback = {
-            'aid1': [],
-            'aid2': [],
-            'p_match': [],
-            'p_nomatch': [],
-            'p_notcomp': [],
-        }
 
     def lookup_cm(infr, aid1, aid2):
         aid2_idx = ut.make_index_lookup(
@@ -683,11 +682,11 @@ class AnnotInference2(object):
         #infr.qreq_ = qreq_
 
         if vsone:
-            # Post process top and bottom vsmany queries with vsone
+            # Post process ranks_top and bottom vsmany queries with vsone
             # Execute vsone queries on the best vsmany results
             undirected_edges = get_cm_breaking(qreq_, vsmany_cms,
-                                               top=(vsmany_qreq_.qparams.K + 2),
-                                               bot=(2),)
+                                               ranks_top=(vsmany_qreq_.qparams.K + 2),
+                                               ranks_bot=(2),)
             parent_rowids = list(undirected_edges.keys())
             # Hack to get around default product of qaids
             qreq_ = ibs.depc.new_request('vsone', [], [], cfgdict={})
@@ -698,58 +697,40 @@ class AnnotInference2(object):
     def add_feedback(infr, aid1, aid2, state):
         """ External helepr """
         print('[infr] add_feedback(%r, %r, %r)' % (aid1, aid2, state))
-        infr._user_feedback['aid1'].append(aid1)
-        infr._user_feedback['aid2'].append(aid2)
 
-        assert state in infr.truth_texts.values(), (
-            'state=%r is unknown' % (state,))
-        if state == 'match':
-            infr._user_feedback['p_match'].append(1.0)
-            infr._user_feedback['p_nomatch'].append(0.0)
-            infr._user_feedback['p_notcomp'].append(0.0)
-        elif state == 'nonmatch':
-            infr._user_feedback['p_match'].append(0.0)
-            infr._user_feedback['p_nomatch'].append(1.0)
-            infr._user_feedback['p_notcomp'].append(0.0)
-        elif state == 'notcomp':
-            infr._user_feedback['p_match'].append(0.0)
-            infr._user_feedback['p_nomatch'].append(0.0)
-            infr._user_feedback['p_notcomp'].append(1.0)
+        edge = tuple(sorted([aid1, aid2]))
+        review = {
+            'p_match': 0.0,
+            'p_nomatch': 0.0,
+            'p_notcomp': 0.0,
+        }
+        if state == 'unreviewed':
+            if edge in infr.user_feedback:
+                del infr.user_feedback[edge]
+        else:
+            if state == 'match':
+                review['p_match'] = 1.0
+            elif state == 'nonmatch':
+                review['p_nonmatch'] = 1.0
+            elif state == 'notcomp':
+                review['p_notcomp'] = 1.0
+            else:
+                msg = 'state=%r is unknown' % (state,)
+                print(msg)
+                assert state in infr.truth_texts.values(), msg
+            infr.user_feedback[edge].append(review)
 
     def get_feedback_probs(infr):
         """ Helper """
-        user_feedback = ut.map_dict_vals(np.array, infr.user_feedback)
-        #print('user_feedback = %s' % (ut.repr2(user_feedback, nl=1),))
-
-        aid_pairs = np.vstack([user_feedback['aid1'],
-                               user_feedback['aid2']]).T
-        aid_pairs = vt.atleast_nd(aid_pairs, 2, tofront=True)
-        edge_ids = vt.get_undirected_edge_ids(aid_pairs)
-        unique_ids, groupxs = ut.group_indices(edge_ids)
-
-        # Resolve duplicate reviews
-        pair_groups = vt.apply_grouping(aid_pairs, groupxs)
-        unique_pairs = ut.take_column(pair_groups, 0)
-
-        def rectify(probs, groupxs):
-            grouped_probs = vt.apply_grouping(probs, groupxs)
-            # Choose how to rectify groups
-            #probs = np.array([np.mean(g) for g in grouped_probs])
-            #probs = np.array([g[0] for g in grouped_probs])  # first
-            probs = np.array([g[-1] for g in grouped_probs])  # most recent
-            return probs
-
-        p_match = rectify(user_feedback['p_match'], groupxs)
-        p_nomatch = rectify(user_feedback['p_nomatch'], groupxs)
-        p_notcomp = rectify(user_feedback['p_notcomp'], groupxs)
-
+        unique_pairs = list(infr.user_feedback.keys())
+        # Take most recent review
+        review_list = [infr.user_feedback[edge][-1] for edge in unique_pairs]
+        p_nomatch = np.array(ut.dict_take_column(review_list, 'p_nomatch'))
+        p_match = np.array(ut.dict_take_column(review_list, 'p_match'))
+        p_notcomp = np.array(ut.dict_take_column(review_list, 'p_notcomp'))
         state_probs = np.vstack([p_nomatch, p_match, p_notcomp])
-        #print('state_probs = %s' % (ut.repr2(state_probs),))
         review_stateid = state_probs.argmax(axis=0)
         review_state = ut.take(infr.truth_texts, review_stateid)
-        #print('review_state = %s' % (ut.repr2(review_state, nl=1),))
-        #print('unique_pairs = %r' % (unique_pairs,))
-
         p_bg = 0.5  # Needs to be thresh value
         part1 = p_match * (1 - p_notcomp)
         part2 = p_bg * p_notcomp
@@ -899,9 +880,11 @@ class AnnotInference2(object):
         qreq_, cm_list = infr.exec_scoring(vsone=False, prog_hook=prog_hook)
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
-        top = review_cfg.get('top', 2)
-        bot = review_cfg.get('bot', 2)
-        undirected_edges = get_cm_breaking(qreq_, cm_list, top=top, bot=bot)
+        ranks_top = review_cfg.get('ranks_top', 2)
+        ranks_bot = review_cfg.get('ranks_bot', 2)
+        undirected_edges = get_cm_breaking(qreq_, cm_list,
+                                           ranks_top=ranks_top,
+                                           ranks_bot=ranks_bot)
 
         # Do some normalization of scores
         edges = list(undirected_edges.keys())

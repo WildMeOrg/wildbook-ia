@@ -34,8 +34,10 @@ class MatplotlibWidget(gt.GuitoolWidget):
         self.fig = pt.plt.figure()
         self.fig._no_raise_plottool = True
         self.canvas = FigureCanvas(self.fig)
-        self.canvas.manager = ut.DynStruct()
-        self.canvas.manager.window = self
+
+        #self.canvas.manager = ut.DynStruct()
+        #self.canvas.manager.window = self
+
         self.ax = self.fig.add_subplot(1, 1, 1)
         #self.ax.plot([1, 2, 3], [1, 2, 3])
         self.addWidget(self.canvas)
@@ -75,10 +77,34 @@ class MatplotlibWidget(gt.GuitoolWidget):
         return
 
 
+GRAPH_REVIEW_CFG_DEFAULTS = {
+    'ranks_top': 3,
+    'ranks_bot': 2,
+
+    #'remove_nmatch_in_cc': True,
+    #'remove_match_between_cc': True,
+
+    #'ranks_top': 5,
+    #'directed': False,
+    #'name_scoring': True,
+    'filter_reviewed': True,
+    'filter_photobombs': True,
+
+    'filter_true_matches': True,
+    'filter_false_matches': False,
+
+    'filter_nonmatch_between_ccs': True,
+
+    'filter_dup_namepairs': True,
+
+    #'show_chips': True,
+    #'filter_duplicate_true_matches': False,
+}
+
+
 class AnnotGraphWidget(gt.GuitoolWidget):
     signal_graph_update = QtCore.pyqtSignal()
     signal_state_update = QtCore.pyqtSignal(bool)
-    init_inference_signal = QtCore.pyqtSignal(name='init_inference')
 
     def initialize(self, infr=None, use_image=False):
         print('[graph] initialize')
@@ -91,23 +117,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             'score_method': 'csum'
         }
 
-        self.review_cfg = {
-            'top': 3,
-            'bot': 2,
-            'remove_nonmatch_in_cc': True,
-            #'remove_match_between_cc': True,
-
-            #'ranks_top': 5,
-            #'directed': False,
-            #'name_scoring': True,
-            #'filter_reviewed': True,
-            #'filter_photobombs': True,
-            #'filter_true_matches': True,
-            #'show_chips': True,
-            #'filter_duplicate_true_matches': False,
-
-        }
-
+        self.review_cfg = GRAPH_REVIEW_CFG_DEFAULTS.copy()
         self.infr = infr
         self.selected_aids = []
         # self.config = InferenceConfig()
@@ -144,7 +154,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.state_lbl = self.status_bar.addNewLabel('STATE_LBL')
         self.status_bar.addNewButton('Reset Original', pressed=self.reset_original)
         self.status_bar.addNewButton('Reset Empty', pressed=self.reset_empty)
-        self.status_bar.addNewButton('Filter', pressed=self.edit_filters)
+        self.status_bar.addNewButton('Edit Filters', pressed=self.edit_filters)
+        self.status_bar.addNewButton('Repopulate', pressed=self.repopulate)
         self.status_bar.addNewButton('Accept', pressed=self.accept)
 
         self.node_tab.addWidget(self.node_api_widget)
@@ -194,9 +205,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.show_cuts_cb = bbar2.addNewCheckBox(
             'Show Cuts', changed=refresh_via_cb, checked=False)
         self.show_review_cuts_cb =  bbar2.addNewCheckBox(
-            'Show Reviewed Cuts', changed=refresh_via_cb, checked=False)
+            'Show Reviewed Cuts', changed=refresh_via_cb, checked=True)
         self.only_reviwed_cb =  bbar2.addNewCheckBox(
-            'Only Reviewed', changed=refresh_via_cb, checked=False)
+            'Only Reviewed', changed=refresh_via_cb, checked=True)
         self.use_image_cb = bbar2.addNewCheckBox(
             'Show Img', changed=refresh_via_cb, checked=use_image)
         self.toggle_pin_cb = bbar2.addNewCheckBox(
@@ -227,10 +238,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         _simple_button3(self.update_state)
         _simple_button3(self.draw_graph, refresh=False)
 
-        #bbar3.addNewButton('embed', pressed=self.embed)
-
-        self.dev_bar.addNewButton(pressed=self.embed)
         self.dev_bar.addNewButton(pressed=self.print_info)
+        self.dev_bar.addNewButton(pressed=self.embed)
 
         self.mpl_needs_update = True
         self.cb = None
@@ -242,20 +251,12 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.edge_api_widget.view.contextMenuClicked.connect(self.edge_context)
         self.edge_api_widget.view.connect_keypress_to_slot(self.edge_keypress)
 
-        #self.edge_api_widget.resize_headers()
-
-        self.init_inference_signal.connect(
-            self.init_inference,
-            type=(Qt.QueuedConnection | Qt.UniqueConnection))
-
     def showEvent(self, event):
         super(AnnotGraphWidget, self).showEvent(event)
         print('[graph] showEvent')
         # Fire initialize event after we show the GUI
-        QtCore.QTimer.singleShot(50, self.init_inference_signal.emit)
-        #self.init_inference_signal.emit()
+        QtCore.QTimer.singleShot(50, self.init_inference)
 
-    @QtCore.pyqtSlot(name='init_inference')
     def init_inference(self):
         print('[graph] init_inference')
         infr = self.infr
@@ -264,10 +265,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         infr.remove_name_labels()
         if ut.get_argflag('--cut'):
             infr.apply_all()
-
         self.node2_aid = nx.get_node_attributes(self.infr.graph, 'aid')
         self.aid2_node = ut.invert_dict(self.node2_aid)
-
         #self.apply_scores()
         self.update_state(structure_changed=True)
 
@@ -305,7 +304,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         updated_config = dlg.widget.config  # NOQA
         print('updated_config = %r' % (updated_config,))
         self.review_cfg = updated_config.asdict()
-        self.update_state(structure_changed=True)
+        self.repopulate()
 
     def repopulate(self):
         self.update_state(structure_changed=True)
@@ -345,8 +344,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
     def reset_all(self):
         self.infr.initialize_graph()
         self.infr.reset_feedback()
-        #self.populate_node_model()
-        #self.populate_edge_model()
         self.toggle_pin_cb.setChecked(False)
 
     def populate_node_model(self):
@@ -365,7 +362,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def populate_edge_model(self):
         print('[graph] populate_edge_model')
-        edge_api = make_edge_api(self.infr)
+        edge_api = make_edge_api(self.infr, review_cfg=self.review_cfg)
         headers = edge_api.make_headers(tblnice='Edges')
         self.edge_api_widget.change_headers(headers)
         self.edge_api_widget.resize_headers(edge_api)
@@ -425,6 +422,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ('Mark &True', lambda: mark_pairs('match')),
             ('Mark &False', lambda: mark_pairs('nonmatch')),
             ('Mark &Non-Comparable', lambda: mark_pairs('notcomp')),
+            ('&Unreview', lambda: mark_pairs('unreviewed')),
         ]
 
         if len(selected_qtindex_list) == 1:
@@ -799,7 +797,129 @@ def make_node_api(infr):
     return node_api
 
 
-def make_edge_api(infr):
+def get_filtered_edges(ibs, graph, review_cfg):
+    nodes = list(graph.nodes())
+    uv_list = list(graph.edges())
+
+    node_to_aids = nx.get_node_attributes(graph, 'aid')
+    node_to_nids = nx.get_node_attributes(graph, 'name_label')
+    aids = ut.take(node_to_aids, nodes)
+    nids = ut.take(node_to_nids, nodes)
+    aid_to_nid = dict(zip(aids, nids))
+    nid2_aids = ut.group_items(aids, nids)
+
+    # Initial set of edges
+    aids1 = ut.take_column(uv_list, 0)
+    aids2 = ut.take_column(uv_list, 1)
+
+    num_filtered = 0
+
+    def filter_between_ccs_neg(aids1, aids2, isneg_flags):
+        """
+        If two cc's have at least X=1 negative reviews then remove all other
+        reviews between those cc's
+        """
+        neg_aids1 = ut.compress(aids1, isneg_flags)
+        neg_aids2 = ut.compress(aids2, isneg_flags)
+        neg_nids1 = ut.take(aid_to_nid, neg_aids1)
+        neg_nids2 = ut.take(aid_to_nid, neg_aids2)
+
+        # Ignore inconsistent names
+        # Determine which CCs photobomb each other
+        invalid_nid_map = ut.ddict(set)
+        for nid1, nid2 in zip(neg_nids1, neg_nids2):
+            if nid1 != nid2:
+                invalid_nid_map[nid1].add(nid2)
+                invalid_nid_map[nid2].add(nid1)
+
+        impossible_aid_map = ut.ddict(set)
+        for nid1, other_nids in invalid_nid_map.items():
+            for aid1 in nid2_aids[nid1]:
+                for nid2 in other_nids:
+                    for aid2 in nid2_aids[nid2]:
+                        impossible_aid_map[aid1].add(aid2)
+                        impossible_aid_map[aid2].add(aid1)
+
+        valid_flags = [aid2 not in impossible_aid_map[aid1]
+                       for aid1, aid2 in zip(aids1, aids2)]
+        return valid_flags
+
+    if review_cfg['filter_nonmatch_between_ccs']:
+        review_states = [
+            graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
+            for edge in zip(aids1, aids2)]
+        is_nonmatched = [state == 'nonmatch' for state in review_states]
+        #isneg_flags = is_nonmatched
+        valid_flags = filter_between_ccs_neg(aids1, aids2, is_nonmatched)
+        num_filtered += len(valid_flags) - sum(valid_flags)
+        aids1 = ut.compress(aids1, valid_flags)
+        aids2 = ut.compress(aids2, valid_flags)
+
+    if review_cfg['filter_photobombs']:
+        am_list = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+        ispb_flags = ibs.get_annotmatch_prop('Photobomb', am_list)
+        #isneg_flags = ispb_flags
+        valid_flags = filter_between_ccs_neg(aids1, aids2, ispb_flags)
+        num_filtered += len(valid_flags) - sum(valid_flags)
+        aids1 = ut.compress(aids1, valid_flags)
+        aids2 = ut.compress(aids2, valid_flags)
+
+    if review_cfg['filter_true_matches']:
+        nids1 = ut.take(aid_to_nid, aids1)
+        nids2 = ut.take(aid_to_nid, aids2)
+        valid_flags = [nid1 != nid2 for nid1, nid2 in zip(nids1, nids2)]
+        num_filtered += len(valid_flags) - sum(valid_flags)
+        aids1 = ut.compress(aids1, valid_flags)
+        aids2 = ut.compress(aids2, valid_flags)
+
+    if review_cfg['filter_false_matches']:
+        nids1 = ut.take(aid_to_nid, aids1)
+        nids2 = ut.take(aid_to_nid, aids2)
+        valid_flags = [nid1 == nid2 for nid1, nid2 in zip(nids1, nids2)]
+        num_filtered += len(valid_flags) - sum(valid_flags)
+        aids1 = ut.compress(aids1, valid_flags)
+        aids2 = ut.compress(aids2, valid_flags)
+
+    if review_cfg['filter_reviewed']:
+        valid_flags = [
+            graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed') == 'unreviewed'
+            for edge in zip(aids1, aids2)]
+        num_filtered += len(valid_flags) - sum(valid_flags)
+        aids1 = ut.compress(aids1, valid_flags)
+        aids2 = ut.compress(aids2, valid_flags)
+
+    if review_cfg['filter_dup_namepairs']:
+        # Only look at a maximum of one review between the current set of
+        # connected compoments
+        nids1 = ut.take(aid_to_nid, aids1)
+        nids2 = ut.take(aid_to_nid, aids2)
+        scores = np.array([
+            # hack
+            max(graph.get_edge_data(*edge).get('score', -1), -1)
+            for edge in zip(aids1, aids2)])
+        review_states = [
+            graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
+            for edge in zip(aids1, aids2)]
+        is_notcomp = np.array([state == 'notcomp' for state in review_states], dtype=np.bool)
+        # Notcomps should not be considered in this filtering
+        scores[is_notcomp] = -2
+        #
+        namepair_id_list = np.array(vt.compute_unique_data_ids_(
+            list(zip(nids1, nids2))), dtype=np.int)
+        unique_namepair_ids, namepair_groupxs = vt.group_indices(namepair_id_list)
+        score_namepair_groups = vt.apply_grouping(scores, namepair_groupxs)
+        unique_rowx2 = sorted([
+            groupx[score_group.argmax()]
+            for groupx, score_group in zip(namepair_groupxs, score_namepair_groups)
+        ])
+        aids1 = ut.take(aids1, unique_rowx2)
+        aids2 = ut.take(aids2, unique_rowx2)
+
+    print('[graph] num_filtered = %r' % (num_filtered,))
+    return aids1, aids2
+
+
+def make_edge_api(infr, review_cfg={}):
     graph = infr.graph
     ibs = infr.ibs
 
@@ -817,20 +937,20 @@ def make_edge_api(infr):
         attrs['name_label2'] = graph.node[aid2]['name_label']
         return ut.repr2(attrs, precision=2)
 
-    def get_reviewed_status(ibs, edge):
-        """ Data role for status column """
-        aid1, aid2 = edge
-        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        state = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
-        state_to_text = {
-            None: 'Unreviewed',
-            2: 'Auto-reviewed',
-            1: 'User-reviewed',
-        }
-        default = '??? unknown mode %r' % (state,)
-        text = state_to_text.get(state, default)
-        return text
+    #def get_reviewed_status(ibs, edge):
+    #    """ Data role for status column """
+    #    aid1, aid2 = edge
+    #    assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
+    #    assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+    #    state = ibs.get_annot_pair_is_reviewed([aid1], [aid2])[0]
+    #    state_to_text = {
+    #        None: 'Unreviewed',
+    #        2: 'Auto-reviewed',
+    #        1: 'User-reviewed',
+    #    }
+    #    default = '??? unknown mode %r' % (state,)
+    #    text = state_to_text.get(state, default)
+    #    return text
 
     def get_match_text(edge):
         aid1, aid2 = edge
@@ -907,9 +1027,15 @@ def make_edge_api(infr):
             'main_func': func2,
         }
         return thumbdat
-    uv_list = list(graph.edges())
-    aids1 = ut.take_column(uv_list, 0)
-    aids2 = ut.take_column(uv_list, 1)
+
+    #uv_list = list(graph.edges())
+    #aids1 = np.array(ut.take_column(uv_list, 0))
+    #aids2 = np.array(ut.take_column(uv_list, 1))
+    aids1, aids2 = get_filtered_edges(ibs, graph, review_cfg)
+
+    # Apply filtering
+    #import utool
+    #utool.embed()
 
     col_name_list = [
         #'index',
@@ -919,15 +1045,14 @@ def make_edge_api(infr):
 
     col_getter_dict = {
         'index': np.arange(len(aids1)),
-        'aid1': np.array(aids1),
-        'aid2': np.array(aids2),
+        'aid1': aids1,
+        'aid2': aids2,
         'data': get_edge_data,
         'timedelta': lambda edge: ibs.get_unflat_annots_timedelta_list([edge])[0][0],
         'matched':  lambda edge: get_match_text(edge),
-        #'reviewed':  lambda edge: get_reviewed_status(ibs, edge),
+        'reviewed':  edge_attr_getter('reviewed_state', 'unreviewed'),
         'score':  edge_attr_getter('score'),
         'rank':  edge_attr_getter('rank', -1),
-        'reviewed':  edge_attr_getter('reviewed_state', 'unreviewed'),
         'tags': lambda edge: get_pair_tags(edge),
         'thumb1': ibs.get_annot_chip_thumbtup,
         'thumb2': ibs.get_annot_chip_thumbtup,
@@ -1026,7 +1151,6 @@ def make_qt_graph_interface(ibs, aids=None, nids=None):
     #win.draw_graph()
     win.show()
     #win.init_inference()
-    #win.init_inference_signal.emit()
 
     return win
 
