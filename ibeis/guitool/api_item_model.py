@@ -155,6 +155,9 @@ class APIItemModel(API_MODEL_BASE):
         model.col_sort_reverse = False
         model.level_index_list = []
         model.cache = None  # FIXME: This is not sustainable
+        model.cache_timeout_sec = 2
+        model.cache_size = 32
+        model.batch_size = 32
         model.scope_hack_list = []
         model.root_node = _atn.TreeNode(-1, None, -1)
         # Initialize member variables
@@ -261,7 +264,8 @@ class APIItemModel(API_MODEL_BASE):
             assert len(col_name_list) == len(col_level_list), (
                 'inconsistent collevel')
 
-        model.cache = cachetools.TTLCache(maxsize=100, ttl=2)
+        model.clear_cache()
+
         model.name = str(name)
         model.nice = str(nice)
         model.iders = iders
@@ -282,6 +286,9 @@ class APIItemModel(API_MODEL_BASE):
 
         # calls model._update_rows()
         model._set_sort(col_sort_index, col_sort_reverse, rebuild_structure=True)
+
+    def clear_cache(model):
+        model.cache = cachetools.TTLCache(maxsize=model.cache_size, ttl=model.cache_timeout_sec)
 
     @updater
     def _set_sort(model, col_sort_index, col_sort_reverse=False, rebuild_structure=False):
@@ -406,7 +413,7 @@ class APIItemModel(API_MODEL_BASE):
             #model._abouttochange = False
             model._abouttochange = False
             #printDBG('CHANGE: CACHE INVALIDATED!')
-            model.cache = {}
+            model.clear_cache()
             model.layoutChanged.emit()
             return True
         else:
@@ -418,9 +425,9 @@ class APIItemModel(API_MODEL_BASE):
     @default_method_decorator
     def _update(model, newrows=False):
         #if newrows:
+        model.cache = {}
         model._update_rows()
         #printDBG('UPDATE: CACHE INVALIDATED!')
-        model.cache = {}
 
     def _use_ider(model, level=0):
         if level == 0:
@@ -774,8 +781,7 @@ class APIItemModel(API_MODEL_BASE):
         The default implementation does nothing.
         """
         remainder = model.num_rows_total - model.num_rows_loaded
-        batch_size = 512
-        num_fetching = min(batch_size, remainder)
+        num_fetching = min(model.batch_size, remainder)
         if VERBOSE:
             print('Fetching %r more %s' % (num_fetching, model.name))
         idx1 = model.num_rows_total
