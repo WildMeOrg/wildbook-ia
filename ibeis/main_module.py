@@ -294,10 +294,10 @@ def main(gui=True, dbdir=None, defaultdb='cache',
         assert allow_newdir, 'must be making new directory if you are deleting everything!'
         ibsfuncs.delete_ibeis_database(dbdir)
 
-    limit = sys.getrecursionlimit()
-    if limit == 1000:
-        print('Setting Recursion Limit to 3000')
-        sys.setrecursionlimit(3000)
+    #limit = sys.getrecursionlimit()
+    #if limit == 1000:
+    #    print('Setting Recursion Limit to 3000')
+    #    sys.setrecursionlimit(3000)
     # Execute preload commands
     main_commands.preload_commands(dbdir, **kwargs)  # PRELOAD CMDS
     try:

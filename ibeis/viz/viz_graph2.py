@@ -88,7 +88,7 @@ GRAPH_REVIEW_CFG_DEFAULTS = {
     #'directed': False,
     #'name_scoring': True,
     'filter_reviewed': True,
-    'filter_photobombs': True,
+    'filter_photobombs': False,
 
     'filter_true_matches': True,
     'filter_false_matches': False,
@@ -259,12 +259,17 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def init_inference(self):
         print('[graph] init_inference')
-        infr = self.infr
-        infr.initialize_graph()
-        infr.remove_feedback()
-        infr.remove_name_labels()
-        if ut.get_argflag('--cut'):
-            infr.apply_all()
+        with gt.GuiProgContext('Initializing', self.prog_bar) as ctx:
+            ctx.set_progress(0, 3)
+            infr = self.infr
+            infr.initialize_graph()
+            ctx.set_progress(1, 3)
+            infr.remove_feedback()
+            ctx.set_progress(2, 3)
+            infr.remove_name_labels()
+            if ut.get_argflag('--cut'):
+                infr.apply_all()
+            ctx.set_progress(3, 3)
         self.node2_aid = nx.get_node_attributes(self.infr.graph, 'aid')
         self.aid2_node = ut.invert_dict(self.node2_aid)
         #self.apply_scores()
@@ -599,8 +604,41 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                            for node, name_label in node_to_label.items()}
         aid_list = list(node_to_newname.keys())
         name_list = list(node_to_newname.values())
-        print('aid_list = %r' % (aid_list,))
-        print('name_list = %r' % (name_list,))
+        #print('aid_list = %r' % (aid_list,))
+        #print('name_list = %r' % (name_list,))
+
+        # LOG ACTIVITY
+        import logging
+        # ut.vd(review_log_dir)
+        # create logger with 'spam_application'
+        logger = logging.getLogger('query_review')
+        logger.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        # create file handler which logs even debug messages
+        dbdir = self.infr.qreq_.ibs.get_dbdir()
+        expt_dir = ut.ensuredir(ut.unixjoin(dbdir, 'SPECIAL_GGR_EXPT_LOGS'))
+        review_log_dir = ut.ensuredir(ut.unixjoin(expt_dir, 'review_logs'))
+        log_fpath = ut.unixjoin(review_log_dir,
+                                'split_log_%s.json' % (self.infr.qreq_.ibs.dbname))
+        fh = logging.FileHandler(log_fpath)
+        fh.setLevel(logging.DEBUG)
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+
+        # create console handler with a higher log level
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+
+        self.logger = logger
+        logger.info('=================')
+        logger.info(msg)
+        logger.info('ACCEPT SPLIT CASE')
+        logger.info('aid_list = %r' % (aid_list,))
+        logger.info('name_list = %r' % (name_list,))
+        logger.info('_initial_feedback = ' + ut.repr2(self.infr._initial_feedback, nl=1))
+        logger.info('user_feedback = ' + ut.repr2(self.infr.user_feedback, nl=1))
 
         ibs = self.infr.ibs
         dryrun = False
@@ -748,7 +786,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
     def print_info(self):
         print('[graph] print_info')
         print('_initial_feedback = ' + ut.repr2(self.infr._initial_feedback, nl=1))
-        print('_user_feedback = ' + ut.repr2(self.infr._user_feedback, nl=1))
         print('user_feedback = ' + ut.repr2(self.infr.user_feedback, nl=1))
 
     def embed(self):
