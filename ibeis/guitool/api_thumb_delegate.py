@@ -155,7 +155,7 @@ class APIThumbDelegate(DELEGATE_BASE):
         dgt.row_rezised_flags = {}  # SUPER HACK FOR RESIZE SHRINK
         try:
             import cachetools
-            dgt.thumb_cache = cachetools.TTLCache(256, ttl=5)
+            dgt.thumb_cache = cachetools.TTLCache(256, ttl=2)
         except ImportError:
             dgt.thumb_cache = ut.LRUDict(256)
         #import utool
