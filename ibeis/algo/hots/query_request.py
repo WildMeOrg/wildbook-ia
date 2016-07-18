@@ -1212,21 +1212,23 @@ class QueryRequest(object):
         ]
         return fname_list
 
-    def execute(qreq_, qaids=None):
+    def execute(qreq_, qaids=None, prog_hook=None):
         if qaids is not None:
             shallow_qreq_ = qreq_.shallowcopy(qaids=qaids)
             cm_list = qreq_.ibs.query_chips(qreq_=shallow_qreq_,
-                                            use_bigcache=False)
+                                            use_bigcache=False,
+                                            prog_hook=prog_hook)
         else:
             # TODO: move the entire query_chips logic here
-            cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
+            cm_list = qreq_.ibs.query_chips(qreq_=qreq_, prog_hook=prog_hook)
         return cm_list
 
-    def execute_subset(qreq_, qaids=None):
+    def execute_subset(qreq_, qaids=None, prog_hook=None):
         if qaids is not None:
             shallow_qreq_ = qreq_.shallowcopy(qaids=qaids)
             cm_list = qreq_.ibs.query_chips(qreq_=shallow_qreq_,
-                                            use_bigcache=False)
+                                            use_bigcache=False,
+                                            prog_hook=prog_hook)
         else:
             cm_list = qreq_.ibs.query_chips(qreq_=qreq_)
         return cm_list

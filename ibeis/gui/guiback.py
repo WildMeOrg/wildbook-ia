@@ -294,8 +294,8 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         # testlog.pressed.connect(self.log_query)
         # button_bar.addWidget(testlog)
 
-        self.progbar = guitool.newProgressBar(self, visible=False)
-        self.addWidget(self.progbar)
+        self.prog_bar = guitool.addNewProgressBar(self, visible=False)
+        #self.addWidget(self.prog_bar)
 
         gt.fix_child_attr_heirarchy(self, 'setSpacing', 0)
         gt.fix_child_attr_heirarchy(self, 'setMargin', 2)
@@ -312,7 +312,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         print('set exemplars')
         ibs = self.ibs
         print('self.exemplar_cfg = %r' % (self.exemplar_cfg,))
-        with self.progress_context('Querying') as ctx:
+        with gt.GuiProgContext('Querying', self.prog_bar) as ctx:  # NOQA
             ibs.set_exemplars_from_quality_and_viewpoint(prog_hook=ctx.prog_hook,
                                                          **self.exemplar_cfg)
 
@@ -365,47 +365,6 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         table.resizeRowsToContents()
         print('Finished populating table')
 
-    @backreport
-    def progress_context(self, title='working'):
-        """
-        Displays progress during a task
-        """
-        class ProgressContext(object):
-            def __init__(ctx, title, progbar):
-                ctx.progbar = progbar
-                ctx.title = title
-                self.total = None
-
-            @property
-            def prog_hook(ctx):
-                return ctx.progbar.utool_prog_hook
-
-            def set_progress(ctx, count, total=None):
-                if total is None:
-                    total = self.total
-                ctx.prog_hook.set_progress(count, total)
-
-            def set_total(ctx, total):
-                self.total = total
-
-            def __enter__(ctx):
-                ctx.progbar.setVisible(True)
-                ctx.progbar.setWindowTitle(ctx.title)
-                ctx.prog_hook.lbl = ctx.title
-                ctx.progbar.utool_prog_hook.set_progress(0)
-                # Doesn't seem to work correctly
-                #progbar.utool_prog_hook.show_indefinite_progress()
-                ctx.progbar.utool_prog_hook.force_event_update()
-                return ctx
-
-            def __exit__(ctx, type_, value, trace):
-                ctx.progbar.setVisible(False)
-                if trace is not None:
-                    if VERBOSE:
-                        print('[back] Error in context manager!: ' + str(value))
-                    return False  # return a falsey value on error
-        return ProgressContext(title, self.progbar)
-
     def on_cfg_changed(self):
         self.cfg_needs_update = True
         # print('detected change')
@@ -424,7 +383,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
 
     def apply_new_config(self):
         print('apply_new_config')
-        with self.progress_context('Updating') as ctx:  # NOQA
+        with gt.GuiProgContext('Updating', self.prog_bar) as ctx:  # NOQA
             ctx.set_total(5)
             ibs = self.ibs
             # Discard the loaded query info
@@ -509,7 +468,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
     def load_previous_query(self, row):
         print('loading previous query')
         print('apply_new_config')
-        with self.progress_context('Loading') as ctx:  # NOQA
+        with gt.GuiProgContext('Loading', self.prog_bar) as ctx:  # NOQA
             ctx.set_total(5)
             ctx.set_progress(0)
             long_fpath = self.table_data['long_path'][row]
@@ -638,7 +597,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
             # Dont log on a re-executed query
             self.log_query(qreq_, test=False)
 
-        with self.progress_context('Querying') as ctx:
+        with gt.GuiProgContext('Querying', self.prog_bar) as ctx:  # NOQA
             cm_list = ibs.query_chips(qreq_=qreq_, prog_hook=ctx.prog_hook)
 
         qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list, qreq_=qreq_,
@@ -2134,23 +2093,23 @@ class MainWindowBackend(GUIBACK_BASE):
                                                          review_cfg=review_cfg)
         print('cfgdict = %r' % (cfgdict,))
 
-        progbar = back.front.progbar
-        progbar.setVisible(True)
-        progbar.setWindowTitle('Initialize query')
-        prog_hook = progbar.utool_prog_hook
-        #progbar = guitool.newProgressBar(None)  # back.front)
+        prog_bar = back.front.prog_bar
+        prog_bar.setVisible(True)
+        prog_bar.setWindowTitle('Initialize query')
+        prog_hook = prog_bar.utool_prog_hook
+        #prog_bar = guitool.newProgressBar(None)  # back.front)
         # Doesn't seem to work correctly
         #prog_hook.show_indefinite_progress()
         prog_hook.force_event_update()
         #prog_hook.set_progress(0)
-        progbar.setWindowTitle('Start query')
+        prog_bar.setWindowTitle('Start query')
         #import utool
         #utool.embed()
 
         query_results = {}
         for key, (qaids, daids) in ut.ProgressIter(species2_expanded_aids.items(),
                                                    prog_hook=prog_hook):
-            progbar.setWindowTitle('Initialize %r query' % (key,))
+            prog_bar.setWindowTitle('Initialize %r query' % (key,))
             qreq_ = back.ibs.new_query_request(qaids, daids,
                                                cfgdict=cfgdict)
             prog_hook.initialize_subhooks(1)
@@ -2163,7 +2122,7 @@ class MainWindowBackend(GUIBACK_BASE):
                 for cm in cm_list:
                     #if cm is not None:
                     cm.imgsetid = imgsetid
-        back.front.progbar.setVisible(False)
+        back.front.prog_bar.setVisible(False)
 
         print('[back] About to finish compute_queries: imgsetid=%r' % (imgsetid,))
         for key in query_results.keys():

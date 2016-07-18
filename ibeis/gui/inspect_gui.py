@@ -744,44 +744,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
     with_interact_chips = True
 
     if with_interact_chips:
-        from ibeis.viz.interact import interact_chip
-
-        aid_list2 = [aid1, aid2]
-        if qreq_ is None:
-            config2_list_ = [None, None]
-        else:
-            config2_list_ = [qreq_.extern_query_config2,
-                             qreq_.extern_data_config2]
-
-        #interact_chip_options = []
-        #for count, (aid, config2_) in enumerate(zip(aid_list2,
-        #                                            config2_list_),
-        #                                        start=1):
-        #    interact_chip_options += [
-        #        ('Interact Annot&%d' % (count,),
-        #         partial(interact_chip.ishow_chip, ibs, aid, config2_=config2_,
-        #                 fnum=None, **kwargs)),
-        #    ]
-        #interact_chip_actions = ut.get_list_column(interact_chip_options, 1)
-        #interact_chip_options.append(
-        #    ('Interact &All Annots', lambda: [func() for func in
-        #                                      interact_chip_actions]),
-        #)
-
-        chip_contex_options = []
-        print('config2_list_ = %r' % (config2_list_,))
-        for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_),
-                                                start=1):
-            chip_contex_options += [
-                ('Annot&%d Options (aid=%r)' % (count, aid,),
-                 interact_chip.build_annot_context_options(
-                    ibs, aid, refresh_func=None, config2_=config2_))
-            ]
-
-        #options += [
-        #    #('Interact Annots', interact_chip_options),
-        #    #('Annot Conte&xt Options', chip_contex_options),
-        #]
+        chip_contex_options = make_annotpair_context_options(ibs, aid1, aid2, qreq_)
         if len(chip_contex_options) > 2:
             options += [
                 ('Annot Conte&xt Options', chip_contex_options),
@@ -794,6 +757,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
     from ibeis.viz import viz_graph
     from ibeis.viz import viz_graph2
     if with_review_options:
+        aid_list2 = [aid1, aid2]
         options += [
             ('Mark as &Reviewed',
              lambda: ibs.set_annot_pair_as_reviewed(aid1, aid2)),
@@ -890,6 +854,54 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             ('dev pair context debug', dev_debug),
         ]
     return options
+
+
+def make_annotpair_context_options(ibs, aid1, aid2, qreq_):
+    from ibeis.viz.interact import interact_chip
+
+    aid_list2 = [aid1, aid2]
+    if qreq_ is None:
+        config2_list_ = [None, None]
+    else:
+        config2_list_ = [qreq_.extern_query_config2,
+                         qreq_.extern_data_config2]
+
+    chip_contex_options = []
+    print('config2_list_ = %r' % (config2_list_,))
+    print('aid_list2 = %r' % (aid_list2,))
+    for count, (aid, config2_) in enumerate(zip(aid_list2, config2_list_),
+                                            start=1):
+        chip_contex_options += [
+            ('Annot&%d Options (aid=%r)' % (count, aid,),
+             interact_chip.build_annot_context_options(
+                ibs, aid, refresh_func=None, config2_=config2_))
+        ]
+
+    #interact_chip_options = []
+    #for count, (aid, config2_) in enumerate(zip(aid_list2,
+    #                                            config2_list_),
+    #                                        start=1):
+    #    interact_chip_options += [
+    #        ('Interact Annot&%d' % (count,),
+    #         partial(interact_chip.ishow_chip, ibs, aid, config2_=config2_,
+    #                 fnum=None, **kwargs)),
+    #    ]
+    #interact_chip_actions = ut.get_list_column(interact_chip_options, 1)
+    #interact_chip_options.append(
+    #    ('Interact &All Annots', lambda: [func() for func in
+    #                                      interact_chip_actions]),
+    #)
+
+    #options += [
+    #    #('Interact Annots', interact_chip_options),
+    #    #('Annot Conte&xt Options', chip_contex_options),
+    #]
+    #if len(chip_contex_options) > 2:
+    #    return [
+    #        ('Annot Conte&xt Options', chip_contex_options),
+    #    ]
+    #else:
+    return chip_contex_options
 
 
 def make_aidpair_tag_context_options(ibs, aid1, aid2):

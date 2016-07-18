@@ -660,7 +660,7 @@ class AnnotInference2(object):
         mst_edges = [edge for edge, flag in edge_to_ismst.items() if flag]
         graph.remove_edges_from(mst_edges)
 
-    def exec_scoring(infr, vsone=False):
+    def exec_scoring(infr, vsone=False, prog_hook=None):
         """ Helper """
         print('[infr] exec_scoring')
         #from ibeis.algo.hots import graph_iden
@@ -675,7 +675,7 @@ class AnnotInference2(object):
         }
         # TODO: use current nids
         qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
-        cm_list = qreq_.execute()
+        cm_list = qreq_.execute(prog_hook=prog_hook)
         vsmany_qreq_ = qreq_
         vsmany_cms = cm_list
 
@@ -691,7 +691,8 @@ class AnnotInference2(object):
             parent_rowids = list(undirected_edges.keys())
             # Hack to get around default product of qaids
             qreq_ = ibs.depc.new_request('vsone', [], [], cfgdict={})
-            cm_list = qreq_.execute(parent_rowids=parent_rowids)
+            cm_list = qreq_.execute(parent_rowids=parent_rowids,
+                                    prog_hook=prog_hook)
         return qreq_, cm_list
 
     def add_feedback(infr, aid1, aid2, state):
@@ -893,9 +894,9 @@ class AnnotInference2(object):
                 graph.add_edge(*edge, attr_dict={'_mst_edge': True, 'reviewed_state': 'match'})
                 infr.add_feedback(edge[0], edge[1], 'match')
 
-    def apply_scores(infr, review_cfg={}):
+    def apply_scores(infr, review_cfg={}, prog_hook=None):
         print('[infr] apply_scores')
-        qreq_, cm_list = infr.exec_scoring(vsone=False)
+        qreq_, cm_list = infr.exec_scoring(vsone=False, prog_hook=None)
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
         top = review_cfg.get('top', 2)

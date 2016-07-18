@@ -78,6 +78,7 @@ class MatplotlibWidget(gt.GuitoolWidget):
 class AnnotGraphWidget(gt.GuitoolWidget):
     signal_graph_update = QtCore.pyqtSignal()
     signal_state_update = QtCore.pyqtSignal(bool)
+    init_inference_signal = QtCore.pyqtSignal(name='init_inference')
 
     def initialize(self, infr=None, use_image=False):
         print('[graph] initialize')
@@ -99,8 +100,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         self.infr = infr
         self.selected_aids = []
-        self.node2_aid = nx.get_node_attributes(self.infr.graph, 'aid')
-        self.aid2_node = ut.invert_dict(self.node2_aid)
         # self.config = InferenceConfig()
 
         self.splitter = self.newSplitter(orientation=Qt.Horizontal)
@@ -116,6 +115,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             orientation=Qt.Horizontal, vertical_stretch=1, margin=1, spacing=1)
         self.dev_bar = self.addNewWidget(
             orientation=Qt.Horizontal, vertical_stretch=1, margin=1, spacing=1)
+        self.prog_bar = self.addNewProgressBar(visible=False)
 
         #graph_tables_widget = splitter.addNewTabWidget(verticalStretch=1)
         self.edge_tab = graph_tables_widget.addNewTab('Edges')
@@ -207,7 +207,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         bbar3.layout().addSpacing(10)
 
         _simple_button3(self.infr.apply_mst)
-        _simple_button3(self.infr.apply_scores)
+        _simple_button3(self.apply_scores)
         _simple_button3(self.infr.apply_feedback)
         _simple_button3(self.infr.apply_weights)
         _simple_button3(self.infr.apply_cuts)
@@ -232,8 +232,31 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.edge_api_widget.view.contextMenuClicked.connect(self.edge_context)
         self.edge_api_widget.view.connect_keypress_to_slot(self.edge_keypress)
 
-        self.update_state(structure_changed=True)
         #self.edge_api_widget.resize_headers()
+        self.node2_aid = nx.get_node_attributes(self.infr.graph, 'aid')
+        self.aid2_node = ut.invert_dict(self.node2_aid)
+
+        self.init_inference_signal.connect(self.init_inference, type=(Qt.QueuedConnection | Qt.UniqueConnection))
+
+    def showEvent(self, event):
+        super(AnnotGraphWidget, self).showEvent(event)
+        print('[graph] showEvent')
+        # Fire initialize event after we show the GUI
+        QtCore.QTimer.singleShot(50, self.init_inference_signal.emit)
+        #self.init_inference_signal.emit()
+
+    @QtCore.pyqtSlot(name='init_inference')
+    def init_inference(self):
+        print('[graph] init_inference')
+        infr = self.infr
+        infr.remove_feedback()
+        infr.remove_name_labels()
+        #self.apply_scores()
+        self.update_state(structure_changed=True)
+
+    def apply_scores(self):
+        with gt.GuiProgContext('Computing Scores', self.prog_bar) as ctx:
+            self.infr.apply_scores(self.review_cfg, prog_hook=ctx.prog_hook)
 
     def reset_original(self):
         print('[graph] reset_original')
@@ -271,7 +294,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         print('[graph] update_state')
         self.infr.apply_feedback()
         if structure_changed:
-            self.infr.apply_scores(self.review_cfg)
+            self.apply_scores()
         self.infr.apply_weights()
         num_names, num_inconsistent = self.infr.connected_compoment_relabel()
         self.infr.apply_cuts()
@@ -317,7 +340,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         except AttributeError:
             self.node_api_widget.view.verticalHeader().setSectionsMovable(True)
 
-        self.node_tab.setTabText('Nodes (%r)' % (self.node_api_widget.model.rowCount()))
+        self.node_tab.setTabText('Nodes (%r)' % (self.node_api_widget.model.num_rows_total))
         return node_api
 
     def populate_edge_model(self):
@@ -327,7 +350,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.edge_api_widget.change_headers(headers)
         self.edge_api_widget.resize_headers(edge_api)
         self.edge_api_widget.view.verticalHeader().setVisible(True)
-        self.edge_tab.setTabText('Edges (%r)' % (self.edge_api_widget.model.rowCount()))
+        self.edge_tab.setTabText('Edges (%r)' % (self.edge_api_widget.model.num_rows_total))
         self.edge_api_widget.view.verticalHeader().setDefaultSectionSize(221)
 
     def sizeHint(self):
@@ -391,10 +414,14 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             model = qtindex.model()
             aid1  = model.get_header_data('aid1', qtindex)
             aid2  = model.get_header_data('aid2', qtindex)
+            qreq_ = self.infr.qreq_
             pair_tag_options = inspect_gui.make_aidpair_tag_context_options(ibs, aid1, aid2)
+            chip_context_options = inspect_gui.make_annotpair_context_options(ibs, aid1, aid2, qreq_=qreq_)
             options += [
                 ('Match Ta&gs', pair_tag_options)
             ]
+            options += chip_context_options
+
         return options
 
     @gt.slot_(QtCore.QModelIndex, QtCore.QPoint)
@@ -973,18 +1000,18 @@ def make_qt_graph_interface(ibs, aids=None, nids=None):
     nids = ibs.get_annot_name_rowids(aids)
     infr = graph_iden.AnnotInference2(ibs, aids, nids)
     infr.initialize_graph()
-    infr.remove_feedback()
-    infr.remove_name_labels()
-    infr.apply_scores()
 
     if ut.get_argflag('--cut'):
         infr.apply_all()
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
     win = AnnotGraphWidget(infr=infr, use_image=False)
-    win.resize(900, 600)
+    #win.resize(900, 600)
     #win.draw_graph()
-    win.show()
+    #win.show()
+    #win.init_inference()
+    #win.init_inference_signal.emit()
+
     return win
 
 
