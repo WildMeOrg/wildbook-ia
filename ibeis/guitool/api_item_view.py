@@ -202,7 +202,7 @@ def _update_headers(view, **headers):
 
 
 @register_view_method
-def _set_sort(view, col_sort_index, col_sort_reverse=False):
+def _set_sort(view, col_sort_index, col_sort_reverse=True):
     if col_sort_index is not None:
         order = [Qt.AscendingOrder, Qt.DescendingOrder][col_sort_reverse]
         view.sortByColumn(col_sort_index, order)

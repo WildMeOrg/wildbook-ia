@@ -228,7 +228,7 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
         >>> result = ut.hashstr(infostr)
         >>> print(result)
     """
-    print('_populate_tree_iterative')
+    #print('_populate_tree_iterative')
     root_ids = ider_list[0]()
     parent_node_list = [root_node]
     ids_list = [root_ids]

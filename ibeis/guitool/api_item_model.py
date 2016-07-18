@@ -752,9 +752,11 @@ class APIItemModel(API_MODEL_BASE):
         #print('model.num_rows_loaded = %r' % (model.num_rows_loaded,))
         if model.num_rows_total is not None:
             if model.num_rows_total > model.num_rows_loaded:
-                #print('canFetchMore %s? -- Yes' % (model.name,))
+                if VERBOSE:
+                    print('canFetchMore %s? -- Yes' % (model.name,))
                 return True
-        #print('canFetchMore %s? -- No' % (model.name,))
+        if VERBOSE:
+            print('canFetchMore %s? -- No' % (model.name,))
         return False
         #if not parent.isValid():
         #    return False
@@ -774,7 +776,8 @@ class APIItemModel(API_MODEL_BASE):
         remainder = model.num_rows_total - model.num_rows_loaded
         batch_size = 512
         num_fetching = min(batch_size, remainder)
-        #print('Fetching %r more %s' % (num_fetching, model.name))
+        if VERBOSE:
+            print('Fetching %r more %s' % (num_fetching, model.name))
         idx1 = model.num_rows_total
         idx2 = model.num_rows_total + num_fetching - 1
         model.beginInsertRows(QtCore.QModelIndex(), idx1, idx2)
@@ -782,6 +785,8 @@ class APIItemModel(API_MODEL_BASE):
         #print('model.num_rows_total = %r' % (model.num_rows_total,))
         #print('model.num_rows_loaded = %r' % (model.num_rows_loaded,))
         model.endInsertRows()
+        if VERBOSE:
+            print('Fetched %r/%r rows' % (model.num_rows_loaded, model.num_rows_total))
         #model.numberPopulated.emit(num_loading)
 
     @default_method_decorator
