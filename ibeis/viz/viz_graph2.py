@@ -96,6 +96,16 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             'bot': 2,
             'remove_nonmatch_in_cc': True,
             #'remove_match_between_cc': True,
+
+            #'ranks_lt': 5,
+            #'directed': False,
+            #'name_scoring': True,
+            #'filter_reviewed': True,
+            #'filter_photobombs': True,
+            #'filter_true_matches': True,
+            #'show_chips': True,
+            #'filter_duplicate_true_matches': False,
+
         }
 
         self.infr = infr
@@ -233,10 +243,10 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.edge_api_widget.view.connect_keypress_to_slot(self.edge_keypress)
 
         #self.edge_api_widget.resize_headers()
-        self.node2_aid = nx.get_node_attributes(self.infr.graph, 'aid')
-        self.aid2_node = ut.invert_dict(self.node2_aid)
 
-        self.init_inference_signal.connect(self.init_inference, type=(Qt.QueuedConnection | Qt.UniqueConnection))
+        self.init_inference_signal.connect(
+            self.init_inference,
+            type=(Qt.QueuedConnection | Qt.UniqueConnection))
 
     def showEvent(self, event):
         super(AnnotGraphWidget, self).showEvent(event)
@@ -249,8 +259,15 @@ class AnnotGraphWidget(gt.GuitoolWidget):
     def init_inference(self):
         print('[graph] init_inference')
         infr = self.infr
+        infr.initialize_graph()
         infr.remove_feedback()
         infr.remove_name_labels()
+        if ut.get_argflag('--cut'):
+            infr.apply_all()
+
+        self.node2_aid = nx.get_node_attributes(self.infr.graph, 'aid')
+        self.aid2_node = ut.invert_dict(self.node2_aid)
+
         #self.apply_scores()
         self.update_state(structure_changed=True)
 
@@ -288,6 +305,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         updated_config = dlg.widget.config  # NOQA
         print('updated_config = %r' % (updated_config,))
         self.review_cfg = updated_config.asdict()
+        self.update_state(structure_changed=True)
+
+    def repopulate(self):
         self.update_state(structure_changed=True)
 
     def update_state(self, structure_changed=False):
@@ -999,16 +1019,12 @@ def make_qt_graph_interface(ibs, aids=None, nids=None):
     #temp_nids = None
     nids = ibs.get_annot_name_rowids(aids)
     infr = graph_iden.AnnotInference2(ibs, aids, nids)
-    infr.initialize_graph()
-
-    if ut.get_argflag('--cut'):
-        infr.apply_all()
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
     win = AnnotGraphWidget(infr=infr, use_image=False)
     #win.resize(900, 600)
     #win.draw_graph()
-    #win.show()
+    win.show()
     #win.init_inference()
     #win.init_inference_signal.emit()
 

@@ -896,7 +896,7 @@ class AnnotInference2(object):
 
     def apply_scores(infr, review_cfg={}, prog_hook=None):
         print('[infr] apply_scores')
-        qreq_, cm_list = infr.exec_scoring(vsone=False, prog_hook=None)
+        qreq_, cm_list = infr.exec_scoring(vsone=False, prog_hook=prog_hook)
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
         top = review_cfg.get('top', 2)
