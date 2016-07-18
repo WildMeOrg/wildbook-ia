@@ -17,15 +17,14 @@ import utool as ut
 #from .api_thumb_delegate import APIThumbDelegate
 import numpy as np
 from guitool import api_tree_node as _atn
-#profile = lambda func: func
-#printDBG = lambda *args: None
+import cachetools
+
 # UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS
 # DO NOT INJECT THEM IN GUITOOL
 #print, rrr, profile = ut.inject2(__name__, '[APIItemModel]')
 ut.noinject(__name__, '[APIItemModel]')
 
 #raise ImportError('refused to import guitool')
-
 profile = ut.profile
 
 API_MODEL_BASE = QtCore.QAbstractItemModel
@@ -161,9 +160,9 @@ class APIItemModel(API_MODEL_BASE):
         # Initialize member variables
         #model._about_to_change()
         model.headers = headers  # save the headers
-
         model.ider_filters = None
-
+        model.num_rows_loaded = 0
+        model.num_rows_total = len(model.level_index_list)
         #model.lazy_updater = None
         if headers is not None:
             model._update_headers(**headers)
@@ -178,7 +177,6 @@ class APIItemModel(API_MODEL_BASE):
         #model.name == 'annotations'
         #if len(model.iders) == 1:
         #    model.ider_filters = [filtfun_test]
-
         if model.ider_filters is None:
             ider_list = model.iders
         else:
@@ -189,7 +187,6 @@ class APIItemModel(API_MODEL_BASE):
                 def wrapped_ider(*args, **kwargs):
                     return filtfn(ider(*args, **kwargs))
                 return wrapped_ider
-
             ider_list =  [
                 #ider
                 wrap_ider(ider, filtfn)
@@ -199,7 +196,6 @@ class APIItemModel(API_MODEL_BASE):
             ]
         return ider_list
 
-    #@profile
     @updater
     def _update_headers(model, **headers):
         if VERBOSE:
@@ -207,7 +203,6 @@ class APIItemModel(API_MODEL_BASE):
         iders            = headers.get('iders', None)
         name             = headers.get('name', None)
         nice             = headers.get('nice', None)
-        #print('[api_model] UPDATE HEADERS: %r' % (name,))
         col_name_list    = headers.get('col_name_list', None)
         col_type_list    = headers.get('col_type_list', None)
         col_nice_list    = headers.get('col_nice_list', None)
@@ -215,32 +210,95 @@ class APIItemModel(API_MODEL_BASE):
         col_setter_list  = headers.get('col_setter_list', None)
         col_getter_list  = headers.get('col_getter_list', None)
         col_level_list   = headers.get('col_level_list', None)
-        #col_sort_index   = headers.get('col_sort_index', -1)
         col_sort_index   = headers.get('col_sort_index', 0)
         col_sort_reverse = headers.get('col_sort_reverse', False)
         # New for dynamically getting non-data roles for each row
         col_bgrole_getter_list = headers.get('col_bgrole_getter_list', None)
         col_visible_list = headers.get('col_visible_list', None)
-        model.cache = {}  # FIXME: This is not sustainable
+        #
+        if iders is None:
+            iders = []
+        if ut.USE_ASSERT:
+            assert ut.is_list(iders), 'bad type: %r' % type(iders)
+            for index, ider in enumerate(iders):
+                assert ut.is_funclike(ider), (
+                    'bad type at index %r: %r' % (index, type(ider)))
+
+        if col_name_list is None:
+            col_name_list = []
+        if col_type_list is None:
+            col_type_list = []
+        if col_nice_list is None:
+            col_nice_list = col_name_list[:]
+        if col_edit_list is None:
+            col_edit_list = [False] * len(col_name_list)
+        if col_setter_list is None:
+            col_setter_list = []
+        if col_getter_list is None:
+            col_getter_list = []
+        if col_bgrole_getter_list is None:
+            col_bgrole_getter_list = [None] * len(col_name_list)
+        if col_visible_list is None:
+            col_visible_list = [True] * len(col_name_list)
+        if col_level_list is None:
+            col_level_list = [0] * len(col_name_list)
+
+        if True or ut.USE_ASSERT:
+            assert len(col_name_list) == len(col_type_list), (
+                'inconsistent colnametype')
+            assert len(col_name_list) == len(col_nice_list), (
+                'inconsistent colnice')
+            assert len(col_name_list) == len(col_edit_list), (
+                'inconsistent coledit')
+            assert len(col_name_list) == len(col_setter_list), (
+                'inconsistent colsetter')
+            assert len(col_bgrole_getter_list) == len(col_name_list), (
+                'inconsistent col_bgrole_getter_list')
+            assert len(col_name_list) == len(col_getter_list), (
+                'inconsistent colgetter')
+            assert len(col_visible_list) == len(col_name_list), (
+                'inconsistent col_visible_list')
+            assert len(col_name_list) == len(col_level_list), (
+                'inconsistent collevel')
+
+        model.cache = cachetools.TTLCache(maxsize=100, ttl=2)
         model.name = str(name)
         model.nice = str(nice)
-        # Initialize class
-        model._set_iders(iders)
-        model._set_col_name_type(col_name_list, col_type_list)
-        model._set_col_nice(col_nice_list)
-        model._set_col_edit(col_edit_list)
-        model._set_col_setter(col_setter_list)
-        model._set_col_getter(col_getter_list)
-        model._set_col_bgrole_getter(col_bgrole_getter_list)
-        model._set_col_visible_list(col_visible_list)
-        # newer stuff
+        model.iders = iders
+        model.col_name_list = col_name_list
+        model.col_type_list = col_type_list
+        model.col_nice_list = col_nice_list
+        model.col_edit_list = col_edit_list
+        model.col_setter_list = col_setter_list
+        model.col_getter_list = col_getter_list
+        model.col_visible_list = col_visible_list
+        model.col_level_list = col_level_list
+        model.col_bgrole_getter_list = col_bgrole_getter_list
         model.col_display_role_func_dict = headers.get('col_display_role_func_dict', None)
 
-        model._set_col_level(col_level_list)
+        model.num_rows_loaded = 0
+        model.num_cols_loaded = 0
+        model.num_rows_total = None
+
         # calls model._update_rows()
         model._set_sort(col_sort_index, col_sort_reverse, rebuild_structure=True)
 
-    #@profile
+    @updater
+    def _set_sort(model, col_sort_index, col_sort_reverse=False, rebuild_structure=False):
+        if VERBOSE:
+            print('[APIItemModel] _set_sort, index=%r reverse=%r, rebuild=%r' %
+                  (col_sort_index, col_sort_reverse, rebuild_structure,))
+        #with ut.Timer('set_sort'):
+        #printDBG('SET SORT')
+        if len(model.col_name_list) > 0:
+            if ut.USE_ASSERT:
+                assert isinstance(col_sort_index, int) and col_sort_index < len(model.col_name_list), \
+                    'sort index out of bounds by: %r' % col_sort_index
+            model.col_sort_index = col_sort_index
+            model.col_sort_reverse = col_sort_reverse
+            # Update the row-id order
+            model._update_rows(rebuild_structure=rebuild_structure)
+
     @updater
     def _update_rows(model, rebuild_structure=True):
         """
@@ -311,135 +369,13 @@ class APIItemModel(API_MODEL_BASE):
             #if VERBOSE:
             #    print('[APIItemModel] lazy_update_rows emmiting _rows_updated')
             # EMIT THE NUMERR OF ROWS AND THE NAME OF FOR THE VIEW TO DISPLAY
-            model._rows_updated.emit(model.name, len(model.level_index_list))
+            model.num_rows_loaded = 0
+            model.num_cols_loaded = 0
+            model.num_rows_total = len(model.level_index_list)
+            model._rows_updated.emit(model.name, model.num_rows_total)
             if VERBOSE:
                 print('[APIItemModel] finished _update_rows')
                 print('[APIItemModel] L__________')
-
-    #@profile
-    #def lazy_checks(model):
-    #    if model.lazy_updater is not None:
-    #        print('[model] lazy update %r caller %r: ' %
-    #              (model.name, ut.get_caller_name(N=range(4))))
-    #        model.lazy_updater()
-    #        model.lazy_updater = None
-
-    @updater
-    def _set_iders(model, iders=None):
-        """ sets iders """
-        if VERBOSE:
-            print('[APIItemModel] _set_iders')
-        if iders is None:
-            iders = []
-        if ut.USE_ASSERT:
-            assert ut.is_list(iders), 'bad type: %r' % type(iders)
-            for index, ider in enumerate(iders):
-                assert ut.is_funclike(ider), 'bad type at index %r: %r' % (index, type(ider))
-        #printDBG('NEW IDER')
-        model.iders = iders
-
-    @updater
-    def _set_col_name_type(model, col_name_list=None, col_type_list=None):
-        if VERBOSE:
-            print('[APIItemModel] _set_col_name_type')
-        if col_name_list is None:
-            col_name_list = []
-        if col_type_list is None:
-            col_type_list = []
-        if ut.USE_ASSERT:
-            assert len(col_name_list) == len(col_type_list), \
-                'inconsistent colnametype'
-        model.col_name_list = col_name_list
-        model.col_type_list = col_type_list
-
-    @updater
-    def _set_col_nice(model, col_nice_list=None):
-        if col_nice_list is None:
-            col_nice_list = model.col_name_list[:]
-        if ut.USE_ASSERT:
-            assert len(model.col_name_list) == len(col_nice_list), \
-                'inconsistent colnice'
-        model.col_nice_list = col_nice_list
-
-    @default_method_decorator
-    def _set_col_edit(model, col_edit_list=None):
-        if col_edit_list is None:
-            col_edit_list = [False] * len(model.col_name_list)
-        if ut.USE_ASSERT:
-            assert len(model.col_name_list) == len(col_edit_list), \
-                'inconsistent coledit'
-        model.col_edit_list = col_edit_list
-
-    @default_method_decorator
-    def _set_col_setter(model, col_setter_list=None):
-        if VERBOSE:
-            print('[APIItemModel] _set_col_setter')
-        if col_setter_list is None:
-            col_setter_list = []
-        if ut.USE_ASSERT:
-            assert len(model.col_name_list) == len(col_setter_list), \
-                'inconsistent colsetter'
-        model.col_setter_list = col_setter_list
-
-    @default_method_decorator
-    def _set_col_getter(model, col_getter_list=None):
-        if VERBOSE:
-            print('[APIItemModel] _set_col_getter')
-        if col_getter_list is None:
-            col_getter_list = []
-        if ut.USE_ASSERT:
-            assert len(model.col_name_list) == len(col_getter_list), \
-                'inconsistent colgetter'
-        model.col_getter_list = col_getter_list
-
-    @default_method_decorator
-    def _set_col_bgrole_getter(model, col_bgrole_getter_list=None):
-        """ background rolegetter will be used for metadata like column color """
-        if col_bgrole_getter_list is None:
-            model.col_bgrole_getter_list = [None] * len(model.col_name_list)
-        else:
-            if ut.USE_ASSERT:
-                assert len(col_bgrole_getter_list) == len(model.col_name_list), \
-                    'inconsistent col_bgrole_getter_list'
-            model.col_bgrole_getter_list = col_bgrole_getter_list
-
-    @default_method_decorator
-    def _set_col_visible_list(model, col_visible_list=None):
-        """ used to turn columns off dynamically """
-        if col_visible_list is None:
-            model.col_visible_list = [True] * len(model.col_name_list)
-        else:
-            if ut.USE_ASSERT:
-                assert len(col_visible_list) == len(model.col_name_list), \
-                    'inconsistent col_visible_list'
-            model.col_visible_list = col_visible_list
-
-    @default_method_decorator
-    def _set_col_level(model, col_level_list=None):
-        if VERBOSE:
-            print('[APIItemModel] _set_col_level')
-        if col_level_list is None:
-            col_level_list = [0] * len(model.col_name_list)
-        if ut.USE_ASSERT:
-            assert len(model.col_name_list) == len(col_level_list), \
-                'inconsistent collevel'
-        model.col_level_list = col_level_list
-
-    @updater
-    def _set_sort(model, col_sort_index, col_sort_reverse=False, rebuild_structure=False):
-        if VERBOSE:
-            print('[APIItemModel] _set_sort, index=%r reverse=%r, rebuild=%r' %
-                  (col_sort_index, col_sort_reverse, rebuild_structure,))
-        #with ut.Timer('set_sort'):
-        #printDBG('SET SORT')
-        if len(model.col_name_list) > 0:
-            if ut.USE_ASSERT:
-                assert isinstance(col_sort_index, int) and col_sort_index < len(model.col_name_list), \
-                    'sort index out of bounds by: %r' % col_sort_index
-            model.col_sort_index = col_sort_index
-            model.col_sort_reverse = col_sort_reverse
-            # Update the row-id order
-            model._update_rows(rebuild_structure=rebuild_structure)
 
     #------------------------------------
     # --- Data maintainence functions ---
@@ -486,12 +422,6 @@ class APIItemModel(API_MODEL_BASE):
         #printDBG('UPDATE: CACHE INVALIDATED!')
         model.cache = {}
 
-    #def _use_ider(model, level):
-    #    if level == 0:
-    #        return model.iders[level]()
-    #    else:
-    #        return model.iders[level](model._use_ider(level - 1))
-
     def _use_ider(model, level=0):
         if level == 0:
             return model.iders[level]()
@@ -500,22 +430,9 @@ class APIItemModel(API_MODEL_BASE):
             level_ider = model.iders[level]
             return level_ider(parent_ids)
 
-    def get_row_from_id(model, _id):
-        r"""
-        returns the row if an _id from the iders list
-
-        Args:
-            _id (int): sqlrowid
-
-        Returns:
-            int: row
-        """
-        row = model.root_node.find_row_from_id(_id)
-        return row
-
     def get_row_and_qtindex_from_id(model, _id):
         """ uses an sqlrowid (from iders) to get a qtindex """
-        row = model.get_row_from_id(_id)
+        row = model.root_node.find_row_from_id(_id)
         qtindex = model.index(row, 0) if row is not None else None
         return qtindex, row
 
@@ -643,51 +560,46 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_data(model, qtindex, **kwargs):
-        if False:
-            if not hasattr(model, '_hack_timer'):
-                model._hack_timer = ut.Timer(verbose=False)
-                model._hack_timer.tic()
-                model._hack_timer.flag = True
-            if model._hack_timer.flag:
-                print('[api] getdata %r %s' % (model.name, str(qtype.qindexinfo(qtindex))))
-                #print('[model] lazy update %r caller %r: ' %
-                #      (model.name, ut.get_caller_name(N=range(4))))
-                model._hack_timer.flag = False
-            if model._hack_timer.toc() > 100:
-                model._hack_timer.tic()
-                model._hack_timer.flag = True
-        #row = qtindex.row()
+        #if False:
+        #    if not hasattr(model, '_hack_timer'):
+        #        model._hack_timer = ut.Timer(verbose=False)
+        #        model._hack_timer.tic()
+        #        model._hack_timer.flag = True
+        #    if model._hack_timer.flag:
+        #        print('[api] getdata %r %s' % (model.name, str(qtype.qindexinfo(qtindex))))
+        #        #print('[model] lazy update %r caller %r: ' %
+        #        #      (model.name, ut.get_caller_name(N=range(4))))
+        #        model._hack_timer.flag = False
+        #    if model._hack_timer.toc() > 100:
+        #        model._hack_timer.tic()
+        #        model._hack_timer.flag = True
         col = qtindex.column()
         row_id = model._get_row_id(qtindex)  # row_id w.r.t. to sorting
-        getter = model.col_getter_list[col]  # getter for this column
-        # Using this getter may not be thread safe
+        cachekey = (row_id, col)
         try:
-            # Should this work around decorators?
-            #data = getter((row_id,), **kwargs)[0]
-            data = getter(row_id, **kwargs)
-        except Exception as ex:
-            print(ex)
-            print('[api_item_model] problem getting in column %r' % (col,),)
-            print('model.name = %r' % (model.name,))
-            print('row_id = %r' % (row_id,))
-            print('qtindex = %r' % (qtype.qindexinfo(qtindex),))
-            print('qtindex = %r' % (qtindex,))
-            #ut.printex(
-            #    ex,
-            #    '[api_item_model] problem getting in column %r' % (col,),
-            #    keys=['model.name', 'getter', 'row_id', 'col', 'qtindex'])
-            #getting from: %r' % ut.util_str.get_callable_name(getter))
-            raise
-        # <HACK: MODEL_CACHE>
-        #cachekey = (row_id, col)
-        #try:
-        #    if True:  # Cache is disabled
-        #        raise KeyError('')
-        #    #data = model.cache[cachekey]
-        #except KeyError:
-        #    data = getter(row_id)
-        #    #model.cache[cachekey] = data
-        # </HACK: MODEL_CACHE>
+            data = model.cache[cachekey]
+        except KeyError:
+            getter = model.col_getter_list[col]  # getter for this column
+            try:
+                # Using this getter may not be thread safe
+                # Should this work around decorators?
+                #data = getter((row_id,), **kwargs)[0]
+                data = getter(row_id, **kwargs)
+            except Exception as ex:
+                print(ex)
+                print('[api_item_model] problem getting in column %r' % (col,),)
+                print('model.name = %r' % (model.name,))
+                print('row_id = %r' % (row_id,))
+                print('qtindex = %r' % (qtype.qindexinfo(qtindex),))
+                print('qtindex = %r' % (qtindex,))
+                #ut.printex(
+                #    ex,
+                #    '[api_item_model] problem getting in column %r' % (col,),
+                #    keys=['model.name', 'getter', 'row_id', 'col', 'qtindex'])
+                #getting from: %r' % ut.util_str.get_callable_name(getter))
+                raise
+            model.cache[cachekey] = data
+        # </MODEL_CACHE>
         return data
 
     @default_method_decorator
@@ -701,11 +613,11 @@ class APIItemModel(API_MODEL_BASE):
         col = qtindex.column()
         row_id = model._get_row_id(qtindex)
         # <HACK: MODEL_CACHE>
-        #cachekey = (row_id, col)
-        #try:
-        #    del model.cache[cachekey]
-        #except KeyError:
-        #    pass
+        cachekey = (row_id, col)
+        try:
+            del model.cache[cachekey]
+        except KeyError:
+            pass
         # </HACK: MODEL_CACHE>
         setter = model.col_setter_list[col]
         if VERBOSE:
@@ -806,9 +718,10 @@ class APIItemModel(API_MODEL_BASE):
             # Root row count
             if len(model.level_index_list) == 0:
                 return 0
-            nRows = len(model.level_index_list)
-            #print('* nRows=%r' % nRows)
-            return nRows
+            return model.num_rows_loaded
+            #nRows = len(model.level_index_list)
+            ##print('* nRows=%r' % nRows)
+            #return nRows
         else:
             node = parent.internalPointer()
             nRows = node.get_num_children()
@@ -822,36 +735,54 @@ class APIItemModel(API_MODEL_BASE):
         #model.lazy_checks()
         return len(model.col_name_list)
 
-    #@default_method_decorator
-    #def canFetchMore(model, parent):
-    #    """
-    #    Returns true if there is more data available for parent; otherwise returns false.
-    #    The default implementation always returns false.
-    #    If canFetchMore() returns true, the fetchMore() function should be called. This is the behavior of QAbstractItemView, for example.
+    @default_method_decorator
+    def canFetchMore(model, parent):
+        """
+        Returns true if there is more data available for parent; otherwise returns false.
+        The default implementation always returns false.
+        If canFetchMore() returns true, the fetchMore() function should be called. This is the behavior of QAbstractItemView, for example.
 
-    #    http://doc.qt.io/qt-5/qtwidgets-itemviews-fetchmore-example.html
-    #    """
-    #    if not parent.isValid():
-    #        return False
-    #    flags = model.flags(qtindex)
-    #    #row = qtindex.row()
-    #    col = qtindex.column()
-    #    node = qtindex.internalPointer()
-    #    return False
+        http://doc.qt.io/qt-5/qtwidgets-itemviews-fetchmore-example.html
 
-    #@default_method_decorator
-    #def fetchMore(model, parent):
-    #    """
-    #    Fetches any available data for the items with the parent specified by the parent index.
-    #    Reimplement this if you are populating your model incrementally.
-    #    The default implementation does nothing.
-    #    """
-    #    int remainder = fileList.size() - fileCount
-    #    int itemsToFetch = qMin(100, remainder)
-    #    beginInsertRows(QModelIndex(), fileCount, fileCount+itemsToFetch-1)
-    #    fileCount += itemsToFetch
-    #    model.endInsertRows()
-    #    model.numberPopulated.emit(itemsToFetch)
+        TODO:
+            # Extend this to work well with QTreeViews
+            http://blog.tjwakeham.com/lazy-loading-pyqt-data-models/
+        """
+        #print('model.num_rows_total = %r' % (model.num_rows_total,))
+        #print('model.num_rows_loaded = %r' % (model.num_rows_loaded,))
+        if model.num_rows_total is not None:
+            if model.num_rows_total > model.num_rows_loaded:
+                #print('canFetchMore %s? -- Yes' % (model.name,))
+                return True
+        #print('canFetchMore %s? -- No' % (model.name,))
+        return False
+        #if not parent.isValid():
+        #    return False
+        #flags = model.flags(qtindex)
+        ##row = qtindex.row()
+        #col = qtindex.column()
+        #node = qtindex.internalPointer()
+        #return False
+
+    @default_method_decorator
+    def fetchMore(model, parent):
+        """
+        Fetches any available data for the items with the parent specified by the parent index.
+        Reimplement this if you are populating your model incrementally.
+        The default implementation does nothing.
+        """
+        remainder = model.num_rows_total - model.num_rows_loaded
+        batch_size = 512
+        num_fetching = min(batch_size, remainder)
+        #print('Fetching %r more %s' % (num_fetching, model.name))
+        idx1 = model.num_rows_total
+        idx2 = model.num_rows_total + num_fetching - 1
+        model.beginInsertRows(QtCore.QModelIndex(), idx1, idx2)
+        model.num_rows_loaded += num_fetching
+        #print('model.num_rows_total = %r' % (model.num_rows_total,))
+        #print('model.num_rows_loaded = %r' % (model.num_rows_loaded,))
+        model.endInsertRows()
+        #model.numberPopulated.emit(num_loading)
 
     @default_method_decorator
     def data(model, qtindex, role=Qt.DisplayRole, **kwargs):

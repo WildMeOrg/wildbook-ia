@@ -188,7 +188,49 @@ def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
     return action
 
 
-SHOW_TEXT = ut.get_argflag('--progtext')
+PROG_TEXT = ut.get_argflag('--progtext')
+
+
+class GuiProgContext(object):
+    def __init__(ctx, title, prog_bar):
+        if PROG_TEXT:
+            print('[guitool] GuiProgContext.__init__')
+        ctx.prog_bar = prog_bar
+        ctx.title = title
+        ctx.total = None
+
+    @property
+    def prog_hook(ctx):
+        return ctx.prog_bar.utool_prog_hook
+
+    def set_progress(ctx, count, total=None):
+        if total is None:
+            total = ctx.total
+        ctx.prog_hook.set_progress(count, total)
+
+    def set_total(ctx, total):
+        ctx.total = total
+
+    def __enter__(ctx):
+        if PROG_TEXT:
+            print('[guitool] GuiProgContext.__enter__')
+        ctx.prog_bar.setVisible(True)
+        ctx.prog_bar.setWindowTitle(ctx.title)
+        ctx.prog_hook.lbl = ctx.title
+        ctx.prog_bar.utool_prog_hook.set_progress(0)
+        # Doesn't seem to work correctly
+        #prog_bar.utool_prog_hook.show_indefinite_progress()
+        ctx.prog_bar.utool_prog_hook.force_event_update()
+        return ctx
+
+    def __exit__(ctx, type_, value, trace):
+        if PROG_TEXT:
+            print('[guitool] GuiProgContext.__exit__')
+        ctx.prog_bar.setVisible(False)
+        if trace is not None:
+            if ut.VERBOSE:
+                print('[back] Error in context manager!: ' + str(value))
+            return False  # return a falsey value on error
 
 
 class ProgHook(QtCore.QObject, ut.NiceRepr):
@@ -212,7 +254,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         http://stackoverflow.com/questions/19442443/busy-indication-with-pyqt-progress-bar
 
     Args:
-        progbar (Qt.QProgressBar):
+        prog_bar (Qt.QProgressBar):
         substep_min (int): (default = 0)
         substep_size (int): (default = 1)
         level (int): (default = 0)
@@ -228,8 +270,8 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         >>> parent = newWidget()
         >>> parent.show()
         >>> parent.resize(600, 40)
-        >>> progbar = newProgressBar(parent, visible=True)
-        >>> hook = progbar.utool_prog_hook
+        >>> prog_bar = newProgressBar(parent, visible=True)
+        >>> hook = prog_bar.utool_prog_hook
         >>> subhook_list = hook.subdivide(num=4)
         >>> hook_0_25 = subhook_list[0]
         >>> hook_0_25.nTotal = 2
@@ -259,12 +301,12 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
     progress_changed_signal = QtCore.pyqtSignal(float, str)
     show_indefinite_progress_signal = QtCore.pyqtSignal()
 
-    def __init__(hook, progbar=None, global_min=0, global_max=1, level=0):
+    def __init__(hook, prog_bar=None, global_min=0, global_max=1, level=0):
         super(ProgHook, hook).__init__()
-        if progbar is None:
+        if prog_bar is None:
             hook.progressBarRef = None
         else:
-            hook.progressBarRef = weakref.ref(progbar)
+            hook.progressBarRef = weakref.ref(prog_bar)
         hook.global_min = global_min
         hook.global_max = global_max
         #hook.substep_min = substep_min
@@ -277,7 +319,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         hook.child_hook_gen = None
         hook.progress_changed_signal.connect(hook.on_progress_changed)
         hook.show_indefinite_progress_signal.connect(hook.show_indefinite_progress_slot)
-        hook.show_text = SHOW_TEXT
+        hook.show_text = PROG_TEXT
 
     def __nice__(hook):
         gmin, gmax = hook.global_bounds()
@@ -287,11 +329,11 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         return '(%s, [%r, %r ,%r], %r=%d/%d)' % (lbl, gmin, gpos, gmax, lpos, hook.count, hook.nTotal)
 
     @property
-    def progbar(hook):
+    def prog_bar(hook):
         if hook.progressBarRef is None:
             return None
-        progbar = hook.progressBarRef()
-        return progbar
+        prog_bar = hook.progressBarRef()
+        return prog_bar
 
     @property
     def count(hook):
@@ -346,8 +388,8 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         sub_min_list = global_spacing[:-1]
         sub_max_list = global_spacing[1:]
 
-        progbar = hook.progbar
-        subhook_list = [ProgHook(progbar, min_, max_, hook.level + 1)
+        prog_bar = hook.prog_bar
+        subhook_list = [ProgHook(prog_bar, min_, max_, hook.level + 1)
                         for min_, max_ in zip(sub_min_list, sub_max_list)]
         return subhook_list
 
@@ -407,8 +449,8 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
 
         hook.nTotal / hook.global_extent()
 
-        progbar = hook.progbar
-        subhook_list = [ProgHook(progbar, min_, max_, hook.level + 1)
+        prog_bar = hook.prog_bar
+        subhook_list = [ProgHook(prog_bar, min_, max_, hook.level + 1)
                         for min_, max_ in zip(sub_min_list, sub_max_list)]
         return subhook_list
 
@@ -476,25 +518,25 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
             print('\n')
             print('[' + '#' * num_full + '.' * num_empty + '] %7.3f%% %s' % (global_fraction * 100, hook.lbl))
             print('\n')
-        progbar = hook.progbar
-        if progbar is not None:
-            progbar.setRange(0, 10000)
-            progbar.setMinimum(0)
-            progbar.setMaximum(10000)
-            value = int(round(progbar.maximum() * global_fraction))
-            progbar.setFormat(lbl + ' %p%')
-            progbar.setValue(value)
-            #progbar.setProperty('value', value)
+        prog_bar = hook.prog_bar
+        if prog_bar is not None:
+            prog_bar.setRange(0, 10000)
+            prog_bar.setMinimum(0)
+            prog_bar.setMaximum(10000)
+            value = int(round(prog_bar.maximum() * global_fraction))
+            prog_bar.setFormat(lbl + ' %p%')
+            prog_bar.setValue(value)
+            #prog_bar.setProperty('value', value)
             # major hack
             hook.force_event_update()
 
     @QtCore.pyqtSlot()
     def show_indefinite_progress_slot(hook):
-        progbar = hook.progbar
-        if progbar is not None:
-            progbar.reset()
-            progbar.setMaximum(0)
-            progbar.setProperty('value', 0)
+        prog_bar = hook.prog_bar
+        if prog_bar is not None:
+            prog_bar.reset()
+            prog_bar.setMaximum(0)
+            prog_bar.setProperty('value', 0)
             hook.force_event_update()
 
     def show_indefinite_progress(hook):
