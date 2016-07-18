@@ -156,7 +156,7 @@ class APIItemModel(API_MODEL_BASE):
         model.level_index_list = []
         model.cache = None  # FIXME: This is not sustainable
         model.cache_timeout_sec = 2
-        model.cache_size = 32
+        model.cache_size = 256
         model.batch_size = 32
         model.scope_hack_list = []
         model.root_node = _atn.TreeNode(-1, None, -1)
