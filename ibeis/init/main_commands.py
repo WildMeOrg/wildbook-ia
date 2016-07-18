@@ -154,7 +154,7 @@ def postload_commands(ibs, back):
         if len(qaid_list) == 1 and isinstance(qaid_list[0], tuple):
             qaid_list = list(qaid_list[0])
         daids_mode = ut.get_argval('--daids-mode', type_=str, default=const.VS_EXEMPLARS_KEY)
-        back.compute_queries(qaid_list=qaid_list, daids_mode=daids_mode, ranks_lt=10)
+        back.compute_queries(qaid_list=qaid_list, daids_mode=daids_mode, ranks_top=10)
 
     if ut.get_argflag('--inc-query'):
         back.incremental_query()

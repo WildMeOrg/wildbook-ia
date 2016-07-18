@@ -97,7 +97,7 @@ class QueryResultsWidget(gt.APIItemWidget):
         >>> cm_list = qreq_.execute()
         >>> print('[inspect_matches] make_qres_widget')
         >>> review_cfg = dict(
-        >>>     ranks_lt=10000,
+        >>>     ranks_top=10000,
         >>>     #filter_reviewed=True,
         >>>     filter_reviewed=True,
         >>>     #filter_true_matches=False,

@@ -440,7 +440,7 @@ class QueryResult(__OBJECT_BASE__):
 
     def get_top_aids(qres, num=None, name_scoring=False, ibs=None):
         """ Returns a ranked list of chip indexes """
-        # TODO: rename num to ranks_lt
+        # TODO: rename num to ranks_top
         aid_arr, score_arr = qres.get_aids_and_scores(name_scoring=name_scoring, ibs=ibs)
         # fix when score_arr is a bad probability
         score_arr = np.array(qres.get_aid_scores(aid_arr, rawscore=True))
@@ -609,7 +609,7 @@ class QueryResult(__OBJECT_BASE__):
 
     # ----------------------------------------
 
-    def get_match_tbldata(qres, ranks_lt=6, name_scoring=False, ibs=None):
+    def get_match_tbldata(qres, ranks_top=6, name_scoring=False, ibs=None):
         """
         Returns matchinfo in table format (qaids, aids, scores, ranks)
         """
@@ -620,8 +620,8 @@ class QueryResult(__OBJECT_BASE__):
         score_arr = score_arr[sortx]
         aid_arr   = aid_arr[sortx]
         rank_arr  = np.arange(sortx.size)
-        # Return only rows where rank < ranks_lt
-        isvalid = rank_arr < ranks_lt
+        # Return only rows where rank < ranks_top
+        isvalid = rank_arr < ranks_top
         aids    =   aid_arr[isvalid]
         scores  = score_arr[isvalid]
         ranks   =  rank_arr[isvalid]
@@ -880,7 +880,7 @@ class QueryResult(__OBJECT_BASE__):
         #fig = interact_matches.ishow_matches(ibs, qres, aid, *args, **kwargs)
         #return fig
 
-    def qt_inspect_gui(qres, ibs, ranks_lt=6, qreq_=None, name_scoring=False):
+    def qt_inspect_gui(qres, ibs, ranks_top=6, qreq_=None, name_scoring=False):
         print('[qres] qt_inspect_gui')
         from ibeis.gui import inspect_gui
         import guitool
@@ -888,7 +888,7 @@ class QueryResult(__OBJECT_BASE__):
         qaid2_qres = {qres.qaid: qres}
         print('[inspect_matches] make_qres_widget')
         qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
-                                                  ranks_lt=ranks_lt,
+                                                  ranks_top=ranks_top,
                                                   name_scoring=name_scoring,
                                                   qreq_=qreq_)
         print('[inspect_matches] show')

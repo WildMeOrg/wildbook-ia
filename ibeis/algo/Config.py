@@ -1143,7 +1143,7 @@ class OtherConfig(ConfigBase):
         #other_cfg.thumb_size      = 128
         other_cfg.thumb_size      = 221
         other_cfg.thumb_bare_size = 700
-        other_cfg.ranks_lt        = 2
+        other_cfg.ranks_top        = 2
         other_cfg.filter_reviewed = True
         other_cfg.auto_localize   = True
         # maximum number of exemplars per name

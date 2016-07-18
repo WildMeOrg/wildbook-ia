@@ -615,11 +615,11 @@ class _ChipMatchVisualization(object):
             mpl.interactive(was_interactive)
         return image
 
-    def qt_inspect_gui(cm, ibs, ranks_lt=6, qreq_=None, name_scoring=False):
+    def qt_inspect_gui(cm, ibs, ranks_top=6, qreq_=None, name_scoring=False):
         r"""
         Args:
             ibs (IBEISController):  ibeis controller object
-            ranks_lt (int): (default = 6)
+            ranks_top (int): (default = 6)
             qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
             name_scoring (bool): (default = False)
 
@@ -635,9 +635,9 @@ class _ChipMatchVisualization(object):
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
             >>> cm = cm_list[0]
             >>> cm.score_nsum(qreq_)
-            >>> ranks_lt = 6
+            >>> ranks_top = 6
             >>> name_scoring = False
-            >>> qres_wgt = cm.qt_inspect_gui(ibs, ranks_lt, qreq_, name_scoring)
+            >>> qres_wgt = cm.qt_inspect_gui(ibs, ranks_top, qreq_, name_scoring)
             >>> ut.quit_if_noshow()
             >>> import guitool
             >>> guitool.qtapp_loop(qwin=qres_wgt)
@@ -649,7 +649,7 @@ class _ChipMatchVisualization(object):
         cm_list = [cm]
         print('[inspect_matches] make_qres_widget')
         qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list,
-                                                  ranks_lt=ranks_lt,
+                                                  ranks_top=ranks_top,
                                                   name_scoring=name_scoring,
                                                   qreq_=qreq_)
         print('[inspect_matches] show')

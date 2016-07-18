@@ -97,7 +97,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             'remove_nonmatch_in_cc': True,
             #'remove_match_between_cc': True,
 
-            #'ranks_lt': 5,
+            #'ranks_top': 5,
             #'directed': False,
             #'name_scoring': True,
             #'filter_reviewed': True,

@@ -17,7 +17,7 @@ REVIEWED_STATUS_TEXT = 'Reviewed'
 
 
 REVIEW_CFG_DEFAULTS = {
-    'ranks_lt': 5,
+    'ranks_top': 5,
     'directed': False,
     'name_scoring': True,
     'filter_reviewed': True,
@@ -40,7 +40,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
 
     Args:
         cm_list (list): list of chip match objects
-        ranks_lt (int): put all ranks less than this number into the graph
+        ranks_top (int): put all ranks less than this number into the graph
         directed (bool):
 
     Returns:
@@ -56,7 +56,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_()
         >>> cm_list = qreq_.execute()
-        >>> review_cfg = dict(ranks_lt=5, directed=True, name_scoring=False,
+        >>> review_cfg = dict(ranks_top=5, directed=True, name_scoring=False,
         >>>                   filter_true_matches=True)
         >>> review_edges = get_review_edges(cm_list, ibs=ibs, review_cfg=review_cfg)
         >>> print(review_edges)
@@ -69,7 +69,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> qaid_list = ibs.get_valid_aids()[0:5]
         >>> daid_list = ibs.get_valid_aids()[0:20]
         >>> cm_list = ibs.query_chips(qaid_list, daid_list)
-        >>> review_cfg = dict(ranks_lt=5, directed=True, name_scoring=False,
+        >>> review_cfg = dict(ranks_top=5, directed=True, name_scoring=False,
         >>>                   filter_reviewed=False, filter_true_matches=True)
         >>> review_edges = get_review_edges(cm_list, review_cfg=review_cfg, ibs=ibs)
         >>> print(review_edges)
@@ -82,7 +82,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> qaid_list = ibs.get_valid_aids()[0:1]
         >>> daid_list = ibs.get_valid_aids()[10:100]
         >>> qaid2_cm = ibs.query_chips(qaid_list, daid_list)
-        >>> review_cfg = dict(ranks_lt=1, directed=False, name_scoring=False,
+        >>> review_cfg = dict(ranks_top=1, directed=False, name_scoring=False,
         >>>                   filter_reviewed=False, filter_true_matches=True)
         >>> review_edges = get_review_edges(cm_list, review_cfg=review_cfg, ibs=ibs)
         >>> print(review_edges)
@@ -95,8 +95,8 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> qaid_list = ibs.get_valid_aids()[0:10]
         >>> daid_list = ibs.get_valid_aids()[0:10]
         >>> qres_list = ibs.query_chips(qaid_list, daid_list)
-        >>> ranks_lt = 3
-        >>> review_cfg = dict(ranks_lt=3, directed=False, name_scoring=False,
+        >>> ranks_top = 3
+        >>> review_cfg = dict(ranks_top=3, directed=False, name_scoring=False,
         >>>                   filter_reviewed=False, filter_true_matches=True)
         >>> review_edges = get_review_edges(cm_list, review_cfg=review_cfg, ibs=ibs)
         >>> print(review_edges)
@@ -121,13 +121,13 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
 
     for cm in cm_list:
         if isinstance(cm, chip_match.ChipMatch):
-            daids  = cm.get_top_aids(ntop=automatch_kw['ranks_lt'])
-            scores = cm.get_top_scores(ntop=automatch_kw['ranks_lt'])
+            daids  = cm.get_top_aids(ntop=automatch_kw['ranks_top'])
+            scores = cm.get_top_scores(ntop=automatch_kw['ranks_top'])
             ranks  = np.arange(len(daids))
             qaids  = np.full(daids.shape, cm.qaid, dtype=daids.dtype)
         else:
             (qaids, daids, scores, ranks) = cm.get_match_tbldata(
-                ranks_lt=automatch_kw['ranks_lt'],
+                ranks_top=automatch_kw['ranks_top'],
                 name_scoring=automatch_kw['name_scoring'],
                 ibs=ibs)
         qaids_stack.append(qaids)
@@ -228,7 +228,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
 
 
 def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
-    #ranks_lt=None, #name_scoring=False, #filter_reviewed=False, #filter_true_matches=False, #qreq_=None, #):
+    #ranks_top=None, #name_scoring=False, #filter_reviewed=False, #filter_true_matches=False, #qreq_=None, #):
     """
     Builds columns which are displayable in a ColumnListTableWidget
 
@@ -245,8 +245,8 @@ def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
         >>> cm_list, qreq_ = ibeis.main_helpers.testdata_cmlist()
         >>> tblname = 'chipmatch'
         >>> name_scoring = False
-        >>> ranks_lt = 5
-        >>> review_cfg = dict(ranks_lt=ranks_lt, name_scoring=name_scoring)
+        >>> ranks_top = 5
+        >>> review_cfg = dict(ranks_top=ranks_top, name_scoring=name_scoring)
         >>> review_api = make_review_api(qreq_.ibs, cm_list, review_cfg, qreq_=qreq_)
         >>> print('review_api = %r' % (review_api,))
     """

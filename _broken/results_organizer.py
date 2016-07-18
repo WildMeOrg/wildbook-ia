@@ -53,10 +53,10 @@ class OrganizedResult(DynStruct):
         self.scores = np.array(self.scores)
         self.ranks  = np.array(self.ranks)
 
-    def where_ranks_lt(orgres, num):
+    def where_ranks_top(orgres, num):
         """ get new orgres where all the ranks are less or equal to """
         # Remove None ranks
-        return _where_ranks_lt(orgres, num)
+        return _where_ranks_top(orgres, num)
 
     def iter_sorted(self):
         qaids  = np.array(self.qaids)
@@ -95,7 +95,7 @@ class OrganizedResult(DynStruct):
         print(csvstr)
 
 
-def _where_ranks_lt(orgres, num):
+def _where_ranks_top(orgres, num):
     """ get new orgres where all the ranks are less or equal to """
     # Remove None ranks
     isvalid = [rank is not None and rank <= num and rank != -1
@@ -119,8 +119,8 @@ def _sorted_by_score(orgres):
     return orgres2
 
 
-def _score_sorted_ranks_lt(orgres, num):
-    orgres2 = _where_ranks_lt(orgres, num)
+def _score_sorted_ranks_top(orgres, num):
+    orgres2 = _where_ranks_top(orgres, num)
     orgres3 = _sorted_by_score(orgres2)
     return orgres3
 
@@ -311,7 +311,7 @@ def organize_results(ibs, qaid2_qres):
 
 
 @profile
-def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
+def get_automatch_candidates(cm_list, ranks_top=5, directed=True,
                              name_scoring=False, ibs=None, filter_reviewed=False,
                              filter_duplicate_namepair_matches=False):
     """
@@ -324,7 +324,7 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
 
     Args:
         qaid2_qres (dict): mapping from query annotaiton id to query result object
-        ranks_lt (int): put all ranks less than this number into the graph
+        ranks_top (int): put all ranks less than this number into the graph
         directed (bool):
 
     Returns:
@@ -341,10 +341,10 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_()
         >>> cm_list = ibs.query_chips(qreq_=qreq_, return_cm=True)
-        >>> ranks_lt = 5
+        >>> ranks_top = 5
         >>> directed = True
         >>> name_scoring = False
-        >>> candidate_matches = get_automatch_candidates(cm_list, ranks_lt, directed, ibs=ibs)
+        >>> candidate_matches = get_automatch_candidates(cm_list, ranks_top, directed, ibs=ibs)
         >>> print(candidate_matches)
 
     Example1:
@@ -355,13 +355,13 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         >>> qaid_list = ibs.get_valid_aids()[0:5]
         >>> daid_list = ibs.get_valid_aids()[0:20]
         >>> cm_list = ibs.query_chips(qaid_list, daid_list, return_cm=True)
-        >>> ranks_lt = 5
+        >>> ranks_top = 5
         >>> directed = False
         >>> name_scoring = False
         >>> filter_reviewed = False
         >>> filter_duplicate_namepair_matches = True
         >>> candidate_matches = get_automatch_candidates(
-        ...    cm_list, ranks_lt, directed, name_scoring=name_scoring,
+        ...    cm_list, ranks_top, directed, name_scoring=name_scoring,
         ...    filter_reviewed=filter_reviewed,
         ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
         ...    ibs=ibs)
@@ -375,13 +375,13 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         >>> qaid_list = ibs.get_valid_aids()[0:1]
         >>> daid_list = ibs.get_valid_aids()[10:100]
         >>> qaid2_cm = ibs.query_chips(qaid_list, daid_list, return_cm=True)
-        >>> ranks_lt = 1
+        >>> ranks_top = 1
         >>> directed = False
         >>> name_scoring = False
         >>> filter_reviewed = False
         >>> filter_duplicate_namepair_matches = True
         >>> candidate_matches = get_automatch_candidates(
-        ...    cm_list, ranks_lt, directed, name_scoring=name_scoring,
+        ...    cm_list, ranks_top, directed, name_scoring=name_scoring,
         ...    filter_reviewed=filter_reviewed,
         ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
         ...    ibs=ibs)
@@ -395,13 +395,13 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
         >>> qaid_list = ibs.get_valid_aids()[0:10]
         >>> daid_list = ibs.get_valid_aids()[0:10]
         >>> qres_list = ibs.query_chips(qaid_list, daid_list)
-        >>> ranks_lt = 3
+        >>> ranks_top = 3
         >>> directed = False
         >>> name_scoring = False
         >>> filter_reviewed = False
         >>> filter_duplicate_namepair_matches = True
         >>> candidate_matches = get_automatch_candidates(
-        ...    qaid2_cm, ranks_lt, directed, name_scoring=name_scoring,
+        ...    qaid2_cm, ranks_top, directed, name_scoring=name_scoring,
         ...    filter_reviewed=filter_reviewed,
         ...    filter_duplicate_namepair_matches=filter_duplicate_namepair_matches,
         ...    ibs=ibs)
@@ -413,7 +413,7 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
            'filter_reviewed={filter_reviewed},'
            'filter_duplicate_namepair_matches={filter_duplicate_namepair_matches},'
            'directed={directed},'
-           'ranks_lt={ranks_lt},'
+           'ranks_top={ranks_top},'
            ).format(**locals()))
     print('[resorg] len(cm_list) = %d' % (len(cm_list)))
     qaids_stack  = []
@@ -427,13 +427,13 @@ def get_automatch_candidates(cm_list, ranks_lt=5, directed=True,
 
     for cm in cm_list:
         if isinstance(cm, chip_match.ChipMatch2):
-            daids  = cm.get_top_aids(ntop=ranks_lt)
-            scores = cm.get_top_scores(ntop=ranks_lt)
+            daids  = cm.get_top_aids(ntop=ranks_top)
+            scores = cm.get_top_scores(ntop=ranks_top)
             ranks  = np.arange(len(daids))
             qaids  = np.full(daids.shape, cm.qaid, dtype=daids.dtype)
         else:
             (qaids, daids, scores, ranks) = cm.get_match_tbldata(
-                ranks_lt=ranks_lt, name_scoring=name_scoring, ibs=ibs)
+                ranks_top=ranks_top, name_scoring=name_scoring, ibs=ibs)
         qaids_stack.append(qaids)
         daids_stack.append(daids)
         scores_stack.append(scores)

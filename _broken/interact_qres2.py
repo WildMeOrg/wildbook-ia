@@ -29,7 +29,7 @@ def default_interact_qres_params():
     params = {
         'fnum'               : 512,
         'nPerPage'           : 6,
-        'ranks_lt'           : 3,
+        'ranks_top'           : 3,
         'on_change_callback' : None
     }
     return params
@@ -40,7 +40,7 @@ class Interact_QueryResult(object):
         # Initialize variables. No logic
         self.fnum               = None
         self.nPerPage           = None
-        self.ranks_lt           = None
+        self.ranks_top           = None
         self.on_change_callback = None
         self.ibs = None
         self.nCands = 0  # number of candidate matches
@@ -87,7 +87,7 @@ class Interact_QueryResult(object):
     def init_candidates(self, qaid2_qres):
         self.qaid2_qres = qaid2_qres
         from ibeis.gui import inspect_gui
-        review_cfg = dict(ranks_lt=self.ranks_lt, directed=False)
+        review_cfg = dict(ranks_top=self.ranks_top, directed=False)
         self.cand_match_list = inspect_gui.get_automatch_candidates(self.qaid2_qres, review_cfg=review_cfg)
         (qaids, aids, scores, ranks) = self.cand_match_list
         self.qaids = qaids

@@ -179,7 +179,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.pcfg = TmpPipelineConfig()
         self.review_cfg = dtool.Config.from_dict({
             'filter_reviewed': True,
-            'ranks_lt': 1,
+            'ranks_top': 1,
             'filter_true_matches': True,
         })
         self.info_cfg = dtool.Config.from_dict({
@@ -1031,7 +1031,7 @@ class MainWindowBackend(GUIBACK_BASE):
         print('review_cfg = %s' % (ut.repr3(review_cfg),))
         print('filter_reviewed = %s' % (filter_reviewed,))
         review_cfg['filter_reviewed'] = filter_reviewed
-        review_cfg['ranks_lt'] = review_cfg.get('ranks_lt', ibs.cfg.other_cfg.ranks_lt)
+        review_cfg['ranks_top'] = review_cfg.get('ranks_top', ibs.cfg.other_cfg.ranks_top)
         back.qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list,
                                                        callback=finished_review_callback,
                                                        qreq_=qreq_,
@@ -1946,7 +1946,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
             review_config = {
                 'filter_reviewed': review_cfg.get('filter_reviewed', ibs.cfg.other_cfg.ensure_attr('filter_reviewed', True)),
-                'ranks_lt': review_cfg.get('ranks_lt', ibs.cfg.other_cfg.ensure_attr('ranks_lt', 2)),
+                'ranks_top': review_cfg.get('ranks_top', ibs.cfg.other_cfg.ensure_attr('ranks_top', 2)),
                 'filter_true_matches': review_cfg.get('filter_true_matches', False),
             }
 
@@ -2303,10 +2303,10 @@ class MainWindowBackend(GUIBACK_BASE):
             'prescore_method': 'csum',
             'score_method': 'csum'
         }
-        ranks_lt = min(len(aid_list), 10)
+        ranks_top = min(len(aid_list), 10)
         review_cfg = {
             'filter_reviewed': False,
-            'ranks_lt': ranks_lt,
+            'ranks_top': ranks_top,
             'name_scoring': False,
         }
         ibs = back.ibs

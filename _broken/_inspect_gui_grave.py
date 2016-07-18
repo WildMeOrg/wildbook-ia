@@ -34,9 +34,9 @@ def test_singleres_api(ibs, qaid_list, daid_list):
     guitool.ensure_qapp()
     tblname = 'qres'
     qaid2_qres = allres.qaid2_qres
-    ranks_lt = 5
+    ranks_top = 5
     qres_wgt = inspect_gui.QueryResultsWidget(ibs, qaid2_qres,
-                                              ranks_lt=ranks_lt,
+                                              ranks_top=ranks_top,
                                               name_scoring=True,
                                               singlematch_api=True)
     qres_wgt.show()
@@ -45,14 +45,14 @@ def test_singleres_api(ibs, qaid_list, daid_list):
     return locals_
 
 
-def make_singlematch_api(ibs, qaid2_qres, ranks_lt=None, name_scoring=False):
+def make_singlematch_api(ibs, qaid2_qres, ranks_top=None, name_scoring=False):
     """
     Builds columns which are displayable in a ColumnListTableWidget
     """
     if ut.VERBOSE:
         print('[inspect] make_qres_api')
-    ibs.cfg.other_cfg.ranks_lt = 2
-    ranks_lt = ranks_lt if ranks_lt is not None else ibs.cfg.other_cfg.ranks_lt
+    ibs.cfg.other_cfg.ranks_top = 2
+    ranks_top = ranks_top if ranks_top is not None else ibs.cfg.other_cfg.ranks_top
     # Get extra info
     assert len(qaid2_qres) == 1
     qaid = list(qaid2_qres.keys())[0]

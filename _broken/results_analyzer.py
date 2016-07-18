@@ -270,7 +270,7 @@ def get_matching_descriptors(allres, qaid_list, daid_list):
 #    orgres = true_orgres
 #    orgres = false_orgres
 #    def get_interesting_annotationpairs(orgres):
-#        orgres2 = results_organizer._score_sorted_ranks_lt(orgres, 2)
+#        orgres2 = results_organizer._score_sorted_ranks_top(orgres, 2)
 
 
 if __name__ == '__main__':
