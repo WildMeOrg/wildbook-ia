@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
+import itertools as it
 from ibeis import _ibeis_object
 from ibeis.control.controller_inject import make_ibs_register_decorator
 (print, rrr, profile) = ut.inject2(__name__, '[annot]')
@@ -113,6 +114,40 @@ class Annots(_ibeis_object.PrimaryObject):
     """
     def __init__(self, aids, ibs, config=None):
         super(Annots, self).__init__(aids, ibs, config)
+
+    @property
+    def aids(self):
+        return self._rowids
+
+    #@property
+    def get_speeds(self):
+        #import vtool as vt
+        edges = self.get_aidpairs()
+        speeds = self._ibs.get_annotpair_speeds(edges)
+        #edges = vt.pdist_indicies(len(annots))
+        #speeds = self._ibs.get_unflat_annots_speeds_list([self.aids])[0]
+        edge_to_speed = dict(zip(edges, speeds))
+        return edge_to_speed
+
+    def get_aidpairs(self):
+        aids = self.aids
+        aid_pairs = list(it.combinations(aids, 2))
+        return aid_pairs
+
+    def get_am_rowids(self):
+        ibs = self._ibs
+        edges = self.get_aidpairs()
+        ams = ibs.get_annotmatch_rowid_from_undirected_superkey(*zip(*edges))
+        ams = ut.filter_Nones(ams)
+        return ams
+
+    def get_am_aidpairs(self):
+        ibs = self._ibs
+        ams = self.get_am_rowids()
+        aids1 = ibs.get_annotmatch_aid1(ams)
+        aids2 = ibs.get_annotmatch_aid2(ams)
+        aid_pairs = list(zip(aids1, aids2))
+        return aid_pairs
 
 
 if __name__ == '__main__':

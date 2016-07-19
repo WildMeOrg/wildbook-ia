@@ -135,10 +135,21 @@ class PrimaryObject(ut.NiceRepr):
         for idxs in ut.ichunks(self, range(len(self))):
             yield self.take(idxs)
 
-    def groupby(self, labels):
+    def group_indicies(self, labels):
         unique_labels, groupxs = ut.group_indices(labels)
-        annot_groups = [self.take(idxs) for idxs in groupxs]
-        return annot_groups
+        return unique_labels, groupxs
+
+    def group_items(self, labels):
+        """ group as dict """
+        unique_labels, groups = self.group(labels)
+        label_to_group = ut.odict(zip(unique_labels, groups))
+        return label_to_group
+
+    def group(self, labels):
+        """ group as list """
+        unique_labels, groupxs = self.group_indicies(labels)
+        groups = [self.take(idxs) for idxs in groupxs]
+        return unique_labels, groups
 
     # def filter(self, filterkw):
     #     pass

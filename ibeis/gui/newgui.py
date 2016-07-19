@@ -532,8 +532,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         # Progress bar is at the bottom
         ibswgt.prog_bar = status_wgt.addNewProgressBar(visible=False,
-                                                      verticalStretch=1,
-                                                      name='prog_bar')
+                                                       verticalStretch=1,
+                                                       name='prog_bar')
 
         #ibswgt.vsplitter.print_widget_heirarchy(max_depth=4)
 

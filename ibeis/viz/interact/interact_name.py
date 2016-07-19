@@ -39,7 +39,7 @@ def build_name_context_options(ibs, nids):
     from ibeis.viz import viz_graph2
     callback_list.extend([
         ('Interact name graph', functools.partial(viz_graph.make_name_graph_interaction, ibs, nids=nids)),
-        ('Interact name graph2', functools.partial(viz_graph2.make_qt_graph_interface, ibs, nids=nids)),
+        ('New Split Case Interaction', functools.partial(viz_graph2.make_qt_graph_interface, ibs, nids=nids)),
     ])
     return callback_list
 

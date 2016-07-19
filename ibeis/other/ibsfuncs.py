@@ -23,6 +23,7 @@ import numpy as np
 import vtool as vt
 import utool as ut
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
+import itertools
 from ibeis import constants as const
 from ibeis.control import accessor_decors
 from ibeis.control import controller_inject
@@ -3693,15 +3694,21 @@ def filter_aids_count(ibs, aid_list=None, pre_unixtime_sort=True):
 
 
 @register_ibs_method
+@profile
 def get_unflat_annots_kmdists_list(ibs, aids_list):
     #ibs.check_name_mapping_consistency(aids_list)
     latlons_list = ibs.unflat_map(ibs.get_annot_image_gps, aids_list)
     latlon_arrs   = [np.array(latlons) for latlons in latlons_list]
+    for arrs in latlon_arrs:
+        # our database encodes -1 as invalid.
+        # Silly, but its in the middle of the atlantic ocean
+        arrs[arrs == -1] = np.nan
     km_dists_list   = [ut.safe_pdist(latlon_arr, metric=vt.haversine) for latlon_arr in latlon_arrs]
     return km_dists_list
 
 
 @register_ibs_method
+@profile
 def get_unflat_annots_hourdists_list(ibs, aids_list):
     """
     Example:
@@ -3713,7 +3720,7 @@ def get_unflat_annots_hourdists_list(ibs, aids_list):
         >>> aids_list = [(aids) for aids in aids_list_]
         >>> ibs.get_unflat_annots_hourdists_list(aids_list)
     """
-    assert all(list(map(ut.isunique, aids_list)))
+    #assert all(list(map(ut.isunique, aids_list)))
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
     #assert all(list(map(ut.isunique, unixtimes_list)))
     unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
@@ -3723,6 +3730,7 @@ def get_unflat_annots_hourdists_list(ibs, aids_list):
 
 
 @register_ibs_method
+@profile
 def get_unflat_annots_timedelta_list(ibs, aids_list):
     """
     Example:
@@ -3734,7 +3742,7 @@ def get_unflat_annots_timedelta_list(ibs, aids_list):
         >>> aids_list = [(aids) for aids in aids_list_]
 
     """
-    assert all(list(map(ut.isunique, aids_list)))
+    #assert all(list(map(ut.isunique, aids_list)))
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, aids_list)
     #assert all(list(map(ut.isunique, unixtimes_list)))
     unixtime_arrs = [np.array(unixtimes)[:, None] for unixtimes in unixtimes_list]
@@ -3744,12 +3752,138 @@ def get_unflat_annots_timedelta_list(ibs, aids_list):
 
 
 @register_ibs_method
+@profile
+def get_unflat_annots_speeds_list2(ibs, aids_list):
+    """
+    much faster than original version
+
+    _ = ibs.get_unflat_annots_speeds_list2(aids_list)
+
+    %timeit ibs.get_unflat_annots_speeds_list(aids_list)
+    3.44 s per loop
+
+    %timeit ibs.get_unflat_annots_speeds_list2(aids_list)
+    665 ms per loop
+
+    %timeit ibs.get_unflat_annots_speeds_list(aids_list[0:1])
+    12.8 ms
+    %timeit ibs.get_unflat_annots_speeds_list2(aids_list[0:1])
+    6.51 ms
+
+    assert ibs.get_unflat_annots_speeds_list([]) == ibs.get_unflat_annots_speeds_list2([])
+
+    ibs.get_unflat_annots_speeds_list([[]])
+    ibs.get_unflat_annots_speeds_list2([[]])
+
+    """
+    if True:
+        unique_aids = sorted(list(set(ut.flatten(aids_list))))
+        aid_pairs_list = [list(itertools.combinations(aids, 2)) for aids in aids_list]
+        aid_pairs, cumsum = ut.invertible_flatten2(aid_pairs_list)
+        speeds = ibs.get_annotpair_speeds(aid_pairs, unique_aids=unique_aids)
+        speeds_list = ut.unflatten2(speeds, cumsum)
+    else:
+        # Use indexing for lookup efficiency
+        unique_aids = sorted(list(set(ut.flatten(aids_list))))
+        aid_to_idx = ut.make_index_lookup(unique_aids)
+        idx_list = [ut.take(aid_to_idx, aids) for aids in aids_list]
+        # Lookup values in SQL only once
+        unique_unixtimes = ibs.get_annot_image_unixtimes_asfloat(unique_aids)
+        unique_gps = ibs.get_annot_image_gps(unique_aids)
+        unique_gps = np.array([(np.nan if lat == -1 else lat, np.nan if lon == -1 else lon) for (lat, lon) in unique_gps])
+        unique_gps = vt.atleast_nd(unique_gps, 2)
+        if len(unique_gps) == 0:
+            unique_gps.shape = (0, 2)
+        # Find pairs that need comparison
+        idx_pairs_list = [list(itertools.combinations(idxs, 2)) for idxs in idx_list]
+        idx_pairs, cumsum = ut.invertible_flatten2(idx_pairs_list)
+        idxs1 = ut.take_column(idx_pairs, 0)
+        idxs2 = ut.take_column(idx_pairs, 1)
+        # Find differences in time and space
+        hour_dists = ut.unixtime_hourdiff(unique_unixtimes[idxs1], unique_unixtimes[idxs2])
+        km_dists = vt.haversine(unique_gps[idxs1].T, unique_gps[idxs2].T)
+        # Zero km-distances less than a small epsilon if the timediff is zero to
+        # prevent infinity problems
+        idxs = np.where(hour_dists == 0)[0]
+        under_eps = km_dists[idxs] < .5
+        km_dists[idxs[under_eps]] = 0
+        # Normal speed calculation
+        speeds = km_dists / hour_dists
+        # No movement over no time
+        flags = np.logical_and(km_dists == 0, hour_dists == 0)
+        speeds[flags] = 0
+        speeds_list = ut.unflatten2(speeds, cumsum)
+    return speeds_list
+
+
+@register_ibs_method
+@profile
+def get_annotpair_speeds(ibs, aid_pairs, unique_aids=None):
+    aids1 = ut.take_column(aid_pairs, 0)
+    aids2 = ut.take_column(aid_pairs, 1)
+    if unique_aids is None:
+        unique_aids = sorted(list(set(ut.flatten([aids1, aids2]))))
+    # Use indexing for lookup efficiency
+    aid_to_idx = ut.make_index_lookup(unique_aids)
+    idxs1 = ut.take(aid_to_idx, aids1)
+    idxs2 = ut.take(aid_to_idx, aids2)
+    #idx_list = [ut.take(aid_to_idx, aids) for aids in aids_list]
+    # Lookup values in SQL only once
+    unique_unixtimes = ibs.get_annot_image_unixtimes_asfloat(unique_aids)
+    unique_gps = ibs.get_annot_image_gps(unique_aids)
+    unique_gps = np.array([(np.nan if lat == -1 else lat, np.nan if lon == -1 else lon) for (lat, lon) in unique_gps])
+    unique_gps = vt.atleast_nd(unique_gps, 2)
+    if len(unique_gps) == 0:
+        unique_gps.shape = (0, 2)
+    # Find differences in time and space
+    hour_dists = ut.unixtime_hourdiff(unique_unixtimes[idxs1], unique_unixtimes[idxs2])
+    km_dists = vt.haversine(unique_gps[idxs1].T, unique_gps[idxs2].T)
+    # Zero km-distances less than a small epsilon if the timediff is zero to
+    # prevent infinity problems
+    idxs = np.where(hour_dists == 0)[0]
+    under_eps = km_dists[idxs] < .5
+    km_dists[idxs[under_eps]] = 0
+    # Normal speed calculation
+    speeds = km_dists / hour_dists
+    # No movement over no time
+    flags = np.logical_and(km_dists == 0, hour_dists == 0)
+    speeds[flags] = 0
+    return speeds
+
+
+@register_ibs_method
+@profile
 def get_unflat_annots_speeds_list(ibs, aids_list):
+    """ DEPRICATE. SLOWER """
     km_dists_list   = ibs.get_unflat_annots_kmdists_list(aids_list)
     hour_dists_list = ibs.get_unflat_annots_hourdists_list(aids_list)
-    speeds_list     = [ut.safe_div(km_dists, hours_dists)
-                       for km_dists, hours_dists in
-                       zip(km_dists_list, hour_dists_list)]
+
+    #hour_dists_list = ut.replace_nones(hour_dists_list, [])
+    #km_dists_list = ut.replace_nones(km_dists_list, [])
+    #flat_hours, cumsum1 = np.array(ut.invertible_flatten2(hour_dists_list))
+    #flat_hours = np.array(flat_hours)
+    #flat_kms = np.array(ut.flatten(km_dists_list))
+
+    def compute_speed(km_dists, hours_dists):
+        if km_dists is None or hours_dists is None:
+            return None
+        # Zero km-distances less than a small epsilon if the timediff is zero to
+        # prevent infinity problems
+        idxs = np.where(hours_dists == 0)[0]
+        under_eps = km_dists[idxs] < .5
+        km_dists[idxs[under_eps]] = 0
+        # Normal speed calculation
+        speeds = km_dists / hours_dists
+        # No movement over no time
+        flags = np.logical_and(km_dists == 0, hours_dists == 0)
+        speeds[flags] = 0
+        return speeds
+
+    speeds_list     = [
+        compute_speed(km_dists, hours_dists)
+        #vt.safe_div(km_dists, hours_dists)
+        for km_dists, hours_dists in
+        zip(km_dists_list, hour_dists_list)]
     return speeds_list
 
 

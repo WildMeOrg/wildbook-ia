@@ -401,6 +401,7 @@ class _ChipMatchVisualization(object):
         }
         if aid2 is None:
             aid2 = cm.get_top_aids(ntop=1)[0]
+        print('[cm] ishow_single_annotmatch aids(%s, %s)' % (cm.qaid, aid2,))
         kwshow.update(**kwargs)
         try:
             inter = interact_matches.MatchInteraction(

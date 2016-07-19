@@ -57,6 +57,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.annotmatch_funcs',
     'ibeis.tag_funcs',
     'ibeis.annots',
+    'ibeis.images',
     'ibeis.other.ibsfuncs',
     'ibeis.other.detectfuncs',
     'ibeis.init.filter_annots',

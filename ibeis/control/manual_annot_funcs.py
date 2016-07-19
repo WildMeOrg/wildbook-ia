@@ -1956,6 +1956,7 @@ def get_annot_image_unixtimes(ibs, aid_list):
 
 
 @register_ibs_method
+@ut.accepts_numpy
 @accessor_decors.getter_1to1
 # @register_api('/api/annot/image/unixtime/float/', methods=['GET'])
 def get_annot_image_unixtimes_asfloat(ibs, aid_list):
@@ -2021,6 +2022,7 @@ def get_annot_image_datetime_str(ibs, aid_list):
 
 
 @register_ibs_method
+@ut.accepts_numpy
 @accessor_decors.getter_1to1
 @register_api('/api/annot/image/gps/', methods=['GET'], __api_plural_check__=False)
 def get_annot_image_gps(ibs, aid_list):

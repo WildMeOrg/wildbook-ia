@@ -67,6 +67,7 @@ class MatchInteraction(interact_matches.MatchInteraction2):
     def __init__(self, ibs, cm, aid2=None, fnum=None,
                  qreq_=None, figtitle='Match Interaction',
                  **kwargs):
+        #print('[ibs] MatchInteraction.__init__')
         self.ibs = ibs
         self.cm = cm
         self.qreq_ = qreq_

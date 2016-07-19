@@ -1318,10 +1318,11 @@ def get_name_speeds(ibs, nid_list):
         >>> result = str(speeds_list)
         >>> print(result)
     """
-    aids_list_ = ibs.get_name_aids(nid_list)
+    aids_list = ibs.get_name_aids(nid_list)
     #ibs.check_name_mapping_consistency(aids_list_)
-    aids_list = [(aids) for aids in aids_list_]
-    speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)
+    #aids_list = [(aids) for aids in aids_list_]
+    #speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)
+    speeds_list = ibs.get_unflat_annots_speeds_list2(aids_list)
     return speeds_list
 
 
@@ -1354,7 +1355,7 @@ def get_name_hourdiffs(ibs, nid_list):
 @accessor_decors.getter
 def get_name_max_hourdiff(ibs, nid_list):
     hourdiffs_list = ibs.get_name_hourdiffs(nid_list)
-    maxhourdiff_list_ = list(map(vt.safe_max, hourdiffs_list))
+    maxhourdiff_list_ = np.array([vt.safe_max(hourdiff, nans=False) for hourdiff in hourdiffs_list])
     maxhourdiff_list = np.array(maxhourdiff_list_)
     return maxhourdiff_list
 
@@ -1377,7 +1378,7 @@ def get_name_max_speed(ibs, nid_list):
         >>> print(maxspeed_list)
     """
     speeds_list = ibs.get_name_speeds(nid_list)
-    maxspeed_list = np.array(list(map(vt.safe_max, speeds_list)))
+    maxspeed_list = np.array([vt.safe_max(speeds, nans=False) for speeds in speeds_list])
     return maxspeed_list
 
 

@@ -1350,7 +1350,7 @@ class TestResult(object):
             pdistx = vt.pdist_indicies(nCols)
             pdist_list = np.array([vt.safe_pdist(row) for row in mat])
             flags_list = op(pdist_list, val)
-            colx_list = [np.unique(ut.flatten(pdistx.compress(flags, axis=0))) for flags in flags_list]
+            colx_list = [np.unique(ut.flatten(ut.compress(pdistx, flags))) for flags in flags_list]
             offsets = np.arange(0, nCols * len(mat), step=nCols)
             idx_list = ut.flatten([colx + offset for colx, offset in zip(colx_list, offsets)])
             mask = vt.index_to_boolmask(idx_list, maxval=offsets[-1] + nCols)

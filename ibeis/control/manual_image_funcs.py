@@ -1213,6 +1213,8 @@ def get_image_gps(ibs, gid_list):
         URL:    /api/image/gps/
     """
     gps_list = ibs.db.get(const.IMAGE_TABLE, ('image_gps_lat', 'image_gps_lon'), gid_list)
+    # REPLACE -1 with np.nan FIXME in SQL
+    #gps_list = [(np.nan if lat == -1 else lat, np.nan if lon == -1 else lon) for (lat, lon) in gps_list]
     return gps_list
 
 
@@ -1227,6 +1229,8 @@ def get_image_lat(ibs, gid_list):
         URL:    /api/image/lat/
     """
     lat_list = ibs.db.get(const.IMAGE_TABLE, ('image_gps_lat',), gid_list)
+    # REPLACE -1 with np.nan FIXME in SQL
+    #lat_list = [np.nan if lat == -1 else lat for lat in lat_list]
     return lat_list
 
 
@@ -1241,6 +1245,8 @@ def get_image_lon(ibs, gid_list):
         URL:    /api/image/lon/
     """
     lon_list = ibs.db.get(const.IMAGE_TABLE, ('image_gps_lon',), gid_list)
+    # REPLACE -1 with np.nan FIXME in SQL
+    #lon_list = [np.nan if lon == -1 else lon for lon in lon_list]
     return lon_list
 
 

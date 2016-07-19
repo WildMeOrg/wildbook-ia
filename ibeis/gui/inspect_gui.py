@@ -188,10 +188,7 @@ class QueryResultsWidget(gt.APIItemWidget):
         qres_wgt.callback = callback
         qres_wgt.view.setColumnHidden(0, False)
         qres_wgt.view.setColumnHidden(1, False)
-        #qres_wgt.view.connect_single_key_to_slot(QtCore.Qt.ALT,
-        #qres_wgt.on_alt_pressed)
-        ALT_KEY = 16777251
-        qres_wgt.view.connect_single_key_to_slot(ALT_KEY,
+        qres_wgt.view.connect_single_key_to_slot(gt.ALT_KEY,
                                                  qres_wgt.on_alt_pressed)
         qres_wgt.view.connect_keypress_to_slot(qres_wgt.on_special_key_pressed)
         if parent is None:
@@ -778,7 +775,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             ('Interact Name Graph',
              partial(viz_graph.make_name_graph_interaction,
                      ibs, aids=aid_list2, selected_aids=aid_list2)),
-            ('Interact Name Graph 2',
+            ('New Split Case Interaction',
              partial(viz_graph2.make_qt_graph_interface,
                      ibs, aids=aid_list2)),
         ]

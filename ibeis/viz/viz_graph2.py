@@ -13,6 +13,7 @@ import itertools
 from ibeis.algo.hots import graph_iden
 import guitool as gt
 import plottool as pt
+from plottool import abstract_interaction
 from guitool.__PYQT__.QtCore import Qt
 from guitool.__PYQT__ import QtCore, QtWidgets  # NOQA
 from plottool import interact_helpers as ih
@@ -25,7 +26,6 @@ class MatplotlibWidget(gt.GuitoolWidget):
     def initialize(self):
         from guitool import __PYQT__
         from plottool.interactions import zoom_factory, pan_factory
-        from plottool.abstract_interaction import AbstractInteraction
         if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
             import matplotlib.backends.backend_qt4agg as backend_qt
         else:
@@ -48,7 +48,7 @@ class MatplotlibWidget(gt.GuitoolWidget):
         ih.connect_callback(self.fig, 'draw_event', self.draw_callback)
         ih.connect_callback(self.fig, 'pick_event', self.on_pick)
 
-        self.MOUSE_BUTTONS = AbstractInteraction.MOUSE_BUTTONS
+        self.MOUSE_BUTTONS = abstract_interaction.AbstractInteraction.MOUSE_BUTTONS
         self.setMinimumHeight(20)
         self.setMinimumWidth(20)
 
@@ -250,6 +250,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.edge_api_widget.view.doubleClicked.connect(self.edge_doubleclick)
         self.edge_api_widget.view.contextMenuClicked.connect(self.edge_context)
         self.edge_api_widget.view.connect_keypress_to_slot(self.edge_keypress)
+        self.edge_api_widget.view.connect_single_key_to_slot(gt.ALT_KEY, self.on_alt_pressed)
 
     def showEvent(self, event):
         super(AnnotGraphWidget, self).showEvent(event)
@@ -264,6 +265,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             infr = self.infr
             infr.initialize_graph()
             ctx.set_progress(1, 3)
+            infr.initialize_visual_node_attrs()
             infr.remove_feedback()
             ctx.set_progress(2, 3)
             infr.remove_name_labels()
@@ -348,6 +350,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def reset_all(self):
         self.infr.initialize_graph()
+        self.infr.initialize_visual_node_attrs()
         self.infr.reset_feedback()
         self.toggle_pin_cb.setChecked(False)
 
@@ -388,18 +391,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         aid1  = model.get_header_data('aid1', qtindex)
         aid2  = model.get_header_data('aid2', qtindex)
         cm, aid1, aid2 = self.infr.lookup_cm(aid1, aid2)
-        #cm = self.qaid2_cm[qaid]
-        #match_interaction.begin()
-        #match_interaction.show()
-        #from plottool import fig_presenter
-        #fig = match_interaction.fig
-        #fig.show()
-        #fig_presenter.bring_to_front(fig)
-        #col = qtindex.column()
-        #if self.review_api.col_edit_list[col]:
-        #    print('do nothing special for editable columns')
-        #    return
-        #return self.show_match_at_qtindex(qtindex)
         cm.ishow_single_annotmatch(self.infr.qreq_, aid2, mode=0)
 
     def get_edge_options(self):
@@ -453,6 +444,15 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         #print('option_dict = %s' % (ut.repr3(option_dict, nl=2),))
         options = self.get_edge_options()
         gt.popup_menu(self, qpoint, options)
+
+    def on_alt_pressed(self, view, event):
+        selected_qtindex_list = view.selectedRows()
+        if len(selected_qtindex_list) > 0:
+            # popup context menu on alt
+            qtindex = selected_qtindex_list[-1]
+            qrect = view.visualRect(qtindex)
+            pos = qrect.center()
+            self.edge_context(qtindex, pos)
 
     def edge_keypress(self, view, event):
         """
@@ -685,21 +685,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         print('self.selected_aids = %r' % (self.selected_aids,))
         self.mpl_wgt.fig.canvas.draw()
 
-    def update_graph_layout(self):
-        graph = self.infr.graph
-        self.infr.update_visual_attrs(
-            show_cuts=self.show_cuts_cb.isChecked(),
-            show_reviewed_cuts=self.show_review_cuts_cb.isChecked(),
-            only_reviewed=self.only_reviwed_cb.isChecked(),
-        )
-        layoutkw = dict(
-            prog='neato',
-            #defaultdist=100,
-            splines='spline',
-            sep=10 / 72,
-            #esep=10 / 72
-        )
-        pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
+    def closeEvent(self, event):
+        event.accept()
+        abstract_interaction.unregister_interaction(self)
 
     def eventFilter(self, source, event):
         """ handle key press """
@@ -718,20 +706,25 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.mpl_needs_update = False
         print('[graph] Start draw page')
         self.mpl_wgt.ax.cla()
-        self.update_graph_layout()
+
+        self.infr.update_visual_attrs(
+            show_cuts=self.show_cuts_cb.isChecked(),
+            show_reviewed_cuts=self.show_review_cuts_cb.isChecked(),
+            only_reviewed=self.only_reviwed_cb.isChecked(),
+        )
 
         # Update Qt things
         self.thresh_lbl.setText('%.2f' % (self.infr.thresh))
 
         # Update MPL things
-        layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
+        #layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
 
         #draw_implicit=self.show_cuts)
         self.plotinfo = pt.show_nx(self.infr.graph,
                                    layout='custom',
                                    as_directed=False,
                                    ax=self.mpl_wgt.ax,
-                                   layoutkw=layoutkw,
+                                   #layoutkw=layoutkw,
                                    #node_labels=True,
                                    modify_ax=False,
                                    use_image=self.use_image_cb.isChecked(),
@@ -963,12 +956,8 @@ def make_edge_api(infr, review_cfg={}):
     def get_edge_data(edge):
         aid1, aid2 = edge
         attrs = graph.get_edge_data(aid1, aid2).copy()
-        ut.delete_dict_keys(attrs, [
-            'implicit', 'style', 'tail_lp', 'taillabel', 'label', 'lp',
-            'headlabel', 'linestyle', 'color', 'stroke', 'lw', 'end_pt',
-            'head_lp', 'alpha', 'ctrl_pts', 'pos', 'rank', 'reviewed_state',
-            'score',
-        ])
+        ut.delete_dict_keys(attrs, infr.visual_edge_attrs + [
+            'rank', 'reviewed_state', 'score'])
         attrs = {k: v for k, v in attrs.items() if v is not None}
         attrs['name_label1'] = graph.node[aid1]['name_label']
         attrs['name_label2'] = graph.node[aid2]['name_label']
@@ -1065,14 +1054,7 @@ def make_edge_api(infr, review_cfg={}):
         }
         return thumbdat
 
-    #uv_list = list(graph.edges())
-    #aids1 = np.array(ut.take_column(uv_list, 0))
-    #aids2 = np.array(ut.take_column(uv_list, 1))
     aids1, aids2 = get_filtered_edges(ibs, graph, review_cfg)
-
-    # Apply filtering
-    #import utool
-    #utool.embed()
 
     col_name_list = [
         #'index',
@@ -1184,6 +1166,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None):
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
     win = AnnotGraphWidget(infr=infr, use_image=False)
+    abstract_interaction.register_interaction(win)
     #win.resize(900, 600)
     #win.draw_graph()
     win.show()

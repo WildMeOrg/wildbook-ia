@@ -3,10 +3,8 @@
 * Migrate vsmany / vsone algorithm to dependency cache
 * Incorporate image level algorithms into the dependency cache.
 * Encounter/occurrence annotation configuration
-* vsmany should accpet multiple annotations as input
+* vsmany should accept multiple annotations as input
 * Cross-validataion in annot configurations. 
-
-
 
 * Migrate all hotspotter features to dependency cache
    - Replace manual chip functions with calls to the depcache
@@ -36,3 +34,8 @@
    degrees to account for gimble lock.
 
 * Look into GIF image failures (and add tests)
+
+* Fix database to store invalid timestamps and GPS coords as NaN instead of -1
+* Fix database to store the UNKNOWN name as NULL instead of 0. 
+* Fix database to use FOREIGN KEYS
+* Fix database to CREATE INDEX on the appropriate tables at build time instead of at call time. 

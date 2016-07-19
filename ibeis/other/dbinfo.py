@@ -139,7 +139,7 @@ def sight_resight_count(nvisit1, nvisit2, resight):
         >>> nvisit2 = 20
         >>> resight = 10
         >>> (pl_index, pl_error) = sight_resight_count(nvisit1, nvisit2, resight)
-        >>> result = ('(pl_index, pl_error) = %s' % (ut.repr2((pl_index, pl_error)),))
+        >>> result = '(pl_index, pl_error) = %s' % ut.repr2((pl_index, pl_error))
         >>> pl_low = max(pl_index - pl_error, 1)
         >>> pl_high = pl_index + pl_error
         >>> print('pl_low = %r' % (pl_low,))
@@ -159,24 +159,154 @@ def sight_resight_count(nvisit1, nvisit2, resight):
         >>> probs = sight_resight_prob(N_range, nvisit1, nvisit2, resight)
         >>> pl_prob = sight_resight_prob([pl_index], nvisit1, nvisit2, resight)[0]
         >>> pt.plot(N_range, probs, 'b-', label='probability of population size')
-        >>> pt.plt.title('nvisit1=%r, nvisit2=%r, resight=%r' % (nvisit1, nvisit2, resight))
+        >>> pt.plt.title('nvisit1=%r, nvisit2=%r, resight=%r' % (
+        >>>     nvisit1, nvisit2, resight))
         >>> pt.plot(pl_index, pl_prob, 'rx', label='Lincoln Peterson Estimate')
-        >>> pt.plot([pl_low, pl_high], [pl_prob, pl_prob], 'gx-', label='Lincoln Peterson Error Bar')
+        >>> pt.plot([pl_low, pl_high], [pl_prob, pl_prob], 'gx-',
+        >>>         label='Lincoln Peterson Error Bar')
         >>> pt.legend()
         >>> ut.show_if_requested()
-
     """
     import math
     try:
         pl_index = int(math.ceil( (nvisit1 * nvisit2) / resight ))
         pl_error_num = float((nvisit1 ** 2) * nvisit2 * (nvisit2 - resight))
         pl_error_dom = float(resight ** 3)
-        pl_error = int(math.ceil( 1.96 * math.sqrt(pl_error_num / pl_error_dom) ))
+        pl_error = int(math.ceil(1.96 * math.sqrt(pl_error_num / pl_error_dom)))
     except ZeroDivisionError:
         # pl_index = 'Undefined - Zero recaptured (k = 0)'
         pl_index = 0
         pl_error = 0
     return pl_index, pl_error
+
+
+def split_analysis(ibs):
+    #nid_list = ibs.get_valid_nids(filter_empty=True)
+
+    import datetime
+    day1 = datetime.date(2016, 1, 30)
+    day2 = datetime.date(2016, 1, 31)
+
+    filter_kw = {
+        'multiple': None,
+        'minqual': 'good',
+        'is_known': True,
+        'min_pername': 1,
+        'view': ['right'],
+    }
+
+    all_images = ibs.images()
+    dates = [dt.date() for dt in all_images.datetime]
+    date_to_images = all_images.group_items(dates)
+
+    verbose = False
+
+    visit_dates = [day1, day2]
+    all_aids = []
+    for day in visit_dates:
+        images = date_to_images[day]
+        aids = ut.flatten(images.aids)
+        aids = ibs.filter_annots_general(aids, filter_kw=filter_kw,
+                                         verbose=verbose)
+        all_aids += aids
+
+    all_annots = ibs.annots(all_aids)
+    nid_list, annots_list = all_annots.group(all_annots.nids)
+    aids_list = [annots.aids for annots in annots_list]
+
+    import vtool as vt
+    speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)
+    max_speeds = np.array([vt.safe_max(speeds, nans=False)
+                           for speeds in speeds_list])
+
+    nan_idx = np.where(np.isnan(max_speeds))[0]
+    inf_idx = np.where(np.isinf(max_speeds))[0]
+    bad_idx = sorted(ut.unique(ut.flatten([inf_idx, nan_idx])))
+    ok_idx = ut.index_complement(bad_idx, len(max_speeds))
+
+    #nan_annots = ut.take(annots_list, nan_idx)
+    #a = nan_annots[ut.argmax(ut.lmap(len, nan_annots))]
+    #ut.dict_hist(ut.lmap(len, nan_annots))
+
+    print('#nan_idx = %r' % (len(nan_idx),))
+    print('#inf_idx = %r' % (len(inf_idx),))
+    print('#ok_idx = %r' % (len(ok_idx),))
+
+    ok_speeds = max_speeds[ok_idx]
+    ok_nids = ut.take(nid_list, ok_idx)
+    ok_annots = ut.take(annots_list, ok_idx)
+    sortx = np.argsort(ok_speeds)[::-1]
+
+    sorted_speeds = np.array(ut.take(ok_speeds, sortx))
+    sorted_annots = np.array(ut.take(ok_annots, sortx))
+    sorted_nids = np.array(ut.take(ok_nids, sortx))  # NOQA
+
+    # http://www.infoplease.com/ipa/A0004737.html
+    MAX_ZEBRA_SPEED = 10 * ut.KM_PER_MILE  # km/h
+    flags = sorted_speeds > MAX_ZEBRA_SPEED
+
+    flagged_ok_annots = ut.compress(sorted_annots, flags)
+    inf_annots = ut.take(annots_list, inf_idx)
+    flagged_annots = inf_annots + flagged_ok_annots
+
+    from ibeis.algo.hots import graph_iden
+    import plottool as pt
+    pt.qt4ensure()
+
+    # TODO: Need to ensure that other aids not included in the count
+    # are represented here.
+
+    # Try and automatically split names
+    can_split = []
+    num_bad_pairs = 0
+    for annots in ut.ProgIter(flagged_annots, lbl='Checking Trivial Splits', freq=1):
+        aids = annots.aids
+        #aid_pairs = list(it.combinations(aids, 2))
+        #ibs.get_annotpair_speeds(aid_pairs)
+        #annots.rrr()
+        aids = annots.aids
+        infr = graph_iden.AnnotInference2(ibs, aids, verbose=False)
+        infr.initialize_graph()
+
+        edge_to_speeds = annots.get_speeds()
+        for (aid1, aid2), speed in edge_to_speeds.items():
+            if speed > MAX_ZEBRA_SPEED / 2:
+                infr.add_feedback(aid1, aid2, 'nonmatch')
+                num_bad_pairs += 1
+        infr.apply_feedback()
+        num_inconsistent = infr.connected_compoment_relabel()[1]
+        can_split.append(num_inconsistent == 0)
+    print('Can trivially split %d / %d' % (sum(can_split), len(can_split)))
+
+    num_bad_pairs = 0
+    num_bad_pairs_exit = 0
+    flagged_annots2 = ut.compress(flagged_annots, can_split)
+    for annots in ut.ProgIter(flagged_annots2, lbl='Checking Trivial Splits', freq=1):
+        aids = annots.aids
+        #aid_pairs = list(it.combinations(aids, 2))
+        #ibs.get_annotpair_speeds(aid_pairs)
+        #annots.rrr()
+        aids = annots.aids
+        infr = graph_iden.AnnotInference2(ibs, aids, verbose=False)
+        infr.initialize_graph()
+        infr.apply_feedback()
+
+        edge_to_speeds = annots.get_speeds()
+        for (aid1, aid2), speed in edge_to_speeds.items():
+            if speed > MAX_ZEBRA_SPEED / 2:
+                infr.add_feedback(aid1, aid2, 'nonmatch')
+                num_bad_pairs += 1
+                if infr.graph.has_edge(aid1, aid2):
+                    num_bad_pairs_exit += 1
+
+    #infr.initialize_visual_node_attrs()
+    #infr.show_graph(use_image=True)
+
+    ##graph = infr.graph
+
+    #g2 = infr.graph.copy()
+    #[ut.nx_delete_edge_attr(g2, a) for a in infr.visual_edge_attrs]
+    #g2.edge
 
 
 def estimate_ggr_count(ibs):
@@ -193,7 +323,7 @@ def estimate_ggr_count(ibs):
     day2 = datetime.date(2016, 1, 31)
 
     filter_kw = {
-        'multiple': False,
+        'multiple': None,
         'minqual': 'good',
         'is_known': True,
         'min_pername': 1,
@@ -213,22 +343,20 @@ def estimate_ggr_count(ibs):
 
 
 def estimate_twoday_count(ibs, day1, day2, filter_kw):
-    gid_list = ibs.get_valid_gids()
-    images = ibs.get_image_lazydict(gid_list)
-    datetimes = images['datetime']
-    dates = [dt.date() for dt in datetimes]
-    date2_gids = ut.group_items(gid_list, dates)
-    date2_gids = ut.sort_dict(date2_gids)
-    # date_hist = ut.map_dict_vals(len, date2_gids)
-    # print('date_hist = %s' % (ut.repr2(date_hist, nl=2),))
+    #gid_list = ibs.get_valid_gids()
+    all_images = ibs.images()
+    dates = [dt.date() for dt in all_images.datetime]
+    date_to_images = all_images.group_items(dates)
+    date_to_images = ut.sort_dict(date_to_images)
+    #date_hist = ut.map_dict_vals(len, date2_gids)
+    #print('date_hist = %s' % (ut.repr2(date_hist, nl=2),))
     verbose = 0
 
     visit_dates = [day1, day2]
     visit_info_list_ = []
     for day in visit_dates:
-        images = ibs.get_image_lazydict(date2_gids[day])
-
-        aids = ut.flatten(images['aids'])
+        images = date_to_images[day]
+        aids = ut.flatten(images.aids)
         aids = ibs.filter_annots_general(aids, filter_kw=filter_kw,
                                          verbose=verbose)
         nids = ibs.get_annot_name_rowids(aids)
