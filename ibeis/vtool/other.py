@@ -6,7 +6,6 @@ import six
 import functools  # NOQA
 from six import next
 from six.moves import zip, range  # NOQA
-import scipy.spatial.distance as spdist
 (print, rrr, profile) = ut.inject2(__name__, '[other]')
 
 
@@ -167,72 +166,6 @@ def check_sift_validity(sift_uint8, lbl=None, verbose=ut.NOT_QUIET):
     if not isok:
         print('[checksift] ERROR. SIFT CHECK FAILED')
     return isok
-
-
-def safe_pdist(arr, *args, **kwargs):
-    """
-    Kwargs:
-        metric = ut.absdiff
-
-    SeeAlso:
-        scipy.spatial.distance.pdist
-    """
-    if arr is None or len(arr) < 2:
-        return None
-    else:
-        if len(arr.shape) == 1:
-            return spdist.pdist(arr[:, None], *args, **kwargs)
-        else:
-            return spdist.pdist(arr, *args, **kwargs)
-
-
-def pdist_indicies(num):
-    return np.array([(i, j) for i in range(num) for j in range(num) if i < j])
-    #import itertools
-    #return [(i, j) for i, j in itertools.product(range(num), range(num)) if i < j]
-
-
-def pdist_argsort(x):
-    """
-    Sorts 2d indicies by their distnace matrix output from scipy.spatial.distance
-
-    x = np.array([  3.05555556e-03,   1.47619797e+04,   1.47619828e+04])
-
-    Args:
-        x (ndarray):
-
-    Returns:
-        ndarray: sortx_2d
-
-    CommandLine:
-        python -m vtool.other --test-pdist_argsort
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> x = np.array([ 21695.78, 10943.76, 10941.44, 25867.64, 10752.03, 10754.35, 4171.86, 2.32, 14923.89, 14926.2 ], dtype=np.float64)
-        >>> #[ 21025.45583333,    670.60055556,  54936.59111111,  21696.05638889, 33911.13527778,  55607.19166667]
-        >>> sortx_2d = pdist_argsort(x)
-        >>> result = ('sortx_2d = %s' % (str(sortx_2d),))
-        >>> print(result)
-        sortx_2d = [(2, 3), (1, 4), (1, 2), (1, 3), (0, 3), (0, 2), (2, 4), (3, 4), (0, 1), (0, 4)]
-    """
-    OLD = True
-    #compare_idxs = [(r, c) for r, c in itertools.product(range(len(x) / 2),
-    #range(len(x) / 2)) if (c > r)]
-    if OLD:
-        mat = spdist.squareform(x)
-        matu = np.triu(mat)
-        sortx_row, sortx_col = np.unravel_index(matu.ravel().argsort(), matu.shape)
-        # only take where col is larger than row due to upper triu
-        sortx_2d = [(r, c) for r, c in zip(sortx_row, sortx_col) if (c > r)]
-    else:
-        num_rows = len(x) // 2
-        compare_idxs = ut.flatten([[(r, c)  for c in range(r + 1, num_rows)]
-                                   for r in range(num_rows)])
-        sortx = x.argsort()
-        sortx_2d = ut.take(compare_idxs, sortx)
-    return sortx_2d
 
 
 def get_consec_endpoint(consec_index_list, endpoint):
@@ -1709,22 +1642,97 @@ def ensure_rng(seed=None):
     return rng
 
 
-def safe_extreme(arr, op=np.nanmax, fill=np.nan, finite=False):
-    if finite:
-        arr = arr.compress(np.isfinite(arr))
-    if arr is None or len(arr) == 0:
-        extreme =  fill
+def safe_extreme(arr, op=np.nanmax, fill=np.nan, finite=False, nans=True):
+    """
+    Args:
+        arr (ndarray): 1d array to take extreme of
+        op (func): vectorized operation to apply to array
+        fill (float): return type if arr has no elements (default = nan)
+        finite (bool): if True ignores non-finite values (default = False)
+        nans (bool): if False ignores nans (default = True)
+    """
+    if arr is None:
+        extreme = fill
     else:
-        extreme = op(arr)
+        if finite:
+            arr = arr.compress(np.isfinite(arr))
+        if not nans:
+            arr = arr.compress(np.logical_not(np.isnan(arr)))
+        if len(arr) == 0:
+            extreme =  fill
+        else:
+            extreme = op(arr)
     return extreme
 
 
-def safe_max(arr, fill=np.nan):
-    return safe_extreme(arr, np.max, fill)
+def safe_max(arr, fill=np.nan, finite=False, nans=True):
+    r"""
+    Args:
+        arr (ndarray): 1d array to take max of
+        fill (float): return type if arr has no elements (default = nan)
+        finite (bool): if True ignores non-finite values (default = False)
+        nans (bool): if False ignores nans (default = True)
+
+    CommandLine:
+        python -m vtool.other safe_max --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arrs = [[], [np.nan], [-np.inf, np.nan, np.inf], [np.inf], [np.inf, 1], [0, 1]]
+        >>> arrs = [np.array(arr) for arr in arrs]
+        >>> fill = np.nan
+        >>> results1 = [safe_max(arr, fill, finite=False, nans=True) for arr in arrs]
+        >>> results2 = [safe_max(arr, fill, finite=True, nans=True) for arr in arrs]
+        >>> results3 = [safe_max(arr, fill, finite=True, nans=False) for arr in arrs]
+        >>> results4 = [safe_max(arr, fill, finite=False, nans=False) for arr in arrs]
+        >>> results = [results1, results2, results3, results4]
+        >>> result = ('results = %s' % (ut.repr2(results, nl=1),))
+        >>> print(result)
+        results = [
+            [nan, nan, nan, inf, inf, 1],
+            [nan, nan, nan, nan, 1.0, 1],
+            [nan, nan, nan, nan, 1.0, 1],
+            [nan, nan, inf, inf, inf, 1],
+        ]
+    """
+    #if nans:
+    return safe_extreme(arr, np.max, fill, finite, nans)
+    #else:
+    #    return safe_extreme(arr, np.nanmax, fill, finite)
 
 
-def safe_min(arr, fill=np.nan):
-    return fill if arr is None or len(arr) == 0 else arr.min()
+def safe_div(a, b):
+    return None if a is None or b is None else a / b
+
+
+def safe_min(arr, fill=np.nan, finite=False, nans=True):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arrs = [[], [np.nan], [-np.inf, np.nan, np.inf], [np.inf], [np.inf, 1], [0, 1]]
+        >>> arrs = [np.array(arr) for arr in arrs]
+        >>> fill = np.nan
+        >>> results1 = [safe_min(arr, fill, finite=False, nans=True) for arr in arrs]
+        >>> results2 = [safe_min(arr, fill, finite=True, nans=True) for arr in arrs]
+        >>> results3 = [safe_min(arr, fill, finite=True, nans=False) for arr in arrs]
+        >>> results4 = [safe_min(arr, fill, finite=False, nans=False) for arr in arrs]
+        >>> results = [results1, results2, results3, results4]
+        >>> result = ('results = %s' % (ut.repr2(results, nl=1),))
+        >>> print(result)
+        results = [
+            [nan, nan, nan, inf, 1.0, 0],
+            [nan, nan, nan, nan, 1.0, 0],
+            [nan, nan, nan, nan, 1.0, 0],
+            [nan, nan, -inf, inf, 1.0, 0],
+        ]
+    """
+    #return fill if arr is None or len(arr) == 0 else arr.min()
+    #if nans:
+    return safe_extreme(arr, np.min, fill, finite, nans)
+    #else:
+    #    return safe_extreme(arr, np.nanmin, fill, finite)
 
 
 @profile

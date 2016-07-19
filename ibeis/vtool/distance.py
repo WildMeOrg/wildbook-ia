@@ -2,16 +2,14 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
-import warnings  # NOQA # TODO enable these warnings in strict mode
+import itertools
+from six.moves import range, zip
 from collections import OrderedDict
-(print, rrr, profile) = ut.inject2(__name__, '[dist]', DEBUG=False)
-#profile = utool.profile
+import scipy.spatial.distance as spdist
+(print, rrr, profile) = ut.inject2(__name__, '[dist]')
 
 #TEMP_VEC_DTYPE = np.float32
 TEMP_VEC_DTYPE = np.float64
-
-#DEBUG_DIST = __debug__
-DEBUG_DIST = False
 
 TAU = 2 * np.pi  # References: tauday.com
 
@@ -574,9 +572,9 @@ def cos_sift(hist1, hist2):
     psuedo_max = 512.0
     sift1 = hist1.astype(TEMP_VEC_DTYPE) / psuedo_max
     sift2 = hist2.astype(TEMP_VEC_DTYPE) / psuedo_max
-    if DEBUG_DIST:
-        _assert_siftvec(sift1)
-        _assert_siftvec(sift2)
+    #if DEBUG_DIST:
+    #    _assert_siftvec(sift1)
+    #    _assert_siftvec(sift2)
     #sift1 /= np.linalg.norm(sift1, axis=-1)
     #sift2 /= np.linalg.norm(sift2, axis=-1)
     return (sift1 * sift2).sum(-1)
@@ -589,9 +587,6 @@ def cosine_dist(hist1, hist2):
 def _assert_siftvec(sift):
     import vtool as vt
     assert vt.check_sift_validity(sift)
-    #norm = (sift ** 2).sum(axis=-1)
-    #isvalid = np.allclose(norm, 1.0, rtol=.05)
-    #assert np.all(isvalid), norm[np.logical_not(isvalid)]
 
 
 def emd(hist1, hist2, cost_matrix='sift'):
@@ -629,7 +624,7 @@ def emd(hist1, hist2, cost_matrix='sift'):
         pip install pyemd
         https://github.com/andreasjansson/python-emd
         http://www.cs.huji.ac.il/~werman/Papers/ECCV2008.pdf
-        http://stackoverflow.com/questions/15706339/how-to-compute-emd-for-2-numpy-arrays-i-e-histogram-using-opencv
+        http://stackoverflow.com/questions/15706339/compute-emd-2umpy-arrays-using-opencv
         http://www.cs.huji.ac.il/~ofirpele/FastEMD/code/
         http://www.cs.huji.ac.il/~ofirpele/publications/ECCV2008.pdf
     """
@@ -738,6 +733,7 @@ def closest_point(pt, pt_arr, distfunc=L2_sqrd):
     return index, dist
 
 
+@profile
 def haversine(latlon1, latlon2):
     r"""
     Calculate the great circle distance between two points
@@ -758,7 +754,10 @@ def haversine(latlon1, latlon2):
     LaTeX:
         from sympy import *
         import vtool as vt
-        source = ut.get_func_sourcecode(vt.haversine, stripdef=True, strip_docstr=True, strip_comments=False, stripret=True)
+        source = ut.get_func_sourcecode(vt.haversine, stripdef=True,
+                                        strip_docstr=True,
+                                        strip_comments=False,
+                                        stripret=True)
         source = source[source.find('# haversine formula'):]
         source = source.replace('np.', '')
         source = source.replace('arcsin', 'asin')
@@ -805,19 +804,85 @@ def haversine(latlon1, latlon2):
                       [ 14197.57,      0.  ]], dtype=np.float64),
         ]
     """
+    # FIXME; lat, lon should be different columns not different rows
     # convert decimal degrees to radians
     lat1, lon1 = np.radians(latlon1)
     lat2, lon2 = np.radians(latlon2)
-
     # haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
     a = (np.sin(dlat / 2) ** 2) + np.cos(lat1) * np.cos(lat2) * (np.sin(dlon / 2) ** 2)
     c = 2 * np.arcsin(np.sqrt(a))
-
-    EARTH_RADIUS_KM = 6367
+    EARTH_RADIUS_KM = 6367.0
     kilometers = EARTH_RADIUS_KM * c
     return kilometers
+
+
+def safe_pdist(arr, *args, **kwargs):
+    """
+    Kwargs:
+        metric = ut.absdiff
+
+    SeeAlso:
+        scipy.spatial.distance.pdist
+    """
+    if arr is None or len(arr) < 2:
+        return None
+    else:
+        if len(arr.shape) == 1:
+            return spdist.pdist(arr[:, None], *args, **kwargs)
+        else:
+            return spdist.pdist(arr, *args, **kwargs)
+
+
+def pdist_indicies(num):
+    return list(itertools.combinations(range(num), 2))
+    #return np.array([(i, j) for i in range(num) for j in range(num) if i < j])
+    #return np.array(list(itertools.combinations(range(num), 2)))
+    #return [(i, j) for i, j in itertools.product(range(num), range(num)) if i < j]
+
+
+def pdist_argsort(x):
+    """
+    Sorts 2d indicies by their distnace matrix output from scipy.spatial.distance
+    x = np.array([  3.05555556e-03,   1.47619797e+04,   1.47619828e+04])
+
+    Args:
+        x (ndarray):
+
+    Returns:
+        ndarray: sortx_2d
+
+    CommandLine:
+        python -m vtool.distance --test-pdist_argsort
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.distance import *  # NOQA
+        >>> x = np.array([ 21695.78, 10943.76, 10941.44, 25867.64, 10752.03,
+        >>>               10754.35, 4171.86, 2.32, 14923.89, 14926.2 ],
+        >>>              dtype=np.float64)
+        >>> sortx_2d = pdist_argsort(x)
+        >>> result = ('sortx_2d = %s' % (str(sortx_2d),))
+        >>> print(result)
+        sortx_2d = [(2, 3), (1, 4), (1, 2), (1, 3), (0, 3), (0, 2), (2, 4), (3, 4), (0, 1), (0, 4)]
+    """
+    OLD = True
+    #compare_idxs = [(r, c) for r, c in itertools.product(range(len(x) / 2),
+    #range(len(x) / 2)) if (c > r)]
+    if OLD:
+        mat = spdist.squareform(x)
+        matu = np.triu(mat)
+        sortx_row, sortx_col = np.unravel_index(matu.ravel().argsort(), matu.shape)
+        # only take where col is larger than row due to upper triu
+        sortx_2d = [(r, c) for r, c in zip(sortx_row, sortx_col) if (c > r)]
+    else:
+        num_rows = len(x) // 2
+        compare_idxs = ut.flatten([[(r, c)  for c in range(r + 1, num_rows)]
+                                   for r in range(num_rows)])
+        sortx = x.argsort()
+        sortx_2d = ut.take(compare_idxs, sortx)
+    return sortx_2d
 
 
 if __name__ == '__main__':
