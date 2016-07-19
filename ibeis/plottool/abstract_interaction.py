@@ -20,6 +20,7 @@ from plottool import interact_helpers as ih  # NOQA
 #'[abstract_iteract]')
 
 DEBUG = ut.get_argflag('--debug-interact')
+VERBOSE = ut.VERBOSE or True
 
 
 # for scoping
@@ -28,16 +29,23 @@ __REGISTERED_INTERACTIONS__ = []
 
 def register_interaction(self):
     global __REGISTERED_INTERACTIONS__
-    if ut.VERBOSE:
-        print('Registering intearction: self=%r' % (self,))
+    if VERBOSE:
+        print('[pt] Registering intearction: self=%r' % (self,))
     __REGISTERED_INTERACTIONS__.append(self)
+    if VERBOSE:
+        print('[pt] There are now %d registered interactions' % (len(__REGISTERED_INTERACTIONS__)))
 
 
 def unregister_interaction(self):
     global __REGISTERED_INTERACTIONS__
-    if ut.VERBOSE:
-        print('Unregistering intearction: self=%r' % (self,))
-    __REGISTERED_INTERACTIONS__
+    if VERBOSE:
+        print('[pt] Unregistering intearction: self=%r' % (self,))
+    try:
+        __REGISTERED_INTERACTIONS__.remove(self)
+    except ValueError:
+        pass
+    if VERBOSE:
+        print('[pt] There are now %d registered interactions' % (len(__REGISTERED_INTERACTIONS__)))
 
 
 class AbstractInteraction(object):
@@ -111,6 +119,7 @@ class AbstractInteraction(object):
     def start(self):
         self._ensure_running()
         self.show_page()
+        self.show()
 
     def print_status(self):
         print('is_down = ' + ut.repr2(self.is_down))

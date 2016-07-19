@@ -908,6 +908,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         else:
             raise NotImplementedError('Unknown node_shape=%r' % (node_shape,))
 
+        zorder = nattrs.get('zorder', None)
         if True:
             # Add a frame around the node
             framewidth = nattrs.get('framewidth', 0)
@@ -930,11 +931,13 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                         framewidth = 3.0
                 lw = framewidth
                 frame = pt.make_bbox(bbox, bbox_color=framecolor, ax=ax, lw=lw, alpha=alpha)
+                if zorder is not None:
+                    frame.set_zorder(zorder)
+                #frame.set_zorder()
                 patch_dict['patch_frame_dict'][node] = frame
         #import utool
         #utool.embed()
         picker = nattrs.get('picker', True)
-        zorder = nattrs.get('zorder', None)
         patch.set_picker(picker)
         if zorder is not None:
             patch.set_zorder(zorder)
