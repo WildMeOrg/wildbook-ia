@@ -55,6 +55,8 @@ class MatchInteraction2(BASE_CLASS):
     """
     def __init__(self, rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2,
                  H1=None, H2=None, fnum=None, **kwargs):
+        kwargs = kwargs.copy()
+
         # Drawing Data
         self.rchip1 = rchip1
         self.rchip2 = rchip2
@@ -62,6 +64,7 @@ class MatchInteraction2(BASE_CLASS):
         self.kpts2 = kpts2
         self.fm = fm
         self.fs = fs
+        self.fk = kwargs.pop('fk')
         self.fsv = fsv
         self.vecs1 = vecs1
         self.vecs2 = vecs2
@@ -69,7 +72,6 @@ class MatchInteraction2(BASE_CLASS):
         self.H2 = H2
 
         # Drawing settings
-        kwargs = kwargs.copy()
         self.warp_homog = False
         self.mode = kwargs.pop('mode', 0)
         self.mx = kwargs.pop('mx', None)
@@ -101,7 +103,7 @@ class MatchInteraction2(BASE_CLASS):
         import plottool as pt
         from plottool import plot_helpers as ph
         if fnum is None:
-            fnum     = self.fnum
+            fnum = self.fnum
         if verbose is None:
             verbose = ut.VERBOSE
 
@@ -160,12 +162,10 @@ class MatchInteraction2(BASE_CLASS):
         import plottool as pt
         from plottool import viz_featrow
         from plottool import interact_helpers as ih
-        # <CLOSURE VARS>
         fnum       = self.fnum
         same_fig   = self.same_fig
         rchip1     = self.rchip1
         rchip2     = self.rchip2
-        # </CLOSURE VARS>
         self.mx    = mx
         print('+--- SELECT --- ')
         print('... selecting mx-th=%r feature match' % mx)
@@ -183,7 +183,7 @@ class MatchInteraction2(BASE_CLASS):
 
         # Older info
         fscore2  = self.fs[mx]
-        fk2      = None
+        fk2      = None if self.fk is None else self.fk[mx]
         kp1, kp2     = self.kpts1[fx1], self.kpts2[fx2]
         vecs1, vecs2 = self.vecs1[fx1], self.vecs2[fx2]
         info1 = '\nquery'
@@ -247,7 +247,7 @@ class MatchInteraction2(BASE_CLASS):
             return
         #key = '' if event.key is None else event.key
         #ctrl_down = key.find('control') == 0
-        if viztype == 'matches':
+        if viztype in ['matches', 'multi_match']:
             if len(self.fm) == 0:
                 print('[inter] no feature matches to click')
             else:
@@ -261,15 +261,15 @@ class MatchInteraction2(BASE_CLASS):
                 mx = _mx1 if _dist1 < _dist2 else _mx2
                 print('... clicked mx=%r' % mx)
                 self.select_ith_match(mx)
-        elif viztype in ['warped', 'unwarped']:
-            pass
-            #hs_aid = ax.__dict__.get('_hs_aid', None)
-            #hs_fx = ax.__dict__.get('_hs_fx', None)
-            #if hs_aid is not None and viztype == 'unwarped':
-            #    ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=pt.next_fnum())
-            #elif hs_aid is not None and viztype == 'warped':
-            #    viz.show_keypoint_gradient_orientations(ibs, hs_aid,
-            #    hs_fx, fnum=pt.next_fnum())
+        #elif viztype in ['warped', 'unwarped']:
+        #    pass
+        #    #hs_aid = ax.__dict__.get('_hs_aid', None)
+        #    #hs_fx = ax.__dict__.get('_hs_fx', None)
+        #    #if hs_aid is not None and viztype == 'unwarped':
+        #    #    ishow_chip(ibs, hs_aid, fx=hs_fx, fnum=pt.next_fnum())
+        #    #elif hs_aid is not None and viztype == 'warped':
+        #    #    viz.show_keypoint_gradient_orientations(ibs, hs_aid,
+        #    #    hs_fx, fnum=pt.next_fnum())
         # Click in match axes
         #elif viztype == 'matches' and ctrl_down:
         #    # Ctrl-Click
@@ -321,6 +321,20 @@ class MatchInteraction2(BASE_CLASS):
             toggle_attr_item('mode', 3),
         ]
         return options
+
+
+def show_keypoint_gradient_orientations(ibs, rchip, kp, vec, fnum=None,
+                                        pnum=None, config2_=None):
+    # Draw the gradient vectors of a patch overlaying the keypoint
+    import plottoola as pt
+    if fnum is None:
+        fnum = pt.next_fnum()
+    #rchip = ibs.get_annot_chips(aid, config2_=config2_)
+    #kp    = ibs.get_annot_kpts(aid, config2_=config2_)[fx]
+    #sift  = ibs.get_annot_vecs(aid, config2_=config2_)[fx]
+    pt.draw_keypoint_gradient_orientations(rchip, kp, sift=vec,
+                                            mode='vec', fnum=fnum, pnum=pnum)
+    #pt.set_title('Gradient orientation\n %s, fx=%d' % (get_aidstrs(aid), fx))
 
 
 if __name__ == '__main__':

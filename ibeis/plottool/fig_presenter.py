@@ -202,19 +202,18 @@ def all_figures_bring_to_front():
 
 
 def close_all_figures():
+    print('[pt] close_all_figures')
     all_figures = get_all_figures()
     for fig in iter(all_figures):
         close_figure(fig)
 
 
 def close_figure(fig):
+    print('[pt] close_figure')
     fig.clf()
     fig.df2_closed = True
     qtwin = fig.canvas.manager.window
     qtwin.close()
-
-#def close_figure(fig):
-#    plt.close(fig)
 
 
 def bring_to_front(fig):

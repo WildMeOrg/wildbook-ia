@@ -126,11 +126,11 @@ class AbstractInteraction(object):
         self._ensure_running()
         if self.debug:
             print('[pt.a] show page')
-        self.fig = ih.begin_interaction(self.interaction_name, self.fnum)
+        self.fig = ih.begin_interaction(self.interaction_name, fnum=self.fnum)
         if hasattr(self, 'plot'):
-            self.plot(self.fnum, (1, 1, 1))
+            self.plot(fnum=self.fnum, pnum=(1, 1, 1))
         else:
-            self.static_plot(self.fnum, (1, 1, 1))
+            self.static_plot(fnum=self.fnum, pnum=(1, 1, 1))
         self.connect_callbacks()
 
     def connect_callbacks(self):

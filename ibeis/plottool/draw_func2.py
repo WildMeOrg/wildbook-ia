@@ -37,10 +37,6 @@ from plottool import color_funcs as color_fns  # NOQA
 from plottool import custom_constants  # NOQA
 from plottool import custom_figure
 from plottool import fig_presenter
-#from plottool.custom_figure import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
-#from plottool.custom_constants import *  # NOQA  # TODO: FIXME THIS FILE NEEDSTO BE PARTITIONED
-#from plottool.fig_presenter import *     # NOQA  # TODO: FIXME THIS FILE NEEDS TO BE PARTITIONED
-#import operator
 
 DEBUG = False
 # Try not injecting into plotting things
@@ -2838,16 +2834,17 @@ def draw_keypoint_gradient_orientations(rchip, kpt, sift=None, mode='vec',
         print('wpatch = ' + str(wpatch))
         raise
     if mode == 'vec' or mode == 'vecfield':
-        draw_vector_field(gradx, grady, **kwargs)
+        fig = draw_vector_field(gradx, grady, **kwargs)
     elif mode == 'col' or mode == 'colors':
-        import plottool
+        import plottool as pt
         gmag = vt.patch_mag(gradx, grady)
         gori = vt.patch_ori(gradx, grady)
-        gorimag = plottool.color_orimag(gori, gmag)
-        imshow(gorimag, **kwargs)
+        gorimag = pt.color_orimag(gori, gmag)
+        fig, ax = imshow(gorimag, **kwargs)
     wkpts = np.array([wkp])
     sifts = np.array([sift]) if sift is not None else None
     draw_kpts2(wkpts, sifts=sifts, siftkw=siftkw, **kptkw)
+    return fig
 
 
 #@ut.indent_func('[df2.dkp]')
@@ -3112,7 +3109,7 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True):
     U_ = U[::stride, ::stride]
     V_ = V[::stride, ::stride]
     # Draw arrows
-    figure(fnum=fnum, pnum=pnum)
+    fig = figure(fnum=fnum, pnum=pnum)
     plt.quiver(X_, Y_, U_, V_, **quiv_kw)
     # Plot properties
     ax = gca()
@@ -3123,6 +3120,7 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True):
     ax.set_aspect('equal')
     if title is not None:
         set_title(title)
+    return fig
 
 
 def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
