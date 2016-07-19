@@ -4,26 +4,15 @@ Small GUI for asking the user to enter the clock time shown, and moving along a 
 """
 from __future__ import absolute_import, division, print_function
 from functools import partial
-#from guitool import qtype, APIItemWidget, APIItemModel, FilterProxyModel, ChangeLayoutContext
-from guitool.__PYQT__ import QtGui  # NOQA
-from guitool.__PYQT__ import QtWidgets  # , QtCore
-from guitool.__PYQT__.QtCore import Qt
-#from ibeis.other import ibsfuncs
-#from ibeis.expt import results_organizer
-#from ibeis.viz import interact
-#from ibeis.viz import viz_helpers as vh
-#from plottool import fig_presenter
-#from plottool import interact_helpers as ih
-from plottool import imshow, close_figure, next_fnum
 from six.moves import range
-import guitool
-#import numpy as np
-#import six
-import utool
-import utool as ut
-from datetime import date, datetime
 from time import mktime
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[co_gui]')
+from datetime import date, datetime
+import utool as ut
+import guitool as gt
+from guitool.__PYQT__ import QtWidgets
+from guitool.__PYQT__.QtCore import Qt
+import plottool as pt
+(print, rrr, profile) = ut.inject2(__name__, '[co_gui]')
 
 
 class ClockOffsetWidget(QtWidgets.QWidget):
@@ -34,20 +23,20 @@ class ClockOffsetWidget(QtWidgets.QWidget):
 
         QtWidgets.QWidget.__init__(co_wgt, parent=parent)
 
-        co_wgt.fnum = next_fnum()
+        co_wgt.fnum = pt.next_fnum()
 
         co_wgt.main_layout = QtWidgets.QVBoxLayout(co_wgt)
 
-        co_wgt.text_layout = guitool.newWidget(co_wgt, orientation=Qt.Vertical, verticalStretch=10)
+        co_wgt.text_layout = gt.newWidget(co_wgt, orientation=Qt.Vertical, verticalStretch=10)
         co_wgt.main_layout.addWidget(co_wgt.text_layout)
 
-        co_wgt.control_layout = guitool.newWidget(co_wgt, orientation=Qt.Vertical, verticalSizePolicy=QtWidgets.QSizePolicy.MinimumExpanding)
+        co_wgt.control_layout = gt.newWidget(co_wgt, orientation=Qt.Vertical, verticalSizePolicy=QtWidgets.QSizePolicy.MinimumExpanding)
         co_wgt.main_layout.addWidget(co_wgt.control_layout)
 
-        co_wgt.button_layout = guitool.newWidget(co_wgt, orientation=Qt.Horizontal)
+        co_wgt.button_layout = gt.newWidget(co_wgt, orientation=Qt.Horizontal)
         co_wgt.control_layout.addWidget(co_wgt.button_layout)
 
-        co_wgt.combo_layout = guitool.newWidget(co_wgt, orientation=Qt.Horizontal)
+        co_wgt.combo_layout = gt.newWidget(co_wgt, orientation=Qt.Horizontal)
         co_wgt.control_layout.addWidget(co_wgt.combo_layout)
 
         co_wgt.hack = hack  # hack for edting the time of a single image
@@ -95,7 +84,6 @@ class ClockOffsetWidget(QtWidgets.QWidget):
             else:
                 co_wgt.button_list[1].setEnabled(True)
 
-        #TODO Either integrate this into utool or check if it's already there
         def extract_tuple(li, idx):
             return list(zip(*li)[idx])
         # Update option setting, assume datetime has been updated
@@ -109,10 +97,10 @@ class ClockOffsetWidget(QtWidgets.QWidget):
         # Redraw image
         if not co_wgt.hack:
             if co_wgt.imfig is not None:
-                close_figure(co_wgt.imfig)
+                pt.close_figure(co_wgt.imfig)
             image = co_wgt.ibs.get_images(co_wgt.gid_list[co_wgt.current_gindex])
             figtitle = "Time Synchronization Picture"
-            co_wgt.imfig, co_wgt.imax = imshow(image, fnum=co_wgt.fnum, title=figtitle)
+            co_wgt.imfig, co_wgt.imax = pt.imshow(image, fnum=co_wgt.fnum, title=figtitle)
             co_wgt.imfig.show()
 
     def show_helpmsg(co_wgt):
@@ -131,11 +119,11 @@ class ClockOffsetWidget(QtWidgets.QWidget):
             being imported.  If you are sure the camera was synchronized, you
             can skip this step by pressing 'Skip'.
             """)
-        guitool.user_info(co_wgt, msg=msg, title='Time Sync Help')
+        gt.user_info(co_wgt, msg=msg, title='Time Sync Help')
 
     def add_label(co_wgt):
         # Very simply adds the text
-        _LABEL = partial(guitool.newLabel, parent=co_wgt)
+        _LABEL = partial(gt.newLabel, parent=co_wgt)
         if not co_wgt.hack:
             text = ut.codeblock(
                 '''
@@ -161,7 +149,7 @@ class ClockOffsetWidget(QtWidgets.QWidget):
             #co_wgt.text_layout.addWidget(main_label)
 
     def add_buttons(co_wgt):
-        _BUTTON = partial(guitool.newButton, parent=co_wgt)
+        _BUTTON = partial(gt.newButton, parent=co_wgt)
         if not co_wgt.hack:
             co_wgt.button_list = [
                 _BUTTON(text='Previous Image',
@@ -186,8 +174,8 @@ class ClockOffsetWidget(QtWidgets.QWidget):
             co_wgt.button_layout.addWidget(button)
 
     def add_combo_boxes(co_wgt):
-        _CBOX = partial(guitool.newComboBox, parent=co_wgt)
-        _LABEL = partial(guitool.newLabel, parent=co_wgt, align='right')
+        _CBOX = partial(gt.newComboBox, parent=co_wgt)
+        _LABEL = partial(gt.newLabel, parent=co_wgt, align='right')
         def to_opt_list(x):
             return [("%02d" % i, i) for i in x]
         year_list = [datetime.fromtimestamp(unixtime).year
@@ -228,33 +216,32 @@ class ClockOffsetWidget(QtWidgets.QWidget):
         for combo in co_wgt.combo_list:
             co_wgt.combo_layout.addWidget(combo)
 
-    @guitool.slot_()
+    @gt.slot_()
     def go_prev(co_wgt):
         # Decrement current gid index, then call update
         co_wgt.current_gindex -= 1
         co_wgt.get_image_datetime_()
         co_wgt.update_ui()
 
-    @guitool.slot_()
+    @gt.slot_()
     def go_next(co_wgt):
         # Increment current gid index, then call update
         co_wgt.current_gindex += 1
         co_wgt.get_image_datetime_()
         co_wgt.update_ui()
 
-    @guitool.slot_()
+    @gt.slot_()
     def cancel(co_wgt):
         # Just close
-        close_figure(co_wgt.imfig)
+        pt.close_figure(co_wgt.imfig)
         co_wgt.close()
 
-    @guitool.slot_()
+    @gt.slot_()
     def accept(co_wgt):
         # Calculate offset
         # Get current image's actual time
         image_time = co_wgt.ibs.get_image_unixtime(co_wgt.gid_list[co_wgt.current_gindex])
         # Get unixtime from current dtime
-        #TODO put into utool
         input_time = mktime(co_wgt.dtime.timetuple())
         # Go through gid list, and add that offset to every unixtime
         offset = input_time - image_time
@@ -266,10 +253,10 @@ class ClockOffsetWidget(QtWidgets.QWidget):
         co_wgt.ibs.set_image_unixtime(co_wgt.gid_list, new_utimes)
         # Close
         if not co_wgt.hack:
-            close_figure(co_wgt.imfig)
+            pt.close_figure(co_wgt.imfig)
         co_wgt.close()
 
-    @guitool.slot_(str, int, str)
+    @gt.slot_(str, int, str)
     def change_dt(co_wgt, attr, val_ind, val):
         co_wgt.dtime = co_wgt.dtime.replace(**{attr: co_wgt.opt_list[attr][val_ind][1]})
         print("[co_gui] Base datetime is %r" % co_wgt.dtime)

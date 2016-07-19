@@ -1185,7 +1185,8 @@ def gridsearch_single_vsone_rerank():
         cm = chip_match.ChipMatch(qaid=qaid, daid_list=daid_list,
                                    fm_list=fm_list, fsv_list=fs_list)
         cm.fs_list = fs_list
-        interact_matches.MatchInteraction(ibs, cm, aid2=aid2, fnum=None)
+        inter = interact_matches.MatchInteraction(ibs, cm, aid2=aid2, fnum=None)
+        inter.start()
 
     ut.interact_gridsearch_result_images(
         showfunc, cfgdict_list, cfglbl_list,
@@ -1238,7 +1239,8 @@ def gridsearch_constrained_matches():
         cm = chip_match.ChipMatch(qaid=qaid, daid_list=daid_list,
                                    fm_list=fm_list, fsv_list=fs_list)
         cm.fs_list = fs_list
-        interact_matches.MatchInteraction(ibs, cm, aid2=aid2, fnum=None)
+        inter = interact_matches.MatchInteraction(ibs, cm, aid2=aid2, fnum=None)
+        inter.start()
 
     ut.interact_gridsearch_result_images(
         showfunc, cfgdict_list, cfglbl_list,
@@ -1312,7 +1314,8 @@ def gridsearch_unconstrained_matches():
         cm = chip_match.ChipMatch(qaid=qaid, daid_list=daid_list,
                                    fm_list=fm_list, fsv_list=fs_list)
         cm.fs_list = fs_list
-        interact_matches.MatchInteraction(ibs, cm, aid2=aid2, fnum=None)
+        inter = interact_matches.MatchInteraction(ibs, cm, aid2=aid2, fnum=None)
+        inter.start()
 
     ut.interact_gridsearch_result_images(
         showfunc, cfgdict_list, cfglbl_list,
@@ -1354,10 +1357,6 @@ def show_matches(ibs, qaid, daid, fm, fs=None, fm_norm=None,
 
     viz_matches.show_matches2(ibs, qaid, daid, fm=fm, fs=fs, fm_norm=fm_norm, ori=True,
                               H1=H1, fnum=fnum, pnum=pnum, show_name=False, **kwargs)
-    #else:
-    #    from ibeis.viz.interact import interact_matches
-    #    cm = chip_match.ChipMatch(qaid, [daid], [fm], [fs])
-    #    interact_matches.MatchInteraction(ibs, cm, fnum=None, aid2=daid)
 
     #pt.set_title('score = %.3f' % (score,))
 

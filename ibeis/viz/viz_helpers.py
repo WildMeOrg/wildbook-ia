@@ -401,8 +401,10 @@ def show_keypoint_gradient_orientations(ibs, aid, fx, fnum=None, pnum=None, conf
     rchip = ibs.get_annot_chips(aid, config2_=config2_)
     kp    = ibs.get_annot_kpts(aid, config2_=config2_)[fx]
     sift  = ibs.get_annot_vecs(aid, config2_=config2_)[fx]
-    df2.draw_keypoint_gradient_orientations(rchip, kp, sift=sift,
-                                            mode='vec', fnum=fnum, pnum=pnum)
+    fig = df2.draw_keypoint_gradient_orientations(rchip, kp, sift=sift,
+                                                  mode='vec', fnum=fnum, pnum=pnum)
+    fig.canvas.draw()
+    fig.show()
     df2.set_title('Gradient orientation\n %s, fx=%d' % (get_aidstrs(aid), fx))
 
 

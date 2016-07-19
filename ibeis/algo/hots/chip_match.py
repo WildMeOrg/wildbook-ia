@@ -403,15 +403,16 @@ class _ChipMatchVisualization(object):
             aid2 = cm.get_top_aids(ntop=1)[0]
         kwshow.update(**kwargs)
         try:
-            match_interaction = interact_matches.MatchInteraction(
+            inter = interact_matches.MatchInteraction(
                 qreq_.ibs, cm, aid2, qreq_=qreq_, **kwshow)
-            return match_interaction
+            inter.start()
+            return inter
         except Exception as ex:
             ut.printex(ex, 'failed in cm.show_matches', keys=['aid', 'qreq_'])
             raise
-        if not kwargs.get('noupdate', False):
-            import plottool as pt
-            pt.update()
+        #if not kwargs.get('noupdate', False):
+        #    import plottool as pt
+        #    pt.update()
 
     ishow_match = ishow_single_annotmatch
     ishow_matches = ishow_single_annotmatch
