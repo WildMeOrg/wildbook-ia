@@ -155,9 +155,9 @@ class APIItemModel(API_MODEL_BASE):
         model.col_sort_reverse = False
         model.level_index_list = []
         model.cache = None  # FIXME: This is not sustainable
-        model.cache_timeout_sec = 2
-        model.cache_size = 256
-        model.batch_size = 32
+        model.cache_timeout_sec = 2.5
+        model.cache_size = 512
+        model.batch_size = 2  # Small batch sizes give good response time
         model.scope_hack_list = []
         model.root_node = _atn.TreeNode(-1, None, -1)
         # Initialize member variables
@@ -288,7 +288,8 @@ class APIItemModel(API_MODEL_BASE):
         model._set_sort(col_sort_index, col_sort_reverse, rebuild_structure=True)
 
     def clear_cache(model):
-        model.cache = cachetools.TTLCache(maxsize=model.cache_size, ttl=model.cache_timeout_sec)
+        model.cache = cachetools.TTLCache(maxsize=model.cache_size,
+                                          ttl=model.cache_timeout_sec)
 
     @updater
     def _set_sort(model, col_sort_index, col_sort_reverse=False, rebuild_structure=False):

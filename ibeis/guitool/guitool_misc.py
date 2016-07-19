@@ -14,6 +14,10 @@ import utool as ut
 ut.noinject(__name__, '[guitool.misc]', DEBUG=False)
 
 
+# For some reason QtCore.Qt.ALT doesn't work right
+ALT_KEY = 16777251
+
+
 def find_used_chars(name_list):
     """ Move to guitool """
     used_chars = []
