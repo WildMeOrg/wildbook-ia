@@ -37,8 +37,7 @@ from guitool import qtype
 
 import utool
 
-print, print_, printDBG, rrr, profile = utool.inject(
-    __name__, '[guitool]')
+print, rrr, profile = utool.inject2(__name__, '[guitool]')
 
 def reload_subs():
     """Reloads utool and submodules """
