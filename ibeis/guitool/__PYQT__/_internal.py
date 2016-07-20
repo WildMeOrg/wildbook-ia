@@ -12,7 +12,7 @@ Move to PyQt5?
     >>> button.show()
     >>> app.exec_()
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 ut.noinject(__name__, '[__PYQT__._internal]')
 
