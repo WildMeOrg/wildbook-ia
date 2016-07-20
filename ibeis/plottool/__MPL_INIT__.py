@@ -62,6 +62,21 @@ def print_all_backends():
     del valid_backends
 
 
+def get_pyqt():
+    have_guitool = ut.check_module_installed('guitool')
+    if have_guitool:
+        from guitool import __PYQT__ as PyQt
+        pyqt_version = PyQt._internal.GUITOOL_PYQT_VERSION
+    else:
+        try:
+            import PyQt4 as PyQt
+            pyqt_version = 4
+        except ImportError:
+            PyQt = None
+            pyqt_version = None
+    return PyQt, pyqt_version
+
+
 def get_target_backend():
     if (not sys.platform.startswith('win32') and
         not sys.platform.startswith('darwin') and
@@ -72,21 +87,16 @@ def get_target_backend():
     else:
         target_backend = TARGET_BACKEND
         if target_backend is None:
-            try:
-                # This might be the cause of some issues
-                try:
-                    from guitool import __PYQT__  # NOQA
-                    if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
-                        target_backend = 'Qt4Agg'
-                    else:
-                        target_backend = 'Qt5Agg'
-                except ImportError as ex:
-                    ut.printex(ex, 'Could not import guitool', iswarning=True)
-                    import PyQt4  # NOQA
-                    target_backend = 'Qt4Agg'
-            except ImportError:
+            PyQt, pyqt_version = get_pyqt()
+            if pyqt_version is None:
                 print('[!plotttool] WARNING backend fallback to %s' % (FALLBACK_BACKEND, ))
                 target_backend = FALLBACK_BACKEND
+            elif pyqt_version == 4:
+                target_backend = 'Qt4Agg'
+            elif pyqt_version == 5:
+                target_backend = 'Qt5Agg'
+            else:
+                raise ValueError('Unknown pyqt version %r' % (pyqt_version,))
     return target_backend
 
 
@@ -226,11 +236,5 @@ def _init_mpl_mainprocess(verbose=VERBOSE_MPLINIT):
 
 def init_matplotlib(verbose=VERBOSE_MPLINIT):
     if ut.in_main_process():
-        try:
-            # This might be the cause of some issues
-            from guitool import __PYQT__  # NOQA
-        except ImportError as ex:
-            ut.printex(ex, 'Could not import guitool', iswarning=True)
-            #print('[!plotttool] WARNING guitool does not have __PYQT__')
-            pass
+        PyQt, pyqt_version = get_pyqt()
         return _init_mpl_mainprocess(verbose=verbose)
