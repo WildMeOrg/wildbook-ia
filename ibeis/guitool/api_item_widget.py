@@ -99,10 +99,6 @@ class CustomAPI(object):
                               editable_colnames, sortby, sort_reverse, strict)
         self.orig_kwargs = kwargs
         self.update_column_names(col_name_list)
-
-        #self.parse_column_tuples(col_name_list, col_types_dict, col_getter_dict,
-        #                         col_bgrole_dict, col_ider_dict, col_setter_dict,
-        #                         editable_colnames, sortby, sort_reverse, strict, **kwargs)
         if VERBOSE_ITEM_WIDGET:
             print('[CustomAPI] </__init__>')
 
@@ -161,7 +157,18 @@ class CustomAPI(object):
                                 for colname in col_name_list]
         # Get number of rows / columns
         self.nCols = len(self.col_getter_list)
-        self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME
+        if self.nCols == 0:
+            self.nRows = 0
+        else:
+            for getter in self.col_getter_list:
+                if ut.isiterable(getter):
+                    break
+                getter = None
+            # FIXME
+            assert getter is not None, 'at least one getter must be an array/list'
+            self.nRows = len(getter)
+
+        #self.nRows = 0 if self.nCols == 0 else len(self.col_getter_list[0])  # FIXME
         # Init iders to default and then overwite based on dict inputs
         self.col_ider_list = [None] * self.nCols  # ut.alloc_nones(self.nCols)
         # for colname, ider_colnames in six.iteritems(col_ider_dict):
@@ -383,7 +390,8 @@ class APIItemWidget(WIDGET_BASE):
                 index = api.col_name_list.index(col)
             except ValueError:
                 pass
-            horizontal_header.resizeSection(index, width)
+            else:
+                horizontal_header.resizeSection(index, width)
 
     @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuRequested(widget, index, pos):
