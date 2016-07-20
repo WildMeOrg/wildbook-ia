@@ -646,6 +646,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ibs.set_annot_names(aid_list, name_list)
         else:
             print('DRY RUN. NOT DOING ANYTHING')
+        gt.user_info(self, 'Name Change Complete')
 
     def show_selected(self):
         print('[graph] show_selected')
