@@ -6,10 +6,9 @@ import sys
 import six
 import traceback
 from utool.Preferences import Pref, PrefNode, PrefChoice
-from guitool.__PYQT__ import QtCore, QtGui
-from guitool.__PYQT__ import QVariantHack
-from guitool.__PYQT__.QtCore import Qt, QAbstractItemModel, QModelIndex, QObject, pyqtSlot
-from guitool.__PYQT__.QtGui import QWidget
+from guitool.__PYQT__ import _fromUtf8, _translate, QVariantHack
+from guitool.__PYQT__ import QtWidgets, QtCore
+from guitool.__PYQT__.QtCore import Qt
 from guitool import qtype
 import utool as ut
 from utool import util_type
@@ -31,20 +30,6 @@ def report_thread_error(fn):
             et, ei, tb = sys.exc_info()
             raise
     return report_thread_error_wrapper
-
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QtWidgets.QApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtWidgets.QApplication.translate(context, text, disambig)
 
 
 def _qt_set_leaf_data(self, qvar):
@@ -130,7 +115,7 @@ def _qt_set_leaf_data(self, qvar):
     return 'PrefNotEditable'
 
 
-class QPreferenceModel(QAbstractItemModel):
+class QPreferenceModel(QtCore.QAbstractItemModel):
     """ Convention states only items with column index 0 can have children """
     @report_thread_error
     def __init__(self, pref_struct, parent=None):
@@ -138,7 +123,7 @@ class QPreferenceModel(QAbstractItemModel):
         self.rootPref  = pref_struct
 
     @report_thread_error
-    def index2Pref(self, index=QModelIndex()):
+    def index2Pref(self, index=QtCore.QModelIndex()):
         """ Internal helper method """
         if index.isValid():
             item = index.internalPointer()
@@ -149,12 +134,12 @@ class QPreferenceModel(QAbstractItemModel):
     #-----------
     # Overloaded ItemModel Read Functions
     @report_thread_error
-    def rowCount(self, parent=QModelIndex()):
+    def rowCount(self, parent=QtCore.QModelIndex()):
         parentPref = self.index2Pref(parent)
         return parentPref.qt_row_count()
 
     @report_thread_error
-    def columnCount(self, parent=QModelIndex()):
+    def columnCount(self, parent=QtCore.QModelIndex()):
         parentPref = self.index2Pref(parent)
         return parentPref.qt_col_count()
 
@@ -229,30 +214,30 @@ class QPreferenceModel(QAbstractItemModel):
         return True
 
     @report_thread_error
-    def index(self, row, col, parent=QModelIndex()):
+    def index(self, row, col, parent=QtCore.QModelIndex()):
         """Returns the index of the item in the model specified
         by the given row, column and parent index."""
         if parent.isValid() and parent.column() != 0:
-            return QModelIndex()
+            return QtCore.QModelIndex()
         parentPref = self.index2Pref(parent)
         childPref  = parentPref.qt_get_child(row)
         if childPref:
             return self.createIndex(row, col, childPref)
         else:
-            return QModelIndex()
+            return QtCore.QModelIndex()
 
     @report_thread_error
     def parent(self, index=None):
         """Returns the parent of the model item with the given index.
         If the item has no parent, an invalid QModelIndex is returned."""
-        if index is None:  # Overload with QObject.parent()
-            return QObject.parent(self)
+        if index is None:  # Overload with QtCore.QObject.parent()
+            return QtCore.QObject.parent(self)
         if not index.isValid():
-            return QModelIndex()
+            return QtCore.QModelIndex()
         nodePref = self.index2Pref(index)
         parentPref = nodePref.qt_get_parent()
         if parentPref == self.rootPref:
-            return QModelIndex()
+            return QtCore.QModelIndex()
         return self.createIndex(parentPref.qt_parents_index_of_me(), 0, parentPref)
 
     @report_thread_error
@@ -295,7 +280,7 @@ class Ui_editPrefSkel(object):
         # Add Pane for TreeView
         self.verticalLayout = QtWidgets.QVBoxLayout(editPrefSkel)
         self.verticalLayout.setObjectName(_fromUtf8('verticalLayout'))
-        # The TreeView for QAbstractItemModel to attach to
+        # The TreeView for QtCore.QAbstractItemModel to attach to
         self.prefTreeView = QtWidgets.QTreeView(editPrefSkel)
         self.prefTreeView.setObjectName(_fromUtf8('prefTreeView'))
         self.verticalLayout.addWidget(self.prefTreeView)
@@ -330,7 +315,7 @@ class Ui_editPrefSkel(object):
 # ---
 # THE PREFERENCE WIDGET
 # ---
-class EditPrefWidget(QWidget):
+class EditPrefWidget(QtWidgets.QWidget):
     """The Settings Pane; Subclass of Main Windows."""
     def __init__(self, pref_struct):
         super(EditPrefWidget, self).__init__()
@@ -342,7 +327,7 @@ class EditPrefWidget(QWidget):
         #self.ui.defaultPrefsBUT.clicked.connect(fac.default_prefs)
         #self.ui.unloadFeaturesAndModelsBUT.clicked.connect(fac.unload_features_and_models)
 
-    @pyqtSlot(Pref, name='populatePrefTreeSlot')
+    @QtCore.pyqtSlot(Pref, name='populatePrefTreeSlot')
     def populatePrefTreeSlot(self, pref_struct):
         """Populates the Preference Tree Model"""
         #printDBG('Bulding Preference Model of: ' + repr(pref_struct))

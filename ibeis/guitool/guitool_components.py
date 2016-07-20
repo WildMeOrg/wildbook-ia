@@ -287,7 +287,7 @@ class ProgHook(QtCore.QObject, ut.NiceRepr):
         >>> iter_ = iter(progiter)
         >>> six.next(iter_)
         >>> hook(2, 2)
-        >>> subhook2 = subhooks[1]
+        >>> subhook2 = substep_hooks_0_25[1]
         >>> subsubhooks = subhook2.subdivide(num=2)
         >>> subsubhooks[0](0, 3)
         >>> subsubhooks[0](1, 3)
@@ -1011,9 +1011,8 @@ class GuitoolWidget(WIDGET_BASE):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from guitool.guitool_components import *  # NOQA
-        >>> import guitool
         >>> import guitool as gt
-        >>> guitool.ensure_qtapp()
+        >>> gt.ensure_qtapp()
         >>> ut.exec_funckw(newWidget, globals())
         >>> widget = GuitoolWidget(parent)
         >>> widget.addWidget(gt.newButton(
@@ -1513,24 +1512,19 @@ def newButton(parent=None, text=None, clicked=None, pressed=None, qicon=None, vi
         python -m guitool.guitool_components --exec-newButton
         python -m guitool.guitool_components --test-newButton
 
+    CommandLine:
+        python -m guitool.guitool_components newButton --show
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from guitool.guitool_components import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qtapp()
-        >>> parent = None
-        >>> text = ''
-        >>> clicked = None
-        >>> qicon = None
-        >>> visible = True
-        >>> enabled = True
-        >>> bgcolor = None
-        >>> fgcolor = None
-        >>> fontkw = {}
-        >>> button = newButton(parent, text, clicked, qicon, visible, enabled,
-        >>>                    bgcolor, fgcolor, fontkw)
-        >>> result = ('button = %s' % (str(button),))
+        >>> import guitool as gt
+        >>> gt.ensure_qtapp()
+        >>> exec(ut.execstr_funckw(newComboBox), globals())
+        >>> button = newButton()
+        >>> result = ('button = %s' % (ut.repr2(button),))
         >>> print(result)
+        >>> ut.quit_if_noshow()
     """
     if text is None:
         if pressed is not None:
@@ -1614,8 +1608,8 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
     Example:
         >>> # ENABLE_DOCTEST
         >>> from guitool.guitool_components import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qtapp()
+        >>> import guitool as gt
+        >>> gt.ensure_qtapp()
         >>> exec(ut.execstr_funckw(newComboBox), globals())
         >>> parent = None
         >>> options = ['red', 'blue']
