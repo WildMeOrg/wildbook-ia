@@ -484,7 +484,7 @@ class AnnotInferenceVisualization(object):
         )
         pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
-    def show_graph(infr, use_image=False):
+    def show_graph(infr, use_image=False, only_reviewed=False):
         infr.update_visual_attrs()
         plotinfo = pt.show_nx(
             infr.graph, layout='custom', as_directed=False, modify_ax=False,

@@ -1025,6 +1025,11 @@ def make_edge_api(infr, review_cfg={}):
             tag_text = ''
         return str(tag_text)
 
+    def edge_assert(edge):
+        aid1, aid2 = edge
+        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
+        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+
     def get_reviewed_status_bgrole(ibs, edge):
         """ Background role for status column """
         data = graph.get_edge_data(*edge)
@@ -1059,8 +1064,16 @@ def make_edge_api(infr, review_cfg={}):
 
     col_name_list = [
         #'index',
-        'aid1', 'aid2', 'score', 'rank', 'matched', 'reviewed', 'thumb1',
-        'thumb2', 'match_thumb', 'timedelta', 'tags', 'data',
+        'thumb1', 'thumb2',
+        'match_thumb',
+        'matched', 'reviewed',
+        'score', 'rank',
+        'timedelta',
+        'kmdist',
+        'speed',
+        'tags',
+        'aid1', 'aid2',
+        'data',
     ]
 
     col_getter_dict = {
@@ -1068,12 +1081,14 @@ def make_edge_api(infr, review_cfg={}):
         'aid1': aids1,
         'aid2': aids2,
         'data': get_edge_data,
-        'timedelta': lambda edge: ibs.get_unflat_annots_timedelta_list([edge])[0][0],
-        'matched':  lambda edge: get_match_text(edge),
+        'timedelta': lambda edge: (edge_assert(edge), ibs.get_unflat_annots_timedelta_list([edge])[0][0])[1],
+        'speed': lambda edge: (edge_assert(edge), ibs.get_unflat_annots_speeds_list2([edge])[0][0])[1],
+        'kmdist': lambda edge: (edge_assert(edge), ibs.get_unflat_annots_kmdists_list([edge])[0][0])[1],
+        'matched':  get_match_text,
         'reviewed':  edge_attr_getter('reviewed_state', 'unreviewed'),
         'score':  edge_attr_getter('score'),
         'rank':  edge_attr_getter('rank', -1),
-        'tags': lambda edge: get_pair_tags(edge),
+        'tags': get_pair_tags,
         'thumb1': ibs.get_annot_chip_thumbtup,
         'thumb2': ibs.get_annot_chip_thumbtup,
         'match_thumb': get_match_thumbtup,
@@ -1087,6 +1102,8 @@ def make_edge_api(infr, review_cfg={}):
         'score': ('aid1', 'aid2'),
         'rank': ('aid1', 'aid2'),
         'timedelta': ('aid1', 'aid2'),
+        'speed': ('aid1', 'aid2'),
+        'kmdist': ('aid1', 'aid2'),
         'matched'     : ('aid1', 'aid2'),
         'reviewed'    : ('aid1', 'aid2'),
         'tags': ('aid1', 'aid2'),
@@ -1095,6 +1112,7 @@ def make_edge_api(infr, review_cfg={}):
         'rank': int,
         'score': float,
         'timedelta': float,
+        'speed': float,
         'thumb1': 'PIXMAP',
         'thumb2': 'PIXMAP',
         'match_thumb': 'PIXMAP',
@@ -1102,6 +1120,8 @@ def make_edge_api(infr, review_cfg={}):
 
     col_display_role_func_dict = {
         'timedelta': ut.partial(ut.get_posix_timedelta_str, year=True, approx=2),
+        'speed': lambda speed: '%.2f km/h' % (speed,),
+        'kmdist': lambda speed: '%.2f km' % (speed,),
     }
 
     col_bgrole_dict = {
@@ -1111,10 +1131,11 @@ def make_edge_api(infr, review_cfg={}):
 
     col_width_dict = {
         'index': 42,
-        'aid1': 42,
-        'aid2': 42,
+        'aid1': 50,
+        'aid2': 50,
         'score': 65,
         'rank': 42,
+        #'timedelta': 65,
     }
 
     edge_api = gt.CustomAPI(
@@ -1141,6 +1162,9 @@ def make_qt_graph_interface(ibs, aids=None, nids=None):
         python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show
 
         python -m ibeis.viz.viz_graph2 make_qt_graph_interface --db LEWA_splits --nids=1 --show
+
+        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --dbdir=/home/joncrall/lev/media/danger/GGR/GGR-IBEIS --nids=2300 --show
+        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --dbdir=/home/joncrall/lev/media/danger/GGR/GGR-IBEIS --nids=3822 --show
 
     Example:
         >>> # DISABLE_DOCTEST
