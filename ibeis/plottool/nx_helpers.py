@@ -952,7 +952,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         if kwargs.get('node_labels', hacknode or not using_image):
             text_args = ((x, y, text), dict(ax=ax, ha='center', va='center',
                                             fontproperties=font_prop))
-            text_pseudo_objects.append(text_args)
+            text_pseudo_objects.append((text_args, zorder))
         patch_dict['node_patch_dict'][node] = (patch)
 
     def get_default_edge_data(graph, edge):
@@ -1237,8 +1237,10 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             for patch in patch_dict['edge_patch_dict'].values():
                 ax.add_patch(patch)
 
-    for text_args in text_pseudo_objects:
-        pt.ax_absolute_text(*text_args[0], **text_args[1])
+    for text_args, zorder in text_pseudo_objects:
+        textobj = pt.ax_absolute_text(*text_args[0], **text_args[1])
+        if zorder is not None:
+            textobj.set_zorder(zorder)
     return patch_dict
 
 

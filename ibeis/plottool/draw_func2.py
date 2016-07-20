@@ -1600,7 +1600,7 @@ def ax_absolute_text(x_, y_, txt, ax=None, roffset=None, **kwargs):
         x_ += xroff * width
         y_ += yroff * height
 
-    ax.text(x_, y_, txt, **kwargs)
+    return ax.text(x_, y_, txt, **kwargs)
 
 
 def fig_relative_text(x, y, txt, **kwargs):
