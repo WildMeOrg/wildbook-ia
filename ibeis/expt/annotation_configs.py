@@ -37,6 +37,10 @@ INDEPENDENT_DEFAULTS_PARAM_INFO = [
                  help_='Keep annot if it has at least this many global names'),
     ut.ParamInfo('max_pername_global', None, type_=int, min_=0,
                  help_='Keep annot if it has at most this many global names'),
+    ut.ParamInfo('min_unixtime', None, type_=float, min_=0,
+                 help_='Remove anything before this timestamp'),
+    ut.ParamInfo('max_unixtime', None, type_=float, min_=0,
+                 help_='Remove anything after this timestamp'),
     #ut.ParamInfo('view', None),
 ]
 

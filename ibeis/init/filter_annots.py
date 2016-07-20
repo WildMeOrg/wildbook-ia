@@ -881,6 +881,22 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                 avail_aids, minqual, unknown_ok=not aidcfg['require_quality'])
         avail_aids = sorted(avail_aids)
 
+    if aidcfg.get('max_unixtime', None) is not None:
+        max_unixtime = aidcfg.get('max_unixtime', None)
+        unixtimes = np.array(ibs.get_annot_image_unixtimes_asfloat(avail_aids))
+        flags = unixtimes <= max_unixtime
+        with VerbosityContext('max_unixtime'):
+            avail_aids = ut.compress(avail_aids, flags)
+        avail_aids = sorted(avail_aids)
+
+    if aidcfg.get('min_unixtime', None) is not None:
+        min_unixtime = aidcfg.get('min_unixtime', None)
+        unixtimes = np.array(ibs.get_annot_image_unixtimes_asfloat(avail_aids))
+        flags = unixtimes >= min_unixtime
+        with VerbosityContext('min_unixtime'):
+            avail_aids = ut.compress(avail_aids, flags)
+        avail_aids = sorted(avail_aids)
+
     if aidcfg.get('max_numfeat') is not None or aidcfg.get('min_numfeat') is not None:
         max_numfeat = aidcfg['max_numfeat']
         min_numfeat = aidcfg['min_numfeat']
@@ -995,8 +1011,6 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         flags = get_annot_tag_filterflags(ibs, avail_aids, filterkw)
         with VerbosityContext('has_any', 'has_none'):
             avail_aids = ut.compress(avail_aids, flags)
-            #avail_aids = ibs.filter_aids_without_name(
-            #    avail_aids, invert=not aidcfg['is_known'])
         avail_aids = sorted(avail_aids)
 
     avail_aids = sorted(avail_aids)
@@ -1057,13 +1071,13 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
 
     # TODO:
     # Filter via GPS distance
-    try:
-        if aidcfg['min_spacedelta'] is not None:
-            pass
-        if aidcfg['min_spacetimedelta'] is not None:
-            pass
-    except KeyError:
-        pass
+    #try:
+    #    if aidcfg['min_spacedelta'] is not None:
+    #        pass
+    #    if aidcfg['min_spacetimedelta'] is not None:
+    #        pass
+    #except KeyError:
+    #    pass
 
     # FIXME: This is NOT an independent filter because it depends on pairwise
     # interactions

@@ -181,34 +181,39 @@ def sight_resight_count(nvisit1, nvisit2, resight):
 
 
 def split_analysis(ibs):
+    """
+    Example:
+        >>> # DISABLE_DOCTEST GGR
+        >>> from ibeis.other.dbinfo import *  # NOQA
+        >>> import ibeis
+        >>> dbdir = ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
+        >>> ibs = ibeis.opendb(dbdir='/home/joncrall/lev/media/danger/GGR/GGR-IBEIS')
+    """
     #nid_list = ibs.get_valid_nids(filter_empty=True)
-
     import datetime
     day1 = datetime.date(2016, 1, 30)
     day2 = datetime.date(2016, 1, 31)
 
     filter_kw = {
         'multiple': None,
-        'minqual': 'good',
+        #'view': ['right'],
+        #'minqual': 'good',
         'is_known': True,
         'min_pername': 1,
-        'view': ['right'],
     }
-
-    all_images = ibs.images()
-    dates = [dt.date() for dt in all_images.datetime]
-    date_to_images = all_images.group_items(dates)
-
-    verbose = False
-
-    visit_dates = [day1, day2]
-    all_aids = []
-    for day in visit_dates:
-        images = date_to_images[day]
-        aids = ut.flatten(images.aids)
-        aids = ibs.filter_annots_general(aids, filter_kw=filter_kw,
-                                         verbose=verbose)
-        all_aids += aids
+    aids1 = ibs.filter_annots_general(filter_kw=ut.dict_union(
+        filter_kw, {
+            'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
+            'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 1.0)),
+        })
+    )
+    aids2 = ibs.filter_annots_general(filter_kw=ut.dict_union(
+        filter_kw, {
+            'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 0.0)),
+            'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
+        })
+    )
+    all_aids = aids1 + aids2
 
     all_annots = ibs.annots(all_aids)
     nid_list, annots_list = all_annots.group(all_annots.nids)
@@ -250,8 +255,6 @@ def split_analysis(ibs):
     flagged_annots = inf_annots + flagged_ok_annots
 
     from ibeis.algo.hots import graph_iden
-    import plottool as pt
-    pt.qt4ensure()
 
     # TODO: Need to ensure that other aids not included in the count
     # are represented here.
@@ -260,10 +263,6 @@ def split_analysis(ibs):
     can_split = []
     num_bad_pairs = 0
     for annots in ut.ProgIter(flagged_annots, lbl='Checking Trivial Splits', freq=1):
-        aids = annots.aids
-        #aid_pairs = list(it.combinations(aids, 2))
-        #ibs.get_annotpair_speeds(aid_pairs)
-        #annots.rrr()
         aids = annots.aids
         infr = graph_iden.AnnotInference2(ibs, aids, verbose=False)
         infr.initialize_graph()
@@ -277,6 +276,9 @@ def split_analysis(ibs):
         num_inconsistent = infr.connected_compoment_relabel()[1]
         can_split.append(num_inconsistent == 0)
     print('Can trivially split %d / %d' % (sum(can_split), len(can_split)))
+
+    import plottool as pt
+    pt.qt4ensure()
 
     num_bad_pairs = 0
     num_bad_pairs_exit = 0
