@@ -229,7 +229,8 @@ def init_matplotlib(verbose=VERBOSE_MPLINIT):
         try:
             # This might be the cause of some issues
             from guitool import __PYQT__  # NOQA
-        except ImportError:
-            print('[!plotttool] WARNING guitool does not have __PYQT__')
+        except ImportError as ex:
+            ut.printex(ex, 'Could not import guitool', iswarning=True)
+            #print('[!plotttool] WARNING guitool does not have __PYQT__')
             pass
         return _init_mpl_mainprocess(verbose=verbose)
