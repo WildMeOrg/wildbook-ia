@@ -160,11 +160,11 @@ def view():
 
     # Calculate the Petersen-Lincoln index form the last two days
     try:
-        from ibeis.other import dbinfo
+        from ibeis.other import dbinfo as dbinfo_
         c1 = bar_value_list4[-2]
         c2 = bar_value_list4[-1]
         c3 = bar_value_list6[-1]
-        pl_index, pl_error = dbinfo.sight_resight_count(c1, c2, c3)
+        pl_index, pl_error = dbinfo_.sight_resight_count(c1, c2, c3)
     except IndexError:
         # pl_index = 'Undefined - Zero recaptured (k = 0)'
         pl_index = 0
