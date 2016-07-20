@@ -242,7 +242,7 @@ def split_analysis(ibs):
     sorted_nids = np.array(ut.take(ok_nids, sortx))  # NOQA
 
     # http://www.infoplease.com/ipa/A0004737.html
-    MAX_ZEBRA_SPEED = 10 * ut.KM_PER_MILE  # km/h
+    MAX_ZEBRA_SPEED = 40 * ut.KM_PER_MILE  # km/h
     flags = sorted_speeds > MAX_ZEBRA_SPEED
 
     flagged_ok_annots = ut.compress(sorted_annots, flags)

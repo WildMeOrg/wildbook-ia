@@ -145,6 +145,7 @@ reg_std_version_check(None, 'pygco')
 reg_std_version_check('6.0.8', 'pip')
 reg_std_version_check('1.1.1', 'utool')
 reg_std_version_check('0.12.3', 'skimage')
+reg_std_version_check('1.1.6', 'cachetools')
 
 
 # @checkinfo('1.1.1')
