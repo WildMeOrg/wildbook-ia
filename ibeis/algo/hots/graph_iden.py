@@ -6,6 +6,7 @@ import vtool as vt  # NOQA
 import plottool as pt
 import six
 import networkx as nx
+import itertools as it
 nx.set_edge_attrs = nx.set_edge_attributes
 nx.get_edge_attrs = nx.get_edge_attributes
 nx.set_node_attrs = nx.set_node_attributes
@@ -530,12 +531,10 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         infr.orig_name_labels = nids
         #if current_nids is None:
         #    current_nids = nids
-        assert nids is not None, 'cant be none'
-        assert len(aids) == len(nids)
+        assert len(aids) == len(nids), 'must correspond'
         #assert len(aids) == len(current_nids)
         infr.graph = None
-        infr._initial_feedback = infr.load_user_feedback()
-        infr.user_feedback = infr._initial_feedback.copy()
+        infr.user_feedback = {}
         infr.thresh = .5
         infr.cm_list = None
         infr.qreq_ = None
@@ -550,7 +549,7 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
     def reset_feedback(infr):
         if infr.verbose:
             print('[infr] reset_feedback')
-        infr.user_feedback = infr._initial_feedback.copy()
+        infr.user_feedback = infr.load_user_feedback()
 
     def remove_feedback(infr):
         if infr.verbose:
@@ -594,7 +593,8 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
                 #print('Inconsistent')
                 num_inconsistent += 1
 
-            nx.set_node_attrs(infr.graph, 'name_label', _dz(list(subgraph.nodes()), [count]))
+            nx.set_node_attrs(infr.graph, 'name_label',
+                              _dz(list(subgraph.nodes()), [count]))
             # Check for consistency
         return num_names, num_inconsistent
 
@@ -606,54 +606,39 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
             print('[infr] load_user_feedback')
         ibs = infr.ibs
         aids = infr.aids
-        rowids1 = ibs.get_annotmatch_rowids_from_aid1(aids)
-        rowids2 = ibs.get_annotmatch_rowids_from_aid2(aids)
-        am_rowids = ut.unique(ut.flatten(rowids1 + rowids2))
-        aids1 = ibs.get_annotmatch_aid1(am_rowids)
-        aids2 = ibs.get_annotmatch_aid2(am_rowids)
-        _aids = set(aids)
-        # Both nodes must be present in the set
-        flags = [a1 in _aids and a2 in _aids for a1, a2 in zip(aids1, aids2)]
-        aids1 = ut.compress(aids1, flags)
-        aids2 = ut.compress(aids2, flags)
+        aid_pairs = list(it.combinations(aids, 2))
+        am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(*zip(*aid_pairs))
+        flags = ut.not_list(ut.flag_None_items(am_rowids))
         am_rowids = ut.compress(am_rowids, flags)
+        aid_pairs = ut.compress(aid_pairs, flags)
+        aids1 = ut.take_column(aid_pairs, 0)
+        aids2 = ut.take_column(aid_pairs, 1)
 
         is_split = ibs.get_annotmatch_prop('SplitCase', am_rowids)
         is_merge = ibs.get_annotmatch_prop('JoinCase', am_rowids)
         is_split = np.array(is_split).astype(np.bool)
         is_merge = np.array(is_merge).astype(np.bool)
 
-        truth = ibs.get_annotmatch_truth(am_rowids)
+        truth = np.array(ibs.get_annotmatch_truth(am_rowids))
         # Hack, if we didnt set it, it probably means it matched
-        truth = [
-            ibs.get_aidpair_truths([aid1], [aid2])[0]
-            if t is None else t
-            for t, aid1, aid2 in zip(truth, aids1, aids2)
-        ]
-        ut.replace_nones(truth, ibs.const.TRUTH_MATCH)
-        truth = np.array(truth)
+        need_truth = np.array(ut.flag_None_items(truth)).astype(np.bool)
+        need_aids1 = ut.compress(aids1, need_truth)
+        need_aids2 = ut.compress(aids2, need_truth)
+        needed_truth = ibs.get_aidpair_truths(need_aids1, need_aids2)
+        truth[need_truth] = needed_truth
+        #truth = [
+        #    ibs.get_aidpair_truths([aid1], [aid2])[0]
+        #    if t is None else t
+        #    for t, aid1, aid2 in zip(truth, aids1, aids2)
+        #]
+        #ut.replace_nones(truth, ibs.const.TRUTH_MATCH)
+        truth = np.array(truth, dtype=np.int)
         truth[is_split] = ibs.const.TRUTH_NOT_MATCH
         truth[is_merge] = ibs.const.TRUTH_MATCH
 
         p_match = (truth == ibs.const.TRUTH_MATCH).astype(np.float)
         p_nomatch = (truth == ibs.const.TRUTH_NOT_MATCH).astype(np.float)
         p_notcomp = (truth == ibs.const.TRUTH_UNKNOWN).astype(np.float)
-
-        #user_feedback = ut.odict([
-        #    ('aid1', np.array(aids1)),
-        #    ('aid2', np.array(aids2)),
-        #    ('p_match', p_match),
-        #    ('p_nomatch', p_nomatch),
-        #    ('p_notcomp', p_notcomp),
-        #])
-        #print('user_feedback = %s' % (ut.repr2(user_feedback, nl=1),))
-        #user_feedback = {
-        #    lbl: x.tolist() if isinstance(x, np.ndarray) else x
-        #    for lbl, x in user_feedback.items()
-        #}
-        # split_aids_pairs = ibs.filter_aidpairs_by_tags(has_any='SplitCase')
-        # for aid1, aid2 in split_aids_pairs:
-        #     infr.add_feedback(aid1, aid2, 'nonmatch')
 
         # CHANGE OF FORMAT
         user_feedback = ut.ddict(list)
@@ -767,15 +752,15 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
             print('[infr] add_feedback(%r, %r, %r)' % (aid1, aid2, state))
 
         edge = tuple(sorted([aid1, aid2]))
-        review = {
-            'p_match': 0.0,
-            'p_nomatch': 0.0,
-            'p_notcomp': 0.0,
-        }
         if state == 'unreviewed':
             if edge in infr.user_feedback:
                 del infr.user_feedback[edge]
         else:
+            review = {
+                'p_match': 0.0,
+                'p_nomatch': 0.0,
+                'p_notcomp': 0.0,
+            }
             if state == 'match':
                 review['p_match'] = 1.0
             elif state == 'nonmatch':

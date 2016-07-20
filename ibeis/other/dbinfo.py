@@ -214,6 +214,8 @@ def split_analysis(ibs):
         })
     )
     all_aids = aids1 + aids2
+    print('%d annots on day 1' % (len(aids1)) )
+    print('%d annots on day 2' % (len(aids2)) )
 
     all_annots = ibs.annots(all_aids)
     nid_list, annots_list = all_annots.group(all_annots.nids)
@@ -260,49 +262,37 @@ def split_analysis(ibs):
     # are represented here.
 
     # Try and automatically split names
-    can_split = []
+    can_split_flags = []
     num_bad_pairs = 0
-    for annots in ut.ProgIter(flagged_annots, lbl='Checking Trivial Splits', freq=1):
+    num_bad_pairs_exist = 0
+    for annots in ut.ProgIter(flagged_annots, lbl='finding trivial splits', freq=1, bs=True):
         aids = annots.aids
-        infr = graph_iden.AnnotInference2(ibs, aids, verbose=False)
+        nids = [1] * len(aids)
+        infr = graph_iden.AnnotInference2(ibs, aids, nids, verbose=False)
         infr.initialize_graph()
+        infr.reset_feedback()
+        infr.apply_feedback()
 
         edge_to_speeds = annots.get_speeds()
         for (aid1, aid2), speed in edge_to_speeds.items():
-            if speed > MAX_ZEBRA_SPEED / 2:
-                infr.add_feedback(aid1, aid2, 'nonmatch')
+            if speed > MAX_ZEBRA_SPEED:
                 num_bad_pairs += 1
+                if infr.graph.has_edge(aid1, aid2):
+                    num_bad_pairs_exist += 1
+                infr.add_feedback(aid1, aid2, 'nonmatch')
+
         infr.apply_feedback()
-        num_inconsistent = infr.connected_compoment_relabel()[1]
-        can_split.append(num_inconsistent == 0)
-    print('Can trivially split %d / %d' % (sum(can_split), len(can_split)))
+        num_ccs, num_inconsistent = infr.connected_compoment_relabel()
+        flag = num_inconsistent == 0
+        can_split_flags.append(flag)
+    print('Can trivially split %d / %d' % (sum(can_split_flags), len(can_split_flags)))
+    print('num_bad_pairs = %r' % (num_bad_pairs,))
+    print('num_bad_pairs_exist = %r' % (num_bad_pairs_exist,))
 
     import plottool as pt
     pt.qt4ensure()
-
-    num_bad_pairs = 0
-    num_bad_pairs_exit = 0
-    flagged_annots2 = ut.compress(flagged_annots, can_split)
-    for annots in ut.ProgIter(flagged_annots2, lbl='Checking Trivial Splits', freq=1):
-        aids = annots.aids
-        #aid_pairs = list(it.combinations(aids, 2))
-        #ibs.get_annotpair_speeds(aid_pairs)
-        #annots.rrr()
-        aids = annots.aids
-        infr = graph_iden.AnnotInference2(ibs, aids, verbose=False)
-        infr.initialize_graph()
-        infr.apply_feedback()
-
-        edge_to_speeds = annots.get_speeds()
-        for (aid1, aid2), speed in edge_to_speeds.items():
-            if speed > MAX_ZEBRA_SPEED / 2:
-                infr.add_feedback(aid1, aid2, 'nonmatch')
-                num_bad_pairs += 1
-                if infr.graph.has_edge(aid1, aid2):
-                    num_bad_pairs_exit += 1
-
-    #infr.initialize_visual_node_attrs()
-    #infr.show_graph(use_image=True)
+    infr.initialize_visual_node_attrs()
+    infr.show_graph(use_image=True)
 
     ##graph = infr.graph
 
