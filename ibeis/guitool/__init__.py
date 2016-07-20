@@ -17,7 +17,7 @@ ut.noinject(__name__, '[guitool.__init__]')
 #    #pass
 
 #print('__guitool__1')
-from guitool import __PYQT__
+#from guitool import __PYQT__
 #print('__guitool__2')
 
 from guitool import api_item_model
