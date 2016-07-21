@@ -189,9 +189,9 @@ def split_analysis(ibs):
         >>> # DISABLE_DOCTEST GGR
         >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
-        >>> dbdir = ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
-        >>> dbdir = dbdir if ut.checkpath(dbdir) else '/media/danger/GGR/GGR-IBEIS'
-        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> dbdir = '/media/danger/GGR/GGR-IBEIS'
+        >>> dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
+        >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
         >>> import guitool as gt
         >>> gt.ensure_qtapp()
         >>> win = split_analysis(ibs)
