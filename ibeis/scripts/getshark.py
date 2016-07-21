@@ -30,26 +30,17 @@ def get_injured_sharks():
     key_to_nice  = {k['indexName']: k['readableName'] for k in keywords}
 
     injury_patterns = [
-        'injury',
-        'net',
-        'hook',
-        'trunc',
-        'damage',
-        'scar',
-        'nicks',
-        'bite',
+        'injury', 'net', 'hook', 'trunc', 'damage', 'scar', 'nicks', 'bite',
     ]
 
     injury_keys = [key for key in key_list if any([pat in key for pat in injury_patterns])]
     noninjury_keys = ut.setdiff(key_list, injury_keys)
     injury_nice = ut.lmap(lambda k: key_to_nice[k], injury_keys)  # NOQA
     noninjury_nice = ut.lmap(lambda k: key_to_nice[k], noninjury_keys)  # NOQA
-
     key_list = injury_keys
 
     keyed_images = {}
-
-    for key in ut.ProgIter(key_list, lbl='reading index'):
+    for key in ut.ProgIter(key_list, lbl='reading index', bs=True):
         key_url = url + '?indexName={indexName}'.format(indexName=key)
         key_resp = requests.get(key_url)
         assert key_resp.status_code == 200
@@ -80,33 +71,51 @@ def get_injured_sharks():
     num_all = len(all_img_urls)  # NOQA
     print('num_all = %r' % (num_all,))
 
-    key_to_category = ut.ddict(list)
-    cat_urls = ut.ddict(list)
+    # Determine super-categories
     categories = ['nicks', 'scar', 'trunc']
+
+    # Force these keys into these categories
+    key_to_cat = {'scarbite': 'other_injury'}
+
+    cat_to_keys = ut.ddict(list)
+
     for key in key_to_urls.keys():
         flag = 1
+        if key in key_to_cat:
+            cat = key_to_cat[key]
+            cat_to_keys[cat].append(key)
+            continue
         for cat in categories:
             if cat in key:
-                key_to_category[cat].append(key)
-                cat_urls[cat] += key_to_urls[key]
+                cat_to_keys[cat].append(key)
                 flag = 0
         if flag:
-            cat = 'other'
-            key_to_category[cat].append(key)
-            cat_urls[cat] += key_to_urls[key]
+            cat = 'other_injury'
+            cat_to_keys[cat].append(key)
+
+    cat_urls = ut.ddict(list)
+    for cat, keys in cat_to_keys.items():
+        for key in keys:
+            cat_urls[cat].extend(key_to_urls[key])
 
     cat_hist = {}
     for cat in list(cat_urls.keys()):
         cat_urls[cat] = list(set(cat_urls[cat]))
         cat_hist[cat] = len(cat_urls[cat])
 
-    print(ut.repr3(key_to_category))
+    print(ut.repr3(cat_to_keys))
     print(ut.repr3(cat_hist))
 
-    key = bigkey = list(key_hist.keys())[-1]
-    url_list = ut.take_column(keyed_images[bigkey], 'url')
-    for url in ut.ProgIter(url_list, lbl='downloading imgs', freq=1):
-        fpath = ut.grab_file_url(url, download_dir='.')
+    # Download the files to the local disk
+    for key in ut.ProgIter(keyed_images.keys()):
+        url_list = ut.take_column(keyed_images[key], 'url')
+        download_dir = ut.truepath('~/tmpsharks')
+        for url in ut.ProgIter(url_list, lbl='downloading imgs', freq=1):
+            fpath = ut.grab_file_url(url, download_dir=download_dir)
+
+
+    from ibeis.dbio import ingest_dataset
+    ingest_dataset.Ingestable2(dbdir)
 
     if False:
         # Show overlap matrix

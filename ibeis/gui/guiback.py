@@ -1197,10 +1197,10 @@ class MainWindowBackend(GUIBACK_BASE):
             sel_imagesettexts = []
         else:
             sel_imagesettexts = map(str, sel_imagesettexts)
-        back.ibswgt.set_status_text(gh.IMAGESET_TABLE, repr(sel_imagesettexts,))
-        back.ibswgt.set_status_text(gh.IMAGE_TABLE, repr(back.sel_gids,))
-        back.ibswgt.set_status_text(gh.ANNOTATION_TABLE, repr(back.sel_aids,))
-        back.ibswgt.set_status_text(gh.NAMES_TREE, repr(back.sel_nids,))
+        back.ibswgt.set_selection_status(gh.IMAGESET_TABLE, sel_imagesettexts)
+        back.ibswgt.set_selection_status(gh.IMAGE_TABLE, back.sel_gids)
+        back.ibswgt.set_selection_status(gh.ANNOTATION_TABLE, back.sel_aids)
+        back.ibswgt.set_selection_status(gh.NAMES_TREE, back.sel_nids)
 
     def _set_selection(back, sel_gids=None, sel_aids=None, sel_nids=None,
                        sel_cm=None, sel_imgsetids=None, mode='set', **kwargs):
@@ -1225,18 +1225,18 @@ class MainWindowBackend(GUIBACK_BASE):
                 sel_imagesettexts = []
             else:
                 sel_imagesettexts = map(str, sel_imagesettexts)
-            back.ibswgt.set_status_text(gh.IMAGESET_TABLE, repr(sel_imagesettexts,))
+            back.ibswgt.set_selection_status(gh.IMAGESET_TABLE, sel_imagesettexts)
         if sel_gids is not None:
             modify_collection_attr(back, 'sel_gids', sel_gids, mode)
-            back.ibswgt.set_status_text(gh.IMAGE_TABLE, repr(back.sel_gids,))
+            back.ibswgt.set_selection_status(gh.IMAGE_TABLE, back.sel_gids)
         if sel_aids is not None:
             sel_aids = ut.ensure_iterable(sel_aids)
             back.sel_aids = sel_aids
-            back.ibswgt.set_status_text(gh.ANNOTATION_TABLE, repr(back.sel_aids,))
+            back.ibswgt.set_selection_status(gh.ANNOTATION_TABLE, back.sel_aids)
         if sel_nids is not None:
             sel_nids = ut.ensure_iterable(sel_nids)
             back.sel_nids = sel_nids
-            back.ibswgt.set_status_text(gh.NAMES_TREE, repr(back.sel_nids,))
+            back.ibswgt.set_selection_status(gh.NAMES_TREE, back.sel_nids)
         if sel_cm is not None:
             raise NotImplementedError('no select cm implemented')
             back.sel_sel_qres = sel_cm

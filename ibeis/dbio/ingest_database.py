@@ -602,16 +602,16 @@ def ingest_testdb1(dbname):
         gid_list = np.array(ibs.get_valid_gids())
         # Set image unixtimes
         unixtimes_even = (gid_list[0::2] + 100).tolist()
-        unixtimes_odd  = (gid_list[1::2] + 9001).tolist()
+        unixtimes_odd = (gid_list[1::2] + 9001).tolist()
         unixtime_list = unixtimes_even + unixtimes_odd
         ibs.set_image_unixtime(gid_list, unixtime_list)
         # Unname first aid in every name
         aid_list = ibs.get_valid_aids()
         nid_list = ibs.get_annot_name_rowids(aid_list)
-        nid_list = [ (nid if nid > 0 else None) for nid in nid_list]
+        nid_list = [(nid if nid > 0 else None) for nid in nid_list]
         unique_flag = ut.flag_unique_items(nid_list)
         unique_nids = ut.compress(nid_list, unique_flag)
-        none_nids = [ nid is not None for nid in nid_list]
+        none_nids = [nid is not None for nid in nid_list]
         flagged_nids = [nid for nid in unique_nids if nid_list.count(nid) > 1]
         plural_flag = [nid in flagged_nids for nid in nid_list]
         flag_list = list(map(all, zip(plural_flag, unique_flag, none_nids)))

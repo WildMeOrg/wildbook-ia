@@ -317,6 +317,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         for tblname in ibswgt.tblname_list:
             ibswgt._tables_tab_widget.addTab(ibswgt.views[tblname], tblname)
 
+        # Force full loading
+        ibswgt.models[IMAGE_TABLE].batch_size = None
+
         # Custom ImageSet Tab Wiget
         ibswgt.imageset_tabwgt = ImageSetTabWidget(parent=ibswgt)
         ibswgt.vlayout.addWidget(ibswgt.vsplitter)
@@ -360,6 +363,12 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             gh.ANNOTATION_TABLE: 5,
             NAMES_TREE: 7,
             NAME_TABLE: 7,
+        }
+        ibswgt.key_to_objnice = {
+            IMAGESET_TABLE: 'ImageSet',
+            IMAGE_TABLE: 'Image',
+            ANNOTATION_TABLE: 'Annotation',
+            NAMES_TREE: 'Name',
         }
         ibswgt.status_widget_list = [
             _NEWLBL('Selected ImageSet: ', fontkw=secondary_fontkw, align='right'),
@@ -574,7 +583,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             >>> print(result)
 
         """
-        print('[ibswgt] update selection')
+        #print('[ibswgt] update selection')
         #print('selected = ' + str(selected.indexes()))
         #print('deselected = ' + str(deselected.indexes()))
         deselected_model_index_list_ = deselected.indexes()
@@ -815,8 +824,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         index = ibswgt._tables_tab_widget.indexOf(view)
         return index
 
-    def set_status_text(ibswgt, key, text):
+    def set_selection_status(ibswgt, key, ids):
+        text = repr(ids)
         index = ibswgt.tablename_to_status_widget_index[key]
+
+        if len(ids) <= 1:
+            text2 = 'Selected %s:' % (ibswgt.key_to_objnice[key],)
+        else:
+            text2 = 'Selected %s %s:' % (len(ids), ut.pluralize(ibswgt.key_to_objnice[key], len(ids)),)
+        ibswgt.status_widget_list[index - 1].setText(text2)
         ibswgt.status_widget_list[index].setText(text)
 
     def set_table_tab(ibswgt, tblname):

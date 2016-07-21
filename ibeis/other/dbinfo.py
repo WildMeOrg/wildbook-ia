@@ -182,12 +182,23 @@ def sight_resight_count(nvisit1, nvisit2, resight):
 
 def split_analysis(ibs):
     """
+    CommandLine:
+        python -m ibeis.other.dbinfo split_analysis --show
+
     Example:
         >>> # DISABLE_DOCTEST GGR
         >>> from ibeis.other.dbinfo import *  # NOQA
         >>> import ibeis
         >>> dbdir = ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
-        >>> ibs = ibeis.opendb(dbdir='/home/joncrall/lev/media/danger/GGR/GGR-IBEIS')
+        >>> dbdir = dbdir if ut.checkpath(dbdir) else '/media/danger/GGR/GGR-IBEIS'
+        >>> ibs = ibeis.opendb(dbdir=dbdir)
+        >>> import guitool as gt
+        >>> gt.ensure_qtapp()
+        >>> win = split_analysis(ibs)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> gt.qtapp_loop(qwin=win)
+        >>> #ut.show_if_requested()
     """
     #nid_list = ibs.get_valid_nids(filter_empty=True)
     import datetime
@@ -258,10 +269,11 @@ def split_analysis(ibs):
     # http://www.speedofanimals.com/animals/zebra
     #ZEBRA_SPEED_MAX  = 64  # km/h
     #ZEBRA_SPEED_RUN  = 50  # km/h
+    ZEBRA_SPEED_SLOW_RUN  = 20  # km/h
     #ZEBRA_SPEED_FAST_WALK = 10  # km/h
-    ZEBRA_SPEED_WALK = 7  # km/h
+    #ZEBRA_SPEED_WALK = 7  # km/h
 
-    MAX_SPEED = ZEBRA_SPEED_WALK
+    MAX_SPEED = ZEBRA_SPEED_SLOW_RUN
     #MAX_SPEED = EXCESSIVE_SPEED
 
     flags = sorted_speeds > MAX_SPEED
@@ -277,20 +289,47 @@ def split_analysis(ibs):
     from ibeis.algo.hots import graph_iden
     import networkx as nx
     progkw = dict(freq=1, bs=True, est_window=len(flagged_annots))
+
+    bad_edges_list = []
+    for annots in ut.ProgIter(flagged_annots, lbl='flag speeding names', **progkw):
+        edge_to_speeds = annots.get_speeds()
+        bad_edges = [edge for edge, speed in edge_to_speeds.items() if speed > MAX_SPEED]
+        bad_edges_list.append(bad_edges)
+    all_bad_edges = ut.flatten(bad_edges_list)
+    print('num_bad_edges = %r' % (len(ut.flatten(bad_edges_list)),))
+
+    if 1:
+        from ibeis.viz import viz_graph2
+        import guitool as gt
+        gt.ensure_qtapp()
+
+        aids = sorted(list(set(ut.flatten(all_bad_edges))))
+        aid_pairs = all_bad_edges
+        infr = graph_iden.AnnotInference2(ibs, aids, verbose=False)
+        infr.initialize_graph()
+
+        # Use random scores to randomize sort order
+        rng = np.random.RandomState(0)
+        scores = (-rng.rand(len(aid_pairs)) * 10).tolist()
+        infr.graph.add_edges_from(aid_pairs)
+        nx.set_edge_attributes(infr.graph, 'score', dict(zip(aid_pairs, scores)))
+
+        win = viz_graph2.AnnotGraphWidget(infr=infr, use_image=False,
+                                          init_mode=None)
+        win.populate_edge_model()
+        win.show()
+        return win
+        # Make review interface for only bad edges
+
     infr_list = []
-    for annots in ut.ProgIter(flagged_annots, lbl='creating inference', **progkw):
+    iter_ = list(zip(flagged_annots, bad_edges_list))
+    for annots, bad_edges in ut.ProgIter(iter_, lbl='creating inference', **progkw):
         aids = annots.aids
         nids = [1] * len(aids)
         infr = graph_iden.AnnotInference2(ibs, aids, nids, verbose=False)
         infr.initialize_graph()
         infr.reset_feedback()
-        infr.apply_feedback()
-        infr_list.append(infr)
-
-    for infr in ut.ProgIter(infr_list, lbl='flagging speeding edges', **progkw):
-        annots = ibs.annots(infr.aids)
-        edge_to_speeds = annots.get_speeds()
-        bad_edges = [edge for edge, speed in edge_to_speeds.items() if speed > MAX_SPEED]
+        #infr.apply_feedback()
         flipped_edges = []
         for aid1, aid2 in bad_edges:
             if infr.graph.has_edge(aid1, aid2):
@@ -298,8 +337,16 @@ def split_analysis(ibs):
             infr.add_feedback(aid1, aid2, 'nonmatch')
         infr.apply_feedback()
         nx.set_edge_attributes(infr.graph, '_speed_split', 'orig')
-        nx.set_edge_attributes(infr.graph, '_speed_split', {edge: 'new' for edge in bad_edges})
-        nx.set_edge_attributes(infr.graph, '_speed_split', {edge: 'flip' for edge in flipped_edges})
+        nx.set_edge_attributes(infr.graph, '_speed_split',
+                               {edge: 'new' for edge in bad_edges})
+        nx.set_edge_attributes(infr.graph, '_speed_split',
+                               {edge: 'flip' for edge in flipped_edges})
+        infr_list.append(infr)
+
+    #for infr in ut.ProgIter(infr_list, lbl='flagging speeding edges', **progkw):
+    #    annots = ibs.annots(infr.aids)
+    #    edge_to_speeds = annots.get_speeds()
+    #    bad_edges = [edge for edge, speed in edge_to_speeds.items() if speed > MAX_SPEED]
 
     def inference_stats(infr_list_):
         relabel_stats = []
@@ -379,7 +426,8 @@ def split_analysis(ibs):
 
     rest = ~np.logical_or(flags1, flags2)
     nonreasonable_infr = ut.compress(splittable_infrs, rest)
-    random_idx = ut.random_indexes(len(nonreasonable_infr) - 1, 15)
+    rng = np.random.RandomState(0)
+    random_idx = ut.random_indexes(len(nonreasonable_infr) - 1, 15, rng=rng)
     random_infr = ut.take(nonreasonable_infr, random_idx)
     for infr in ut.InteractiveIter(random_infr):
         annots = ibs.annots(infr.aids)

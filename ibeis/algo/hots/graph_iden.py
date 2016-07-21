@@ -344,8 +344,9 @@ class AnnotInferenceVisualization(object):
         nodes = list(graph.nodes())
         aid_list = [node_to_aid.get(node, node) for node in nodes]
         #aid_list = sorted(list(graph.nodes()))
+        chip_width = 256
         imgpath_list = infr.ibs.depc_annot.get('chips', aid_list, 'img',
-                                               config=dict(dim_size=200),
+                                               config=dict(dim_size=chip_width),
                                                read_extern=False)
         nx.set_node_attrs(graph, 'framewidth', 3.0)
         #nx.set_node_attrs(graph, 'framecolor', pt.DARK_BLUE)
@@ -485,7 +486,7 @@ class AnnotInferenceVisualization(object):
         pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
     def show_graph(infr, use_image=False, only_reviewed=False):
-        infr.update_visual_attrs()
+        infr.update_visual_attrs(only_reviewed=only_reviewed)
         plotinfo = pt.show_nx(
             infr.graph, layout='custom', as_directed=False, modify_ax=False,
             use_image=use_image, verbose=0)
@@ -672,6 +673,12 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         nx.set_node_attrs(graph, 'name_label', node2_nid)
         nx.set_node_attrs(graph, 'orig_name_label', node2_nid)
 
+    #def add_edges(infr, aid_pairs):
+    #    #attr_dict={}):
+    #    #, attr_dict)
+    #    graph = infr.graph
+    #    graph.add_edges_from(aid_pairs)
+
     def reset_name_labels(infr):
         if infr.verbose:
             print('[infr] reset_name_labels')
@@ -680,6 +687,8 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         nx.set_node_attrs(graph, 'name_label', orig_names)
 
     def lookup_cm(infr, aid1, aid2):
+        if infr.cm_list is None:
+            return None, aid1, aid2
         aid2_idx = ut.make_index_lookup(
             [cm.qaid for cm in infr.cm_list])
         try:
