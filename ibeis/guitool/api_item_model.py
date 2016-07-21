@@ -759,7 +759,7 @@ class APIItemModel(API_MODEL_BASE):
         #print('model.num_rows_total = %r' % (model.num_rows_total,))
         #print('model.num_rows_loaded = %r' % (model.num_rows_loaded,))
         if model.num_rows_total is not None:
-            if model.num_rows_total > model.num_rows_loaded:
+            if model.num_rows_loaded < model.num_rows_total:
                 if VERBOSE:
                     print('canFetchMore %s? -- Yes' % (model.name,))
                 return True
@@ -782,7 +782,10 @@ class APIItemModel(API_MODEL_BASE):
         The default implementation does nothing.
         """
         remainder = model.num_rows_total - model.num_rows_loaded
-        num_fetching = min(model.batch_size, remainder)
+        if model.batch_size is None:
+            num_fetching = remainder
+        else:
+            num_fetching = min(model.batch_size, remainder)
         if VERBOSE:
             print('Fetching %r more %s' % (num_fetching, model.name))
         idx1 = model.num_rows_total
