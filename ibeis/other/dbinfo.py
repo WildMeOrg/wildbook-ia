@@ -184,6 +184,7 @@ def split_analysis(ibs):
     """
     CommandLine:
         python -m ibeis.other.dbinfo split_analysis --show
+        python -m ibeis split_analysis --show
 
     Example:
         >>> # DISABLE_DOCTEST GGR
