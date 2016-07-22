@@ -2,6 +2,7 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import exists, join
+from os.path import splitext
 from six.moves import zip, map, range
 import numpy as np
 from PIL import Image
@@ -268,20 +269,23 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False, orient=False,
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> img_fpath = ut.grab_test_imgpath('lena.png')
-        >>> delete_if_corrupted = False
-        >>> grayscale = False
-        >>> imgBGR = imread(img_fpath, delete_if_corrupted, grayscale)
-        >>> result = str(imgBGR.shape)
-        >>> print(result)
-        (512, 512, 3)
+        >>> imgBGR1 = imread(img_fpath, grayscale=False)
+        >>> imgBGR2 = imread(img_fpath, grayscale=True)
+        >>> imgBGR3 = imread(img_fpath, orient=True)
+        >>> assert imgBGR1.shape == (512, 512, 3)
+        >>> assert imgBGR2.shape == (512, 512)
+        >>> assert np.all(imgBGR1 == imgBGR3)
+        >>> import plottool as pt
+        >>> pt.imshow(imgBGR1, pnum=(2, 2, 1))
+        >>> pt.imshow(imgBGR2, pnum=(2, 2, 2))
+        >>> pt.imshow(imgBGR3, pnum=(2, 2, 3))
+        >>> ut.show_if_requested()
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> img_fpath = ut.grab_test_imgpath('lena.png')
         >>> delete_if_corrupted = False
-        >>> grayscale = True
-        >>> imgBGR = imread(img_fpath, delete_if_corrupted, grayscale)
         >>> result = str(imgBGR.shape)
         >>> print(result)
         (512, 512)
@@ -299,23 +303,39 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False, orient=False,
         >>> print(result)
         >>> assert np.all(imgBGR2 == imgBGR)
         (2736, 3648, 3)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> url = 'http://www.sherv.net/cm/emo/funny/2/big-dancing-banana-smiley-emoticon.gif'
+        >>> img_fpath = ut.grab_file_url(url)
+        >>> delete_if_corrupted = False
+        >>> grayscale = False
+        >>> imgBGR = imread(img_fpath, delete_if_corrupted, grayscale)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(imgBGR)
+        >>> ut.show_if_requested()
     """
     if img_fpath.startswith('http://') or img_fpath.startswith('https://'):
         imgBGR = imread_remote_url(img_fpath, grayscale=grayscale, orient=orient)
     elif img_fpath.startswith('s3://'):
         imgBGR = imread_remote_s3(img_fpath, grayscale=grayscale, orient=orient)
     else:
+        path, ext = splitext(img_fpath)
+        orient_ = 'auto' if orient in ['auto', 'on', True] else False
+        use_pil = not force_opencv and  (orient_ or ext.lower() == '.gif')
         try:
-            if orient in ['auto', 'on', True] and not force_opencv:
-                # print('[vt.imread] USING PIL')
+            if use_pil:
                 # If we want to open with auto orient, only open once with PIL
-                # Otherwise, open with OpenCV (faster) and reorient if given the
-                # known orientation of the image
+                # Otherwise, open with OpenCV (faster) and reorient if given
+                # the known orientation of the image
+                #pil_img = Image.open(img_fpath)
+                #np.array(pil_img)
                 with Image.open(img_fpath) as pil_img:
                     imgBGR = fix_orient_pil_img(pil_img, grayscale=grayscale,
-                                                orient='auto')
+                                                orient=orient_)
             else:
-                # print('[vt.imread] USING OpenCV')
                 if flags is None:
                     flags = cv2.IMREAD_GRAYSCALE if grayscale else IMREAD_COLOR
                 # TODO cv2.IMREAD_UNCHANGED
@@ -364,7 +384,10 @@ def fix_orient_pil_img(pil_img, grayscale=False, orient=False):
     if orient == 'auto':
         exif_dict = exif.get_exif_dict(pil_img)
         orient = exif.get_orientation(exif_dict)
-    np_img = np.array(pil_img)
+    if pil_img.format == 'GIF':
+        np_img = np.array(pil_img.convert('RGB'))
+    else:
+        np_img = np.array(pil_img)
     if grayscale:
         imgBGR = cv2.cvtColor(np_img, cv2.COLOR_RGB2GRAY)
     else:
@@ -379,11 +402,17 @@ def fix_orientation(imgBGR, orient, fallback=True):
     orient_ = exif.ORIENTATION_DICT[orient]
     if orient_ == exif.ORIENTATION_000:
         return imgBGR
+    # FIXME; rotation changes the shape of the images
+    # rotate_image does not do this, it must incorrectly clip areas.
+    # TODO 90 degree optimizations
     elif orient_ == exif.ORIENTATION_090:
+        #return np.rot90(imgBGR, k=1)
         return rotate_image(imgBGR, TAU * 0.25)
     elif orient_ == exif.ORIENTATION_180:
+        #return np.rot90(imgBGR, k=2)
         return rotate_image(imgBGR, TAU * 0.50)
     elif orient_ == exif.ORIENTATION_270:
+        #return np.rot90(imgBGR, k=3)
         return rotate_image(imgBGR, TAU * 0.75)
     elif fallback:
         return imgBGR

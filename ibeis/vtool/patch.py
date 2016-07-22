@@ -94,7 +94,7 @@ def make_test_image_keypoints(imgBGR, scale=1.0, skew=0, theta=0, shift=(0, 0)):
     return kpts
 
 
-def get_no_symbol():
+def get_no_symbol(variant='symbol', size=(100, 100)):
     r"""
     Returns:
         ndarray: errorimg
@@ -112,16 +112,25 @@ def get_no_symbol():
         >>> ut.show_if_requested()
     """
     thickness = 2
-    errorimg = np.zeros((100, 100, 3))
-    center = (50, 50)
-    radius = 50 - thickness
+    shape = (size[1], size[0], 3)
+    errorimg = np.zeros(shape)
+    center = (size[0] // 2, size[1] // 2)
+    radius = min(center) - thickness
     color_bgr = [0, 0, 255]
     tau = 2 * np.pi
     angle = 45 / 360 * tau
     pt1 = (center[0] - int(np.sin(angle) * radius), center[1] - int(np.cos(angle) * radius))
     pt2 = (center[0] + int(np.sin(angle) * radius), center[1] + int(np.cos(angle) * radius))
-    cv2.circle(errorimg, center, radius, color_bgr, thickness)
-    cv2.line(errorimg, pt1, pt2, color_bgr, thickness)
+    if variant == 'symbol':
+        cv2.circle(errorimg, center, radius, color_bgr, thickness)
+        cv2.line(errorimg, pt1, pt2, color_bgr, thickness)
+    else:
+        import vtool as vt
+        fontFace = cv2.FONT_HERSHEY_PLAIN
+        org = (size[0] * .1, size[1] * .6)
+        fontkw = dict(bottomLeftOrigin=False, fontScale=2.5, fontFace=fontFace)
+        vt.draw_text(errorimg, 'NaN', org, thickness=2,
+                     textcolor_rgb=color_bgr[::-1], **fontkw)
     return errorimg
 
 

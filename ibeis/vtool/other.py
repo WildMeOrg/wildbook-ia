@@ -2205,6 +2205,95 @@ def find_elbow_point(curve):
     return tradeoff_idx
 
 
+def zstar_value(conf_level=.95):
+    """
+    References:
+        http://stackoverflow.com/questions/28242593/correct-way-to-obtain-confidence-interval-with-scipy
+    """
+    import scipy.stats as spstats
+    #distribution =
+    #spstats.t.interval(.95, df=(ss - 1))[1]
+    #spstats.norm.interval(.95, df=1)[1]
+    zstar = spstats.norm.interval(conf_level)[1]
+    #zstar = spstats.norm.ppf(spstats.norm.cdf(0) + (conf_level / 2))
+    return zstar
+
+
+def calc_error_from_sample(sample_size, num_positive, pop, conf_level=.95):
+    """
+    References:
+        https://www.qualtrics.com/blog/determining-sample-size/
+        http://www.surveysystem.com/sscalc.htm
+        https://en.wikipedia.org/wiki/Sample_size_determination
+        http://www.surveysystem.com/sample-size-formula.htm
+        http://courses.wcupa.edu/rbove/Berenson/10th%20ed%20CD-ROM%20topics/section8_7.pdf
+        https://en.wikipedia.org/wiki/Standard_normal_table
+        https://www.unc.edu/~rls/s151-2010/class23.pdf
+    """
+    #zValC_lookup = {.95: 3.8416, .99: 6.6564,}
+    # We sampled ss from a population of pop and got num_positive true cases.
+    ss = sample_size
+    # Calculate at this confidence level
+    zval = zstar_value(conf_level)
+    # Calculate our plus/minus error in positive percentage
+    pos_frac = (num_positive / ss)
+    pf = (pop - ss) / (pop - 1)
+    err_frac = zval * np.sqrt((pos_frac) * (1 - pos_frac) * pf / ss)
+    print('num_positive = %r' % (num_positive,))
+    print('sample_size = %r' % (ss,))
+    print('positive rate is %.2f%% ± %.2f%% @ %r confidence' % (
+        100 * pos_frac, 100 * err_frac, conf_level))
+    print('positive num is %d ± %d @ %r confidence' % (
+        int(np.round(pop * pos_frac)), int(np.round(pop * err_frac)), conf_level))
+
+
+def calc_sample_from_error(err_frac, pop, conf_level=.95, prior=.5):
+    """
+    import sympy
+    p, n, N, z = sympy.symbols('prior, ss, pop, zval')
+    me = sympy.symbols('err_frac')
+    expr = (z * sympy.sqrt((p * (1 - p) / n) * ((N - n) / (N - 1))))
+    equation = sympy.Eq(me, expr)
+    nexpr = sympy.solve(equation, [n])[0]
+    nexpr = sympy.simplify(nexpr)
+
+    import autopep8
+    print(autopep8.fix_lines(['ss = ' + str(nexpr)], autopep8._get_options({}, False)))
+
+    ss = -pop * prior* (zval**2) *(prior - 1) / ((err_frac ** 2) * pop - (err_frac**2) - prior * (zval**2) * (prior - 1))
+    ss = pop * prior * zval ** 2 * (prior - 1) / (-err_frac ** 2 * pop + err_frac ** 2 + prior * zval ** 2 * (prior - 1))
+
+    """
+    # How much confidence ydo you want (in fraction of positive results)
+    #zVal_lookup = {.95: 1.96, .99: 2.58,}
+    zval = zstar_value(conf_level)
+
+    std = .5
+    zval * std * (1 - std) / err_frac
+
+    #margin_error = err_frac
+    #margin_error = zval * np.sqrt(prior * (1 - prior) / ss)
+
+    #margin_error_small = zval * np.sqrt((prior * (1 - prior) / ss) * ((pop - ss) / (pop - 1)))
+    #prior = .5  # initial uncertainty
+
+    # Used for large samples
+    #ss_large = (prior * (1 - prior)) / ((margin_error / zval) ** 2)
+
+    # Used for small samples
+    ss_numer = pop * prior * zval ** 2 * (1 - prior)
+    ss_denom = (err_frac ** 2 * pop + err_frac ** 2 + prior * zval ** 2 * (1 - prior))
+    ss_small = ss_numer / ss_denom
+
+    #ss_ = ((zval ** 2) * 0.25) / (err_frac ** 2)
+    #ss = int(np.ceil(ss_ / (1 + ((ss_ - 1) / pop))))
+    ss = int(np.ceil(ss_small))
+    print('need sample size of %r to achive %.2f%% error at %.2f confidence' % (
+        ss, err_frac * 100, conf_level))
+    print('need sample size of %r to achive %2f total error at %.2f confidence' % (
+        ss, err_frac * pop, conf_level))
+
+
 if __name__ == '__main__':
     """
     CommandLine:
