@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import getopt
 import sys
 from xml.dom.minidom import parseString
@@ -106,16 +106,168 @@ def get_injured_sharks():
     print(ut.repr3(cat_to_keys))
     print(ut.repr3(cat_hist))
 
+    key_to_cat = dict([(val, key) for key, vals in cat_to_keys.items() for val in vals])
+
+    #ingestset = {
+    #    '__class__': 'ImageSet',
+    #    'images': ut.ddict(dict)
+    #}
+    #for key, key_imgs in keyed_images.items():
+    #    for imgdict in key_imgs:
+    #        url = imgdict['url']
+    #        encid = imgdict['correspondingEncounterNumber']
+    #        # Make structure
+    #        encdict = encounters[encid]
+    #        encdict['__class__'] = 'Encounter'
+    #        imgdict = ut.delete_keys(imgdict.copy(), ['correspondingEncounterNumber'])
+    #        imgdict['__class__'] = 'Image'
+    #        cat = key_to_cat[key]
+    #        annotdict = {'relative_bbox': [.01, .01, .98, .98], 'tags': [cat, key]}
+    #        annotdict['__class__'] = 'Annotation'
+
+    #        # Ensure structures exist
+    #        encdict['images'] = encdict.get('images', [])
+    #        imgdict['annots'] = imgdict.get('annots', [])
+
+    #        # Add an image to this encounter
+    #        encdict['images'].append(imgdict)
+    #        # Add an annotation to this image
+    #        imgdict['annots'].append(annotdict)
+
+    ##http://springbreak.wildbook.org/rest/org.ecocean.Encounter/1111
+    #get_enc_url = 'http://www.whaleshark.org/rest/org.ecocean.Encounter/%s' % (encid,)
+    #resp = requests.get(get_enc_url)
+    #print(ut.repr3(encdict))
+    #print(ut.repr3(encounters))
+
     # Download the files to the local disk
-    for key in ut.ProgIter(keyed_images.keys()):
-        url_list = ut.take_column(keyed_images[key], 'url')
-        download_dir = ut.truepath('~/tmpsharks')
-        for url in ut.ProgIter(url_list, lbl='downloading imgs', freq=1):
-            fpath = ut.grab_file_url(url, download_dir=download_dir)
+    #fpath_list =
 
+    all_urls = ut.unique(ut.take_column(
+        ut.flatten(
+            ut.dict_subset(keyed_images, ut.flatten(cat_to_keys.values())).values()
+        ), 'url'))
 
-    from ibeis.dbio import ingest_dataset
-    ingest_dataset.Ingestable2(dbdir)
+    dldir = ut.truepath('~/tmpsharks')
+    from os.path import commonprefix, basename  # NOQA
+    prefix = commonprefix(all_urls)
+    suffix_list = [url_[len(prefix):] for url_ in all_urls]
+    fname_list = [suffix.replace('/', '--') for suffix in suffix_list]
+
+    fpath_list = []
+    for url, fname in ut.ProgIter(zip(all_urls, fname_list), lbl='downloading imgs', freq=1):
+        fpath = ut.grab_file_url(url, download_dir=dldir, fname=fname, verbose=False)
+        fpath_list.append(fpath)
+
+    # Make sure we keep orig info
+    #url_to_keys = ut.ddict(list)
+    url_to_info = ut.ddict(dict)
+    for key, imgdict_list in keyed_images.items():
+        for imgdict in imgdict_list:
+            url = imgdict['url']
+            info = url_to_info[url]
+            for k, v in imgdict.items():
+                info[k] = info.get(k, [])
+                info[k].append(v)
+            info['keys'] = info.get('keys', [])
+            info['keys'].append(key)
+            #url_to_keys[url].append(key)
+
+    info_list = ut.take(url_to_info, all_urls)
+    for info in info_list:
+        if len(set(info['correspondingEncounterNumber'])) > 1:
+            assert False, 'url with two different encounter nums'
+    # Combine duplicate tags
+
+    hashid_list = [ut.get_file_uuid(fpath_, stride=8) for fpath_ in ut.ProgIter(fpath_list, bs=True)]
+    groupxs = ut.group_indices(hashid_list)[1]
+
+    # Group properties by duplicate images
+    #groupxs = [g for g in groupxs if len(g) > 1]
+    fpath_list_ = ut.take_column(ut.apply_grouping(fpath_list, groupxs), 0)
+    url_list_ = ut.take_column(ut.apply_grouping(all_urls, groupxs), 0)
+    info_list_ = [ut.map_dict_vals(ut.flatten, ut.dict_accum(*info_))
+                  for info_ in ut.apply_grouping(info_list, groupxs)]
+
+    encid_list_ = [ut.unique(info_['correspondingEncounterNumber'])[0]
+                   for info_ in info_list_]
+    keys_list_ = [ut.unique(info_['keys']) for info_ in info_list_]
+    cats_list_ = [ut.unique(ut.take(key_to_cat, keys)) for keys in keys_list_]
+
+    clist = ut.ColumnLists({
+        'gpath': fpath_list_,
+        'url': url_list_,
+        'encid': encid_list_,
+        'key': keys_list_,
+        'cat': cats_list_,
+    })
+
+    #for info_ in ut.apply_grouping(info_list, groupxs):
+    #    info = ut.dict_accum(*info_)
+    #    info = ut.map_dict_vals(ut.flatten, info)
+    #    x = ut.unique(ut.flatten(ut.dict_accum(*info_)['correspondingEncounterNumber']))
+    #    if len(x) > 1:
+    #        info = info.copy()
+    #        del info['keys']
+    #        print(ut.repr3(info))
+
+    flags = ut.lmap(ut.fpath_has_imgext, clist['gpath'])
+    clist = clist.compress(flags)
+
+    import ibeis
+    ibs = ibeis.opendb('WS_Injury', allow_newdir=True)
+
+    gid_list = ibs.add_images(clist['gpath'])
+    clist['gid'] = gid_list
+
+    failed_flags = ut.flag_None_items(clist['gid'])
+    print('# failed %s' % (sum(failed_flags)),)
+    passed_flags = ut.not_list(failed_flags)
+    clist = clist.compress(passed_flags)
+    ut.assert_all_not_None(clist['gid'])
+    #ibs.get_image_uris_original(clist['gid'])
+    ibs.set_image_uris_original(clist['gid'], clist['url'], overwrite=True)
+
+    #ut.zipflat(clist['cat'], clist['key'])
+    clist['tags'] = ut.zipflat(clist['cat'])
+    aid_list = ibs.use_images_as_annotations(clist['gid'], adjust_percent=0.01,
+                                             tags_list=clist['tags'])
+    aid_list
+
+    import plottool as pt
+    from ibeis import core_annots
+    pt.qt4ensure()
+    #annots = ibs.annots()
+    #aids = [1, 2]
+    #ibs.depc_annot.get('hog', aids , 'hog')
+    #ibs.depc_annot.get('chip', aids, 'img')
+    for aid in ut.InteractiveIter(ibs.get_valid_aids()):
+        hogs = ibs.depc_annot.d.get_hog_hog([aid])
+        chips = ibs.depc_annot.d.get_chips_img([aid])
+        chip = chips[0]
+        hogimg = core_annots.make_hog_block_image(hogs[0])
+        pt.clf()
+        pt.imshow(hogimg, pnum=(1, 2, 1))
+        pt.imshow(chip, pnum=(1, 2, 2))
+        fig = pt.gcf()
+        fig.show()
+        fig.canvas.draw()
+
+    #print(len(groupxs))
+
+    #if False:
+    #groupxs = ut.find_duplicate_items(ut.lmap(basename, suffix_list)).values()
+    #print(ut.repr3(ut.apply_grouping(all_urls, groupxs)))
+    #    # FIX
+    #    for fpath, fname in zip(fpath_list, fname_list):
+    #        if ut.checkpath(fpath):
+    #            ut.move(fpath, join(dirname(fpath), fname))
+    #            print('fpath = %r' % (fpath,))
+
+    #import ibeis
+    #from ibeis.dbio import ingest_dataset
+    #dbdir = ibeis.sysres.lookup_dbdir('WS_ALL')
+    #self = ingest_dataset.Ingestable2(dbdir)
 
     if False:
         # Show overlap matrix

@@ -220,8 +220,8 @@ def get_num_images(ibs, **kwargs):
 @accessor_decors.adder
 @accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_imgs_reviewed_str'])
 @register_api('/api/image/', methods=['POST'])
-def add_images(ibs, gpath_list, params_list=None, as_annots=False, auto_localize=None,
-               sanitize=True, **kwargs):
+def add_images(ibs, gpath_list, params_list=None, as_annots=False,
+               auto_localize=None, sanitize=True, **kwargs):
     r"""
     Adds a list of image paths to the database.
 
@@ -483,15 +483,25 @@ def set_image_uris_original(ibs, gid_list, new_gpath_list, overwrite=False):
         Method: PUT
         URL:    /api/image/uri/original/
     """
-    def _invalid(uri_original):
-        return current is None or len(current) == 0
-
-    current_uri_original_list = ibs.get_image_uris_original(gid_list)
-    new_gpath_list_ = [
-        new if _invalid(current) or overwrite else current
-        for current, new in zip(current_uri_original_list, new_gpath_list)
-    ]
-    id_iter = ((gid,) for gid in gid_list)
+    if overwrite:
+        gid_list_ = gid_list
+        new_gpath_list_ = new_gpath_list
+    else:
+        current_uri_original_list = ibs.get_image_uris_original(gid_list)
+        valid_flags = [current is None or len(current) == 0
+                       for current in current_uri_original_list]
+        invalid_flags = ut.not_list(valid_flags)
+        nInvalid = sum(invalid_flags)
+        if nInvalid > 0:
+            print('[ibs] WARNING: Preventing overwrite of %d original uris' % (
+                nInvalid,))
+        new_gpath_list_ = ut.compress(new_gpath_list, valid_flags)
+        gid_list_ = ut.compress(gid_list, valid_flags)
+    #new_gpath_list_ = [
+    #    new if _invalid(current) or overwrite else current
+    #    for current, new in zip(current_uri_original_list, new_gpath_list)
+    #]
+    id_iter = ((gid,) for gid in gid_list_)
     val_list = ((new_gpath,) for new_gpath in new_gpath_list_)
     ibs.db.set(const.IMAGE_TABLE, ('image_uri_original',), val_list, id_iter)
 
@@ -1061,7 +1071,7 @@ def get_image_detectpaths(ibs, gid_list):
         # TODO; this check might go in dtool itself
         thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
                                    read_extern=False)
-    print(thumbpath_list)
+    #print(thumbpath_list)
     return thumbpath_list
 
 
@@ -1850,7 +1860,7 @@ def delete_image_thumbs(ibs, gid_list, **config2_):
 
     # HACK: Remove paths computed by QT and not the depcache.
     thumbpath_list = ibs.get_image_thumbpath(gid_list, **config2_)
-    print('thumbpath_list = %r' % (thumbpath_list,))
+    #print('thumbpath_list = %r' % (thumbpath_list,))
     #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='image_thumbs')
     ut.remove_existing_fpaths(thumbpath_list, quiet=True,
                               lbl='image_thumbs')

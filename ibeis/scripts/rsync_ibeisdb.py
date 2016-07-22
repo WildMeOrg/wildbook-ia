@@ -9,11 +9,12 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 
 
-def sync_ibeisdb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=False):
+def sync_ibeisdb(remote_uri, dbname, mode='pull', workdir=None, port=22,
+                 dryrun=False):
     """
     syncs an ibeisdb without syncing the cache or the chip directory
-    (or the top level image directory because it shouldnt exist unless it is an
-    old hots database)
+    (or the top level image directory because it shouldnt exist unlese
+    it is an old hots database)
     """
     print('[sync_ibeisdb] Syncing')
     print('  * dbname=%r ' % (dbname,))
@@ -22,7 +23,8 @@ def sync_ibeisdb(remote_uri, dbname, mode='pull', workdir=None, port=22, dryrun=
     import ibeis
     assert dbname is not None, 'must specify a database name'
     # Excluded temporary and cached data
-    exclude_dirs = list(map(ut.ensure_unixslash, ibeis.const.EXCLUDE_COPY_REL_DIRS))
+    exclude_dirs = list(map(ut.ensure_unixslash,
+                            ibeis.const.EXCLUDE_COPY_REL_DIRS))
     # Specify local workdir
     if workdir is None:
         workdir = ibeis.sysres.get_workdir()
@@ -56,9 +58,9 @@ def rsync_ibsdb_main():
     # Get positional commandline arguments
     cmdline_varags = ut.get_cmdline_varargs()
     if len(cmdline_varags) > 0 and cmdline_varags[0] == 'rsync':
-        # ignore rsync as first command (b/c we are calling from ibeis.__main__)
+        # ignore rsync as first command (b/c we are calling from
+        # ibeis.__main__)
         cmdline_varags = cmdline_varags[1:]
-
     valid_modes = ['push', 'pull', 'list']
 
     if len(cmdline_varags) < 1:
@@ -76,12 +78,14 @@ def rsync_ibsdb_main():
 
     user = ut.get_argval('--user', type_=str, default=default_user)
     port = ut.get_argval('--port', type_=int, default=22)
-    dbname = ut.get_argval(('--db', '--dbname'), type_=str, default=default_db)
-    workdir = ut.get_argval(('--workdir', '--dbname'), type_=str, default=None,
-                            help_='local work dir override')
+    dbname = ut.get_argval(('--db', '--dbname'), type_=str,
+                           default=default_db)
+    workdir = ut.get_argval(('--workdir', '--dbname'), type_=str,
+                            default=None, help_='local work dir override')
     dry_run = ut.get_argflag(('--dryrun', '--dry-run', '--dry'))
 
-    assert mode in valid_modes, 'mode=%r must be in %r' % (mode, valid_modes)
+    assert mode in valid_modes, 'mode=%r must be in %r' % (
+        mode, valid_modes)
     remote_key = ut.get_argval('--remote', type_=str, default='hyrule')
     remote_map = {
         'hyrule': 'hyrule.cs.rpi.edu',

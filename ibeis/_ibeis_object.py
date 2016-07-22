@@ -39,7 +39,8 @@ def _find_ibeis_attrs(ibs, objname, blacklist=[]):
     return matched_attrs
 
 
-def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs):
+def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
+                         depc_name=None, depcache_attrs=None):
     """
     for use in the metaclass
     """
@@ -66,6 +67,17 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs):
         ut.set_funcname(ibs_cfg_getter, ibs_funcname)
         return ibs_cfg_getter
 
+    def _make_depcache_getter(depc_name, tbl, col):
+        attrname = '%s_%s' % (tbl, col)
+        def ibs_cfg_getter(self):
+            if self._ibs is None:
+                return self._internal_attrs[attrname]
+            else:
+                depc = getattr(self._ibs, depc_name)
+                return depc.get(tbl, self._rowids, col, config=self._config)
+        ut.set_funcname(ibs_cfg_getter, 'get_' + attrname)
+        return ibs_cfg_getter
+
     # Inject function and property version
     for attrname in attrs:
         ibs_getter = _make_getter(objname, attrname)
@@ -76,6 +88,15 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs):
         ibs_cfg_getter = _make_configurable_getter(objname, attrname)
         setattr(metaself, '_get_' + attrname, ibs_cfg_getter)
         setattr(metaself, attrname, property(ibs_cfg_getter))
+
+    if depcache_attrs is not None:
+        for tbl, col in depcache_attrs:
+            attrname = '%s_%s' % (tbl, col)
+            ibs_depc_getter = _make_depcache_getter(depc_name, tbl, col)
+            setattr(metaself, '_get_' + attrname, ibs_depc_getter)
+            setattr(metaself, attrname, property(ibs_depc_getter))
+        #import utool
+        #utool.embed()
 
 
 class PrimaryObject(ut.NiceRepr):
@@ -94,9 +115,11 @@ class PrimaryObject(ut.NiceRepr):
         idx_list = ut.take(self._rowid_to_idx, rowids)
         return idx_list
 
-    def lookup(self, rowids):
+    def loc(self, rowids):
         idxs = self.lookup_idxs(rowids)
         return self.take(idxs)
+
+    lookup = loc  # TODO: depricate lookup, use loc to be more like pandas
 
     def __nice__(self):
         return '(num=%r)' % (len(self))

@@ -10,14 +10,15 @@ from ibeis.control.controller_inject import make_ibs_register_decorator
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
+BASE_TYPE = type
+
+
 @register_ibs_method
 def annots(ibs, aids=None, config=None):
     if aids is None:
         aids = ibs.get_valid_aids()
+    aids = ut.ensure_iterable(aids)
     return Annots(aids, ibs, config)
-
-
-BASE_TYPE = type
 
 
 class AnnotIBIESPropertyInjector(BASE_TYPE):
@@ -86,8 +87,21 @@ class AnnotIBIESPropertyInjector(BASE_TYPE):
         #    'rowids_from_partial_vuuids',
         #]
 
+        depcache_attrs = [
+            ('hog', 'hog'),
+        ]
+
         objname = 'annot'
-        _ibeis_object._inject_getter_attrs(metaself, objname, attrs, configurable_attrs)
+        _ibeis_object._inject_getter_attrs(metaself, objname, attrs,
+                                           configurable_attrs, 'depc_annot',
+                                           depcache_attrs)
+
+        # TODO: incorporate dynamic setters
+        #def set_case_tags(self, tags):
+        #    self._ibs.append_annot_case_tags(self._rowids, tags)
+        #fget = metaself.case_tags.fget
+        #fset = set_case_tags
+        #setattr(metaself, 'case_tags', property(fget, fset))
 
 
 @ut.reloadable_class
@@ -148,6 +162,11 @@ class Annots(_ibeis_object.PrimaryObject):
         aids2 = ibs.get_annotmatch_aid2(ams)
         aid_pairs = list(zip(aids1, aids2))
         return aid_pairs
+
+    @property
+    def hog_img(self):
+        from ibeis import core_annots
+        return [core_annots.make_hog_block_image(hog) for hog in self.hog_hog]
 
 
 if __name__ == '__main__':

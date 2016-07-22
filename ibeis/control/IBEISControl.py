@@ -988,6 +988,11 @@ class IBEISController(BASE_CLASS):
     # --- MISC ----
     #--------------
 
+    def copy_database(ibs, dest_dbdir):
+        # TODO: rectify with rsync, script, and merge script.
+        from ibeis.init import sysres
+        sysres.copy_ibeisdb(ibs.get_dbdir(), dest_dbdir)
+
     @accessor_decors.default_decorator
     def get_database_icon(ibs, max_dsize=(None, 192), aid=None):
         r"""

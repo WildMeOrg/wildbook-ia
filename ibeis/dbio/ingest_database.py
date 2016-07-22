@@ -81,7 +81,9 @@ class Ingestable2(object):
                 ut.ParamInfo(
                     'images_as_annots', True),
                 ut.ParamInfo(
-                    'ingest_type', 'unknown', valid_values=['unknown', 'named_folders', 'named_images']),
+                    'ingest_type', 'unknown', valid_values=['unknown',
+                                                            'named_folders',
+                                                            'named_images']),
                 ut.ParamInfo(
                     'species', '____',
                     hideif=lambda cfg: not cfg['images_as_annots'],
@@ -105,7 +107,8 @@ class Ingestable2(object):
             ut.ensuredir(unzipped_file_base_dir)
             for zipfile in zipfile_list:
                 img_dir = unzipped_file_base_dir
-                unziped_file_relpath = dirname(relpath(relpath(realpath(zipfile), realpath(img_dir))))
+                unziped_file_relpath = dirname(relpath(relpath(realpath(zipfile),
+                                                               realpath(img_dir))))
                 unzipped_file_dir = join(unzipped_file_base_dir, unziped_file_relpath)
                 ut.ensuredir(unzipped_file_dir)
                 ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
@@ -226,7 +229,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
         >>>     fmtkey=fmtkey, species=species, images_as_annots=ingest_type != 'unknown',
         >>>     adjust_percent=0.00)
         >>> from ibeis.control import IBEISControl
-        >>> dbdir = ibeis.sysres.db_to_dbdir(dbname, allow_newdir=True, use_sync=False)
+        >>> dbdir = ibeis.sysres.db_to_dbdir(dbname, allow_newdir=True)
         >>> ut.ensuredir(dbdir, verbose=True)
         >>> if force_delete:
         >>>     ibsfuncs.delete_ibeis_database(dbdir)
@@ -830,7 +833,7 @@ def ingest_standard_database(dbname, force_delete=False):
     from ibeis.control import IBEISControl
     print('[ingest] Ingest Standard Database: dbname=%r' % (dbname,))
     ingestable = get_standard_ingestable(dbname)
-    dbdir = ibeis.sysres.db_to_dbdir(ingestable.dbname, allow_newdir=True, use_sync=False)
+    dbdir = ibeis.sysres.db_to_dbdir(ingestable.dbname, allow_newdir=True)
     ut.ensuredir(dbdir, verbose=True)
     if force_delete:
         ibsfuncs.delete_ibeis_database(dbdir)

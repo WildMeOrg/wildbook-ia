@@ -78,7 +78,7 @@ class ChipConfig(dtool.Config):
     _param_info_list = [
         #ut.ParamInfo('dim_size', 128, 'sz', hideif=None),
         #ut.ParamInfo('dim_size', 960, 'sz', hideif=None),
-        ut.ParamInfo('dim_size', 700, 'sz', hideif=None),  # TODO: allow types to vary
+        ut.ParamInfo('dim_size', 700, 'sz', hideif=None, type_=eval),  # TODO: allow types to vary
         ut.ParamInfo(
             'resize_dim', 'width', '',
             #'resize_dim', 'area', '',
@@ -123,6 +123,7 @@ def compute_chip(depc, aid_list, config=None):
         ibeis --tf compute_chip --show --pad=64 --dim_size=256 --db PZ_MTEST
         ibeis --tf compute_chip --show --pad=64 --dim_size=None --db PZ_MTEST
         ibeis --tf compute_chip --show --db humpbacks
+        ibeis --tf compute_chip:1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -140,6 +141,23 @@ def compute_chip(depc, aid_list, config=None):
         >>> import ibeis.viz.interact.interact_chip
         >>> interact_obj = ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list, config2_=config)
         >>> interact_obj.start()
+        >>> pt.show_if_requested()
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'testdb1'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_annot
+        >>> config = ChipConfig(**{'dim_size': (256, 256), 'resize_dim': 'wh'})
+        >>> #dlg = config.make_qt_dialog()
+        >>> #config = dlg.widget.config
+        >>> aid_list = ibs.get_valid_aids()[0:8]
+        >>> chips = depc.get_property('chips', aid_list, 'img', config=config)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(vt.stack_image_recurse(chips))
         >>> pt.show_if_requested()
 
     """
@@ -587,13 +605,16 @@ class HOGConfig(dtool.Config):
     ]
 
 
-def make_hog_block_image(hog, config):
+def make_hog_block_image(hog, config=None):
     """
     References:
         https://github.com/scikit-image/scikit-image/blob/master/skimage/feature/_hog.py
     """
 
     from skimage import draw
+
+    if config is None:
+        config = HOGConfig()
 
     cx, cy = config['pixels_per_cell']
 
@@ -629,6 +650,7 @@ def make_hog_block_image(hog, config):
                                    int(centre[0] + dx),
                                    int(centre[1] - dy))
                 hog_image[rr, cc] += orientation_histogram[y, x, o]
+    return hog_image
 
 
 @derived_attribute(

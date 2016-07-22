@@ -189,7 +189,8 @@ def convert_empty_images_to_annotations(ibs):
 
 @register_ibs_method
 def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
-                              notes_list=None, adjust_percent=0.0):
+                              notes_list=None, adjust_percent=0.0,
+                              tags_list=None):
     """ Adds an annotation the size of the entire image to each image.
     adjust_percent - shrinks the ANNOTATION by percentage on each side
     """
@@ -205,6 +206,8 @@ def use_images_as_annotations(ibs, gid_list, name_list=None, nid_list=None,
     aid_list = ibs.add_annots(gid_list, bbox_list, theta_list,
                               name_list=name_list, nid_list=nid_list,
                               notes_list=notes_list)
+    if tags_list is not None:
+        ibs.append_annot_case_tags(aid_list, tags_list)
     return aid_list
 
 
@@ -5473,7 +5476,6 @@ def lookup_annot_vecs_subset(ibs, unflat_aids, unflat_fxs, annots=None, config2_
     #unflat_vecs = unflat_vecs1 = [[] if len(x) == 1 and x[0] is None else x  for x in unflat_vecs1]
     unflat_vecs =  unflat_vecs2 = vt.multigroup_lookup_naive(annots, unflat_aids, unflat_fxs, extract_vecs)  # NOQA
     # import utool
-    # with utool.embed_on_exception_context:
     # vt.sver_c_wrapper.asserteq(unflat_vecs1, unflat_vecs2)
     # unflat_vecs = unflat_vecs2
     # unflat_vecs = unflat_vecs1

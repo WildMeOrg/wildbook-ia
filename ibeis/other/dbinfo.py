@@ -185,6 +185,7 @@ def split_analysis(ibs):
     CommandLine:
         python -m ibeis.other.dbinfo split_analysis --show
         python -m ibeis split_analysis --show
+        python -m ibeis split_analysis --show --good
 
     Example:
         >>> # DISABLE_DOCTEST GGR
@@ -292,20 +293,28 @@ def split_analysis(ibs):
     progkw = dict(freq=1, bs=True, est_window=len(flagged_annots))
 
     bad_edges_list = []
+    good_edges_list = []
     for annots in ut.ProgIter(flagged_annots, lbl='flag speeding names', **progkw):
         edge_to_speeds = annots.get_speeds()
         bad_edges = [edge for edge, speed in edge_to_speeds.items() if speed > MAX_SPEED]
+        good_edges = [edge for edge, speed in edge_to_speeds.items() if speed <= MAX_SPEED]
         bad_edges_list.append(bad_edges)
+        good_edges_list.append(good_edges)
     all_bad_edges = ut.flatten(bad_edges_list)
+    good_edges_list = ut.flatten(good_edges_list)
     print('num_bad_edges = %r' % (len(ut.flatten(bad_edges_list)),))
+    print('num_bad_edges = %r' % (len(ut.flatten(good_edges_list)),))
 
     if 1:
         from ibeis.viz import viz_graph2
         import guitool as gt
         gt.ensure_qtapp()
 
-        aids = sorted(list(set(ut.flatten(all_bad_edges))))
-        aid_pairs = all_bad_edges
+        if ut.get_argflag('--good'):
+            aid_pairs = good_edges_list
+        else:
+            aid_pairs = all_bad_edges
+        aids = sorted(list(set(ut.flatten(aid_pairs))))
         infr = graph_iden.AnnotInference2(ibs, aids, verbose=False)
         infr.initialize_graph()
 
@@ -313,6 +322,29 @@ def split_analysis(ibs):
         rng = np.random.RandomState(0)
         scores = (-rng.rand(len(aid_pairs)) * 10).tolist()
         infr.graph.add_edges_from(aid_pairs)
+
+        if False:
+            pop = len(flagged_annots)
+            edge_sample_size = 250
+            sorted_pairs = ut.sortedby(aid_pairs, scores)[::-1][0:edge_sample_size]
+            sorted_nids = ibs.get_annot_nids(ut.take_column(sorted_pairs, 0))
+            sample_size = len(ut.unique(sorted_nids))
+            am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(*zip(*sorted_pairs))
+            flags = ut.not_list(ut.flag_None_items(am_rowids))
+            #am_rowids = ut.compress(am_rowids, flags)
+            positive_tags = ['SplitCase', 'Photobomb']
+            flags_list = [ibs.get_annotmatch_prop(tag, am_rowids) for tag in positive_tags]
+            is_positive = ut.or_lists(*flags_list)
+            num_positive = sum(ut.lmap(any, ut.group_items(is_positive, sorted_nids).values()))
+            print('A positive is any edge flagged as a %s' % (ut.conj_phrase(positive_tags, 'or'),))
+            print('--- Sampling wrt edges ---')
+            print('edge_sample_size  = %r' % (edge_sample_size,))
+            print('edge_population_size = %r' % (len(aid_pairs),))
+            print('num_positive_edges = %r' % (sum(is_positive)))
+            print('--- Sampling wrt names ---')
+            print('name_population_size = %r' % (pop,))
+            vt.calc_error_from_sample(sample_size, num_positive, pop, conf_level=.95)
+
         nx.set_edge_attributes(infr.graph, 'score', dict(zip(aid_pairs, scores)))
 
         win = viz_graph2.AnnotGraphWidget(infr=infr, use_image=False,
@@ -330,7 +362,20 @@ def split_analysis(ibs):
         infr = graph_iden.AnnotInference2(ibs, aids, nids, verbose=False)
         infr.initialize_graph()
         infr.reset_feedback()
-        #infr.apply_feedback()
+        infr.apply_feedback()
+        infr_list.append(infr)
+
+    # Check which ones are user defined as incorrect
+    #num_positive = 0
+    #for infr in infr_list:
+    #    flag = np.any(infr.get_feedback_probs()[0] == 0)
+    #    num_positive += flag
+    #print('num_positive = %r' % (num_positive,))
+    #pop = len(infr_list)
+    #print('pop = %r' % (pop,))
+
+    iter_ = list(zip(infr_list, bad_edges_list))
+    for infr, bad_edges in ut.ProgIter(iter_, lbl='adding speed edges', **progkw):
         flipped_edges = []
         for aid1, aid2 in bad_edges:
             if infr.graph.has_edge(aid1, aid2):
@@ -342,7 +387,6 @@ def split_analysis(ibs):
                                {edge: 'new' for edge in bad_edges})
         nx.set_edge_attributes(infr.graph, '_speed_split',
                                {edge: 'flip' for edge in flipped_edges})
-        infr_list.append(infr)
 
     #for infr in ut.ProgIter(infr_list, lbl='flagging speeding edges', **progkw):
     #    annots = ibs.annots(infr.aids)
@@ -450,126 +494,35 @@ def split_analysis(ibs):
     #es = sms.proportion_effectsize(0.5, 0.75)
     #sms.NormalIndPower().solve_power(es, power=0.9, alpha=0.05, ratio=1)
 
-    import scipy.stats as spstats
-    #def inv_zstar_value(zstar=1.96):
-    #    conv_level = 2 * (spstats.norm.cdf(1.96) - spstats.norm.cdf(0))
-    #    return conv_level
-    def zstar_value(conf_level=.95):
-        """
-        References:
-            http://stackoverflow.com/questions/28242593/correct-way-to-obtain-confidence-interval-with-scipy
-        """
-        #distribution =
-        #spstats.t.interval(.95, df=(ss - 1))[1]
-        #spstats.norm.interval(.95, df=1)[1]
-        zstar = spstats.norm.interval(conf_level)[1]
-        #zstar = spstats.norm.ppf(spstats.norm.cdf(0) + (conf_level / 2))
-        return zstar
-
-    def calc_error_from_sample(sample_size, num_positive, pop, conf_level=.95):
-        """
-        References:
-            https://www.qualtrics.com/blog/determining-sample-size/
-            http://www.surveysystem.com/sscalc.htm
-            https://en.wikipedia.org/wiki/Sample_size_determination
-            http://www.surveysystem.com/sample-size-formula.htm
-            http://courses.wcupa.edu/rbove/Berenson/10th%20ed%20CD-ROM%20topics/section8_7.pdf
-            https://en.wikipedia.org/wiki/Standard_normal_table
-            https://www.unc.edu/~rls/s151-2010/class23.pdf
-        """
-        #zValC_lookup = {.95: 3.8416, .99: 6.6564,}
-        # We sampled ss from a population of pop and got num_positive true cases.
-        ss = sample_size
-        # Calculate at this confidence level
-        zval = zstar_value(conf_level)
-        # Calculate our plus/minus error in positive percentage
-        pos_frac = (num_positive / ss)
-        pf = (pop - ss) / (pop - 1)
-        err_frac = zval * np.sqrt((pos_frac) * (1 - pos_frac) * pf / ss)
-        print('num_positive = %r' % (num_positive,))
-        print('sample_size = %r' % (ss,))
-        print('positive rate is %.2f%% ± %.2f%% @ %r confidence' % (
-            100 * pos_frac, 100 * err_frac, conf_level))
-        print('positive num is %d ± %d @ %r confidence' % (
-            int(np.round(pop * pos_frac)), int(np.round(pop * err_frac)), conf_level))
-
-    # Calculate ss given conf_level
-
-    def calc_sample_from_error(err_frac, pop, conf_level=.95, prior=.5):
-        """
-        import sympy
-        p, n, N, z = sympy.symbols('prior, ss, pop, zval')
-        me = sympy.symbols('err_frac')
-        expr = (z * sympy.sqrt((p * (1 - p) / n) * ((N - n) / (N - 1))))
-        equation = sympy.Eq(me, expr)
-        nexpr = sympy.solve(equation, [n])[0]
-        nexpr = sympy.simplify(nexpr)
-
-        import autopep8
-        print(autopep8.fix_lines(['ss = ' + str(nexpr)], autopep8._get_options({}, False)))
-
-        ss = -pop * prior* (zval**2) *(prior - 1) / ((err_frac ** 2) * pop - (err_frac**2) - prior * (zval**2) * (prior - 1))
-        ss = pop * prior * zval ** 2 * (prior - 1) / (-err_frac ** 2 * pop + err_frac ** 2 + prior * zval ** 2 * (prior - 1))
-
-        """
-        # How much confidence ydo you want (in fraction of positive results)
-        #zVal_lookup = {.95: 1.96, .99: 2.58,}
-        zval = zstar_value(conf_level)
-
-        std = .5
-        zval * std * (1 - std) / err_frac
-
-        #margin_error = err_frac
-        #margin_error = zval * np.sqrt(prior * (1 - prior) / ss)
-
-        #margin_error_small = zval * np.sqrt((prior * (1 - prior) / ss) * ((pop - ss) / (pop - 1)))
-        #prior = .5  # initial uncertainty
-
-        # Used for large samples
-        #ss_large = (prior * (1 - prior)) / ((margin_error / zval) ** 2)
-
-        # Used for small samples
-        ss_numer = pop * prior * zval ** 2 * (1 - prior)
-        ss_denom = (err_frac ** 2 * pop + err_frac ** 2 + prior * zval ** 2 * (1 - prior))
-        ss_small = ss_numer / ss_denom
-
-        #ss_ = ((zval ** 2) * 0.25) / (err_frac ** 2)
-        #ss = int(np.ceil(ss_ / (1 + ((ss_ - 1) / pop))))
-        ss = int(np.ceil(ss_small))
-        print('need sample size of %r to achive %.2f%% error at %.2f confidence' % (
-            ss, err_frac * 100, conf_level))
-        print('need sample size of %r to achive %2f total error at %.2f confidence' % (
-            ss, err_frac * pop, conf_level))
-
     pop = 279
     num_positive = 3
     sample_size = 15
     conf_level = .95
     #conf_level = .99
-    calc_error_from_sample(sample_size, num_positive, pop, conf_level)
+    vt.calc_error_from_sample(sample_size, num_positive, pop, conf_level)
     print('---')
-    calc_error_from_sample(sample_size + 38, num_positive, pop, conf_level)
+    vt.calc_error_from_sample(sample_size + 38, num_positive, pop, conf_level)
     print('---')
-    calc_error_from_sample(sample_size + 38 / 3, num_positive, pop, conf_level)
+    vt.calc_error_from_sample(sample_size + 38 / 3, num_positive, pop, conf_level)
     print('---')
 
-    calc_error_from_sample(15 + 38, num_positive=3, pop=675, conf_level=.95)
-    calc_error_from_sample(15, num_positive=3, pop=675, conf_level=.95)
+    vt.calc_error_from_sample(15 + 38, num_positive=3, pop=675, conf_level=.95)
+    vt.calc_error_from_sample(15, num_positive=3, pop=675, conf_level=.95)
 
     pop = 279
     #err_frac = .05  # 5%
     err_frac = .10  # 10%
     conf_level = .95
-    calc_sample_from_error(err_frac, pop, conf_level)
+    vt.calc_sample_from_error(err_frac, pop, conf_level)
 
     pop = 675
-    calc_sample_from_error(err_frac, pop, conf_level)
-    calc_sample_from_error(.05, pop, conf_level=.95, prior=.1)
-    calc_sample_from_error(.05, pop, conf_level=.68, prior=.2)
-    calc_sample_from_error(.10, pop, conf_level=.68)
+    vt.calc_sample_from_error(err_frac, pop, conf_level)
+    vt.calc_sample_from_error(.05, pop, conf_level=.95, prior=.1)
+    vt.calc_sample_from_error(.05, pop, conf_level=.68, prior=.2)
+    vt.calc_sample_from_error(.10, pop, conf_level=.68)
 
-    calc_error_from_sample(100, num_positive=5, pop=675, conf_level=.95)
-    calc_error_from_sample(100, num_positive=5, pop=675, conf_level=.68)
+    vt.calc_error_from_sample(100, num_positive=5, pop=675, conf_level=.95)
+    vt.calc_error_from_sample(100, num_positive=5, pop=675, conf_level=.68)
 
     #flagged_nids = [a.nids[0] for a in flagged_annots]
     #all_nids = ibs.get_valid_nids()

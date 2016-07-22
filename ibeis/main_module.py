@@ -257,18 +257,13 @@ def main(gui=True, dbdir=None, defaultdb='cache',
     from ibeis.init import main_commands
     from ibeis.init import sysres
     # Display a visible intro message
-    msg1 = '''
-    _____ ....... _______ _____ _______
-      |   |_____| |______   |   |______
-    ..|.. |.....| |______s__|__ ______|
-    '''
-    msg2 = '''
+    msg = '''
     _____ ______  _______ _____ _______
       |   |_____] |______   |   |______
     __|__ |_____] |______ __|__ ______|
     '''
     if NOT_QUIET:
-        print(msg2 if '--myway' not in sys.argv else msg1)
+        print(msg)
     # Init the only two main system api handles
     ibs = None
     back = None

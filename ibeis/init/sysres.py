@@ -3,17 +3,14 @@
 sysres.py == system_resources
 Module for dealing with system resoureces in the context of IBEIS
 but without the need for an actual IBEIS Controller
-
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function  # , unicode_literals
 import os
 from os.path import exists, join, realpath
 import utool as ut
 from six.moves import input, zip, map
-from utool import util_cache, util_list
 from ibeis import constants as const
 from ibeis import params
-
 # Inject utool functions
 (print, rrr, profile) = ut.inject2(__name__, '[sysres]')
 
@@ -22,27 +19,28 @@ DEFAULTDB_CAHCEID = 'cached_dbdir'
 LOGDIR_CACHEID = ut.logdir_cacheid
 __APPNAME__ = 'ibeis'
 
+ALLOW_GUI = ut.WIN32 or os.environ.get('DISPLAY', None) is not None
+
 
 def get_ibeis_resource_dir():
     return ut.ensure_app_resource_dir('ibeis')
 
 
 def _ibeis_cache_dump():
-    util_cache.global_cache_dump(appname=__APPNAME__)
+    ut.global_cache_dump(appname=__APPNAME__)
 
 
 def _ibeis_cache_write(key, val):
     """ Writes to global IBEIS cache
-
     TODO: Use text based config file
     """
     print('[sysres] set %s=%r' % (key, val))
-    util_cache.global_cache_write(key, val, appname=__APPNAME__)
+    ut.global_cache_write(key, val, appname=__APPNAME__)
 
 
 def _ibeis_cache_read(key, **kwargs):
     """ Reads from global IBEIS cache """
-    return util_cache.global_cache_read(key, appname=__APPNAME__, **kwargs)
+    return ut.global_cache_read(key, appname=__APPNAME__, **kwargs)
 
 
 # Specific cache getters / setters
@@ -93,9 +91,6 @@ def get_workdir(allow_gui=True):
         work_dir = set_workdir()
         return get_workdir(allow_gui=False)
     return None
-
-
-ALLOW_GUI = ut.WIN32 or os.environ.get('DISPLAY', None) is not None
 
 
 def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
@@ -209,7 +204,7 @@ def get_dbalias_dict():
     return dbalias_dict
 
 
-def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
+def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[]):
     """ Implicitly gets dbdir. Searches for db inside of workdir """
     if ut.VERBOSE:
         print('[sysres] db_to_dbdir: db=%r, allow_newdir=%r' % (db, allow_newdir))
@@ -221,10 +216,6 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
     for extra_dir in extra_workdirs:
         if exists(extra_dir):
             workdir_list.append(extra_dir)
-    if use_sync:
-        sync_dir = join(work_dir, '../sync')
-        if exists(sync_dir):
-            workdir_list.append(sync_dir)
     workdir_list.append(work_dir)  # TODO: Allow multiple workdirs
 
     # Check all of your work directories for the database
@@ -248,7 +239,7 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[], use_sync=False):
               (db, work_dir))
         fname_list = os.listdir(work_dir)
         lower_list = [fname.lower() for fname in fname_list]
-        index = util_list.listfind(lower_list, db.lower())
+        index = ut.listfind(lower_list, db.lower())
         if index is not None:
             print('[sysres] WARNING: db capitalization seems to be off')
             if not ut.STRICT:
@@ -378,6 +369,9 @@ def resolve_dbdir2(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
     return dbdir_
 
 
+lookup_dbdir = db_to_dbdir
+
+
 def is_ibeisdb(path):
     """ Checks to see if path contains the IBEIS internal dir """
     return exists(join(path, const.PATH_NAMES._ibsdb))
@@ -501,26 +495,35 @@ def ensure_pz_mtest():
 
     # hack in some tags
     print('Hacking in some tags')
-    foal_aids = [4, 8, 15, 21, 28, 34, 38, 41, 45, 49, 51, 56, 60, 66, 69, 74, 80, 83, 91, 97, 103, 107, 109, 119]
+    foal_aids = [4, 8, 15, 21, 28, 34, 38, 41, 45, 49, 51, 56, 60, 66, 69, 74,
+                 80, 83, 91, 97, 103, 107, 109, 119]
     mother_aids = [9, 16, 35, 42, 52, 57, 61, 67, 75, 84, 98, 104, 108, 114]
     ibs.append_annot_case_tags(foal_aids, ['foal'] * len(foal_aids))
     ibs.append_annot_case_tags(mother_aids, ['mother'] * len(mother_aids))
 
 
 def copy_ibeisdb(source_dbdir, dest_dbdir):
-    # TODO; rectify with rsycn script
+    # TODO: rectify with rsync, script, and merge script.
     from os.path import normpath
     import ibeis
-    exclude_dirs = [ut.ensure_unixslash(normpath(rel)) for rel in ibeis.const.EXCLUDE_COPY_REL_DIRS + ['_hsdb', '.hs_internals']]
+    exclude_dirs_ = (ibeis.const.EXCLUDE_COPY_REL_DIRS +
+                     ['_hsdb', '.hs_internals'])
+    exclude_dirs = [ut.ensure_unixslash(normpath(rel))
+                    for rel in exclude_dirs_]
 
-    rel_tocopy = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs, recursive=True, with_files=True, with_dirs=False, fullpath=False)
-    rel_tocopy_dirs = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs, recursive=True, with_files=False, with_dirs=True, fullpath=False)
+    rel_tocopy = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs,
+                         recursive=True, with_files=True, with_dirs=False,
+                         fullpath=False)
+    rel_tocopy_dirs = ut.glob(source_dbdir, '*', exclude_dirs=exclude_dirs,
+                              recursive=True, with_files=False, with_dirs=True,
+                              fullpath=False)
 
     src_list = [join(source_dbdir, relpath) for relpath in rel_tocopy]
     dst_list = [join(dest_dbdir, relpath) for relpath in rel_tocopy]
 
     # ensure directories exist
-    rel_tocopy_dirs = [dest_dbdir] + [join(dest_dbdir, dpath_) for dpath_ in rel_tocopy_dirs]
+    rel_tocopy_dirs = [dest_dbdir] + [join(dest_dbdir, dpath_)
+                                      for dpath_ in rel_tocopy_dirs]
     for dpath in rel_tocopy_dirs:
         ut.ensuredir(dpath)
     # copy files

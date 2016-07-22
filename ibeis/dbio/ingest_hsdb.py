@@ -283,7 +283,7 @@ def convert_hsdb_to_ibeis(hsdb_dir, **kwargs):
 #    import multiprocessing
 #    multiprocessing.freeze_support()  # win32
 #    db = ut.get_argval('--db', type_=str, default=None)
-#    dbdir = sysres.db_to_dbdir(db, allow_newdir=False, use_sync=False)
+#    dbdir = sysres.db_to_dbdir(db, allow_newdir=False)
 #    convert_hsdb_to_ibeis(dbdir)
 if __name__ == '__main__':
     """

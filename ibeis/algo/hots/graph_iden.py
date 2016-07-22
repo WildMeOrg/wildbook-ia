@@ -617,8 +617,10 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
 
         is_split = ibs.get_annotmatch_prop('SplitCase', am_rowids)
         is_merge = ibs.get_annotmatch_prop('JoinCase', am_rowids)
+        is_pb = ibs.get_annotmatch_prop('Photobomb', am_rowids)
         is_split = np.array(is_split).astype(np.bool)
         is_merge = np.array(is_merge).astype(np.bool)
+        is_pb = np.array(is_pb).astype(np.bool)
 
         truth = np.array(ibs.get_annotmatch_truth(am_rowids))
         # Hack, if we didnt set it, it probably means it matched
@@ -635,6 +637,7 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         #ut.replace_nones(truth, ibs.const.TRUTH_MATCH)
         truth = np.array(truth, dtype=np.int)
         truth[is_split] = ibs.const.TRUTH_NOT_MATCH
+        #truth[is_pb] = ibs.const.TRUTH_NOT_MATCH
         truth[is_merge] = ibs.const.TRUTH_MATCH
 
         p_match = (truth == ibs.const.TRUTH_MATCH).astype(np.float)
