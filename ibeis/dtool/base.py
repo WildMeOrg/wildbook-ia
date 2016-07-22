@@ -302,16 +302,13 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
             >>> config = cls.from_dict(dict_, tablename)
             >>> print(config)
             >>> ut.quit_if_noshow()
-            >>> import guitool
-            >>> guitool.ensure_qapp()  # must be ensured before any embeding
-            >>> dlg = guitool.ConfigConfirmWidget.as_dialog(
+            >>> dlg = config.make_qt_dialog(
             >>>     title='Confirm Merge Query',
-            >>>     msg='Confirm',
-            >>>     config=config)
+            >>>     msg='Confirm')
             >>> dlg.resize(700, 500)
-            >>> self = dlg.widget
             >>> dlg.show()
             >>> import plottool as pt
+            >>> self = dlg.widget
             >>> guitool.qtapp_loop(qwin=dlg)
             >>> updated_config = self.config  # NOQA
             >>> print('updated_config = %r' % (updated_config,))
@@ -321,6 +318,15 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
         UnnamedConfig = make_configclass(dict_, tablename)
         config = UnnamedConfig()
         return config
+
+    def make_qt_dialog(cfg, parent=None, title='Edit Config', msg='Confim'):
+        import guitool as gt
+        gt.ensure_qapp()  # must be ensured before any embeding
+        dlg = gt.ConfigConfirmWidget.as_dialog(
+            title=title, msg=msg, config=cfg)
+        dlg.resize(700, 500)
+        dlg.show()
+        return dlg
 
     def __getstate__(cfg):
         """
