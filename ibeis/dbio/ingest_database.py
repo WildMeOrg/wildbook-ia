@@ -397,6 +397,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     #ibs.print_lblannot_table()
     #ibs.print_image_table()
     #return aid_list
+    return gid_list
 
 
 def normalize_name(name):
