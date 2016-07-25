@@ -345,6 +345,12 @@ def bbox_from_xywh(xy, wh, xy_rel_pos=[0, 0]):
     return bbox
 
 
+def extent_from_verts(verts):
+    bbox = bbox_from_verts(verts)
+    extent = extent_from_bbox(bbox)
+    return extent
+
+
 #def tlbr_from_bbox(bbox):
 def extent_from_bbox(bbox):
     """
