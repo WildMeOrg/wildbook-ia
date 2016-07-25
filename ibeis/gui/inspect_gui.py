@@ -795,7 +795,8 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             matches, metadata = vsone_pipeline.vsone_single(qaid, daid, qreq2_,
                                                             use_ibscache=True)
             interact = vt.matching.show_matching_dict(matches, metadata, mode=1)  # NOQA
-            pt.update()
+            interact.start()
+            #pt.update()
 
         options += [
             ('VsOne', [

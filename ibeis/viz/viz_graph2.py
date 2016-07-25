@@ -3,6 +3,7 @@
 CommandLine:
     #python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show
     python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
+    python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids=1,4,5,6,7,8,9
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -454,6 +455,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         if len(selected_qtindex_list) == 1:
             from ibeis.gui import inspect_gui
+            from ibeis.algo.hots import vsone_pipeline
             ibs = self.infr.ibs
             qtindex = selected_qtindex_list[0]
             model = qtindex.model()
@@ -466,6 +468,38 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 ('Match Ta&gs', pair_tag_options)
             ]
             options += chip_context_options
+
+            if True or self.init_mode != 'split':
+                from ibeis.viz import viz_graph2
+                nids = ut.unique(ibs.get_annot_nids([aid1, aid2]))
+                options += [
+                    ('New Split Case Interaction',
+                     ut.partial(viz_graph2.make_qt_graph_interface,
+                             ibs, nids=nids)),
+                ]
+
+            #vsone_qreq_ = qreq_.shallowcopy(qaids=[aid1])
+            def vsone_single_hack(ibs, qaid, daid, qreq_):
+                import vtool as vt
+                import plottool as pt
+                if qreq_ is None:
+                    qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})
+                else:
+                    qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict=qreq_.qparams)
+                matches, metadata = vsone_pipeline.vsone_single(qaid, daid, qreq2_,
+                                                                use_ibscache=True)
+                interact = vt.matching.show_matching_dict(matches, metadata, mode=1)  # NOQA
+                interact.start()
+
+            options += [
+                ('VsOne', [
+                    ('Run Vsone(ib)', ut.partial(vsone_pipeline.vsone_independant_pair_hack,
+                                                 ibs, aid1, aid2, qreq_=qreq_)),
+                    ('Run Vsone(vt)', ut.partial(vsone_single_hack,
+                                                 ibs, aid1, aid2, qreq_=qreq_)),
+                ]
+                )
+            ]
 
         return options
 
