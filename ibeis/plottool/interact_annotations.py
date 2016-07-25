@@ -290,7 +290,7 @@ def test_interact_annots():
         img = np.random.uniform(0, 255, size=(100, 100))
     valid_species = ['species1', 'species2']
     metadata_list = [{'name': 'foo'}, None]
-    self = ANNOTATIONInteraction(img, verts_list=verts_list,
+    self = AnnotationInteraction(img, verts_list=verts_list,
                                  valid_species=valid_species,
                                  metadata_list=metadata_list,
                                  fnum=0)  # NOQA
@@ -313,7 +313,7 @@ BASE_CLASS = AbstractInteraction
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class ANNOTATIONInteraction(BASE_CLASS):
+class AnnotationInteraction(BASE_CLASS):
     """
     An interactive polygon editor.
 
@@ -341,7 +341,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
                  next_callback=None, prev_callback=None, do_mask=False,
                  valid_species=[],
                  **kwargs):
-        super(ANNOTATIONInteraction, self).__init__(fnum=fnum, **kwargs)
+        super(AnnotationInteraction, self).__init__(fnum=fnum, **kwargs)
 
         #self.CONTEXT_ON = True
         self.CONTEXT_ON = False
@@ -865,12 +865,6 @@ class ANNOTATIONInteraction(BASE_CLASS):
         Resize a rectangle using idx as the given anchor point. Respects
         current rotation.
 
-        Args:
-            poly (?):
-            x (?):
-            y (ndarray):  labels
-            idx (?):
-
         CommandLine:
             python -m plottool.interact_annotations --exec-resize_rectangle --show
 
@@ -891,7 +885,6 @@ class ANNOTATIONInteraction(BASE_CLASS):
             >>> import plottool as pt
             >>> pt.show_if_requested()
         """
-        #print('resize_rectangle')
         # TODO: allow resize by middle click to scale from the center
         if poly is None:
             return
@@ -912,26 +905,19 @@ class ANNOTATIONInteraction(BASE_CLASS):
         # the minus one is because the last coordinate is duplicated (by
         # matplotlib) to get a closed polygon
         tmpcoords = poly.xy[:-1]
-        def wrapIndex(i):
-            return (i % len(tmpcoords))
-
-        previdx, nextidx = wrapIndex(idx - 1), wrapIndex(idx + 1)
+        previdx = (idx - 1) % len(tmpcoords)
+        nextidx = (idx + 1) % len(tmpcoords)
         (dx, dy) = (x - poly.xy[idx][0], y - poly.xy[idx][1])
-
-        tmpcoords = poly.xy[:-1]
-
-        # this algorithm worked the best of the ones I tried, but needs
-        # "experimentally determined constants" to work properly, since I
-        # failed to properly derive them in the allotted time
-
+        # Fudge factor is due to gravity vectors constants
         fudge_factor = (idx) * TAU / 4
+        poly_theta = poly.theta + fudge_factor
+
 
         polar_idx2prev = polarDelta(tmpcoords[idx], tmpcoords[previdx])
         polar_idx2next = polarDelta(tmpcoords[idx], tmpcoords[nextidx])
         tmpcoords[idx] = (tmpcoords[idx][0] + dx, tmpcoords[idx][1] + dy)
         mag_delta = distance(dx, dy)
         theta_delta = math.atan2(dy, dx)
-        poly_theta = poly.theta + fudge_factor
         theta_rot = theta_delta - (poly_theta + TAU / 4)
         rotx = mag_delta * math.cos(theta_rot)
         roty = mag_delta * math.sin(theta_rot)
@@ -954,8 +940,6 @@ class ANNOTATIONInteraction(BASE_CLASS):
         if (self.check_valid_coords(dispcoords) and
              meets_minimum_width_and_height(tmpcoords)):
             poly.basecoords = tmpcoords
-        #else:
-        #    print('[pt] Invalid resize poly')
         set_display_coords(poly)
 
     def toggle_species_label(self):

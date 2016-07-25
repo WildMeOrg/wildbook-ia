@@ -244,7 +244,7 @@ class MultiImageInteraction(BASE_CLASS):
                     else:
                         img = gpath
                     fnum = df2.next_fnum()
-                    mc = interact_annotations.ANNOTATIONInteraction(
+                    mc = interact_annotations.AnnotationInteraction(
                         img, index, self.update_images, bbox_list=bbox_list,
                         theta_list=theta_list, fnum=fnum)
                     mc.start()
