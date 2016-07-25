@@ -64,7 +64,7 @@ class ANNOTATION_Interaction2(object):
             metadata['name']
         if True:
             interact_annotations.rrr()
-        self.interact_ANNOTATIONS = interact_annotations.ANNOTATIONInteraction(
+        self.interact_ANNOTATIONS = interact_annotations.AnnotationInteraction(
             img,
             bbox_list=bbox_list,
             theta_list=theta_list,
