@@ -33,7 +33,6 @@ import utool as ut
 import matplotlib as mpl
 from functools import partial
 from six.moves import zip, range
-from matplotlib import pyplot as plt
 from plottool import draw_func2 as df2
 from plottool import abstract_interaction
 print, rrr, profile = ut.inject2(__name__, '[interact_annotations]')
@@ -364,8 +363,8 @@ class AnnotPoly(mpl.patches.Polygon):
         marker_face_color = line_color
         line_kwargs = {'lw': line_width, 'color': color,
                        'mfc': marker_face_color}
-        lines = plt.Line2D(_xs, _ys, marker='o', alpha=1,
-                           animated=True, **line_kwargs)
+        lines = mpl.lines.Line2D(_xs, _ys, marker='o', alpha=1, animated=True,
+                                 **line_kwargs)
         return lines
 
     def _make_handle_line(poly):
@@ -375,8 +374,8 @@ class AnnotPoly(mpl.patches.Polygon):
         color = np.array(line_color)
         marker_face_color = line_color
         line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
-        lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True,
-                           **line_kwargs)
+        lines = mpl.lines.Line2D(_xs, _ys, marker='o', alpha=1, animated=True,
+                                 **line_kwargs)
         return lines
 
     def update_color(poly, selected=False):
@@ -502,7 +501,6 @@ class AnnotationInteraction(BASE_CLASS):
         #ut.qflag()
         self.fnum = fnum
         #print(self.fnum)
-        #ax = plt.subplot(111)
         ax = df2.gca()
         self.fig.ax = ax
         self.ax = ax
@@ -603,15 +601,12 @@ class AnnotationInteraction(BASE_CLASS):
         self.draw_artists()
         self.fig.canvas.blit(self.fig.ax.bbox)
 
-    def update_colors(self, poly_ind):
-        if poly_ind is None or poly_ind < 0:
-            print('[interact_annot] WARNING: poly_ind is %r in update_colors' %
-                  poly_ind)
-            return
+    def update_annot_colors(self, poly_ind):
         for ind, poly in six.iteritems(self.polys):
+            assert poly.num == ind
             selected = ind == poly_ind
             poly.update_color(selected=selected)
-        plt.draw()
+        self.draw()
 
     # --- Data Matainence / Other
 
@@ -647,7 +642,7 @@ class AnnotationInteraction(BASE_CLASS):
                                 six.itervalues(self.polys)])
             poly_index = list(self.polys.keys())[wh_list.prod(axis=1).argmax()]
             self._currently_selected_poly = self.polys[poly_index]
-            self.update_colors(poly_index)
+            self.update_annot_colors(poly_index)
             self._update_line()
         else:
             self._currently_selected_poly = None
@@ -716,9 +711,6 @@ class AnnotationInteraction(BASE_CLASS):
         return True
 
     def _update_line(self):
-        """
-        save verts because polygon gets deleted when figure is closed
-        """
         for poly in six.itervalues(self.polys):
             self.last_vert_ind = len(poly.xy) - 1
             poly.lines.set_data(list(zip(*poly.xy)))
@@ -819,8 +811,8 @@ class AnnotationInteraction(BASE_CLASS):
         poly_ind, self._currently_selected_poly = _tup
         self._polyHeld = False
         if poly_ind is not None:
-            self.update_colors(poly_ind)
-        plt.draw()
+            self.update_annot_colors(poly_ind)
+        self.draw()
 
     def add_new_annot(self, event=None, full=False):
         """ Adds a new annotation to the image """
@@ -841,28 +833,25 @@ class AnnotationInteraction(BASE_CLASS):
                                       self.mouseX, self.mouseY)
 
         poly = self.new_polygon(coords, 0, self.species_tag)
-        #<hack reason="brittle resizing algorithm that doesn't work unless the
-        #points are in the right order, see
-        # resize_rectangle and meets_minimum_width_and_height">
+
         bbox = vt.bbox_from_verts(poly.basecoords)
         poly.basecoords = vt.verts_from_bbox(bbox)
         set_display_coords(poly)
-        #</hack>
 
         self.polys[poly.num] = poly
         self.fig.ax.add_patch(poly)
-        self._update_line()
-
         self.fig.ax.add_line(poly.lines)
         self.fig.ax.add_line(poly.handle)
+
+        self._update_line()
 
         poly.add_callback(self.poly_changed)
         self._ind = None  # the active vert
         _tup = self.get_most_recently_added_poly()
         poly_ind, self._currently_selected_poly = _tup
         assert poly_ind == poly.num, 'ind %r, num %r' % (poly_ind, poly.num)
-        self.update_colors(poly_ind)
-        plt.draw()
+        self.update_annot_colors(poly_ind)
+        self.draw()
 
     def resize_rectangle(self, poly, x, y, idx):
         """
@@ -1000,8 +989,8 @@ class AnnotationInteraction(BASE_CLASS):
             send_back_annotations()
         # Make mask from selection
         if self.do_mask is True:
-            plt.clf()
-            self.ax = ax = plt.subplot(111)
+            self.fig.clf()
+            self.ax = ax = self.fig.subplot(111)
             img = self.img
             mask = self.get_mask(img.shape)
             # User must close previous figure
@@ -1009,7 +998,7 @@ class AnnotationInteraction(BASE_CLASS):
             masked_img = apply_mask(img, mask)
             # show the modified image
             ax.imshow(masked_img)
-            plt.title('Region outside of mask is darkened')
+            ax.title('Region outside of mask is darkened')
 
             ax.figure.show()
             return
@@ -1101,7 +1090,7 @@ class AnnotationInteraction(BASE_CLASS):
                 return
             else:
                 poly_ind, self._currently_selected_poly = self.get_most_recently_added_poly()
-                self.update_colors(poly_ind)
+                self.update_annot_colors(poly_ind)
 
         polyind, self._ind = self.get_ind_under_cursor(event)
 
@@ -1115,14 +1104,14 @@ class AnnotationInteraction(BASE_CLASS):
                 return
             self.indX, self.indY = self._currently_selected_poly.xy[self._ind]
             self._polyHeld = True
-            self.update_colors(polyind)
+            self.update_annot_colors(polyind)
             self._currently_selected_poly.anchor_idx = self._ind
 
         self.mouseX, self.mouseY = event.xdata, event.ydata
 
         if self._polyHeld is True or self._ind is not None:
             self._currently_selected_poly.set_alpha(.2)
-            self.update_colors(self._currently_selected_poly.num)
+            self.update_annot_colors(self._currently_selected_poly.num)
 
         self.canUncolor = False
         self._update_line()
@@ -1238,8 +1227,6 @@ class AnnotationInteraction(BASE_CLASS):
             self.delete_current_annot()
         elif event.key == TOGGLE_LABEL_HOTKEY:
             self.toggle_species_label()
-        elif event.key == 'ctrl+p':
-            print('[interact_annot] fignums=%r' % (plt.get_fignums(),))
 
         match = re.match('^backspace$', event.key)
         if match:
@@ -1368,10 +1355,6 @@ class AnnotationInteraction(BASE_CLASS):
     #        print('[interact_annot] mouse_leave')
     #    self._currently_selected_poly.set_alpha(0)
     #    self._currently_selected_poly = None
-
-    #def on_resize(self, event):
-    #    self.draw()
-    #    plt.draw()
 
 
 if __name__ == '__main__':
