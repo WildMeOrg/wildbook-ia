@@ -184,13 +184,13 @@ class AnnotPoly(mpl.patches.Polygon):
             # All tab is going to do is go through the possibilities
             poly.species_tag.set_text(poly.tab_list[poly.tcindex])
 
-    def resize(poly, x, y, idx, ax):
+    def resize_annot(poly, x, y, idx, ax):
         """
         Resize a rectangle using idx as the given anchor point. Respects
         current rotation.
 
         CommandLine:
-            python -m plottool.interact_annotations --exec-resize --show
+            python -m plottool.interact_annotations --exec-resize_annot --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -202,7 +202,7 @@ class AnnotPoly(mpl.patches.Polygon):
             >>> x = 3 * w / 4
             >>> y = 3 * h / 4
             >>> idx = 3
-            >>> resize(poly, x, y, idx)
+            >>> resize_annot(poly, x, y, idx)
             >>> update_UI()
             >>> import plottool as pt
             >>> pt.show_if_requested()
@@ -214,6 +214,7 @@ class AnnotPoly(mpl.patches.Polygon):
         # the minus one is because the last coordinate is duplicated (by
         # matplotlib) to get a closed polygon
         tmpcoords = poly.xy[:-1]
+        idx = idx % len(tmpcoords)
         previdx = (idx - 1) % len(tmpcoords)
         nextidx = (idx + 1) % len(tmpcoords)
         (dx, dy) = (x - poly.xy[idx][0], y - poly.xy[idx][1])
@@ -250,13 +251,13 @@ class AnnotPoly(mpl.patches.Polygon):
             poly.basecoords = tmpcoords
         set_display_coords(poly)
 
-    def rotate(poly, dtheta, ax):
+    def rotate_annot(poly, dtheta, ax):
         coords_lis = calc_display_coords(poly.basecoords, poly.theta + dtheta)
         if check_valid_coords(ax, coords_lis):
             poly.theta += dtheta
             set_display_coords(poly)
 
-    def translate(poly, dx, dy, ax):
+    def move_annot(poly, dx, dy, ax):
         new_coords = [(x + dx, y + dy) for (x, y) in poly.basecoords]
         coords_list = calc_display_coords(new_coords, poly.theta)
         if check_valid_coords(ax, coords_list):
@@ -973,25 +974,26 @@ class AnnotationInteraction(BASE_CLASS):
 
         if self._polyHeld is True and self._ind is not None:
             # Resize by dragging corner
-            self._current_sel_poly(self.mouseX, self.mouseY, self._ind,
-                                   self.ax)
+            self._current_sel_poly.resize_annot(self.mouseX, self.mouseY,
+                                                self._ind, self.ax)
             self._current_sel_poly.anchor_idx = self._ind
         elif quick_resize:
             # Quick resize with special click
             anchor_idx = self._current_sel_poly.anchor_idx
             idx = (anchor_idx + 2) % 4
-            self._current_sel_poly.resize(self.mouseX, self.mouseY, idx,
-                                          self.ax)
+            self._current_sel_poly.resize_annot(self.mouseX, self.mouseY, idx,
+                                                self.ax)
         elif self._current_rotate_poly:
+            # Rotate using handle
             cx, cy = points_center(self._current_rotate_poly.xy)
             theta = np.arctan2(cy - self.mouseY, cx - self.mouseX) - TAU / 4
             dtheta = theta - self._current_rotate_poly.theta
-            self._current_rotate_poly.rotate(dtheta, self.ax)
+            self._current_rotate_poly.rotate_annot(dtheta, self.ax)
         elif self._ind is None and event.button == self.LEFT_BUTTON:
-            # move all vertices
+            # Translate by dragging inside annot
             if (self._polyHeld is True and not (deltaX is None or deltaY is
                                                 None)):
-                self._current_sel_poly.translate(deltaX, deltaY, self.ax)
+                self._current_sel_poly.move_annot(deltaX, deltaY, self.ax)
             self._ind = None
         else:
             return
@@ -1141,7 +1143,8 @@ def calc_handle_display_coords(poly):
     w, h = polygon_dims(poly)
     x0, y0 = cx, (cy - (h / 2))  # start at top edge
     MIN_HANDLE_LENGTH = 25
-    HANDLE_LENGTH = max(MIN_HANDLE_LENGTH, (h / 4))
+    #HANDLE_LENGTH = max(MIN_HANDLE_LENGTH, (h / 4))
+    HANDLE_LENGTH = MIN_HANDLE_LENGTH
     x1, y1 = (x0, y0 - HANDLE_LENGTH)
     pts = [(x0, y0), (x1, y1)]
     pts = rotate_points_around(pts, poly.theta, cx, cy)
