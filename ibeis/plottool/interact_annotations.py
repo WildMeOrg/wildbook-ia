@@ -58,244 +58,6 @@ PREV_IMAGE_HOTKEYS  = ['left', 'pageup']
 
 TAU = np.pi * 2
 
-
-def pretty_hotkey_map(hotkeys):
-    if hotkeys is None:
-        return ''
-    hotkeys = [hotkeys] if not isinstance(hotkeys, list) else hotkeys
-    mapping = {
-        #'right': 'right arrow',
-        #'left':  'left arrow',
-    }
-    mapped_hotkeys = [mapping.get(hk, hk) for hk in hotkeys]
-    hotkey_str = '(' + ut.conj_phrase(mapped_hotkeys, 'or') + ')'
-    return hotkey_str
-
-
-def _nxutils_points_inside_poly(points, verts):
-    """ nxutils is depricated """
-    path = mpl.path.Path(verts)
-    return path.contains_points(points)
-
-
-def verts_to_mask(shape, verts):
-    h, w = shape[0:2]
-    y, x = np.mgrid[:h, :w]
-    points = np.transpose((x.ravel(), y.ravel()))
-    #mask = nxutils.points_inside_poly(points, verts)
-    mask = _nxutils_points_inside_poly(points, verts)
-    return mask.reshape(h, w)
-
-
-def apply_mask(img, mask):
-    masked_img = img.copy()
-    masked_img[~mask] = np.uint8(np.clip(masked_img[~mask] - 100., 0, 255))
-    return masked_img
-
-
-def points_center(pts):
-    # the polygons have the first point listed twice in order for them to be
-    # drawn as closed, but that point shouldn't be counted twice for computing
-    # the center (hence the [:-1] slice)
-    return np.array(pts[:-1]).mean(axis=0)
-
-
-def polygon_dims(poly):
-    xs = [x for (x, y) in poly.basecoords]
-    ys = [y for (x, y) in poly.basecoords]
-    w = max(xs) - min(xs)
-    h = max(ys) - min(ys)
-    return (w, h)
-
-
-def rotate_points_around(points, theta, ax, ay):
-    """
-    References:
-        http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
-    """
-    # TODO: Can use vtool for this
-    sin, cos, array = np.sin, np.cos, np.array
-    augpts = array([array((x, y, 1)) for (x, y) in points])
-    ct = cos(theta)
-    st = sin(theta)
-    # correct matrix obtained from
-    rot_mat = array(
-        [(ct, -st, ax - ct * ax + st * ay),
-         (st,  ct, ay - st * ax - ct * ay),
-         ( 0,   0,                      1)]
-    )
-    return [(x, y) for (x, y, z) in rot_mat.dot(augpts.T).T]
-
-
-def calc_display_coords(oldcoords, theta):
-    return rotate_points_around(oldcoords, theta, *points_center(oldcoords))
-
-
-def set_display_coords(poly):
-    poly.xy = calc_display_coords(poly.basecoords, poly.theta)
-    tag_pos = calc_tag_position(poly)
-    poly.species_tag.set_position((tag_pos[0] + 5, tag_pos[1]))
-    poly.metadata_tag.set_position((tag_pos[0] + 5, tag_pos[1] + 50))
-
-def distance(x, y):
-    return np.sqrt(x ** 2 + y ** 2)
-
-def polarDelta(p1, p2):
-    mag = distance(p2[0] - p1[0], p2[1] - p1[1])
-    theta = np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
-    return [mag, theta]
-
-def apply_polarDelta(poldelt, cart):
-    newx = cart[0] + (poldelt[0] * np.cos(poldelt[1]))
-    newy = cart[1] + (poldelt[0] * np.sin(poldelt[1]))
-    return (newx, newy)
-
-
-
-
-def calc_tag_position(poly):
-    r"""
-
-    CommandLine:
-        python -m plottool.interact_annotations --test-calc_tag_position --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from plottool.interact_annotations import *  # NOQA
-        >>> poly = ut.DynStruct()
-        >>> poly.basecoords = np.array([[   0.,  400.],
-        >>>                             [   0.,    0.],
-        >>>                             [ 400.,    0.],
-        >>>                             [ 400.,  400.],
-        >>>                             [   0.,  400.]])
-        >>> poly.theta = 0
-        >>> poly.xy = np.array([[   0.,  400.],
-        >>>                     [   0.,    0.],
-        >>>                     [ 400.,    0.],
-        >>>                     [ 400.,  400.],
-        >>>                     [   0.,  400.]])
-        >>> tagpos = calc_tag_position(poly)
-        >>> print('tagpos = %r' % (tagpos,))
-    """
-    points = [[
-        max(list(zip(*poly.basecoords))[0]),
-        min(list(zip(*poly.basecoords))[1])
-    ]]
-    tagpos = rotate_points_around(points, poly.theta, *points_center(poly.xy))[0]
-    return tagpos
-
-
-def is_within_distance_from_line(dist, pt, line):
-    pt = np.array(pt)
-    line = np.array(line)
-    return vt.distance_to_lineseg(pt, line[0], line[1]) < dist
-
-
-def calc_handle_coords(poly):
-    cx, cy = points_center(poly.xy)
-    w, h = polygon_dims(poly)
-    x0, y0 = cx, (cy - (h / 2))  # start at top edge
-    MIN_HANDLE_LENGTH = 25
-    HANDLE_LENGTH = max(MIN_HANDLE_LENGTH, (h / 4))
-    x1, y1 = (x0, y0 - HANDLE_LENGTH)
-    pts = [(x0, y0), (x1, y1)]
-    pts = rotate_points_around(pts, poly.theta, cx, cy)
-    return pts
-
-
-def meets_minimum_width_and_height(coords):
-    """
-    Depends on hardcoded indices, which is inelegant, but
-    we're already depending on those for the FUDGE_FACTORS
-    array above
-    0----1
-    |    |
-    3----2
-    """
-    MIN_W = 5
-    MIN_H = 5
-    # the seperate 1 and 2 variables are not strictly necessary, but
-    # provide a sanity check to ensure that we're dealing with the
-    # right shape
-    #w, h = vt.get_pointset_extent_wh(np.array(coords))
-    w1 = coords[1][0] - coords[0][0]
-    w2 = coords[2][0] - coords[3][0]
-    h1 = coords[3][1] - coords[0][1]
-    h2 = coords[2][1] - coords[1][1]
-    assert np.isclose(w1, w2), ('w1: %r, w2: %r' % (w1, w2))
-    assert np.isclose(h1, h2), ('h1: %r, h2: %r' % (h1, h2))
-    w, h = w1, h1
-    #print('w, h = (%r, %r)' % (w1, h1))
-    return (MIN_W < w) and (MIN_H < h)
-
-
-def default_vertices(img, polys=None, mouseX=None, mouseY=None):
-    """Default to rectangle that has a quarter-width/height border."""
-    (h, w) = img.shape[0:2]
-    # Center the new verts around wherever the mouse is
-    if mouseX is not None and mouseY is not None:
-        center_x = mouseX
-        center_h = mouseY
-    else:
-        center_x = w // 2
-        center_h = h // 2
-
-    if polys is not None and len(polys) > 0:
-        # Use the largest polygon size as the default verts
-        wh_list = np.array([vt.bbox_from_verts(poly.xy)[2:4]
-                            for poly in six.itervalues(polys)])
-        w_, h_ = wh_list.max(axis=0) // 2
-    else:
-        # If no poly exists use 1/4 of the image size
-        w_, h_ = (w // 4, h // 4)
-    # Get the x/y extents by offseting the centers
-    x1, x2 = np.array([center_x, center_x]) + (w_ * np.array([-1, 1]))
-    y1, y2 = np.array([center_h, center_h]) + (h_ * np.array([-1, 1]))
-    # Clip to bounds
-    x1 = max(x1, 1)
-    y1 = max(y1, 1)
-    x2 = min(x2, w - 1)
-    y2 = min(y2, h - 1)
-    return ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
-
-
-def test_interact_annots():
-    r"""
-    CommandLine:
-        python -m plottool.interact_annotations --test-test_interact_annots --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from plottool.interact_annotations import *  # NOQA
-        >>> import plottool as pt
-        >>> # build test data
-        >>> # execute function
-        >>> self = test_interact_annots()
-        >>> # verify results
-        >>> print(self)
-        >>> pt.show_if_requested()
-    """
-    print('[interact_annot] *** START DEMO ***')
-    verts_list = [
-        ((0, 400), (400, 400), (400, 0), (0, 0), (0, 400)),
-        ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700))
-    ]
-    #if img is None:
-    try:
-        img_url = 'http://i.imgur.com/Vq9CLok.jpg'
-        img_fpath = ut.grab_file_url(img_url)
-        img = vt.imread(img_fpath)
-    except Exception as ex:
-        print('[interact_annot] cant read zebra: %r' % ex)
-        img = np.random.uniform(0, 255, size=(100, 100))
-    valid_species = ['species1', 'species2']
-    metadata_list = [{'name': 'foo'}, None]
-    self = AnnotationInteraction(img, verts_list=verts_list,
-                                 valid_species=valid_species,
-                                 metadata_list=metadata_list,
-                                 fnum=0)  # NOQA
-    return self
-
 AbstractInteraction = abstract_interaction.AbstractInteraction
 BASE_CLASS = AbstractInteraction
 
@@ -1355,6 +1117,242 @@ class AnnotationInteraction(BASE_CLASS):
     #        print('[interact_annot] mouse_leave')
     #    self._currently_selected_poly.set_alpha(0)
     #    self._currently_selected_poly = None
+
+
+def pretty_hotkey_map(hotkeys):
+    if hotkeys is None:
+        return ''
+    hotkeys = [hotkeys] if not isinstance(hotkeys, list) else hotkeys
+    mapping = {
+        #'right': 'right arrow',
+        #'left':  'left arrow',
+    }
+    mapped_hotkeys = [mapping.get(hk, hk) for hk in hotkeys]
+    hotkey_str = '(' + ut.conj_phrase(mapped_hotkeys, 'or') + ')'
+    return hotkey_str
+
+
+def _nxutils_points_inside_poly(points, verts):
+    """ nxutils is depricated """
+    path = mpl.path.Path(verts)
+    return path.contains_points(points)
+
+
+def verts_to_mask(shape, verts):
+    h, w = shape[0:2]
+    y, x = np.mgrid[:h, :w]
+    points = np.transpose((x.ravel(), y.ravel()))
+    #mask = nxutils.points_inside_poly(points, verts)
+    mask = _nxutils_points_inside_poly(points, verts)
+    return mask.reshape(h, w)
+
+
+def apply_mask(img, mask):
+    masked_img = img.copy()
+    masked_img[~mask] = np.uint8(np.clip(masked_img[~mask] - 100., 0, 255))
+    return masked_img
+
+
+def points_center(pts):
+    # the polygons have the first point listed twice in order for them to be
+    # drawn as closed, but that point shouldn't be counted twice for computing
+    # the center (hence the [:-1] slice)
+    return np.array(pts[:-1]).mean(axis=0)
+
+
+def polygon_dims(poly):
+    xs = [x for (x, y) in poly.basecoords]
+    ys = [y for (x, y) in poly.basecoords]
+    w = max(xs) - min(xs)
+    h = max(ys) - min(ys)
+    return (w, h)
+
+
+def rotate_points_around(points, theta, ax, ay):
+    """
+    References:
+        http://www.euclideanspace.com/maths/geometry/affine/aroundPoint/matrix2d/
+    """
+    # TODO: Can use vtool for this
+    sin, cos, array = np.sin, np.cos, np.array
+    augpts = array([array((x, y, 1)) for (x, y) in points])
+    ct = cos(theta)
+    st = sin(theta)
+    # correct matrix obtained from
+    rot_mat = array(
+        [(ct, -st, ax - ct * ax + st * ay),
+         (st,  ct, ay - st * ax - ct * ay),
+         ( 0,   0,                      1)]
+    )
+    return [(x, y) for (x, y, z) in rot_mat.dot(augpts.T).T]
+
+
+def calc_display_coords(oldcoords, theta):
+    return rotate_points_around(oldcoords, theta, *points_center(oldcoords))
+
+
+def set_display_coords(poly):
+    poly.xy = calc_display_coords(poly.basecoords, poly.theta)
+    tag_pos = calc_tag_position(poly)
+    poly.species_tag.set_position((tag_pos[0] + 5, tag_pos[1]))
+    poly.metadata_tag.set_position((tag_pos[0] + 5, tag_pos[1] + 50))
+
+def distance(x, y):
+    return np.sqrt(x ** 2 + y ** 2)
+
+def polarDelta(p1, p2):
+    mag = distance(p2[0] - p1[0], p2[1] - p1[1])
+    theta = np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
+    return [mag, theta]
+
+def apply_polarDelta(poldelt, cart):
+    newx = cart[0] + (poldelt[0] * np.cos(poldelt[1]))
+    newy = cart[1] + (poldelt[0] * np.sin(poldelt[1]))
+    return (newx, newy)
+
+
+def calc_tag_position(poly):
+    r"""
+
+    CommandLine:
+        python -m plottool.interact_annotations --test-calc_tag_position --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.interact_annotations import *  # NOQA
+        >>> poly = ut.DynStruct()
+        >>> poly.basecoords = np.array([[   0.,  400.],
+        >>>                             [   0.,    0.],
+        >>>                             [ 400.,    0.],
+        >>>                             [ 400.,  400.],
+        >>>                             [   0.,  400.]])
+        >>> poly.theta = 0
+        >>> poly.xy = np.array([[   0.,  400.],
+        >>>                     [   0.,    0.],
+        >>>                     [ 400.,    0.],
+        >>>                     [ 400.,  400.],
+        >>>                     [   0.,  400.]])
+        >>> tagpos = calc_tag_position(poly)
+        >>> print('tagpos = %r' % (tagpos,))
+    """
+    points = [[
+        max(list(zip(*poly.basecoords))[0]),
+        min(list(zip(*poly.basecoords))[1])
+    ]]
+    tagpos = rotate_points_around(points, poly.theta, *points_center(poly.xy))[0]
+    return tagpos
+
+
+def is_within_distance_from_line(dist, pt, line):
+    pt = np.array(pt)
+    line = np.array(line)
+    return vt.distance_to_lineseg(pt, line[0], line[1]) < dist
+
+
+def calc_handle_coords(poly):
+    cx, cy = points_center(poly.xy)
+    w, h = polygon_dims(poly)
+    x0, y0 = cx, (cy - (h / 2))  # start at top edge
+    MIN_HANDLE_LENGTH = 25
+    HANDLE_LENGTH = max(MIN_HANDLE_LENGTH, (h / 4))
+    x1, y1 = (x0, y0 - HANDLE_LENGTH)
+    pts = [(x0, y0), (x1, y1)]
+    pts = rotate_points_around(pts, poly.theta, cx, cy)
+    return pts
+
+
+def meets_minimum_width_and_height(coords):
+    """
+    Depends on hardcoded indices, which is inelegant, but
+    we're already depending on those for the FUDGE_FACTORS
+    array above
+    0----1
+    |    |
+    3----2
+    """
+    MIN_W = 5
+    MIN_H = 5
+    # the seperate 1 and 2 variables are not strictly necessary, but
+    # provide a sanity check to ensure that we're dealing with the
+    # right shape
+    #w, h = vt.get_pointset_extent_wh(np.array(coords))
+    w1 = coords[1][0] - coords[0][0]
+    w2 = coords[2][0] - coords[3][0]
+    h1 = coords[3][1] - coords[0][1]
+    h2 = coords[2][1] - coords[1][1]
+    assert np.isclose(w1, w2), ('w1: %r, w2: %r' % (w1, w2))
+    assert np.isclose(h1, h2), ('h1: %r, h2: %r' % (h1, h2))
+    w, h = w1, h1
+    #print('w, h = (%r, %r)' % (w1, h1))
+    return (MIN_W < w) and (MIN_H < h)
+
+
+def default_vertices(img, polys=None, mouseX=None, mouseY=None):
+    """Default to rectangle that has a quarter-width/height border."""
+    (h, w) = img.shape[0:2]
+    # Center the new verts around wherever the mouse is
+    if mouseX is not None and mouseY is not None:
+        center_x = mouseX
+        center_h = mouseY
+    else:
+        center_x = w // 2
+        center_h = h // 2
+
+    if polys is not None and len(polys) > 0:
+        # Use the largest polygon size as the default verts
+        wh_list = np.array([vt.bbox_from_verts(poly.xy)[2:4]
+                            for poly in six.itervalues(polys)])
+        w_, h_ = wh_list.max(axis=0) // 2
+    else:
+        # If no poly exists use 1/4 of the image size
+        w_, h_ = (w // 4, h // 4)
+    # Get the x/y extents by offseting the centers
+    x1, x2 = np.array([center_x, center_x]) + (w_ * np.array([-1, 1]))
+    y1, y2 = np.array([center_h, center_h]) + (h_ * np.array([-1, 1]))
+    # Clip to bounds
+    x1 = max(x1, 1)
+    y1 = max(y1, 1)
+    x2 = min(x2, w - 1)
+    y2 = min(y2, h - 1)
+    return ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
+
+
+def test_interact_annots():
+    r"""
+    CommandLine:
+        python -m plottool.interact_annotations --test-test_interact_annots --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.interact_annotations import *  # NOQA
+        >>> import plottool as pt
+        >>> # build test data
+        >>> # execute function
+        >>> self = test_interact_annots()
+        >>> # verify results
+        >>> print(self)
+        >>> pt.show_if_requested()
+    """
+    print('[interact_annot] *** START DEMO ***')
+    verts_list = [
+        ((0, 400), (400, 400), (400, 0), (0, 0), (0, 400)),
+        ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700))
+    ]
+    #if img is None:
+    try:
+        img_url = 'http://i.imgur.com/Vq9CLok.jpg'
+        img_fpath = ut.grab_file_url(img_url)
+        img = vt.imread(img_fpath)
+    except Exception as ex:
+        print('[interact_annot] cant read zebra: %r' % ex)
+        img = np.random.uniform(0, 255, size=(100, 100))
+    valid_species = ['species1', 'species2']
+    metadata_list = [{'name': 'foo'}, None]
+    self = AnnotationInteraction(img, verts_list=verts_list,
+                                 valid_species=valid_species,
+                                 metadata_list=metadata_list,
+                                 fnum=0)  # NOQA
+    return self
 
 
 if __name__ == '__main__':
