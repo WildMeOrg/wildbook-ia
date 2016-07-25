@@ -58,16 +58,11 @@ PREV_IMAGE_HOTKEYS  = ['left', 'pageup']
 
 TAU = np.pi * 2
 
-AbstractInteraction = abstract_interaction.AbstractInteraction
-BASE_CLASS = AbstractInteraction
-
-
 
 class AnnotPoly(mpl.patches.Polygon):
     """
     Helper to represent an annotation polygon
     """
-
     def __init__(poly, ax, num, verts, theta, species, fc=(0, 0, 0),
                  line_color=(1, 1, 1), line_width=4, is_orig=False,
                  metadata=None, valid_species=None):
@@ -91,14 +86,10 @@ class AnnotPoly(mpl.patches.Polygon):
         )
 
         if isinstance(metadata, ut.LazyDict):
-            """
-            ibeis --aidcmd='Interact image' --aid=1
-            """
+            """ ibeis --aidcmd='Interact image' --aid=1 """
             metadata_ = ut.dict_subset(metadata, metadata.cached_keys())
         else:
             metadata_ = metadata
-            #metadata = metadata.asdict(False)
-            #metadata
 
         poly.metadata_tag = ax.text(
             0, 0,
@@ -284,8 +275,7 @@ class AnnotPoly(mpl.patches.Polygon):
 
         dispcoords = calc_display_coords(tmpcoords, poly.theta)
 
-        if (check_valid_coords(ax, dispcoords) and
-             meets_minimum_width_and_height(tmpcoords)):
+        if (check_valid_coords(ax, dispcoords) and check_min_wh(tmpcoords)):
             poly.basecoords = tmpcoords
         poly.set_display_coords()
 
@@ -326,7 +316,7 @@ class AnnotPoly(mpl.patches.Polygon):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class AnnotationInteraction(BASE_CLASS):
+class AnnotationInteraction(abstract_interaction.AbstractInteraction):
     """
     An interactive polygon editor.
 
@@ -574,6 +564,7 @@ class AnnotationInteraction(BASE_CLASS):
         # Convert bbox to verticies
         verts_list = [vt.verts_from_bbox(bbox) for bbox in bbox_list]
         for verts in verts_list:
+            verts = np.array(verts)
             for vert in verts:
                 enforce_dims(self.ax, vert)
         # Create polygons
@@ -1164,7 +1155,7 @@ def is_within_distance_from_line(dist, pt, line):
     return vt.distance_to_lineseg(pt, line[0], line[1]) < dist
 
 
-def meets_minimum_width_and_height(coords):
+def check_min_wh(coords):
     """
     Depends on hardcoded indices, which is inelegant, but
     we're already depending on those for the FUDGE_FACTORS
