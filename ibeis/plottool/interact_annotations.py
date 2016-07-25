@@ -82,7 +82,6 @@ class AnnotPoly(mpl.patches.Polygon):
         poly.xy = calc_display_coords(poly.basecoords, poly.theta)
         poly.lines = poly._make_lines(line_color, line_width)
         poly.handle = poly._make_handle_line()
-        #tagpos = calc_tag_position(poly)
         poly.species_tag = ax.text(
             #tagpos[0], tagpos[1],
             0, 0,
@@ -108,7 +107,7 @@ class AnnotPoly(mpl.patches.Polygon):
             bbox={'facecolor': 'white', 'alpha': .7},
             verticalalignment='top',
         )
-        set_display_coords(poly)
+        poly.set_display_coords()
         poly.species_tag.remove()  # eliminate "leftover" copies
         poly.metadata_tag.remove()
         poly.metadata = metadata
@@ -149,7 +148,7 @@ class AnnotPoly(mpl.patches.Polygon):
         return lines
 
     def _make_handle_line(poly):
-        _xs, _ys = list(zip(*calc_handle_display_coords(poly)))
+        _xs, _ys = list(zip(*poly.calc_handle_display_coords()))
         line_width = 4
         line_color = (0, 1, 0)
         color = np.array(line_color)
@@ -158,6 +157,41 @@ class AnnotPoly(mpl.patches.Polygon):
         lines = mpl.lines.Line2D(_xs, _ys, marker='o', alpha=1, animated=True,
                                  **line_kwargs)
         return lines
+
+    def calc_tag_position(poly):
+        r"""
+
+        CommandLine:
+            python -m plottool.interact_annotations --test-calc_tag_position --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from plottool.interact_annotations import *  # NOQA
+            >>> poly = ut.DynStruct()
+            >>> poly.basecoords = vt.verts_from_bbox([0, 0, 400, 400], True)
+            >>> poly.theta = 0
+            >>> poly.xy = vt.verts_from_bbox([0, 0, 400, 400], True)
+            >>> tagpos = poly.calc_tag_position()
+            >>> print('tagpos = %r' % (tagpos,))
+        """
+        points = [[
+            max(list(zip(*poly.basecoords))[0]),
+            min(list(zip(*poly.basecoords))[1])
+        ]]
+        tagpos = rotate_points_around(points, poly.theta, *points_center(poly.xy))[0]
+        return tagpos
+
+    def calc_handle_display_coords(poly):
+        cx, cy = points_center(poly.xy)
+        w, h = vt.get_pointset_extent_wh(np.array(poly.basecoords))
+        x0, y0 = cx, (cy - (h / 2))  # start at top edge
+        MIN_HANDLE_LENGTH = 25
+        #HANDLE_LENGTH = max(MIN_HANDLE_LENGTH, (h / 4))
+        HANDLE_LENGTH = MIN_HANDLE_LENGTH
+        x1, y1 = (x0, y0 - HANDLE_LENGTH)
+        pts = [(x0, y0), (x1, y1)]
+        pts = rotate_points_around(pts, poly.theta, cx, cy)
+        return pts
 
     def update_color(poly, selected=False, editing_parts=False):
         if editing_parts:
@@ -175,7 +209,7 @@ class AnnotPoly(mpl.patches.Polygon):
 
     def update_lines(poly):
         poly.lines.set_data(list(zip(*poly.xy)))
-        poly.handle.set_data(list(zip(*calc_handle_display_coords(poly))))
+        poly.handle.set_data(list(zip(*poly.calc_handle_display_coords())))
 
     def set_species(poly, text):
         poly.tctext = text
@@ -253,20 +287,26 @@ class AnnotPoly(mpl.patches.Polygon):
         if (check_valid_coords(ax, dispcoords) and
              meets_minimum_width_and_height(tmpcoords)):
             poly.basecoords = tmpcoords
-        set_display_coords(poly)
+        poly.set_display_coords()
 
     def rotate_annot(poly, dtheta, ax):
         coords_lis = calc_display_coords(poly.basecoords, poly.theta + dtheta)
         if check_valid_coords(ax, coords_lis):
             poly.theta += dtheta
-            set_display_coords(poly)
+            poly.set_display_coords()
 
     def move_annot(poly, dx, dy, ax):
         new_coords = [(x + dx, y + dy) for (x, y) in poly.basecoords]
         coords_list = calc_display_coords(new_coords, poly.theta)
         if check_valid_coords(ax, coords_list):
             poly.basecoords = new_coords
-            set_display_coords(poly)
+            poly.set_display_coords()
+
+    def set_display_coords(poly):
+        poly.xy = calc_display_coords(poly.basecoords, poly.theta)
+        tag_pos = poly.calc_tag_position()
+        poly.species_tag.set_position((tag_pos[0] + 5, tag_pos[1]))
+        poly.metadata_tag.set_position((tag_pos[0] + 5, tag_pos[1] + 50))
 
     def print_info(poly):
         print('poly = %r' % (poly,))
@@ -661,7 +701,7 @@ class AnnotationInteraction(BASE_CLASS):
 
         bbox = vt.bbox_from_verts(poly.basecoords)
         poly.basecoords = vt.verts_from_bbox(bbox)
-        set_display_coords(poly)
+        poly.set_display_coords()
 
         self.editable_polys[poly.num] = poly
         #self.polys[poly.num] = poly
@@ -841,7 +881,7 @@ class AnnotationInteraction(BASE_CLASS):
                 for poly in six.itervalues(self.editable_polys):
                     near_line = is_within_distance_from_line(
                         self.max_ds, (event.xdata, event.ydata),
-                        calc_handle_display_coords(poly))
+                        poly.calc_handle_display_coords())
                     if near_line:
                         self._current_rotate_poly = poly
                         break
@@ -1080,14 +1120,6 @@ def points_center(pts):
     return np.array(pts[:-1]).mean(axis=0)
 
 
-def polygon_dims(poly):
-    xs = [x for (x, y) in poly.basecoords]
-    ys = [y for (x, y) in poly.basecoords]
-    w = max(xs) - min(xs)
-    h = max(ys) - min(ys)
-    return (w, h)
-
-
 def rotate_points_around(points, theta, ax, ay):
     """
     References:
@@ -1111,13 +1143,8 @@ def calc_display_coords(oldcoords, theta):
     return rotate_points_around(oldcoords, theta, *points_center(oldcoords))
 
 
-def set_display_coords(poly):
-    poly.xy = calc_display_coords(poly.basecoords, poly.theta)
-    tag_pos = calc_tag_position(poly)
-    poly.species_tag.set_position((tag_pos[0] + 5, tag_pos[1]))
-    poly.metadata_tag.set_position((tag_pos[0] + 5, tag_pos[1] + 50))
-
 def distance(x, y):
+    # Replace with vtool?
     return np.sqrt(x ** 2 + y ** 2)
 
 def polarDelta(p1, p2):
@@ -1131,47 +1158,10 @@ def apply_polarDelta(poldelt, cart):
     return (newx, newy)
 
 
-def calc_tag_position(poly):
-    r"""
-
-    CommandLine:
-        python -m plottool.interact_annotations --test-calc_tag_position --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from plottool.interact_annotations import *  # NOQA
-        >>> poly = ut.DynStruct()
-        >>> poly.basecoords = vt.verts_from_bbox([0, 0, 400, 400], True)
-        >>> poly.theta = 0
-        >>> poly.xy = vt.verts_from_bbox([0, 0, 400, 400], True)
-        >>> tagpos = calc_tag_position(poly)
-        >>> print('tagpos = %r' % (tagpos,))
-    """
-    points = [[
-        max(list(zip(*poly.basecoords))[0]),
-        min(list(zip(*poly.basecoords))[1])
-    ]]
-    tagpos = rotate_points_around(points, poly.theta, *points_center(poly.xy))[0]
-    return tagpos
-
-
 def is_within_distance_from_line(dist, pt, line):
     pt = np.array(pt)
     line = np.array(line)
     return vt.distance_to_lineseg(pt, line[0], line[1]) < dist
-
-
-def calc_handle_display_coords(poly):
-    cx, cy = points_center(poly.xy)
-    w, h = polygon_dims(poly)
-    x0, y0 = cx, (cy - (h / 2))  # start at top edge
-    MIN_HANDLE_LENGTH = 25
-    #HANDLE_LENGTH = max(MIN_HANDLE_LENGTH, (h / 4))
-    HANDLE_LENGTH = MIN_HANDLE_LENGTH
-    x1, y1 = (x0, y0 - HANDLE_LENGTH)
-    pts = [(x0, y0), (x1, y1)]
-    pts = rotate_points_around(pts, poly.theta, cx, cy)
-    return pts
 
 
 def meets_minimum_width_and_height(coords):
