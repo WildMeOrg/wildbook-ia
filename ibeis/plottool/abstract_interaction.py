@@ -67,7 +67,7 @@ class AbstractInteraction(object):
 
     def __init__(self, **kwargs):
         debug = kwargs.get('debug', None)
-        self.debug = None if debug is None else debug
+        self.debug = DEBUG if debug is None else debug
         if self.debug:
             print('[pt.a] create interaction')
         self.fnum = kwargs.get('fnum', None)
