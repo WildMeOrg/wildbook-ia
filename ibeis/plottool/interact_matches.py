@@ -6,7 +6,6 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 import numpy as np
-
 from plottool import abstract_interaction
 
 BASE_CLASS = abstract_interaction.AbstractInteraction
@@ -55,6 +54,7 @@ class MatchInteraction2(BASE_CLASS):
     """
     def __init__(self, rchip1, rchip2, kpts1, kpts2, fm, fs, fsv, vecs1, vecs2,
                  H1=None, H2=None, fnum=None, **kwargs):
+        import plottool as pt
         kwargs = kwargs.copy()
 
         # Drawing Data
@@ -64,7 +64,7 @@ class MatchInteraction2(BASE_CLASS):
         self.kpts2 = kpts2
         self.fm = fm
         self.fs = fs
-        self.fk = kwargs.pop('fk')
+        self.fk = kwargs.pop('fk', None)
         self.fsv = fsv
         self.vecs1 = vecs1
         self.vecs2 = vecs2
@@ -80,7 +80,6 @@ class MatchInteraction2(BASE_CLASS):
         self.last_fx = 0
         # self.figtitle = kwargs.get('figtitle', 'Inspect Matches')
         self.xywh2 = None
-        import plottool as pt
         self.fnum2 = pt.ensure_fnum(fnum)
 
         self.title = kwargs.get('title', True)

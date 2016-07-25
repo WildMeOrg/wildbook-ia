@@ -35,7 +35,7 @@ from functools import partial
 from six.moves import zip, range
 from matplotlib import pyplot as plt
 from plottool import draw_func2 as df2
-from plottool import abstract_interaction  # TODO inherit from this
+from plottool import abstract_interaction
 print, rrr, profile = ut.inject2(__name__, '[interact_annotations]')
 
 
@@ -94,10 +94,6 @@ def apply_mask(img, mask):
     masked_img[~mask] = np.uint8(np.clip(masked_img[~mask] - 100., 0, 255))
     return masked_img
 
-
-def bbox_to_verts(bbox):
-    verts = vt.verts_from_bbox(bbox)
-    return verts
 
 def points_center(pts):
     # the polygons have the first point listed twice in order for them to be
@@ -177,8 +173,6 @@ def calc_tag_position(poly):
 
 
 def is_within_distance_from_line(dist, pt, line):
-    """
-    """
     pt = np.array(pt)
     line = np.array(line)
     return vt.distance_to_lineseg(pt, line[0], line[1]) < dist
@@ -222,6 +216,7 @@ def meets_minimum_width_and_height(coords):
     # the seperate 1 and 2 variables are not strictly necessary, but
     # provide a sanity check to ensure that we're dealing with the
     # right shape
+    #w, h = vt.get_pointset_extent_wh(np.array(coords))
     w1 = coords[1][0] - coords[0][0]
     w2 = coords[2][0] - coords[3][0]
     h1 = coords[3][1] - coords[0][1]
@@ -313,10 +308,8 @@ def test_interact_annots():
     #print('show2')
 
 
-# TODO: incorporate this
 AbstractInteraction = abstract_interaction.AbstractInteraction
 BASE_CLASS = AbstractInteraction
-#BASE_CLASS = object
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -348,15 +341,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
                  next_callback=None, prev_callback=None, do_mask=False,
                  valid_species=[],
                  **kwargs):
-        if BASE_CLASS is not object:
-            super(ANNOTATIONInteraction, self).__init__(fnum=fnum, **kwargs)
-        else:
-            if fnum is None:
-                fnum = df2.next_fnum()
-            abstract_interaction.register_interaction(self)
-            ut.inject_func_as_method(self, AbstractInteraction.append_button.im_func)
-            ut.inject_func_as_method(self, AbstractInteraction.show_popup_menu.im_func)
-            self.scope = []
+        super(ANNOTATIONInteraction, self).__init__(fnum=fnum, **kwargs)
 
         #self.CONTEXT_ON = True
         self.CONTEXT_ON = False
@@ -407,7 +392,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
         if verts_list is not None:
             bbox_list = vt.bboxes_from_vert_list(verts_list)
         if bbox_list is not None:
-            verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
+            verts_list = [vt.verts_from_bbox(bbox) for bbox in bbox_list]
         if theta_list is None:
             theta_list = [0 for _ in verts_list]
         if species_list is None:
@@ -577,7 +562,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
         self.original_species_list  = species_list
         self.original_metadata_list = metadata_list
         # Convert bbox to verticies
-        verts_list = [bbox_to_verts(bbox) for bbox in bbox_list]
+        verts_list = [vt.verts_from_bbox(bbox) for bbox in bbox_list]
         for verts in verts_list:
             for vert in verts:
                 self.enforce_dims(vert)
@@ -843,7 +828,7 @@ class ANNOTATIONInteraction(BASE_CLASS):
         #points are in the right order, see
         # resize_rectangle and meets_minimum_width_and_height">
         bbox = vt.bbox_from_verts(poly.basecoords)
-        poly.basecoords = bbox_to_verts(bbox)
+        poly.basecoords = vt.verts_from_bbox(bbox)
         set_display_coords(poly)
         #</hack>
 
@@ -1101,6 +1086,28 @@ class ANNOTATIONInteraction(BASE_CLASS):
                 self.fig.ax.draw_artist(poly.species_tag)
                 self.fig.ax.draw_artist(poly.metadata_tag)
 
+    def show_poly_context_menu(event):
+        def make_options():
+            def print_poly_info():
+                print('self._currently_selected_poly = %r' %
+                      (self._currently_selected_poly,))
+                print('tag_text = %r' %
+                      (self._currently_selected_poly.species_tag.get_text(),))
+                print('self._currently_selected_poly.metadata = %r' %
+                      (self._currently_selected_poly.metadata,))
+
+            metadata = self._currently_selected_poly.metadata
+            options = []
+            options += [
+                #('Foo: ',  functools.partial(print, 'bar')),
+                ('PolyInfo: ',  print_poly_info),
+            ]
+            if isinstance(metadata, ut.LazyDict):
+                options += metadata.nocache_eval('annot_context_options')
+            return options
+        options = make_options()
+        self.show_popup_menu(options, event)
+
     def on_click(self, event):
         """
         Called whenever a mouse button is pressed
@@ -1131,30 +1138,9 @@ class ANNOTATIONInteraction(BASE_CLASS):
                         self.currently_rotating_poly = poly
                         break
         # CONTEXT MENU
-        #if True:
         if ((self.CONTEXT_ON and event.button == self.MIDDLE_BUTTON) or not
              self.CONTEXT_ON and event.button == self.RIGHT_BUTTON):
-            def make_options():
-                def print_poly_info():
-                    print('self._currently_selected_poly = %r' %
-                          (self._currently_selected_poly,))
-                    print('tag_text = %r' %
-                          (self._currently_selected_poly.species_tag.get_text(),))
-                    print('self._currently_selected_poly.metadata = %r' %
-                          (self._currently_selected_poly.metadata,))
-
-                metadata = self._currently_selected_poly.metadata
-                options = []
-                options += [
-                    #('Foo: ',  functools.partial(print, 'bar')),
-                    ('PolyInfo: ',  print_poly_info),
-                ]
-                if isinstance(metadata, ut.LazyDict):
-                    options += metadata.nocache_eval('annot_context_options')
-
-                return options
-            options = make_options()
-            self.show_popup_menu(options, event)
+            self.show_poly_context_menu(event)
 
         if self._currently_selected_poly is None:
             print('[interact_annot] WARNING: Polygon unknown.'
@@ -1166,6 +1152,10 @@ class ANNOTATIONInteraction(BASE_CLASS):
                 poly_ind, self._currently_selected_poly = self.get_most_recently_added_poly()
                 self.update_colors(poly_ind)
         polyind, self._ind = self.get_ind_under_cursor(event)
+
+        if event.dblclick:
+            print("DOUBLECLICK")
+            # On double click enter a single annotation to annotation parts
 
         if self._ind is not None and polyind is not None:
             self._currently_selected_poly = self.polys[polyind]
