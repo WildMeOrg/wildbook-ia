@@ -21,12 +21,12 @@ References:
     Jan 9 2014: taken from: https://gist.github.com/tonysyu/3090704
 
 CommandLine:
+    python -m utool.util_inspect check_module_usage --pat="interact_annotations.py"
     python -m plottool.interact_annotations --test-test_interact_annots --show
 """
 from __future__ import absolute_import, division, print_function
 import six
 import re
-import math
 import numpy as np
 import vtool as vt
 import utool as ut
@@ -80,7 +80,6 @@ def _nxutils_points_inside_poly(points, verts):
 
 
 def verts_to_mask(shape, verts):
-    print(verts)
     h, w = shape[0:2]
     y, x = np.mgrid[:h, :w]
     points = np.transpose((x.ravel(), y.ravel()))
@@ -138,6 +137,19 @@ def set_display_coords(poly):
     tag_pos = calc_tag_position(poly)
     poly.species_tag.set_position((tag_pos[0] + 5, tag_pos[1]))
     poly.metadata_tag.set_position((tag_pos[0] + 5, tag_pos[1] + 50))
+
+def distance(x, y):
+    return np.sqrt(x ** 2 + y ** 2)
+
+def polarDelta(p1, p2):
+    mag = distance(p2[0] - p1[0], p2[1] - p1[1])
+    theta = np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
+    return [mag, theta]
+
+def apply_polarDelta(poldelt, cart):
+    newx = cart[0] + (poldelt[0] * np.cos(poldelt[1]))
+    newy = cart[1] + (poldelt[0] * np.sin(poldelt[1]))
+    return (newx, newy)
 
 
 def calc_tag_position(poly):
@@ -295,17 +307,6 @@ def test_interact_annots():
                                  metadata_list=metadata_list,
                                  fnum=0)  # NOQA
     return self
-    # Do interaction
-    #
-    # Make mask from selection
-    #mask = self.get_mask(img.shape)
-    # User must close previous figure
-    # Modify the image with the mask
-    #masked_img = apply_mask(img, mask)
-    # show the modified image
-    #plt.imshow(masked_img)
-    #plt.title('Region outside of mask is darkened')
-    #print('show2')
 
 
 AbstractInteraction = abstract_interaction.AbstractInteraction
@@ -343,8 +344,6 @@ class AnnotationInteraction(BASE_CLASS):
                  **kwargs):
         super(AnnotationInteraction, self).__init__(fnum=fnum, **kwargs)
 
-        #self.CONTEXT_ON = True
-        self.CONTEXT_ON = False
         self.valid_species = valid_species
         self.commit_callback = commit_callback  # commit_callback
         self.but_width = .14
@@ -376,7 +375,7 @@ class AnnotationInteraction(BASE_CLASS):
             self.mouseY = None  # mouse Y coordinate
             self.indX = None
             self.indY = None
-            self.leftbutton_is_down = False
+            self.reset_mouse_state()
             self.canUncolor = False    # flag if the polygon SHOULD be active
             self._autoinc_polynum = 0  # num polys in image
             self._polyHeld = False                # if any poly is active
@@ -598,8 +597,9 @@ class AnnotationInteraction(BASE_CLASS):
         so orientations can be done correctly
         """
         num_out = 0
-        xlim = self.fig.ax.get_xlim()
-        ylim = self.fig.ax.get_ylim()
+        ax = self.fig.ax
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
         if xy_pt[0] < xlim[0] + margin:
             num_out += 1
         if xy_pt[0] > xlim[1] - margin:
@@ -610,16 +610,30 @@ class AnnotationInteraction(BASE_CLASS):
             num_out += 1
         return num_out <= 3
 
-    def load_points(self):
-        return [poly.xy for poly in six.itervalues(self.polys)]
+    def check_valid_coords(self, coords_list):
+        return all([self.check_dims(xy_pt) for xy_pt in coords_list])
+
+    def rotate_rectangle(self, poly, dtheta):
+        coords_lis = calc_display_coords(poly.basecoords, poly.theta + dtheta)
+        if self.check_valid_coords(coords_lis):
+            poly.theta += dtheta
+            set_display_coords(poly)
+
+    def move_rectangle(self, poly, dx, dy):
+        new_coords = [(x + dx, y + dy) for (x, y) in poly.basecoords]
+        coords_list = calc_display_coords(new_coords, poly.theta)
+        if self.check_valid_coords(coords_list):
+            poly.basecoords = new_coords
+            set_display_coords(poly)
 
     def enforce_dims(self, xy_pt, margin=0.5):
         """
         ONLY USE THIS ON UNROTATED RECTANGLES, as to do otherwise may yield
         arbitrary polygons
         """
-        xlim = self.fig.ax.get_xlim()
-        ylim = self.fig.ax.get_ylim()
+        ax = self.fig.ax
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
         if xy_pt[0] < xlim[0] + margin:
             xy_pt[0] = xlim[0] + margin
         if xy_pt[0] > xlim[1] - margin:
@@ -630,20 +644,6 @@ class AnnotationInteraction(BASE_CLASS):
             xy_pt[1] = ylim[0] - margin
         return True
 
-    def clip_vert_to_bounds(self, xy_pt, margin=0):
-        xlim = self.fig.ax.get_xlim()
-        ylim = self.fig.ax.get_ylim()
-        def clamp(lims, val):
-            return max(lims[0], min(lims[1], val))
-        return np.array((clamp(xlim, xy_pt[0]), clamp(ylim, xy_pt[1])))
-
-    def check_valid_coords(self, coords_list):
-        valid = True
-        for coord in coords_list:
-            if not self.check_dims(coord):
-                valid = False
-        return valid
-
     def _update_line(self):
         """
         save verts because polygon gets deleted when figure is closed
@@ -652,7 +652,6 @@ class AnnotationInteraction(BASE_CLASS):
             self.last_vert_ind = len(poly.xy) - 1
             poly.lines.set_data(list(zip(*poly.xy)))
             poly.handle.set_data(list(zip(*calc_handle_coords(poly))))
-            pass
 
     def get_ind_under_cursor(self, event):
         """
@@ -692,6 +691,11 @@ class AnnotationInteraction(BASE_CLASS):
                 min_ind = ind
                 sel_polyind = polyind
         return (sel_polyind, min_ind)
+
+    def next_polynum(self):
+        num = self._autoinc_polynum
+        self._autoinc_polynum += 1
+        return num
 
     def new_polygon(self, verts, theta, species,
                     face_color=(0, 0, 0),
@@ -847,19 +851,6 @@ class AnnotationInteraction(BASE_CLASS):
         self.update_colors(poly_ind)
         plt.draw()
 
-    def rotate_rectangle(self, poly, dtheta):
-        coords_lis = calc_display_coords(poly.basecoords, poly.theta + dtheta)
-        if self.check_valid_coords(coords_lis):
-            poly.theta += dtheta
-            set_display_coords(poly)
-
-    def move_rectangle(self, poly, dx, dy):
-        new_coords = [(x + dx, y + dy) for (x, y) in poly.basecoords]
-        coords_list = calc_display_coords(new_coords, poly.theta)
-        if self.check_valid_coords(coords_list):
-            poly.basecoords = new_coords
-            set_display_coords(poly)
-
     def resize_rectangle(self, poly, x, y, idx):
         """
         Resize a rectangle using idx as the given anchor point. Respects
@@ -889,19 +880,6 @@ class AnnotationInteraction(BASE_CLASS):
         if poly is None:
             return
 
-        def distance(x, y):
-            return math.sqrt(x ** 2 + y ** 2)
-
-        def polarDelta(p1, p2):
-            mag = distance(p2[0] - p1[0], p2[1] - p1[1])
-            theta = math.atan2(p2[1] - p1[1], p2[0] - p1[0])
-            return [mag, theta]
-
-        def apply_polarDelta(poldelt, cart):
-            newx = cart[0] + (poldelt[0] * math.cos(poldelt[1]))
-            newy = cart[1] + (poldelt[0] * math.sin(poldelt[1]))
-            return (newx, newy)
-
         # the minus one is because the last coordinate is duplicated (by
         # matplotlib) to get a closed polygon
         tmpcoords = poly.xy[:-1]
@@ -917,10 +895,10 @@ class AnnotationInteraction(BASE_CLASS):
         polar_idx2next = polarDelta(tmpcoords[idx], tmpcoords[nextidx])
         tmpcoords[idx] = (tmpcoords[idx][0] + dx, tmpcoords[idx][1] + dy)
         mag_delta = distance(dx, dy)
-        theta_delta = math.atan2(dy, dx)
+        theta_delta = np.arctan2(dy, dx)
         theta_rot = theta_delta - (poly_theta + TAU / 4)
-        rotx = mag_delta * math.cos(theta_rot)
-        roty = mag_delta * math.sin(theta_rot)
+        rotx = mag_delta * np.cos(theta_rot)
+        roty = mag_delta * np.sin(theta_rot)
         polar_idx2prev[0] -= rotx
         polar_idx2next[0] += roty
         tmpcoords[previdx] = apply_polarDelta(polar_idx2prev, tmpcoords[idx])
@@ -1007,10 +985,6 @@ class AnnotationInteraction(BASE_CLASS):
 
         if self.commit_callback is not None:
             send_back_annotations()
-        #else:
-            #just print the updated points
-            #self.load_points()
-            #print(self.poly_list)
         # Make mask from selection
         if self.do_mask is True:
             plt.clf()
@@ -1033,26 +1007,9 @@ class AnnotationInteraction(BASE_CLASS):
 
     # --- Connected Slots and Callbacks
 
-    #def on_close(self, event=None):
-    #    # TODO rectifify with abstract interaction
-    #    # Hack: fake unregistration. does not inherit propertly
-    #    AbstractInteraction.on_close.im_func(self, event)
-    #    #abstract_interaction.unregister_interaction(self)
-
     def show(self):
         self.draw()
         self.bring_to_front()
-
-    def draw(self):
-        self.fig.canvas.draw()
-
-    def bring_to_front(self):
-        df2.bring_to_front(self.fig)
-
-    def next_polynum(self):
-        num = self._autoinc_polynum
-        self._autoinc_polynum += 1
-        return num
 
     def draw_callback(self, event):
         self.background = self.fig.canvas.copy_from_bbox(self.fig.ax.bbox)
@@ -1070,7 +1027,7 @@ class AnnotationInteraction(BASE_CLASS):
                 self.fig.ax.draw_artist(poly.species_tag)
                 self.fig.ax.draw_artist(poly.metadata_tag)
 
-    def show_poly_context_menu(event):
+    def _show_poly_context_menu(self, event):
         def make_options():
             def print_poly_info():
                 print('self._currently_selected_poly = %r' %
@@ -1094,13 +1051,10 @@ class AnnotationInteraction(BASE_CLASS):
 
     def on_click(self, event):
         """
-        Called whenever a mouse button is pressed
-
         python -m ibeis.viz.interact.interact_annotations2 --test-ishow_image2 --show
-
         """
-        if ut.VERBOSE:
-            print('[on_click] key = %r' % (event.key))
+        super(AnnotationInteraction, self).on_click(event)
+
         if self._ind is not None:
             self._ind = None
             return
@@ -1108,7 +1062,11 @@ class AnnotationInteraction(BASE_CLASS):
         if ignore:
             return
 
-        if event.button == self.LEFT_BUTTON:  # leftclick
+        # Right click - context menu
+        if event.button == self.RIGHT_BUTTON:
+            self._show_poly_context_menu(event)
+        # Left click, indicate that a mouse button is down
+        if event.button == self.LEFT_BUTTON:
             if event.key == 'shift':
                 self._currently_selected_poly
                 self.currently_rotating_poly = self._currently_selected_poly
@@ -1121,10 +1079,6 @@ class AnnotationInteraction(BASE_CLASS):
                     if near_line:
                         self.currently_rotating_poly = poly
                         break
-        # CONTEXT MENU
-        if ((self.CONTEXT_ON and event.button == self.MIDDLE_BUTTON) or not
-             self.CONTEXT_ON and event.button == self.RIGHT_BUTTON):
-            self.show_poly_context_menu(event)
 
         if self._currently_selected_poly is None:
             print('[interact_annot] WARNING: Polygon unknown.'
@@ -1135,6 +1089,7 @@ class AnnotationInteraction(BASE_CLASS):
             else:
                 poly_ind, self._currently_selected_poly = self.get_most_recently_added_poly()
                 self.update_colors(poly_ind)
+
         polyind, self._ind = self.get_ind_under_cursor(event)
 
         if event.dblclick:
@@ -1155,10 +1110,7 @@ class AnnotationInteraction(BASE_CLASS):
         if self._polyHeld is True or self._ind is not None:
             self._currently_selected_poly.set_alpha(.2)
             self.update_colors(self._currently_selected_poly.num)
-            #self._currently_selected_poly.set_facecolor('red')
-            #self._currently_selected_poly.lines.set_color('red')
-        if event.button == self.LEFT_BUTTON:  # left
-            self.leftbutton_is_down = True
+
         self.canUncolor = False
         self._update_line()
         if self.background is not None:
@@ -1168,24 +1120,13 @@ class AnnotationInteraction(BASE_CLASS):
                   ' Trying refresh.')
             self.fig.canvas.restore_region(self.background)
             self.background = self.fig.canvas.copy_from_bbox(self.fig.ax.bbox)
-        for poly in six.itervalues(self.polys):
-            self.fig.ax.draw_artist(poly)
-            self.fig.ax.draw_artist(poly.lines)
-            self.fig.ax.draw_artist(poly.handle)
 
+        # Redraw blitted objects
+        self.draw_artists()
         self.fig.canvas.blit(self.fig.ax.bbox)
 
-    def on_figure_leave(self, event):
-        if ut.VERBOSE:
-            print('figure leave')
-        self.on_click_release(event)
-
     def on_click_release(self, event):
-        """
-        Called whenever a mouse button is released
-        """
-        if ut.VERBOSE:
-            print('click release')
+        super(AnnotationInteraction, self).on_click_release(event)
 
         if self._polyHeld is True:
             self._polyHeld = False
@@ -1200,7 +1141,7 @@ class AnnotationInteraction(BASE_CLASS):
             self._ind is None or
             self._polyHeld is False or
             (self._ind is not None and
-             self.leftbutton_is_down is True and
+             self.is_down['left'] is True and
              self._currently_selected_poly is not None and
              self.canUncolor is True)
         )
@@ -1209,8 +1150,6 @@ class AnnotationInteraction(BASE_CLASS):
             #self._currently_selected_poly.set_facecolor('white')
 
         self.update_UI()
-        if event is None or event.button == self.LEFT_BUTTON:  # left
-            self.leftbutton_is_down = False
 
         if self._ind is None:
             return
@@ -1226,8 +1165,8 @@ class AnnotationInteraction(BASE_CLASS):
         currX, currY = self._currently_selected_poly.xy[self._ind]
 
         if self.indX and self.indY:
-            if (math.fabs(self.indX - currX) < 3 and
-                 math.fabs(self.indY - currY) < 3):
+            if (np.fabs(self.indX - currX) < 3 and
+                 np.fabs(self.indY - currY) < 3):
                 return
 
         self._ind = None
@@ -1235,11 +1174,16 @@ class AnnotationInteraction(BASE_CLASS):
 
         self.fig.canvas.draw()
 
+    def on_figure_leave(self, event):
+        if self.debug > 0:
+            print('[interact_annot] figure leave')
+        #self.print_status()
+        #self.on_click_release(event)
+        self.reset_mouse_state()
+        #self.print_status()
+
     def on_key_press(self, event):
-        """
-        Callback whenever a key is pressed
-        """
-        if ut.VERBOSE:
+        if self.debug > 0:
             print('[interact_annot] on_key_press')
             print('[interact_annot] Got key: %r' % event.key)
         if not event.inaxes:
@@ -1260,7 +1204,7 @@ class AnnotationInteraction(BASE_CLASS):
 
         def regen_tc():
             # Setup tab completion
-            # Yes this will redo the tab completion list every time a user
+            # This will redo the tab completion list every time a user
             # types. This should be improved if we move to having more species
             self._currently_selected_poly.tab_list = [
                 spec
@@ -1269,8 +1213,6 @@ class AnnotationInteraction(BASE_CLASS):
             ]
             self._currently_selected_poly.tcindex = 0
 
-        # perfect use case for anaphoric if, or assignment in if statements (if
-        # python had either)
         if event.key == ACCEPT_SAVE_HOTKEY:
             self.save_and_exit(event)
         elif event.key == ADD_RECTANGLE_HOTKEY:
@@ -1281,18 +1223,8 @@ class AnnotationInteraction(BASE_CLASS):
             self.delete_current_annot()
         elif event.key == TOGGLE_LABEL_HOTKEY:
             self.toggle_species_label()
-        elif event.key == 'ctrl+u':
-            self.load_points()
         elif event.key == 'ctrl+p':
             print('[interact_annot] fignums=%r' % (plt.get_fignums(),))
-
-        # enter clears the species tag, workaround since matplotlib doesn't
-        # seem to trigger 'key_press_event's for backspace (which would be the
-        # preferred interface)
-        #match = re.match('^enter$', event.key)
-        #if match:
-        #    self._currently_selected_poly.species_tag.set_text('')
-        # FIXED, but leaving for posterity
 
         match = re.match('^backspace$', event.key)
         if match:
@@ -1339,38 +1271,29 @@ class AnnotationInteraction(BASE_CLASS):
         self.fig.canvas.draw()
 
     def on_motion(self, event):
-        """
-        CALLBACK FOR MOTION EVENTS
-        Called on mouse movement
-        """
         if ut.VERBOSE:
             print('[interact_annot] on_motion')
             print('[interact_annot] Got key: %r' % event.key)
-        #ignore = (not self.showverts or event.inaxes is None)
+        super(AnnotationInteraction, self).on_motion(event)
         ignore = (not self.showverts)
         # uses boolean punning for terseness
         lastX = self.mouseX or None
         lastY = self.mouseY or None
-        if not (event.xdata is None or event.ydata is None):
-            self.mouseX, self.mouseY = event.xdata, event.ydata
-        else:
-            # Allow for getting coordinates outside the axes
-            ax = self.ax
-            self.mouseX, self.mouseY = ax.transAxes.inverted().transform(
-                [event.x, event.y])
-            self.mouseX, self.mouseY = ax.transData.inverted().transform(
-                [event.x, event.y])
+        # Allow for getting coordinates outside the axes
+        ax = self.ax
+        mousePos = [event.x, event.y]
+        self.mouseX, self.mouseY = ax.transData.inverted().transform(mousePos)
         deltaX = lastX is not None and self.mouseX - lastX
         deltaY = lastY is not None and self.mouseY - lastY
 
         if ignore:
             return
 
-        if self.leftbutton_is_down is True:
+        if self.is_down['left'] is True:
             self.canUncolor = True
 
         quick_resize = (self._polyHeld is True and (
-            (not self.CONTEXT_ON and event.button == self.MIDDLE_BUTTON) or
+            (event.button == self.MIDDLE_BUTTON) or
             (event.button == self.RIGHT_BUTTON) or
             (event.button == self.LEFT_BUTTON and event.key == 'ctrl')
         ))
@@ -1389,13 +1312,13 @@ class AnnotationInteraction(BASE_CLASS):
         elif self.currently_rotating_poly:
             poly = self.currently_rotating_poly
             cx, cy = points_center(poly.xy)
-            theta = math.atan2(cy - self.mouseY, cx - self.mouseX) - TAU / 4
+            theta = np.arctan2(cy - self.mouseY, cx - self.mouseX) - TAU / 4
             dtheta = theta - poly.theta
             self.rotate_rectangle(poly, dtheta)
         elif self._ind is None and event.button == self.LEFT_BUTTON:
             # move all vertices
-            if (self._polyHeld is True and
-                 not (deltaX is None or deltaY is None)):
+            if (self._polyHeld is True and not (deltaX is None or deltaY is
+                                                None)):
                 self.move_rectangle(self._currently_selected_poly, deltaX,
                                     deltaY)
             self._ind = None
@@ -1403,19 +1326,12 @@ class AnnotationInteraction(BASE_CLASS):
             return
         self.update_UI()
 
-    def mouse_enter(self, event):
-        self._currently_selected_poly = event.artist
-        self._currently_selected_poly.set_alpha(.2)
-
-    def mouse_leave(self, event):
-        self._currently_selected_poly.set_alpha(0)
-        self._currently_selected_poly = None
-
     def onpick(self, event):
         """ Makes selected polygon translucent """
-        #print('onpick')
-        self._currently_selected_poly = event.artist
+        if self.debug > 0:
+            print('[interact_annot] onpick')
         #x, y = event.mouseevent.xdata, event.mouseevent.xdata
+        self._currently_selected_poly = event.artist
         self._polyHeld = True
 
     def poly_changed(self, poly):
@@ -1426,10 +1342,21 @@ class AnnotationInteraction(BASE_CLASS):
         poly.lines.set_visible(vis)
         poly.handle.set_visible(vis)
 
+    #def mouse_enter(self, event):
+    #    if self.debug > 0:
+    #        print('[interact_annot] mouse_enter')
+    #    self._currently_selected_poly = event.artist
+    #    self._currently_selected_poly.set_alpha(.2)
+
+    #def mouse_leave(self, event):
+    #    if self.debug > 0:
+    #        print('[interact_annot] mouse_leave')
+    #    self._currently_selected_poly.set_alpha(0)
+    #    self._currently_selected_poly = None
+
     #def on_resize(self, event):
     #    self.fig.canvas.draw()
     #    plt.draw()
-
 
 if __name__ == '__main__':
     """

@@ -66,7 +66,8 @@ class AbstractInteraction(object):
     }
 
     def __init__(self, **kwargs):
-        self.debug = DEBUG
+        debug = kwargs.get('debug', None)
+        self.debug = None if debug is None else debug
         if self.debug:
             print('[pt.a] create interaction')
         self.fnum = kwargs.get('fnum', None)
@@ -91,6 +92,12 @@ class AbstractInteraction(object):
         autostart = kwargs.get('autostart', False)
         if autostart:
             self.start()
+
+    def reset_mouse_state(self):
+        for key in self.is_down.keys():
+            self.is_down[key] = False
+        for key in self.is_drag.keys():
+            self.is_drag[key] = False
 
     def enable_pan_and_zoom(self, ax):
         self.enable_zoom(ax)
@@ -209,7 +216,7 @@ class AbstractInteraction(object):
         pass
 
     def on_drag(self, event=None):
-        if self.debug:
+        if self.debug > 1:
             print('[pt.a] on_drag')
         if ih.clicked_inside_axis(event):
             self.on_drag_inside(event)
@@ -218,7 +225,7 @@ class AbstractInteraction(object):
         pass
 
     def on_drag_inside(self, event=None):
-        if self.debug:
+        if self.debug > 1:
             print('[pt.a] on_drag_inside')
 
     def on_drag_stop(self, event=None):
@@ -234,7 +241,7 @@ class AbstractInteraction(object):
     def on_key_press(self, event):
         if self.debug > 0:
             print('[pt.a] on_key_press')
-        self.print_status()
+        #self.print_status()
         pass
 
     def on_click(self, event):
@@ -242,9 +249,10 @@ class AbstractInteraction(object):
             print('[pt.a] on_click')
             #print('[pt.a] on_click. event=%r' % (ut.repr2(event.__dict__)))
         #raise NotImplementedError('implement yourself')
-        for button in self.MOUSE_BUTTONS.values():
-            if self.MOUSE_BUTTONS[event.button] == button:
-                self.is_down[button] = True
+        if event.button is not None:
+            for button in self.MOUSE_BUTTONS.values():
+                if self.MOUSE_BUTTONS[event.button] == button:
+                    self.is_down[button] = True
         #if event.button == self.LEFT_BUTTON:
         #    self.is_down['left'] = True
         #if event.button == self.RIGHT_BUTTON:
@@ -264,7 +272,9 @@ class AbstractInteraction(object):
         if self.debug > 0:
             print('[pt.a] on_release')
         for button in self.MOUSE_BUTTONS.values():
-            if self.MOUSE_BUTTONS[event.button] == button:
+            flag = (event is None or event.button is None or
+                    self.MOUSE_BUTTONS[event.button] == button)
+            if flag:
                 self.is_down[button] = False
                 if self.is_drag[button]:
                     self.is_drag[button] = False
