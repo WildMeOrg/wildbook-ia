@@ -152,6 +152,8 @@ def apply_polarDelta(poldelt, cart):
     return (newx, newy)
 
 
+
+
 def calc_tag_position(poly):
     r"""
 
@@ -200,18 +202,6 @@ def calc_handle_coords(poly):
     pts = [(x0, y0), (x1, y1)]
     pts = rotate_points_around(pts, poly.theta, cx, cy)
     return pts
-
-
-def make_handle_line(poly):
-    _xs, _ys = list(zip(*calc_handle_coords(poly)))
-    line_width = 4
-    line_color = (0, 1, 0)
-    color = np.array(line_color)
-    marker_face_color = line_color
-    line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
-    lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True,
-                       **line_kwargs)
-    return lines
 
 
 def meets_minimum_width_and_height(coords):
@@ -286,17 +276,16 @@ def test_interact_annots():
         >>> print(self)
         >>> pt.show_if_requested()
     """
-    verts_list = [((0, 400), (400, 400), (400, 0), (0, 0), (0, 400)),
-                  ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700))]
     print('[interact_annot] *** START DEMO ***')
-
+    verts_list = [
+        ((0, 400), (400, 400), (400, 0), (0, 0), (0, 400)),
+        ((400, 700), (700, 700), (700, 400), (400, 400), (400, 700))
+    ]
     #if img is None:
     try:
         img_url = 'http://i.imgur.com/Vq9CLok.jpg'
         img_fpath = ut.grab_file_url(img_url)
-        #img = mpimg.imread(img_fpath)
-        from vtool import image as gtool
-        img = gtool.imread(img_fpath)
+        img = vt.imread(img_fpath)
     except Exception as ex:
         print('[interact_annot] cant read zebra: %r' % ex)
         img = np.random.uniform(0, 255, size=(100, 100))
@@ -308,9 +297,99 @@ def test_interact_annots():
                                  fnum=0)  # NOQA
     return self
 
-
 AbstractInteraction = abstract_interaction.AbstractInteraction
 BASE_CLASS = AbstractInteraction
+
+
+
+class AnnotPoly(mpl.patches.Polygon):
+    """
+    Helper to represent an annotation polygon
+    """
+
+    def __init__(poly, ax, num, verts, theta, species, fc=(0, 0, 0),
+                 line_color=(1, 1, 1), line_width=4, is_orig=False,
+                 metadata=None, valid_species=None):
+
+        super(AnnotPoly, poly).__init__(verts, animated=True, fc=fc, ec='none',
+                                        alpha=0, picker=True)
+        poly.num = num
+        poly.is_orig = is_orig
+        poly.theta = theta
+        poly.basecoords = poly.xy
+
+        poly.xy = calc_display_coords(poly.basecoords, poly.theta)
+        poly.lines = poly._make_lines(line_color, line_width)
+        poly.handle = poly._make_handle_line()
+        #tagpos = calc_tag_position(poly)
+        poly.species_tag = ax.text(
+            #tagpos[0], tagpos[1],
+            0, 0,
+            species,
+            bbox={'facecolor': 'white', 'alpha': .8},
+            verticalalignment='top',
+        )
+
+        if isinstance(metadata, ut.LazyDict):
+            """
+            ibeis --aidcmd='Interact image' --aid=1
+            """
+            metadata_ = ut.dict_subset(metadata, metadata.cached_keys())
+        else:
+            metadata_ = metadata
+            #metadata = metadata.asdict(False)
+            #metadata
+
+        poly.metadata_tag = ax.text(
+            0, 0,
+            #tagpos[0] + 5, tagpos[1] + 80,
+            ut.repr3(metadata_, nobr=True),
+            bbox={'facecolor': 'white', 'alpha': .7},
+            verticalalignment='top',
+        )
+        set_display_coords(poly)
+        poly.species_tag.remove()  # eliminate "leftover" copies
+        poly.metadata_tag.remove()
+        poly.metadata = metadata
+        # put in previous text and tabcomplete list for autocompletion
+        poly.tctext = ''
+        poly.tab_list = valid_species
+        poly.tcindex = 0
+        poly.anchor_idx = 2
+
+    def _make_lines(poly, line_color, line_width):
+        """ verts - list of (x, y) tuples """
+        _xs, _ys = list(zip(*poly.xy))
+        color = np.array(line_color)
+        marker_face_color = line_color
+        line_kwargs = {'lw': line_width, 'color': color,
+                       'mfc': marker_face_color}
+        lines = plt.Line2D(_xs, _ys, marker='o', alpha=1,
+                           animated=True, **line_kwargs)
+        return lines
+
+    def _make_handle_line(poly):
+        _xs, _ys = list(zip(*calc_handle_coords(poly)))
+        line_width = 4
+        line_color = (0, 1, 0)
+        color = np.array(line_color)
+        marker_face_color = line_color
+        line_kwargs = {'lw': line_width, 'color': color, 'mfc': marker_face_color}
+        lines = plt.Line2D(_xs, _ys, marker='o', alpha=1, animated=True,
+                           **line_kwargs)
+        return lines
+
+    def update_color(poly, selected=False):
+        if selected:
+            # Add selected color
+            sel_color = df2.ORANGE if poly.is_orig else df2.LIGHT_BLUE
+            poly.lines.set_color(sel_color)
+        else:
+            line = poly.lines
+            line_color = line.get_color()
+            desel_color = df2.WHITE if poly.is_orig else df2.LIGHTGRAY
+            if np.any(line_color != np.array(desel_color)):
+                line.set_color(np.array(desel_color))
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -511,11 +590,11 @@ class AnnotationInteraction(BASE_CLASS):
         self.handle_polygon_creation(bbox_list, theta_list, species_list,
                                      metadata_list)
         self.add_action_buttons()
-        self.fig.canvas.draw()
+        self.draw()
         self.connect_mpl_callbacks(self.fig.canvas)
         self.update_callbacks(next_callback, prev_callback)
         print('[interact_annot] drawing')
-        self.fig.canvas.draw()
+        self.draw()
         self.update_UI()
 
     def update_UI(self):
@@ -529,17 +608,9 @@ class AnnotationInteraction(BASE_CLASS):
             print('[interact_annot] WARNING: poly_ind is %r in update_colors' %
                   poly_ind)
             return
-        # Remove unselected colors
-        for poly in six.itervalues(self.polys):
-            line = poly.lines
-            line_color = line.get_color()
-            desel_color = df2.WHITE if poly.is_orig else df2.LIGHTGRAY
-            if np.any(line_color != np.array(desel_color)):
-                line.set_color(np.array(desel_color))
-        # Add selected color
-        sel_poly = self.polys[poly_ind]
-        sel_color = df2.ORANGE if sel_poly.is_orig else df2.LIGHT_BLUE
-        sel_poly.lines.set_color(sel_color)
+        for ind, poly in six.iteritems(self.polys):
+            selected = ind == poly_ind
+            poly.update_color(selected=selected)
         plt.draw()
 
     # --- Data Matainence / Other
@@ -697,73 +768,15 @@ class AnnotationInteraction(BASE_CLASS):
         self._autoinc_polynum += 1
         return num
 
-    def new_polygon(self, verts, theta, species,
-                    face_color=(0, 0, 0),
-                    line_color=(1, 1, 1),
-                    line_width=4,
-                    is_orig=False,
+    def new_polygon(self, verts, theta, species, fc=(0, 0, 0),
+                    line_color=(1, 1, 1), line_width=4, is_orig=False,
                     metadata=None):
         """ verts - list of (x, y) tuples """
         # create new polygon from verts
-        poly = mpl.patches.Polygon(
-            verts, animated=True, fc=face_color, ec='none', alpha=0,
-            picker=True)
-        # register this polygon
-        poly.num = self.next_polynum()
-        #poly.status = 'orig' if is_orig else 'new'
-        poly.is_orig = is_orig
-        poly.theta = theta
-        poly.basecoords = poly.xy
-        poly.xy = calc_display_coords(poly.basecoords, poly.theta)
-        poly.lines = self.make_lines(poly, line_color, line_width)
-        poly.handle = make_handle_line(poly)
-        #tagpos = calc_tag_position(poly)
-        poly.species_tag = self.fig.ax.text(
-            #tagpos[0], tagpos[1],
-            0, 0,
-            species,
-            bbox={'facecolor': 'white', 'alpha': .8},
-            verticalalignment='top',
-        )
-
-        if isinstance(metadata, ut.LazyDict):
-            """
-            ibeis --aidcmd='Interact image' --aid=1
-            """
-            metadata_ = ut.dict_subset(metadata, metadata.cached_keys())
-        else:
-            metadata_ = metadata
-            #metadata = metadata.asdict(False)
-            #metadata
-
-        poly.metadata_tag = self.fig.ax.text(
-            0, 0,
-            #tagpos[0] + 5, tagpos[1] + 80,
-            ut.repr3(metadata_, nobr=True),
-            bbox={'facecolor': 'white', 'alpha': .7},
-            verticalalignment='top',
-        )
-        set_display_coords(poly)
-        poly.species_tag.remove()  # eliminate "leftover" copies
-        poly.metadata_tag.remove()
-        poly.metadata = metadata
-        # put in previous text and tabcomplete list for autocompletion
-        poly.tctext = ''
-        poly.tab_list = self.valid_species
-        poly.tcindex = 0
-        poly.anchor_idx = 2
+        num = self.next_polynum()
+        poly = AnnotPoly(self.ax, num, verts, theta, species, fc, line_color,
+                         line_width, is_orig, metadata, self.valid_species)
         return poly
-
-    def make_lines(self, poly, line_color, line_width):
-        """ verts - list of (x, y) tuples """
-        _xs, _ys = list(zip(*poly.xy))
-        color = np.array(line_color)
-        marker_face_color = line_color
-        line_kwargs = {'lw': line_width, 'color': color,
-                       'mfc': marker_face_color}
-        lines = plt.Line2D(_xs, _ys, marker='o', alpha=1,
-                           animated=True, **line_kwargs)
-        return lines
 
     def get_mask(self, shape):
         """Return image mask given by mask creator"""
@@ -1172,13 +1185,15 @@ class AnnotationInteraction(BASE_CLASS):
         self._ind = None
         self._polyHeld = False
 
-        self.fig.canvas.draw()
+        self.draw()
 
     def on_figure_leave(self, event):
         if self.debug > 0:
             print('[interact_annot] figure leave')
         #self.print_status()
         #self.on_click_release(event)
+        self._polyHeld = False
+        self._ind = None
         self.reset_mouse_state()
         #self.print_status()
 
@@ -1268,7 +1283,7 @@ class AnnotationInteraction(BASE_CLASS):
             self.prev_image(event)
         if matches_hotkey(event.key, NEXT_IMAGE_HOTKEYS):
             self.next_image(event)
-        self.fig.canvas.draw()
+        self.draw()
 
     def on_motion(self, event):
         if ut.VERBOSE:
@@ -1355,8 +1370,9 @@ class AnnotationInteraction(BASE_CLASS):
     #    self._currently_selected_poly = None
 
     #def on_resize(self, event):
-    #    self.fig.canvas.draw()
+    #    self.draw()
     #    plt.draw()
+
 
 if __name__ == '__main__':
     """
