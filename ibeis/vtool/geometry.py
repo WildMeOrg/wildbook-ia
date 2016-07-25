@@ -185,6 +185,20 @@ def draw_verts(img_in, verts, color=(0, 128, 255), thickness=2, out=None):
 
 def closest_point_on_line_segment(p, e1, e2):
     """
+    Finds the closet point from p on line segment (e1, e2)
+
+    Args:
+        p (ndarray): and xy point
+        e1 (ndarray): the first xy endpoint of the segment
+        e2 (ndarray): the second xy endpoint of the segment
+
+    Returns:
+        ndarray: pt_on_seg - the closest xy point on (e1, e2) from p
+
+    References:
+        http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+        http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+
     CommandLine:
         python -m vtool.geometry --exec-closest_point_on_line_segment --show
 
@@ -228,13 +242,73 @@ def closest_point_on_line_segment(p, e1, e2):
     # Check if normalized dot product is between 0 and 1
     # Determines if pt is between 0,0 and de
     t = de.dot(pt_on_line_) / mag ** 2
+    # t is an interpolation factor indicating how far past the line segment we
+    # are. We are on the line segment if it is in the range 0 to 1.
     if t < 0:
-        pt_on_line = e1
+        pt_on_seg = e1
     elif t > 1:
-        pt_on_line = e2
+        pt_on_seg = e2
     else:
-        pt_on_line = pt_on_line_ + e1
+        pt_on_seg = pt_on_line_ + e1
+    return pt_on_seg
+
+
+def distance_to_lineseg(p, e1, e2):
+    import vtool as vt
+    close_pt = vt.closest_point_on_line_segment(p, e1, e2)
+    dist_to_lineseg = vt.L2(p, close_pt)
+    return dist_to_lineseg
+
+
+def closest_point_on_line(p, e1, e2):
+    """
+    e1 and e2 define two points on the line.
+    Does not clip to the segment.
+
+    CommandLine:
+        python -m vtool.geometry closest_point_on_line --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.geometry import *  # NOQA
+        >>> import vtool as vt
+        >>> verts = np.array([[ 21.83012702,  13.16987298],
+        >>>                   [ 16.83012702,  21.83012702],
+        >>>                   [  8.16987298,  16.83012702],
+        >>>                   [ 13.16987298,   8.16987298],
+        >>>                   [ 21.83012702,  13.16987298]])
+        >>> rng = np.random.RandomState(0)
+        >>> p_list = rng.rand(64, 2) * 20 + 5
+        >>> close_pts = []
+        >>> for p in p_list:
+        >>>     candidates = [closest_point_on_line(p, e1, e2) for e1, e2 in ut.itertwo(verts)]
+        >>>     dists = np.array([vt.L2_sqrd(p, new_pt) for new_pt in candidates])
+        >>>     close_pts.append(candidates[dists.argmin()])
+        >>> close_pts = np.array(close_pts)
+        >>> import plottool as pt
+        >>> pt.ensure_pylab_qt4()
+        >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro', label='original point')
+        >>> pt.plt.plot(close_pts.T[0], close_pts.T[1], 'rx', label='closest point on shape')
+        >>> for x, y in list(zip(p_list, close_pts)):
+        >>>     z = np.array(list(zip(x, y)))
+        >>>     pt.plt.plot(z[0], z[1], 'r--')
+        >>> pt.plt.legend()
+        >>> pt.plt.plot(verts.T[0], verts.T[1], 'b-')
+        >>> pt.plt.xlim(0, 30)
+        >>> pt.plt.ylim(0, 30)
+        >>> pt.plt.axis('equal')
+        >>> ut.show_if_requested()
+    """
+    # shift e1 to origin
+    de = (dx, dy) = e2 - e1
+    # make point vector wrt orgin
+    pv = p - e1
+    # Project pv onto de
+    mag = np.linalg.norm(de)
+    pt_on_line_ = pv.dot(de / mag) * de / mag
+    pt_on_line = pt_on_line_ + e1
     return pt_on_line
+
 
 
 def closest_point_on_verts(p, verts):
