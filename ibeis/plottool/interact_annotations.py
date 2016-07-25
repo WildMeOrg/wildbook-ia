@@ -114,9 +114,26 @@ class AnnotPoly(mpl.patches.Polygon):
         poly.metadata = metadata
         # put in previous text and tabcomplete list for autocompletion
         poly.tctext = ''
+        poly.valid_species = valid_species
         poly.tab_list = valid_species
         poly.tcindex = 0
         poly.anchor_idx = 2
+
+    def add_to_axis(poly, ax):
+        ax.add_patch(poly)
+        ax.add_line(poly.lines)
+        ax.add_line(poly.handle)
+
+    def draw_self(poly, ax, show_species_tags):
+        ax.draw_artist(poly)
+        ax.draw_artist(poly.lines)
+        ax.draw_artist(poly.handle)
+        if show_species_tags:
+            # Hack to fix matplotlib 1.5 bug
+            poly.species_tag.figure = ax.figure
+            poly.metadata_tag.figure = ax.figure
+            ax.draw_artist(poly.species_tag)
+            ax.draw_artist(poly.metadata_tag)
 
     def _make_lines(poly, line_color, line_width):
         """ verts - list of (x, y) tuples """
@@ -130,7 +147,7 @@ class AnnotPoly(mpl.patches.Polygon):
         return lines
 
     def _make_handle_line(poly):
-        _xs, _ys = list(zip(*calc_handle_coords(poly)))
+        _xs, _ys = list(zip(*calc_handle_display_coords(poly)))
         line_width = 4
         line_color = (0, 1, 0)
         color = np.array(line_color)
@@ -151,6 +168,21 @@ class AnnotPoly(mpl.patches.Polygon):
             desel_color = df2.WHITE if poly.is_orig else df2.LIGHTGRAY
             if np.any(line_color != np.array(desel_color)):
                 line.set_color(np.array(desel_color))
+
+    def update_lines(poly):
+        poly.lines.set_data(list(zip(*poly.xy)))
+        poly.handle.set_data(list(zip(*calc_handle_display_coords(poly))))
+
+    def set_species(poly, text):
+        self._currently_selected_poly.tctext = text
+        self._currently_selected_poly.species_tag.set_text(text)
+
+    def increment_species(poly, amount=1):
+        if len(poly.tab_list) > 0:
+            tci = (poly.tcindex + amount) % len(poly.tab_list)
+            poly.tcindex = tci
+            # All tab is going to do is go through the possibilities
+            poly.species_tag.set_text(poly.tab_list[poly.tcindex])
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -204,7 +236,7 @@ class AnnotationInteraction(BASE_CLASS):
         self.mpl_callback_ids = {}
         self.img = img
         self.show_species_tags = True
-        def reinitialize_variables():
+        def _reinitialize_variables():
             self.do_mask = do_mask
             self.img_ind = img_ind
             self.species_tag = default_species
@@ -221,10 +253,10 @@ class AnnotationInteraction(BASE_CLASS):
             self._polyHeld = False                # if any poly is active
             self._currently_selected_poly = None  # active polygon
             self.background = None  # Something Jon added
-        reinitialize_variables()
+        _reinitialize_variables()
         # hack involving exploting lexical scoping to save defaults for a
         # restore operation
-        self.reinitialize_variables = reinitialize_variables
+        self.reinitialize_variables = _reinitialize_variables
         self.handle_matplotlib_initialization(fnum=fnum)
         assert verts_list is None or bbox_list is None, 'only one can be specified'
         # bbox_list will get converted to verts_list
@@ -358,7 +390,7 @@ class AnnotationInteraction(BASE_CLASS):
         self.update_UI()
 
     def update_UI(self):
-        self._update_line()
+        self._update_lines()
         self.fig.canvas.restore_region(self.background)
         self.draw_artists()
         self.fig.canvas.blit(self.fig.ax.bbox)
@@ -369,6 +401,11 @@ class AnnotationInteraction(BASE_CLASS):
             selected = ind == poly_ind
             poly.update_color(selected=selected)
         self.draw()
+
+    def _update_lines(self):
+        for poly in six.itervalues(self.polys):
+            self.last_vert_ind = len(poly.xy) - 1
+            poly.update_lines()
 
     # --- Data Matainence / Other
 
@@ -392,7 +429,7 @@ class AnnotationInteraction(BASE_CLASS):
         verts_list = [vt.verts_from_bbox(bbox) for bbox in bbox_list]
         for verts in verts_list:
             for vert in verts:
-                self.enforce_dims(vert)
+                enforce_dims(self.fig.ax, vert)
         # Create polygons
         poly_list = [self.new_polygon(verts, theta, species, is_orig=True,
                                       metadata=metadata)
@@ -405,41 +442,19 @@ class AnnotationInteraction(BASE_CLASS):
             poly_index = list(self.polys.keys())[wh_list.prod(axis=1).argmax()]
             self._currently_selected_poly = self.polys[poly_index]
             self.update_annot_colors(poly_index)
-            self._update_line()
+            self._update_lines()
         else:
             self._currently_selected_poly = None
         # Add polygons and lines to the axis
         for poly in six.itervalues(self.polys):
-            self.fig.ax.add_patch(poly)
-            self.fig.ax.add_line(poly.lines)
-            self.fig.ax.add_line(poly.handle)
+            poly.add_to_axis(self.fig.ax)
         # Give polygons mpl change callbacks
         for poly in six.itervalues(self.polys):
             poly.add_callback(self.poly_changed)
 
-    def check_dims(self, xy_pt, margin=0.5):
-        """
-        checks if bounding box dims are ok
-
-        Allow the bounding box to go off the image
-        so orientations can be done correctly
-        """
-        num_out = 0
-        ax = self.fig.ax
-        xlim = ax.get_xlim()
-        ylim = ax.get_ylim()
-        if xy_pt[0] < xlim[0] + margin:
-            num_out += 1
-        if xy_pt[0] > xlim[1] - margin:
-            num_out += 1
-        if xy_pt[1] < ylim[1] + margin:
-            num_out += 1
-        if xy_pt[1] > ylim[0] - margin:
-            num_out += 1
-        return num_out <= 3
-
     def check_valid_coords(self, coords_list):
-        return all([self.check_dims(xy_pt) for xy_pt in coords_list])
+        ax = self.ax
+        return all([check_dims(ax, xy_pt) for xy_pt in coords_list])
 
     def rotate_rectangle(self, poly, dtheta):
         coords_lis = calc_display_coords(poly.basecoords, poly.theta + dtheta)
@@ -454,70 +469,35 @@ class AnnotationInteraction(BASE_CLASS):
             poly.basecoords = new_coords
             set_display_coords(poly)
 
-    def enforce_dims(self, xy_pt, margin=0.5):
-        """
-        ONLY USE THIS ON UNROTATED RECTANGLES, as to do otherwise may yield
-        arbitrary polygons
-        """
-        ax = self.fig.ax
-        xlim = ax.get_xlim()
-        ylim = ax.get_ylim()
-        if xy_pt[0] < xlim[0] + margin:
-            xy_pt[0] = xlim[0] + margin
-        if xy_pt[0] > xlim[1] - margin:
-            xy_pt[0] = xlim[1] - margin
-        if xy_pt[1] < ylim[1] + margin:
-            xy_pt[1] = ylim[1] + margin
-        if xy_pt[1] > ylim[0] - margin:
-            xy_pt[1] = ylim[0] - margin
-        return True
-
-    def _update_line(self):
-        for poly in six.itervalues(self.polys):
-            self.last_vert_ind = len(poly.xy) - 1
-            poly.lines.set_data(list(zip(*poly.xy)))
-            poly.handle.set_data(list(zip(*calc_handle_coords(poly))))
-
     def get_ind_under_cursor(self, event):
         """
         get the index of the vertex under cursor if within max_ds tolerance
         """
-        #print('[interact_annotion] enter get_ind_under_cursor')
-        def get_ind_and_dist(poly):
-            if poly is None:
-                return (None, -1)
-            xy = np.asarray(poly.xy)
-            xyt = poly.get_transform().transform(xy)
-            xt, yt = xyt[:, 0], xyt[:, 1]
-            d = np.sqrt((xt - event.x) ** 2 + (yt - event.y) ** 2)
-            indseq = np.nonzero(np.equal(d, np.amin(d)))[0]
-            ind = indseq[0]
-            mindist = d[ind]
-            if mindist >= self.max_ds:
-                ind = None
-                mindist = None
-            return (ind, mindist)
-        ind_dist_list = []
-        ind_dist_list = [
-            (polyind, get_ind_and_dist(poly))
-            for (polyind, poly) in six.iteritems(self.polys)]
-        min_dist = None
-        min_ind  = None
-        sel_polyind = None
-        for polyind, (ind, dist) in ind_dist_list:
-            if ind is None:
-                continue
-            if min_dist is None:
-                min_dist = dist
-                min_ind = ind
-                sel_polyind = polyind
-            elif dist < min_dist:
-                min_dist = dist
-                min_ind = ind
-                sel_polyind = polyind
-        return (sel_polyind, min_ind)
+        # Get mouse coords in figure space
+        x, y = event.x, event.y
+        # Remove any deleted polygons
+        poly_dict = {k: v for k, v in self.polys.items() if v is not None}
+        if len(poly_dict) > 0:
+            poly_inds = list(poly_dict.keys())
+            poly_list = ut.take(poly_dict, poly_inds)
+            # Put polygon coords into figure space
+            poly_pts = [poly.get_transform().transform(np.asarray(poly.xy))
+                        for poly in poly_list]
+            # Find the nearest vertex from the annotations
+            ind_dist_list = [vt.nearest_point(x, y, polypts)
+                             for polypts in poly_pts]
+            dist_lists = ut.take_column(ind_dist_list, 1)
+            min_idx = np.argmin(dist_lists)
+            sel_polyind = poly_inds[min_idx]
+            sel_vertx, sel_dist = ind_dist_list[min_idx]
+            # Ensure nearest distance is within threshold
+            if sel_dist >= self.max_ds ** 2:
+                sel_polyind, sel_vertx = (None, None)
+        else:
+            sel_polyind, sel_vertx = (None, None)
+        return sel_polyind, sel_vertx
 
-    def next_polynum(self):
+    def _next_polynum(self):
         num = self._autoinc_polynum
         self._autoinc_polynum += 1
         return num
@@ -527,7 +507,7 @@ class AnnotationInteraction(BASE_CLASS):
                     metadata=None):
         """ verts - list of (x, y) tuples """
         # create new polygon from verts
-        num = self.next_polynum()
+        num = self._next_polynum()
         poly = AnnotPoly(self.ax, num, verts, theta, species, fc, line_color,
                          line_width, is_orig, metadata, self.valid_species)
         return poly
@@ -601,17 +581,13 @@ class AnnotationInteraction(BASE_CLASS):
         set_display_coords(poly)
 
         self.polys[poly.num] = poly
-        self.fig.ax.add_patch(poly)
-        self.fig.ax.add_line(poly.lines)
-        self.fig.ax.add_line(poly.handle)
-
-        self._update_line()
+        poly.add_to_axis(self.ax)
+        self._update_lines()
 
         poly.add_callback(self.poly_changed)
         self._ind = None  # the active vert
-        _tup = self.get_most_recently_added_poly()
-        poly_ind, self._currently_selected_poly = _tup
-        assert poly_ind == poly.num, 'ind %r, num %r' % (poly_ind, poly.num)
+        poly_ind, poly_ = self.get_most_recently_added_poly()
+        self._currently_selected_poly = poly_
         self.update_annot_colors(poly_ind)
         self.draw()
 
@@ -653,7 +629,6 @@ class AnnotationInteraction(BASE_CLASS):
         # Fudge factor is due to gravity vectors constants
         fudge_factor = (idx) * TAU / 4
         poly_theta = poly.theta + fudge_factor
-
 
         polar_idx2prev = polarDelta(tmpcoords[idx], tmpcoords[previdx])
         polar_idx2next = polarDelta(tmpcoords[idx], tmpcoords[nextidx])
@@ -705,7 +680,7 @@ class AnnotationInteraction(BASE_CLASS):
         """
         print('[interact_annot] Pressed Accept Button')
 
-        def get_annottup_list():
+        def _get_annottup_list():
             annottup_list = []
             indices_list = []
             #theta_list = []
@@ -720,9 +695,9 @@ class AnnotationInteraction(BASE_CLASS):
                 annottup_list.append(annottup)
             return indices_list, annottup_list
 
-        def send_back_annotations():
-            print('[interact_annot] send_back_annotations')
-            indices_list, annottup_list = get_annottup_list()
+        def _send_back_annotations():
+            print('[interact_annot] _send_back_annotations')
+            indices_list, annottup_list = _get_annottup_list()
             # Delete if index is in original_indices but no in indices_list
             deleted_indices   = list(set(self.original_indices) -
                                      set(indices_list))
@@ -748,7 +723,7 @@ class AnnotationInteraction(BASE_CLASS):
                                  new_annottups)
 
         if self.commit_callback is not None:
-            send_back_annotations()
+            _send_back_annotations()
         # Make mask from selection
         if self.do_mask is True:
             self.fig.clf()
@@ -781,36 +756,27 @@ class AnnotationInteraction(BASE_CLASS):
 
     def draw_artists(self):
         for poly in six.itervalues(self.polys):
-            self.fig.ax.draw_artist(poly)
-            self.fig.ax.draw_artist(poly.lines)
-            self.fig.ax.draw_artist(poly.handle)
-            if self.show_species_tags:
-                # Hack to fix matplotlib 1.5 bug
-                poly.species_tag.figure = self.fig
-                poly.metadata_tag.figure = self.fig
-                self.fig.ax.draw_artist(poly.species_tag)
-                self.fig.ax.draw_artist(poly.metadata_tag)
+            poly.draw_self(self.fig.ax, self.show_species_tags)
 
     def _show_poly_context_menu(self, event):
-        def make_options():
-            def print_poly_info():
-                print('self._currently_selected_poly = %r' %
-                      (self._currently_selected_poly,))
-                print('tag_text = %r' %
-                      (self._currently_selected_poly.species_tag.get_text(),))
-                print('self._currently_selected_poly.metadata = %r' %
-                      (self._currently_selected_poly.metadata,))
-
+        def _print_poly_info():
+            print('self._currently_selected_poly = %r' %
+                  (self._currently_selected_poly,))
+            print('tag_text = %r' %
+                  (self._currently_selected_poly.species_tag.get_text(),))
+            print('self._currently_selected_poly.metadata = %r' %
+                  (self._currently_selected_poly.metadata,))
+        def _make_options():
             metadata = self._currently_selected_poly.metadata
             options = []
             options += [
                 #('Foo: ',  functools.partial(print, 'bar')),
-                ('PolyInfo: ',  print_poly_info),
+                ('PolyInfo: ',  _print_poly_info),
             ]
             if isinstance(metadata, ut.LazyDict):
                 options += metadata.nocache_eval('annot_context_options')
             return options
-        options = make_options()
+        options = _make_options()
         self.show_popup_menu(options, event)
 
     def on_click(self, event):
@@ -839,7 +805,7 @@ class AnnotationInteraction(BASE_CLASS):
                 for poly in six.itervalues(self.polys):
                     near_line = is_within_distance_from_line(
                         self.max_ds, (event.xdata, event.ydata),
-                        calc_handle_coords(poly))
+                        calc_handle_display_coords(poly))
                     if near_line:
                         self.currently_rotating_poly = poly
                         break
@@ -876,7 +842,7 @@ class AnnotationInteraction(BASE_CLASS):
             self.update_annot_colors(self._currently_selected_poly.num)
 
         self.canUncolor = False
-        self._update_line()
+        self._update_lines()
         if self.background is not None:
             self.fig.canvas.restore_region(self.background)
         else:
@@ -955,30 +921,6 @@ class AnnotationInteraction(BASE_CLASS):
         if not event.inaxes:
             return
 
-        def handle_control_command(keychar):
-            print('[interact_annot] got hotkey=%r' % (keychar,))
-
-        def handle_label_typing(keychar):
-            if self._currently_selected_poly:
-                #text = self._currently_selected_poly.species_tag.get_text()
-                self._currently_selected_poly.tctext += keychar
-                # TODO: Something better like greying out the tab suggestion
-                # instead of just deleting it
-                self._currently_selected_poly.species_tag.set_text(
-                    self._currently_selected_poly.tctext)
-                regen_tc()
-
-        def regen_tc():
-            # Setup tab completion
-            # This will redo the tab completion list every time a user
-            # types. This should be improved if we move to having more species
-            self._currently_selected_poly.tab_list = [
-                spec
-                for spec in self.valid_species
-                if spec.startswith(self._currently_selected_poly.tctext)
-            ]
-            self._currently_selected_poly.tcindex = 0
-
         if event.key == ACCEPT_SAVE_HOTKEY:
             self.save_and_exit(event)
         elif event.key == ADD_RECTANGLE_HOTKEY:
@@ -990,47 +932,21 @@ class AnnotationInteraction(BASE_CLASS):
         elif event.key == TOGGLE_LABEL_HOTKEY:
             self.toggle_species_label()
 
-        match = re.match('^backspace$', event.key)
-        if match:
-            # We want backspace to operate on the tctext
-            self._currently_selected_poly.tctext = self._currently_selected_poly.tctext[:-1]
-            self._currently_selected_poly.species_tag.set_text(
-                self._currently_selected_poly.tctext)
-            regen_tc()
-
-        match = re.match('^tab$', event.key)
-        if match:
-            if len(self._currently_selected_poly.tab_list) > 0:
-                tci = self._currently_selected_poly.tcindex
-                tci = (
-                    tci + 1
-                    if tci != len(self._currently_selected_poly.tab_list) - 1
-                    else 0)
-                self._currently_selected_poly.tcindex = tci
-                # All tab is going to do is go through the possibilities
-                self._currently_selected_poly.species_tag.set_text(
-                    self._currently_selected_poly.tab_list[
-                        self._currently_selected_poly.tcindex])
-        #TODO: Similar functionality for shift+tab to go backwards
-
-        if not HACK_OFF_SPECIES_TYPING:
-            match = re.match('^.$', event.key)
-            if match:
-                handle_label_typing(match.group(0))
+        if re.match('^backspace$', event.key):
+            self._currently_selected_poly.set_species(DEFAULT_SPECIES_TAG)
+        if re.match('^tab$', event.key):
+            self._currently_selected_poly.increment_species(amount=1)
+        if re.match('^ctrl\+tab$', event.key):
+            self._currently_selected_poly.increment_species(amount=-1)
 
         # NEXT ANND PREV COMMAND
-        #print('[interact_annot] Got key: %r' % event.key)
-        def matches_hotkey(key, hotkeys):
-            hotkeys = [hotkeys] if not isinstance(hotkeys, list) else hotkeys
-            #flags = [re.match(hk, '^' + key + '$') for hk in hotkeys]
-            flags = [re.match(hk,  key) is not None for hk in hotkeys]
-            #print(hotkeys)
-            #print(flags)
-            return any(flags)
+        def _matches_hotkey(key, hotkeys):
+            return any([re.match(hk,  key) is not None for hk in
+                        ut.ensure_iterable(hotkeys)])
 
-        if matches_hotkey(event.key, PREV_IMAGE_HOTKEYS):
+        if _matches_hotkey(event.key, PREV_IMAGE_HOTKEYS):
             self.prev_image(event)
-        if matches_hotkey(event.key, NEXT_IMAGE_HOTKEYS):
+        if _matches_hotkey(event.key, NEXT_IMAGE_HOTKEYS):
             self.next_image(event)
         self.draw()
 
@@ -1221,17 +1137,9 @@ def calc_tag_position(poly):
         >>> # DISABLE_DOCTEST
         >>> from plottool.interact_annotations import *  # NOQA
         >>> poly = ut.DynStruct()
-        >>> poly.basecoords = np.array([[   0.,  400.],
-        >>>                             [   0.,    0.],
-        >>>                             [ 400.,    0.],
-        >>>                             [ 400.,  400.],
-        >>>                             [   0.,  400.]])
+        >>> poly.basecoords = vt.verts_from_bbox([0, 0, 400, 400], True)
         >>> poly.theta = 0
-        >>> poly.xy = np.array([[   0.,  400.],
-        >>>                     [   0.,    0.],
-        >>>                     [ 400.,    0.],
-        >>>                     [ 400.,  400.],
-        >>>                     [   0.,  400.]])
+        >>> poly.xy = vt.verts_from_bbox([0, 0, 400, 400], True)
         >>> tagpos = calc_tag_position(poly)
         >>> print('tagpos = %r' % (tagpos,))
     """
@@ -1249,7 +1157,7 @@ def is_within_distance_from_line(dist, pt, line):
     return vt.distance_to_lineseg(pt, line[0], line[1]) < dist
 
 
-def calc_handle_coords(poly):
+def calc_handle_display_coords(poly):
     cx, cy = points_center(poly.xy)
     w, h = polygon_dims(poly)
     x0, y0 = cx, (cy - (h / 2))  # start at top edge
@@ -1315,6 +1223,45 @@ def default_vertices(img, polys=None, mouseX=None, mouseY=None):
     x2 = min(x2, w - 1)
     y2 = min(y2, h - 1)
     return ((x1, y1), (x1, y2), (x2, y2), (x2, y1))
+
+
+def check_dims(ax, xy_pt, margin=0.5):
+    """
+    checks if bounding box dims are ok
+
+    Allow the bounding box to go off the image
+    so orientations can be done correctly
+    """
+    num_out = 0
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    if xy_pt[0] < xlim[0] + margin:
+        num_out += 1
+    if xy_pt[0] > xlim[1] - margin:
+        num_out += 1
+    if xy_pt[1] < ylim[1] + margin:
+        num_out += 1
+    if xy_pt[1] > ylim[0] - margin:
+        num_out += 1
+    return num_out <= 3
+
+
+def enforce_dims(ax, xy_pt, margin=0.5):
+    """
+    ONLY USE THIS ON UNROTATED RECTANGLES, as to do otherwise may yield
+    arbitrary polygons
+    """
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    if xy_pt[0] < xlim[0] + margin:
+        xy_pt[0] = xlim[0] + margin
+    if xy_pt[0] > xlim[1] - margin:
+        xy_pt[0] = xlim[1] - margin
+    if xy_pt[1] < ylim[1] + margin:
+        xy_pt[1] = ylim[1] + margin
+    if xy_pt[1] > ylim[0] - margin:
+        xy_pt[1] = ylim[0] - margin
+    return True
 
 
 def test_interact_annots():
