@@ -187,6 +187,9 @@ def split_analysis(ibs):
         python -m ibeis split_analysis --show
         python -m ibeis split_analysis --show --good
 
+    Ignore:
+        sshfs -o idmap=user lev:/ ~/lev
+
     Example:
         >>> # DISABLE_DOCTEST GGR
         >>> from ibeis.other.dbinfo import *  # NOQA
