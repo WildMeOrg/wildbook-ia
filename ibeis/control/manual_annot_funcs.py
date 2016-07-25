@@ -2265,6 +2265,7 @@ def update_annot_visual_uuids(ibs, aid_list):
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs._get_all_aids()[0:1]
         >>> update_annot_visual_uuids(ibs, aid_list)
+        >>> result = ibs.get_annot_visual_uuids(aid_list)[0]
         8687dcb6-1f1f-fdd3-8b72-8f36f9f41905
     """
     visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
