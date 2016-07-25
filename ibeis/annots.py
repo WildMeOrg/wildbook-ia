@@ -151,7 +151,9 @@ class Annots(_ibeis_object.PrimaryObject):
     def get_am_rowids(self):
         ibs = self._ibs
         edges = self.get_aidpairs()
-        ams = ibs.get_annotmatch_rowid_from_undirected_superkey(*zip(*edges))
+        aids1 = ut.take_column(edges, 0)
+        aids2 = ut.take_column(edges, 1)
+        ams = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
         ams = ut.filter_Nones(ams)
         return ams
 

@@ -230,26 +230,31 @@ def split_analysis(ibs):
         })
     )
     all_aids = aids1 + aids2
+    all_annots = ibs.annots(all_aids)
     print('%d annots on day 1' % (len(aids1)) )
     print('%d annots on day 2' % (len(aids2)) )
+    print('%d annots overall' % (len(all_annots)) )
+    print('%d names overall' % (len(ut.unique(all_annots.nids))) )
 
-    all_annots = ibs.annots(all_aids)
     nid_list, annots_list = all_annots.group(all_annots.nids)
-    aids_list = [annots.aids for annots in annots_list]
 
+    REVIEWED_EDGES = True
+    if REVIEWED_EDGES:
+        aids_list = [annots.aids for annots in annots_list]
+        #aid_pairs = [annots.get_am_aidpairs() for annots in annots_list]  # Slower
+        aid_pairs = ibs.get_unflat_am_aidpairs(aids_list)  # Faster
+    else:
+        # ALL EDGES
+        aid_pairs = [annots.get_aidpairs() for annots in annots_list]
+
+    speeds_list = ibs.unflat_map(ibs.get_annotpair_speeds, aid_pairs)
     import vtool as vt
-    speeds_list = ibs.get_unflat_annots_speeds_list(aids_list)
-    max_speeds = np.array([vt.safe_max(speeds, nans=False)
-                           for speeds in speeds_list])
+    max_speeds = np.array([vt.safe_max(s, nans=False) for s in speeds_list])
 
     nan_idx = np.where(np.isnan(max_speeds))[0]
     inf_idx = np.where(np.isinf(max_speeds))[0]
     bad_idx = sorted(ut.unique(ut.flatten([inf_idx, nan_idx])))
     ok_idx = ut.index_complement(bad_idx, len(max_speeds))
-
-    #nan_annots = ut.take(annots_list, nan_idx)
-    #a = nan_annots[ut.argmax(ut.lmap(len, nan_annots))]
-    #ut.dict_hist(ut.lmap(len, nan_annots))
 
     print('#nan_idx = %r' % (len(nan_idx),))
     print('#inf_idx = %r' % (len(inf_idx),))
@@ -265,8 +270,6 @@ def split_analysis(ibs):
     sorted_nids = np.array(ut.take(ok_nids, sortx))  # NOQA
 
     sorted_speeds = np.clip(sorted_speeds, 0, 100)
-    #sorted_speeds[sorted_speeds > 100] = 100
-    #np.histogram(sorted_speeds)
 
     #idx = vt.find_elbow_point(sorted_speeds)
     #EXCESSIVE_SPEED = sorted_speeds[idx]
@@ -279,6 +282,7 @@ def split_analysis(ibs):
     #ZEBRA_SPEED_WALK = 7  # km/h
 
     MAX_SPEED = ZEBRA_SPEED_SLOW_RUN
+    #MAX_SPEED = ZEBRA_SPEED_WALK
     #MAX_SPEED = EXCESSIVE_SPEED
 
     flags = sorted_speeds > MAX_SPEED
@@ -314,8 +318,10 @@ def split_analysis(ibs):
         gt.ensure_qtapp()
 
         if ut.get_argflag('--good'):
+            print('Looking at GOOD (no speed problems) edges')
             aid_pairs = good_edges_list
         else:
+            print('Looking at BAD (speed problems) edges')
             aid_pairs = all_bad_edges
         aids = sorted(list(set(ut.flatten(aid_pairs))))
         infr = graph_iden.AnnotInference2(ibs, aids, verbose=False)
@@ -326,9 +332,11 @@ def split_analysis(ibs):
         scores = (-rng.rand(len(aid_pairs)) * 10).tolist()
         infr.graph.add_edges_from(aid_pairs)
 
-        if False:
-            pop = len(flagged_annots)
+        if True:
+            #import utool
+            #utool.embed()
             edge_sample_size = 250
+            pop_nids = ut.unique(ibs.get_annot_nids(ut.unique(ut.flatten(aid_pairs))))
             sorted_pairs = ut.sortedby(aid_pairs, scores)[::-1][0:edge_sample_size]
             sorted_nids = ibs.get_annot_nids(ut.take_column(sorted_pairs, 0))
             sample_size = len(ut.unique(sorted_nids))
@@ -336,9 +344,13 @@ def split_analysis(ibs):
             flags = ut.not_list(ut.flag_None_items(am_rowids))
             #am_rowids = ut.compress(am_rowids, flags)
             positive_tags = ['SplitCase', 'Photobomb']
-            flags_list = [ibs.get_annotmatch_prop(tag, am_rowids) for tag in positive_tags]
+            flags_list = [ut.replace_nones(ibs.get_annotmatch_prop(tag, am_rowids), 0)
+                          for tag in positive_tags]
+            print('edge_case_hist: ' + ut.repr3(
+                ['%s %s' % (txt, sum(flags)) for flags, txt in zip(flags_list, positive_tags)]))
             is_positive = ut.or_lists(*flags_list)
             num_positive = sum(ut.lmap(any, ut.group_items(is_positive, sorted_nids).values()))
+            pop = len(pop_nids)
             print('A positive is any edge flagged as a %s' % (ut.conj_phrase(positive_tags, 'or'),))
             print('--- Sampling wrt edges ---')
             print('edge_sample_size  = %r' % (edge_sample_size,))
@@ -1014,32 +1026,33 @@ def get_dbinfo(ibs, verbose=True,
 
     ibs.check_name_mapping_consistency(nx2_aids)
 
-    # Occurrence Info
-    def compute_annot_occurrence_ids(ibs, aid_list):
-        from ibeis.algo.preproc import preproc_occurrence
-        gid_list = ibs.get_annot_gids(aid_list)
-        gid2_aids = ut.group_items(aid_list, gid_list)
-        flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(ibs, gid_list, seconds_thresh=4 * 60 * 60, verbose=False)
-        occurid2_gids = ut.group_items(flat_gids, flat_imgsetids)
-        occurid2_aids = {oid: ut.flatten(ut.take(gid2_aids, gids)) for oid, gids in occurid2_gids.items()}
-        return occurid2_aids
+    if False:
+        # Occurrence Info
+        def compute_annot_occurrence_ids(ibs, aid_list):
+            from ibeis.algo.preproc import preproc_occurrence
+            gid_list = ibs.get_annot_gids(aid_list)
+            gid2_aids = ut.group_items(aid_list, gid_list)
+            flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(ibs, gid_list, seconds_thresh=4 * 60 * 60, verbose=False)
+            occurid2_gids = ut.group_items(flat_gids, flat_imgsetids)
+            occurid2_aids = {oid: ut.flatten(ut.take(gid2_aids, gids)) for oid, gids in occurid2_gids.items()}
+            return occurid2_aids
 
-    import utool
-    with utool.embed_on_exception_context:
-        occurid2_aids = compute_annot_occurrence_ids(ibs, valid_aids)
-        occur_nids = ibs.unflat_map(ibs.get_annot_nids, occurid2_aids.values())
-        occur_unique_nids = [ut.unique(nids) for nids in occur_nids]
-        nid2_occurxs = ut.ddict(list)
-        for occurx, nids in enumerate(occur_unique_nids):
-            for nid in nids:
-                nid2_occurxs[nid].append(occurx)
+        import utool
+        with utool.embed_on_exception_context:
+            occurid2_aids = compute_annot_occurrence_ids(ibs, valid_aids)
+            occur_nids = ibs.unflat_map(ibs.get_annot_nids, occurid2_aids.values())
+            occur_unique_nids = [ut.unique(nids) for nids in occur_nids]
+            nid2_occurxs = ut.ddict(list)
+            for occurx, nids in enumerate(occur_unique_nids):
+                for nid in nids:
+                    nid2_occurxs[nid].append(occurx)
 
-    nid2_occurx_single = {nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) <= 1}
-    nid2_occurx_resight = {nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) > 1}
-    singlesight_encounters = ibs.get_name_aids(nid2_occurx_single.keys())
+        nid2_occurx_single = {nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) <= 1}
+        nid2_occurx_resight = {nid: occurxs for nid, occurxs in nid2_occurxs.items() if len(occurxs) > 1}
+        singlesight_encounters = ibs.get_name_aids(nid2_occurx_single.keys())
 
-    singlesight_annot_stats = ut.get_stats(list(map(len, singlesight_encounters)), use_median=True, use_sum=True)
-    resight_name_stats = ut.get_stats(list(map(len, nid2_occurx_resight.values())), use_median=True, use_sum=True)
+        singlesight_annot_stats = ut.get_stats(list(map(len, singlesight_encounters)), use_median=True, use_sum=True)
+        resight_name_stats = ut.get_stats(list(map(len, nid2_occurx_resight.values())), use_median=True, use_sum=True)
 
     # Encounter Info
     def break_annots_into_encounters(aids):
@@ -1342,8 +1355,8 @@ def get_dbinfo(ibs, verbose=True,
 
     occurrence_block_lines = [
         ('--' * num_tabs),
-        ('# Occurrence Per Name (Resights) = %s' % (align_dict2(resight_name_stats),)),
-        ('# Annots per Encounter (Singlesights) = %s' % (align_dict2(singlesight_annot_stats),)),
+        #('# Occurrence Per Name (Resights) = %s' % (align_dict2(resight_name_stats),)),
+        #('# Annots per Encounter (Singlesights) = %s' % (align_dict2(singlesight_annot_stats),)),
         ('# Pair Tag Info (annots) = %s' % (align_dict2(pair_tag_info),)),
     ] if not short else []
 

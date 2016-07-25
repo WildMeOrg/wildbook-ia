@@ -23,7 +23,7 @@ import numpy as np
 import vtool as vt
 import utool as ut
 from utool._internal.meta_util_six import get_funcname, get_imfunc, set_funcname
-import itertools
+import itertools as it
 from ibeis import constants as const
 from ibeis.control import accessor_decors
 from ibeis.control import controller_inject
@@ -3781,7 +3781,7 @@ def get_unflat_annots_speeds_list2(ibs, aids_list):
     """
     if True:
         unique_aids = sorted(list(set(ut.flatten(aids_list))))
-        aid_pairs_list = [list(itertools.combinations(aids, 2)) for aids in aids_list]
+        aid_pairs_list = [list(it.combinations(aids, 2)) for aids in aids_list]
         aid_pairs, cumsum = ut.invertible_flatten2(aid_pairs_list)
         speeds = ibs.get_annotpair_speeds(aid_pairs, unique_aids=unique_aids)
         speeds_list = ut.unflatten2(speeds, cumsum)
@@ -3798,7 +3798,7 @@ def get_unflat_annots_speeds_list2(ibs, aids_list):
         if len(unique_gps) == 0:
             unique_gps.shape = (0, 2)
         # Find pairs that need comparison
-        idx_pairs_list = [list(itertools.combinations(idxs, 2)) for idxs in idx_list]
+        idx_pairs_list = [list(it.combinations(idxs, 2)) for idxs in idx_list]
         idx_pairs, cumsum = ut.invertible_flatten2(idx_pairs_list)
         idxs1 = ut.take_column(idx_pairs, 0)
         idxs2 = ut.take_column(idx_pairs, 1)
@@ -3834,7 +3834,8 @@ def get_annotpair_speeds(ibs, aid_pairs, unique_aids=None):
     # Lookup values in SQL only once
     unique_unixtimes = ibs.get_annot_image_unixtimes_asfloat(unique_aids)
     unique_gps = ibs.get_annot_image_gps(unique_aids)
-    unique_gps = np.array([(np.nan if lat == -1 else lat, np.nan if lon == -1 else lon) for (lat, lon) in unique_gps])
+    unique_gps = np.array([(np.nan if lat == -1 else lat, np.nan if lon == -1 else lon)
+                           for (lat, lon) in unique_gps])
     unique_gps = vt.atleast_nd(unique_gps, 2)
     if len(unique_gps) == 0:
         unique_gps.shape = (0, 2)
@@ -3852,6 +3853,32 @@ def get_annotpair_speeds(ibs, aid_pairs, unique_aids=None):
     flags = np.logical_and(km_dists == 0, hour_dists == 0)
     speeds[flags] = 0
     return speeds
+
+
+@register_ibs_method
+@profile
+def get_unflat_am_rowids(ibs, aids_list):
+    aid_pairs = [list(it.combinations(aids, 2)) for aids in aids_list]
+    flat_pairs, cumsum = ut.invertible_flatten2(aid_pairs)
+    flat_aids1 = ut.take_column(flat_pairs, 0)
+    flat_aids2 = ut.take_column(flat_pairs, 1)
+    flat_ams_ = ibs.get_annotmatch_rowid_from_undirected_superkey(flat_aids1, flat_aids2)
+    ams_ = ut.unflatten2(flat_ams_, cumsum)
+    ams_list = [ut.filter_Nones(a) for a in ams_]
+    return ams_list
+    #flat_ams = ut.filter_Nones(ams)
+
+@register_ibs_method
+@profile
+def get_unflat_am_aidpairs(ibs, aids_list):
+    """ Gets only aid pairs that have some reviewed/matched status """
+    ams_list = ibs.get_unflat_am_rowids(aids_list)
+    flat_ams, cumsum = ut.invertible_flatten2(ams_list)
+    flat_aids1 = ibs.get_annotmatch_aid1(flat_ams)
+    flat_aids2 = ibs.get_annotmatch_aid2(flat_ams)
+    flat_aid_pairs = list(zip(flat_aids1, flat_aids2))
+    aid_pairs = ut.unflatten2(flat_aid_pairs, cumsum)
+    return aid_pairs
 
 
 @register_ibs_method
