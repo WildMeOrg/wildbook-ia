@@ -680,11 +680,11 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         # create file handler which logs even debug messages
-        dbdir = self.infr.qreq_.ibs.get_dbdir()
+        dbdir = self.infr.ibs.get_dbdir()
         expt_dir = ut.ensuredir(ut.unixjoin(dbdir, 'SPECIAL_GGR_EXPT_LOGS'))
         review_log_dir = ut.ensuredir(ut.unixjoin(expt_dir, 'review_logs'))
         log_fpath = ut.unixjoin(review_log_dir,
-                                'split_log_%s.json' % (self.infr.qreq_.ibs.dbname))
+                                'split_log_%s.json' % (self.infr.ibs.dbname))
         fh = logging.FileHandler(log_fpath)
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(formatter)
@@ -702,7 +702,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         logger.info('ACCEPT SPLIT CASE')
         logger.info('aid_list = %r' % (aid_list,))
         logger.info('name_list = %r' % (name_list,))
-        logger.info('_initial_feedback = ' + ut.repr2(self.infr._initial_feedback, nl=1))
+        # logger.info('_initial_feedback = ' + ut.repr2(self.infr._initial_feedback, nl=1))
         logger.info('user_feedback = ' + ut.repr2(self.infr.user_feedback, nl=1))
 
         ibs = self.infr.ibs
