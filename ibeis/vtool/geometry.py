@@ -21,6 +21,15 @@ def verts_list_from_bboxes_list(bboxes_list):
     return [verts_from_bbox(bbox) for bbox in bboxes_list]
 
 
+#def mask_from_verts(verts):
+#    h, w = shape[0:2]
+#    y, x = np.mgrid[:h, :w]
+#    points = np.transpose((x.ravel(), y.ravel()))
+#    #mask = nxutils.points_inside_poly(points, verts)
+#    mask = _nxutils_points_inside_poly(points, verts)
+#    return mask.reshape(h, w)
+
+
 def verts_from_bbox(bbox, close=False):
     r"""
     Args:
