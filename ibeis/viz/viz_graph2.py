@@ -1376,23 +1376,23 @@ def ggr_random_name_splits():
     day1 = datetime.date(2016, 1, 30)
     day2 = datetime.date(2016, 1, 31)
 
-    filter_kw = {
+    orig_filter_kw = {
         'multiple': None,
         #'view': ['right'],
         #'minqual': 'good',
         'is_known': True,
         'min_pername': 2,
     }
-    aids = ibs.filter_annots_general(filter_kw=ut.dict_union(
-        filter_kw, {
+    orig_aids = ibs.filter_annots_general(filter_kw=ut.dict_union(
+        orig_filter_kw, {
             'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
             'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
         })
     )
-    all_annots = ibs.annots(aids)
-    unique_nids, grouped_annots_ = all_annots.group(all_annots.nids)
+    orig_all_annots = ibs.annots(orig_aids)
+    orig_unique_nids, orig_grouped_annots_ = orig_all_annots.group(orig_all_annots.nids)
     # Ensure we get everything
-    grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(unique_nids)]
+    orig_grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(orig_unique_nids)]
 
     # pip install quantumrandom
     if False:
@@ -1411,10 +1411,10 @@ def ggr_random_name_splits():
         #aes.reseed(aes_seed)
         #aes.pseudo_random_data(10)
 
-    rand_idxs = ut.random_indexes(len(grouped_annots), seed=3340258)
+    orig_rand_idxs = ut.random_indexes(len(orig_grouped_annots), seed=3340258)
     orig_sample_size = 75
-    random_annot_groups = ut.take(grouped_annots, rand_idxs)
-    annot_sample = random_annot_groups[:orig_sample_size]
+    random_annot_groups = ut.take(orig_grouped_annots, orig_rand_idxs)
+    orig_annot_sample = random_annot_groups[:orig_sample_size]
 
     # OOOPS MADE ERROR REDO ----
 
@@ -1430,30 +1430,29 @@ def ggr_random_name_splits():
             'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
             'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
         })
-    refiltered_sample = [ibs.filter_annots_general(annot.aids, filter_kw=filter_kw_) for annot in annot_sample]
+    refiltered_sample = [ibs.filter_annots_general(annot.aids, filter_kw=filter_kw_) for annot in orig_annot_sample]
     is_ok = (np.array(ut.lmap(len, refiltered_sample)) >= 2)
-    ok_part_orig_sample = ut.compress(annot_sample, is_ok)
+    ok_part_orig_sample = ut.compress(orig_annot_sample, is_ok)
     ok_part_orig_nids = [x.nids[0] for x in ok_part_orig_sample]
 
     # Now compute real sample
     aids = ibs.filter_annots_general(filter_kw=filter_kw_)
     all_annots = ibs.annots(aids)
     unique_nids, grouped_annots_ = all_annots.group(all_annots.nids)
+    grouped_annots = grouped_annots_
     # Ensure we get everything
-    grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(unique_nids)]
+    #grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(unique_nids)]
 
-    #flags = [x == y for x, y in zip(grouped_annots, grouped_annots_)]
-    #sum(flags) / len(flags)
     pop = len(grouped_annots)
-    #pername_list = ut.lmap(len, grouped_annots)
-    #groups = ibeis.annots.AnnotGroups(grouped_annots, ibs)
-    #case_tags = [ut.unique(ut.flatten(t)) for t in groups.case_tags]
-    #tag_case_hist = ut.dict_hist(ut.flatten(case_tags))
+    pername_list = ut.lmap(len, grouped_annots)
+    groups = ibeis.annots.AnnotGroups(grouped_annots, ibs)
+    case_tags = [ut.unique(ut.flatten(t)) for t in groups.case_tags]
+    tag_case_hist = ut.dict_hist(ut.flatten(case_tags))
     print('name_pop = %r' % (pop,))
-    #print('Annots per Multiton Name' + ut.repr3(ut.get_stats(pername_list, use_median=True)))
-    #print('Name Tag Hist ' + ut.repr3(tag_case_hist))
-    #print('Percent Photobomb: %.2f%%' % (tag_case_hist['photobomb'] / pop * 100))
-    #print('Percent Split: %.2f%%' % (tag_case_hist['splitcase'] / pop * 100))
+    print('Annots per Multiton Name' + ut.repr3(ut.get_stats(pername_list, use_median=True)))
+    print('Name Tag Hist ' + ut.repr3(tag_case_hist))
+    print('Percent Photobomb: %.2f%%' % (tag_case_hist['photobomb'] / pop * 100))
+    print('Percent Split: %.2f%%' % (tag_case_hist['splitcase'] / pop * 100))
 
     # Remove the ok part from this sample
     remain_unique_nids = ut.setdiff(unique_nids, ok_part_orig_nids)
