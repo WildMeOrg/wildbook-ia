@@ -2219,8 +2219,10 @@ def zstar_value(conf_level=.95):
     return zstar
 
 
-def calc_error_from_sample(sample_size, num_positive, pop, conf_level=.95):
+def calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95):
     """
+    Determines a error bars of sample
+
     References:
         https://www.qualtrics.com/blog/determining-sample-size/
         http://www.surveysystem.com/sscalc.htm
@@ -2250,8 +2252,10 @@ def calc_error_from_sample(sample_size, num_positive, pop, conf_level=.95):
     print(ut.msgblock('Calculate Sample Error Margin', '\n'.join(lines)))
 
 
-def calc_sample_from_error(err_frac, pop, conf_level=.95, prior=.5):
+def calc_sample_from_error_bars(err_frac, pop, conf_level=.95, prior=.5):
     """
+    Determines a reasonable sample size to achieve desired error bars.
+
     import sympy
     p, n, N, z = sympy.symbols('prior, ss, pop, zval')
     me = sympy.symbols('err_frac')
@@ -2265,7 +2269,6 @@ def calc_sample_from_error(err_frac, pop, conf_level=.95, prior=.5):
 
     ss = -pop * prior* (zval**2) *(prior - 1) / ((err_frac ** 2) * pop - (err_frac**2) - prior * (zval**2) * (prior - 1))
     ss = pop * prior * zval ** 2 * (prior - 1) / (-err_frac ** 2 * pop + err_frac ** 2 + prior * zval ** 2 * (prior - 1))
-
     """
     # How much confidence ydo you want (in fraction of positive results)
     #zVal_lookup = {.95: 1.96, .99: 2.58,}
