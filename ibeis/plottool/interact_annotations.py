@@ -6,6 +6,8 @@ TODO:
     * need to take options on a right click of an annotation
     * add support for arbitrary polygons back in .
     * rename species_list to label_list or category_list
+    * Just use metadata instead of species / category / label
+    # Need to incorporate parts into metadata
 
 Notes:
     3. Change bounding box and update continuously to the original image the
@@ -68,23 +70,21 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.interact_annotations import *  # NOQA
+        >>> verts = vt.verts_from_bbox([0, 0, 10, 10])
+        >>> poly = AnnotPoly(None, 0, verts, 0, '____')
     """
     def __init__(poly, ax, num, verts, theta, species, fc=(0, 0, 0),
                  line_color=(1, 1, 1), line_width=4, is_orig=False,
                  metadata=None, valid_species=None):
 
         super(AnnotPoly, poly).__init__(verts, animated=True, fc=fc, ec='none',
-                                        alpha=0, picker=True)
+                                        alpha=0)
         # Ensure basecoords consistency
         poly.basecoords = vt.verts_from_bbox(vt.bbox_from_verts(poly.xy))
         #poly.basecoords = poly.xy
         poly.num = num
         poly.is_orig = is_orig
         poly.theta = theta
-        if isinstance(metadata, ut.LazyDict):
-            metadata_ = ut.dict_subset(metadata, metadata.cached_keys())
-        else:
-            metadata_ = metadata
         poly.metadata = metadata
         poly.valid_species = valid_species
         poly.tab_list = valid_species
@@ -98,6 +98,17 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
         poly.xy = calc_display_coords(poly.basecoords, poly.theta)
         poly.lines = poly._make_lines(line_color, line_width)
         poly.handle = poly._make_handle_line()
+        poly.species = species
+        if ax is not None:
+            poly.axes_init(ax)
+
+    def axes_init(poly, ax):
+        species = poly.species
+        metadata = poly.metadata
+        if isinstance(metadata, ut.LazyDict):
+            metadata_ = ut.dict_subset(metadata, metadata.cached_keys())
+        else:
+            metadata_ = metadata
         poly.species_tag = ax.text(
             #tagpos[0], tagpos[1],
             0, 0,
@@ -112,10 +123,19 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
             bbox={'facecolor': 'white', 'alpha': .7},
             verticalalignment='top',
         )
-        poly.update_display_coords()
         # ???
         poly.species_tag.remove()  # eliminate "leftover" copies
         poly.metadata_tag.remove()
+        #
+        poly.update_display_coords()
+
+    def move_to_back(poly):
+        # FIXME: doesnt work exactly
+        # Probalby need to do in the context of other polys
+        zorder = 0
+        poly.set_zorder(zorder)
+        poly.lines.set_zorder(zorder)
+        poly.handle.set_zorder(zorder)
 
     def __nice__(poly):
         return '(num=%r)' % (poly.num)
@@ -130,11 +150,16 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
         poly.lines.remove()
         poly.handle.remove()
 
-    def draw_self(poly, ax, show_species_tags):
+    def draw_self(poly, ax, show_species_tags=False, editable=True):
         ax.draw_artist(poly)
+        if not editable and poly.lines.get_marker():
+            poly.lines.set_marker('')
+        elif editable and not poly.lines.get_marker():
+            poly.lines.set_marker('o')
         ax.draw_artist(poly.lines)
-        ax.draw_artist(poly.handle)
-        if show_species_tags:
+        if editable:
+            ax.draw_artist(poly.handle)
+        if editable and show_species_tags:
             # Hack to fix matplotlib 1.5 bug
             poly.species_tag.figure = ax.figure
             poly.metadata_tag.figure = ax.figure
@@ -329,7 +354,7 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
         return is_within_distance_from_line(xy_pt, line, max_dist)
 
     @property
-    def wh(poly):
+    def size(poly):
         return vt.bbox_from_verts(poly.xy)[2:4]
 
 
@@ -532,6 +557,8 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.update_UI()
 
     def _update_poly_colors(self):
+        for poly in six.itervalues(self.uneditable_polys):
+            poly.update_color()
         for ind, poly in six.iteritems(self.editable_polys):
             assert poly.num == ind
             selected = poly is self._selected_poly
@@ -540,6 +567,9 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.draw()
 
     def _update_poly_lines(self):
+        for poly in six.itervalues(self.uneditable_polys):
+            #self.last_vert_ind = len(poly.xy) - 1
+            poly.update_lines()
         for poly in six.itervalues(self.editable_polys):
             self.last_vert_ind = len(poly.xy) - 1
             poly.update_lines()
@@ -552,17 +582,20 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.fig.canvas.blit(self.ax.bbox)
 
     def draw_artists(self):
+        for poly in six.itervalues(self.uneditable_polys):
+            poly.draw_self(self.ax, editable=False)
         for poly in six.itervalues(self.editable_polys):
             poly.draw_self(self.ax, self.show_species_tags)
-        #for poly in six.itervalues(self.polys):
-        #    poly.draw_self(self.ax, self.show_species_tags)
 
     # --- Data Matainence / Other
 
     @property
     def uneditable_polys(self):
         if self.in_edit_parts_mode:
-            return self.polys
+            return {self.parent_poly.num: self.parent_poly}
+            #return self.polys
+        else:
+            return {}
 
     @property
     def editable_polys(self):
@@ -616,6 +649,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         num = six.next(self._autoinc_polynum)
         poly = AnnotPoly(self.ax, num, verts, theta, species, fc, line_color,
                          line_width, is_orig, metadata, self.valid_species)
+        poly.set_picker(self.is_poly_pickable)
         return poly
 
     def handle_polygon_creation(self, bbox_list, theta_list, species_list,
@@ -648,7 +682,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.polys = {poly.num: poly for poly in poly_list}
         if len(self.polys) != 0:
             # Select poly with largest area
-            wh_list = np.array([poly.wh for poly in six.itervalues(self.polys)])
+            wh_list = np.array([poly.size for poly in six.itervalues(self.polys)])
             poly_index = list(self.polys.keys())[wh_list.prod(axis=1).argmax()]
             self._selected_poly = self.polys[poly_index]
             self._update_poly_colors()
@@ -719,7 +753,13 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             self.draw()
 
     def edit_poly_parts(self, poly):
+        if poly is None and self.parent_poly is not None:
+            self._selected_poly = self.parent_poly
+        print('self.parent_poly = %r' % (self.parent_poly,))
         self.parent_poly = poly
+        if poly is not None:
+            self._selected_poly = self.get_most_recently_added_poly()
+        print('self._selected_poly = %r' % (self._selected_poly,))
         if poly is None:
             self.ax.imshow(vt.convert_colorspace(self.img, 'RGB'))
         else:
@@ -841,6 +881,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             options = []
             options += [
                 #('Foo: ',  ut.partial(print, 'bar')),
+                #('Move to back ',  self._selected_poly.move_to_back),
                 ('PolyInfo: ',  self._selected_poly.print_info),
             ]
             if isinstance(metadata, ut.LazyDict):
@@ -849,14 +890,29 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         options = _make_options()
         self.show_popup_menu(options, event)
 
+    def is_poly_pickable(self, artist, event):
+        if artist.num in self.editable_polys:
+            mouse_xy = event.x, event.y
+            hit = artist.contains_point(mouse_xy)
+        else:
+            hit = False
+        #import utool
+        #utool.embed()
+        props = {'dblclick': event.dblclick}
+        return hit, props
+
     def on_pick(self, event):
         """ Makes selected polygon translucent """
         if self.debug > 0 or True:
             print('[interact_annot] on_pick')
-        artist = event.artist
-        print('[interact_annot] picked artist = %r' % (artist,))
-        self._selected_poly = artist
-        self._poly_held = True
+        if not self._poly_held:
+            artist = event.artist
+            print('[interact_annot] picked artist = %r' % (artist,))
+            self._selected_poly = artist
+            self._poly_held = True
+            if event.dblclick and not self.in_edit_parts_mode:
+                self.edit_poly_parts(self._selected_poly)
+                pass
         #x, y = event.mouseevent.xdata, event.mouseevent.xdata
 
     def on_click(self, event):
@@ -882,11 +938,11 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             self._show_poly_context_menu(event)
         # Left click, indicate that a mouse button is down
         if event.button == self.LEFT_BUTTON:
-            if event.dblclick and not self.in_edit_parts_mode:
-                # On double click enter a single annotation to annotation parts
-                print("DOUBLECLICK")
-                self.edit_poly_parts(self._selected_poly)
-            elif event.key == 'shift':
+            #if event.dblclick and not self.in_edit_parts_mode:
+            #    # On double click enter a single annotation to annotation parts
+            #    #print("DOUBLECLICK")
+            #    #self.edit_poly_parts(self._selected_poly)
+            if event.key == 'shift':
                 self._current_rotate_poly = self._selected_poly
             else:
                 # Determine if we are clicking the rotation line
@@ -984,8 +1040,8 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
     def on_click_release(self, event):
         super(AnnotationInteraction, self).on_click_release(event)
 
-        if self._poly_held is True:
-            self._poly_held = False
+        #if self._poly_held is True:
+        self._poly_held = False
 
         self._current_rotate_poly = None
 
