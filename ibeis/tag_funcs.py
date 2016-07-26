@@ -52,8 +52,8 @@ ANNOTMATCH_PROPS_OTHER = [
     'TimeDeltaError',
 
     # These annots have almost the same information
-    'NearDuplicate'
-    'CorrectPhotobomb'
+    'NearDuplicate',
+    'CorrectPhotobomb',
 ]
 
 OLD_ANNOTMATCH_PROPS = [
