@@ -33,7 +33,7 @@ def testdata_showchip():
     return ibs, aid_list, kwargs, config2_
 
 
-def show_many_chips(ibs, aid_list, config2_=None):
+def show_many_chips(ibs, aid_list, config2_=None, fnum=None, pnum=None):
     r"""
     CommandLine:
         python -m ibeis.viz.viz_chip --test-show_many_chips
@@ -55,7 +55,7 @@ def show_many_chips(ibs, aid_list, config2_=None):
     chip_list = vh.get_chips(ibs, aid_list, in_image=in_image, config2_=config2_)
     import vtool as vt
     stacked_chips = vt.stack_image_recurse(chip_list, modifysize=True)
-    pt.imshow(stacked_chips)
+    pt.imshow(stacked_chips, fnum=None, pnum=None)
 
 
 #@ut.indent_func
