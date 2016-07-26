@@ -109,7 +109,7 @@ class AnnotPoly(mpl.patches.Polygon):
         poly.tcindex = 0
         poly.anchor_idx = 2
 
-        poly.child_annots = {}
+        poly.child_polys = {}
 
     def add_to_axis(poly, ax):
         ax.add_patch(poly)
@@ -213,13 +213,13 @@ class AnnotPoly(mpl.patches.Polygon):
             # All tab is going to do is go through the possibilities
             poly.species_tag.set_text(poly.tab_list[poly.tcindex])
 
-    def resize_annot(poly, x, y, idx, ax):
+    def resize_poly(poly, x, y, idx, ax):
         """
         Resize a rectangle using idx as the given anchor point. Respects
         current rotation.
 
         CommandLine:
-            python -m plottool.interact_annotations --exec-resize_annot --show
+            python -m plottool.interact_annotations --exec-resize_poly --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -231,7 +231,7 @@ class AnnotPoly(mpl.patches.Polygon):
             >>> x = 3 * w / 4
             >>> y = 3 * h / 4
             >>> idx = 3
-            >>> resize_annot(poly, x, y, idx)
+            >>> resize_poly(poly, x, y, idx)
             >>> update_UI()
             >>> import plottool as pt
             >>> pt.show_if_requested()
@@ -279,13 +279,13 @@ class AnnotPoly(mpl.patches.Polygon):
             poly.basecoords = tmpcoords
         poly.set_display_coords()
 
-    def rotate_annot(poly, dtheta, ax):
+    def rotate_poly(poly, dtheta, ax):
         coords_lis = calc_display_coords(poly.basecoords, poly.theta + dtheta)
         if check_valid_coords(ax, coords_lis):
             poly.theta += dtheta
             poly.set_display_coords()
 
-    def move_annot(poly, dx, dy, ax):
+    def move_poly(poly, dx, dy, ax):
         new_coords = [(x + dx, y + dy) for (x, y) in poly.basecoords]
         coords_list = calc_display_coords(new_coords, poly.theta)
         if check_valid_coords(ax, coords_list):
@@ -303,7 +303,7 @@ class AnnotPoly(mpl.patches.Polygon):
         print('poly.tag_text = %r' % (poly.species_tag.get_text(),))
         print('poly.metadata = %r' % (poly.metadata,))
 
-    def get_annot_mask(poly, shape):
+    def get_poly_mask(poly, shape):
         h, w = shape[0:2]
         y, x = np.mgrid[:h, :w]
         points = np.transpose((x.ravel(), y.ravel()))
@@ -312,7 +312,6 @@ class AnnotPoly(mpl.patches.Polygon):
         mask = path.contains_points(points)
         #mask = nxutils.points_inside_poly(points, verts)
         return mask.reshape(h, w)
-
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -382,7 +381,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             self._autoinc_polynum = 0  # num polys in image
             self._polyHeld = False                # if any poly is active
             self._current_sel_poly = None  # active polygon
-            self.parent_annot = None
+            self.parent_poly = None
             self.background = None
         _reinitialize_variables()
         # hack involving exploting lexical scoping to save defaults for a
@@ -444,17 +443,17 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.append_button(
             'Add Annotation\n' + pretty_hotkey_map(ADD_RECTANGLE_HOTKEY),
             rect=[0.18, 0.015, self.but_width, self.but_height],
-            callback=self.add_new_annot
+            callback=self.add_new_poly
         )
         self.append_button(
             'Add Full Annotation\n' + pretty_hotkey_map(ADD_RECTANGLE_FULL_HOTKEY),
             rect=[0.34, 0.015, self.but_width, self.but_height],
-            callback=partial(self.add_new_annot, full=True)
+            callback=partial(self.add_new_poly, full=True)
         )
         self.append_button(
             'Delete Annotation\n' + pretty_hotkey_map(DEL_RECTANGLE_HOTKEY),
             rect=[0.50, 0.015, self.but_width, self.but_height],
-            callback=self.delete_current_annot
+            callback=self.delete_current_poly
         )
         self.append_button(
             'Save and Exit\n' + pretty_hotkey_map(ACCEPT_SAVE_HOTKEY),
@@ -520,21 +519,21 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.draw()
         self.update_UI()
 
-    def _update_annot_colors(self):
+    def _update_poly_colors(self):
         for ind, poly in six.iteritems(self.polys):
             assert poly.num == ind
             selected = poly is self._current_sel_poly
-            editing_parts = poly is self.parent_annot
+            editing_parts = poly is self.parent_poly
             poly.update_color(selected, editing_parts)
         self.draw()
 
-    def _update_annot_lines(self):
+    def _update_poly_lines(self):
         for poly in six.itervalues(self.polys):
             self.last_vert_ind = len(poly.xy) - 1
             poly.update_lines()
 
     def update_UI(self):
-        self._update_annot_lines()
+        self._update_poly_lines()
         self.fig.canvas.restore_region(self.background)
         self.draw_artists()
         self.fig.canvas.blit(self.ax.bbox)
@@ -568,9 +567,9 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             for vert in verts:
                 enforce_dims(self.ax, vert)
         # Create polygons
-        poly_list = [self.new_polygon(verts, theta, species, is_orig=True,
+        poly_list = [self.new_polygon(verts_, theta, species, is_orig=True,
                                       metadata=metadata)
-                     for (verts, theta, species, metadata) in
+                     for (verts_, theta, species, metadata) in
                      zip(verts_list, theta_list, species_list, metadata_list)]
         self.polys = {poly.num: poly for poly in poly_list}
         if len(self.polys) != 0:
@@ -578,8 +577,8 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
                                 six.itervalues(self.polys)])
             poly_index = list(self.polys.keys())[wh_list.prod(axis=1).argmax()]
             self._current_sel_poly = self.polys[poly_index]
-            self._update_annot_colors()
-            self._update_annot_lines()
+            self._update_poly_colors()
+            self._update_poly_lines()
         else:
             self._current_sel_poly = None
         # Add polygons and lines to the axis
@@ -593,7 +592,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
     def editable_polys(self):
         return self.polys
         #if self.in_edit_parts_mode:
-        #    return self.parent_annot.child_annots
+        #    return self.parent_poly.child_polys
         #else:
         #    if self.polys is None:
         #        self.polys = {}
@@ -650,7 +649,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
 
     # --- Actions
 
-    def delete_current_annot(self, event=None):
+    def delete_current_poly(self, event=None):
         """
         Removes an annotation
         """
@@ -667,10 +666,10 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self._current_sel_poly = self.get_most_recently_added_poly()
         self._polyHeld = False
         if self._current_sel_poly is not None:
-            self._update_annot_colors()
+            self._update_poly_colors()
         self.draw()
 
-    def add_new_annot(self, event=None, full=False):
+    def add_new_poly(self, event=None, full=False):
         """ Adds a new annotation to the image """
         if full:
             (h, w) = self.img.shape[0:2]
@@ -697,28 +696,28 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.editable_polys[poly.num] = poly
         #self.polys[poly.num] = poly
         poly.add_to_axis(self.ax)
-        self._update_annot_lines()
+        self._update_poly_lines()
 
         poly.add_callback(self.poly_changed)
         self._ind = None  # the active vert
         self._current_sel_poly = self.get_most_recently_added_poly()
-        self._update_annot_colors()
+        self._update_poly_colors()
         self.draw()
 
-    def edit_annot_parts(self, poly):
-        self.parent_annot = poly
+    def edit_poly_parts(self, poly):
+        self.parent_poly = poly
         if poly is None:
             self.ax.imshow(vt.convert_colorspace(self.img, 'RGB'))
         else:
             # Mask the part of the image not belonging to the annotation
-            mask = poly.get_annot_mask(self.img.shape)
+            mask = poly.get_poly_mask(self.img.shape)
             masked_img = apply_mask(self.img, mask)
             self.ax.imshow(vt.convert_colorspace(masked_img, 'RGB'))
-        self._update_annot_colors()
+        self._update_poly_colors()
 
     @property
     def in_edit_parts_mode(self):
-        return self.parent_annot is not None
+        return self.parent_poly is not None
 
     def toggle_species_label(self):
         print('[interact_annot] toggle_species_label()')
@@ -781,7 +780,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         if self.do_mask is True:
             self.fig.clf()
             self.ax = ax = self.fig.subplot(111)
-            mask_list = [poly.get_annot_mask(self.img.shape)
+            mask_list = [poly.get_poly_mask(self.img.shape)
                          for poly in six.itervalues(self.polys)]
             if len(mask_list) == 0:
                 print('[interact_annot] No polygons to make mask out of')
@@ -789,10 +788,10 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             mask = mask_list[0]
             for mask_ in mask_list:
                 mask = np.maximum(mask, mask_)
-            #mask = self.get_annot_mask()
+            #mask = self.get_poly_mask()
             # User must close previous figure
             # Modify the image with the mask
-            masked_img = apply_mask(img, mask)
+            masked_img = apply_mask(self.img, mask)
             # show the modified image
             ax.imshow(masked_img)
             ax.title('Region outside of mask is darkened')
@@ -858,7 +857,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         if event.dblclick:
             # On double click enter a single annotation to annotation parts
             print("DOUBLECLICK")
-            self.edit_annot_parts(self._current_sel_poly)
+            self.edit_poly_parts(self._current_sel_poly)
 
         # Right click - context menu
         if event.button == self.RIGHT_BUTTON:
@@ -885,17 +884,17 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
                 return
             self.indX, self.indY = self._current_sel_poly.xy[self._ind]
             self._polyHeld = True
-            self._update_annot_colors()
+            self._update_poly_colors()
             self._current_sel_poly.anchor_idx = self._ind
 
         self.mouseX, self.mouseY = event.xdata, event.ydata
 
         if self._polyHeld is True or self._ind is not None:
             self._current_sel_poly.set_alpha(.2)
-            self._update_annot_colors()
+            self._update_poly_colors()
 
         self.canUncolor = False
-        self._update_annot_lines()
+        self._update_poly_lines()
         if self.background is not None:
             self.fig.canvas.restore_region(self.background)
         else:
@@ -992,26 +991,26 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
 
         if self._polyHeld is True and self._ind is not None:
             # Resize by dragging corner
-            self._current_sel_poly.resize_annot(self.mouseX, self.mouseY,
+            self._current_sel_poly.resize_poly(self.mouseX, self.mouseY,
                                                 self._ind, self.ax)
             self._current_sel_poly.anchor_idx = self._ind
         elif quick_resize:
             # Quick resize with special click
             anchor_idx = self._current_sel_poly.anchor_idx
             idx = (anchor_idx + 2) % 4
-            self._current_sel_poly.resize_annot(self.mouseX, self.mouseY, idx,
+            self._current_sel_poly.resize_poly(self.mouseX, self.mouseY, idx,
                                                 self.ax)
         elif self._current_rotate_poly:
             # Rotate using handle
             cx, cy = points_center(self._current_rotate_poly.xy)
             theta = np.arctan2(cy - self.mouseY, cx - self.mouseX) - TAU / 4
             dtheta = theta - self._current_rotate_poly.theta
-            self._current_rotate_poly.rotate_annot(dtheta, self.ax)
+            self._current_rotate_poly.rotate_poly(dtheta, self.ax)
         elif self._ind is None and event.button == self.LEFT_BUTTON:
             # Translate by dragging inside annot
             if (self._polyHeld is True and not (deltaX is None or deltaY is
                                                 None)):
-                self._current_sel_poly.move_annot(deltaX, deltaY, self.ax)
+                self._current_sel_poly.move_poly(deltaX, deltaY, self.ax)
             self._ind = None
         else:
             return
@@ -1038,16 +1037,16 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         if event.key == ACCEPT_SAVE_HOTKEY:
             self.save_and_exit(event)
         elif event.key == ADD_RECTANGLE_HOTKEY:
-            self.add_new_annot()
+            self.add_new_poly()
         elif event.key == ADD_RECTANGLE_FULL_HOTKEY:
-            self.add_new_annot(full=True)
+            self.add_new_poly(full=True)
         elif event.key == DEL_RECTANGLE_HOTKEY:
-            self.delete_current_annot()
+            self.delete_current_poly()
         elif event.key == TOGGLE_LABEL_HOTKEY:
             self.toggle_species_label()
 
         if re.match('escape', event.key):
-            self.edit_annot_parts(None)
+            self.edit_poly_parts(None)
 
         if re.match('^backspace$', event.key):
             self._current_sel_poly.set_species(DEFAULT_SPECIES_TAG)
@@ -1082,7 +1081,6 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         vis = poly.handle.get_visible()
         poly.lines.set_visible(vis)
         poly.handle.set_visible(vis)
-
 
 
 def pretty_hotkey_map(hotkeys):
@@ -1138,10 +1136,12 @@ def distance(x, y):
     # Replace with vtool?
     return np.sqrt(x ** 2 + y ** 2)
 
+
 def polarDelta(p1, p2):
     mag = distance(p2[0] - p1[0], p2[1] - p1[1])
     theta = np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
     return [mag, theta]
+
 
 def apply_polarDelta(poldelt, cart):
     newx = cart[0] + (poldelt[0] * np.cos(poldelt[1]))
