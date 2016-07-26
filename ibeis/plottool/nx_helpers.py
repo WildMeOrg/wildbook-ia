@@ -467,21 +467,37 @@ def make_agraph(graph_):
         anode = pygraphviz.Node(agraph, node)
         # TODO: Generally fix node positions
         # force pinning of node points if pin attribute is set
-        if anode.attr['pin'] == 'true':
+        OLD = False
+        if OLD:
+            if anode.attr['pin'] == 'true':
+                ptstr_ = anode.attr['pos']
+                if (ptstr_ is not None and len(ptstr_) > 0 and not ptstr_.endswith('!')):
+                    #print('ptstr_ = %r' % (ptstr_,))
+                    ptstr = ptstr_.strip('[]').strip(' ').strip('()')
+                    #print('ptstr = %r' % (ptstr,))
+                    ptstr_list = [x.rstrip(',') for x in re.split(r'\s+', ptstr)]
+                    #print('ptstr_list = %r' % (ptstr_list,))
+                    pt_list = list(map(float, ptstr_list))
+                    #print('pt_list = %r' % (pt_list,))
+                    pt_arr = np.array(pt_list) / 72.0
+                    #print('pt_arr = %r' % (pt_arr,))
+                    new_ptstr_list = list(map(str, pt_arr))
+                    new_ptstr = ','.join(new_ptstr_list) + '!'
+                    #print('new_ptstr = %r' % (new_ptstr,))
+                    anode.attr['pos'] = new_ptstr
+        else:
             ptstr_ = anode.attr['pos']
             if (ptstr_ is not None and len(ptstr_) > 0 and not ptstr_.endswith('!')):
-                #print('ptstr_ = %r' % (ptstr_,))
                 ptstr = ptstr_.strip('[]').strip(' ').strip('()')
-                #print('ptstr = %r' % (ptstr,))
                 ptstr_list = [x.rstrip(',') for x in re.split(r'\s+', ptstr)]
-                #print('ptstr_list = %r' % (ptstr_list,))
                 pt_list = list(map(float, ptstr_list))
-                #print('pt_list = %r' % (pt_list,))
                 pt_arr = np.array(pt_list) / 72.0
-                #print('pt_arr = %r' % (pt_arr,))
                 new_ptstr_list = list(map(str, pt_arr))
-                new_ptstr = ','.join(new_ptstr_list) + '!'
-                #print('new_ptstr = %r' % (new_ptstr,))
+                new_ptstr_ = ','.join(new_ptstr_list)
+                if anode.attr['pin'] == 'true':
+                    new_ptstr = new_ptstr_ + '!'
+                else:
+                    new_ptstr = new_ptstr_
                 anode.attr['pos'] = new_ptstr
     return agraph
 
