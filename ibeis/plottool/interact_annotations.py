@@ -31,7 +31,6 @@ import numpy as np
 import vtool as vt
 import utool as ut
 import matplotlib as mpl
-from functools import partial
 from six.moves import zip, range
 from plottool import draw_func2 as df2
 from plottool import abstract_interaction
@@ -98,7 +97,7 @@ class AnnotPoly(mpl.patches.Polygon):
             bbox={'facecolor': 'white', 'alpha': .7},
             verticalalignment='top',
         )
-        poly.set_display_coords()
+        poly.update_display_coords()
         poly.species_tag.remove()  # eliminate "leftover" copies
         poly.metadata_tag.remove()
         poly.metadata = metadata
@@ -115,6 +114,11 @@ class AnnotPoly(mpl.patches.Polygon):
         ax.add_patch(poly)
         ax.add_line(poly.lines)
         ax.add_line(poly.handle)
+
+    def remove_from_axis(poly, ax):
+        poly.remove()
+        poly.lines.remove()
+        poly.handle.remove()
 
     def draw_self(poly, ax, show_species_tags):
         ax.draw_artist(poly)
@@ -237,9 +241,6 @@ class AnnotPoly(mpl.patches.Polygon):
             >>> pt.show_if_requested()
         """
         # TODO: allow resize by middle click to scale from the center
-        if poly is None:
-            return
-
         # the minus one is because the last coordinate is duplicated (by
         # matplotlib) to get a closed polygon
         tmpcoords = poly.xy[:-1]
@@ -277,22 +278,22 @@ class AnnotPoly(mpl.patches.Polygon):
 
         if (check_valid_coords(ax, dispcoords) and check_min_wh(tmpcoords)):
             poly.basecoords = tmpcoords
-        poly.set_display_coords()
+        poly.update_display_coords()
 
     def rotate_poly(poly, dtheta, ax):
         coords_lis = calc_display_coords(poly.basecoords, poly.theta + dtheta)
         if check_valid_coords(ax, coords_lis):
             poly.theta += dtheta
-            poly.set_display_coords()
+            poly.update_display_coords()
 
     def move_poly(poly, dx, dy, ax):
         new_coords = [(x + dx, y + dy) for (x, y) in poly.basecoords]
         coords_list = calc_display_coords(new_coords, poly.theta)
         if check_valid_coords(ax, coords_list):
             poly.basecoords = new_coords
-            poly.set_display_coords()
+            poly.update_display_coords()
 
-    def set_display_coords(poly):
+    def update_display_coords(poly):
         poly.xy = calc_display_coords(poly.basecoords, poly.theta)
         tag_pos = poly.calc_tag_position()
         poly.species_tag.set_position((tag_pos[0] + 5, tag_pos[1]))
@@ -407,7 +408,6 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self._current_rotate_poly = None
 
         self.mpl_callback_ids = {}
-        assert self.fig.canvas is self.ax.figure.canvas, 'wow. something is weird'
         self.connect_mpl_callbacks(self.fig.canvas)
 
         self.add_action_buttons()
@@ -445,11 +445,11 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             rect=[0.18, 0.015, self.but_width, self.but_height],
             callback=self.add_new_poly
         )
-        self.append_button(
-            'Add Full Annotation\n' + pretty_hotkey_map(ADD_RECTANGLE_FULL_HOTKEY),
-            rect=[0.34, 0.015, self.but_width, self.but_height],
-            callback=partial(self.add_new_poly, full=True)
-        )
+        # self.append_button(
+        #     'Add Full Annotation\n' + pretty_hotkey_map(ADD_RECTANGLE_FULL_HOTKEY),
+        #     rect=[0.34, 0.015, self.but_width, self.but_height],
+        #     callback=ut.partial(self.add_new_poly, full=True)
+        # )
         self.append_button(
             'Delete Annotation\n' + pretty_hotkey_map(DEL_RECTANGLE_HOTKEY),
             rect=[0.50, 0.015, self.but_width, self.but_height],
@@ -655,19 +655,18 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         """
         if self._current_sel_poly is None:
             print('[interact_annot] No polygon selected to delete')
-            return
-        poly = self._current_sel_poly
-        print('[interact_annot] delete annot. length=%d num=%d' % (
-            len(self.polys), poly.num))
-        self.polys.pop(poly.num)
-        # remove the poly from the figure itself
-        poly.remove()
-        #reset anything that has to do with current poly
-        self._current_sel_poly = self.get_most_recently_added_poly()
-        self._polyHeld = False
-        if self._current_sel_poly is not None:
-            self._update_poly_colors()
-        self.draw()
+        else:
+            print('[interact_annot] delete annot')
+            poly = self._current_sel_poly
+            self.polys.pop(poly.num)
+            # remove the poly from the figure itself
+            poly.remove_from_axis(self.ax)
+            #reset anything that has to do with current poly
+            self._current_sel_poly = self.get_most_recently_added_poly()
+            self._polyHeld = False
+            if self._current_sel_poly is not None:
+                self._update_poly_colors()
+            self.draw()
 
     def add_new_poly(self, event=None, full=False):
         """ Adds a new annotation to the image """
@@ -691,7 +690,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
 
         bbox = vt.bbox_from_verts(poly.basecoords)
         poly.basecoords = vt.verts_from_bbox(bbox)
-        poly.set_display_coords()
+        poly.update_display_coords()
 
         self.editable_polys[poly.num] = poly
         #self.polys[poly.num] = poly
@@ -826,7 +825,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             metadata = self._current_sel_poly.metadata
             options = []
             options += [
-                #('Foo: ',  functools.partial(print, 'bar')),
+                #('Foo: ',  ut.partial(print, 'bar')),
                 ('PolyInfo: ',  self._current_sel_poly.print_info),
             ]
             if isinstance(metadata, ut.LazyDict):
