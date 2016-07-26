@@ -409,12 +409,12 @@ class AnnotInferenceVisualization(object):
         ut.nx_delete_edge_attr(graph, 'linestyle')
 
         # Set node labels
-        node2_aid = nx.get_node_attrs(infr.graph, 'aid')
-        node2_nid = nx.get_node_attrs(infr.graph, 'name_label')
+        node_to_aid = nx.get_node_attrs(infr.graph, 'aid')
+        node_to_nid = nx.get_node_attrs(infr.graph, 'name_label')
         node2_label = {
             #node: '%d:aid=%r' % (node, aid)
-            node: 'aid=%r\nnid=%r' % (aid, node2_nid[node])
-            for node, aid in node2_aid.items()
+            node: 'aid=%r\nnid=%r' % (aid, node_to_nid[node])
+            for node, aid in node_to_aid.items()
         }
         nx.set_node_attributes(infr.graph, 'label', node2_label)
 
@@ -548,6 +548,7 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
                                               infr.graph.number_of_edges())
 
     def reset_feedback(infr):
+        """ Resets feedback edges to state of the SQL annotmatch table """
         if infr.verbose:
             print('[infr] reset_feedback')
         infr.user_feedback = infr.load_user_feedback()
@@ -579,6 +580,20 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         cc_subgraphs = [graph.subgraph(cc) for cc in ccs]
         return cc_subgraphs
 
+    def connected_compoment_labeling(infr):
+        cc_subgraphs = infr.connected_compoment_subgraphs()
+        num_inconsistent = 0
+        num_names = len(cc_subgraphs)
+
+        for count, subgraph in enumerate(cc_subgraphs):
+            reviewed_states = nx.get_edge_attrs(subgraph, 'reviewed_state')
+            inconsistent_edges = [edge for edge, val in reviewed_states.items()
+                                  if val == 'nonmatch']
+            if len(inconsistent_edges) > 0:
+                #print('Inconsistent')
+                num_inconsistent += 1
+        return num_names, num_inconsistent
+
     def connected_compoment_relabel(infr):
         if infr.verbose:
             print('[infr] connected_compoment_relabel')
@@ -608,7 +623,9 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         ibs = infr.ibs
         aids = infr.aids
         aid_pairs = list(it.combinations(aids, 2))
-        am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(*zip(*aid_pairs))
+        aids1 = ut.take_column(aid_pairs, 0)
+        aids2 = ut.take_column(aid_pairs, 1)
+        am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
         flags = ut.not_list(ut.flag_None_items(am_rowids))
         am_rowids = ut.compress(am_rowids, flags)
         aid_pairs = ut.compress(aid_pairs, flags)
@@ -667,14 +684,16 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         infr.graph = graph = nx.Graph()
         graph.add_nodes_from(infr.aids)
 
-        node2_aid = {aid: aid for aid in infr.aids}
-        node2_nid = {aid: nid for aid, nid in
-                     zip(infr.aids, infr.orig_name_labels)}
-        assert len(node2_nid) == len(node2_aid), '%r - %r' % (
-            len(node2_nid), len(node2_aid))
-        nx.set_node_attrs(graph, 'aid', node2_aid)
-        nx.set_node_attrs(graph, 'name_label', node2_nid)
-        nx.set_node_attrs(graph, 'orig_name_label', node2_nid)
+        node_to_aid = {aid: aid for aid in infr.aids}
+        node_to_nid = {aid: nid for aid, nid in
+                       zip(infr.aids, infr.orig_name_labels)}
+        assert len(node_to_nid) == len(node_to_aid), '%r - %r' % (
+            len(node_to_nid), len(node_to_aid))
+        nx.set_node_attrs(graph, 'aid', node_to_aid)
+        nx.set_node_attrs(graph, 'name_label', node_to_nid)
+        nx.set_node_attrs(graph, 'orig_name_label', node_to_nid)
+        infr.node_to_aid = node_to_aid
+        infr.aid_to_node = ut.invert_dict(infr.node_to_aid)
 
     #def add_edges(infr, aid_pairs):
     #    #attr_dict={}):
@@ -1070,7 +1089,7 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
 
     def apply_cuts(infr):
         """
-        Cuts edges with different names and uncuts edges with the same name
+        Cuts edges with different names and uncuts edges with the same name.
         """
         if infr.verbose:
             print('[infr] apply_cuts')

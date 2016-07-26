@@ -171,6 +171,29 @@ class Annots(_ibeis_object.PrimaryObject):
         return [core_annots.make_hog_block_image(hog) for hog in self.hog_hog]
 
 
+@ut.reloadable_class
+class AnnotGroups(ut.NiceRepr):
+    """ Effciently handle operations on multiple groups of annotations """
+    def __init__(self, annots, ibs):
+        self.ibs = ibs
+        self.annots = annots
+
+    def __nice__(self):
+        len_list = ut.lmap(len, self.annots)
+        import numpy as np
+        return '(num=%r, mean=%.1f)' % (len(self.annots), np.mean(len_list))
+
+    @property
+    def aids(self):
+        return [a.aids for a in self.annots]
+
+    @property
+    def case_tags(self):
+        ams_list = self.ibs.get_unflat_am_rowids(self.aids)
+        tags = self.ibs.unflat_map(self.ibs.get_annotmatch_case_tags, ams_list)
+        return tags
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

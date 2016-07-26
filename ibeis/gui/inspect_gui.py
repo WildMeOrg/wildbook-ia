@@ -775,6 +775,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             ('Interact Name Graph',
              partial(viz_graph.make_name_graph_interaction,
                      ibs, aids=aid_list2, selected_aids=aid_list2)),
+            # FIXME, more than 2 aids
             ('New Split Case Interaction',
              partial(viz_graph2.make_qt_graph_interface,
                      ibs, aids=aid_list2)),
@@ -782,31 +783,10 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
 
     with_vsone = True
     if with_vsone:
-        from ibeis.algo.hots import vsone_pipeline
-
-        #vsone_qreq_ = qreq_.shallowcopy(qaids=[aid1])
-        def vsone_single_hack(ibs, qaid, daid, qreq_):
-            import vtool as vt
-            import plottool as pt
-            if qreq_ is None:
-                qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})
-            else:
-                qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict=qreq_.qparams)
-            matches, metadata = vsone_pipeline.vsone_single(qaid, daid, qreq2_,
-                                                            use_ibscache=True)
-            interact = vt.matching.show_matching_dict(matches, metadata, mode=1)  # NOQA
-            interact.start()
-            #pt.update()
-
         options += [
-            ('VsOne', [
-                ('Run Vsone(ib)', partial(vsone_pipeline.vsone_independant_pair_hack,
-                                          ibs, aid1, aid2, qreq_=qreq_)),
-                ('Run Vsone(vt)', partial(vsone_single_hack,
-                                          ibs, aid1, aid2, qreq_=qreq_)),
-            ]
-            )
+            ('VsOne', make_vsone_context_options(ibs, aid1, aid2, qreq_))
         ]
+
     with_vsmany = True
     if with_vsmany:
         def vsmany_load_and_show():
@@ -852,6 +832,28 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             ('dev pair context debug', dev_debug),
         ]
     return options
+
+
+def make_vsone_context_options(ibs, aid1, aid2, qreq_):
+    from ibeis.algo.hots import vsone_pipeline
+    def vsone_single_hack(ibs, qaid, daid, qreq_):
+        import vtool as vt
+        if qreq_ is None:
+            qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})
+        else:
+            qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict=qreq_.qparams)
+        matches, metadata = vsone_pipeline.vsone_single(qaid, daid, qreq2_,
+                                                        use_ibscache=True)
+        interact = vt.matching.show_matching_dict(matches, metadata, mode=1)  # NOQA
+        interact.start()
+
+    options =  [
+        ('Run Vsone(ib)', partial(vsone_pipeline.vsone_independant_pair_hack,
+                                  ibs, aid1, aid2, qreq_=qreq_)),
+        ('Run Vsone(vt)', partial(vsone_single_hack,
+                                  ibs, aid1, aid2, qreq_=qreq_)),
+    ]
+    return  options
 
 
 def make_annotpair_context_options(ibs, aid1, aid2, qreq_):

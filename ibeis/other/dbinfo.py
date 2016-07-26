@@ -347,7 +347,7 @@ def split_analysis(ibs):
             flags_list = [ut.replace_nones(ibs.get_annotmatch_prop(tag, am_rowids), 0)
                           for tag in positive_tags]
             print('edge_case_hist: ' + ut.repr3(
-                ['%s %s' % (txt, sum(flags)) for flags, txt in zip(flags_list, positive_tags)]))
+                ['%s %s' % (txt, sum(flags_)) for flags_, txt in zip(flags_list, positive_tags)]))
             is_positive = ut.or_lists(*flags_list)
             num_positive = sum(ut.lmap(any, ut.group_items(is_positive, sorted_nids).values()))
             pop = len(pop_nids)

@@ -99,7 +99,8 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
         #utool.embed()
 
 
-class PrimaryObject(ut.NiceRepr):
+#@ut.reloadable_class
+class PrimaryObject(ut.NiceRepr, ut.HashComparable2):
     def __init__(self, rowids, ibs, config=None):
         self._rowids = rowids
         self._ibs = ibs
@@ -123,6 +124,14 @@ class PrimaryObject(ut.NiceRepr):
 
     def __nice__(self):
         return '(num=%r)' % (len(self))
+
+    def __hash__(self):
+        return hash(self.group_uuid())
+
+    def group_uuid(self):
+        sorted_uuids = sorted(self.uuids)
+        group_uuid = ut.util_hash.augment_uuid(*sorted_uuids)
+        return group_uuid
 
     def disconnect(self):
         """
