@@ -1201,13 +1201,13 @@ def pre_1_4_8(db, ibs=None):
             const.ANNOTMATCH_TABLE, ('annotmatch_note',), annotmatch_rowids,
             id_colname='rowid')
         new_notes_list = annotmatch_note_list
-        new_notes_list = tag_funcs.set_tags_in_textformat(
+        new_notes_list = tag_funcs.set_textformat_tag_flags(
             'photobomb', new_notes_list, annotmatch_is_photobomb_list)
-        new_notes_list = tag_funcs.set_tags_in_textformat(
+        new_notes_list = tag_funcs.set_textformat_tag_flags(
             'nondistinct', new_notes_list, annotmatch_is_nondistinct)
-        new_notes_list = tag_funcs.set_tags_in_textformat(
+        new_notes_list = tag_funcs.set_textformat_tag_flags(
             'hard', new_notes_list, annotmatch_is_hard)
-        new_notes_list = tag_funcs.set_tags_in_textformat(
+        new_notes_list = tag_funcs.set_textformat_tag_flags(
             'scenerymatch', new_notes_list, annotmatch_is_scenerymatch)
 
         ibs.db.set(const.ANNOTMATCH_TABLE, ('annotmatch_note',),

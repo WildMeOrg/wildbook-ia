@@ -157,6 +157,17 @@ class Annots(_ibeis_object.PrimaryObject):
         ams = ut.filter_Nones(ams)
         return ams
 
+    def get_am_rowids_and_pairs(self):
+        ibs = self._ibs
+        aid_pairs = self.get_aidpairs()
+        aids1 = ut.take_column(aid_pairs, 0)
+        aids2 = ut.take_column(aid_pairs, 1)
+        ams = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+        flags = ut.not_list(ut.flag_None_items(ams))
+        ams = ut.compress(ams, flags)
+        aid_pairs = ut.compress(aid_pairs, flags)
+        return ams, aid_pairs
+
     def get_am_aidpairs(self):
         ibs = self._ibs
         ams = self.get_am_rowids()

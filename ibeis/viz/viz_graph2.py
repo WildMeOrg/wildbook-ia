@@ -20,19 +20,20 @@ from guitool.__PYQT__ import QtCore, QtWidgets  # NOQA
 from plottool import interact_helpers as ih
 from matplotlib.backend_bases import MouseEvent
 
+from guitool import __PYQT__
+if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
+    import matplotlib.backends.backend_qt4agg as backend_qt
+else:
+    import matplotlib.backends.backend_qt5agg as backend_qt
+FigureCanvas = backend_qt.FigureCanvasQTAgg
+
 
 #@ut.reloadable_class
 class MatplotlibWidget(gt.GuitoolWidget):
     click_inside_signal = QtCore.pyqtSignal(MouseEvent, object)
 
     def initialize(self):
-        from guitool import __PYQT__
         from plottool.interactions import zoom_factory, pan_factory
-        if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
-            import matplotlib.backends.backend_qt4agg as backend_qt
-        else:
-            import matplotlib.backends.backend_qt5agg as backend_qt
-        FigureCanvas = backend_qt.FigureCanvasQTAgg
         self.fig = pt.plt.figure()
         self.fig._no_raise_plottool = True
         self.canvas = FigureCanvas(self.fig)
@@ -178,15 +179,15 @@ class TmpDevGraphWidget(gt.GuitoolWidget):
 
         bbar3.layout().addSpacing(10)
         _simple_button3(self.infr.mst_review)
-        _simple_button3(self.infr.connected_compoment_relabel)
+        _simple_button3(self.infr.connected_compoment_reviewed_relabel)
         bbar3.layout().addSpacing(10)
 
         _simple_button3(self.infr.apply_mst)
         _simple_button3(self.apply_scores)
-        _simple_button3(self.infr.apply_feedback)
+        _simple_button3(self.infr.apply_feedback_edges)
         _simple_button3(self.infr.apply_weights)
         _simple_button3(self.infr.apply_cuts)
-        _simple_button3(self.infr.remove_cuts)
+        #_simple_button3(self.infr.remove_cuts)
 
         bbar3.layout().addSpacing(10)
         _simple_button3(self.update_state)
@@ -276,7 +277,7 @@ class TmpDevGraphWidget(gt.GuitoolWidget):
 
 #@ut.reloadable_class
 class AnnotGraphWidget(gt.GuitoolWidget):
-    signal_state_update = QtCore.pyqtSignal(bool)
+    #signal_state_update = QtCore.pyqtSignal(bool)
 
     def preset_unfiltered_config(self):
         self.review_cfg = GRAPH_REVIEW_CFG_DEFAULTS.copy()
@@ -342,6 +343,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.status_bar.addNewButton('Reset Original', pressed=self.reset_original)
         self.status_bar.addNewButton('Reset Empty', pressed=self.reset_empty)
 
+        self.status_bar.addNewButton('Score Edges', pressed=self.score_edges)
         self.status_bar.addNewButton('Edit Filters', pressed=self.edit_filters)
         self.status_bar.addNewButton('Repopulate', pressed=self.repopulate)
         self.status_bar.addNewButton('Accept', pressed=self.accept)
@@ -363,7 +365,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.graph_tab = None
             self.mpl_wgt = None
 
-        self.signal_state_update.connect(self.on_state_update)
+        #self.signal_state_update.connect(self.on_state_update)
 
     def showEvent(self, event):
         super(AnnotGraphWidget, self).showEvent(event)
@@ -399,22 +401,23 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         print('[graph] update_state mode=%s' % (self.init_mode,))
         #if self.init_mode in ['split', 'rereview']:
         if self.init_mode == 'split':
-            self.infr.apply_feedback()
+            self.infr.apply_feedback_edges()
             if structure_changed:
                 # FIXME: when should score be reapplied?
                 # This should happen in split mode, but not None mode
                 self.apply_scores()
             self.infr.apply_weights()
-            self.infr.connected_compoment_relabel()
+            self.infr.connected_compoment_reviewed_relabel()
             self.infr.apply_cuts()
         elif self.init_mode == 'rereview':
-            self.infr.apply_feedback()
+            self.infr.apply_feedback_edges()
+            self.infr.apply_match_scores()
             self.infr.apply_weights()
-            self.infr.connected_compoment_relabel()
+            self.infr.connected_compoment_reviewed_relabel()
             self.infr.apply_cuts()
 
         # Set gui status indicators
-        num_names, num_inconsistent = self.infr.connected_compoment_labeling()
+        num_names, num_inconsistent = self.infr.connected_compoment_reviewed_labeling()
         if num_inconsistent:
             self.state_lbl.setText('Inconsistent Names: %d' % (num_inconsistent,))
             self.state_lbl.setColor('black', self.infr.truth_colors['nonmatch'][0:3] * 255)
@@ -423,12 +426,16 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.state_lbl.setColor('black', self.infr.truth_colors['match'][0:3] * 255)
         self.num_names_lbl.setText('Names: %d' % (num_names,))
 
-        self.signal_state_update.emit(structure_changed)
+        #self.signal_state_update.emit(structure_changed)
+        self.on_state_update(structure_changed)
         self.edge_api_widget.model.layoutChanged.emit()
         self.node_api_widget.model.layoutChanged.emit()
+        #self.edge_api_widget.model.dataChanged.emit()
+        #self.node_api_widget.model.dataChanged.emit()
 
     @QtCore.pyqtSlot(bool)
     def on_state_update(self, structure_changed=False):
+        print('[graph] on_update_state mode=%s' % (self.init_mode,))
         if structure_changed:
             self.populate_node_model()
             self.populate_edge_model()
@@ -443,8 +450,16 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self._graph_widget._draw_graph(self)
 
     def apply_scores(self):
-        with gt.GuiProgContext('Computing Scores', self.prog_bar) as ctx:
-            self.infr.apply_scores(self.review_cfg, prog_hook=ctx.prog_hook)
+        with gt.GuiProgContext('Computing Matches', self.prog_bar) as ctx:
+            self.infr.exec_matching(prog_hook=ctx.prog_hook)
+            self.infr.apply_match_edges(self.review_cfg)
+            self.infr.apply_match_scores()
+
+    def score_edges(self):
+        with gt.GuiProgContext('Scoring Edges', self.prog_bar) as ctx:
+            self.infr.exec_matching(prog_hook=ctx.prog_hook)
+            self.infr.apply_match_scores()
+        self.repopulate()
 
     def reset_rereview(self):
         """
@@ -464,9 +479,10 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.preset_unfiltered_config()
             infr.reset_name_labels()
             infr.reset_feedback()
-            infr.apply_feedback()
+            infr.apply_feedback_edges()
             infr.mst_review()
             infr.remove_name_labels()
+            infr.apply_match_scores()
             ctx.set_progress(2, 3)
             infr.initialize_visual_node_attrs()
             self.repopulate()
@@ -750,21 +766,21 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         print('BREAK LINK self.selected_aids = %r' % (self.selected_aids,))
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
             self.infr.add_feedback(aid1, aid2, 'nonmatch')
-        self.infr.apply_feedback()
+        self.infr.apply_feedback_edges()
         self.draw_graph()
 
     def mark_match(self):
         print('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
             self.infr.add_feedback(aid1, aid2, 'match')
-        self.infr.apply_feedback()
+        self.infr.apply_feedback_edges()
         self.draw_graph()
 
     def mark_notcomp(self):
         print('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
             self.infr.add_feedback(aid1, aid2, 'notcomp')
-        self.infr.apply_feedback()
+        self.infr.apply_feedback_edges()
         self.draw_graph()
 
     def deselect(self):
@@ -776,7 +792,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         print('[graph] Not done yet')
         infr = self.infr
         graph = infr.graph
-        num_names, num_inconsistent = self.infr.connected_compoment_relabel()
+        num_names, num_inconsistent = self.infr.connected_compoment_reviewed_relabel()
         msg = ut.codeblock(
             '''
             Are you sure this is correct?

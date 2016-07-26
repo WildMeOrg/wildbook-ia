@@ -53,7 +53,7 @@ ANNOTMATCH_PROPS_OTHER = [
 
     # These annots have almost the same information
     'NearDuplicate',
-    'CorrectPhotobomb',
+    'CorrectPhotobomb',  # FIXME: this is a terrible name
 ]
 
 OLD_ANNOTMATCH_PROPS = [
@@ -98,7 +98,7 @@ for key, val in PROP_MAPPING.items():
 
 ANNOTMATCH_PROPS_OTHER_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_OTHER])
 ANNOTMATCH_PROPS_OLD_SET = set([_.lower() for _ in OLD_ANNOTMATCH_PROPS])
-ANNOTMATCH_PROPS_STANDARD_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_STANDARD])
+#ANNOTMATCH_PROPS_STANDARD_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_STANDARD])
 
 
 def consolodate_annotmatch_tags(case_tags):
@@ -695,12 +695,14 @@ def get_annotmatch_prop(ibs, prop, annotmatch_rowids):
         >>> flag_list2 = get_annotmatch_prop(ibs, prop, annotmatch_rowids)
         >>> print('flag_list2 = %r' % (flag_list2,))
     """
-    if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:
-        return ibs.get_annotmatch_standard_prop(prop, annotmatch_rowids)
-    elif prop.lower() in ANNOTMATCH_PROPS_OTHER_SET or prop.lower() in ANNOTMATCH_PROPS_OLD_SET:
-        return get_annotmatch_other_prop(ibs, prop, annotmatch_rowids)
-    else:
-        raise NotImplementedError('Unknown prop=%r' % (prop,))
+    #if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:
+    #    return ibs.get_annotmatch_standard_prop(prop, annotmatch_rowids)
+    for prop_ in ut.ensure_iterable(prop):
+        flag1 = prop_.lower() not in ANNOTMATCH_PROPS_OTHER_SET
+        flag2 = prop_.lower() not in ANNOTMATCH_PROPS_OLD_SET
+        if flag1 and flag2:
+            raise NotImplementedError('Unknown prop_=%r' % (prop_,))
+    return get_annotmatch_other_prop(ibs, prop, annotmatch_rowids)
 
 
 @register_ibs_method
@@ -709,10 +711,10 @@ def set_annotmatch_prop(ibs, prop, annotmatch_rowids, flags):
     hacky setter for dynamic properties of annotmatches using notes table
     """
     print('[ibs] set_annotmatch_prop prop=%s for %d pairs' % (prop, len(annotmatch_rowids)))
-    if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:
-        setter = getattr(ibs, 'set_annotmatch_is_' + prop.lower())
-        return setter(annotmatch_rowids, flags)
-    elif prop.lower() in ANNOTMATCH_PROPS_OTHER_SET or prop.lower() in ANNOTMATCH_PROPS_OLD_SET:
+    #if prop.lower() in ANNOTMATCH_PROPS_STANDARD_SET:
+    #    setter = getattr(ibs, 'set_annotmatch_is_' + prop.lower())
+    #    return setter(annotmatch_rowids, flags)
+    if prop.lower() in ANNOTMATCH_PROPS_OTHER_SET or prop.lower() in ANNOTMATCH_PROPS_OLD_SET:
         return set_annotmatch_other_prop(ibs, prop, annotmatch_rowids, flags)
     else:
         raise NotImplementedError('Unknown prop=%r not in %r' % (prop, ANNOTMATCH_PROPS_OTHER_SET))
@@ -735,7 +737,7 @@ def _remove_tag(tags, prop):
 @profile
 def get_annotmatch_other_prop(ibs, prop, annotmatch_rowids):
     annotmatch_tag_texts_list = ibs.get_annotmatch_tag_text(annotmatch_rowids)
-    flag_list = get_tags_in_textformat(prop, annotmatch_tag_texts_list)
+    flag_list = get_textformat_tag_flags(prop, annotmatch_tag_texts_list)
     return flag_list
 
 
@@ -744,22 +746,31 @@ def set_annotmatch_other_prop(ibs, prop, annotmatch_rowids, flags):
     sets nonstandard properties using the notes column
     """
     annotmatch_tag_texts_list = ibs.get_annotmatch_tag_text(annotmatch_rowids)
-    new_notes_list = set_tags_in_textformat(prop, annotmatch_tag_texts_list, flags)
+    new_notes_list = set_textformat_tag_flags(prop, annotmatch_tag_texts_list, flags)
     ibs.set_annotmatch_tag_text(annotmatch_rowids, new_notes_list)
 
 
 @profile
-def get_tags_in_textformat(prop, text_list):
+def get_textformat_tag_flags(prop, text_list):
     """ general text tag getter hack """
-    prop = prop.lower()
     tags_list = [None if note is None else _parse_note(note)
                  for note in text_list]
-    flag_list = [None if tags is None else int(prop in tags)
-                 for tags in tags_list]
-    return flag_list
+    if ut.isiterable(prop):
+        props_ = [p.lower() for p in prop]
+        flags_list = [
+            [None if tags is None else int(prop_ in tags)
+             for tags in tags_list]
+            for prop_ in props_
+        ]
+        return flags_list
+    else:
+        prop = prop.lower()
+        flag_list = [None if tags is None else int(prop in tags)
+                     for tags in tags_list]
+        return flag_list
 
 
-def set_tags_in_textformat(prop, text_list, flags):
+def set_textformat_tag_flags(prop, text_list, flags):
     """ general text tag setter hack """
     prop = prop.lower()
     ensured_text = ['' if note is None else note for note in text_list]
@@ -813,7 +824,7 @@ def get_annot_prop(ibs, prop, aid_list):
     Annot tags
     """
     text_list = ibs.get_annot_tag_text(aid_list)
-    flag_list = get_tags_in_textformat(prop, text_list)
+    flag_list = get_textformat_tag_flags(prop, text_list)
     return flag_list
 
 
@@ -825,7 +836,7 @@ def set_annot_prop(ibs, prop, aid_list, flags):
     http://localhost:5000/group_review/?aid_list=1,2,3,4
     """
     text_list = ibs.get_annot_tag_text(aid_list)
-    new_text_list = set_tags_in_textformat(prop, text_list, flags)
+    new_text_list = set_textformat_tag_flags(prop, text_list, flags)
     ibs.set_annot_tag_text(aid_list, new_text_list)
 
 

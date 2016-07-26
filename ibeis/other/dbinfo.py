@@ -411,13 +411,13 @@ def split_analysis(ibs):
     def inference_stats(infr_list_):
         relabel_stats = []
         for infr in infr_list_:
-            num_ccs, num_inconsistent = infr.connected_compoment_relabel()
+            num_ccs, num_inconsistent = infr.connected_compoment_reviewed_relabel()
             state_hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, 'reviewed_state').values())
             if 'match' not in state_hist:
                 state_hist['match'] = 0
             hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, '_speed_split').values())
 
-            subgraphs = infr.connected_compoment_subgraphs()
+            subgraphs = infr.connected_compoment_reviewed_subgraphs()
             subgraph_sizes = [len(g) for g in subgraphs]
 
             info = ut.odict([
