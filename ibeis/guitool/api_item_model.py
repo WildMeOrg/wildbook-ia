@@ -313,7 +313,8 @@ class APIItemModel(API_MODEL_BASE):
         Uses the current ider and col_sort_index to create
         row_indices
         """
-        with ut.Timer('[gt] update_rows (%s)' % (model.name,)):
+        #with ut.Timer('[gt] update_rows (%s)' % (model.name,)):
+        if True:
             if VERBOSE:
                 print('[APIItemModel] +-----------')
                 print('[APIItemModel] _update_rows')

@@ -183,7 +183,8 @@ def _update_headers(view, **headers):
     # FIXME: is this the right thing to do here?
     view._set_sort(col_sort_index, col_sort_reverse)
     view.infer_delegates(**headers)
-    print('[view] updating headers')
+    if ut.VERBOSE:
+        print('[view] updating headers')
     col_width_list = headers.get('col_width_list', None)
     if col_width_list is not None:
         if isinstance(view, QtWidgets.QTreeView):
