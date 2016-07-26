@@ -218,7 +218,7 @@ def det_distance(det1, det2):
 
 def L1(hist1, hist2, dtype=TEMP_VEC_DTYPE):
     """ returns L1 (aka manhatten or grid) distance between two histograms """
-    return (np.abs(hist1 - hist2)).sum(-1)
+    return (np.abs(np.asarray(hist1, dtype) - np.asarray(hist2, dtype))).sum(-1)
 
 
 def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
@@ -233,6 +233,8 @@ def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.distance import *  # NOQA
+        >>> import numpy
+        >>> ut.exec_funckw(L2_sqrd, globals())
         >>> rng = np.random.RandomState(53)
         >>> hist1 = rng.rand(1000, 2)
         >>> hist2 = rng.rand(1000, 2)
@@ -240,6 +242,15 @@ def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
         >>> result = ut.repr2(l2dist, precision=2, threshold=2)
         >>> print(result)
         np.array([ 0.77,  0.27,  0.11, ...,  0.14,  0.3 ,  0.66])
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.distance import *  # NOQA
+        >>> hist1 = 3
+        >>> hist2 = 0
+        >>> result = L2_sqrd(hist1, hist2)
+        >>> print(result)
+        9.0
 
     Cyth::
         #CYTH_INLINE
@@ -261,8 +272,7 @@ def L2_sqrd(hist1, hist2, dtype=TEMP_VEC_DTYPE):
         #else
     """
     # Carefull, this will not return the correct result if the types are unsigned.
-    #return ((hist1 - hist2) ** 2).sum(-1)  # this is faster
-    return ((hist1.astype(dtype) - hist2.astype(dtype)) ** 2).sum(-1)  # this is faster
+    return ((np.asarray(hist1, dtype) - np.asarray(hist2, dtype)) ** 2).sum(-1)  # this is faster
 
 
 def understanding_pseudomax_props(mode=2):
