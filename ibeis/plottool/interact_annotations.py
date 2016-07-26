@@ -680,18 +680,19 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
 
         poly = self.new_polygon(coords, 0, self.species_tag)
 
-        bbox = vt.bbox_from_verts(poly.basecoords)
-        poly.basecoords = vt.verts_from_bbox(bbox)
-        poly.update_display_coords()
+        #bbox = vt.bbox_from_verts(poly.basecoords)
+        #poly.basecoords = vt.verts_from_bbox(bbox)
+        #poly.update_display_coords()
 
         self.editable_polys[poly.num] = poly
         #self.polys[poly.num] = poly
         poly.add_to_axis(self.ax)
-        self._update_poly_lines()
 
         #poly.add_callback(self.poly_changed)
         self._ind = None  # the active vert
         self._selected_poly = self.get_most_recently_added_poly()
+
+        self._update_poly_lines()
         self._update_poly_colors()
         self.draw()
 
