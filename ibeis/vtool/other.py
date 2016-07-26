@@ -2239,12 +2239,15 @@ def calc_error_from_sample(sample_size, num_positive, pop, conf_level=.95):
     pos_frac = (num_positive / ss)
     pf = (pop - ss) / (pop - 1)
     err_frac = zval * np.sqrt((pos_frac) * (1 - pos_frac) * pf / ss)
-    print('num_positive = %r' % (num_positive,))
-    print('sample_size = %r' % (ss,))
-    print('positive rate is %.2f%% ± %.2f%% @ %r confidence' % (
+    lines = []
+    lines.append('population_size = %r' % (pop,))
+    lines.append('sample_size = %r' % (ss,))
+    lines.append('num_positive = %r' % (num_positive,))
+    lines.append('positive rate is %.2f%% ± %.2f%% @ %r confidence' % (
         100 * pos_frac, 100 * err_frac, conf_level))
-    print('positive num is %d ± %d @ %r confidence' % (
+    lines.append('positive num is %d ± %d @ %r confidence' % (
         int(np.round(pop * pos_frac)), int(np.round(pop * err_frac)), conf_level))
+    print(ut.msgblock('Calculate Sample Error Margin', '\n'.join(lines)))
 
 
 def calc_sample_from_error(err_frac, pop, conf_level=.95, prior=.5):
@@ -2288,10 +2291,14 @@ def calc_sample_from_error(err_frac, pop, conf_level=.95, prior=.5):
     #ss_ = ((zval ** 2) * 0.25) / (err_frac ** 2)
     #ss = int(np.ceil(ss_ / (1 + ((ss_ - 1) / pop))))
     ss = int(np.ceil(ss_small))
-    print('need sample size of %r to achive %.2f%% error at %.2f confidence' % (
-        ss, err_frac * 100, conf_level))
-    print('need sample size of %r to achive %2f total error at %.2f confidence' % (
-        ss, err_frac * pop, conf_level))
+    lines = []
+    lines.append('population_size = %r' % (pop,))
+    lines.append('positive_prior = %r' % (prior,))
+    lines.append('Desired confidence = %.2f' % (conf_level,))
+    lines.append('Desired error rate is %.2f%%' % (err_frac * 100))
+    lines.append('Desired number of errors is %d' % (int(round(err_frac * pop))))
+    lines.append('Need sample sample size of %r to achive requirements' % (ss,))
+    print(ut.msgblock('Calculate Required Sample Size', '\n'.join(lines)))
 
 
 if __name__ == '__main__':
