@@ -1408,7 +1408,7 @@ def ggr_random_name_splits():
         #aes.reseed(aes_seed)
         #aes.pseudo_random_data(10)
     import vtool as vt
-    vt.calc_sample_from_error(.05, pop, conf_level=.95, prior=.05)
+    vt.calc_sample_from_error_bars(.05, pop, conf_level=.95, prior=.05)
 
     rand_idxs = ut.random_indexes(len(grouped_annots), seed=3340258)
     sample_size = 75
@@ -1426,12 +1426,21 @@ def ggr_random_name_splits():
     sample_groups = ibeis.annots.AnnotGroups(annot_sample, ibs)
 
     flat_tags = [ut.unique(ut.flatten(t)) for t in sample_groups.case_tags]
+
+    print('Using Split and Photobomb')
     is_positive = ['photobomb' in t or 'splitcase' in t for t in flat_tags]
-    #is_positive = ['splitcase' in t for t in flat_tags]
-
     num_positive = sum(is_positive)
-    vt.calc_error_from_sample(sample_size, num_positive, pop, conf_level=.95)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
 
+    print('Only Photobomb')
+    is_positive = ['photobomb' in t for t in flat_tags]
+    num_positive = sum(is_positive)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
+
+    print('Only SplitCase')
+    is_positive = ['splitcase' in t for t in flat_tags]
+    num_positive = sum(is_positive)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
     #gt.qtapp_loop(qwin=win)
 
 
