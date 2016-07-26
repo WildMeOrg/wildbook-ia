@@ -53,6 +53,7 @@ ANNOTMATCH_PROPS_OTHER = [
 
     # These annots have almost the same information
     'NearDuplicate'
+    'CorrectPhotobomb'
 ]
 
 OLD_ANNOTMATCH_PROPS = [
