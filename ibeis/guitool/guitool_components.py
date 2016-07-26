@@ -1113,8 +1113,9 @@ class GuitoolWidget(WIDGET_BASE):
     #    return self.addWidget(new_widget)
 
     def closeEvent(self, event):
-        event.accept()
         self.closed.emit()
+        #event.accept()
+        super(GuitoolWidget, self).closeEvent(event)
 
 
 def prop_text_map(prop, val):
