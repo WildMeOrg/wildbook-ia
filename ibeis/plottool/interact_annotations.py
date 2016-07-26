@@ -75,7 +75,9 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
 
         super(AnnotPoly, poly).__init__(verts, animated=True, fc=fc, ec='none',
                                         alpha=0, picker=True)
-        poly.basecoords = poly.xy
+        # Ensure basecoords consistency
+        poly.basecoords = vt.verts_from_bbox(vt.bbox_from_verts(poly.xy))
+        #poly.basecoords = poly.xy
         poly.num = num
         poly.is_orig = is_orig
         poly.theta = theta
@@ -530,7 +532,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.update_UI()
 
     def _update_poly_colors(self):
-        for ind, poly in six.iteritems(self.polys):
+        for ind, poly in six.iteritems(self.editable_polys):
             assert poly.num == ind
             selected = poly is self._selected_poly
             editing_parts = poly is self.parent_poly
@@ -538,7 +540,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.draw()
 
     def _update_poly_lines(self):
-        for poly in six.itervalues(self.polys):
+        for poly in six.itervalues(self.editable_polys):
             self.last_vert_ind = len(poly.xy) - 1
             poly.update_lines()
 
@@ -550,8 +552,10 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         self.fig.canvas.blit(self.ax.bbox)
 
     def draw_artists(self):
-        for poly in six.itervalues(self.polys):
+        for poly in six.itervalues(self.editable_polys):
             poly.draw_self(self.ax, self.show_species_tags)
+        #for poly in six.itervalues(self.polys):
+        #    poly.draw_self(self.ax, self.show_species_tags)
 
     # --- Data Matainence / Other
 
@@ -562,13 +566,13 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
 
     @property
     def editable_polys(self):
-        return self.polys
-        #if self.in_edit_parts_mode:
-        #    return self.parent_poly.child_polys
-        #else:
-        #    if self.polys is None:
-        #        self.polys = {}
-        #    return self.polys
+        #return self.polys
+        if self.in_edit_parts_mode:
+            return self.parent_poly.child_polys
+        else:
+            if self.polys is None:
+                self.polys = {}
+            return self.polys
 
     def get_poly_under_cursor(self, x, y):
         """
@@ -651,7 +655,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             self._update_poly_lines()
         else:
             self._selected_poly = None
-        # Add polygons and lines to the axis
+        # Add polygons to the axis
         for poly in six.itervalues(self.polys):
             poly.add_to_axis(self.ax)
         # Give polygons mpl change callbacks
@@ -678,20 +682,19 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             coords = default_vertices(self.img, defaultshape_polys,
                                       self.mouseX, self.mouseY)
 
-        poly = self.new_polygon(coords, 0, self.species_tag)
+        poly = self.new_polygon(verts=coords, theta=0,
+                                species=self.species_tag)
+        poly.parent = self.parent_poly
 
-        #bbox = vt.bbox_from_verts(poly.basecoords)
-        #poly.basecoords = vt.verts_from_bbox(bbox)
-        #poly.update_display_coords()
-
+        # Add to the correct place in current heirarchy
         self.editable_polys[poly.num] = poly
-        #self.polys[poly.num] = poly
         poly.add_to_axis(self.ax)
+
+        #self.polys[poly.num] = poly
 
         #poly.add_callback(self.poly_changed)
         self._ind = None  # the active vert
         self._selected_poly = self.get_most_recently_added_poly()
-
         self._update_poly_lines()
         self._update_poly_colors()
         self.draw()
@@ -869,6 +872,7 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
             return
         if event.inaxes is None:
             return
+
         if len(self.editable_polys) == 0:
             print('[interact_annot] No polygons on screen')
             return
@@ -941,8 +945,8 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         if not self.showverts:
             return
 
-        if self.in_edit_parts_mode:
-            return
+        #if self.in_edit_parts_mode:
+        #    return
 
         quick_resize = (self._poly_held is True and (
             (event.button == self.MIDDLE_BUTTON) or
