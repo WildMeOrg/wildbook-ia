@@ -8,7 +8,7 @@ CommandLine:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import vtool as vt
-import numpy as np  # NOQA
+import numpy as np
 import networkx as nx
 import itertools
 from ibeis.algo.hots import graph_iden
@@ -20,62 +20,15 @@ from guitool.__PYQT__ import QtCore, QtWidgets  # NOQA
 from plottool import interact_helpers as ih
 from matplotlib.backend_bases import MouseEvent
 
+from guitool import __PYQT__
+if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
+    import matplotlib.backends.backend_qt4agg as backend_qt
+else:
+    import matplotlib.backends.backend_qt5agg as backend_qt
+FigureCanvas = backend_qt.FigureCanvasQTAgg
 
-class MatplotlibWidget(gt.GuitoolWidget):
-    click_inside_signal = QtCore.pyqtSignal(MouseEvent, object)
 
-    def initialize(self):
-        from guitool import __PYQT__
-        from plottool.interactions import zoom_factory, pan_factory
-        if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
-            import matplotlib.backends.backend_qt4agg as backend_qt
-        else:
-            import matplotlib.backends.backend_qt5agg as backend_qt
-        FigureCanvas = backend_qt.FigureCanvasQTAgg
-        self.fig = pt.plt.figure()
-        self.fig._no_raise_plottool = True
-        self.canvas = FigureCanvas(self.fig)
-
-        #self.canvas.manager = ut.DynStruct()
-        #self.canvas.manager.window = self
-
-        self.ax = self.fig.add_subplot(1, 1, 1)
-        #self.ax.plot([1, 2, 3], [1, 2, 3])
-        self.addWidget(self.canvas)
-
-        self.pan_events = pan_factory(self.ax)
-        self.zoon_events = zoom_factory(self.ax)
-        ih.connect_callback(self.fig, 'button_press_event', self.on_click)
-        ih.connect_callback(self.fig, 'draw_event', self.draw_callback)
-        ih.connect_callback(self.fig, 'pick_event', self.on_pick)
-
-        self.MOUSE_BUTTONS = abstract_interaction.AbstractInteraction.MOUSE_BUTTONS
-        self.setMinimumHeight(20)
-        self.setMinimumWidth(20)
-
-    def on_click(self, event):
-        if ih.clicked_inside_axis(event):
-            ax = event.inaxes
-            self.click_inside_signal.emit(event, ax)
-
-    def on_pick(self, event):
-        print('PICK: event.artist = %r' % (event.artist,))
-        edge = pt.get_plotdat(event.artist, 'edge')
-        node = pt.get_plotdat(event.artist, 'node')
-        edge_data = pt.get_plotdat(event.artist, 'edge_data')
-        node_data = pt.get_plotdat(event.artist, 'node_data')
-        if edge_data is not None:
-            print('edge = %r' % (edge,))
-            print('edge_data = %s' % (ut.repr3(edge_data),))
-            pass
-        if node_data is not None:
-            print('node = %r' % (node,))
-            pass
-
-    def draw_callback(self, event):
-        # self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
-        # self.draw_artists()
-        return
+DEVELOPER_MODE = False
 
 
 GRAPH_REVIEW_CFG_DEFAULTS = {
@@ -103,12 +56,409 @@ GRAPH_REVIEW_CFG_DEFAULTS = {
 }
 
 
-class AnnotGraphWidget(gt.GuitoolWidget):
-    signal_graph_update = QtCore.pyqtSignal()
-    signal_state_update = QtCore.pyqtSignal(bool)
+class MatplotlibWidget(gt.GuitoolWidget):
+    click_inside_signal = QtCore.pyqtSignal(MouseEvent, object)
 
-    def initialize(self, infr=None, use_image=False,
-                   init_mode='split',
+    def initialize(self):
+        from plottool.interactions import zoom_factory, pan_factory
+        self.fig = pt.plt.figure()
+        self.fig._no_raise_plottool = True
+        self.canvas = FigureCanvas(self.fig)
+
+        #self.canvas.manager = ut.DynStruct()
+        #self.canvas.manager.window = self
+
+        self.ax = self.fig.add_subplot(1, 1, 1)
+        #self.ax.plot([1, 2, 3], [1, 2, 3])
+        self.addWidget(self.canvas)
+
+        self.pan_events = pan_factory(self.ax)
+        self.zoon_events = zoom_factory(self.ax)
+        ih.connect_callback(self.fig, 'button_press_event', self.on_click)
+        #ih.connect_callback(self.fig, 'draw_event', self.draw_callback)
+        #ih.connect_callback(self.fig, 'pick_event', self.on_pick)
+
+        self.MOUSE_BUTTONS = abstract_interaction.AbstractInteraction.MOUSE_BUTTONS
+        self.setMinimumHeight(20)
+        self.setMinimumWidth(20)
+
+    def on_click(self, event):
+        if ih.clicked_inside_axis(event):
+            ax = event.inaxes
+            self.click_inside_signal.emit(event, ax)
+
+    #def on_pick(self, event):
+    #    print('PICK: event.artist = %r' % (event.artist,))
+    #    edge = pt.get_plotdat(event.artist, 'edge')
+    #    node = pt.get_plotdat(event.artist, 'node')
+    #    edge_data = pt.get_plotdat(event.artist, 'edge_data')
+    #    node_data = pt.get_plotdat(event.artist, 'node_data')
+    #    if edge_data is not None:
+    #        print('edge = %r' % (edge,))
+    #        print('edge_data = %s' % (ut.repr3(edge_data),))
+    #        pass
+    #    if node_data is not None:
+    #        print('node = %r' % (node,))
+    #        pass
+
+    def draw_callback(self, event):
+        # self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
+        # self.draw_artists()
+        return
+
+
+class DevGraphWidget(gt.GuitoolWidget):
+
+    def initialize(graph_widget, use_image, self_parent):
+        graph_widget.self_parent = parent = self_parent
+        #parent = graph_widget.parent()
+        infr = parent.infr
+        graph_widget.plotinfo = None
+        graph_widget.infr = infr
+
+        graph_widget.mpl_needs_update = True
+        graph_widget.cb = None
+
+        graph_widget.selected_aids = []
+        graph_widget.splitter = graph_widget.addNewSplitter(orientation=Qt.Horizontal)
+        graph_widget.ctrls_ = graph_widget.splitter.addNewWidget(orientation=Qt.Vertical,
+                                                                 vertical_stretch=1, margin=1,
+                                                                 spacing=1)
+        graph_widget.ctrls = graph_widget.ctrls_.addNewScrollArea()
+
+        graph_widget.mpl_wgt = MatplotlibWidget(parent=graph_widget)
+        graph_widget.mpl_wgt.installEventFilter(graph_widget)
+        graph_widget.splitter.addWidget(graph_widget.mpl_wgt)
+
+        ctrls = graph_widget.ctrls
+        bbar1 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
+        bbar2 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
+
+        bbar1.addNewButton('Mark: Match', pressed=graph_widget.mark_match)
+        bbar1.addNewButton('Mark: Non-Match', pressed=graph_widget.mark_nonmatch)
+        bbar1.addNewButton('Mark: Not-Comp', pressed=graph_widget.mark_notcomp)
+
+        if DEVELOPER_MODE:
+            thresh_wgt = bbar1.addNewWidget(orientation=Qt.Horizontal, margin=1)
+            thresh_wgt.addNewLabel('Thresh:')
+            graph_widget.thresh_lbl = thresh_wgt.addNewLineEdit('.5', editable=False)
+
+        bbar2.addNewButton('Deselect', pressed=graph_widget.deselect)
+        bbar2.addNewButton('Show Annots', pressed=graph_widget.show_selected)
+
+        if DEVELOPER_MODE:
+            def _simple_button2(func, refresh=True):
+                def _simple_onevent():
+                    func()
+                    if refresh:
+                        graph_widget.draw_gon_state_updateraph()
+                wrapped_func = ut.preserve_sig(_simple_onevent, func)
+                bbar2.addNewButton(pressed=wrapped_func)
+            bbar2.addNewButton('Infer Cut', pressed=graph_widget.infer_cut)
+            _simple_button2(infr.apply_all)
+
+        def refresh_via_cb(flag):
+            graph_widget.on_state_update()
+
+        graph_widget.show_cuts_cb = bbar2.addNewCheckBox(
+            'Show Cuts', changed=refresh_via_cb, checked=False)
+        graph_widget.show_review_cuts_cb =  bbar2.addNewCheckBox(
+            'Show Reviewed Cuts', changed=refresh_via_cb, checked=True)
+        graph_widget.only_reviwed_cb =  bbar2.addNewCheckBox(
+            'Only Reviewed', changed=refresh_via_cb, checked=True)
+        graph_widget.use_image_cb = bbar2.addNewCheckBox(
+            'Show Img', changed=refresh_via_cb, checked=use_image)
+        graph_widget.toggle_pin_cb = bbar2.addNewCheckBox(
+            'Pin Positions', changed=graph_widget.set_pin_state, checked=False)
+
+        #Debug row
+        if DEVELOPER_MODE:
+            bbar3 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
+
+            def _simple_button3(func, text=None, refresh=True):
+                def _simple_onevent():
+                    func()
+                    if refresh:
+                        graph_widget.on_state_update()
+                wrapped_func = ut.preserve_sig(_simple_onevent, func)
+                bbar3.addNewButton(text, pressed=wrapped_func)
+
+            _simple_button3(parent.reset_all)
+
+            _simple_button3(infr.reset_feedback)
+            _simple_button3(infr.reset_name_labels)
+
+            _simple_button3(infr.remove_feedback)
+            _simple_button3(infr.remove_name_labels)
+
+            bbar3.layout().addSpacing(10)
+            _simple_button3(infr.mst_review)
+            _simple_button3(infr.connected_compoment_reviewed_relabel)
+            bbar3.layout().addSpacing(10)
+
+            _simple_button3(infr.apply_mst)
+            _simple_button3(parent.apply_scores)
+            _simple_button3(infr.apply_feedback_edges)
+            _simple_button3(infr.apply_weights)
+            _simple_button3(infr.apply_cuts)
+            #_simple_button3(graph_widget.infr.remove_cuts)
+
+            bbar3.layout().addSpacing(10)
+            _simple_button3(parent.update_state)
+            _simple_button3(graph_widget.draw_graph, refresh=False)
+
+        # Connect signals and slots
+        graph_widget.mpl_wgt.click_inside_signal.connect(graph_widget.on_click_inside)
+
+    def on_state_update(graph_widget):
+        if graph_widget.mpl_wgt is None or graph_widget.mpl_wgt.visibleRegion().isEmpty():
+            # Flag that graph should draw next time it is visible
+            graph_widget.mpl_needs_update = True
+        else:
+            # Draw the graph because it is visible
+            graph_widget.draw_graph()
+
+    def draw_graph(graph_widget):
+        graph_widget.mpl_needs_update = False
+        print('[graph] Start draw page')
+        graph_widget.mpl_wgt.ax.cla()
+
+        graph_widget.infr.update_visual_attrs(
+            show_cuts=graph_widget.show_cuts_cb.isChecked(),
+            show_reviewed_cuts=graph_widget.show_review_cuts_cb.isChecked(),
+            only_reviewed=graph_widget.only_reviwed_cb.isChecked(),
+        )
+
+        # Update Qt things
+        if DEVELOPER_MODE:
+            graph_widget.thresh_lbl.setText('%.2f' % (graph_widget.infr.thresh))
+
+        # Update MPL things
+        #layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
+
+        #draw_implicit=graph_widget.show_cuts)
+        graph_widget.plotinfo = pt.show_nx(graph_widget.infr.graph,
+                                           layout='custom', as_directed=False,
+                                           ax=graph_widget.mpl_wgt.ax,
+                                           #layoutkw=layoutkw,
+                                           #node_labels=True, modify_ax=False,
+                                           use_image=graph_widget.use_image_cb.isChecked(),
+                                           verbose=0)
+        # graph_widget.mpl_wgt.ax.set_aspect('auto')
+        graph_widget.mpl_wgt.ax.set_aspect('equal')
+        # graph_widget.mpl_wgt.ax.set_aspect('scaled')
+
+        for aid in graph_widget.selected_aids:
+            graph_widget.highlight_aid(aid, True)
+
+        if DEVELOPER_MODE:
+            #ut.util_graph.graph_info(graph_widget.infr.graph, verbose=True)
+            xy = (1, graph_widget.infr.thresh)
+            xytext = (2.5, .3 if graph_widget.infr.thresh < .5 else .7)
+            #print('xy = %r' % (xy,))
+            #print('xytext = %r' % (xytext,))
+            #print('graph_widget.infr.thresh = %r' % (graph_widget.infr.thresh,))
+
+            if graph_widget.cb is not None:
+                ax = graph_widget.cb.ax
+                from plottool import plot_helpers as ph
+                ph.del_plotdat(graph_widget.mpl_wgt.ax, pt.DF2_DIVIDER_KEY)
+                ph.del_plotdat(graph_widget.mpl_wgt.ax, 'df2_div_axes')
+                ax.cla()
+                ax.xaxis.set_ticks_position('none')
+                ax.set_xticks([])
+                ax.axes.get_xaxis().set_visible(False)
+
+            _normal_ticks = np.linspace(0, 1, num=11)
+            _normal_scores = np.linspace(0, 1, num=500)
+            _normal_colors = graph_widget.infr.get_colored_weights(_normal_scores)
+            cb = pt.colorbar(_normal_scores, _normal_colors, lbl='weights',
+                             ticklabels=_normal_ticks)
+
+            graph_widget.thresh_annot = cb.ax.annotate(
+                'threshold',
+                xy=xy,
+                xytext=xytext,
+                arrowprops=dict(
+                    alpha=.5,
+                    fc="0.6",
+                    connectionstyle="angle3,angleA=90,angleB=0"),)
+            graph_widget.cb = cb
+
+        graph_widget.mpl_wgt.canvas.draw()
+        # fig.canvas.blit(ax.bbox)
+        graph_widget.mpl_wgt.fig.subplots_adjust(left=.02, top=.98, bottom=.02, right=.85)
+        print('[graph] End draw page')
+
+    def on_click_inside(graph_widget, event, ax):
+        pos = graph_widget.plotinfo['node']['pos']
+        nodes = list(pos.keys())
+        pos_list = ut.dict_take(pos, nodes)
+
+        # TODO: FIXME
+        #x = 10
+        #y = 10
+        x, y = event.xdata, event.ydata
+        point = np.array([x, y])
+        pos_list = np.array(pos_list)
+        index, dist = vt.closest_point(point, pos_list, distfunc=vt.L2)
+        node = nodes[index]
+        aid = graph_widget.infr.node_to_aid[node]
+        context_shown = False
+
+        CHECK_PAIR = True
+        if CHECK_PAIR:
+            if event.button == 3 and not context_shown:
+                if len(graph_widget.selected_aids) != 2:
+                    print('This funciton only work if exactly 2 are selected')
+                else:
+                    from ibeis.gui import inspect_gui
+                    context_shown = True
+                    aid1, aid2 = (graph_widget.selected_aids)
+                    qres = None
+                    qreq_ = None
+                    options = inspect_gui.get_aidpair_context_menu_options(
+                        graph_widget.infr.ibs, aid1, aid2, qres, qreq_=qreq_)
+                    graph_widget.show_popup_menu(options, event)
+
+        bbox = vt.bbox_from_center_wh(graph_widget.plotinfo['node']['pos'][node],
+                                      graph_widget.plotinfo['node']['size'][node])
+        SELECT_ANNOT = vt.point_inside_bbox(point, bbox)
+        #SELECT_ANNOT = dist < 35
+
+        if SELECT_ANNOT:
+            #print(ut.obj_str(ibs.get_annot_info(aid, default=True,
+            #                                    name=False, gname=False)))
+            if event.button == 1:
+                graph_widget.toggle_selected_aid(aid)
+
+            if event.button == 3 and not context_shown:
+                # right click
+                from ibeis.viz.interact import interact_chip
+                context_shown = True
+                #refresh_func = functools.partial(viz.show_name, ibs, nid,
+                #fnum=fnum, sel_aids=sel_aids)
+                refresh_func = None
+                config2_ = None
+                options = interact_chip.build_annot_context_options(
+                    graph_widget.infr.ibs, aid, refresh_func=refresh_func,
+                    with_interact_name=False,
+                    config2_=config2_)
+                graph_widget.show_popup_menu(options, event)
+
+    def show_popup_menu(graph_widget, options, event):
+        """
+        context menu
+        """
+        height = graph_widget.mpl_wgt.fig.canvas.geometry().height()
+        qpoint = gt.newQPoint(event.x, height - event.y)
+        qwin = graph_widget.mpl_wgt.fig.canvas
+        gt.popup_menu(qwin, qpoint, options)
+
+    def set_pin_state(graph_widget, flag):
+        if flag:
+            nx.set_node_attributes(graph_widget.infr.graph, 'pin', 'true')
+        else:
+            ut.nx_delete_node_attr(graph_widget.infr.graph, 'pin')
+
+    def mark_nonmatch(graph_widget):
+        print('BREAK LINK graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
+        for aid1, aid2 in itertools.combinations(graph_widget.selected_aids, 2):
+            graph_widget.infr.add_feedback(aid1, aid2, 'nonmatch')
+        # TODO: just use signal / slot
+        #graph_widget.infr.apply_feedback_edges()
+        graph_widget.self_parent.update_state()
+        #graph_widget.on_state_update()
+
+    def mark_match(graph_widget):
+        print('MAKE LINK graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
+        for aid1, aid2 in itertools.combinations(graph_widget.selected_aids, 2):
+            graph_widget.infr.add_feedback(aid1, aid2, 'match')
+        # TODO: just use signal / slot
+        graph_widget.self_parent.update_state()
+        #graph_widget.infr.apply_feedback_edges()
+        #graph_widget.on_state_update()
+
+    def mark_notcomp(graph_widget):
+        print('MAKE LINK graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
+        for aid1, aid2 in itertools.combinations(graph_widget.selected_aids, 2):
+            graph_widget.infr.add_feedback(aid1, aid2, 'notcomp')
+        # TODO: just use signal / slot
+        graph_widget.self_parent.update_state()
+        #graph_widget.infr.apply_feedback_edges()
+        #graph_widget.on_state_update()
+
+    def show_selected(graph_widget):
+        # TODO: move to mpl widget
+        print('[graph] show_selected')
+        from ibeis.viz import viz_chip
+        fnum = pt.ensure_fnum(10)
+        print('fnum = %r' % (fnum,))
+        fig = pt.figure(fnum=fnum)
+        viz_chip.show_many_chips(graph_widget.infr.ibs, graph_widget.selected_aids, fnum=fnum)
+        #fig.canvas.update()
+        fig.show()
+        fig.canvas.draw()
+        graph_widget._figscope = fig
+
+    def infer_cut(graph_widget):
+        infrkw = {}
+        # keys = ['min_labels', 'max_labels']
+        # infrkw = ut.dict_subset(graph_widget.config, keys)
+        graph_widget.infr.infer_cut(**infrkw)
+        graph_widget.on_state_update()
+
+    def highlight_aid(graph_widget, aid, color=None):
+        # TODO: move to mpl widget
+        if graph_widget.plotinfo is None:
+            return
+        node = graph_widget.infr.aid_to_node[aid]
+        frame = graph_widget.plotinfo['patch_frame_dict'][node]
+        framewidth = graph_widget.infr.graph.node[node]['framewidth']
+        if color is True:
+            color = pt.ORANGE
+        if color is None or color is False:
+            color = pt.DARK_BLUE
+            color = graph_widget.infr.graph.node[node]['color']
+            color = pt.ensure_nonhex_color(color)
+            frame.set_linewidth(framewidth)
+        else:
+            frame.set_linewidth(framewidth * 2)
+        frame.set_facecolor(color)
+        frame.set_edgecolor(color)
+
+    def deselect(graph_widget):
+        print('graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
+        graph_widget.toggle_selected_aid(graph_widget.selected_aids[:])
+
+    def toggle_selected_aid(graph_widget, aids):
+        for aid in ut.ensure_iterable(aids):
+            # TODO: move to mpl widget
+            if aid in graph_widget.selected_aids:
+                graph_widget.selected_aids.remove(aid)
+                #graph_widget.highlight_aid(aid, pt.WHITE)
+                graph_widget.highlight_aid(aid, color=None)
+            else:
+                graph_widget.selected_aids.append(aid)
+                graph_widget.highlight_aid(aid, True)
+        print('graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
+        if graph_widget.mpl_wgt is not None:
+            graph_widget.mpl_wgt.fig.canvas.draw()
+        #graph_widget.on_state_update()
+
+    def eventFilter(graph_widget, source, event):
+        if event.type() == QtCore.QEvent.Show:
+            if graph_widget.mpl_needs_update:
+                graph_widget.on_state_update()
+            #print('event = %r' % (event,))
+            #print('source = %r' % (source,))
+        return super(DevGraphWidget, graph_widget).eventFilter(source, event)
+
+
+class AnnotGraphWidget(gt.GuitoolWidget):
+    #signal_state_update = QtCore.pyqtSignal(bool)
+
+    def initialize(self, infr=None, use_image=False, init_mode='rereview',
                    review_cfg=None):
         print('[graph] initialize')
 
@@ -124,21 +474,20 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         if review_cfg is None:
             if self.init_mode is None:
-                self.review_cfg = GRAPH_REVIEW_CFG_DEFAULTS.copy()
-                for key in self.review_cfg.keys():
-                    if key.startswith('filter_'):
-                        self.review_cfg[key] = False
-            if self.init_mode == 'split':
-                self.review_cfg = GRAPH_REVIEW_CFG_DEFAULTS.copy()
+                self.preset_unfiltered_config()
+            elif self.init_mode == 'split':
+                self.preset_filtered_config()
+            elif self.init_mode == 'rereview':
+                self.preset_unfiltered_config()
+            else:
+                raise ValueError('Unknown mode = %r' % (self.init_mode,))
+
         self.infr = infr
-        self.selected_aids = []
         # self.config = InferenceConfig()
 
         graph_tables_widget = self.addNewTabWidget(verticalStretch=1)
 
         self.status_bar = self.addNewWidget(
-            orientation=Qt.Horizontal, vertical_stretch=1, margin=1, spacing=1)
-        self.dev_bar = self.addNewWidget(
             orientation=Qt.Horizontal, vertical_stretch=1, margin=1, spacing=1)
         self.prog_bar = self.addNewProgressBar(visible=False)
 
@@ -154,10 +503,15 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.edge_api_widget.view.connect_keypress_to_slot(self.edge_keypress)
         self.edge_api_widget.view.connect_single_key_to_slot(gt.ALT_KEY, self.on_alt_pressed)
 
+        self.status_bar.addNewButton('Reset Rereview', pressed=self.reset_rereview)
+        if DEVELOPER_MODE:
+            self.status_bar.addNewButton('Reset Original', pressed=self.reset_original)
+        self.status_bar.addNewButton('Reset Empty', pressed=self.reset_empty)
+
         self.num_names_lbl = self.status_bar.addNewLabel('NUM_NAMES_LBL')
         self.state_lbl = self.status_bar.addNewLabel('STATE_LBL')
-        self.status_bar.addNewButton('Reset Original', pressed=self.reset_original)
-        self.status_bar.addNewButton('Reset Empty', pressed=self.reset_empty)
+
+        self.status_bar.addNewButton('Score Edges', pressed=self.score_edges)
         self.status_bar.addNewButton('Edit Filters', pressed=self.edit_filters)
         self.status_bar.addNewButton('Repopulate', pressed=self.repopulate)
         self.status_bar.addNewButton('Accept', pressed=self.accept)
@@ -165,107 +519,34 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.node_tab.addWidget(self.node_api_widget)
         self.edge_tab.addWidget(self.edge_api_widget)
 
-        self.dev_bar.addNewButton(pressed=self.print_info)
-        self.dev_bar.addNewButton(pressed=self.embed)
+        if DEVELOPER_MODE:
+            self.dev_bar = self.addNewWidget(
+                orientation=Qt.Horizontal, vertical_stretch=1, margin=1, spacing=1)
+            self.dev_bar.addNewButton(pressed=self.print_info)
+            self.dev_bar.addNewButton(pressed=self.embed)
 
-        if self.init_mode == 'split':
+        if self.init_mode in ['split', 'rereview']:
             # TODO: separate graph view into its own class
             self.graph_tab = graph_tables_widget.addNewTab('Graph')
-
-            self.splitter = self.newSplitter(orientation=Qt.Horizontal)
-            self.ctrls_ = self.splitter.addNewWidget(orientation=Qt.Vertical,
-                                                     vertical_stretch=1, margin=1,
-                                                     spacing=1)
-            self.ctrls = self.ctrls_.addNewScrollArea()
-
-            self.graph_tab.addWidget(self.splitter)
-
-            self.mpl_wgt = MatplotlibWidget(parent=self)
-            self.mpl_wgt.installEventFilter(self)
-            self.splitter.addWidget(self.mpl_wgt)
-
-            ctrls = self.ctrls
-            bbar1 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
-            bbar2 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
-            bbar3 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
-            def _simple_button3(func, text=None, refresh=True):
-                def _simple_onevent():
-                    func()
-                    if refresh:
-                        self.draw_graph()
-                wrapped_func = ut.preserve_sig(_simple_onevent, func)
-                bbar3.addNewButton(text, pressed=wrapped_func)
-
-            def _simple_button2(func, refresh=True):
-                def _simple_onevent():
-                    func()
-                    if refresh:
-                        self.draw_graph()
-                wrapped_func = ut.preserve_sig(_simple_onevent, func)
-                bbar2.addNewButton(pressed=wrapped_func)
-
-            bbar1.addNewButton('Mark: Match', pressed=self.mark_match)
-            bbar1.addNewButton('Mark: Non-Match', pressed=self.mark_nonmatch)
-            bbar1.addNewButton('Mark: Not-Comp', pressed=self.mark_notcomp)
-
-            thresh_wgt = bbar1.addNewWidget(orientation=Qt.Horizontal, margin=1)
-            thresh_wgt.addNewLabel('Thresh:')
-            self.thresh_lbl = thresh_wgt.addNewLineEdit('.5', editable=False)
-
-            bbar2.addNewButton('Deselect', pressed=self.deselect)
-            bbar2.addNewButton('Show Annots', pressed=self.show_selected)
-            bbar2.addNewButton('Infer Cut', pressed=self.infer_cut)
-            _simple_button2(self.infr.apply_all)
-
-            def refresh_via_cb(flag):
-                self.draw_graph()
-
-            self.show_cuts_cb = bbar2.addNewCheckBox(
-                'Show Cuts', changed=refresh_via_cb, checked=False)
-            self.show_review_cuts_cb =  bbar2.addNewCheckBox(
-                'Show Reviewed Cuts', changed=refresh_via_cb, checked=True)
-            self.only_reviwed_cb =  bbar2.addNewCheckBox(
-                'Only Reviewed', changed=refresh_via_cb, checked=True)
-            self.use_image_cb = bbar2.addNewCheckBox(
-                'Show Img', changed=refresh_via_cb, checked=use_image)
-            self.toggle_pin_cb = bbar2.addNewCheckBox(
-                'Pin Positions', changed=self.set_pin_state, checked=False)
-
-            #Debug row
-            _simple_button3(self.reset_all)
-
-            _simple_button3(self.infr.reset_feedback)
-            _simple_button3(self.infr.reset_name_labels)
-
-            _simple_button3(self.infr.remove_feedback)
-            _simple_button3(self.infr.remove_name_labels)
-
-            bbar3.layout().addSpacing(10)
-            _simple_button3(self.infr.mst_review)
-            _simple_button3(self.infr.connected_compoment_relabel)
-            bbar3.layout().addSpacing(10)
-
-            _simple_button3(self.infr.apply_mst)
-            _simple_button3(self.apply_scores)
-            _simple_button3(self.infr.apply_feedback)
-            _simple_button3(self.infr.apply_weights)
-            _simple_button3(self.infr.apply_cuts)
-            _simple_button3(self.infr.remove_cuts)
-
-            bbar3.layout().addSpacing(10)
-            _simple_button3(self.update_state)
-            _simple_button3(self.draw_graph, refresh=False)
-
-            self.mpl_needs_update = True
-            self.cb = None
-            self.mpl_wgt.click_inside_signal.connect(self.on_click_inside)
-
-            self.signal_graph_update.connect(self.draw_graph, type=Qt.UniqueConnection)
+            # TODO: make this its own proper widget
+            self.graph_widget = DevGraphWidget(parent=self, self_parent=self,
+                                               use_image=use_image)
+            self.graph_tab.addWidget(self.graph_widget)
+            #_tmp_dev_graph_widget_init(self, use_image)
+            #DevGraphWidget(use_image=True)
         else:
             self.graph_tab = None
-            self.mpl_wgt = None
 
-        self.signal_state_update.connect(self.on_state_update)
+        #self.signal_state_update.connect(self.on_state_update)
+
+    def preset_unfiltered_config(self):
+        self.review_cfg = GRAPH_REVIEW_CFG_DEFAULTS.copy()
+        for key in self.review_cfg.keys():
+            if key.startswith('filter_'):
+                self.review_cfg[key] = False
+
+    def preset_filtered_config(self):
+        self.review_cfg = GRAPH_REVIEW_CFG_DEFAULTS.copy()
 
     def showEvent(self, event):
         super(AnnotGraphWidget, self).showEvent(event)
@@ -290,69 +571,128 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 if ut.get_argflag('--cut'):
                     infr.apply_all()
                 ctx.set_progress(3, 3)
+        elif self.init_mode == 'rereview':
+            self.reset_rereview()
         else:
             raise ValueError('Unknown init_mode=%r' % (self.init_mode,))
-
-        self.node2_aid = nx.get_node_attributes(self.infr.graph, 'aid')
-        self.aid2_node = ut.invert_dict(self.node2_aid)
         #self.apply_scores()
         self.update_state(structure_changed=True)
 
     def update_state(self, structure_changed=False):
-        print('[graph] update_state')
+        print('[graph] update_state mode=%s' % (self.init_mode,))
+        #if self.init_mode in ['split', 'rereview']:
         if self.init_mode == 'split':
-            self.infr.apply_feedback()
+            self.infr.apply_feedback_edges()
             if structure_changed:
                 # FIXME: when should score be reapplied?
                 # This should happen in split mode, but not None mode
                 self.apply_scores()
             self.infr.apply_weights()
-            num_names, num_inconsistent = self.infr.connected_compoment_relabel()
+            self.infr.connected_compoment_reviewed_relabel()
             self.infr.apply_cuts()
-            # Set gui status indicators
-            self.num_names_lbl.setText('Names: %d' % (num_names,))
-            if num_inconsistent:
-                self.state_lbl.setText('Inconsistent Names: %d' % (num_inconsistent,))
-                self.state_lbl.setColor('black', self.infr.truth_colors['nonmatch'][0:3] * 255)
-            else:
-                self.state_lbl.setText('Consistent')
-                self.state_lbl.setColor('black', self.infr.truth_colors['match'][0:3] * 255)
-        self.signal_state_update.emit(structure_changed)
+        elif self.init_mode == 'rereview':
+            self.infr.apply_feedback_edges()
+            self.infr.apply_match_scores()
+            self.infr.apply_weights()
+            self.infr.connected_compoment_reviewed_relabel()
+            self.infr.apply_cuts()
+
+        # Set gui status indicators
+        num_names, num_inconsistent = self.infr.connected_compoment_reviewed_labeling()
+        if num_inconsistent:
+            self.state_lbl.setText('Inconsistent Names: %d' % (num_inconsistent,))
+            self.state_lbl.setColor('black', self.infr.truth_colors['nonmatch'][0:3] * 255)
+        else:
+            self.state_lbl.setText('Consistent')
+            self.state_lbl.setColor('black', self.infr.truth_colors['match'][0:3] * 255)
+        self.num_names_lbl.setText('Names: %d' % (num_names,))
+
+        #self.signal_state_update.emit(structure_changed)
+        self.on_state_update(structure_changed)
         self.edge_api_widget.model.layoutChanged.emit()
         self.node_api_widget.model.layoutChanged.emit()
+        #self.edge_api_widget.model.dataChanged.emit()
+        #self.node_api_widget.model.dataChanged.emit()
 
     @QtCore.pyqtSlot(bool)
     def on_state_update(self, structure_changed=False):
+        print('[graph] on_update_state mode=%s' % (self.init_mode,))
         if structure_changed:
             self.populate_node_model()
             self.populate_edge_model()
-        if self.mpl_wgt is None or self.mpl_wgt.visibleRegion().isEmpty():
-            # Flag that graph should draw next time it is visible
-            self.mpl_needs_update = True
-        else:
-            # Draw the graph because it is visible
-            self.signal_graph_update.emit()
+        self.graph_widget.on_state_update()
 
     def apply_scores(self):
-        with gt.GuiProgContext('Computing Scores', self.prog_bar) as ctx:
-            self.infr.apply_scores(self.review_cfg, prog_hook=ctx.prog_hook)
+        with gt.GuiProgContext('Computing Matches', self.prog_bar) as ctx:
+            self.infr.exec_matching(prog_hook=ctx.prog_hook)
+            self.infr.apply_match_edges(self.review_cfg)
+            self.infr.apply_match_scores()
+
+    def score_edges(self):
+        with gt.GuiProgContext('Scoring Edges', self.prog_bar) as ctx:
+            self.infr.exec_matching(prog_hook=ctx.prog_hook)
+            self.infr.apply_match_scores()
+        self.repopulate()
+
+    def reset_rereview(self):
+        """
+        Goal:
+            All names are removed.
+            Reset edges so only reviewed edges are shown.
+            You can change the state of those edges.
+            They are not filtered.
+        """
+        print('[graph] reset_rereview')
+        infr = self.infr
+        self.init_mode = 'rereview'
+        with gt.GuiProgContext('Reset Review', self.prog_bar) as ctx:
+            ctx.set_progress(0, 3)
+            infr.initialize_graph()
+            #ctx.set_progress(1, 3)
+            self.preset_unfiltered_config()
+            infr.reset_name_labels()
+            infr.reset_feedback()
+            infr.apply_feedback_edges()
+            infr.mst_review()
+            infr.remove_name_labels()
+            infr.apply_match_scores()
+            ctx.set_progress(2, 3)
+            infr.initialize_visual_node_attrs()
+            self.repopulate()
+            ctx.set_progress(3, 3)
 
     def reset_original(self):
         print('[graph] reset_original')
-        infr = self.infr
-        infr.reset_feedback()
-        infr.reset_name_labels()
-        infr.apply_cuts()
-        infr.mst_review()
-        self.update_state(structure_changed=True)
+        with gt.GuiProgContext('Reset Original', self.prog_bar) as ctx:
+            ctx.set_progress(0, 3)
+            self.preset_unfiltered_config()
+            infr = self.infr
+            infr.reset_feedback()
+            infr.reset_name_labels()
+            infr.apply_cuts()
+            infr.mst_review()
+            self.repopulate()
+            ctx.set_progress(3, 3)
 
     def reset_empty(self):
-        print('[graph] reset_empty')
-        infr = self.infr
-        infr.remove_feedback()
-        infr.remove_name_labels()
-        infr.apply_cuts()
-        self.update_state(structure_changed=True)
+        self.init_mode = 'split'
+        with gt.GuiProgContext('Reset Empty', self.prog_bar) as ctx:
+            ctx.set_progress(0, 3)
+            print('[graph] reset_empty')
+            self.preset_filtered_config()
+            infr = self.infr
+            infr.remove_feedback()
+            infr.remove_name_labels()
+            infr.apply_cuts()
+            self.repopulate()
+            ctx.set_progress(3, 3)
+
+    def reset_all(self):
+        self.infr.initialize_graph()
+        self.infr.initialize_visual_node_attrs()
+        self.infr.reset_feedback()
+        self.repopulate()
+        self.toggle_pin_cb.setChecked(False)
 
     def edit_filters(self):
         import dtool
@@ -371,12 +711,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def repopulate(self):
         self.update_state(structure_changed=True)
-
-    def reset_all(self):
-        self.infr.initialize_graph()
-        self.infr.initialize_visual_node_attrs()
-        self.infr.reset_feedback()
-        self.toggle_pin_cb.setChecked(False)
 
     def populate_node_model(self):
         print('[graph] populate_node_model')
@@ -405,9 +739,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.edge_tab.setTabText('Edges (%r)' % (self.edge_api_widget.model.num_rows_total))
         self.edge_api_widget.view.verticalHeader().setDefaultSectionSize(221)
 
-    def sizeHint(self):
-        return QtCore.QSize(1100, 500)
-
     def edge_doubleclick(self, qtindex):
         """
         qtindex = qtindex = self.edge_api_widget.view.get_row_and_qtindex_from_id(1)[0]
@@ -422,40 +753,39 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             cm.ishow_single_annotmatch(self.infr.qreq_, aid2, mode=0)
         else:
             # Hack
-            self.selected_aids = [aid1, aid2]
-            self.show_selected()
+            self.graph_widget.deselect()
+            self.graph_widget.toggle_selected_aid([aid1, aid2])
+            #self.graph_widget.selected_aids = [aid1, aid2]
+            self.graph_widget.show_selected()
 
     def get_edge_options(self):
         view = self.edge_api_widget.view
         selected_qtindex_list = view.selectedRows()
 
-        def aid_pair_gen():
+        def _mark_pairs(state):
+            #for aid1, aid2 in aid_pair_gen():
             for qtindex in selected_qtindex_list:
                 model = qtindex.model()
                 aid1  = model.get_header_data('aid1', qtindex)
                 aid2  = model.get_header_data('aid2', qtindex)
-                yield aid1, aid2
-
-        def mark_pairs(state):
-            for aid1, aid2 in aid_pair_gen():
                 self.infr.add_feedback(aid1, aid2, state)
             self.update_state()
             #for qtindex in selected_qtindex_list:
             #    # This should work by itself
             #    self.edge_api_widget.model.dataChanged.emit(qtindex, qtindex)
             #    # but it doesnt seem to be, but this seems to solve the issue
-            self.edge_api_widget.model.layoutChanged.emit()
-            self.node_api_widget.model.layoutChanged.emit()
+            #self.edge_api_widget.model.layoutChanged.emit()
+            #self.node_api_widget.model.layoutChanged.emit()
+
         options = [
-            ('Mark &True', lambda: mark_pairs('match')),
-            ('Mark &False', lambda: mark_pairs('nonmatch')),
-            ('Mark &Non-Comparable', lambda: mark_pairs('notcomp')),
-            ('&Unreview', lambda: mark_pairs('unreviewed')),
+            ('Mark &True', lambda: _mark_pairs('match')),
+            ('Mark &False', lambda: _mark_pairs('nonmatch')),
+            ('Mark &Non-Comparable', lambda: _mark_pairs('notcomp')),
+            ('&Unreview', lambda: _mark_pairs('unreviewed')),
         ]
 
         if len(selected_qtindex_list) == 1:
             from ibeis.gui import inspect_gui
-            from ibeis.algo.hots import vsone_pipeline
             ibs = self.infr.ibs
             qtindex = selected_qtindex_list[0]
             model = qtindex.model()
@@ -463,7 +793,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             aid2  = model.get_header_data('aid2', qtindex)
             qreq_ = self.infr.qreq_
             pair_tag_options = inspect_gui.make_aidpair_tag_context_options(ibs, aid1, aid2)
-            chip_context_options = inspect_gui.make_annotpair_context_options(ibs, aid1, aid2, qreq_=qreq_)
+            chip_context_options = inspect_gui.make_annotpair_context_options(
+                ibs, aid1, aid2, qreq_=qreq_)
             options += [
                 ('Match Ta&gs', pair_tag_options)
             ]
@@ -474,31 +805,12 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 nids = ut.unique(ibs.get_annot_nids([aid1, aid2]))
                 options += [
                     ('New Split Case Interaction',
-                     ut.partial(viz_graph2.make_qt_graph_interface,
-                             ibs, nids=nids)),
+                     ut.partial(viz_graph2.make_qt_graph_interface, ibs,
+                                nids=nids)),
                 ]
-
-            #vsone_qreq_ = qreq_.shallowcopy(qaids=[aid1])
-            def vsone_single_hack(ibs, qaid, daid, qreq_):
-                import vtool as vt
-                import plottool as pt
-                if qreq_ is None:
-                    qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})
-                else:
-                    qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict=qreq_.qparams)
-                matches, metadata = vsone_pipeline.vsone_single(qaid, daid, qreq2_,
-                                                                use_ibscache=True)
-                interact = vt.matching.show_matching_dict(matches, metadata, mode=1)  # NOQA
-                interact.start()
 
             options += [
-                ('VsOne', [
-                    ('Run Vsone(ib)', ut.partial(vsone_pipeline.vsone_independant_pair_hack,
-                                                 ibs, aid1, aid2, qreq_=qreq_)),
-                    ('Run Vsone(vt)', ut.partial(vsone_single_hack,
-                                                 ibs, aid1, aid2, qreq_=qreq_)),
-                ]
-                )
+                ('VsOne', inspect_gui.make_vsone_context_options(ibs, aid1, aid2, qreq_))
             ]
 
         return options
@@ -524,14 +836,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         view = self.edge_api_widget.view
         """
         event_key = event.key()
-
-        def make_option_dict(options):
-            option_dict = {key[key.find('&') + 1]: val for key, val in options
-                           if '&' in key}
-            return option_dict
-
         options = self.get_edge_options()
-        option_dict = make_option_dict(options)
+        option_dict = gt.make_option_dict(options)
         handled = False
         for key, func in option_dict.items():
             if event_key == getattr(QtCore.Qt, 'Key_' + key.upper()):
@@ -542,116 +848,11 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             print('Key  not handled %r' % (event_key,))
             return
 
-    def on_click_inside(self, event, ax):
-        pos = self.plotinfo['node']['pos']
-        nodes = list(pos.keys())
-        pos_list = ut.dict_take(pos, nodes)
-
-        # TODO: FIXME
-        #x = 10
-        #y = 10
-        import numpy as np  # NOQA
-        x, y = event.xdata, event.ydata
-        point = np.array([x, y])
-        pos_list = np.array(pos_list)
-        index, dist = vt.closest_point(point, pos_list, distfunc=vt.L2)
-        node = nodes[index]
-        aid = self.node2_aid[node]
-        context_shown = False
-
-        CHECK_PAIR = True
-        if CHECK_PAIR:
-            if event.button == 3 and not context_shown:
-                if len(self.selected_aids) != 2:
-                    print('This funciton only work if exactly 2 are selected')
-                else:
-                    from ibeis.gui import inspect_gui
-                    context_shown = True
-                    aid1, aid2 = (self.selected_aids)
-                    qres = None
-                    qreq_ = None
-                    options = inspect_gui.get_aidpair_context_menu_options(
-                        self.infr.ibs, aid1, aid2, qres, qreq_=qreq_)
-                    self.show_popup_menu(options, event)
-
-        bbox = vt.bbox_from_center_wh(self.plotinfo['node']['pos'][node],
-                                      self.plotinfo['node']['size'][node])
-        SELECT_ANNOT = vt.point_inside_bbox(point, bbox)
-        #SELECT_ANNOT = dist < 35
-
-        if SELECT_ANNOT:
-            #print(ut.obj_str(ibs.get_annot_info(aid, default=True,
-            #                                    name=False, gname=False)))
-            if event.button == 1:
-                self.toggle_selected_aid(aid)
-
-            if event.button == 3 and not context_shown:
-                # right click
-                from ibeis.viz.interact import interact_chip
-                context_shown = True
-                #refresh_func = functools.partial(viz.show_name, ibs, nid,
-                #fnum=fnum, sel_aids=sel_aids)
-                refresh_func = None
-                config2_ = None
-                options = interact_chip.build_annot_context_options(
-                    self.infr.ibs, aid, refresh_func=refresh_func,
-                    with_interact_name=False,
-                    config2_=config2_)
-                self.show_popup_menu(options, event)
-
-    def show_popup_menu(self, options, event):
-        """
-        context menu
-        """
-        height = self.mpl_wgt.fig.canvas.geometry().height()
-        qpoint = gt.newQPoint(event.x, height - event.y)
-        qwin = self.mpl_wgt.fig.canvas
-        gt.popup_menu(qwin, qpoint, options)
-
-    def set_pin_state(self, flag):
-        if flag:
-            nx.set_node_attributes(self.infr.graph, 'pin', 'true')
-        else:
-            ut.nx_delete_node_attr(self.infr.graph, 'pin')
-
-    def infer_cut(self):
-        infrkw = {}
-        # keys = ['min_labels', 'max_labels']
-        # infrkw = ut.dict_subset(self.config, keys)
-        self.infr.infer_cut(**infrkw)
-        self.draw_graph()
-
-    def mark_nonmatch(self):
-        print('BREAK LINK self.selected_aids = %r' % (self.selected_aids,))
-        for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
-            self.infr.add_feedback(aid1, aid2, 'nonmatch')
-        self.infr.apply_feedback()
-        self.draw_graph()
-
-    def mark_match(self):
-        print('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
-        for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
-            self.infr.add_feedback(aid1, aid2, 'match')
-        self.infr.apply_feedback()
-        self.draw_graph()
-
-    def mark_notcomp(self):
-        print('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
-        for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
-            self.infr.add_feedback(aid1, aid2, 'notcomp')
-        self.infr.apply_feedback()
-        self.draw_graph()
-
-    def deselect(self):
-        print('self.selected_aids = %r' % (self.selected_aids,))
-        for aid in self.selected_aids[:]:
-            self.toggle_selected_aid(aid)
-
     def accept(self):
         print('[graph] Not done yet')
         infr = self.infr
         graph = infr.graph
-        num_names, num_inconsistent = self.infr.connected_compoment_relabel()
+        num_names, num_inconsistent = self.infr.connected_compoment_reviewed_relabel()
         msg = ut.codeblock(
             '''
             Are you sure this is correct?
@@ -713,148 +914,24 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             print('DRY RUN. NOT DOING ANYTHING')
         gt.user_info(self, 'Name Change Complete')
 
-    def show_selected(self):
-        print('[graph] show_selected')
-        from ibeis.viz import viz_chip
-        fnum = pt.ensure_fnum(10)
-        print('fnum = %r' % (fnum,))
-        fig = pt.figure(fnum=fnum)
-        viz_chip.show_many_chips(self.infr.ibs, self.selected_aids)
-        #fig.canvas.update()
-        fig.show()
-        fig.canvas.draw()
-
-    def highlight_aid(self, aid, color=None):
-        node = self.aid2_node[aid]
-        frame = self.plotinfo['patch_frame_dict'][node]
-        framewidth = self.infr.graph.node[node]['framewidth']
-        if color is True:
-            color = pt.ORANGE
-        if color is None or color is False:
-            color = pt.DARK_BLUE
-            color = self.infr.graph.node[node]['color']
-            color = pt.ensure_nonhex_color(color)
-            frame.set_linewidth(framewidth)
-        else:
-            frame.set_linewidth(framewidth * 2)
-        frame.set_facecolor(color)
-        frame.set_edgecolor(color)
-
-    def toggle_selected_aid(self, aid):
-        if aid in self.selected_aids:
-            self.selected_aids.remove(aid)
-            #self.highlight_aid(aid, pt.WHITE)
-            self.highlight_aid(aid, color=None)
-        else:
-            self.selected_aids.append(aid)
-            self.highlight_aid(aid, True)
-        print('self.selected_aids = %r' % (self.selected_aids,))
-        if self.mpl_wgt is not None:
-            self.mpl_wgt.fig.canvas.draw()
+    def sizeHint(self):
+        return QtCore.QSize(1100, 500)
 
     def closeEvent(self, event):
-        event.accept()
+        #event.accept()
         abstract_interaction.unregister_interaction(self)
-
-    def eventFilter(self, source, event):
-        """ handle key press """
-        # print("___EVENT___")
-        # print('event = %r' % (event,))
-        # print('source = %r' % (source,))
-        if event.type() == QtCore.QEvent.Show:
-            if self.mpl_needs_update:
-                self.signal_graph_update.emit()
-            #print('event = %r' % (event,))
-            #print('source = %r' % (source,))
-        return super(AnnotGraphWidget, self).eventFilter(source, event)
-
-    @QtCore.pyqtSlot()
-    def draw_graph(self):
-        if self.mpl_wgt is None:
-            return
-
-        self.mpl_needs_update = False
-        print('[graph] Start draw page')
-        self.mpl_wgt.ax.cla()
-
-        self.infr.update_visual_attrs(
-            show_cuts=self.show_cuts_cb.isChecked(),
-            show_reviewed_cuts=self.show_review_cuts_cb.isChecked(),
-            only_reviewed=self.only_reviwed_cb.isChecked(),
-        )
-
-        # Update Qt things
-        self.thresh_lbl.setText('%.2f' % (self.infr.thresh))
-
-        # Update MPL things
-        #layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
-
-        #draw_implicit=self.show_cuts)
-        self.plotinfo = pt.show_nx(self.infr.graph,
-                                   layout='custom',
-                                   as_directed=False,
-                                   ax=self.mpl_wgt.ax,
-                                   #layoutkw=layoutkw,
-                                   #node_labels=True,
-                                   modify_ax=False,
-                                   use_image=self.use_image_cb.isChecked(),
-                                   verbose=0)
-        # self.mpl_wgt.ax.set_aspect('auto')
-        self.mpl_wgt.ax.set_aspect('equal')
-        # self.mpl_wgt.ax.set_aspect('scaled')
-
-        for aid in self.selected_aids:
-            self.highlight_aid(aid, True)
-
-        #ut.util_graph.graph_info(self.infr.graph, verbose=True)
-        self.draw_colorbar()
-        self.mpl_wgt.canvas.draw()
-        # fig.canvas.blit(ax.bbox)
-        self.mpl_wgt.fig.subplots_adjust(left=.02, top=.98, bottom=.02, right=.85)
-        print('[graph] End draw page')
-
-    def draw_colorbar(self):
-        xy = (1, self.infr.thresh)
-        xytext = (2.5, .3 if self.infr.thresh < .5 else .7)
-        #print('xy = %r' % (xy,))
-        #print('xytext = %r' % (xytext,))
-        #print('self.infr.thresh = %r' % (self.infr.thresh,))
-
-        if self.cb is not None:
-            ax = self.cb.ax
-            from plottool import plot_helpers as ph
-            ph.del_plotdat(self.mpl_wgt.ax, pt.DF2_DIVIDER_KEY)
-            ph.del_plotdat(self.mpl_wgt.ax, 'df2_div_axes')
-            ax.cla()
-            ax.xaxis.set_ticks_position('none')
-            ax.set_xticks([])
-            ax.axes.get_xaxis().set_visible(False)
-
-        _normal_ticks = np.linspace(0, 1, num=11)
-        _normal_scores = np.linspace(0, 1, num=500)
-        _normal_colors = self.infr.get_colored_weights(_normal_scores)
-        cb = pt.colorbar(_normal_scores, _normal_colors, lbl='weights',
-                         ticklabels=_normal_ticks)
-
-        self.thresh_annot = cb.ax.annotate(
-            'threshold',
-            xy=xy,
-            xytext=xytext,
-            arrowprops=dict(
-                alpha=.5,
-                fc="0.6",
-                connectionstyle="angle3,angleA=90,angleB=0"),)
-        self.cb = cb
+        super(AnnotGraphWidget, self).closeEvent(event)
 
     def print_info(self):
         print('[graph] print_info')
-        print('_initial_feedback = ' + ut.repr2(self.infr._initial_feedback, nl=1))
+        #print('_initial_feedback = ' + ut.repr2(self.infr._initial_feedback, nl=1))
         print('user_feedback = ' + ut.repr2(self.infr.user_feedback, nl=1))
+        infr = self.infr
+        print('infr = %r' % (infr,))
+        if infr is not None and infr.graph is not None:
+            print(ut.repr3(ut.graph_info(infr.graph)))
 
     def embed(self):
-        if self.mpl_wgt is not None:
-            fig = self.mpl_wgt.fig  # NOQA
-            ax = self.mpl_wgt.ax  # NOQA
         infr = self.infr  # NOQA
         ibs = infr.ibs  # NOQA
         graph = infr.graph  # NOQA
@@ -870,6 +947,9 @@ def make_node_api(infr):
         'thumb',
         'name_label'
     ]
+    if not DEVELOPER_MODE:
+        col_name_list.remove('data')
+
     def get_node_data(aid):
         data = infr.graph.node[aid].copy()
         ut.delete_dict_keys(data,
@@ -1027,12 +1107,16 @@ def make_edge_api(infr, review_cfg={}):
     def get_edge_data(edge):
         aid1, aid2 = edge
         attrs = graph.get_edge_data(aid1, aid2).copy()
-        ut.delete_dict_keys(attrs, infr.visual_edge_attrs + [
-            'rank', 'reviewed_state', 'score'])
+        remove_attrs = infr.visual_edge_attrs + ['rank', 'reviewed_state', 'score']
+        try:
+            remove_attrs.remove('style')
+        except ValueError:
+            pass
+        ut.delete_dict_keys(attrs, remove_attrs)
         attrs = {k: v for k, v in attrs.items() if v is not None}
-        attrs['name_label1'] = graph.node[aid1]['name_label']
-        attrs['name_label2'] = graph.node[aid2]['name_label']
-        return ut.repr2(attrs, precision=2)
+        #attrs['name_label1'] = graph.node[aid1]['name_label']
+        #attrs['name_label2'] = graph.node[aid2]['name_label']
+        return ut.repr2(attrs, precision=2, explicit=True, nobr=True)
 
     #def get_reviewed_status(ibs, edge):
     #    """ Data role for status column """
@@ -1118,6 +1202,8 @@ def make_edge_api(infr, review_cfg={}):
         #                   thumbsize=(128, 128), match_thumbtup_cache={}):
         aid1, aid2 = edge
         cm, aid1, aid2 = infr.lookup_cm(aid1, aid2)
+        if cm is None:
+            return None
         #assert cm.qaid == aid1, 'aids do not aggree'
         # Hacky new way of drawing
         from ibeis.gui import id_review_api
@@ -1145,6 +1231,9 @@ def make_edge_api(infr, review_cfg={}):
         'aid1', 'aid2',
         'data',
     ]
+
+    if not DEVELOPER_MODE:
+        col_name_list.remove('data')
 
     if not review_cfg['show_match_thumb']:
         # FIXME; do one-vs-one scoring instead
@@ -1229,13 +1318,14 @@ def make_edge_api(infr, review_cfg={}):
     return edge_api
 
 
-def make_qt_graph_interface(ibs, aids=None, nids=None):
+def make_qt_graph_interface(ibs, aids=None, nids=None, init_mode='rereview'):
     r"""
     CommandLine:
         python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
         python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show
 
-        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --db LEWA_splits --nids=1 --show
+        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --db LEWA_splits --nids=1 --show --init-mode=rereview
+        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --db PZ_MTEST --nids=1 --show --init-mode=rereview
 
         python -m ibeis.viz.viz_graph2 make_qt_graph_interface --dbdir=/home/joncrall/lev/media/danger/GGR/GGR-IBEIS --nids=2300 --show
         python -m ibeis.viz.viz_graph2 make_qt_graph_interface --dbdir=/home/joncrall/lev/media/danger/GGR/GGR-IBEIS --nids=4617 --show
@@ -1249,8 +1339,9 @@ def make_qt_graph_interface(ibs, aids=None, nids=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> aids = ut.get_argval('--aids', type_=list, default=None)
         >>> nids = ut.get_argval('--nids', type_=list, default=None)
+        >>> init_mode = ut.get_argval('--init_mode', default='rereview')
         >>> gt.ensure_qtapp()
-        >>> win = make_qt_graph_interface(ibs, aids, nids)
+        >>> win = make_qt_graph_interface(ibs, aids, nids, init_mode)
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=win, freq=10)
     """
@@ -1261,17 +1352,166 @@ def make_qt_graph_interface(ibs, aids=None, nids=None):
     print('make_qt_graph_interface aids = %r' % (aids,))
     #temp_nids = None
     nids = ibs.get_annot_name_rowids(aids)
-    infr = graph_iden.AnnotInference2(ibs, aids, nids)
+    infr = graph_iden.AnnotInference2(ibs, aids, nids, verbose=ut.VERBOSE)
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
-    win = AnnotGraphWidget(infr=infr, use_image=False)
+    win = AnnotGraphWidget(infr=infr, use_image=False, init_mode=init_mode)
     abstract_interaction.register_interaction(win)
     #win.resize(900, 600)
     #win.draw_graph()
     win.show()
     #win.init_inference()
-
     return win
+
+
+def ggr_random_name_splits():
+    """
+    CommandLine:
+        python -m ibeis.viz.viz_graph2 ggr_random_name_splits --show
+
+    Ignore:
+        sshfs -o idmap=user lev:/ ~/lev
+
+    Example:
+        >>> # DISABLE_DOCTEST GGR
+        >>> from ibeis.viz.viz_graph2 import *  # NOQA
+        >>> ggr_random_name_splits()
+    """
+    import guitool as gt
+    gt.ensure_qtapp()
+    #nid_list = ibs.get_valid_nids(filter_empty=True)
+    import ibeis
+    dbdir = '/media/danger/GGR/GGR-IBEIS'
+    dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
+    ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
+
+    import datetime
+    day1 = datetime.date(2016, 1, 30)
+    day2 = datetime.date(2016, 1, 31)
+
+    orig_filter_kw = {
+        'multiple': None,
+        #'view': ['right'],
+        #'minqual': 'good',
+        'is_known': True,
+        'min_pername': 2,
+    }
+    orig_aids = ibs.filter_annots_general(filter_kw=ut.dict_union(
+        orig_filter_kw, {
+            'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
+            'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
+        })
+    )
+    orig_all_annots = ibs.annots(orig_aids)
+    orig_unique_nids, orig_grouped_annots_ = orig_all_annots.group(orig_all_annots.nids)
+    # Ensure we get everything
+    orig_grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(orig_unique_nids)]
+
+    # pip install quantumrandom
+    if False:
+        import quantumrandom
+        data = quantumrandom.uint16()
+        seed = data.sum()
+        print('seed = %r' % (seed,))
+        #import Crypto.Random
+        #from Crypto import Random
+        #quantumrandom.get_data()
+        #StrongRandom = Crypto.Random.random.StrongRandom
+        #aes.reseed(3340258)
+        #chars = [str(chr(x)) for x in data.view(np.uint8)]
+        #aes_seed = str('').join(chars)
+        #aes = Crypto.Random.Fortuna.FortunaGenerator.AESGenerator()
+        #aes.reseed(aes_seed)
+        #aes.pseudo_random_data(10)
+
+    orig_rand_idxs = ut.random_indexes(len(orig_grouped_annots), seed=3340258)
+    orig_sample_size = 75
+    random_annot_groups = ut.take(orig_grouped_annots, orig_rand_idxs)
+    orig_annot_sample = random_annot_groups[:orig_sample_size]
+
+    # OOOPS MADE ERROR REDO ----
+
+    filter_kw = {
+        'multiple': None,
+        'view': ['right'],
+        'minqual': 'good',
+        'is_known': True,
+        'min_pername': 2,
+    }
+    filter_kw_ = ut.dict_union(
+        filter_kw, {
+            'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
+            'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
+        })
+    refiltered_sample = [ibs.filter_annots_general(annot.aids, filter_kw=filter_kw_) for annot in orig_annot_sample]
+    is_ok = (np.array(ut.lmap(len, refiltered_sample)) >= 2)
+    ok_part_orig_sample = ut.compress(orig_annot_sample, is_ok)
+    ok_part_orig_nids = [x.nids[0] for x in ok_part_orig_sample]
+
+    # Now compute real sample
+    aids = ibs.filter_annots_general(filter_kw=filter_kw_)
+    all_annots = ibs.annots(aids)
+    unique_nids, grouped_annots_ = all_annots.group(all_annots.nids)
+    grouped_annots = grouped_annots_
+    # Ensure we get everything
+    #grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(unique_nids)]
+
+    pop = len(grouped_annots)
+    pername_list = ut.lmap(len, grouped_annots)
+    groups = ibeis.annots.AnnotGroups(grouped_annots, ibs)
+    case_tags = [ut.unique(ut.flatten(t)) for t in groups.case_tags]
+    tag_case_hist = ut.dict_hist(ut.flatten(case_tags))
+    print('name_pop = %r' % (pop,))
+    print('Annots per Multiton Name' + ut.repr3(ut.get_stats(pername_list, use_median=True)))
+    print('Name Tag Hist ' + ut.repr3(tag_case_hist))
+    print('Percent Photobomb: %.2f%%' % (tag_case_hist['photobomb'] / pop * 100))
+    print('Percent Split: %.2f%%' % (tag_case_hist['splitcase'] / pop * 100))
+
+    # Remove the ok part from this sample
+    remain_unique_nids = ut.setdiff(unique_nids, ok_part_orig_nids)
+    remain_grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(remain_unique_nids)]
+
+    sample_size = 75
+    import vtool as vt
+    vt.calc_sample_from_error_bars(.05, pop, conf_level=.95, prior=.05)
+
+    remain_rand_idxs = ut.random_indexes(len(remain_grouped_annots), seed=3340258)
+    remain_sample_size = sample_size - len(ok_part_orig_nids)
+    remain_random_annot_groups = ut.take(remain_grouped_annots, remain_rand_idxs)
+    remain_annot_sample = remain_random_annot_groups[:remain_sample_size]
+
+    annot_sample_nofilter = ok_part_orig_sample + remain_annot_sample
+    # Filter out all bad parts
+    annot_sample_filter = [ibs.annots(ibs.filter_annots_general(annot.aids, filter_kw=filter_kw_)) for annot in annot_sample_nofilter]
+    annot_sample = annot_sample_filter
+
+    win = None
+    from ibeis.viz import viz_graph2
+    for annots in ut.InteractiveIter(annot_sample):
+        if win is not None:
+            win.close()
+        win = viz_graph2.make_qt_graph_interface(ibs, aids=annots.aids, init_mode='rereview')
+        print(win)
+
+    sample_groups = ibeis.annots.AnnotGroups(annot_sample, ibs)
+
+    flat_tags = [ut.unique(ut.flatten(t)) for t in sample_groups.case_tags]
+
+    print('Using Split and Photobomb')
+    is_positive = ['photobomb' in t or 'splitcase' in t for t in flat_tags]
+    num_positive = sum(is_positive)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
+
+    print('Only Photobomb')
+    is_positive = ['photobomb' in t for t in flat_tags]
+    num_positive = sum(is_positive)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
+
+    print('Only SplitCase')
+    is_positive = ['splitcase' in t for t in flat_tags]
+    num_positive = sum(is_positive)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
+    #gt.qtapp_loop(qwin=win)
 
 
 if __name__ == '__main__':

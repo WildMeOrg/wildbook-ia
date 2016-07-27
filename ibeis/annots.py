@@ -157,6 +157,17 @@ class Annots(_ibeis_object.PrimaryObject):
         ams = ut.filter_Nones(ams)
         return ams
 
+    def get_am_rowids_and_pairs(self):
+        ibs = self._ibs
+        aid_pairs = self.get_aidpairs()
+        aids1 = ut.take_column(aid_pairs, 0)
+        aids2 = ut.take_column(aid_pairs, 1)
+        ams = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+        flags = ut.not_list(ut.flag_None_items(ams))
+        ams = ut.compress(ams, flags)
+        aid_pairs = ut.compress(aid_pairs, flags)
+        return ams, aid_pairs
+
     def get_am_aidpairs(self):
         ibs = self._ibs
         ams = self.get_am_rowids()
@@ -169,6 +180,29 @@ class Annots(_ibeis_object.PrimaryObject):
     def hog_img(self):
         from ibeis import core_annots
         return [core_annots.make_hog_block_image(hog) for hog in self.hog_hog]
+
+
+@ut.reloadable_class
+class AnnotGroups(ut.NiceRepr):
+    """ Effciently handle operations on multiple groups of annotations """
+    def __init__(self, annots, ibs):
+        self.ibs = ibs
+        self.annots = annots
+
+    def __nice__(self):
+        len_list = ut.lmap(len, self.annots)
+        import numpy as np
+        return '(num=%r, mean=%.1f)' % (len(self.annots), np.mean(len_list))
+
+    @property
+    def aids(self):
+        return [a.aids for a in self.annots]
+
+    @property
+    def case_tags(self):
+        ams_list = self.ibs.get_unflat_am_rowids(self.aids)
+        tags = self.ibs.unflat_map(self.ibs.get_annotmatch_case_tags, ams_list)
+        return tags
 
 
 if __name__ == '__main__':

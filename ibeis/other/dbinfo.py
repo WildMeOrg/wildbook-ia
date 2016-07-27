@@ -347,7 +347,7 @@ def split_analysis(ibs):
             flags_list = [ut.replace_nones(ibs.get_annotmatch_prop(tag, am_rowids), 0)
                           for tag in positive_tags]
             print('edge_case_hist: ' + ut.repr3(
-                ['%s %s' % (txt, sum(flags)) for flags, txt in zip(flags_list, positive_tags)]))
+                ['%s %s' % (txt, sum(flags_)) for flags_, txt in zip(flags_list, positive_tags)]))
             is_positive = ut.or_lists(*flags_list)
             num_positive = sum(ut.lmap(any, ut.group_items(is_positive, sorted_nids).values()))
             pop = len(pop_nids)
@@ -358,7 +358,7 @@ def split_analysis(ibs):
             print('num_positive_edges = %r' % (sum(is_positive)))
             print('--- Sampling wrt names ---')
             print('name_population_size = %r' % (pop,))
-            vt.calc_error_from_sample(sample_size, num_positive, pop, conf_level=.95)
+            vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
 
         nx.set_edge_attributes(infr.graph, 'score', dict(zip(aid_pairs, scores)))
 
@@ -411,13 +411,13 @@ def split_analysis(ibs):
     def inference_stats(infr_list_):
         relabel_stats = []
         for infr in infr_list_:
-            num_ccs, num_inconsistent = infr.connected_compoment_relabel()
+            num_ccs, num_inconsistent = infr.connected_compoment_reviewed_relabel()
             state_hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, 'reviewed_state').values())
             if 'match' not in state_hist:
                 state_hist['match'] = 0
             hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, '_speed_split').values())
 
-            subgraphs = infr.connected_compoment_subgraphs()
+            subgraphs = infr.connected_compoment_reviewed_subgraphs()
             subgraph_sizes = [len(g) for g in subgraphs]
 
             info = ut.odict([
@@ -514,30 +514,30 @@ def split_analysis(ibs):
     sample_size = 15
     conf_level = .95
     #conf_level = .99
-    vt.calc_error_from_sample(sample_size, num_positive, pop, conf_level)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level)
     print('---')
-    vt.calc_error_from_sample(sample_size + 38, num_positive, pop, conf_level)
+    vt.calc_error_bars_from_sample(sample_size + 38, num_positive, pop, conf_level)
     print('---')
-    vt.calc_error_from_sample(sample_size + 38 / 3, num_positive, pop, conf_level)
+    vt.calc_error_bars_from_sample(sample_size + 38 / 3, num_positive, pop, conf_level)
     print('---')
 
-    vt.calc_error_from_sample(15 + 38, num_positive=3, pop=675, conf_level=.95)
-    vt.calc_error_from_sample(15, num_positive=3, pop=675, conf_level=.95)
+    vt.calc_error_bars_from_sample(15 + 38, num_positive=3, pop=675, conf_level=.95)
+    vt.calc_error_bars_from_sample(15, num_positive=3, pop=675, conf_level=.95)
 
     pop = 279
     #err_frac = .05  # 5%
     err_frac = .10  # 10%
     conf_level = .95
-    vt.calc_sample_from_error(err_frac, pop, conf_level)
+    vt.calc_sample_from_error_bars(err_frac, pop, conf_level)
 
     pop = 675
-    vt.calc_sample_from_error(err_frac, pop, conf_level)
-    vt.calc_sample_from_error(.05, pop, conf_level=.95, prior=.1)
-    vt.calc_sample_from_error(.05, pop, conf_level=.68, prior=.2)
-    vt.calc_sample_from_error(.10, pop, conf_level=.68)
+    vt.calc_sample_from_error_bars(err_frac, pop, conf_level)
+    vt.calc_sample_from_error_bars(.05, pop, conf_level=.95, prior=.1)
+    vt.calc_sample_from_error_bars(.05, pop, conf_level=.68, prior=.2)
+    vt.calc_sample_from_error_bars(.10, pop, conf_level=.68)
 
-    vt.calc_error_from_sample(100, num_positive=5, pop=675, conf_level=.95)
-    vt.calc_error_from_sample(100, num_positive=5, pop=675, conf_level=.68)
+    vt.calc_error_bars_from_sample(100, num_positive=5, pop=675, conf_level=.95)
+    vt.calc_error_bars_from_sample(100, num_positive=5, pop=675, conf_level=.68)
 
     #flagged_nids = [a.nids[0] for a in flagged_annots]
     #all_nids = ibs.get_valid_nids()

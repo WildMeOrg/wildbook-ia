@@ -6,6 +6,7 @@ This module lists known raw databases and how to ingest them.
 Specify arguments and run the following command to ingest a database
 
 python -m ibeis --tf ingest_rawdata --db seaturtles  --imgdir "~/turtles/Turtles from Jill" --ingest-type=named_folders --species=turtles
+python -m ibeis --tf ingest_rawdata --db PZ_OlPej2016 --imgdir /raid/raw/OlPejPZ_June_2016 --ingest-type=named_folders --species=zebra_plains
 
 # --- GET DATA ---
 rsync -avhzP <user>@<host>:<remotedir>  <path-to-raw-imgs>

@@ -6,12 +6,13 @@ import vtool as vt  # NOQA
 import plottool as pt
 import six
 import networkx as nx
-import itertools as it
+print, rrr, profile = ut.inject2(__name__, '[graph_inference]')
+
+# Monkey patch networkx
 nx.set_edge_attrs = nx.set_edge_attributes
 nx.get_edge_attrs = nx.get_edge_attributes
 nx.set_node_attrs = nx.set_node_attributes
 nx.get_node_attrs = nx.get_node_attributes
-print, rrr, profile = ut.inject2(__name__, '[graph_inference]')
 
 
 CUT_WEIGHT_KEY = 'cut_weight'
@@ -334,6 +335,14 @@ class InfrModel(ut.NiceRepr):
 class AnnotInferenceVisualization(object):
     """ contains plotting related code """
 
+    truth_colors = {
+        'match': pt.TRUE_GREEN,
+        #'match': pt.TRUE_BLUE,
+        'nonmatch': pt.FALSE_RED,
+        'notcomp': pt.YELLOW,
+        'unreviewed': pt.UNKNOWN_PURP
+    }
+
     def initialize_visual_node_attrs(infr):
         if infr.verbose:
             print('[infr] initialize_visual_node_attrs')
@@ -409,12 +418,12 @@ class AnnotInferenceVisualization(object):
         ut.nx_delete_edge_attr(graph, 'linestyle')
 
         # Set node labels
-        node2_aid = nx.get_node_attrs(infr.graph, 'aid')
-        node2_nid = nx.get_node_attrs(infr.graph, 'name_label')
+        node_to_aid = nx.get_node_attrs(infr.graph, 'aid')
+        node_to_nid = nx.get_node_attrs(infr.graph, 'name_label')
         node2_label = {
             #node: '%d:aid=%r' % (node, aid)
-            node: 'aid=%r\nnid=%r' % (aid, node2_nid[node])
-            for node, aid in node2_aid.items()
+            node: 'aid=%r\nnid=%r' % (aid, node_to_nid[node])
+            for node, aid in node_to_aid.items()
         }
         nx.set_node_attributes(infr.graph, 'label', node2_label)
 
@@ -502,8 +511,14 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
     Sandbox class for maintaining state of an identification
 
     CommandLine:
-        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
+        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7
 
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+        >>> infr = testdata_infr()
+        >>> print('infr = %s' % (infr,))
+        infr = <AnnotInference2(nAids=6, nEdges=0)>
     """
 
     truth_texts = {
@@ -513,15 +528,7 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         3: 'unreviewed',
     }
 
-    truth_colors = {
-        'match': pt.TRUE_GREEN,
-        #'match': pt.TRUE_BLUE,
-        'nonmatch': pt.FALSE_RED,
-        'notcomp': pt.YELLOW,
-        'unreviewed': pt.UNKNOWN_PURP
-    }
-
-    def __init__(infr, ibs, aids, nids=None, verbose=True):
+    def __init__(infr, ibs, aids, nids=None, autoinit=False, verbose=True):
         infr.verbose = verbose
         if infr.verbose:
             print('[infr] __init__')
@@ -539,6 +546,8 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         infr.thresh = .5
         infr.cm_list = None
         infr.qreq_ = None
+        if autoinit:
+            infr.initialize_graph()
 
     def __nice__(infr):
         if infr.graph is None:
@@ -548,6 +557,7 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
                                               infr.graph.number_of_edges())
 
     def reset_feedback(infr):
+        """ Resets feedback edges to state of the SQL annotmatch table """
         if infr.verbose:
             print('[infr] reset_feedback')
         infr.user_feedback = infr.load_user_feedback()
@@ -557,7 +567,7 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
             print('[infr] remove_feedback')
         infr.user_feedback = ut.ddict(list)
 
-    def connected_compoment_subgraphs(infr):
+    def connected_compoment_reviewed_subgraphs(infr):
         """
         Two kinds of edges are considered in connected compoment analysis: user
         reviewed edges, and algorithmally inferred edges.  If an inference
@@ -579,10 +589,24 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         cc_subgraphs = [graph.subgraph(cc) for cc in ccs]
         return cc_subgraphs
 
-    def connected_compoment_relabel(infr):
+    def connected_compoment_reviewed_labeling(infr):
+        cc_subgraphs = infr.connected_compoment_reviewed_subgraphs()
+        num_inconsistent = 0
+        num_names = len(cc_subgraphs)
+
+        for count, subgraph in enumerate(cc_subgraphs):
+            reviewed_states = nx.get_edge_attrs(subgraph, 'reviewed_state')
+            inconsistent_edges = [edge for edge, val in reviewed_states.items()
+                                  if val == 'nonmatch']
+            if len(inconsistent_edges) > 0:
+                #print('Inconsistent')
+                num_inconsistent += 1
+        return num_names, num_inconsistent
+
+    def connected_compoment_reviewed_relabel(infr):
         if infr.verbose:
-            print('[infr] connected_compoment_relabel')
-        cc_subgraphs = infr.connected_compoment_subgraphs()
+            print('[infr] connected_compoment_reviewed_relabel')
+        cc_subgraphs = infr.connected_compoment_reviewed_subgraphs()
         num_inconsistent = 0
         num_names = len(cc_subgraphs)
 
@@ -602,22 +626,37 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
     def load_user_feedback(infr):
         """
         Loads feedback from annotmatch table
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> user_feedback = infr.load_user_feedback()
+            >>> result =('user_feedback = %s' % (ut.repr2(user_feedback, nl=1),))
+            >>> print(result)
+            user_feedback = {
+                (2, 3): [{'p_match': 1.0, 'p_nomatch': 0.0, 'p_notcomp': 0.0}],
+                (5, 6): [{'p_match': 1.0, 'p_nomatch': 0.0, 'p_notcomp': 0.0}],
+            }
         """
         if infr.verbose:
             print('[infr] load_user_feedback')
         ibs = infr.ibs
-        aids = infr.aids
-        aid_pairs = list(it.combinations(aids, 2))
-        am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(*zip(*aid_pairs))
-        flags = ut.not_list(ut.flag_None_items(am_rowids))
-        am_rowids = ut.compress(am_rowids, flags)
-        aid_pairs = ut.compress(aid_pairs, flags)
+        annots = ibs.annots(infr.aids)
+        am_rowids, aid_pairs = annots.get_am_rowids_and_pairs()
+        #aid_pairs = list(it.combinations(aids, 2))
+        #aids1 = ut.take_column(aid_pairs, 0)
+        #aids2 = ut.take_column(aid_pairs, 1)
+        #am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+        #flags = ut.not_list(ut.flag_None_items(am_rowids))
+        #am_rowids = ut.compress(am_rowids, flags)
+        #aid_pairs = ut.compress(aid_pairs, flags)
         aids1 = ut.take_column(aid_pairs, 0)
         aids2 = ut.take_column(aid_pairs, 1)
 
-        is_split = ibs.get_annotmatch_prop('SplitCase', am_rowids)
-        is_merge = ibs.get_annotmatch_prop('JoinCase', am_rowids)
-        is_pb = ibs.get_annotmatch_prop('Photobomb', am_rowids)
+        props = ['SplitCase', 'JoinCase', 'Photobomb']
+        flags_list = ibs.get_annotmatch_prop(props, am_rowids)
+        is_split, is_merge, is_pb = flags_list
         is_split = np.array(is_split).astype(np.bool)
         is_merge = np.array(is_merge).astype(np.bool)
         is_pb = np.array(is_pb).astype(np.bool)
@@ -667,14 +706,16 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         infr.graph = graph = nx.Graph()
         graph.add_nodes_from(infr.aids)
 
-        node2_aid = {aid: aid for aid in infr.aids}
-        node2_nid = {aid: nid for aid, nid in
-                     zip(infr.aids, infr.orig_name_labels)}
-        assert len(node2_nid) == len(node2_aid), '%r - %r' % (
-            len(node2_nid), len(node2_aid))
-        nx.set_node_attrs(graph, 'aid', node2_aid)
-        nx.set_node_attrs(graph, 'name_label', node2_nid)
-        nx.set_node_attrs(graph, 'orig_name_label', node2_nid)
+        node_to_aid = {aid: aid for aid in infr.aids}
+        node_to_nid = {aid: nid for aid, nid in
+                       zip(infr.aids, infr.orig_name_labels)}
+        assert len(node_to_nid) == len(node_to_aid), '%r - %r' % (
+            len(node_to_nid), len(node_to_aid))
+        nx.set_node_attrs(graph, 'aid', node_to_aid)
+        nx.set_node_attrs(graph, 'name_label', node_to_nid)
+        nx.set_node_attrs(graph, 'orig_name_label', node_to_nid)
+        infr.node_to_aid = node_to_aid
+        infr.aid_to_node = ut.invert_dict(infr.node_to_aid)
 
     #def add_edges(infr, aid_pairs):
     #    #attr_dict={}):
@@ -722,10 +763,10 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         mst_edges = [edge for edge, flag in edge_to_ismst.items() if flag]
         graph.remove_edges_from(mst_edges)
 
-    def exec_scoring(infr, vsone=False, prog_hook=None):
-        """ Helper """
+    def exec_matching(infr, vsone=False, prog_hook=None):
+        """ Loads chip matches into the inference structure """
         if infr.verbose:
-            print('[infr] exec_scoring')
+            print('[infr] exec_matching')
         #from ibeis.algo.hots import graph_iden
         ibs = infr.ibs
         aid_list = infr.aids
@@ -756,7 +797,9 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
             qreq_ = ibs.depc.new_request('vsone', [], [], cfgdict={})
             cm_list = qreq_.execute(parent_rowids=parent_rowids,
                                     prog_hook=prog_hook)
-        return qreq_, cm_list
+        infr.cm_list = cm_list
+        infr.qreq_ = qreq_
+        #return qreq_, cm_list
 
     def add_feedback(infr, aid1, aid2, state):
         """ External helepr """
@@ -946,12 +989,91 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
                     '_mst_edge': True, 'reviewed_state': 'match'})
                 infr.add_feedback(edge[0], edge[1], 'match')
 
-    def apply_scores(infr, review_cfg={}, prog_hook=None):
+    def get_edge_attr(infr, key):
+        return nx.get_edge_attributes(infr.graph, key)
+
+    def get_node_attr(infr, key):
+        return nx.get_node_attributes(infr.graph, key)
+
+    def apply_match_scores(infr):
+        """
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden apply_match_scores --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('PZ_MTEST')
+            >>> infr.exec_matching()
+            >>> infr.apply_match_edges()
+            >>> infr.apply_match_scores()
+            >>> result = infr.apply_match_scores()
+            >>> infr.get_edge_attr('score')
+        """
         if infr.verbose:
-            print('[infr] apply_scores')
-        qreq_, cm_list = infr.exec_scoring(vsone=False, prog_hook=prog_hook)
-        infr.cm_list = cm_list
-        infr.qreq_ = qreq_
+            print('[infr] apply_match_scores')
+
+        if infr.cm_list is None:
+            print('[infr] no scores to apply!')
+            return
+        # Build up scores
+        edges = list(infr.graph.edges())
+        qaid2_cm = {cm.qaid: cm for cm in infr.cm_list}
+        edge_to_data = ut.ddict(dict)
+        for u, v in edges:
+            if u > v:
+                u, v = v, u
+            cm1 = qaid2_cm.get(u, None)
+            cm2 = qaid2_cm.get(v, None)
+            scores = []
+            ranks = []
+            for cm in ut.filter_Nones([cm1, cm2]):
+                for aid in [u, v]:
+                    idx = cm.daid2_idx.get(aid, None)
+                    if idx is None:
+                        continue
+                    score = cm.annot_score_list[idx]
+                    rank = cm.get_annot_ranks([aid])[0]
+                    scores.append(score)
+                    ranks.append(rank)
+            if len(scores) == 0:
+                score = None
+                rank = None
+            else:
+                rank = vt.safe_min(ranks)
+                score = np.nanmean(scores)
+            edge_to_data[(u, v)]['score'] = score
+            edge_to_data[(u, v)]['rank'] = rank
+
+        # Remove existing attrs
+        ut.nx_delete_edge_attr(infr.graph, 'score')
+        ut.nx_delete_edge_attr(infr.graph, 'rank')
+        ut.nx_delete_edge_attr(infr.graph, 'normscore')
+
+        edges = list(edge_to_data.keys())
+        edge_scores = list(ut.take_column(edge_to_data.values(), 'score'))
+        edge_scores = ut.replace_nones(edge_scores, np.nan)
+        edge_scores = np.array(edge_scores)
+        edge_ranks = np.array(list(ut.take_column(edge_to_data.values(), 'rank')))
+        normscores = edge_scores / np.nanmax(edge_scores)
+
+        # Add new attrs
+        nx.set_edge_attrs(infr.graph, 'score', dict(zip(edges, edge_scores)))
+        nx.set_edge_attrs(infr.graph, 'rank', dict(zip(edges, edge_ranks)))
+        nx.set_edge_attrs(infr.graph, 'normscore', dict(zip(edges, normscores)))
+
+        #return edge_data
+
+    def apply_match_edges(infr, review_cfg={}):
+        if infr.verbose:
+            print('[infr] apply_match_edges')
+
+        if infr.cm_list is None:
+            print('[infr] matching has not been run!')
+            return
+
+        qreq_ = infr.qreq_
+        cm_list = infr.cm_list
         ranks_top = review_cfg.get('ranks_top', 2)
         ranks_bot = review_cfg.get('ranks_bot', 2)
         undirected_edges = get_cm_breaking(qreq_, cm_list,
@@ -960,32 +1082,41 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
 
         # Do some normalization of scores
         edges = list(undirected_edges.keys())
-        edge_scores = np.array(list(ut.take_column(undirected_edges.values(), 'score')))
-        edge_ranks = np.array(list(ut.take_column(undirected_edges.values(), 'rank')))
-        normscores = edge_scores / np.nanmax(edge_scores)
-
+        #edge_scores = np.array(list(ut.take_column(undirected_edges.values(), 'score')))
+        #edge_ranks = np.array(list(ut.take_column(undirected_edges.values(), 'rank')))
+        #normscores = edge_scores / np.nanmax(edge_scores)
         infr.remove_mst_edges()
 
         # Create match-based graph structure
         infr.graph.add_edges_from(edges)
-        # Remove existing attrs
-        ut.nx_delete_edge_attr(infr.graph, 'score')
-        ut.nx_delete_edge_attr(infr.graph, 'rank')
-        ut.nx_delete_edge_attr(infr.graph, 'normscore')
-        # Add new attrs
-        nx.set_edge_attrs(infr.graph, 'score', dict(zip(edges, edge_scores)))
-        nx.set_edge_attrs(infr.graph, 'rank', dict(zip(edges, edge_ranks)))
-        nx.set_edge_attrs(infr.graph, 'normscore', dict(zip(edges, normscores)))
-        infr.thresh = infr.get_threshold()
+        ## Remove existing attrs
+        #ut.nx_delete_edge_attr(infr.graph, 'score')
+        #ut.nx_delete_edge_attr(infr.graph, 'rank')
+        #ut.nx_delete_edge_attr(infr.graph, 'normscore')
+        ## Add new attrs
+        #nx.set_edge_attrs(infr.graph, 'score', dict(zip(edges, edge_scores)))
+        #nx.set_edge_attrs(infr.graph, 'rank', dict(zip(edges, edge_ranks)))
+        #nx.set_edge_attrs(infr.graph, 'normscore', dict(zip(edges, normscores)))
+        #infr.thresh = infr.get_threshold()
 
         infr.ensure_mst()
 
-    def apply_feedback(infr):
+    def apply_feedback_edges(infr):
         """
         Updates nx graph edge attributes for feedback
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> infr.reset_feedback()
+            >>> infr.apply_feedback_edges()
+            >>> result = str(infr)
+            >>> print(result)
+            <AnnotInference2(nAids=6, nEdges=2)>
         """
         if infr.verbose:
-            print('[infr] apply_feedback')
+            print('[infr] apply_feedback_edges')
         infr.remove_mst_edges()
 
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_weight')
@@ -1058,19 +1189,19 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         scalars[CUT_WEIGHT_KEY] = nx.get_edge_attrs(infr.graph, CUT_WEIGHT_KEY).values()
         return scalars
 
-    def remove_cuts(infr):
-        """
-        Undo all cuts HACK
-        """
-        if infr.verbose:
-            print('[infr] apply_cuts')
-        graph = infr.graph
-        infr.ensure_mst()
-        ut.nx_delete_edge_attr(graph, 'is_cut')
+    #def remove_cuts(infr):
+    #    """
+    #    Undo all cuts HACK
+    #    """
+    #    if infr.verbose:
+    #        print('[infr] apply_cuts')
+    #    graph = infr.graph
+    #    infr.ensure_mst()
+    #    ut.nx_delete_edge_attr(graph, 'is_cut')
 
     def apply_cuts(infr):
         """
-        Cuts edges with different names and uncuts edges with the same name
+        Cuts edges with different names and uncuts edges with the same name.
         """
         if infr.verbose:
             print('[infr] apply_cuts')
@@ -1108,9 +1239,11 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
     def apply_all(infr):
         if infr.verbose:
             print('[infr] apply_all')
+        infr.exec_matching()
         infr.apply_mst()
-        infr.apply_scores()
-        infr.apply_feedback()
+        infr.apply_match_edges()
+        infr.apply_match_scores()
+        infr.apply_feedback_edges()
         infr.apply_weights()
         infr.infer_cut()
 
@@ -1154,6 +1287,14 @@ def piecewise_weighting(infr, normscores, edges):
     #b = 2
     #p_same = scipy.special.expit(b * edge_scores - a)
     #confidence = (2 * np.abs(0.5 - p_same)) ** 2
+
+
+def testdata_infr(defaultdb='PZ_MTEST'):
+    import ibeis
+    ibs = ibeis.opendb(defaultdb=defaultdb)
+    aids = [1, 2, 3, 4, 5, 6]
+    infr = AnnotInference2(ibs, aids, autoinit=True)
+    return infr
 
 
 if __name__ == '__main__':

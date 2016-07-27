@@ -80,7 +80,8 @@ class ANNOTATION_Interaction2(object):
             #figure_to_use=None if reset_window else self.interact_ANNOTATIONS.fig,
         )
         if dodraw:
-            pt.update()
+            self.interact_ANNOTATIONS.start()
+            #pt.update()
 
     def commit_callback(self, unchanged_indices, deleted_indices,
                         changed_indices, changed_annottups, new_annottups):

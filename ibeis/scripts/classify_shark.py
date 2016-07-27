@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import six
 import utool as ut
 import numpy as np
 import sklearn
@@ -11,26 +10,26 @@ import sklearn.cross_validation
 (print, rrr, profile) = ut.inject2(__name__, '[classify_shark]')
 
 
-@ut.reloadable_class
-class ClfMultiResult(object):
-    def __init__(multi_result, result_list):
-        multi_result.result_list = result_list
+#@ut.reloadable_class
+#class ClfMultiResult(object):
+#    def __init__(multi_result, result_list):
+#        multi_result.result_list = result_list
 
-    def compile_results(multi_result):
-        import pandas as pd
-        result_list = multi_result.result_list
-        multi_result.df = reduce(ut.partial(pd.DataFrame.add, fill_value=0), [result.df for result in result_list])
-        hardness = 1 / multi_result.df['decision'].abs()
+#    def compile_results(multi_result):
+#        import pandas as pd
+#        result_list = multi_result.result_list
+#        multi_result.df = reduce(ut.partial(pd.DataFrame.add, fill_value=0), [result.df for result in result_list])
+#        #hardness = 1 / multi_result.df['decision'].abs()
 
-    def get_hardest_fail_idxs(multi_result):
-        df = multi_result.df
-        sortx = multi_result.hardness.argsort()[::-1]
-        # Order by hardness
-        df = multi_result.df.take(sortx)
-        failed = multi_result.df['is_fp'] + multi_result.df['is_fn']
-        # Grab only failures
-        hard_fail_idxs = failed[failed > 0].index.values
-        return hard_fail_idxs
+#    def get_hardest_fail_idxs(multi_result):
+#        df = multi_result.df
+#        sortx = multi_result.hardness.argsort()[::-1]
+#        # Order by hardness
+#        df = multi_result.df.take(sortx)
+#        failed = multi_result.df['is_fp'] + multi_result.df['is_fn']
+#        # Grab only failures
+#        hard_fail_idxs = failed[failed > 0].index.values
+#        return hard_fail_idxs
 
 
 @ut.reloadable_class
@@ -91,6 +90,11 @@ class ClfProblem(object):
     def __init__(problem, ds):
         problem.ds = ds
 
+    def print_support_info(problem):
+        target_to_num = ut.dict_hist(problem.ds.target)
+        hist = ut.map_dict_keys(ut.partial(ut.take, problem.ds.target_names), target_to_num)
+        print('support hist' + ut.repr3(hist))
+
     def fit_new_classifier(problem, train_idx):
         print('[problem] train classifier')
         data = problem.ds.data
@@ -106,7 +110,7 @@ class ClfProblem(object):
         data = problem.ds.data
         target = problem.ds.target
         x_test = data.take(test_idx, axis=0)
-        y_true = y_test = target.take(test_idx, axis=0)
+        y_true = target.take(test_idx, axis=0)
         y_pred = clf.predict(x_test)
         # Get notion of confidence / probability of decision
         y_conf = clf.decision_function(x_test)
@@ -140,17 +144,20 @@ def learn_injured_sharks():
         'resize_dim': 'wh'
     }
     annots = ibs.annots(config=config)
+    data = np.array([h.ravel() for h in annots.hog_hog])
+    target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
     # Build scipy / scikit data standards
     ds = sklearn.datasets.base.Bunch(
         ibs=ibs,
         aids=annots.aids,
-        data=np.array([h.ravel() for h in annots.hog_hog]),
-        target=np.array([int('healthy' not in tags) for tags in annots.case_tags]),
+        data=data,
+        target=target,
         name='sharks',
         DESCR='injured-vs-healthy whale sharks',
         target_names=['healthy', 'injured'],
     )
     problem = ClfProblem(ds)
+    problem.print_support_info()
 
     result_list = []
     for train_idx, test_idx in problem.gen_crossval_idxs():
@@ -178,7 +185,6 @@ def learn_injured_sharks():
         y_true=df['target'], y_pred=df['decision'] > 0,
         target_names=result.ds.target_names)
     print(report)
-
 
     # Order by hardness and grab only failures
     hard_df = df.take(df['hardness'].argsort()[::-1])
@@ -262,22 +268,23 @@ def learn_injured_sharks():
         ax.set_title(df_chunk.nice)
     pt.adjust_subplots2(top=.95, left=0, right=1, bottom=.00, hspace=.1, wspace=0)
 
-
-    pt.qt4ensure()
-    for idx in ut.InteractiveIter(subset_df.index.values):
-        dfrow = subset_df.loc[idx]
-        assert dfrow['aid'] == ds.aids[idx]
-        annot = ibs.annots([dfrow['aid']], config=config)
-        hogimg = annot.hog_img[0]
-        chip = annot.chips[0]
-        pt.clf()
-        pt.imshow(hogimg, pnum=(1, 2, 1))
-        pt.imshow(chip, pnum=(1, 2, 2))
-        pt.set_xlabel(str(annot.case_tags[0]))
-        fig = pt.gcf()
-        print(dfrow)
-        fig.show()
-        fig.canvas.draw()
+    if False:
+        pt.qt4ensure()
+        subset_df = df_chunk
+        for idx in ut.InteractiveIter(subset_df.index.values):
+            dfrow = subset_df.loc[idx]
+            assert dfrow['aid'] == ds.aids[idx]
+            annot = ibs.annots([dfrow['aid']], config=config)
+            hogimg = annot.hog_img[0]
+            chip = annot.chips[0]
+            pt.clf()
+            pt.imshow(hogimg, pnum=(1, 2, 1))
+            pt.imshow(chip, pnum=(1, 2, 2))
+            pt.set_xlabel(str(annot.case_tags[0]))
+            fig = pt.gcf()
+            print(dfrow)
+            fig.show()
+            fig.canvas.draw()
 
 if __name__ == '__main__':
     r"""

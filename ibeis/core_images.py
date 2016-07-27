@@ -214,11 +214,12 @@ def compute_classifications(depc, gid_list, config=None):
 
 class LocalizerConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('algo', 'yolo'),
+        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'rf']),
         ut.ParamInfo('sensitivity', 0.0),
         ut.ParamInfo('species', 'zebra_plains', hideif='zebra_plains'),
         ut.ParamInfo('config_filepath', None),
         ut.ParamInfo('weight_filepath', None),
+        ut.ParamInfo('class_filepath', None, hideif=lambda cfg: cfg['algo'] != 'yolo' or cfg['class_filepath']),
         ut.ParamInfo('grid', False),
     ]
     _sub_config_list = [

@@ -36,6 +36,42 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
 
     Kwargs (optional): refer to the PyDarknet documentation for configuration settings
 
+    Args:
+        ibs (ibeis.IBEISController):  image analysis api
+        gid_list (list of int): the list of IBEIS image_rowids that need detection
+        downsample (bool, optional): a flag to indicate if the original image
+                sizes should be used; defaults to True
+
+    Kwargs:
+        detector, config_filepath, weight_filepath, verbose
+
+    Yields:
+        tuple: (gid, gpath, result_list)
+
+    CommandLine:
+        python -m ibeis.algo.detect.yolo detect_gid_list --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.detect.yolo import *  # NOQA
+        >>> from ibeis.core_images import LocalizerConfig
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='WS_ALL')
+        >>> gid_list = ibs.images()._rowids[0:1]
+        >>> kwargs = config = LocalizerConfig(**{
+        >>>     'weight_filepath': '/media/raid/work/WS_ALL/localizer_backup/detect.yolo.2.39000.weights',
+        >>>     'config_filepath': '/media/raid/work/WS_ALL/localizer_backup/detect.yolo.2.cfg',
+        >>> })
+        >>> exec(ut.execstr_dict(config), globals())
+        >>> #classes_fpath = '/media/raid/work/WS_ALL/localizer_backup/detect.yolo.2.cfg.classes'
+        >>> downsample = False
+        >>> (gid, gpath, result_list) = detect_gid_list(ibs, gid_list, downsample, **config)
+        >>> result = ('(gid, gpath, result_list) = %s' % (ut.repr2((gid, gpath, result_list)),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+
     Yields:
         results (list of dict)
     """
@@ -53,7 +89,8 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
     # Run detection
     results_iter = detect(gpath_list, **kwargs)
     # Upscale the results
-    for downsample, gid, orient, (gpath, result_list) in zip(downsample_list, gid_list, orient_list, results_iter):
+    _iter = zip(downsample_list, gid_list, orient_list, results_iter)
+    for downsample, gid, orient, (gpath, result_list) in _iter:
         # Upscale the results back up to the original image size
         for result in result_list:
             if downsample is not None and downsample != 1.0:
@@ -77,13 +114,37 @@ def detect(gpath_list, detector=None, config_filepath=None, weight_filepath=None
 
     Returns:
         iter
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.detect.yolo import *  # NOQA
+        >>> from ibeis.core_images import LocalizerConfig
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='WS_ALL')
+        >>> gid_list = ibs.images()._rowids[0:1]
+        >>> gpath_list = ibs.get_image_paths(gid_list)
+        >>> dpath = '/media/raid/work/WS_ALL/localizer_backup/'
+        >>> weight_filepath = join(dpath, 'detect.yolo.2.39000.weights')
+        >>> config_filepath = join(dpath, 'detect.yolo.2.cfg')
+        >>> config = LocalizerConfig(
+        >>>     weight_filepath=weight_filepath,
+        >>>     config_filepath=config_filepath,
+        >>> )
+        >>> kwargs = config.asdict()
+        >>> ut.delete_dict_keys(kwargs, ['weight_filepath', 'config_filepath'])
+        >>> ut.delete_dict_keys(kwargs, ['thumbnail_cfg', 'species', 'algo'])
     """
     # Run detection
     if detector is None:
+        class_filepath = kwargs.pop('class_filepath', None)
         verbose = kwargs.get('verbose', False)
         detector = pydarknet.Darknet_YOLO_Detector(config_filepath=config_filepath,
                                                    weight_filepath=weight_filepath,
+                                                   class_filepath=class_filepath,
                                                    verbose=verbose)
-    results_iter = list(detector.detect(gpath_list, **kwargs))
+    #dark = detector
+    #input_gpath_list = gpath_list
+    results_iter = detector.detect(gpath_list, **kwargs)
+    results_list = list(results_iter)
     del detector
-    return results_iter
+    return results_list

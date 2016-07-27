@@ -318,7 +318,7 @@ def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
 
 @register_ibs_method
 @accessor_decors.default_decorator
-@accessor_decors.getter_1to1
+@accessor_decors.getter_1toM
 @register_api('/api/detect/cnn/yolo/', methods=['PUT', 'GET'])
 def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, **kwargs):
     """

@@ -3868,6 +3868,7 @@ def get_unflat_am_rowids(ibs, aids_list):
     return ams_list
     #flat_ams = ut.filter_Nones(ams)
 
+
 @register_ibs_method
 @profile
 def get_unflat_am_aidpairs(ibs, aids_list):
@@ -3879,6 +3880,15 @@ def get_unflat_am_aidpairs(ibs, aids_list):
     flat_aid_pairs = list(zip(flat_aids1, flat_aids2))
     aid_pairs = ut.unflatten2(flat_aid_pairs, cumsum)
     return aid_pairs
+
+
+@register_ibs_method
+@profile
+def get_unflat_case_tags(ibs, aids_list):
+    """ Gets only aid pairs that have some reviewed/matched status """
+    ams_list = ibs.get_unflat_am_rowids(aids_list)
+    tags = ibs.unflat_map(ibs.get_annotmatch_case_tags, ams_list)
+    return tags
 
 
 @register_ibs_method
