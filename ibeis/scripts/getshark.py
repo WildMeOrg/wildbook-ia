@@ -8,6 +8,28 @@ from os.path import split, splitext, join, exists, dirname
 import utool as ut
 
 
+def detect_sharks():
+    import ibeis
+    ibs = ibeis.opendb('WS_ALL')
+    config = {
+        'algo'            : 'yolo',
+        'sensitivity'     : 0.2,
+        'config_filepath' : ut.truepath('~/work/WS_ALL/localizer_backup/detect.yolo.2.cfg'),
+        'weight_filepath' : ut.truepath('~/work/WS_ALL/localizer_backup/detect.yolo.2.39000.weights'),
+        'class_filepath'  : ut.truepath('~/work/WS_ALL/localizer_backup/detect.yolo.2.cfg.classes'),
+    }
+    depc = ibs.depc_image
+
+    imgsets = ibs.imagesets(text='Injured Sharks')
+    images = ibs.images(imgsets.gids[0])
+    images = images.compress([ext not in ['.gif'] for ext in images.exts])
+    gid_list = images.gids
+
+    results_list = depc.get_property('localizations', gid_list, None, config=config)
+    aids_list = ibs.commit_localization_results(gid_list, results_list)
+    pass
+
+
 def shark_misc():
     import ibeis
     ibs = ibeis.opendb('WS_ALL')

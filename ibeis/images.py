@@ -79,6 +79,10 @@ class Images(_ibeis_object.PrimaryObject):
     def __init__(self, gids, ibs, config=None):
         super(Images, self).__init__(gids, ibs, config)
 
+    @property
+    def gids(self):
+        return self._rowids
+
 
 class ImageSetAttrInjector(BASE_TYPE):
     """

@@ -136,9 +136,11 @@ def detect(gpath_list, detector=None, config_filepath=None, weight_filepath=None
     """
     # Run detection
     if detector is None:
+        class_filepath = kwargs.pop('class_filepath', None)
         verbose = kwargs.get('verbose', False)
         detector = pydarknet.Darknet_YOLO_Detector(config_filepath=config_filepath,
                                                    weight_filepath=weight_filepath,
+                                                   class_filepath=class_filepath,
                                                    verbose=verbose)
     #dark = detector
     #input_gpath_list = gpath_list

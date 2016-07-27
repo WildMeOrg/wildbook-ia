@@ -6,7 +6,6 @@ import vtool as vt  # NOQA
 import plottool as pt
 import six
 import networkx as nx
-import itertools as it
 print, rrr, profile = ut.inject2(__name__, '[graph_inference]')
 
 # Monkey patch networkx
