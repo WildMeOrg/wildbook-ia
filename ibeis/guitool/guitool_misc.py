@@ -18,6 +18,13 @@ ut.noinject(__name__, '[guitool.misc]', DEBUG=False)
 ALT_KEY = 16777251
 
 
+def make_option_dict(options):
+    """ helper for popup menu callbacks """
+    option_dict = {key[key.find('&') + 1]: val for key, val in options
+                   if '&' in key}
+    return option_dict
+
+
 def find_used_chars(name_list):
     """ Move to guitool """
     used_chars = []
