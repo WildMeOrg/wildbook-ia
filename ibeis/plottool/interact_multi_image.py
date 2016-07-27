@@ -22,6 +22,7 @@ BASE_CLASS = abstract_interaction.AbstractInteraction
 #BASE_CLASS = object
 
 
+@ut.reloadable_class
 class MultiImageInteraction(BASE_CLASS):
     """
 
@@ -87,6 +88,28 @@ class MultiImageInteraction(BASE_CLASS):
         super(MultiImageInteraction, self).__init__(fnum=fnum, **kwargs)
         #self.start()
 
+    def dump_to_disk(self, dpath, num=None, prefix='temp_img'):
+        import numpy as np
+        import plottool as pt
+        dpath = ut.ensurepath(dpath)
+        num_zeros = np.ceil(np.log10(len(self.gpath_list)))
+        total = len(self.gpath_list)
+        if num is None:
+            num = total
+        fmtstr = prefix + '_%0' + str(num_zeros) + 'd.jpg'
+        fig = pt.figure(fnum=self.fnum)
+        for index in ut.ProgIter(range(num), lbl='dumping images to disk'):
+            fig = pt.figure(fnum=self.fnum)
+            fig.clf()
+            ax = self._plot_index(index, {'fnum': self.fnum})
+            fig = ax.figure
+            axes_extents = pt.extract_axes_extents(fig)
+            assert len(axes_extents) == 1, 'more than one axes'
+            extent = axes_extents[0]
+            fpath = ut.unixjoin(dpath, fmtstr % (index))
+            fig.savefig(fpath, bbox_inches=extent)
+        pt.plt.close(fig)
+
     def make_hud(self):
         """ Creates heads up display """
         # Button positioning
@@ -103,13 +126,10 @@ class MultiImageInteraction(BASE_CLASS):
             self.append_button('next', callback=self.next_page, rect=next_rect)
 
     def next_page(self, event):
-        print('next')
         self.show_page(self.current_pagenum + 1)
-        pass
 
     def prev_page(self, event):
         self.show_page(self.current_pagenum - 1)
-        pass
 
     def prepare_page(self, pagenum):
         """ Gets indexes for the pagenum ready to be displayed """
@@ -147,20 +167,8 @@ class MultiImageInteraction(BASE_CLASS):
         self.make_hud()
         self.draw()
 
-    def plot_image(self, index):
-        px = index - self.start_index
+    def _plot_index(self, index, _vizkw):
         gpath      = self.gpath_list[index]
-
-        if self.vizkw is None:
-            _vizkw = {}
-        else:
-            _vizkw = self.vizkw.copy()
-
-        _vizkw.update({
-            'fnum': self.fnum,
-            'pnum': self.pnum_(px),
-        })
-
         if ut.is_funclike(gpath):
             showfunc = gpath
             # HACK
@@ -198,6 +206,22 @@ class MultiImageInteraction(BASE_CLASS):
             #print(index)
             ph.set_plotdat(ax, 'bbox_list', bbox_list)
             ph.set_plotdat(ax, 'gpath', gpath)
+        return ax
+
+    def plot_image(self, index):
+        px = index - self.start_index
+
+        if self.vizkw is None:
+            _vizkw = {}
+        else:
+            _vizkw = self.vizkw.copy()
+
+        _vizkw.update({
+            'fnum': self.fnum,
+            'pnum': self.pnum_(px),
+        })
+        ax = self._plot_index(index, _vizkw)
+
         ph.set_plotdat(ax, 'px', str(px))
         ph.set_plotdat(ax, 'index', index)
 
