@@ -90,6 +90,11 @@ class ClfProblem(object):
     def __init__(problem, ds):
         problem.ds = ds
 
+    def print_support_info(problem):
+        target_to_num = ut.dict_hist(problem.ds.target)
+        hist = ut.map_dict_keys(ut.partial(ut.take, problem.ds.target_names), target_to_num)
+        print('support hist' + ut.repr3(hist))
+
     def fit_new_classifier(problem, train_idx):
         print('[problem] train classifier')
         data = problem.ds.data
@@ -139,17 +144,20 @@ def learn_injured_sharks():
         'resize_dim': 'wh'
     }
     annots = ibs.annots(config=config)
+    data = np.array([h.ravel() for h in annots.hog_hog])
+    target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
     # Build scipy / scikit data standards
     ds = sklearn.datasets.base.Bunch(
         ibs=ibs,
         aids=annots.aids,
-        data=np.array([h.ravel() for h in annots.hog_hog]),
-        target=np.array([int('healthy' not in tags) for tags in annots.case_tags]),
+        data=data,
+        target=target,
         name='sharks',
         DESCR='injured-vs-healthy whale sharks',
         target_names=['healthy', 'injured'],
     )
     problem = ClfProblem(ds)
+    problem.print_support_info()
 
     result_list = []
     for train_idx, test_idx in problem.gen_crossval_idxs():

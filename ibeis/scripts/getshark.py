@@ -25,9 +25,59 @@ def detect_sharks():
     images = images.compress([ext not in ['.gif'] for ext in images.exts])
     gid_list = images.gids
 
+    # result is a tuple:
+    # (score, bbox_list, theta_list, conf_list, class_list)
     results_list = depc.get_property('localizations', gid_list, None, config=config)
-    aids_list = ibs.commit_localization_results(gid_list, results_list)
-    pass
+
+    results_list2 = []
+    multi_gids = []
+    failed_gids = []
+
+    #ibs.set_image_imagesettext(failed_gids, ['Fixme'] * len(failed_gids))
+    ibs.set_image_imagesettext(multi_gids, ['Fixme2'] * len(multi_gids))
+
+    failed_gids
+
+    for gid, res in zip(gid_list, results_list):
+        score, bbox_list, theta_list, conf_list, class_list = res
+        if len(bbox_list) == 0:
+            failed_gids.append(gid)
+        elif len(bbox_list) == 1:
+            results_list2.append((gid, bbox_list, theta_list))
+        elif len(bbox_list) > 1:
+            multi_gids.append(gid)
+            idx = conf_list.argmax()
+            res2 = (gid, bbox_list[idx:idx + 1], theta_list[idx:idx + 1])
+            results_list2.append(res2)
+
+    ut.dict_hist(([t[1].shape[0] for t in results_list]))
+
+    localized_imgs = ibs.images(ut.take_column(results_list2, 0))
+    assert all([len(a) == 1 for a in localized_imgs.aids])
+    old_annots = ibs.annots(ut.flatten(localized_imgs.aids))
+    #old_tags = old_annots.case_tags
+
+    # Override old bboxes
+    import numpy as np
+    bboxes = np.array(ut.take_column(results_list2, 1))[:, 0, :]
+    ibs.set_annot_bboxes(old_annots.aids, bboxes)
+
+    if False:
+        import plottool as pt
+        pt.qt4ensure()
+
+        inter = pt.MultiImageInteraction(
+            ibs.get_image_paths(ut.take_column(results_list2, 0)),
+            bboxes_list=ut.take_column(results_list2, 1)
+        )
+        inter.dump_to_disk('shark_loc', num=50, prefix='shark_loc')
+        inter.start()
+
+        inter = pt.MultiImageInteraction(ibs.get_image_paths(failed_gids))
+        inter.start()
+
+        inter = pt.MultiImageInteraction(ibs.get_image_paths(multi_gids))
+        inter.start()
 
 
 def shark_misc():
