@@ -119,7 +119,7 @@ def image_upload(cleanup=True, **kwargs):
 
     RESTful:
         Method: POST
-        URL:    /api/image/
+        URL:    /api/upload/image/
     """
     ibs = current_app.ibs
     print('request.files = %s' % (request.files,))
