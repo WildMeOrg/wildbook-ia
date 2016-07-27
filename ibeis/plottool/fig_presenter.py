@@ -43,13 +43,13 @@ def register_qt4_win(win):
 
 def set_geometry(fnum, x, y, w, h):
     fig = get_fig(fnum)
-    qtwin = fig.canvas.manager.window
+    qtwin = get_figure_window(fig)
     qtwin.setGeometry(x, y, w, h)
 
 
 def get_geometry(fnum):
     fig = get_fig(fnum)
-    qtwin = fig.canvas.manager.window
+    qtwin = get_figure_window(fig)
     (x1, y1, x2, y2) = qtwin.geometry().getCoords()
     (x, y, w, h) = (x1, y1, x2 - x1, y2 - y1)
     return (x, y, w, h)
@@ -136,7 +136,7 @@ def get_all_windows():
     try:
         all_figures = get_all_figures()
         all_qt4wins = get_all_qt4_wins()
-        all_wins = all_qt4wins + [fig.canvas.manager.window for fig in all_figures]
+        all_wins = all_qt4wins + [get_figure_window(fig) for fig in all_figures]
         return all_wins
     except AttributeError as ex:
         ut.printex(ex, 'probably using a windowless backend',
@@ -212,15 +212,23 @@ def close_figure(fig):
     print('[pt] close_figure')
     fig.clf()
     fig.df2_closed = True
-    qtwin = fig.canvas.manager.window
+    qtwin = get_figure_window(fig)
     qtwin.close()
+
+
+def get_figure_window(fig):
+    try:
+        qwin = fig.canvas.manager.window
+    except AttributeError:
+        qwin = fig.canvas.window()
+    return qwin
 
 
 def bring_to_front(fig):
     if VERBOSE:
         print('[pt] bring_to_front')
     #what is difference between show and show normal?
-    qtwin = fig.canvas.manager.window
+    qtwin = get_figure_window(fig)
     qtwin.raise_()
     #if not ut.WIN32:
     # NOT sure on the correct order of these

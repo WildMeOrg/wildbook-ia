@@ -427,11 +427,14 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         # restore operation
         self.reinitialize_variables = _reinitialize_variables
 
-        self.fig = df2.figure(fnum=fnum, doclf=True, docla=True)
-        df2.close_figure(self.fig)
-        self.fig = df2.figure(fnum=fnum, doclf=True, docla=True)
+        try:
+            self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)
+            df2.close_figure(self.fig)
+        except AttributeError:
+            pass
+        self.fig = df2.figure(fnum=self.fnum, doclf=True, docla=True)
 
-        self.reinitialize_figure(fnum=fnum)
+        self.reinitialize_figure(fnum=self.fnum)
         assert verts_list is None or bbox_list is None, 'only one can be specified'
         # bbox_list will get converted to verts_list
         if verts_list is not None:
@@ -742,7 +745,8 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         else:
             print('[interact_annot] delete annot')
             poly = self._selected_poly
-            self.polys.pop(poly.num)
+            #self.polys.pop(poly.num)
+            del self.editable_polys[poly.num]
             # remove the poly from the figure itself
             poly.remove_from_axis(self.ax)
             #reset anything that has to do with current poly
@@ -866,6 +870,12 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
     def prev_image(self, event):
         if self.prev_callback is not None:
             self.prev_callback()
+
+    def start(self):
+        # FIXME: conform to abstract_interaction start conventions
+        #self._ensure_running()
+        #self.show_page()
+        self.show()
 
     def show(self):
         self.draw()

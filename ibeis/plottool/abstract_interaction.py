@@ -160,7 +160,9 @@ class AbstractInteraction(object):
         ih.connect_callback(self.fig, 'scroll_event', self.on_scroll)
 
     def bring_to_front(self):
-        fig_presenter.bring_to_front(self.fig)
+        import utool
+        with utool.embed_on_exception_context:
+            fig_presenter.bring_to_front(self.fig)
 
     def draw(self):
         if self.debug > 5:
