@@ -244,15 +244,18 @@ def montage(img_list, dsize, rng=np.random, method='random', return_debug=False)
     return dst
 
 
-def imread(img_fpath, delete_if_corrupted=False, grayscale=False, orient=False,
-           flags=None, force_opencv=False):
+def imread(img_fpath, grayscale=False, orient=False, flags=None,
+           force_opencv=False, delete_if_corrupted=False):
     r"""
     Wrapper around the opencv imread function. Handles remote uris.
 
     Args:
-        img_fpath (?):
-        delete_if_corrupted (bool):
-        grayscale (bool):
+        img_fpath (str):  file path string
+        grayscale (bool): (default = False)
+        orient (bool): (default = False)
+        flags (None): opencv flags (default = None)
+        force_opencv (bool): (default = False)
+        delete_if_corrupted (bool): (default = False)
 
     Returns:
         ndarray: imgBGR
@@ -284,21 +287,10 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False, orient=False,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
-        >>> img_fpath = ut.grab_test_imgpath('lena.png')
-        >>> delete_if_corrupted = False
-        >>> result = str(imgBGR.shape)
-        >>> print(result)
-        (512, 512)
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.image import *  # NOQA
         >>> img_fpath = 'http://images.summitpost.org/original/769474.JPG'
         >>> local_fpath = ut.grab_file_url(img_fpath)
-        >>> delete_if_corrupted = False
-        >>> grayscale = False
-        >>> imgBGR = imread(img_fpath, delete_if_corrupted, grayscale)
-        >>> imgBGR2 = imread(local_fpath, delete_if_corrupted, grayscale)
+        >>> imgBGR = imread(img_fpath)
+        >>> imgBGR2 = imread(local_fpath)
         >>> result = str(imgBGR.shape)
         >>> print(result)
         >>> assert np.all(imgBGR2 == imgBGR)
@@ -311,7 +303,7 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False, orient=False,
         >>> img_fpath = ut.grab_file_url(url)
         >>> delete_if_corrupted = False
         >>> grayscale = False
-        >>> imgBGR = imread(img_fpath, delete_if_corrupted, grayscale)
+        >>> imgBGR = imread(img_fpath, grayscale=grayscale)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.imshow(imgBGR)
@@ -324,17 +316,17 @@ def imread(img_fpath, delete_if_corrupted=False, grayscale=False, orient=False,
     else:
         path, ext = splitext(img_fpath)
         orient_ = 'auto' if orient in ['auto', 'on', True] else False
-        use_pil = not force_opencv and  (orient_ or ext.lower() == '.gif')
+        use_pil = (orient_ or ext.lower() == '.gif') and (not force_opencv)
         try:
             if use_pil:
                 # If we want to open with auto orient, only open once with PIL
                 # Otherwise, open with OpenCV (faster) and reorient if given
                 # the known orientation of the image
-                #pil_img = Image.open(img_fpath)
-                #np.array(pil_img)
-                with Image.open(img_fpath) as pil_img:
-                    imgBGR = fix_orient_pil_img(pil_img, grayscale=grayscale,
-                                                orient=orient_)
+                pil_img = Image.open(img_fpath)
+                imgBGR = fix_orient_pil_img(pil_img, grayscale=grayscale,
+                                            orient=orient_)
+                #with Image.open(img_fpath) as pil_img: # breaks?
+                #pil_img.close()  # breaks?
             else:
                 if flags is None:
                     flags = cv2.IMREAD_GRAYSCALE if grayscale else IMREAD_COLOR
