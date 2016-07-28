@@ -364,7 +364,7 @@ class DevGraphWidget(gt.GuitoolWidget):
     def mark_nonmatch(graph_widget):
         print('BREAK LINK graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
         for aid1, aid2 in itertools.combinations(graph_widget.selected_aids, 2):
-            graph_widget.infr.add_feedback(aid1, aid2, 'nonmatch')
+            graph_widget.infr.add_feedback(aid1, aid2, 'nomatch')
         # TODO: just use signal / slot
         #graph_widget.infr.apply_feedback_edges()
         graph_widget.self_parent.update_state()
@@ -601,7 +601,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         num_names, num_inconsistent = self.infr.connected_compoment_reviewed_labeling()
         if num_inconsistent:
             self.state_lbl.setText('Inconsistent Names: %d' % (num_inconsistent,))
-            self.state_lbl.setColor('black', self.infr.truth_colors['nonmatch'][0:3] * 255)
+            self.state_lbl.setColor('black', self.infr.truth_colors['nomatch'][0:3] * 255)
         else:
             self.state_lbl.setText('Consistent')
             self.state_lbl.setColor('black', self.infr.truth_colors['match'][0:3] * 255)
@@ -779,7 +779,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         options = [
             ('Mark &True', lambda: _mark_pairs('match')),
-            ('Mark &False', lambda: _mark_pairs('nonmatch')),
+            ('Mark &False', lambda: _mark_pairs('nomatch')),
             ('Mark &Non-Comparable', lambda: _mark_pairs('notcomp')),
             ('&Unreview', lambda: _mark_pairs('unreviewed')),
         ]
@@ -1029,7 +1029,7 @@ def get_filtered_edges(ibs, graph, review_cfg):
         review_states = [
             graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
             for edge in zip(aids1, aids2)]
-        is_nonmatched = [state == 'nonmatch' for state in review_states]
+        is_nonmatched = [state == 'nomatch' for state in review_states]
         #isneg_flags = is_nonmatched
         valid_flags = filter_between_ccs_neg(aids1, aids2, is_nonmatched)
         num_filtered += len(valid_flags) - sum(valid_flags)
@@ -1155,7 +1155,7 @@ def make_edge_api(infr, review_cfg={}):
         if state == 'unreviewed':
             lighten_amount = .7
 
-        color = infr.truth_colors['match' if nid1 == nid2 else 'nonmatch']
+        color = infr.truth_colors['match' if nid1 == nid2 else 'nomatch']
         #graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')]
         if lighten_amount is not None:
             color = pt.lighten_rgb(color, lighten_amount)
@@ -1352,7 +1352,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, init_mode='rereview'):
     print('make_qt_graph_interface aids = %r' % (aids,))
     #temp_nids = None
     nids = ibs.get_annot_name_rowids(aids)
-    infr = graph_iden.AnnotInference2(ibs, aids, nids, verbose=ut.VERBOSE)
+    infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=ut.VERBOSE)
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
     win = AnnotGraphWidget(infr=infr, use_image=False, init_mode=init_mode)

@@ -514,7 +514,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         print('BREAK LINK self.selected_aids = %r' % (self.selected_aids,))
         import itertools
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
-            self.infr.add_feedback(aid1, aid2, 'nonmatch')
+            self.infr.add_feedback(aid1, aid2, 'nomatch')
         self.infr.apply_feedback()
         self.show_page()
 
@@ -769,12 +769,12 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
 
     nids = ibs.get_annot_name_rowids(aids)
     #from ibeis.algo.hots import graph_iden
-    #infr = graph_iden.AnnotInference2(aids, nids, temp_nids)  # NOQA
+    #infr = graph_iden.AnnotInference(aids, nids, temp_nids)  # NOQA
     #import utool
     #utool.embed()
 
     from ibeis.algo.hots import graph_iden
-    infr = graph_iden.AnnotInference2(ibs, aids, nids, temp_nids)
+    infr = graph_iden.AnnotInference(ibs, aids, nids, temp_nids)
     infr.initialize_graph()
     #infr.apply_scores()
     #infr.apply_feedback()

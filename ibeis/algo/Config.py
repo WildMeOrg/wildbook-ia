@@ -719,7 +719,7 @@ class QueryConfig(ConfigBase):
         query_cfg._featweight_cfg = FeatureWeightConfig(**kwargs)
         query_cfg.use_cache = False
         # Start of pipeline
-        query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk']
+        query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk', 'BC_DTW']
         query_cfg.pipeline_root = 'vsmany'
         # <Hack Paramaters>
         query_cfg.with_metadata = False
@@ -887,18 +887,19 @@ class QueryConfig(ConfigBase):
             smk_cfg.smk_aggregate = True
 
         hasvalid_root = any([
-            query_cfg.pipeline_root == root
+            query_cfg.pipeline_root.lower() == root.lower()
             for root in query_cfg._valid_pipeline_roots])
         try:
             assert hasvalid_root, (
-                'invalid pipeline root %r' % query_cfg.pipeline_root)
+                'invalid pipeline root %r valid roots are %r' % query_cfg.pipeline_root, query_cfg._valid_pipeline_roots)
         except AssertionError as ex:
             ut.printex(ex)
-            if ut.SUPER_STRICT:
-                raise
-            else:
-                query_cfg.pipeline_root = query_cfg._valid_pipeline_roots[0]
-                pass
+            raise
+            #if ut.SUPER_STRICT:
+            #    raise
+            #else:
+            #    query_cfg.pipeline_root = query_cfg._valid_pipeline_roots[0]
+            #    pass
 
         # HACK
         if nnweight_cfg.fg_on is not True:

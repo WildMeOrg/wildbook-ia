@@ -26,7 +26,7 @@ VERB_MAIN_HELPERS = VERB_TESTDATA
 #or ut.VERBOSE or VERB_TESTDATA
 
 
-def testdata_pipecfg(p=None, t=None):
+def testdata_pipecfg(p=None, t=None, ibs=None):
     r"""
     Returns:
         dict: pcfgdict
@@ -49,7 +49,7 @@ def testdata_pipecfg(p=None, t=None):
         p = ['default']
     from ibeis.expt import experiment_helpers
     test_cfg_name_list = ut.get_argval(('-t', '-p'), type_=list, default=p)
-    pcfgdict_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list)[0]
+    pcfgdict_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)[0]
     assert len(pcfgdict_list) == 1, 'can only specify one pipeline config here'
     pcfgdict = pcfgdict_list[0]
     return pcfgdict
@@ -93,7 +93,7 @@ def testdata_qreq_(p=None, a=None, t=None, **kwargs):
     if p is None:
         p = ['default']
     ibs, qaids, daids, acfg = testdata_expanded_aids(a=a, return_annot_info=True, **kwargs)
-    pcfgdict = testdata_pipecfg(t=p)
+    pcfgdict = testdata_pipecfg(t=p, ibs=ibs)
     qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
     # Maintain regen command info: TODO: generalize and integrate
     qreq_._regen_info = {
