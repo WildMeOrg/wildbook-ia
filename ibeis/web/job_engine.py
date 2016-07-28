@@ -79,7 +79,7 @@ URL = 'tcp://127.0.0.1'
 NUM_JOBS = 2
 NUM_ENGINES = 1
 
-VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--fg')
+VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
 
 
 def update_proctitle(procname):
