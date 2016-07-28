@@ -1220,7 +1220,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         #depc.delete_property(key, root_rowids)
         # TODO: check which properties were invalidated by this prop
         # TODO; remove invalidated properties
-        depc.delete_root(root_rowids)
+        #depc.delete_root(root_rowids)
 
     def clear_all(depc):
         print('Clearning all cached data in %r' % (depc,))
