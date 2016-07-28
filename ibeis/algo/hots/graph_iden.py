@@ -35,16 +35,11 @@ def get_cm_breaking(qreq_, cm_list, ranks_top=None, ranks_bot=None):
         >>> from ibeis.algo.hots.graph_iden import *  # NOQA
     """
     # Construct K-broken graph
-    #qaid_list = [cm.qaid for cm in cm_list]
     edges = []
-    edge_data = []
 
     if ranks_bot is None:
         ranks_bot = 0
 
-    #ranks_top = (infr.qreq_.qparams.K + 1) * 2
-    #ranks_top = (infr.qreq_.qparams.K) * 2
-    #ranks_top = (qreq_.qparams.K + 2)
     for count, cm in enumerate(cm_list):
         score_list = cm.annot_score_list
         rank_list = ut.argsort(score_list)[::-1]
@@ -54,34 +49,13 @@ def get_cm_breaking(qreq_, cm_list, ranks_top=None, ranks_bot=None):
         bot_sortx = sortx[-ranks_bot:]
         short_sortx = ut.unique(top_sortx + bot_sortx)
 
-        score_list = ut.take(score_list, short_sortx)
         daid_list = ut.take(cm.daid_list, short_sortx)
-        rank_list = ut.take(rank_list, short_sortx)
-
-        for score, rank, daid in zip(score_list, rank_list, daid_list):
-            #if daid not in qaid_list:
-            #    continue
-            data = {
-                'score': score,
-                'rank': rank,
-            }
-            edge_data.append(data)
-            edges.append((cm.qaid, daid))
-
-    # Maybe just K-break graph here?
-    # Condense graph?
-
-    # make symmetric
-    directed_edges = dict(zip(edges, edge_data))
-    # Find edges that point in both directions
-    undirected_edges = {}
-    for (u, v), data in directed_edges.items():
-        if (v, u) in undirected_edges:
-            undirected_edges[(v, u)]['score'] += data['score']
-            undirected_edges[(v, u)]['score'] /= 2
-        else:
-            undirected_edges[(u, v)] = data
-    return undirected_edges
+        for daid in daid_list:
+            u, v = (cm.qaid, daid)
+            if v < u:
+                u, v = v, u
+            edges.append((u, v))
+    return edges
 
 
 def estimate_threshold(curve, method=None):
@@ -855,26 +829,23 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         # TODO: use current nids
         qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
         cm_list = qreq_.execute(prog_hook=prog_hook)
-        vsmany_qreq_ = qreq_
-        vsmany_cms = cm_list
+        infr.cm_list = qreq_
+        infr.qreq_ = cm_list
 
-        #infr.cm_list = cm_list
-        #infr.qreq_ = qreq_
+    def exec_vsone(infr, prog_hook=None):
+        # Post process ranks_top and bottom vsmany queries with vsone
+        # Execute vsone queries on the best vsmany results
+        parent_rowids = list(infr.graph.edges())
+        # Hack to get around default product of qaids
+        qreq_ = infr.ibs.depc.new_request('vsone', [], [], cfgdict={})
+        cm_list = qreq_.execute(parent_rowids=parent_rowids,
+                                prog_hook=prog_hook)
+        infr.vsone_qreq_ = qreq_
+        infr.vsone_cm_list_ = cm_list
 
-        if vsone:
-            # Post process ranks_top and bottom vsmany queries with vsone
-            # Execute vsone queries on the best vsmany results
-            undirected_edges = get_cm_breaking(qreq_, vsmany_cms,
-                                               ranks_top=(vsmany_qreq_.qparams.K + 2),
-                                               ranks_bot=(2),)
-            parent_rowids = list(undirected_edges.keys())
-            # Hack to get around default product of qaids
-            qreq_ = ibs.depc.new_request('vsone', [], [], cfgdict={})
-            cm_list = qreq_.execute(parent_rowids=parent_rowids,
-                                    prog_hook=prog_hook)
-        infr.cm_list = cm_list
-        infr.qreq_ = qreq_
-        #return qreq_, cm_list
+    def get_pairwise_features():
+        # Extract features from the one-vs-one results
+        pass
 
     def add_feedback(infr, aid1, aid2, state):
         """ External helepr """
@@ -1157,10 +1128,9 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         cm_list = infr.cm_list
         ranks_top = review_cfg.get('ranks_top', None)
         ranks_bot = review_cfg.get('ranks_bot', None)
-        undirected_edges = get_cm_breaking(qreq_, cm_list,
-                                           ranks_top=ranks_top,
-                                           ranks_bot=ranks_bot)
-        edges = list(undirected_edges.keys())
+        edges = get_cm_breaking(qreq_, cm_list,
+                                ranks_top=ranks_top,
+                                ranks_bot=ranks_bot)
         # Create match-based graph structure
         infr.remove_mst_edges()
         infr.graph.add_edges_from(edges)

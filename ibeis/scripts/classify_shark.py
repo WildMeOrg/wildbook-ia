@@ -146,8 +146,34 @@ def learn_injured_sharks():
         'resize_dim': 'wh'
     }
     annots = ibs.annots(config=config)
+
+    injur_tags = [u'injur-nicks', u'injur-unknown', u'nicks', u'injur-trunc',
+                  u'other_injury', u'injur-scar', u'injur-bite', u'scar',
+                  u'trunc']
+    healthy_tags = ['healthy']
+
+    print(ut.dict_hist(ut.flatten(annots.case_tags)).keys())
+    healthy_flags = ut.filterflags_general_tags(annots.case_tags,
+                                                has_any=healthy_tags,
+                                                has_none=injur_tags)
+    injur_flags = ut.filterflags_general_tags(annots.case_tags,
+                                              has_any=injur_tags,
+                                              has_none=healthy_tags)
+    assert np.logical_and(injur_flags, healthy_flags).sum() == 0
+
+    num_inconsitent = len(healthy_flags) - ((healthy_flags + injur_flags) > 0).sum()
+    print('cant use %r annots due to inconsistent tags' % (num_inconsitent,))
+    healthy_annots = annots.compress(healthy_flags)
+    injured_annots = annots.compress(injur_flags)
+
+    annots = healthy_annots + injured_annots
+    target = np.array(([0] * len(healthy_annots)) + ([1] * len(injured_annots)))
+
     data = np.array([h.ravel() for h in annots.hog_hog])
+
     target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
+    print(ut.dict_hist(ut.flatten(healthy_annots.case_tags)))
+
     # Build scipy / scikit data standards
     ds = sklearn.datasets.base.Bunch(
         ibs=ibs,

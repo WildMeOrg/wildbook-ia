@@ -859,6 +859,11 @@ def append_annot_case_tags(ibs, aid_list, tag_list):
 
 
 @register_ibs_method
+def remove_all_annot_case_tags(ibs, aid_list):
+    ibs.set_annot_tag_text(aid_list, [''] * len(aid_list))
+
+
+@register_ibs_method
 def get_annot_case_tags(ibs, aid_list):
     r"""
     returns list of tags. Use instead of get_annot_tag_text

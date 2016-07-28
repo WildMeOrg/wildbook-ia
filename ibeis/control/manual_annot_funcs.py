@@ -300,6 +300,10 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     r"""
     Adds an annotation to images
 
+    # TODO:
+        remove annot_visual_uuid_list and annot_semantic_uuid_list
+        They are always infered
+
     Args:
         gid_list                 (list): image rowids to add annotation to
         bbox_list                (list): of [x, y, w, h] bounding boxes for each image (supply verts instead)

@@ -156,6 +156,14 @@ class PrimaryObject(ut.NiceRepr, ut.HashComparable2):
     def __hash__(self):
         return hash(self.group_uuid())
 
+    def __add__(self, other):
+        assert self.__class__ is other.__class__, 'incompatable'
+        assert self._ibs is other._ibs, 'incompatable'
+        assert self._config is other._config, 'incompatable'
+        rowids = ut.unique(self._rowids + other._rowids)
+        new = self.__class__(rowids, self._ibs, self._config)
+        return new
+
     def group_uuid(self):
         sorted_uuids = sorted(self.uuids)
         group_uuid = ut.util_hash.augment_uuid(*sorted_uuids)
