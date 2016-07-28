@@ -328,7 +328,7 @@ class JobBackend(object):
         if VERBOSE_JOBS:
             print('Killed external procs')
 
-    def _initialize_job_ports(self, use_static_ports=False):
+    def _initialize_job_ports(self, use_static_ports=False, static_root=51381):
         # _portgen = functools.partial(six.next, itertools.count(51381))
         key_list = [
             'engine_url1',
@@ -337,12 +337,21 @@ class JobBackend(object):
             'collect_url2',
             'collect_pushpull_url',
         ]
+        # Get ports
+        if use_static_ports:
+            port_list = range(static_root, static_root + len(key_list))
+        else:
+            port_list = []
+            while len(port_list) < len(key_list):
+                port = _get_random_open_port()
+                if port not in port_list:
+                    port_list.append(port)
+            port_list = sorted(port_list)
+        # Assign ports
+        assert len(key_list) == len(port_list)
         self.port_dict = {
-            key : '%s:%d' % (
-                URL,
-                51381 + index if use_static_ports else _get_random_open_port(),
-            )
-            for index, key in enumerate(key_list)
+            key : '%s:%d' % (URL, port)
+            for key, port in zip(key_list, port_list)
         }
 
     def initialize_background_processes(self, dbdir=None, wait=0):
