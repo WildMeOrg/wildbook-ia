@@ -1352,7 +1352,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, init_mode='rereview'):
     print('make_qt_graph_interface aids = %r' % (aids,))
     #temp_nids = None
     nids = ibs.get_annot_name_rowids(aids)
-    infr = graph_iden.AnnotInference2(ibs, aids, nids, verbose=ut.VERBOSE)
+    infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=ut.VERBOSE)
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
     win = AnnotGraphWidget(infr=infr, use_image=False, init_mode=init_mode)

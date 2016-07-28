@@ -324,7 +324,7 @@ def split_analysis(ibs):
             print('Looking at BAD (speed problems) edges')
             aid_pairs = all_bad_edges
         aids = sorted(list(set(ut.flatten(aid_pairs))))
-        infr = graph_iden.AnnotInference2(ibs, aids, verbose=False)
+        infr = graph_iden.AnnotInference(ibs, aids, verbose=False)
         infr.initialize_graph()
 
         # Use random scores to randomize sort order
@@ -374,7 +374,7 @@ def split_analysis(ibs):
     for annots, bad_edges in ut.ProgIter(iter_, lbl='creating inference', **progkw):
         aids = annots.aids
         nids = [1] * len(aids)
-        infr = graph_iden.AnnotInference2(ibs, aids, nids, verbose=False)
+        infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=False)
         infr.initialize_graph()
         infr.reset_feedback()
         infr.apply_feedback()

@@ -490,7 +490,7 @@ def query_chips_test(ibs, **kwargs):
 @register_api('/api/query/graph/', methods=['GET'])
 def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
                       query_config_dict={}, echo_query_params=True):
-    from ibeis.algo.hots.orig_graph_iden import AnnotInference
+    from ibeis.algo.hots.orig_graph_iden import OrigAnnotInference
     import uuid
 
     def convert_to_uuid(nid):
@@ -535,7 +535,7 @@ def query_chips_graph(ibs, qaid_list, daid_list, user_feedback=None,
         }
         for cm in cm_list
     }
-    annot_inference = AnnotInference(qreq_, cm_list, user_feedback)
+    annot_inference = OrigAnnotInference(qreq_, cm_list, user_feedback)
     inference_dict = annot_inference.make_annot_inference_dict()
     result_dict = {
         'cm_dict'        : cm_dict,

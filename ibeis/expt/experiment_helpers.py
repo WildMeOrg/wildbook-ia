@@ -35,6 +35,9 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     an ibs object. The order of the output is not gaurenteed to aggree with
     input order.
 
+    FIXME:
+        This breaks if you proot=BC_DTW and ibs is None
+
     Args:
         test_cfg_name_list (list): list of strs
         ibs (IBEISController): ibeis controller object (optional)
@@ -143,7 +146,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     else:
         root_to_config = ibs.depc_annot.configclass_dict
         configclass_list = [
-            root_to_config.get(_cfgdict.get('pipeline_root', 'vsmany'),
+            root_to_config.get(_cfgdict.get('pipeline_root', _cfgdict.get('proot', 'vsmany')),
                                Config.QueryConfig)
             for _cfgdict in _pcfgdict_list]
     _pipecfg_list = [cls(**_cfgdict)

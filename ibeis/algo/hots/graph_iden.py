@@ -332,7 +332,7 @@ class InfrModel(ut.NiceRepr):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class AnnotInferenceVisualization(object):
+class OrigAnnotInferenceVisualization(object):
     """ contains plotting related code """
 
     truth_colors = {
@@ -506,7 +506,7 @@ class AnnotInferenceVisualization(object):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
+class AnnotInference(ut.NiceRepr, OrigAnnotInferenceVisualization):
     """
     Sandbox class for maintaining state of an identification
 
@@ -518,7 +518,7 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
         >>> from ibeis.algo.hots.graph_iden import *  # NOQA
         >>> infr = testdata_infr()
         >>> print('infr = %s' % (infr,))
-        infr = <AnnotInference2(nAids=6, nEdges=0)>
+        infr = <AnnotInference(nAids=6, nEdges=0)>
     """
 
     truth_texts = {
@@ -1113,7 +1113,7 @@ class AnnotInference2(ut.NiceRepr, AnnotInferenceVisualization):
             >>> infr.apply_feedback_edges()
             >>> result = str(infr)
             >>> print(result)
-            <AnnotInference2(nAids=6, nEdges=2)>
+            <AnnotInference(nAids=6, nEdges=2)>
         """
         if infr.verbose:
             print('[infr] apply_feedback_edges')
@@ -1293,7 +1293,7 @@ def testdata_infr(defaultdb='PZ_MTEST'):
     import ibeis
     ibs = ibeis.opendb(defaultdb=defaultdb)
     aids = [1, 2, 3, 4, 5, 6]
-    infr = AnnotInference2(ibs, aids, autoinit=True)
+    infr = AnnotInference(ibs, aids, autoinit=True)
     return infr
 
 
