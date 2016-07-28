@@ -138,6 +138,8 @@ def learn_injured_sharks():
     import pandas as pd
     import ibeis
 
+    pt.qt4ensure()
+
     ibs = ibeis.opendb('WS_ALL')
     config = {
         'dim_size': (256, 256),
