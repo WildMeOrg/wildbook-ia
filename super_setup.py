@@ -324,7 +324,8 @@ ibeis_rman = ut.RepoManager([
 ], CODE_DIR, label='core')
 
 tpl_rman = ut.RepoManager([], CODE_DIR, label='tpl')
-tpl_rman.add_repo(ut.Repo('https://github.com/Itseez/opencv.git', CODE_DIR, modname='cv2'))
+if not GET_ARGFLAG('--ignore-opencv'):
+    tpl_rman.add_repo(ut.Repo('https://github.com/Itseez/opencv.git', CODE_DIR, modname='cv2'))
 
 if WITH_GUI:
     ibeis_rman.add_repos([
