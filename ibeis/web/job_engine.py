@@ -546,8 +546,6 @@ def make_queue_loop(name='collect'):
     Standard queue loop
 
     Args:
-        iface1 (str): address for the client that deals
-        iface2 (str): address for the server that routes
         name (None): (default = None)
     """
 
