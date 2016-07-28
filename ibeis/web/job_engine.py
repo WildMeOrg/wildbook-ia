@@ -567,7 +567,7 @@ def make_queue_loop(port_dict, name='collect'):
             rout_sock.setsockopt_string(zmq.IDENTITY, 'queue.' + name + '.' + 'ROUTER')
             rout_sock.bind(iface1)
             if VERBOSE_JOBS:
-                print('bind %s_url2 = %r' % (name, iface1,))
+                print('bind %s_url1 = %r' % (name, iface1,))
             # bind the server router to the queue dealer
             deal_sock = ctx.socket(zmq.DEALER)
             deal_sock.setsockopt_string(zmq.IDENTITY, 'queue.' + name + '.' + 'DEALER')

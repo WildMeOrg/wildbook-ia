@@ -833,7 +833,7 @@ def set_annot_prop(ibs, prop, aid_list, flags):
     """
     sets nonstandard properties using the notes column
 
-    http://localhost:5000/group_review/?aid_list=1,2,3,4
+    http://127.0.0.1:5000/group_review/?aid_list=1,2,3,4
     """
     text_list = ibs.get_annot_tag_text(aid_list)
     new_text_list = set_textformat_tag_flags(prop, text_list, flags)

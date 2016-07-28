@@ -68,14 +68,14 @@ def add_images_json(ibs, image_uri_list, image_uuid_list, image_width_list,
                     {
                         'bucket'          : 'example-bucket-1',
                         'key'             : 'example/asset1.png',
-                        'auth_domain'     : None,  # Uses localhost
+                        'auth_domain'     : None,  # Uses 127.0.0.1
                         'auth_access_id'  : None,  # Uses system default
                         'auth_secret_key' : None,  # Uses system default
                     },
                     {
                         'bucket' : 'example-bucket-1',
                         'key'    : 'example/asset2.jpg',
-                        # if unspecified, auth uses localhost and system defaults
+                        # if unspecified, auth uses 127.0.0.1 and system defaults
                     },
                     {
                         'bucket'          : 'example-bucket-2',
