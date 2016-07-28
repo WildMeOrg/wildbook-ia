@@ -370,7 +370,7 @@ class JobBackend(object):
 
         if self.spawn_queue:
             self.engine_queue_proc = _spawner(engine_queue_loop, self.port_dict)
-            self.collect_queue_proc = _spawner(collect_queue_loop, self.port_dict)
+            self.collect_queue_proc = _spawner(make_queue_loop, self.port_dict)
         if self.spawn_collector:
             self.collect_proc = _spawner(collector_loop, self.port_dict, dbdir)
         if self.spawn_engine:
@@ -541,7 +541,7 @@ class JobInterface(object):
                 raise Exception('Timeout')
 
 
-def make_queue_loop(iface1, iface2, name=None):
+def make_queue_loop(port_dict, name='collect'):
     """
     Standard queue loop
 
@@ -550,9 +550,11 @@ def make_queue_loop(iface1, iface2, name=None):
         iface2 (str): address for the server that routes
         name (None): (default = None)
     """
+
     assert name is not None, 'must name queue'
     queue_name = name + '_queue'
     loop_name = queue_name + '_loop'
+    iface1, iface2 = port_dict['collect_url1'], port_dict['collect_url2']
     def queue_loop():
         print = partial(ut.colorprint, color='green')
         update_proctitle(queue_name)
@@ -603,11 +605,6 @@ def make_queue_loop(iface1, iface2, name=None):
                 print('Exiting %s' % (loop_name,))
     ut.set_funcname(queue_loop, loop_name)
     return queue_loop
-
-
-def collect_queue_loop(port_dict):
-    return make_queue_loop(port_dict['collect_url1'], port_dict['collect_url2'],
-                           name='collect')
 
 
 def engine_queue_loop(port_dict):
