@@ -532,11 +532,11 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
     else:
         isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
         if isunknown1 and isunknown2:
-            print('...nonmatch unknown1 and unknown2 into 2 new names')
+            print('...nomatch unknown1 and unknown2 into 2 new names')
             next_nids = ibs.make_next_nids(num=2)
             status =  _set_annot_name_rowids([aid1, aid2], next_nids)
         elif not isunknown1 and not isunknown2:
-            print('...nonmatch known1 and known2... nothing to do (yet)')
+            print('...nomatch known1 and known2... nothing to do (yet)')
             ibs.set_annot_pair_as_reviewed(aid1, aid2)
             status = None
             if logger is not None:
@@ -544,11 +544,11 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
                 annot_uuid_pair = ibs.get_annot_uuids((aid1, aid2))
                 log('REVIEW_PAIR AS FALSE: (annot_uuid_pair=%r) NO CHANGE' % annot_uuid_pair)
         elif isunknown2 and not isunknown1:
-            print('...nonmatch unknown2 -> newname and known1')
+            print('...nomatch unknown2 -> newname and known1')
             next_nids = ibs.make_next_nids(num=1)
             status =  _set_annot_name_rowids([aid2], next_nids)
         elif isunknown1 and not isunknown2:
-            print('...nonmatch unknown1 -> newname and known2')
+            print('...nomatch unknown1 -> newname and known2')
             next_nids = ibs.make_next_nids(num=1)
             status =  _set_annot_name_rowids([aid1], next_nids)
         else:

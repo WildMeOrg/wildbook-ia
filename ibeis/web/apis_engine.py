@@ -308,7 +308,7 @@ def start_identify_annots_query(ibs,
     """
     valid_states = {
         'match': ['matched'],  # ['match', 'matched'],
-        'nonmatch': ['notmatched'],  # ['nonmatch', 'notmatched', 'nonmatched', 'notmatch', 'non-match', 'not-match'],
+        'nomatch': ['notmatched', 'nonmatch'],  # ['nomatch', 'notmatched', 'nonmatched', 'notmatch', 'non-match', 'not-match'],
         'notcomp' :  ['notcomparable'],
     }
     prefered_states = ut.take_column(valid_states.values(), 0)
@@ -378,7 +378,7 @@ def start_identify_annots_query(ibs,
         'aid1'      : ibs.get_annot_aids_from_uuid(ut.take_column(matching_state_list, 0)),
         'aid2'      : ibs.get_annot_aids_from_uuid(ut.take_column(matching_state_list, 1)),
         'p_match'   : [1.0 if state in valid_states['match'] else 0.0 for state in state_list],
-        'p_nomatch' : [1.0 if state in valid_states['nonmatch'] else 0.0 for state in state_list],
+        'p_nomatch' : [1.0 if state in valid_states['nomatch'] else 0.0 for state in state_list],
         'p_notcomp' : [1.0 if state in valid_states['notcomp'] else 0.0 for state in state_list],
     }
 

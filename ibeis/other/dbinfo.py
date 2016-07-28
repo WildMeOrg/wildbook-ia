@@ -395,7 +395,7 @@ def split_analysis(ibs):
         for aid1, aid2 in bad_edges:
             if infr.graph.has_edge(aid1, aid2):
                 flipped_edges.append((aid1, aid2))
-            infr.add_feedback(aid1, aid2, 'nonmatch')
+            infr.add_feedback(aid1, aid2, 'nomatch')
         infr.apply_feedback()
         nx.set_edge_attributes(infr.graph, '_speed_split', 'orig')
         nx.set_edge_attributes(infr.graph, '_speed_split',
@@ -421,9 +421,9 @@ def split_analysis(ibs):
             subgraph_sizes = [len(g) for g in subgraphs]
 
             info = ut.odict([
-                ('num_nonmatch_edges', state_hist['nonmatch']),
+                ('num_nonmatch_edges', state_hist['nomatch']),
                 ('num_match_edges', state_hist['match']),
-                ('frac_nonmatch_edges',  state_hist['nonmatch'] / (state_hist['match'] + state_hist['nonmatch'])),
+                ('frac_nonmatch_edges',  state_hist['nomatch'] / (state_hist['match'] + state_hist['nomatch'])),
                 ('num_inconsistent', num_inconsistent),
                 ('num_ccs', num_ccs),
                 ('edges_flipped', hist.get('flip', 0)),

@@ -514,7 +514,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         print('BREAK LINK self.selected_aids = %r' % (self.selected_aids,))
         import itertools
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
-            self.infr.add_feedback(aid1, aid2, 'nonmatch')
+            self.infr.add_feedback(aid1, aid2, 'nomatch')
         self.infr.apply_feedback()
         self.show_page()
 

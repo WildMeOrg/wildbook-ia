@@ -283,7 +283,7 @@ else:
 
 
 # TODO: rename to same / different
-# add add match, nonmatch, notcomp
+# add add match, nomatch, notcomp
 TRUTH_UNKNOWN = 2
 TRUTH_MATCH = 1
 TRUTH_NOT_MATCH = 0

@@ -32,9 +32,10 @@ def _dz(a, b):
 
 def get_cm_breaking(qreq_, cm_list, ranks_top=None, ranks_bot=None):
     """
+        >>> from ibeis.algo.hots.graph_iden import *  # NOQA
     """
     # Construct K-broken graph
-    qaid_list = [cm.qaid for cm in cm_list]
+    #qaid_list = [cm.qaid for cm in cm_list]
     edges = []
     edge_data = []
 
@@ -58,8 +59,8 @@ def get_cm_breaking(qreq_, cm_list, ranks_top=None, ranks_bot=None):
         rank_list = ut.take(rank_list, short_sortx)
 
         for score, rank, daid in zip(score_list, rank_list, daid_list):
-            if daid not in qaid_list:
-                continue
+            #if daid not in qaid_list:
+            #    continue
             data = {
                 'score': score,
                 'rank': rank,
@@ -332,38 +333,44 @@ class InfrModel(ut.NiceRepr):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class OrigAnnotInferenceVisualization(object):
+class AnnotInferenceVisualization(object):
     """ contains plotting related code """
 
     truth_colors = {
         'match': pt.TRUE_GREEN,
         #'match': pt.TRUE_BLUE,
-        'nonmatch': pt.FALSE_RED,
+        'nomatch': pt.FALSE_RED,
         'notcomp': pt.YELLOW,
         'unreviewed': pt.UNKNOWN_PURP
     }
 
-    def initialize_visual_node_attrs(infr):
+    def initialize_visual_node_attrs(infr, graph=None):
         if infr.verbose:
             print('[infr] initialize_visual_node_attrs')
         import networkx as nx
         #import plottool as pt
-        graph = infr.graph
-        node_to_aid = nx.get_node_attrs(graph, 'aid')
-        nodes = list(graph.nodes())
-        aid_list = [node_to_aid.get(node, node) for node in nodes]
-        #aid_list = sorted(list(graph.nodes()))
+        if graph is None:
+            graph = infr.graph
+        #node_to_aid = infr.node_to_aid
+        aid_to_node = infr.aid_to_node
+        #nx.get_node_attrs(graph, 'aid')
+        #nodes = list(graph.nodes())
+        aid_list = list(aid_to_node.keys())
+        annot_nodes = ut.take(aid_to_node, aid_list)
+        #aid_list = [node_to_aid.get(node, node) for node in nodes]
         chip_width = 256
         imgpath_list = infr.ibs.depc_annot.get('chips', aid_list, 'img',
                                                config=dict(dim_size=chip_width),
                                                read_extern=False)
         nx.set_node_attrs(graph, 'framewidth', 3.0)
         #nx.set_node_attrs(graph, 'framecolor', pt.DARK_BLUE)
-        nx.set_node_attrs(graph, 'shape', 'rect')
-        nx.set_node_attrs(graph, 'image', dict(zip(nodes, imgpath_list)))
+        nx.set_node_attrs(graph, 'shape', _dz(annot_nodes, ['rect']))
+        nx.set_node_attrs(graph, 'image', _dz(annot_nodes, imgpath_list))
 
-    def get_colored_edge_weights(infr):
+    def get_colored_edge_weights(infr, graph=None):
         # Update color and linewidth based on scores/weight
+        if graph is None:
+            graph = infr.graph
         edges = list(infr.graph.edges())
         edge2_weight = nx.get_edge_attrs(infr.graph, CUT_WEIGHT_KEY)
         #edges = list(edge2_weight.keys())
@@ -403,12 +410,14 @@ class OrigAnnotInferenceVisualization(object):
                 'headlabel', 'linestyle', 'color', 'stroke', 'lw', 'end_pt',
                 'start_pt', 'head_lp', 'alpha', 'ctrl_pts', 'pos', 'zorder']
 
-    def update_visual_attrs(infr, show_cuts=False, show_reviewed_cuts=True,
-                            only_reviewed=False):
+    def update_visual_attrs(infr, graph=None, show_cuts=False,
+                            show_reviewed_cuts=True, only_reviewed=False):
         if infr.verbose:
             print('[infr] update_visual_attrs')
         #edge2_weight = nx.get_edge_attrs(infr.graph, 'score')
-        graph = infr.graph
+        if graph is None:
+            # Hack for name_graph
+            graph = infr.graph
         ut.nx_delete_edge_attr(graph, 'style')
         ut.nx_delete_edge_attr(graph, 'implicit')
         ut.nx_delete_edge_attr(graph, 'color')
@@ -416,22 +425,23 @@ class OrigAnnotInferenceVisualization(object):
         ut.nx_delete_edge_attr(graph, 'stroke')
         ut.nx_delete_edge_attr(graph, 'alpha')
         ut.nx_delete_edge_attr(graph, 'linestyle')
+        ut.nx_delete_edge_attr(graph, 'label')
 
-        # Set node labels
-        node_to_aid = nx.get_node_attrs(infr.graph, 'aid')
-        node_to_nid = nx.get_node_attrs(infr.graph, 'name_label')
-        node2_label = {
+        # Set annotation node labels
+        node_to_aid = nx.get_node_attrs(graph, 'aid')
+        node_to_nid = nx.get_node_attrs(graph, 'name_label')
+        annotnode_to_label = {
             #node: '%d:aid=%r' % (node, aid)
             node: 'aid=%r\nnid=%r' % (aid, node_to_nid[node])
             for node, aid in node_to_aid.items()
         }
-        nx.set_node_attributes(infr.graph, 'label', node2_label)
+        nx.set_node_attributes(graph, 'label', annotnode_to_label)
 
         # Color nodes by name label
         ut.color_nodes(graph, labelattr='name_label')
 
         # Update color and linewidth based on scores/weight
-        edges, edge_weights, edge_colors = infr.get_colored_edge_weights()
+        edges, edge_weights, edge_colors = infr.get_colored_edge_weights(graph)
         #nx.set_edge_attrs(graph, 'len', _dz(edges, [10]))
         nx.set_edge_attrs(graph, 'color', _dz(edges, edge_colors))
         maxlw = 4
@@ -459,7 +469,7 @@ class OrigAnnotInferenceVisualization(object):
 
         # Non-matching edges should not impose a constraint on the graph layout
         nonmatch_edges = {edge: state for edge, state in reviewed_states.items()
-                          if state == 'nonmatch'}
+                          if state == 'nomatch'}
         nx.set_edge_attrs(graph, 'implicit', _dz(nonmatch_edges, [True]))
 
         if only_reviewed:
@@ -481,8 +491,8 @@ class OrigAnnotInferenceVisualization(object):
         nx.set_edge_attrs(graph, 'alpha', _dz(mst_edges, [.5]))
 
         nodes = list(graph.nodes())
-        nx.set_node_attributes(infr.graph, 'zorder', _dz(nodes, [10]))
-        nx.set_edge_attributes(infr.graph, 'zorder', _dz(edges, [0]))
+        nx.set_node_attributes(graph, 'zorder', _dz(nodes, [10]))
+        nx.set_edge_attributes(graph, 'zorder', _dz(edges, [0]))
 
         # update the positioning layout
         layoutkw = dict(
@@ -494,19 +504,34 @@ class OrigAnnotInferenceVisualization(object):
         )
         pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
-    def show_graph(infr, use_image=False, only_reviewed=False):
-        infr.update_visual_attrs(only_reviewed=only_reviewed)
-        plotinfo = pt.show_nx(
-            infr.graph, layout='custom', as_directed=False, modify_ax=False,
-            use_image=use_image, verbose=0)
+    def show_graph(infr, use_image=False, only_reviewed=False, show_cuts=False):
+        infr.update_visual_attrs(only_reviewed=only_reviewed, show_cuts=False)
+        graph = infr.graph
+        plotinfo = pt.show_nx(graph, layout='custom', as_directed=False,
+                              modify_ax=False, use_image=use_image, verbose=0)
         pt.zoom_factory()
         pt.pan_factory(pt.gca())
-        plotinfo
+
+        # Draw a colorbar
+        xy = (1, infr.thresh)
+        xytext = (2.5, .3 if infr.thresh < .5 else .7)
+
+        _normal_ticks = np.linspace(0, 1, num=11)
+        _normal_scores = np.linspace(0, 1, num=500)
+        _normal_colors = infr.get_colored_weights(_normal_scores)
+        cb = pt.colorbar(_normal_scores, _normal_colors, lbl='weights',
+                         ticklabels=_normal_ticks)
+        ta = cb.ax.annotate('threshold', xy=xy, xytext=xytext,
+                            arrowprops=dict(
+                                alpha=.5, fc="0.6",
+                                connectionstyle="angle3,angleA=90,angleB=0"),)
+        #return cb, ta
+        plotinfo, ta, cb
         #return plotinfo
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class AnnotInference(ut.NiceRepr, OrigAnnotInferenceVisualization):
+class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
     """
     Sandbox class for maintaining state of an identification
 
@@ -522,7 +547,7 @@ class AnnotInference(ut.NiceRepr, OrigAnnotInferenceVisualization):
     """
 
     truth_texts = {
-        0: 'nonmatch',
+        0: 'nomatch',
         1: 'match',
         2: 'notcomp',
         3: 'unreviewed',
@@ -548,6 +573,56 @@ class AnnotInference(ut.NiceRepr, OrigAnnotInferenceVisualization):
         infr.qreq_ = None
         if autoinit:
             infr.initialize_graph()
+
+    def augment_name_nodes(infr):
+        raise NotImplementedError('do not use')
+        # If we want to represent name nodes in the graph
+        name_graph = infr.graph.copy()
+        #infr.qreq_.dnid_list
+        #infr.qreq_.daid_list
+        daids = infr.qreq_.daids
+        dnids = infr.qreq_.get_qreq_annot_nids(daids)
+        unique_dnids = ut.unique(dnids)
+        dname_nodes = [('nid', nid) for nid in unique_dnids]
+        name_graph.add_nodes_from(dname_nodes)
+        nx.set_node_attributes(name_graph, 'nid', _dz(dname_nodes, unique_dnids))
+
+        node_to_nid = nx.get_node_attrs(name_graph, 'nid')
+        nid_to_node = ut.invert_dict(node_to_nid)
+
+        dannot_nodes = ut.take(infr.aid_to_node, daids)
+        dname_nodes = ut.take(nid_to_node, dnids)
+        name_graph.add_edges_from(zip(dannot_nodes, dname_nodes))
+
+        #graph = infr.graph
+        graph = name_graph
+        nx.set_node_attrs(name_graph, 'name_label', node_to_nid)
+        infr.initialize_visual_node_attrs(graph)
+        nx.set_node_attrs(graph, 'shape', _dz(dname_nodes, ['circle']))
+        infr.update_visual_attrs(graph=name_graph, show_cuts=False)
+        namenode_to_label = {
+            node: 'nid=%r' % (nid,)
+            for node, nid in node_to_nid.items()
+        }
+        nx.set_node_attributes(name_graph, 'label', namenode_to_label)
+        pt.show_nx(graph, layout='custom', as_directed=False, modify_ax=False,
+                   use_image=False, verbose=0)
+        pt.zoom_factory()
+        pt.pan_factory(pt.gca())
+
+        #dannot_nodes = ut.take(infr.aid_to_node, dnids)
+        pass
+
+    @classmethod
+    def from_qreq_(cls, qreq_, cm_list):
+        raise NotImplementedError('do not use')
+        aids = ut.unique(ut.flatten([qreq_.qaids, qreq_.daids]))
+        nids = qreq_.get_qreq_annot_nids(aids)
+        ibs = qreq_.ibs
+        infr = cls(ibs, aids, nids, verbose=False)
+        infr.cm_list = cm_list
+        infr.qreq_ = qreq_
+        return infr
 
     def __nice__(infr):
         if infr.graph is None:
@@ -597,7 +672,7 @@ class AnnotInference(ut.NiceRepr, OrigAnnotInferenceVisualization):
         for count, subgraph in enumerate(cc_subgraphs):
             reviewed_states = nx.get_edge_attrs(subgraph, 'reviewed_state')
             inconsistent_edges = [edge for edge, val in reviewed_states.items()
-                                  if val == 'nonmatch']
+                                  if val == 'nomatch']
             if len(inconsistent_edges) > 0:
                 #print('Inconsistent')
                 num_inconsistent += 1
@@ -613,7 +688,7 @@ class AnnotInference(ut.NiceRepr, OrigAnnotInferenceVisualization):
         for count, subgraph in enumerate(cc_subgraphs):
             reviewed_states = nx.get_edge_attrs(subgraph, 'reviewed_state')
             inconsistent_edges = [edge for edge, val in reviewed_states.items()
-                                  if val == 'nonmatch']
+                                  if val == 'nomatch']
             if len(inconsistent_edges) > 0:
                 #print('Inconsistent')
                 num_inconsistent += 1
@@ -707,6 +782,7 @@ class AnnotInference(ut.NiceRepr, OrigAnnotInferenceVisualization):
         graph.add_nodes_from(infr.aids)
 
         node_to_aid = {aid: aid for aid in infr.aids}
+        infr.node_to_aid = node_to_aid
         node_to_nid = {aid: nid for aid, nid in
                        zip(infr.aids, infr.orig_name_labels)}
         assert len(node_to_nid) == len(node_to_aid), '%r - %r' % (
@@ -714,7 +790,6 @@ class AnnotInference(ut.NiceRepr, OrigAnnotInferenceVisualization):
         nx.set_node_attrs(graph, 'aid', node_to_aid)
         nx.set_node_attrs(graph, 'name_label', node_to_nid)
         nx.set_node_attrs(graph, 'orig_name_label', node_to_nid)
-        infr.node_to_aid = node_to_aid
         infr.aid_to_node = ut.invert_dict(infr.node_to_aid)
 
     #def add_edges(infr, aid_pairs):
@@ -807,7 +882,13 @@ class AnnotInference(ut.NiceRepr, OrigAnnotInferenceVisualization):
             print('[infr] add_feedback(%r, %r, %r)' % (aid1, aid2, state))
 
         edge = tuple(sorted([aid1, aid2]))
-        if state == 'unreviewed':
+        if isinstance(state, dict):
+            assert 'p_match' in state
+            assert 'p_nomatch' in state
+            assert 'p_notcomp' in state
+            review = state
+            infr.user_feedback[edge].append(review)
+        elif state == 'unreviewed':
             if edge in infr.user_feedback:
                 del infr.user_feedback[edge]
         else:
@@ -818,8 +899,8 @@ class AnnotInference(ut.NiceRepr, OrigAnnotInferenceVisualization):
             }
             if state == 'match':
                 review['p_match'] = 1.0
-            elif state == 'nonmatch':
-                review['p_nonmatch'] = 1.0
+            elif state == 'nomatch':
+                review['p_nomatch'] = 1.0
             elif state == 'notcomp':
                 review['p_notcomp'] = 1.0
             else:
@@ -1074,31 +1155,15 @@ class AnnotInference(ut.NiceRepr, OrigAnnotInferenceVisualization):
 
         qreq_ = infr.qreq_
         cm_list = infr.cm_list
-        ranks_top = review_cfg.get('ranks_top', 2)
-        ranks_bot = review_cfg.get('ranks_bot', 2)
+        ranks_top = review_cfg.get('ranks_top', None)
+        ranks_bot = review_cfg.get('ranks_bot', None)
         undirected_edges = get_cm_breaking(qreq_, cm_list,
                                            ranks_top=ranks_top,
                                            ranks_bot=ranks_bot)
-
-        # Do some normalization of scores
         edges = list(undirected_edges.keys())
-        #edge_scores = np.array(list(ut.take_column(undirected_edges.values(), 'score')))
-        #edge_ranks = np.array(list(ut.take_column(undirected_edges.values(), 'rank')))
-        #normscores = edge_scores / np.nanmax(edge_scores)
-        infr.remove_mst_edges()
-
         # Create match-based graph structure
+        infr.remove_mst_edges()
         infr.graph.add_edges_from(edges)
-        ## Remove existing attrs
-        #ut.nx_delete_edge_attr(infr.graph, 'score')
-        #ut.nx_delete_edge_attr(infr.graph, 'rank')
-        #ut.nx_delete_edge_attr(infr.graph, 'normscore')
-        ## Add new attrs
-        #nx.set_edge_attrs(infr.graph, 'score', dict(zip(edges, edge_scores)))
-        #nx.set_edge_attrs(infr.graph, 'rank', dict(zip(edges, edge_ranks)))
-        #nx.set_edge_attrs(infr.graph, 'normscore', dict(zip(edges, normscores)))
-        #infr.thresh = infr.get_threshold()
-
         infr.ensure_mst()
 
     def apply_feedback_edges(infr):

@@ -20,7 +20,6 @@ class OrigAnnotInference(object):
         python -m ibeis.algo.hots.orig_graph_iden OrigAnnotInference --no-cnn
         python -m ibeis.algo.hots.orig_graph_iden OrigAnnotInference:0 --no-cnn
         python -m ibeis.algo.hots.orig_graph_iden OrigAnnotInference:1 --no-cnn
-
         python -m ibeis.algo.hots.orig_graph_iden OrigAnnotInference:2 --show
 
     Example:
@@ -265,11 +264,15 @@ class OrigAnnotInference(object):
         graph = self.make_graph()
 
         # hack for orig aids
-        orig_aid2_nid = {}
-        for cm in cm_list:
-            orig_aid2_nid[cm.qaid] = cm.qnid
-            for daid, dnid in zip(cm.daid_list, cm.dnid_list):
-                orig_aid2_nid[daid] = dnid
+        all_aids = ut.flatten([self.qreq_.daids, self.qreq_.qaids])
+        all_nids = self.qreq_.get_qreq_annot_nids(all_aids)
+        orig_aid2_nid = dict(zip(all_aids, all_nids))
+
+        #orig_aid2_nid = {}
+        #for cm in cm_list:
+        #    orig_aid2_nid[cm.qaid] = cm.qnid
+        #    for daid, dnid in zip(cm.daid_list, cm.dnid_list):
+        #        orig_aid2_nid[daid] = dnid
 
         cluster_aids = []
         cluster_nids = []
@@ -344,7 +347,34 @@ class OrigAnnotInference(object):
                 cluster_tuples.append(tup)
         return cluster_tuples
 
+    def make_inference2(self):
+        raise NotImplementedError('do not use')
+        #import utool
+        #utool.embed()
+
+        from ibeis.algo.hots import graph_iden
+        graph_iden.rrr()
+        qreq_ = self.qreq_
+        cm_list = self.cm_list
+        infr = graph_iden.AnnotInference.from_qreq_(qreq_, cm_list)
+        infr.initialize_graph()
+        infr.initialize_visual_node_attrs()
+        infr.apply_match_edges()
+        infr.apply_match_scores()
+        infr.apply_weights()
+        infr.apply_cuts()
+
+        if self.user_feedback is not None:
+            for state in self.user_feedback:
+                infr.add_feedback(state)
+
+        infr.augment_name_nodes()
+
+        infr.show_graph(show_cuts=True)
+
     def make_inference(self):
+        #self.make_inference2()
+
         cm_list = self.cm_list
         unique_nids, prob_names = self.make_prob_names()
         cluster_tuples = self.make_clusters()
