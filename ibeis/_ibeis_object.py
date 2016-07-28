@@ -25,25 +25,36 @@ def _find_ibeis_attrs(ibs, objname, blacklist=[]):
         >>> from ibeis._ibeis_object import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> objname = 'annots'
+        >>> objname = 'annot'
         >>> blacklist = ['annot_pair']
         >>> _find_ibeis_attrs(ibs, objname, blacklist)
     """
     import re
     getter_prefix = 'get_' + objname + '_'
-    found_funcnames = ut.search_module(ibs, getter_prefix)
+    found_getters = ut.search_module(ibs, getter_prefix)
     pat = getter_prefix + ut.named_field('attr', '.*')
     for stopword in blacklist:
-        found_funcnames = [fn for fn in found_funcnames if stopword not in fn]
-    matched_attrs = [re.match(pat, fn).groupdict()['attr'] for fn in found_funcnames]
-    return matched_attrs
+        found_getters = [fn for fn in found_getters if stopword not in fn]
+    matched_getters = [re.match(pat, fn).groupdict()['attr'] for fn in found_getters]
+
+    setter_prefix = 'set_' + objname + '_'
+    found_setters = ut.search_module(ibs, setter_prefix)
+    pat = setter_prefix + ut.named_field('attr', '.*')
+    for stopword in blacklist:
+        found_setters = [fn for fn in found_setters if stopword not in fn]
+    matched_setters = [re.match(pat, fn).groupdict()['attr'] for fn in found_setters]
+    return matched_getters, matched_setters
 
 
 def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
-                         depc_name=None, depcache_attrs=None):
+                         depc_name=None, depcache_attrs=None, settable_attrs=None):
     """
     for use in the metaclass
     """
+
+    if settable_attrs is None:
+        settable_attrs = []
+    settable_attrs = set(settable_attrs)
 
     def _make_getter(objname, attrname):
         ibs_funcname = 'get_%s_%s' % (objname, attrname)
@@ -55,6 +66,17 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
                 return ibs_callable(self._rowids, *args, **kwargs)
         ut.set_funcname(ibs_getter, ibs_funcname)
         return ibs_getter
+
+    def _make_setter(objname, attrname):
+        ibs_funcname = 'set_%s_%s' % (objname, attrname)
+        def ibs_setter(self, values, *args, **kwargs):
+            if self._ibs is None:
+                return self._internal_attrs[attrname]
+            else:
+                ibs_callable = getattr(self._ibs, ibs_funcname)
+                return ibs_callable(self._rowids, values, *args, **kwargs)
+        ut.set_funcname(ibs_setter, ibs_funcname)
+        return ibs_setter
 
     def _make_configurable_getter(objname, attrname):
         ibs_funcname = 'get_%s_%s' % (objname, attrname)
@@ -82,7 +104,13 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
     for attrname in attrs:
         ibs_getter = _make_getter(objname, attrname)
         setattr(metaself, '_get_' + attrname, ibs_getter)
-        setattr(metaself, attrname, property(ibs_getter))
+        if attrname in settable_attrs:
+            ibs_setter = _make_setter(objname, attrname)
+            setattr(metaself, '_set_' + attrname, ibs_setter)
+        else:
+            ibs_setter = None
+        prop = property(fget=ibs_getter, fset=ibs_setter)
+        setattr(metaself, attrname, prop)
 
     for attrname in configurable_attrs:
         ibs_cfg_getter = _make_configurable_getter(objname, attrname)

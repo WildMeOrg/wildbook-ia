@@ -80,6 +80,45 @@ def detect_sharks():
         inter.start()
 
 
+def purge_ensure_one_annot_per_images(ibs):
+    """
+    pip install Pipe
+    """
+    # Purge all but one annotation
+    images = ibs.images()
+    #images.aids
+    groups = images._annot_groups
+    import numpy as np
+    # Take all but the largest annotations per images
+    large_masks = [ut.index_to_boolmask([np.argmax(x)], len(x)) for x in groups.bbox_area]
+    small_masks = ut.lmap(ut.not_list, large_masks)
+    # Remove all but the largets annotation
+    small_aids = ut.zipcompress(groups.aid, small_masks)
+    small_aids = ut.flatten(small_aids)
+
+    # Fix any empty images
+    images = ibs.images()
+    empty_images = ut.where(np.array(images.num_annotations) == 0)
+    print('empty_images = %r' % (empty_images,))
+    #list(map(basename, map(dirname, images.uris_original)))
+
+    from os.path import basename, dirname
+
+    def VecPipe(func):
+        import pipe
+        @pipe.Pipe
+        def wrapped(sequence):
+            return map(func, sequence)
+            #return (None if item is None else func(item) for item in sequence)
+        return wrapped
+
+    name_list = list(images.uris_original | VecPipe(dirname) | VecPipe(basename))
+    aids_list = images.aids
+    ut.assert_all_eq(list(aids_list | VecPipe(len)))
+    annots = ibs.annots(ut.flatten(aids_list))
+    annots.names = name_list
+
+
 def shark_misc():
     import ibeis
     ibs = ibeis.opendb('WS_ALL')

@@ -21,38 +21,72 @@ def annots(ibs, aids=None, config=None):
     return Annots(aids, ibs, config)
 
 
-class AnnotIBIESPropertyInjector(BASE_TYPE):
-    def __init__(metaself, name, bases, dct):
-        super(AnnotIBIESPropertyInjector, metaself).__init__(name, bases, dct)
-        metaself.rrr = rrr
-        attrs = [
-            'aid',
-            'parent_aid',
+@register_ibs_method
+def _annot_groups(ibs, aids_list=None, config=None):
+    annots_list = [ibs.annots(aids, config) for aids in aids_list]
+    return AnnotGroups(annots_list, ibs)
 
-            'uuids', 'hashid_uuid', 'visual_uuids', 'hashid_visual_uuid',
-            'semantic_uuids', 'hashid_semantic_uuid', 'verts', 'thetas',
-            'species_uuids', 'species', 'species_rowids', 'species_texts',
-            'yaw_texts', 'yaws', 'qualities', 'quality_texts',
-            'exemplar_flags',
-            # Images
-            # 'image_rowids',
-            'gids', 'image_uuids', 'image_gps', 'image_unixtimes_asfloat',
-            'image_datetime_str', 'image_contributor_tag',
-            # Names
-            'nids', 'names', 'name_uuids',
-            # Inferred from context attrs
-            'contact_aids', 'num_contact_aids', 'groundfalse', 'groundtruth',
-            'num_groundtruth', 'has_groundtruth', 'otherimage_aids',
-            # Image Set
-            'imgset_uuids', 'imgsetids', 'image_set_texts',
-            # Occurrence / Encounter
-            'encounter_text', 'occurrence_text', 'primary_imageset',
-            # Tags
-            'all_tags', 'case_tags', 'annotmatch_tags', 'notes',
-            # Processing State
-            'reviewed', 'reviewed_matching_aids', 'has_reviewed_matching_aids',
-            'num_reviewed_matching_aids', 'detect_confidence',
-        ]
+
+ANNOT_BASE_ATTRS = [
+    'aid',
+    'parent_aid',
+
+    'uuids', 'hashid_uuid', 'visual_uuids', 'hashid_visual_uuid',
+    'semantic_uuids', 'hashid_semantic_uuid', 'verts', 'thetas',
+    'bboxes', 'bbox_area',
+    'species_uuids', 'species', 'species_rowids', 'species_texts', 'yaw_texts',
+    'yaws', 'qualities', 'quality_texts', 'exemplar_flags',
+    # Images
+    # 'image_rowids',
+    'gids', 'image_uuids', 'image_gps', 'image_unixtimes_asfloat',
+    'image_datetime_str', 'image_contributor_tag',
+    # Names
+    'nids', 'names', 'name_uuids',
+    # Inferred from context attrs
+    'contact_aids', 'num_contact_aids', 'groundfalse', 'groundtruth',
+    'num_groundtruth', 'has_groundtruth', 'otherimage_aids',
+    # Image Set
+    'imgset_uuids', 'imgsetids', 'image_set_texts',
+    # Occurrence / Encounter
+    'encounter_text', 'occurrence_text', 'primary_imageset',
+    # Tags
+    'all_tags', 'case_tags', 'annotmatch_tags', 'notes',
+    # Processing State
+    'reviewed', 'reviewed_matching_aids', 'has_reviewed_matching_aids',
+    'num_reviewed_matching_aids', 'detect_confidence',
+]
+
+ANNOT_SETTABLE_ATTRS = [
+    'age_months_est_max', 'age_months_est_min',
+    'bboxes', 'thetas', 'verts',
+    'quality_texts', 'yaw_texts', 'yaws'
+    'sex', 'sex_texts', 'species',
+    'exemplar_flags',
+    'multiple',
+    'detect_confidence', 'reviewed',
+    'name_texts', 'names',
+    'notes',
+    'parent_rowid',
+]
+
+
+class _AnnotPropInjector(BASE_TYPE):
+    """
+    Example:
+        >>> from ibeis import _ibeis_object
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> objname = 'annot'
+        >>> blacklist = ['annot_pair']
+        >>> _ibeis_object._find_ibeis_attrs(ibs, objname, blacklist)
+    """
+    def __init__(metaself, name, bases, dct):
+        super(_AnnotPropInjector, metaself).__init__(name, bases, dct)
+        metaself.rrr = rrr
+
+        attrs = ANNOT_BASE_ATTRS
+
+        settable_attrs = ANNOT_SETTABLE_ATTRS
 
         configurable_attrs = [
             # Chip
@@ -94,7 +128,7 @@ class AnnotIBIESPropertyInjector(BASE_TYPE):
         objname = 'annot'
         _ibeis_object._inject_getter_attrs(metaself, objname, attrs,
                                            configurable_attrs, 'depc_annot',
-                                           depcache_attrs)
+                                           depcache_attrs, settable_attrs)
 
         # TODO: incorporate dynamic setters
         #def set_case_tags(self, tags):
@@ -105,7 +139,7 @@ class AnnotIBIESPropertyInjector(BASE_TYPE):
 
 
 @ut.reloadable_class
-@six.add_metaclass(AnnotIBIESPropertyInjector)
+@six.add_metaclass(_AnnotPropInjector)
 class Annots(_ibeis_object.PrimaryObject):
     """
     Represents a group of annotations. Efficiently accesses properties from a
@@ -182,26 +216,63 @@ class Annots(_ibeis_object.PrimaryObject):
         return [core_annots.make_hog_block_image(hog) for hog in self.hog_hog]
 
 
+class _AnnotGroupPropInjector(BASE_TYPE):
+    def __init__(metaself, name, bases, dct):
+        super(_AnnotGroupPropInjector, metaself).__init__(name, bases, dct)
+        metaself.rrr = rrr
+
+        #attrs = ANNOT_BASE_ATTRS
+        #objname = 'annot'
+
+        # TODO: move to ibeis object as a group call
+        def _make_unflat_getter(objname, attrname):
+            ibs_funcname = 'get_%s_%s' % (objname, attrname)
+            def ibs_unflat_getter(self, *args, **kwargs):
+                ibs_callable = getattr(self._ibs, ibs_funcname)
+                rowids = self._rowids_list
+                ibs = self._ibs
+                return ibs.unflat_map(ibs_callable, rowids, *args, **kwargs)
+            ut.set_funcname(ibs_unflat_getter, 'unflat_' + ibs_funcname)
+            return ibs_unflat_getter
+
+        for attrname in ANNOT_BASE_ATTRS:
+            if hasattr(metaself, attrname):
+                print('Cannot inject annot group attrname = %r' % (attrname,))
+                continue
+            ibs_unflat_getter = _make_unflat_getter('annot', attrname)
+            setattr(metaself, '_unflat_get_' + attrname, ibs_unflat_getter)
+            setattr(metaself, attrname, property(ibs_unflat_getter))
+
+
 @ut.reloadable_class
+@six.add_metaclass(_AnnotGroupPropInjector)
 class AnnotGroups(ut.NiceRepr):
     """ Effciently handle operations on multiple groups of annotations """
-    def __init__(self, annots, ibs):
-        self.ibs = ibs
-        self.annots = annots
+    def __init__(self, annots_list, ibs):
+        self._ibs = ibs
+        self.annots_list = annots_list
+        self._rowids_list = [a._rowids for a in self.annots_list]
 
     def __nice__(self):
-        len_list = ut.lmap(len, self.annots)
         import numpy as np
-        return '(num=%r, mean=%.1f)' % (len(self.annots), np.mean(len_list))
+        len_list = ut.lmap(len, self.annots_list)
+        num = len(self.annots_list)
+        mean = np.mean(len_list)
+        std = np.std(len_list)
+        if six.PY3:
+            nice = '(n=%r, μ=%.1f, σ=%.1f)' % (num, mean, std)
+        else:
+            nice = '(n=%r, m=%.1f, s=%.1f)' % (num, mean, std)
+        return nice
 
     @property
     def aids(self):
-        return [a.aids for a in self.annots]
+        return [a.aids for a in self.annots_list]
 
     @property
     def case_tags(self):
-        ams_list = self.ibs.get_unflat_am_rowids(self.aids)
-        tags = self.ibs.unflat_map(self.ibs.get_annotmatch_case_tags, ams_list)
+        ams_list = self._ibs.get_unflat_am_rowids(self.aids)
+        tags = self._ibs.unflat_map(self._ibs.get_annotmatch_case_tags, ams_list)
         return tags
 
 

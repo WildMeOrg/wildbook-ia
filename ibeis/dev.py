@@ -402,6 +402,8 @@ def dev_snippets(main_locals):
             selection_model = view.selectionModel()
     if ibs is not None:
         #ibs.dump_tables()
+        annots = ibs.annots()
+        images = ibs.images()
         aid_list = ibs.get_valid_aids()
         gid_list = ibs.get_valid_gids()
         #nid_list = ibs.get_valid_nids()

@@ -83,6 +83,14 @@ class Images(_ibeis_object.PrimaryObject):
     def gids(self):
         return self._rowids
 
+    @property
+    def annots(self):
+        return [self._ibs.annots(aids) for aids in self.aids]
+
+    @property
+    def _annot_groups(self):
+        return self._ibs._annot_groups(self.annots)
+
 
 class ImageSetAttrInjector(BASE_TYPE):
     """
