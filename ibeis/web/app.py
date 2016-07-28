@@ -43,10 +43,12 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None):
         app = controller_inject.get_flask_app()
         app.ibs = ibs_
         # Try to ascertain the socket's domain name
+        socket.setdefaulttimeout(0.1)
         try:
             app.server_domain = socket.gethostbyname(socket.gethostname())
         except socket.gaierror:
             app.server_domain = '127.0.0.1'
+        socket.setdefaulttimeout(None)
         app.server_port = port_
         # URL for the web instance
         app.server_url = 'http://%s:%s' % (app.server_domain, app.server_port)
@@ -62,7 +64,15 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None):
         # WSGI is Python standard described in detail in PEP 3333
         http_server = tornado.httpserver.HTTPServer(
             tornado.wsgi.WSGIContainer(app))
-        http_server.listen(app.server_port)
+        try:
+            http_server.listen(app.server_port)
+        except socket.error:
+            while not ut.is_local_port_open(app.server_port):
+                app.server_port += 1
+            args = (app.server_port, )
+            message = 'The port specified for the IBEIS web interface is ' + \
+                      'not available. (Hint: port %d is available)' % args
+            raise RuntimeError(message)
         tornado.ioloop.IOLoop.instance().start()
 
     # Set logging level
