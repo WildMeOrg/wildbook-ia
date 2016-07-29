@@ -39,3 +39,18 @@
 * Fix database to store the UNKNOWN name as NULL instead of 0.
 * Fix database to use FOREIGN KEYS
 * Fix database to CREATE INDEX on the appropriate tables at build time instead of at call time.
+
+
+* Change annotation verts / bbox / theta such:
+(1) verts are primarily used instead of bboxes
+(2) that vert positions are not modified if theta is modified
+(3) theta indicates the way to rotate the chip after the image bounded by the
+    verts is extracted.
+(4) the bbox property gets a convex bbox around the verts. (this is shown in the thumbnails,
+but the verts are shown when editing)
+
+* Add notion of annotation parts
+
+* Better editing of annotation tags
+* Add tags for images as well.
+

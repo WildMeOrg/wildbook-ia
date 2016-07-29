@@ -711,6 +711,8 @@ def set_image_orientation(ibs, gid_list, orientation_list):
 @accessor_decors.getter_1to1
 def get_images(ibs, gid_list, force_orient=False, **kwargs):
     r"""
+    FIXME: rename to get_image_imgdata or something
+
     Returns:
         list_ (list): a list of images in numpy matrix form by gid
 
@@ -744,6 +746,13 @@ def get_images(ibs, gid_list, force_orient=False, **kwargs):
     zipped = zip(gpath_list, orient_list)
     image_list = [vt.imread(gpath, orient=orient) for gpath, orient in zipped]
     return image_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+def get_image_imgdata(ibs, gid_list, force_orient=False, **kwargs):
+    """ alias for get_images with standardized name """
+    return get_images(ibs, gid_list, force_orient=force_orient, **kwargs)
 
 
 @register_ibs_method

@@ -47,8 +47,8 @@ class ImageIBEISPropertyInjector(BASE_TYPE):
                  'species_uuids', 'thumbpath', 'thumbtup', 'time_statstr',
                  'timedelta_posix', 'unixtime',
                  'uris',
-                 'uris_original',
-                 'uuids', 'widths']
+                 #'images',
+                 'uris_original', 'uuids', 'widths']
         #inverse_attrs = [
         #     'gids_from_uuid',
         #]

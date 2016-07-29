@@ -187,6 +187,11 @@ class PrimaryObject(ut.NiceRepr, ut.HashComparable2):
     def __len__(self):
         return len(self._rowids)
 
+    def __getitem__(self, idx):
+        if not isinstance(idx, slice):
+            raise AssertionError('only slice supported currently')
+        return self.take(idx)
+
     def take(self, idxs):
         rowids = ut.take(self._rowids, idxs)
         newself = self.__class__(rowids, self._ibs, self._config)
@@ -198,6 +203,11 @@ class PrimaryObject(ut.NiceRepr, ut.HashComparable2):
     def compress(self,  flags):
         idxs = ut.where(flags)
         return self.take(idxs)
+
+    def take_column(self, keys):
+        vals_list = zip(*[getattr(self, key) for key in keys])
+        dict_list = [dict(zip(keys, vals)) for vals in vals_list]
+        return dict_list
 
     def chunks(self,  chunksize):
         for idxs in ut.ichunks(self, range(len(self))):

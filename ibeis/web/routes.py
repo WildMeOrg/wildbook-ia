@@ -594,8 +594,52 @@ def turk():
     return appf.template('turk', None, imgsetid=imgsetid)
 
 
+#def _make_review_image_info(ibs, gid):
+#    """
+#    Example:
+#        >>> # DISABLE_DOCTEST
+#        >>> from ibeis.web.apis_detect import *  # NOQA
+#        >>> import ibeis
+#        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+#        >>> gid = ibs.get_valid_gids()[0]
+#    """
+#    import numpy as np
+#    images = ibs.images([gid])
+#    annots = images.annots[0]
+
+#    keys = ['bboxes', 'thetas', 'species_texts', 'case_tags', 'aid']
+#    intern_dict_list = annots.take_column(keys)
+#    extern_dict_list = []
+#    width, height = images.sizes[0]
+#    bbox_denom = np.array([width, height, width, height])
+
+#    annotation_list = []
+#    for aid in annots.aids:
+#        annot_ = ibs.annots(aid)
+#        bbox = np.array(annot_.bboxes[0])
+#        bbox_percent = bbox / bbox_denom * 100
+#        temp = {
+#            'left'   :  bbox_percent[0],
+#            'top'    :  bbox_percent[1],
+#            'width'  :  bbox_percent[2],
+#            'height' :  bbox_percent[3],
+#            'label'  :  annot_.species[0],
+#            'id'     :  annot_.aids[0],
+#            'theta'  :  annot_.thetas[0],
+#        }
+#    annotation_list.append(temp)
+
+#    vt.extent_from_bbox(np.array(annots.bboxes).T)
+
+#    for dict_ in intern_dict_list:
+#        vt.extent_from_bbox(bbox)
+#        dict_['bboxes']
+#        extern_dict_list
+
+
 @register_route('/turk/detection/', methods=['GET'])
 def turk_detection():
+
     ibs = current_app.ibs
     refer_aid = request.args.get('refer_aid', None)
     imgsetid = request.args.get('imgsetid', '')
