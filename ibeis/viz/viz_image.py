@@ -202,7 +202,7 @@ def show_image(ibs, gid, sel_aids=[], fnum=None, annote=True, draw_lbls=True,
     if fnum is None:
         fnum = pt.next_fnum()
     # Read Image
-    img = ibs.get_images(gid)
+    img = ibs.get_image_imgdata(gid)
     aid_list = ibs.get_image_aids(gid)
     if sel_aids == 'all':
         sel_aids = aid_list

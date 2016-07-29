@@ -55,7 +55,7 @@ def image_montage(ibs, gids, config=None):
         >>> ut.show_if_requested()
     """
     import vtool as vt
-    img_list = ibs.get_images(gids, config2_=config)
+    img_list = ibs.get_image_imgdata(gids, config2_=config)
     height = 2000
     dsize = (int(height * ut.PHI), height)
     dst = vt.montage(img_list , dsize)

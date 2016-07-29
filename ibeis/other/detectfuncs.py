@@ -86,7 +86,7 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
             out_img = out_name + ".jpg"
             folder = "IBEIS"
 
-            _image = ibs.get_images(gid)
+            _image = ibs.get_image_imgdata(gid)
             height, width, channels = _image.shape
 
             if width > height:
@@ -1560,7 +1560,7 @@ def _resize(image, t_width=None, t_height=None):
 @register_ibs_method
 def detect_write_detection_all(ibs):
     test_gid_list = ibs.get_valid_gids()
-    test_image_list = ibs.get_images(test_gid_list)
+    test_image_list = ibs.get_image_imgdata(test_gid_list)
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
 
     write_path = abspath(expanduser(join('~', 'Desktop')))

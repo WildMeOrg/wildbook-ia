@@ -98,7 +98,7 @@ class ClockOffsetWidget(QtWidgets.QWidget):
         if not co_wgt.hack:
             if co_wgt.imfig is not None:
                 pt.close_figure(co_wgt.imfig)
-            image = co_wgt.ibs.get_images(co_wgt.gid_list[co_wgt.current_gindex])
+            image = co_wgt.ibs.get_image_imgdata(co_wgt.gid_list[co_wgt.current_gindex])
             figtitle = "Time Synchronization Picture"
             co_wgt.imfig, co_wgt.imax = pt.imshow(image, fnum=co_wgt.fnum, title=figtitle)
             co_wgt.imfig.show()

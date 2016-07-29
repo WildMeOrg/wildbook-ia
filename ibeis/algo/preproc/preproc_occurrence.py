@@ -147,7 +147,7 @@ def compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=F
         >>> aids = ibs.filter_annots_general(aids, min_qual='ok', is_known=True)
         >>> gids = list(set(ibs.get_annot_gids(aids)))
         >>> print('len(aids) = %r' % (len(aids),))
-        >>> img_list = ibs.get_images(gids)
+        >>> img_list = ibs.get_image_imgdata(gids)
         >>> ut.quit_if_noshow()
         >>> from ibeis.viz import viz_graph
         >>> import plottool as pt

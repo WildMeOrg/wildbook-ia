@@ -101,7 +101,7 @@ def train_gid_list(ibs, gid_list, trees_path=None, species=None, setup=True,
                 if VERBOSE_RF:
                     print("[%d / %d] MINING NEGATIVE PATCH (%04d, %04d, %04d, %04d) FROM GID %d" % (
                         len(train_neg_cpath_list), len(train_pos_cpath_list), xmin, xmax, ymin, ymax, gid, ))
-                img = ibs.get_images(gid)
+                img = ibs.get_image_imgdata(gid)
                 img_path = join(negatives_cache, "neg_%07d.JPEG" % (len(train_neg_cpath_list), ))
                 img = img[ymin:ymax, xmin:xmax]
                 cv2.imwrite(img_path, img)

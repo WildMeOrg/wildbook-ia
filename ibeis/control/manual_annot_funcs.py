@@ -2133,7 +2133,7 @@ def get_annot_images(ibs, aid_list):
         [(715, 1047, 3)]
     """
     gid_list = ibs.get_annot_gids(aid_list)
-    image_list = ibs.get_images(gid_list)
+    image_list = ibs.get_image_imgdata(gid_list)
     return image_list
 
 

@@ -400,7 +400,7 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
     chip_list = []
     for gid, new_size, M in zip(gid_list, newsize_list, M_list):
         if gid != last_gid:
-            img = ibs.get_images(gid)
+            img = ibs.get_image_imgdata(gid)
             last_gid = gid
         chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
         # cv2.imshow('', chip)
@@ -578,7 +578,7 @@ def compute_detections(depc, gid_list, config=None):
         # print(result)
         # raw_input()
         # print('')
-        # image = ibs.get_images(gid)
+        # image = ibs.get_image_imgdata(gid)
         # image = vt.resize(image, (500, 500))
         # cv2.imshow('', image)
         # cv2.waitKey(0)

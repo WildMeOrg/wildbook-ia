@@ -49,7 +49,7 @@ class ANNOTATION_Interaction2(object):
         self.ibs = ibs
         self.gid = gid
         self.rows_updated_callback = rows_updated_callback
-        img = ibs.get_images(self.gid)
+        img = ibs.get_image_imgdata(self.gid)
         self.aid_list = ibs.get_image_aids(self.gid)
         bbox_list     = ibs.get_annot_bboxes(self.aid_list)
         #verts_list    = ibs.get_annot_verts(self.aid_list)  # TODO
@@ -146,7 +146,7 @@ class ANNOTATION_Interaction2(object):
                 self.interact_ANNOTATIONS.rrr()
             ibs = self.ibs
             self.gid = gid
-            img = ibs.get_images(self.gid)
+            img = ibs.get_image_imgdata(self.gid)
             self.aid_list = ibs.get_image_aids(self.gid)
             bbox_list = ibs.get_annot_bboxes(self.aid_list)
             theta_list = ibs.get_annot_thetas(self.aid_list)

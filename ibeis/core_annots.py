@@ -250,7 +250,7 @@ def compute_chip(depc, aid_list, config=None):
         gid, new_size, M = tup
         # Read parent image # TODO: buffer this
         if gid != last_gid:  # We assume the gids are nicely ordered, no need to load the image more than once, if so
-            imgBGR = ibs.get_images(gid)
+            imgBGR = ibs.get_image_imgdata(gid)
             last_gid = gid
         # Warp chip
         chipBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
