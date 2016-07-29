@@ -75,10 +75,11 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
     """
     def __init__(poly, ax, num, verts, theta, species, fc=(0, 0, 0),
                  line_color=(1, 1, 1), line_width=4, is_orig=False,
-                 metadata=None, valid_species=None):
+                 metadata=None, valid_species=None, manager=None):
 
         super(AnnotPoly, poly).__init__(verts, animated=True, fc=fc, ec='none',
                                         alpha=0)
+        poly.manager = manager
         # Ensure basecoords consistency
         poly.basecoords = vt.verts_from_bbox(vt.bbox_from_verts(poly.xy))
         #poly.basecoords = poly.xy
@@ -212,13 +213,15 @@ class AnnotPoly(mpl.patches.Polygon, ut.NiceRepr):
         return tagpos
 
     def calc_handle_display_coords(poly):
+        img_h = poly.manager.img.shape[0]
+        handle_length = img_h // 32
+        #MIN_HANDLE_LENGTH = 25
+        #handle_length = MIN_HANDLE_LENGTH
+        #handle_length = max(MIN_HANDLE_LENGTH, (h / 4))
         cx, cy = points_center(poly.xy)
         w, h = vt.get_pointset_extent_wh(np.array(poly.basecoords))
         x0, y0 = cx, (cy - (h / 2))  # start at top edge
-        MIN_HANDLE_LENGTH = 25
-        #HANDLE_LENGTH = max(MIN_HANDLE_LENGTH, (h / 4))
-        HANDLE_LENGTH = MIN_HANDLE_LENGTH
-        x1, y1 = (x0, y0 - HANDLE_LENGTH)
+        x1, y1 = (x0, y0 - handle_length)
         pts = [(x0, y0), (x1, y1)]
         pts = rotate_points_around(pts, poly.theta, cx, cy)
         return pts
@@ -650,8 +653,11 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
         """ verts - list of (x, y) tuples """
         # create new polygon from verts
         num = six.next(self._autoinc_polynum)
-        poly = AnnotPoly(self.ax, num, verts, theta, species, fc, line_color,
-                         line_width, is_orig, metadata, self.valid_species)
+        poly = AnnotPoly(ax=self.ax, num=num, verts=verts, theta=theta,
+                         species=species, fc=fc, line_color=line_color,
+                         line_width=line_width, is_orig=is_orig,
+                         metadata=metadata, valid_species=self.valid_species,
+                         manager=self)
         poly.set_picker(self.is_poly_pickable)
         return poly
 
