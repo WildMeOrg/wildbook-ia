@@ -2509,15 +2509,39 @@ class MainWindowBackend(GUIBACK_BASE):
         return species2_expanded_aids
 
     @blocking_slot()
-    def commit_to_wb_step(back, refresh=True):
+    def commit_to_wb_step(back, refresh=True, dry=False):
         """
         Step 6) Commit
 
         Sets all imagesets as reviwed and ships them to wildbook
 
         commit step
+
+        Args:
+            refresh (bool): (default = True)
+
+        CommandLine:
+            python -m ibeis.gui.guiback commit_to_wb_step --show
+
+        Example:
+            >>> # GUI_DOCTEST
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> import ibeis
+            >>> main_locals = ibeis.main(defaultdb='testdb1')
+            >>> ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
+            >>> ut.exec_funckw(back.do_group_occurrence_step, globals())
+            >>> dry = True
+            >>> back.do_group_occurrence_step(dry=dry)
+
+            >>> from ibeis.gui.guiback import *  # NOQA
+            >>> back =
+            >>> refresh = True
+            >>> result = back.commit_to_wb_step(refresh)
+            >>> print(result)
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> ut.show_if_requested()
         """
-        back.start_web_server_parallel(browser=False)
         imgsetid = back.get_selected_imgsetid()
         if back.contains_special_imagesets([imgsetid]) or imgsetid is None:
             back.user_warning(msg=ut.codeblock(
@@ -2528,33 +2552,35 @@ class MainWindowBackend(GUIBACK_BASE):
                 '''
             ))
         else:
-
             # Check to make sure imagesets are ok:
             # First, check if imageset can be pushed
             ibs = back.ibs
+
+            #imgsets = ibs.imagesets(imgsetid)
+            #aid_list = imgsets.aids[0]
             aid_list = ibs.get_imageset_aids(imgsetid)
 
             assert len(aid_list) > 0, (
                 'ImageSet imgsetid=%r cannot be shipped with0 annots' % (imgsetid,))
 
             unknown_flags = ibs.is_aid_unknown(aid_list)
-            nUnknown = sum(unknown_flags)
+            nUnnamed = sum(unknown_flags)
 
             unnamed_aid_list = ut.compress(aid_list, unknown_flags)
-            aid_list = ut.compress(aid_list, ut.not_list(unknown_flags))
-            nid2_aids = ut.group_items(aid_list, ibs.get_annot_nids(aid_list))
-            nMultiEncounters = sum([len(x) > 0 for x in nid2_aids.values()])
+            named_aid_list = ut.compress(aid_list, ut.not_list(unknown_flags))
+            nid2_aids = ut.group_items(named_aid_list, ibs.get_annot_nids(named_aid_list))
+            nMultiEncounters = sum([len(x) > 1 for x in nid2_aids.values()])
             nSingleEncounters = sum([len(x) == 1 for x in nid2_aids.values()])
 
             other_aids = ibs.get_annot_groundtruth(ut.take_column(nid2_aids.values(), 0), is_exemplar=True)
             other_aids = [set(aids) - set(aid_list) for aids in other_aids]
-            nMatchedExemplars = sum([len(x) == 1 for x in other_aids])
+            nMatchedExemplars = sum([len(x) >= 1 for x in other_aids])
 
             msg_list = [
                 '%d Encounter%s matched an exemplar' % ((nMatchedExemplars), '' if nMatchedExemplars == 1 else 's'),
                 '%d Encounter%s only one annotation' % ((nSingleEncounters), ' has' if nSingleEncounters == 1 else 's have'),
-                '%d Encounter%s  more than one annotation'  % ((nMultiEncounters), ' has' if nMultiEncounters == 1 else 's have'),
-                '%d annotation%s have not been identified%s' % (nUnknown, '' if nUnknown == 1 else 's', '!' if nUnknown > 0 else '.'),
+                '%d Encounter%s more than one annotation'  % ((nMultiEncounters), ' has' if nMultiEncounters == 1 else 's have'),
+                '%d annotation%s have not had a name assigned%s' % (nUnnamed, '' if nUnnamed == 1 else 's', '!' if nUnnamed > 0 else '.'),
             ]
 
             # Set all images to be reviewed
@@ -2575,16 +2601,18 @@ class MainWindowBackend(GUIBACK_BASE):
             if not back.are_you_sure(**confirm_kw):
                 raise guiexcept.UserCancel
 
-            assert nUnknown == 0, (
+            assert nUnnamed == 0, (
                 ('ImageSet imgsetid=%r1 cannot be shipped becuase '
                  'annotation(s) %r have not been named') % (imgsetid, unnamed_aid_list, ))
 
-            #gid_list = ibs.get_imageset_gids(imgsetid)
-            back.ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
-            # Set imageset to be processed
-            back.ibs.set_imageset_processed_flags([imgsetid], [1])
-            back.ibs.wildbook_signal_imgsetid_list([imgsetid])
-            back.front.imageset_tabwgt._close_tab_with_imgsetid(imgsetid)
+            if not dry:
+                back.start_web_server_parallel(browser=False)
+                #gid_list = ibs.get_imageset_gids(imgsetid)
+                back.ibs.set_image_reviewed(gid_list, [1] * len(gid_list))
+                # Set imageset to be processed
+                back.ibs.set_imageset_processed_flags([imgsetid], [1])
+                back.ibs.wildbook_signal_imgsetid_list([imgsetid])
+                back.front.imageset_tabwgt._close_tab_with_imgsetid(imgsetid)
             if refresh:
                 back.front.update_tables([gh.IMAGESET_TABLE])
 
