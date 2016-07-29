@@ -19,6 +19,7 @@ import numpy as np
 
 DEFAULT_WEB_API_PORT = ut.get_argval('--port', type_=int, default=5000)
 TARGET_WIDTH = 1200.0
+TARGET_HEIGHT = 800.0
 PAGE_SIZE = 500
 VALID_TURK_MODES = [
     ('turk_viewpoint', 'Viewpoint'),
@@ -71,12 +72,14 @@ def resize_via_web_parameters(image):
     return _resize(image, t_width=w_pix, t_height=h_pix)
 
 
-def embed_image_html(imgBGR, target_width=TARGET_WIDTH):
+def embed_image_html(imgBGR, target_width=TARGET_WIDTH, target_height=TARGET_HEIGHT):
     """ Creates an image embedded in HTML base64 format. """
     import cv2
     from PIL import Image
     if target_width is not None:
-        imgBGR = _resize(imgBGR, target_width)
+        imgBGR = _resize(imgBGR, t_width=target_width)
+    elif target_width is not None:
+        imgBGR = _resize(imgBGR, t_height=target_height)
     imgRGB = cv2.cvtColor(imgBGR, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(imgRGB)
     string_buf = StringIO()
