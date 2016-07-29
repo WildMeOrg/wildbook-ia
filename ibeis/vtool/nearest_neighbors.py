@@ -190,7 +190,14 @@ def assign_to_centroids(dpts, qpts, num_neighbors=1, flann_params={}):
 
 
 def get_flann_params_cfgstr(flann_params):
-    flann_valsig_ = str(list(flann_params.values()))
+    if True:
+        # Ensure consistent ordering
+        flann_vals = list(flann_params.values())
+        flann_keys = list(flann_params.keys())
+        # reverse to maintain backwards compatibility
+        flann_valsig_ = str(ut.sortedby(flann_vals, flann_keys, reverse=True))
+    else:
+        flann_valsig_ = str(list(flann_params.values()))
     flann_valsig = utool.remove_chars(flann_valsig_, ', \'[]')
     return flann_valsig
 
