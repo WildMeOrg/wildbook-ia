@@ -53,7 +53,7 @@ def _get_all_imgsetids(ibs):
 @accessor_decors.ider
 @register_api('/api/imageset/', methods=['GET'])
 def get_valid_imgsetids(ibs, min_num_gids=0, processed=None, shipped=None,
-                        is_occurrence=None):
+                        is_occurrence=None, is_special=None):
     r"""
     FIX NAME imgagesetids
 
@@ -80,6 +80,10 @@ def get_valid_imgsetids(ibs, min_num_gids=0, processed=None, shipped=None,
     if is_occurrence is not None:
         flag_list = ibs.get_imageset_isoccurrence(imgsetid_list)
         isvalid_list = [flag == is_occurrence for flag in flag_list]
+        imgsetid_list  = ut.compress(imgsetid_list, isvalid_list)
+    if is_special is not None:
+        flag_list = ibs.is_special_imageset(imgsetid_list)
+        isvalid_list = [flag == is_special for flag in flag_list]
         imgsetid_list  = ut.compress(imgsetid_list, isvalid_list)
     return imgsetid_list
 
