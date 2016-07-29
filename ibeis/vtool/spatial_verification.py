@@ -420,7 +420,8 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         tuple: hypo_inliers, hypo_errors
 
     CommandLine:
-        python -m vtool.spatial_verification --test-_test_hypothesis_inliers
+        python2 -m vtool.spatial_verification --test-_test_hypothesis_inliers
+        python3 -m vtool.spatial_verification --test-_test_hypothesis_inliers
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -452,10 +453,12 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
         >>> det2_m = ktool.get_sqrd_scales(kpts2_m)
         >>> ori2_m = ktool.get_invVR_mats_oris(invVR2s_m)
         >>> output = _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m, xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh)
+        >>> output_str = ut.repr3(output, precision=2, suppress_small=True)
+        >>> print('output_str = %s' % (output_str,))
         >>> hypo_inliers, hypo_errors = output
-        >>> result = 'nInliers=%r hash=%s' % (len(hypo_inliers), ut.hashstr(output))
+        >>> result = 'nInliers=%r hash=%s' % (len(hypo_inliers), ut.hashstr27(output_str))
         >>> print(result)
-        nInliers=1 hash=2n3&8bzj5tnxoba@
+        nInliers=1 hash=wmwxgbxyabncylyf
 
     Timeit:
         %timeit xy_err < xy_thresh_sqrd
@@ -513,7 +516,8 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
             The input invVs = perdoch.invA's
 
     CommandLine:
-        python -m vtool.spatial_verification --test-get_affine_inliers
+        python2 -m vtool.spatial_verification --test-get_affine_inliers
+        python3 -m vtool.spatial_verification --test-get_affine_inliers
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -528,10 +532,12 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
         >>> ori_thresh = ktool.KPTS_DTYPE(TAU / 4)
         >>> output = get_affine_inliers(kpts1, kpts2, fm, fs, xy_thresh_sqrd,
         >>>                             scale_thresh_sqrd, ori_thresh)
+        >>> output_str = ut.repr3(output, precision=2, suppress_small=True)
+        >>> print('output_str = %s' % (output_str,))
         >>> aff_inliers_list, aff_errors_list, Aff_mats = output
-        >>> result = 'nInliers=%r hash=%s' % (len(aff_inliers_list), ut.hashstr(output))
+        >>> result = 'nInliers=%r hash=%s' % (len(aff_inliers_list), ut.hashstr27(output_str))
         >>> print(result)
-        nInliers=9 hash=0@m0u1@bp+nzccxo
+        nInliers=9 hash=bepdwuaenjmfsllc
 
     Ignore::
         from vtool.spatial_verification import *  # NOQA
