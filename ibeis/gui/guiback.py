@@ -771,7 +771,6 @@ class MainWindowBackend(GUIBACK_BASE):
     Sends and recieves signals to and from the frontend
 
     Args:
-        back (?):
         ibs (ibeis.IBEISController):  image analysis api(default = None)
 
     CommandLine:
@@ -1950,6 +1949,8 @@ class MainWindowBackend(GUIBACK_BASE):
                 'filter_true_matches': review_cfg.get('filter_true_matches', False),
             }
 
+            if cfgdict is None:
+                cfgdict = {}
             tmpdict = cfgdict.copy()
             tmpdict.update(review_config)
 
@@ -2409,7 +2410,8 @@ class MainWindowBackend(GUIBACK_BASE):
             aid_list = ut.flatten(grouped_aids2)
         else:
             new_flag_list = ibs.get_annot_quality_viewpoint_subset(
-                aid_list, updated_config['exemplars_per_name'])
+                aid_list, updated_config['exemplars_per_name'],
+                allow_unknown=True)
             aid_list = ut.compress(aid_list, new_flag_list)
 
         ibs.print_annot_stats(aid_list)
@@ -2464,11 +2466,15 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             qaid_list = ibs.get_valid_aids(imgsetid=imgsetid, is_known=query_is_known, minqual='poor')
 
+        print('[back] Initially loaded len(qaid_list) = %r' % (len(qaid_list),))
         if use_prioritized_name_subset:
             # Pick only a few queries per name to execute
+            annots_per_view = 2  # FIXME: use a configuration
             new_flag_list = back.ibs.get_annot_quality_viewpoint_subset(
-                aid_list=qaid_list, annots_per_view=2, verbose=True)
+                aid_list=qaid_list, annots_per_view=annots_per_view, allow_unknown=True,
+                verbose=True)
             qaid_list = ut.compress(qaid_list, new_flag_list)
+            print('[back] Filtered query by quality and viewpoint: len(qaid_list) = %r' % (len(qaid_list),))
 
         print('[back] Found len(qaid_list) = %r' % (len(qaid_list),))
         # Group annotations by species

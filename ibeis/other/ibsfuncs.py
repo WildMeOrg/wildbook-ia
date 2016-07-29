@@ -3197,7 +3197,7 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
 @register_ibs_method
 def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
                                        max_annots=None, verbose=False,
-                                       prog_hook=None):
+                                       prog_hook=None, allow_unknown=False):
     """
     CommandLine:
         python -m ibeis.other.ibsfuncs --exec-get_annot_quality_viewpoint_subset --show
@@ -3212,6 +3212,18 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
         >>> result = sum(new_flag_list)
         >>> print(result)
         38
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ut.exec_funckw(get_annot_quality_viewpoint_subset, globals())
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = [1]
+        >>> new_flag_list = get_annot_quality_viewpoint_subset(ibs, aid_list, allow_unknown=True)
+        >>> result = sum(new_flag_list)
+        >>> print(result)
+        1
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -3284,7 +3296,7 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
                         lbl='Picking best annots per viewpoint',
                         prog_hook=prog_hook)
     for aids_, nid in _iter:
-        if ibs.is_nid_unknown(nid):
+        if not allow_unknown and ibs.is_nid_unknown(nid):
             # do not change unknown animals
             new_aid_list.extend(aids_)
             new_flag_list.extend([False] * len(aids_))
