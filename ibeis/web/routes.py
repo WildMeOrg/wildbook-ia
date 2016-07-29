@@ -603,38 +603,28 @@ def _make_review_image_info(ibs, gid):
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> gid = ibs.get_valid_gids()[0]
     """
+    # Shows how to use new object-like interface to populate data
     import numpy as np
-    images = ibs.images([gid])
-    annots = images.annots[0]
-
-    keys = ['bboxes', 'thetas', 'species_texts', 'case_tags', 'aid']
-    intern_dict_list = annots.take_column(keys)
-    extern_dict_list = []
-    width, height = images.sizes[0]
+    image = ibs.images([gid])[0]
+    annots = image.annots
+    width, height = image.sizes
     bbox_denom = np.array([width, height, width, height])
-
     annotation_list = []
     for aid in annots.aids:
-        annot_ = ibs.annots(aid)
-        bbox = np.array(annot_.bboxes[0])
+        annot_ = ibs.annots(aid)[0]
+        bbox = np.array(annot_.bboxes)
         bbox_percent = bbox / bbox_denom * 100
         temp = {
             'left'   :  bbox_percent[0],
             'top'    :  bbox_percent[1],
             'width'  :  bbox_percent[2],
             'height' :  bbox_percent[3],
-            'label'  :  annot_.species[0],
-            'id'     :  annot_.aids[0],
-            'theta'  :  annot_.thetas[0],
+            'label'  :  annot_.species,
+            'id'     :  annot_.aids,
+            'theta'  :  annot_.thetas,
+            'tags'   :  annot_.case_tags,
         }
     annotation_list.append(temp)
-
-    vt.extent_from_bbox(np.array(annots.bboxes).T)
-
-    for dict_ in intern_dict_list:
-        vt.extent_from_bbox(bbox)
-        dict_['bboxes']
-        extern_dict_list
 
 
 @register_route('/turk/detection/', methods=['GET'])
@@ -667,8 +657,8 @@ def turk_detection():
     display_species_examples = False  # request.cookies.get('ia-detection_example_species_seen', 0) == 0
     if not finished:
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
-        image = ibs.get_image_imgdata(gid)
-        image_src = appf.embed_image_html(image)
+        imgdata = ibs.get_image_imgdata(gid)
+        image_src = appf.embed_image_html(imgdata)
         # Get annotations
         width, height = ibs.get_image_sizes(gid)
         aid_list = ibs.get_image_aids(gid)

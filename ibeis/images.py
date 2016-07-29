@@ -58,7 +58,7 @@ class ImageIBEISPropertyInjector(BASE_TYPE):
 
 @ut.reloadable_class
 @six.add_metaclass(ImageIBEISPropertyInjector)
-class Images(_ibeis_object.PrimaryObject):
+class Images(_ibeis_object.ObjectList1D):
     """
     Represents a group of annotations. Efficiently accesses properties from a
     database using lazy evaluation.
@@ -130,7 +130,7 @@ class ImageSetAttrInjector(BASE_TYPE):
 
 @ut.reloadable_class
 @six.add_metaclass(ImageSetAttrInjector)
-class ImageSets(_ibeis_object.PrimaryObject):
+class ImageSets(_ibeis_object.ObjectList1D):
     """
     Represents a group of annotations. Efficiently accesses properties from a
     database using lazy evaluation.

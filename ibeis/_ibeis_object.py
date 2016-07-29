@@ -127,8 +127,20 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
         #utool.embed()
 
 
+class ObjectScalar0D(ut.NiceRepr, ut.HashComparable2):
+    def __init__(self, obj1d):
+        assert len(obj1d) == 1
+        self.obj1d = obj1d
+
+    def __nice__(self):
+        return '(rowid=%s, uuid=%s)' % (self._rowids, self.uuids)
+
+    def __getattr__(self, key):
+        return getattr(self.obj1d, key)[0]
+
+
 #@ut.reloadable_class
-class PrimaryObject(ut.NiceRepr, ut.HashComparable2):
+class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
     def __init__(self, rowids, ibs, config=None):
         self._rowids = rowids
         self._ibs = ibs
@@ -188,6 +200,10 @@ class PrimaryObject(ut.NiceRepr, ut.HashComparable2):
         return len(self._rowids)
 
     def __getitem__(self, idx):
+        if not ut.isiterable(idx):
+            obj0d_ = self.take([idx])
+            obj0d = ObjectScalar0D(obj0d_)
+            return obj0d
         if not isinstance(idx, slice):
             raise AssertionError('only slice supported currently')
         return self.take(idx)

@@ -376,21 +376,31 @@ def convert_nmea_to_json(nmea_str, filename, GMT_OFFSET=0):
 
 
 def _resize(image, t_width=None, t_height=None):
-    import cv2
-    print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
-    height, width = image.shape[:2]
-    if t_width is None and t_height is None:
-        return image
-    elif t_width is not None and t_height is not None:
-        pass
-    elif t_width is None:
-        t_width = (width / height) * float(t_height)
-    elif t_height is None:
-        t_height = (height / width) * float(t_width)
-    t_width, t_height = float(t_width), float(t_height)
-    t_width, t_height = int(np.around(t_width)), int(np.around(t_height))
-    assert t_width > 0 and t_height > 0, 'target size too small'
-    assert t_width <= width * 100 and t_height <= height * 100, 'target size too large (capped at 10,000%)'
-    # interpolation = cv2.INTER_LANCZOS4
-    interpolation = cv2.INTER_LINEAR
-    return cv2.resize(image, (t_width, t_height), interpolation=interpolation)
+    """
+    TODO:
+        # use vtool instead
+    """
+    if True:
+        import vtool as vt
+        maxdims = (t_width, t_height)
+        interpolation = 'linear'
+        return vt.resize_to_maxdims(image, maxdims, interpolation)
+    else:
+        import cv2
+        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
+        height, width = image.shape[:2]
+        if t_width is None and t_height is None:
+            return image
+        elif t_width is not None and t_height is not None:
+            pass
+        elif t_width is None:
+            t_width = (width / height) * float(t_height)
+        elif t_height is None:
+            t_height = (height / width) * float(t_width)
+        t_width, t_height = float(t_width), float(t_height)
+        t_width, t_height = int(np.around(t_width)), int(np.around(t_height))
+        assert t_width > 0 and t_height > 0, 'target size too small'
+        assert t_width <= width * 100 and t_height <= height * 100, 'target size too large (capped at 10,000%)'
+        # interpolation = cv2.INTER_LANCZOS4
+        interpolation = cv2.INTER_LINEAR
+        return cv2.resize(image, (t_width, t_height), interpolation=interpolation)
