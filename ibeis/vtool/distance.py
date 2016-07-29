@@ -169,7 +169,7 @@ def ori_distance(ori1, ori2, out=None):
         >>> dist_ = ori_distance(ori1, ori2)
         >>> result = ut.repr2(dist_, precision=2)
         >>> print(result)
-        0.21681469282041377
+        0.22
 
     Ignore:
         # This also works
