@@ -6,170 +6,13 @@ import sklearn
 import sklearn.datasets
 import sklearn.svm
 import sklearn.metrics
-import sklearn.cross_validation
+import sklearn.model_selection
 from sklearn import preprocessing
 (print, rrr, profile) = ut.inject2(__name__, '[classify_shark]')
 
 
-#@ut.reloadable_class
-#class ClfMultiResult(object):
-#    def __init__(multi_result, result_list):
-#        multi_result.result_list = result_list
-
-#    def compile_results(multi_result):
-#        import pandas as pd
-#        result_list = multi_result.result_list
-#        multi_result.df = reduce(ut.partial(pd.DataFrame.add, fill_value=0), [result.df for result in result_list])
-#        #hardness = 1 / multi_result.df['decision'].abs()
-
-#    def get_hardest_fail_idxs(multi_result):
-#        df = multi_result.df
-#        sortx = multi_result.hardness.argsort()[::-1]
-#        # Order by hardness
-#        df = multi_result.df.take(sortx)
-#        failed = multi_result.df['is_fp'] + multi_result.df['is_fn']
-#        # Grab only failures
-#        hard_fail_idxs = failed[failed > 0].index.values
-#        return hard_fail_idxs
-
-
-@ut.reloadable_class
-class ClfSingleResult(object):
-    r"""
-    Reports the results of a classification problem
-
-    Example:
-        >>> result = ClfSingleResult()
-    """
-    def __init__(result, ds=None, test_idx=None, y_true=None, y_pred=None, y_conf=None):
-        result.ds = ds
-        result.test_idx = test_idx
-        result.y_true = y_true
-        result.y_pred = y_pred
-        result.y_conf = y_conf
-
-    def compile_results(result):
-        import pandas as pd
-        # y_true = result.y_true
-        y_pred = result.y_pred
-        y_conf = result.y_conf
-        test_idx = result.test_idx
-
-        # passed = y_pred == y_true
-        # failed = y_pred != y_true
-        #confusion = sklearn.metrics.confusion_matrix(y_true, y_pred)
-
-        # is_tn = np.logical_and(passed, y_true == 0)
-        # is_fp = np.logical_and(failed, y_true == 0)
-        # is_fn = np.logical_and(failed, y_true == 1)
-        # is_tp = np.logical_and(passed, y_true == 1)
-
-        # columns = ['tn', 'fp', 'fn', 'tp', 'decision', 'pred']
-        # column_data = [is_tn, is_fp, is_fn, is_tp, y_conf, y_pred]
-
-        index = pd.Series(test_idx, name='test_idx')
-        pd.DataFrame(y_conf, index=index, columns=result.ds.target_names)
-
-        columns = ['decision', 'pred']
-        column_data = [y_conf, y_pred]
-        data = dict(zip(columns, column_data))
-        result.df = pd.DataFrame(data, index, columns)
-        #result.decision = pd.Series(y_conf, index, name='decision', dtype=np.float)
-
-        #result._compiled['confusion'] = confusion
-        #score = (1 - (sum(passed) / len(passed)))
-        #result._compiled['score'] = score
-
-    def print_report(result):
-        report = sklearn.metrics.classification_report(
-            result.y_true, result.y_pred,
-            target_names=result.ds.target_names)
-        print(report)
-
-
-@ut.reloadable_class
-class ClfProblem(object):
-    """
-    Harness for researching a classification problem
-    """
-    def __init__(problem, ds):
-        problem.ds = ds
-
-    def print_support_info(problem):
-        enc = problem.ds.enc
-        target_labels = enc.inverse_transform(problem.ds.target)
-        label_hist = ut.dict_hist(target_labels)
-        print('support hist' + ut.repr3(label_hist))
-
-    def fit_new_classifier(problem, train_idx):
-        print('[problem] train classifier on %d data points' % (len(train_idx)))
-        data = problem.ds.data
-        target = problem.ds.target
-        x_train = data.take(train_idx, axis=0)
-        y_train = target.take(train_idx, axis=0)
-        clf = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
-                              decision_function_shape='ovr')
-        clf.fit(x_train, y_train)
-        return clf
-
-    def test_classifier(problem, clf, test_idx):
-        print('[problem] test classifier on %d data points' % (len(test_idx),))
-        data = problem.ds.data
-        target = problem.ds.target
-        x_test = data.take(test_idx, axis=0)
-        y_true = target.take(test_idx, axis=0)
-        y_pred = clf.predict(x_test)
-        # Get notion of confidence / probability of decision
-        y_conf = clf.decision_function(x_test)
-        result = ClfSingleResult(problem.ds, test_idx, y_true, y_pred, y_conf)
-        return result
-
-    def gen_sample_idxs(problem, frac=.2, split_frac=.5):
-        target = problem.ds.target
-        target_labels = problem.ds.target_labels
-
-        rng = np.random.RandomState(043)
-        train_sample = []
-        test_sample = []
-        for label in target_labels:
-            target_idxs = np.where(target == label)[0]
-            subset_size = int(len(target_idxs) * frac)
-            rand_idx = ut.random_indexes(len(target_idxs), subset_size, rng=rng)
-            sample_idx = ut.take(target_idxs, rand_idx)
-            split = int(len(sample_idx) * split_frac)
-            train_sample.append(sample_idx[split:])
-            test_sample.append(sample_idx[:split])
-
-        train_idx = np.array(sorted(ut.flatten(train_sample)))
-        test_idx = np.array(sorted(ut.flatten(test_sample)))
-        return train_idx, test_idx
-
-    def gen_crossval_idxs(problem, n_folds=2):
-        xvalkw = dict(n_folds=n_folds, shuffle=True, random_state=43432)
-        target = problem.ds.target
-        kf = sklearn.cross_validation.StratifiedKFold(target, **xvalkw)
-        msg = 'cross-val test on %s' % (problem.ds.name)
-        for count, (train_idx, test_idx) in enumerate(ut.ProgIter(kf, lbl=msg)):
-            yield train_idx, test_idx
-
-
-def learn_injured_sharks():
-    r"""
-    References:
-        http://scikit-learn.org/stable/modules/cross_validation.html
-
-    TODO:
-        * Change unreviewed healthy tags to healthy-likely
-
-    Example:
-        >>> from ibeis.scripts.classify_shark import *  # NOQA
-    """
-    import plottool as pt
-    import pandas as pd
+def get_sharks_dataset():
     import ibeis
-
-    pt.qt4ensure()
-
     ibs = ibeis.opendb('WS_ALL')
     config = {
         'dim_size': (256, 256),
@@ -283,15 +126,185 @@ def learn_injured_sharks():
         target_names=target_names,
         target_labels=enc.transform(target_names),
         enc=enc,
+        config=config
     )
-    problem = ClfProblem(ds)
+    return ds
+
+
+#@ut.reloadable_class
+#class ClfMultiResult(object):
+#    def __init__(multi_result, result_list):
+#        multi_result.result_list = result_list
+
+#    def compile_results(multi_result):
+#        import pandas as pd
+#        result_list = multi_result.result_list
+#        multi_result.df = reduce(ut.partial(pd.DataFrame.add, fill_value=0), [result.df for result in result_list])
+#        #hardness = 1 / multi_result.df['decision'].abs()
+
+#    def get_hardest_fail_idxs(multi_result):
+#        df = multi_result.df
+#        sortx = multi_result.hardness.argsort()[::-1]
+#        # Order by hardness
+#        df = multi_result.df.take(sortx)
+#        failed = multi_result.df['is_fp'] + multi_result.df['is_fn']
+#        # Grab only failures
+#        hard_fail_idxs = failed[failed > 0].index.values
+#        return hard_fail_idxs
+
+
+@ut.reloadable_class
+class ClfProblem(object):
+    """
+    Harness for researching a classification problem
+    """
+    def __init__(problem, ds):
+        problem.ds = ds
+
+    def print_support_info(problem):
+        enc = problem.ds.enc
+        target_labels = enc.inverse_transform(problem.ds.target)
+        label_hist = ut.dict_hist(target_labels)
+        print('support hist' + ut.repr3(label_hist))
+
+    def fit_new_classifier(problem, train_idx):
+        print('[problem] train classifier on %d data points' % (len(train_idx)))
+        data = problem.ds.data
+        target = problem.ds.target
+        x_train = data.take(train_idx, axis=0)
+        y_train = target.take(train_idx, axis=0)
+        clf = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
+                              decision_function_shape='ovr')
+        clf.fit(x_train, y_train)
+        return clf
+
+    def test_classifier(problem, clf, test_idx):
+        print('[problem] test classifier on %d data points' % (len(test_idx),))
+        data = problem.ds.data
+        target = problem.ds.target
+        x_test = data.take(test_idx, axis=0)
+        y_true = target.take(test_idx, axis=0)
+        y_pred = clf.predict(x_test)
+        # Get notion of confidence / probability of decision
+        y_conf = clf.decision_function(x_test)
+        result = ClfSingleResult(problem.ds, test_idx, y_true, y_pred, y_conf)
+        return result
+
+    def gen_sample_idxs(problem, frac=.2, split_frac=.75):
+        target = problem.ds.target
+        target_labels = problem.ds.target_labels
+
+        rng = np.random.RandomState(043)
+        train_sample = []
+        test_sample = []
+        for label in target_labels:
+            target_idxs = np.where(target == label)[0]
+            subset_size = int(len(target_idxs) * frac)
+            rand_idx = ut.random_indexes(len(target_idxs), subset_size, rng=rng)
+            sample_idx = ut.take(target_idxs, rand_idx)
+            split = int(len(sample_idx) * split_frac)
+            train_sample.append(sample_idx[split:])
+            test_sample.append(sample_idx[:split])
+
+        train_idx = np.array(sorted(ut.flatten(train_sample)))
+        test_idx = np.array(sorted(ut.flatten(test_sample)))
+        return train_idx, test_idx
+
+    def gen_crossval_idxs(problem, n_folds=2):
+        xvalkw = dict(n_folds=n_folds, shuffle=True, random_state=43432)
+        target = problem.ds.target
+        #skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
+        import sklearn.cross_validation
+        skf = sklearn.cross_validation.StratifiedKFold(target, **xvalkw)
+        _iter = skf
+        msg = 'cross-val test on %s' % (problem.ds.name)
+        for count, (train_idx, test_idx) in enumerate(ut.ProgIter(_iter, lbl=msg)):
+            yield train_idx, test_idx
+
+
+@ut.reloadable_class
+class ClfSingleResult(object):
+    r"""
+    Reports the results of a classification problem
+
+    Example:
+        >>> result = ClfSingleResult()
+    """
+    def __init__(result, ds=None, test_idx=None, y_true=None, y_pred=None, y_conf=None):
+        result.ds = ds
+        result.test_idx = test_idx
+        result.y_true = y_true
+        result.y_pred = y_pred
+        result.y_conf = y_conf
+
+    def compile_results(result):
+        import pandas as pd
+        y_true = result.y_true
+        y_pred = result.y_pred
+        y_conf = result.y_conf
+        test_idx = result.test_idx
+
+        # passed = y_pred == y_true
+        # failed = y_pred != y_true
+        #confusion = sklearn.metrics.confusion_matrix(y_true, y_pred)
+
+        # is_tn = np.logical_and(passed, y_true == 0)
+        # is_fp = np.logical_and(failed, y_true == 0)
+        # is_fn = np.logical_and(failed, y_true == 1)
+        # is_tp = np.logical_and(passed, y_true == 1)
+
+        # columns = ['tn', 'fp', 'fn', 'tp', 'decision', 'pred']
+        # column_data = [is_tn, is_fp, is_fn, is_tp, y_conf, y_pred]
+
+        index = pd.Series(test_idx, name='test_idx')
+        decision = pd.DataFrame(y_conf, index=index, columns=result.ds.target_names)
+        result.decision = decision / 3
+        easiness = np.array(ut.ziptake(result.decision.values, y_true))
+        columns = ['pred', 'easiness']
+        column_data = [y_pred, easiness]
+        data = dict(zip(columns, column_data))
+        result.df = pd.DataFrame(data, index, columns)
+
+        y_true
+        #result.decision = pd.Series(y_conf, index, name='decision', dtype=np.float)
+
+        #result._compiled['confusion'] = confusion
+        #score = (1 - (sum(passed) / len(passed)))
+        #result._compiled['score'] = score
+
+    def print_report(result):
+        report = sklearn.metrics.classification_report(
+            result.y_true, result.y_pred,
+            target_names=result.ds.target_names)
+        print(report)
+
+
+def learn_injured_sharks():
+    r"""
+    References:
+        http://scikit-learn.org/stable/model_selection.html
+
+    TODO:
+        * Change unreviewed healthy tags to healthy-likely
+
+    Example:
+        >>> from ibeis.scripts.classify_shark import *  # NOQA
+    """
+    from ibeis.scripts import classify_shark
+    import plottool as pt
+    import pandas as pd
+
+    pt.qt4ensure()
+
+    ds = classify_shark.get_sharks_dataset()
+
+    problem = classify_shark.ClfProblem(ds)
     problem.print_support_info()
 
     result_list = []
-    train_idx, test_idx = problem.gen_sample_idxs()
-    # for train_idx, test_idx in problem.gen_crossval_idxs(n_folds=4, n_run=1):
-    #     break
-    if True:
+    #train_idx, test_idx = problem.gen_sample_idxs()
+    n_folds = 4
+    for train_idx, test_idx in problem.gen_crossval_idxs(n_folds):
         clf = problem.fit_new_classifier(train_idx)
         result = problem.test_classifier(clf, test_idx)
         result_list.append(result)
@@ -304,13 +317,12 @@ def learn_injured_sharks():
 
     # Combine information from results
     #result_list = multi_result.result_list
-    addfunc = ut.partial(pd.DataFrame.add, fill_value=0)
+    addfunc = ut.partial(pd.DataFrame.add, fill_value=np.nan)
     df = reduce(addfunc, [result.df for result in result_list])
-    df['easiness'] = df['decision'].abs()
     df['hardness'] = 1 / df['easiness']
-    df['failed'] = df['pred'] != df['target']
     df['aid'] = ut.take(ds.aids, df.index)
     df['target'] = ut.take(ds.target, df.index)
+    df['failed'] = df['pred'] != df['target']
 
     report = sklearn.metrics.classification_report(
         y_true=df['target'], y_pred=df['pred'],
@@ -375,6 +387,9 @@ def learn_injured_sharks():
     ]
 
     from ibeis_cnn import draw_results
+    ibs = ds.ibs
+    config = ds.config
+
     fnum = 1
     pnum_ = pt.make_pnum_nextgen(nCols=len(df_list) // 2, nSubplots=len(df_list))
     for df_chunk in df_list:
