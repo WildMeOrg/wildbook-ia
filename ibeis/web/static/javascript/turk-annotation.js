@@ -2,13 +2,13 @@ function update_label()
 {
   var viewpoint_strs = [];
   viewpoint_strs[0] = 'Left';
-  viewpoint_strs[45] = 'Back-Left';
-  viewpoint_strs[90] = 'Back';
-  viewpoint_strs[135] = 'Back-Right';
+  viewpoint_strs[45] = 'Front-Left';
+  viewpoint_strs[90] = 'Front';
+  viewpoint_strs[135] = 'Front-Right';
   viewpoint_strs[180] = 'Right';
-  viewpoint_strs[225] = 'Front-Right';
-  viewpoint_strs[270] = 'Front';
-  viewpoint_strs[315] = 'Front-Left';
+  viewpoint_strs[225] = 'Back-Right';
+  viewpoint_strs[270] = 'Back';
+  viewpoint_strs[315] = 'Back-Left';
 
   value = parseFloat( $("#ia-annotation-viewpoint").val() );
   radians_sub = (value / 360.0) * 2.0;

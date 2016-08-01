@@ -159,7 +159,7 @@ def send_csv_file(string, filename):
     return response
 
 
-def get_turk_annot_args(is_reviewed_func):
+def get_turk_annot_args(is_reviewed_func, speed_hack=False):
     """
     Helper to return aids in an imageset or a group review
     """
@@ -178,20 +178,13 @@ def get_turk_annot_args(is_reviewed_func):
     group_review_flag = src_ag is not None and dst_ag is not None
     if not group_review_flag:
         print('NOT GROUP_REVIEW')
-        # gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-        # aid_list = ut.flatten(ibs.get_image_aids(gid_list))
-
-        with ut.Timer():
-            aid_list = ibs.get_valid_aids()
-            # unixtime_list = ibs.get_annot_image_unixtimes(aid_list)
-            # sort_list = zip(unixtime_list, aid_list)
-            # sort_list = sorted(sort_list)
-            # half = len(sort_list) // 2
-            # print(len(aid_list))
-            # aid_list = sort_list[:half]
-            # print(len(aid_list))
-            # aid_list = [_[1] for _ in aid_list]
-            reviewed_list = is_reviewed_func(ibs, aid_list)
+        if speed_hack:
+            with ut.Timer():
+                aid_list = ibs.get_valid_aids()
+        else:
+            gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+            aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        reviewed_list = is_reviewed_func(ibs, aid_list)
     else:
         src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
         dst_gar_rowid_list = ibs.get_annotgroup_gar_rowids(dst_ag)
@@ -383,7 +376,7 @@ def _resize(image, t_width=None, t_height=None):
     TODO:
         # use vtool instead
     """
-    if True:
+    if False:
         import vtool as vt
         maxdims = (int(round(t_width)), int(round(t_height)))
         interpolation = 'linear'
