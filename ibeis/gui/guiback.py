@@ -2223,12 +2223,19 @@ class MainWindowBackend(GUIBACK_BASE):
             msg_fmtstr_list += [query_msg]
         if query_title is None:
             query_title = 'custom'
-        species_list = list(species2_expanded_aids.keys())
+
         ngroups = len(species2_expanded_aids)
         if ngroups > 1:
-            msg_fmtstr_list += ['You are about to run {query_title} identification with {ngroups} groups...'.format(query_title=query_title, ngroups=ngroups,)]
+            msg_fmtstr_list += [
+                ('You are about to run {query_title} '
+                 'identification with {ngroups} groups...').format(
+                    query_title=query_title, ngroups=ngroups,)]
         else:
-            msg_fmtstr_list += ['You are about to run {query_title} identification...'.format(query_title=query_title,)]
+            msg_fmtstr_list += [
+                ('You are about to run {query_title} '
+                 'identification...').format(query_title=query_title,)]
+
+        species_list = list(species2_expanded_aids.keys())
 
         detailed_msg_list = []
         annotstats_kw = {}
@@ -2433,7 +2440,8 @@ class MainWindowBackend(GUIBACK_BASE):
     def _get_expanded_aids_groups(back, imgsetid, daids_mode=None,
                                   use_prioritized_name_subset=False,
                                   use_visual_selection=False, qaid_list=None,
-                                  daid_list=None, query_is_known=None):
+                                  daid_list=None, query_is_known=None,
+                                  remove_unknown_species=None):
         """
         Get the query annotation ids to search and
         the database annotation ids to be searched
@@ -2457,6 +2465,10 @@ class MainWindowBackend(GUIBACK_BASE):
                 Please turn off in Preferences
                 '''
             ))
+
+        if remove_unknown_species is None:
+            # Default behavior is don't remove unknown species if qaid_list is specified
+            remove_unknown_species = (qaid_list is not None or use_visual_selection)
 
         # Query aids are either: given, taken from gui selection, or by imageset
         if qaid_list is not None:
@@ -2506,6 +2518,12 @@ class MainWindowBackend(GUIBACK_BASE):
                 print('[back] ! len(qaids_) = %r' % (len(qaids_),))
                 print('[back] ! len(daids) = %r' % (len(daids),))
                 print('WARNING: species = %r is an invalid query' % (species,))
+
+        # Dont query unknown species
+        if not remove_unknown_species:
+            if ibs.const.UNKNOWN in species2_expanded_aids:
+                del species2_expanded_aids[ibs.const.UNKNOWN]
+
         return species2_expanded_aids
 
     @blocking_slot()

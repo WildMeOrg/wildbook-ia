@@ -900,7 +900,6 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     def spawn_edit_image_annotation_interaction(ibswgt, model, qtindex, gid, imgsetid):
         """
         TODO: needs reimplement using more standard interaction methods
-
         """
         print('[newgui] Creating new annotation interaction: gid=%r' % (gid,))
         ibs = ibswgt.ibs

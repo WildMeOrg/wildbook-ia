@@ -11,7 +11,10 @@ from sklearn import preprocessing
 (print, rrr, profile) = ut.inject2(__name__, '[classify_shark]')
 
 
-def get_sharks_dataset():
+def get_sharks_dataset(target_type=None):
+    """
+        >>> from ibeis.scripts.classify_shark import *  # NOQA
+    """
     import ibeis
     ibs = ibeis.opendb('WS_ALL')
     config = {
@@ -19,99 +22,104 @@ def get_sharks_dataset():
         'resize_dim': 'wh'
     }
     all_annots = ibs.annots(config=config)
-    print(ut.repr3(ut.dict_hist(ut.flatten(all_annots.case_tags))))
 
-    # TARGET_TYPE = 'binary'
-    TARGET_TYPE = 'multiclass1'
+    TARGET_TYPE = 'binary'
+    #TARGET_TYPE = 'multiclass1'
+    if target_type is None:
+        target_type = TARGET_TYPE
 
-    tag_vocab = ut.flat_unique(*all_annots.case_tags)
+    orig_case_tags = all_annots.case_tags
+    tag_vocab = ut.flat_unique(*orig_case_tags)
+    print('Original tags')
+    print(ut.repr3(ut.dict_hist(ut.flatten(orig_case_tags))))
 
-    if TARGET_TYPE == 'binary':
+    def cleanup_tags(orig_case_tags, tag_vocab):
+        regex_map = [
+            ('injur-trunc', 'injur-trunc'),
+            ('trunc', 'injur-trunc'),
+            ('healthy', 'healthy'),
+            (['injur-unknown', 'other_injury'], 'injur-other'),
+            ('nicks', 'injur-nicks'),
+            ('scar', 'injur-scar'),
+            ('bite', 'injur-bite'),
+            ('pose:novel', None),
+        ]
+        alias_map = ut.build_alias_map(regex_map, tag_vocab)
+        unmapped = list(set(tag_vocab) - set(alias_map.keys()))
+        case_tags = ut.alias_tags(orig_case_tags, alias_map)
+        print('unmapped = %r' % (unmapped,))
+        return case_tags
 
-        injur_tags = [u'injur-nicks', u'injur-unknown', u'nicks', u'injur-trunc',
-                      u'other_injury', u'injur-scar', u'injur-bite', u'scar',
-                      u'trunc']
+    case_tags = cleanup_tags(orig_case_tags, tag_vocab)
 
-        healthy_tags = ['healthy']
+    print('Cleaned tags')
+    print(ut.repr3(ut.dict_hist(ut.flatten(case_tags))))
 
-        healthy_flags = ut.filterflags_general_tags(all_annots.case_tags,
-                                                    has_any=healthy_tags,
-                                                    has_none=injur_tags)
-        injur_flags = ut.filterflags_general_tags(all_annots.case_tags,
-                                                  has_any=injur_tags,
-                                                  has_none=healthy_tags)
-        assert np.logical_and(injur_flags, healthy_flags).sum() == 0
-
-        num_inconsitent = len(healthy_flags) - ((healthy_flags + injur_flags) > 0).sum()
-        print('cant use %r annots due to inconsistent tags' % (num_inconsitent,))
-        healthy_annots = all_annots.compress(healthy_flags)
-        injured_annots = all_annots.compress(injur_flags)
-
-        annots = healthy_annots + injured_annots
-        target = np.array(([0] * len(healthy_annots)) + ([1] * len(injured_annots)))
-
-        annot_tags = [['healthy' if 'healthy' in tags else 'injured'] for tags in annots.case_tags]
-
-        enc = preprocessing.LabelEncoder()
-        enc.fit(ut.unique(ut.flatten(annot_tags)))
-        target = enc.transform(ut.flatten(annot_tags))
-        target_names = enc.classes_
-
-    elif TARGET_TYPE == 'multiclass1':
+    if target_type == 'binary':
+        regex_map = [
+            ('injur-.*', 'injured'),
+            ('healthy', 'healthy'),
+        ]
+        tag_vocab = ut.flat_unique(*case_tags)
+        alias_map = ut.build_alias_map(regex_map, tag_vocab)
+        case_tags2 = ut.alias_tags(case_tags, alias_map)
+    elif target_type == 'multiclass1':
         target_names = ['healthy', 'injur-trunc', 'injur-other']
 
         case_tags = all_annots.case_tags
 
         regex_map = [
             ('injur-trunc', 'injur-trunc'),
-            ('trunc', 'injur-trunc'),
             ('healthy', 'healthy'),
             ('injur-.*', 'injur-other'),
-            ('other_injury', 'injur-other'),
-            ('nicks', 'injur-other'),
-            ('scar', 'injur-other'),
-            ('pose:novel', None),
         ]
+        tag_vocab = ut.flat_unique(*case_tags)
         alias_map = ut.build_alias_map(regex_map, tag_vocab)
         unmapped = list(set(tag_vocab) - set(alias_map.keys()))
         print('unmapped = %r' % (unmapped,))
 
         case_tags2 = ut.alias_tags(case_tags, alias_map)
-
-        ntags_list = np.array(ut.lmap(len, case_tags2))
-        is_no_tag = ntags_list == 0
-        is_single_tag = ntags_list == 1
-        is_multi_tag = ntags_list > 1
-        # print('Multi Tags: %s' % (ut.repr2(ut.compress(case_tags2, is_multi_tag), nl=1),))
-
-        print('can\'t use %r annots due to no labels' % (is_no_tag.sum(),))
-        print('can\'t use %r annots due to inconsistent labels' % (is_multi_tag.sum(),))
-        print('will use %r annots with consistent labels' % (is_single_tag.sum(),))
-
-        annot_tags = ut.compress(case_tags2, is_single_tag)
-        annots = all_annots.compress(is_single_tag)
-        annot_tag_hist = ut.dict_hist(ut.flatten(annot_tags))
-        print(ut.repr3(annot_tag_hist))
-
-        # target_names = ['healthy', 'injured']
-        enc = preprocessing.LabelEncoder()
-        enc.fit(ut.unique(ut.flatten(annot_tags)))
-        target = enc.transform(ut.flatten(annot_tags))
-        target_names = enc.classes_
-
+    elif target_type == '_experimental_multilabel':
         # Binarize into multi-class labels
-        # menc = preprocessing.MultiLabelBinarizer()
-        # menc.fit(annot_tags)
-        # target = menc.transform(annot_tags)
-        # target_names = menc.classes_
-        # enc = menc
-
+        # http://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
+        pass
+        #menc = preprocessing.MultiLabelBinarizer()
+        #menc.fit(annot_tags)
+        #target = menc.transform(annot_tags)
+        #target_names = menc.classes_
+        #enc = menc
+    else:
+        raise ValueError('Unknown target_type=%r' % (target_type,))
         # henc = preprocessing.OneHotEncoder()
         # henc.fit(menc.transform(annot_tags))
         # target = henc.transform(menc.transform(annot_tags))
         # target_names = henc.classes_
 
         # target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
+
+    ntags_list = np.array(ut.lmap(len, case_tags2))
+    is_no_tag = ntags_list == 0
+    is_single_tag = ntags_list == 1
+    is_multi_tag = ntags_list > 1
+
+    print('Multi Tags: %s' % (ut.repr2(ut.compress(case_tags2, is_multi_tag), nl=1),))
+    multi_annots = all_annots.compress(is_multi_tag)  # NOQA
+    #ibs.set_image_imagesettext(multi_annots.gids, ['MultiTaged'] * is_multi_tag.sum())
+
+    print('can\'t use %r annots due to no labels' % (is_no_tag.sum(),))
+    print('can\'t use %r annots due to inconsistent labels' % (is_multi_tag.sum(),))
+    print('will use %r annots with consistent labels' % (is_single_tag.sum(),))
+
+    annot_tags = ut.compress(case_tags2, is_single_tag)
+    annots = all_annots.compress(is_single_tag)
+    annot_tag_hist = ut.dict_hist(ut.flatten(annot_tags))
+    print(ut.repr3(annot_tag_hist))
+
+    # target_names = ['healthy', 'injured']
+    enc = preprocessing.LabelEncoder()
+    enc.fit(ut.unique(ut.flatten(annot_tags)))
+    target = enc.transform(ut.flatten(annot_tags))
+    target_names = enc.classes_
 
     data = np.array([h.ravel() for h in annots.hog_hog])
 
@@ -190,7 +198,7 @@ class ClfProblem(object):
         result = ClfSingleResult(problem.ds, test_idx, y_true, y_pred, y_conf)
         return result
 
-    def gen_sample_idxs(problem, frac=.2, split_frac=.75):
+    def stratified_sample_idxs(problem, frac=.2, split_frac=.75):
         target = problem.ds.target
         target_labels = problem.ds.target_labels
 
@@ -257,6 +265,8 @@ class ClfSingleResult(object):
         # column_data = [is_tn, is_fp, is_fn, is_tp, y_conf, y_pred]
 
         index = pd.Series(test_idx, name='test_idx')
+        if len(result.ds.target_names) == 1:
+            y_conf
         decision = pd.DataFrame(y_conf, index=index, columns=result.ds.target_names)
         result.decision = decision / 3
         easiness = np.array(ut.ziptake(result.decision.values, y_true))
@@ -296,13 +306,15 @@ def learn_injured_sharks():
 
     pt.qt4ensure()
 
-    ds = classify_shark.get_sharks_dataset()
+    target_type = 'binary'
+    #target_type='multiclass1'
+    ds = classify_shark.get_sharks_dataset(target_type)
 
     problem = classify_shark.ClfProblem(ds)
     problem.print_support_info()
 
     result_list = []
-    #train_idx, test_idx = problem.gen_sample_idxs()
+    #train_idx, test_idx = problem.stratified_sample_idxs()
     n_folds = 4
     for train_idx, test_idx in problem.gen_crossval_idxs(n_folds):
         clf = problem.fit_new_classifier(train_idx)
@@ -334,58 +346,63 @@ def learn_injured_sharks():
     confusion = sklearn.metrics.confusion_matrix(df['target'], df['pred'])
     print(pd.DataFrame(confusion, columns=result.ds.target_names, index=result.ds.target_names))
 
-    def grab_subchunk(sortby, err, target, n):
-        df_chunk = df.take(df[sortby].argsort()[::-1])
-        if target is not None:
-            df_chunk = df_chunk[df_chunk['target'] == target]
-        df_chunk = df_chunk[df_chunk[err] > 0]
-        if True:
-            start = int(len(df_chunk) // 2 - np.ceil(n / 2))
-            stop  = int(len(df_chunk) // 2 + np.floor(n / 2))
-            sl = slice(start, stop)
-            idx = df_chunk.index[sl]
-            print('sl = %r' % (sl,))
-            print('idx = %r' % (idx,))
-            df_chunk = df_chunk.loc[idx]
-            df_chunk.nice = err.upper()
-        else:
-            df_chunk = df_chunk.loc[df_chunk.index[slice(0, n)]]
-            if target is not None:
-                df_chunk.nice = {'easiness': 'Easy', 'hardness': 'Hard'}[sortby] + ' ' + err.upper() + ' ' + ds.target_names[target]
-            else:
-                df_chunk.nice = {'easiness': 'Easy', 'hardness': 'Hard'}[sortby] + ' ' + err.upper()
-        return df_chunk
-
     #def confusion_by_label():
     # Print Confusion by label
 
-    for target in [0, 1]:
-        df_target = df[df['target'] == target]
-        df_err = df_target[['tp', 'fp', 'fn', 'tn']]
-        print('target = %r' % (ds.target_names[target]))
-        print('df_err.sum() =%s' % (ut.repr3(df_err.sum().astype(np.int32).to_dict()),))
+    #for target in [0, 1]:
+    #    df_target = df[df['target'] == target]
+    #    df_err = df_target[['tp', 'fp', 'fn', 'tn']]
+    #    print('target = %r' % (ds.target_names[target]))
+    #    print('df_err.sum() =%s' % (ut.repr3(df_err.sum().astype(np.int32).to_dict()),))
 
-    for true_target in [0, 1]:
-        for pred_target in [0, 1]:
-            df_pred_target = df[df['target'] == pred_target]
-            df_err = df_target[['tp', 'fp', 'fn', 'tn']]
-            print('target = %r' % (ds.target_names[target]))
-            print('df_err.sum() =%s' % (ut.repr3(df_err.sum().astype(np.int32).to_dict()),))
+    #for true_target in [0, 1]:
+    #    for pred_target in [0, 1]:
+    #        df_pred_target = df[df['target'] == pred_target]
+    #        df_err = df_target[['tp', 'fp', 'fn', 'tn']]
+    #        print('target = %r' % (ds.target_names[target]))
+    #        print('df_err.sum() =%s' % (ut.repr3(df_err.sum().astype(np.int32).to_dict()),))
+
+    def snapped_slice(size, frac, n):
+        start = int(size * frac - np.ceil(n / 2))
+        stop  = int(size * frac + np.floor(n / 2))
+        if stop >= size:
+            buf = (stop - size + 1)
+            start -= buf
+            stop -= buf
+        if start < 0:
+            buf = 0 - start
+            stop += buf
+            start += buf
+        assert stop < size, 'out of bounds'
+        sl = slice(start, stop)
+        return sl
+
+    def grab_subchunk(place, n, target):
+        df_chunk = df.take(df['hardness'].argsort())
+        if target is not None:
+            df_chunk = df_chunk[df_chunk['target'] == target]
+        #df_chunk = df_chunk[df_chunk[err] > 0]
+        frac = {'start': 0.0, 'middle': 0.5, 'end': 1.0}[place]
+        sl = snapped_slice(len(df_chunk), frac, n)
+        idx = df_chunk.index[sl]
+        df_chunk = df_chunk.loc[idx]
+        place_name = 'hardness=%.2f' % (frac,)
+        if target is not None:
+            df_chunk.nice = place_name + ' ' + ds.target_names[target]
+        else:
+            df_chunk.nice = place_name
+        return df_chunk
 
     n = 4
-    df_list = [
-        grab_subchunk('easiness', 'tn', None, n),
-        grab_subchunk('hardness', 'fp', None, n),
-        grab_subchunk('hardness', 'fn', None, n),
-        grab_subchunk('easiness', 'tp', None, n),
-    ]
+    places = ['start', 'middle', 'end']
+    df_list = [grab_subchunk(place, n, target) for place in places for target in ds.target_labels]
 
     from ibeis_cnn import draw_results
     ibs = ds.ibs
     config = ds.config
 
     fnum = 1
-    pnum_ = pt.make_pnum_nextgen(nCols=len(df_list) // 2, nSubplots=len(df_list))
+    pnum_ = pt.make_pnum_nextgen(nCols=len(places), nSubplots=len(df_list))
     for df_chunk in df_list:
         if len(df_chunk) == 0:
             import vtool as vt

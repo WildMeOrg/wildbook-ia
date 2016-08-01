@@ -558,6 +558,8 @@ if 1:
 #-----------
 
 print('ibeis_rman = %r' % (ibeis_rman,))
+import utool
+utool.embed()
 
 # Commands on global git repos
 if GET_ARGFLAG('--status'):

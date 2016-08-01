@@ -223,7 +223,7 @@ def make_table_declarations(ibs):
     # the columns which are editable
     TABLE_EDITSET = {
         IMAGE_TABLE      : set(['reviewed', 'imgnotes']),
-        ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'yaw', 'yaw_text', 'quality_text', 'age_min', 'age_max', 'sex_text']),
+        ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'yaw', 'yaw_text', 'quality_text', 'age_min', 'age_max', 'sex_text', 'tag_text']),
         NAME_TABLE       : set(['name', 'namenotes']),
         QRES_TABLE       : set(['name']),
         IMAGESET_TABLE  : set(['imagesettext', 'imageset_shipped_flag', 'imageset_processed_flag']),
@@ -448,6 +448,7 @@ def make_ibeis_headers_dict(ibs):
         'annotnotes' : ibs.set_annot_notes,
         'exemplar'   : ibs.set_annot_exemplar_flags,
         'quality_text'    : ibs.set_annot_quality_texts,
+        'tag_text': ibs.set_annot_tag_text,
     }
     # +--------------------------
     # Name Iders/Setters/Getters
