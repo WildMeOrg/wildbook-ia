@@ -2618,6 +2618,12 @@ class MainWindowBackend(GUIBACK_BASE):
             nMultiEncounters = sum([len(x) > 1 for x in nid2_aids.values()])
             nSingleEncounters = sum([len(x) == 1 for x in nid2_aids.values()])
 
+            unnamed_ok_aid_list = ibs.filter_annots_general(
+                unnamed_aid_list,
+                minqual='ok',
+            )
+            nUnnamedOk = sum(unnamed_ok_aid_list)
+
             other_aids = ibs.get_annot_groundtruth(ut.take_column(nid2_aids.values(), 0), is_exemplar=True)
             other_aids = [set(aids) - set(aid_list) for aids in other_aids]
             nMatchedExemplars = sum([len(x) >= 1 for x in other_aids])
@@ -2627,6 +2633,7 @@ class MainWindowBackend(GUIBACK_BASE):
                 '%d Encounter%s only one annotation' % ((nSingleEncounters), ' has' if nSingleEncounters == 1 else 's have'),
                 '%d Encounter%s more than one annotation'  % ((nMultiEncounters), ' has' if nMultiEncounters == 1 else 's have'),
                 '%d annotation%s have not had a name assigned%s' % (nUnnamed, '' if nUnnamed == 1 else 's', '!' if nUnnamed > 0 else '.'),
+                '%d annotation%s unnamed with an identifiable quality%s' % (nUnnamedOk, '' if nUnnamedOk == 1 else 's', '!' if nUnnamedOk > 0 else '.'),
             ]
 
             # Set all images to be reviewed
@@ -2647,9 +2654,10 @@ class MainWindowBackend(GUIBACK_BASE):
             if not back.are_you_sure(**confirm_kw):
                 raise guiexcept.UserCancel
 
-            assert nUnnamed == 0, (
+            assert nUnnamedOk == 0, (
                 ('ImageSet imgsetid=%r1 cannot be shipped becuase '
-                 'annotation(s) %r have not been named') % (imgsetid, unnamed_aid_list, ))
+                 'annotation(s) %r with an identifiable quality have '
+                 'not been named') % (imgsetid, unnamed_ok_aid_list, ))
 
             if not dry:
                 back.start_web_server_parallel(browser=False)
