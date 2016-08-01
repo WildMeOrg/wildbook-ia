@@ -470,7 +470,9 @@ class OrigAnnotInference(object):
         # Compile the cluster_dict
         col_list = ['aid_list', 'orig_nid_list', 'new_nid_list',
                     'exemplar_flag_list', 'error_flag_list']
-        cluster_dict = dict(zip(col_list, ut.listT(self.cluster_tuples)))
+        shape = (len(self.cluster_tuples), len(col_list))
+        cluster_tuplesT = ut.listT(self.cluster_tuples, shape)
+        cluster_dict = dict(zip(col_list, cluster_tuplesT))
         cluster_dict['annot_uuid_list'] = get_annot_uuids(cluster_dict['aid_list'])
         # We store the name's UUID as the name's text
         #cluster_dict['orig_name_uuid_list'] = [convert_to_name_uuid(nid)
