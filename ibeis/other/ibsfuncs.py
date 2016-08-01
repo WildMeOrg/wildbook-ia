@@ -1864,7 +1864,7 @@ def _get_unreviewed_gids(ibs):
     gid_list_ = ut.compress(gid_list_, flag_list)
     # Filter by if the user has specified the image has been reviewed manually
     flag_list = ibs.get_image_reviewed(gid_list_)
-    gid_list_ = ut.compress(gid_list, ut.not_list(flag_list))
+    gid_list_ = ut.compress(gid_list_, ut.not_list(flag_list))
     return gid_list_
 
 
