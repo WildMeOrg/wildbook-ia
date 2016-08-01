@@ -904,6 +904,20 @@ class MainWindowBackend(GUIBACK_BASE):
         url = 'http://%s/turk/detection/?imgsetid=%s' % (WEB_DOMAIN, imgsetid_str, )
         webbrowser.open(url)
 
+    def show_imgsetid_annotation_turk_in_web(back, imgsetid_list, **kwargs):
+        import webbrowser
+        back.start_web_server_parallel(browser=False)
+
+        if not isinstance(imgsetid_list, (tuple, list)):
+            imgsetid_list = [imgsetid_list]
+        if len(imgsetid_list) > 0:
+            imgsetid_str = ','.join( map(str, imgsetid_list) )
+        else:
+            imgsetid_str = ''
+
+        url = 'http://%s/turk/annotation/?imgsetid=%s' % (WEB_DOMAIN, imgsetid_str, )
+        webbrowser.open(url)
+
     def show_image(back, gid, sel_aids=[], web=False, **kwargs):
         if web:
             import webbrowser

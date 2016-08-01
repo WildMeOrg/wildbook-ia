@@ -1398,6 +1398,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 context_options += [
                     ('View imageset in Web', lambda: ibswgt.back.show_imgsetid_list_in_web(imgsetid_list)),
                     ('Turk imageset\'s detections in Web', lambda: ibswgt.back.show_imgsetid_detection_turk_in_web(imgsetid_list)),
+                    ('Turk imageset\'s annotations in Web', lambda: ibswgt.back.show_imgsetid_annotation_turk_in_web(imgsetid_list)),
                     ('----', lambda: None),
                     ('Run detection on imageset (can cause duplicates)',
                         lambda: ibswgt.back.run_detection_on_imageset(imgsetid_list)),
