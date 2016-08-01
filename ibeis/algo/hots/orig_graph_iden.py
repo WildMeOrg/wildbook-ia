@@ -494,7 +494,7 @@ class OrigAnnotInference(object):
         # Compile the annot_pair_dict
         col_list = ['aid_1_list', 'aid_2_list', 'p_same_list',
                     'confidence_list', 'raw_score_list']
-        shape = (len(self.cluster_tuples), len(col_list))
+        shape = (len(self.needs_review_list), len(col_list))
         annot_pair_dict = dict(zip(col_list, ut.listT(self.needs_review_list, shape)))
         annot_pair_dict['annot_uuid_1_list'] = get_annot_uuids(annot_pair_dict['aid_1_list'])
         annot_pair_dict['annot_uuid_2_list'] = get_annot_uuids(annot_pair_dict['aid_2_list'])
