@@ -198,10 +198,10 @@ def compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=F
             # Agglomerative clustering of unixtimes
             if cluster_algo == 'agglomerative':
                 seconds_thresh = cfgdict.get('seconds_thresh', 60.0)
-                from occurrence_blackbox import cluster_timespace2
+                from ibeis.algo.preproc import occurrence_blackbox
                 if X_data.shape[1] == 3:
-                    label_arr = cluster_timespace2(
-                        X_data.T[0], X_data.T[1:3], seconds_thresh,
+                    label_arr = occurrence_blackbox.cluster_timespace2(
+                        X_data.T[0], X_data.T[1:3].T, seconds_thresh,
                         km_per_sec=.02)
                 else:
                     label_arr = agglomerative_cluster_occurrences(X_data,

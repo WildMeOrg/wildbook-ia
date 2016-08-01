@@ -1695,6 +1695,7 @@ class MainWindowBackend(GUIBACK_BASE):
         class TmpConfig(dtool.Config):
             _param_info_list = [
                 ut.ParamInfo('seconds_thresh', 600, 'sec'),
+                ut.ParamInfo('use_gps', True, ''),
             ]
         config = TmpConfig(**back.ibs.cfg.occur_cfg.to_dict())
 
@@ -1726,6 +1727,7 @@ class MainWindowBackend(GUIBACK_BASE):
             raise guiexcept.UserCancel
 
         seconds_thresh = new_config['seconds_thresh']
+        use_gps = new_config['use_gps']
 
         #from ibeis.algo.preproc import preproc_occurrence
         #flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
@@ -1736,7 +1738,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         if reply == options[0]:
             #back.ibs.delete_all_imagesets()
-            back.ibs.compute_occurrences(seconds_thresh=seconds_thresh)
+            back.ibs.compute_occurrences(seconds_thresh=seconds_thresh, use_gps=use_gps)
         elif reply == options[1]:
             # Add to existing imaesets
             imagesettext_list = ibs.get_imageset_text(existing_imgset_id_list)
