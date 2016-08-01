@@ -176,6 +176,29 @@ class ClfProblem(object):
         print('support hist' + ut.repr3(label_hist))
 
     def fit_new_classifier(problem, train_idx):
+        """
+        x_train3 = np.random.rand(100, 2)
+        y_train3 = np.random.randint(0, 3, size=100)
+
+        x_train2 = np.random.rand(100, 2)
+        y_train2 = np.random.randint(0, 2, size=100)
+
+        x_test = np.random.rand(10, 2)
+
+        clf3 = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
+                              decision_function_shape='ovr')
+        clf3.fit(x_train3, y_train3)
+
+        clf2 = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
+                              decision_function_shape='ovr')
+        clf2.fit(x_train2, y_train2)
+
+        y_pred2 = clf2.predict(x_test)
+        y_pred1 = clf3.predict(x_test)
+
+        clf2.decision_function(x_test)
+        clf3.decision_function(x_test)
+        """
         print('[problem] train classifier on %d data points' % (len(train_idx)))
         data = problem.ds.data
         target = problem.ds.target
@@ -194,7 +217,23 @@ class ClfProblem(object):
         y_true = target.take(test_idx, axis=0)
         y_pred = clf.predict(x_test)
         # Get notion of confidence / probability of decision
-        y_conf = clf.decision_function(x_test)
+        #y_conf = clf.decision_function(x_test)
+
+        if len(clf.classes_) == 2:
+            x_test = x_test[0:10]
+            X = clf._validate_for_predict(x_test)
+            X = clf._compute_kernel(X)
+            y_conf = clf._dense_decision_function(X)
+            # Hack to force 2-class problem to use ovr structure
+            if clf.decision_function_shape == 'ovr' and len(clf.classes_) == 2:
+                y_conf = -y_conf
+                from sklearn.multiclass import _ovr_decision_function
+                predictions = y_conf < 0
+                confidences = y_conf
+                n_classes = len(clf.classes_)
+                _ovr_decision_function(predictions, confidences, n_classes)
+
+        X = x_test[0:10]
         result = ClfSingleResult(problem.ds, test_idx, y_true, y_pred, y_conf)
         return result
 
@@ -307,7 +346,7 @@ def learn_injured_sharks():
     pt.qt4ensure()
 
     target_type = 'binary'
-    #target_type='multiclass1'
+    target_type='multiclass1'
     ds = classify_shark.get_sharks_dataset(target_type)
 
     problem = classify_shark.ClfProblem(ds)
@@ -317,6 +356,7 @@ def learn_injured_sharks():
     #train_idx, test_idx = problem.stratified_sample_idxs()
     n_folds = 4
     for train_idx, test_idx in problem.gen_crossval_idxs(n_folds):
+        pass
         clf = problem.fit_new_classifier(train_idx)
         result = problem.test_classifier(clf, test_idx)
         result_list.append(result)

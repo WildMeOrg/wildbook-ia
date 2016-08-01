@@ -558,8 +558,29 @@ if 1:
 #-----------
 
 print('ibeis_rman = %r' % (ibeis_rman,))
-import utool
-utool.embed()
+
+
+if False:
+    MOVE_TO_WILDME = True
+    if MOVE_TO_WILDME:
+        repo = ibeis_rman.repos[0]
+        gitrepo = repo.as_gitpython()
+
+        for remote in gitrepo.remotes:
+            if remote.name == 'origin':
+                url = list(remote.urls)
+                if 'github' in url:
+                    break
+
+        gitrepo.create_remote('origin', repo.remotes.origin.url)
+
+        tb = gitrepo.active_branch.tracking_branch()
+
+        for branch in gitrepo.branches:
+            if branch.name == repo.active_branch():
+                break
+            gitrepo.branches[-2]
+
 
 # Commands on global git repos
 if GET_ARGFLAG('--status'):

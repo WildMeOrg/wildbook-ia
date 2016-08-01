@@ -2191,7 +2191,7 @@ class MainWindowBackend(GUIBACK_BASE):
             species = back.get_selected_species()
 
         valid_kw = {
-            'minqual':  'poor',
+            'minqual':  'ok',
         }
         if species != const.UNKNOWN:
             # Query everything if you don't know the species
