@@ -181,10 +181,10 @@ def get_turk_annot_args(is_reviewed_func, speed_hack=False):
         if speed_hack:
             with ut.Timer():
                 aid_list = ibs.get_valid_aids()
-                reviewed_list = is_reviewed_func(ibs, aid_list)
         else:
             gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
             aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+        reviewed_list = is_reviewed_func(ibs, aid_list)
     else:
         src_gar_rowid_list = ibs.get_annotgroup_gar_rowids(src_ag)
         dst_gar_rowid_list = ibs.get_annotgroup_gar_rowids(dst_ag)
