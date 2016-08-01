@@ -177,13 +177,15 @@ class ClfProblem(object):
 
     def fit_new_classifier(problem, train_idx):
         """
-        x_train3 = np.random.rand(100, 2)
-        y_train3 = np.random.randint(0, 3, size=100)
-
         x_train2 = np.random.rand(100, 2)
         y_train2 = np.random.randint(0, 2, size=100)
 
+        x_train3 = np.random.rand(100, 2)
+        y_train3 = np.random.randint(0, 3, size=100)
+
         x_test = np.random.rand(10, 2)
+        X = clf._validate_for_predict(x_test)
+        X = clf._compute_kernel(X)
 
         clf3 = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
                               decision_function_shape='ovr')
@@ -194,10 +196,25 @@ class ClfProblem(object):
         clf2.fit(x_train2, y_train2)
 
         y_pred2 = clf2.predict(x_test)
-        y_pred1 = clf3.predict(x_test)
+        y_pred3 = clf3.predict(x_test)
 
         clf2.decision_function(x_test)
         clf3.decision_function(x_test)
+
+        dec2 = clf2._dense_decision_function(X)
+        dec3 = clf3._dense_decision_function(X)
+
+        predictions = dec2 < 0
+        confidences = dec2
+        n_classes = len(clf2.classes_)
+        _ovr_decision_function(predictions, confidences, n_classes)
+        y_pred2
+
+        predictions = dec3 < 0
+        confidences = dec3
+        n_classes = len(clf3.classes_)
+        _ovr_decision_function(predictions, confidences, n_classes)
+        y_pred3
         """
         print('[problem] train classifier on %d data points' % (len(train_idx)))
         data = problem.ds.data

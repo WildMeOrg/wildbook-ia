@@ -5853,7 +5853,7 @@ def temp_group_annot_occurrences(ibs, aid_list):
 
 
 @register_ibs_method
-def compute_occurrences(ibs, seconds_thresh=None):
+def compute_occurrences(ibs, seconds_thresh=None, use_gps=None):
     """
     Clusters ungrouped images into imagesets representing occurrences
 
@@ -5892,7 +5892,7 @@ def compute_occurrences(ibs, seconds_thresh=None):
     #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
     with ut.Timer('computing imagesets'):
         flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
-            ibs, gid_list, seconds_thresh=seconds_thresh)
+            ibs, gid_list, seconds_thresh=seconds_thresh, use_gps=use_gps)
         sortx = ut.argsort(flat_imgsetids)
         flat_imgsetids = ut.take(flat_imgsetids, sortx)
         flat_gids = ut.take(flat_gids, sortx)

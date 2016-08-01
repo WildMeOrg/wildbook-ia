@@ -12,7 +12,7 @@ import sklearn.cluster
 
 
 #@ut.indent_func('[occurrence]')
-def ibeis_compute_occurrences(ibs, gid_list, seconds_thresh=None, verbose=None):
+def ibeis_compute_occurrences(ibs, gid_list, seconds_thresh=None, use_gps=None, verbose=None):
     """
     clusters occurrences togethers (by time, not yet space) An occurrence is a
     meeting, localized in time and space between a camera and a group of
@@ -97,7 +97,11 @@ def ibeis_compute_occurrences(ibs, gid_list, seconds_thresh=None, verbose=None):
     )
     print('seconds_thresh = %r' % (seconds_thresh,))
     # TODO: use gps
-    occur_labels, occur_gids = compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict=cfgdict, verbose=verbose)
+    occur_labels, occur_gids = compute_occurrence_groups(ibs, gid_list,
+                                                         cluster_algo,
+                                                         cfgdict=cfgdict,
+                                                         use_gps=use_gps,
+                                                         verbose=verbose)
     if True:
         gid2_label = {gid: label for label, gids in zip(occur_labels, occur_gids) for gid in gids}
         # Assert that each gid only belongs to one occurrence
@@ -194,8 +198,14 @@ def compute_occurrence_groups(ibs, gid_list, cluster_algo, cfgdict={}, use_gps=F
             # Agglomerative clustering of unixtimes
             if cluster_algo == 'agglomerative':
                 seconds_thresh = cfgdict.get('seconds_thresh', 60.0)
-                label_arr = agglomerative_cluster_occurrences(X_data,
-                                                              seconds_thresh)
+                from occurrence_blackbox import cluster_timespace2
+                if X_data.shape[1] == 3:
+                    label_arr = cluster_timespace2(
+                        X_data.T[0], X_data.T[1:3], seconds_thresh,
+                        km_per_sec=.02)
+                else:
+                    label_arr = agglomerative_cluster_occurrences(X_data,
+                                                                  seconds_thresh)
             elif cluster_algo == 'meanshift':
                 quantile = cfgdict.get('quantile', 0.01)
                 label_arr = meanshift_cluster_occurrences(X_data, quantile)
