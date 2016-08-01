@@ -2504,7 +2504,7 @@ class MainWindowBackend(GUIBACK_BASE):
         elif use_visual_selection:
             qaid_list = back.get_selected_aids()
         else:
-            qaid_list = ibs.get_valid_aids(imgsetid=imgsetid, is_known=query_is_known, minqual='poor')
+            qaid_list = ibs.get_valid_aids(imgsetid=imgsetid, is_known=query_is_known, minqual='ok')
 
         print('[back] Initially loaded len(qaid_list) = %r' % (len(qaid_list),))
         if use_prioritized_name_subset:
