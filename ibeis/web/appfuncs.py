@@ -385,7 +385,7 @@ def _resize(image, t_width=None, t_height=None):
     """
     if True:
         import vtool as vt
-        maxdims = (int(t_width), int(t_height))
+        maxdims = (int(round(t_width)), int(round(t_height)))
         interpolation = 'linear'
         return vt.resize_to_maxdims(image, maxdims, interpolation)
     else:
