@@ -7,6 +7,7 @@ import sklearn.datasets
 import sklearn.svm
 import sklearn.metrics
 import sklearn.cross_validation
+from sklearn import preprocessing
 (print, rrr, profile) = ut.inject2(__name__, '[classify_shark]')
 
 
@@ -49,25 +50,29 @@ class ClfSingleResult(object):
 
     def compile_results(result):
         import pandas as pd
-        y_true = result.y_true
+        # y_true = result.y_true
         y_pred = result.y_pred
         y_conf = result.y_conf
         test_idx = result.test_idx
 
-        passed = y_pred == y_true
-        failed = y_pred != y_true
+        # passed = y_pred == y_true
+        # failed = y_pred != y_true
         #confusion = sklearn.metrics.confusion_matrix(y_true, y_pred)
 
-        is_tn = np.logical_and(passed, y_true == 0)
-        is_fp = np.logical_and(failed, y_true == 0)
-        is_fn = np.logical_and(failed, y_true == 1)
-        is_tp = np.logical_and(passed, y_true == 1)
+        # is_tn = np.logical_and(passed, y_true == 0)
+        # is_fp = np.logical_and(failed, y_true == 0)
+        # is_fn = np.logical_and(failed, y_true == 1)
+        # is_tp = np.logical_and(passed, y_true == 1)
 
-        columns = ['is_tn', 'is_fp', 'is_fn', 'is_tp', 'decision']
-        column_data = [is_tn, is_fp, is_fn, is_tp, y_conf]
-        data = dict(zip(columns, column_data))
+        # columns = ['tn', 'fp', 'fn', 'tp', 'decision', 'pred']
+        # column_data = [is_tn, is_fp, is_fn, is_tp, y_conf, y_pred]
 
         index = pd.Series(test_idx, name='test_idx')
+        pd.DataFrame(y_conf, index=index, columns=result.ds.target_names)
+
+        columns = ['decision', 'pred']
+        column_data = [y_conf, y_pred]
+        data = dict(zip(columns, column_data))
         result.df = pd.DataFrame(data, index, columns)
         #result.decision = pd.Series(y_conf, index, name='decision', dtype=np.float)
 
@@ -91,22 +96,24 @@ class ClfProblem(object):
         problem.ds = ds
 
     def print_support_info(problem):
-        target_to_num = ut.dict_hist(problem.ds.target)
-        hist = ut.map_dict_keys(ut.partial(ut.take, problem.ds.target_names), target_to_num)
-        print('support hist' + ut.repr3(hist))
+        enc = problem.ds.enc
+        target_labels = enc.inverse_transform(problem.ds.target)
+        label_hist = ut.dict_hist(target_labels)
+        print('support hist' + ut.repr3(label_hist))
 
     def fit_new_classifier(problem, train_idx):
-        print('[problem] train classifier')
+        print('[problem] train classifier on %d data points' % (len(train_idx)))
         data = problem.ds.data
         target = problem.ds.target
         x_train = data.take(train_idx, axis=0)
         y_train = target.take(train_idx, axis=0)
-        clf = sklearn.svm.SVC(kernel='linear', C=1)
+        clf = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
+                              decision_function_shape='ovr')
         clf.fit(x_train, y_train)
         return clf
 
     def test_classifier(problem, clf, test_idx):
-        print('[problem] test classifier')
+        print('[problem] test classifier on %d data points' % (len(test_idx),))
         data = problem.ds.data
         target = problem.ds.target
         x_test = data.take(test_idx, axis=0)
@@ -117,12 +124,32 @@ class ClfProblem(object):
         result = ClfSingleResult(problem.ds, test_idx, y_true, y_pred, y_conf)
         return result
 
-    def gen_crossval_idxs(problem):
-        xvalkw = dict(n_folds=2, shuffle=True, random_state=43432)
+    def gen_sample_idxs(problem, frac=.2, split_frac=.5):
+        target = problem.ds.target
+        target_labels = problem.ds.target_labels
+
+        rng = np.random.RandomState(043)
+        train_sample = []
+        test_sample = []
+        for label in target_labels:
+            target_idxs = np.where(target == label)[0]
+            subset_size = int(len(target_idxs) * frac)
+            rand_idx = ut.random_indexes(len(target_idxs), subset_size, rng=rng)
+            sample_idx = ut.take(target_idxs, rand_idx)
+            split = int(len(sample_idx) * split_frac)
+            train_sample.append(sample_idx[split:])
+            test_sample.append(sample_idx[:split])
+
+        train_idx = np.array(sorted(ut.flatten(train_sample)))
+        test_idx = np.array(sorted(ut.flatten(test_sample)))
+        return train_idx, test_idx
+
+    def gen_crossval_idxs(problem, n_folds=2):
+        xvalkw = dict(n_folds=n_folds, shuffle=True, random_state=43432)
         target = problem.ds.target
         kf = sklearn.cross_validation.StratifiedKFold(target, **xvalkw)
         msg = 'cross-val test on %s' % (problem.ds.name)
-        for train_idx, test_idx in ut.ProgIter(kf, lbl=msg):
+        for count, (train_idx, test_idx) in enumerate(ut.ProgIter(kf, lbl=msg)):
             yield train_idx, test_idx
 
 
@@ -130,6 +157,9 @@ def learn_injured_sharks():
     r"""
     References:
         http://scikit-learn.org/stable/modules/cross_validation.html
+
+    TODO:
+        * Change unreviewed healthy tags to healthy-likely
 
     Example:
         >>> from ibeis.scripts.classify_shark import *  # NOQA
@@ -145,50 +175,123 @@ def learn_injured_sharks():
         'dim_size': (256, 256),
         'resize_dim': 'wh'
     }
-    annots = ibs.annots(config=config)
+    all_annots = ibs.annots(config=config)
+    print(ut.repr3(ut.dict_hist(ut.flatten(all_annots.case_tags))))
 
-    injur_tags = [u'injur-nicks', u'injur-unknown', u'nicks', u'injur-trunc',
-                  u'other_injury', u'injur-scar', u'injur-bite', u'scar',
-                  u'trunc']
-    healthy_tags = ['healthy']
+    # TARGET_TYPE = 'binary'
+    TARGET_TYPE = 'multiclass1'
 
-    print(ut.dict_hist(ut.flatten(annots.case_tags)).keys())
-    healthy_flags = ut.filterflags_general_tags(annots.case_tags,
-                                                has_any=healthy_tags,
-                                                has_none=injur_tags)
-    injur_flags = ut.filterflags_general_tags(annots.case_tags,
-                                              has_any=injur_tags,
-                                              has_none=healthy_tags)
-    assert np.logical_and(injur_flags, healthy_flags).sum() == 0
+    tag_vocab = ut.flat_unique(*all_annots.case_tags)
 
-    num_inconsitent = len(healthy_flags) - ((healthy_flags + injur_flags) > 0).sum()
-    print('cant use %r annots due to inconsistent tags' % (num_inconsitent,))
-    healthy_annots = annots.compress(healthy_flags)
-    injured_annots = annots.compress(injur_flags)
+    if TARGET_TYPE == 'binary':
 
-    annots = healthy_annots + injured_annots
-    target = np.array(([0] * len(healthy_annots)) + ([1] * len(injured_annots)))
+        injur_tags = [u'injur-nicks', u'injur-unknown', u'nicks', u'injur-trunc',
+                      u'other_injury', u'injur-scar', u'injur-bite', u'scar',
+                      u'trunc']
+
+        healthy_tags = ['healthy']
+
+        healthy_flags = ut.filterflags_general_tags(all_annots.case_tags,
+                                                    has_any=healthy_tags,
+                                                    has_none=injur_tags)
+        injur_flags = ut.filterflags_general_tags(all_annots.case_tags,
+                                                  has_any=injur_tags,
+                                                  has_none=healthy_tags)
+        assert np.logical_and(injur_flags, healthy_flags).sum() == 0
+
+        num_inconsitent = len(healthy_flags) - ((healthy_flags + injur_flags) > 0).sum()
+        print('cant use %r annots due to inconsistent tags' % (num_inconsitent,))
+        healthy_annots = all_annots.compress(healthy_flags)
+        injured_annots = all_annots.compress(injur_flags)
+
+        annots = healthy_annots + injured_annots
+        target = np.array(([0] * len(healthy_annots)) + ([1] * len(injured_annots)))
+
+        annot_tags = [['healthy' if 'healthy' in tags else 'injured'] for tags in annots.case_tags]
+
+        enc = preprocessing.LabelEncoder()
+        enc.fit(ut.unique(ut.flatten(annot_tags)))
+        target = enc.transform(ut.flatten(annot_tags))
+        target_names = enc.classes_
+
+    elif TARGET_TYPE == 'multiclass1':
+        target_names = ['healthy', 'injur-trunc', 'injur-other']
+
+        case_tags = all_annots.case_tags
+
+        regex_map = [
+            ('injur-trunc', 'injur-trunc'),
+            ('trunc', 'injur-trunc'),
+            ('healthy', 'healthy'),
+            ('injur-.*', 'injur-other'),
+            ('other_injury', 'injur-other'),
+            ('nicks', 'injur-other'),
+            ('scar', 'injur-other'),
+            ('pose:novel', None),
+        ]
+        alias_map = ut.build_alias_map(regex_map, tag_vocab)
+        unmapped = list(set(tag_vocab) - set(alias_map.keys()))
+        print('unmapped = %r' % (unmapped,))
+
+        case_tags2 = ut.alias_tags(case_tags, alias_map)
+
+        ntags_list = np.array(ut.lmap(len, case_tags2))
+        is_no_tag = ntags_list == 0
+        is_single_tag = ntags_list == 1
+        is_multi_tag = ntags_list > 1
+        # print('Multi Tags: %s' % (ut.repr2(ut.compress(case_tags2, is_multi_tag), nl=1),))
+
+        print('can\'t use %r annots due to no labels' % (is_no_tag.sum(),))
+        print('can\'t use %r annots due to inconsistent labels' % (is_multi_tag.sum(),))
+        print('will use %r annots with consistent labels' % (is_single_tag.sum(),))
+
+        annot_tags = ut.compress(case_tags2, is_single_tag)
+        annots = all_annots.compress(is_single_tag)
+        annot_tag_hist = ut.dict_hist(ut.flatten(annot_tags))
+        print(ut.repr3(annot_tag_hist))
+
+        # target_names = ['healthy', 'injured']
+        enc = preprocessing.LabelEncoder()
+        enc.fit(ut.unique(ut.flatten(annot_tags)))
+        target = enc.transform(ut.flatten(annot_tags))
+        target_names = enc.classes_
+
+        # Binarize into multi-class labels
+        # menc = preprocessing.MultiLabelBinarizer()
+        # menc.fit(annot_tags)
+        # target = menc.transform(annot_tags)
+        # target_names = menc.classes_
+        # enc = menc
+
+        # henc = preprocessing.OneHotEncoder()
+        # henc.fit(menc.transform(annot_tags))
+        # target = henc.transform(menc.transform(annot_tags))
+        # target_names = henc.classes_
+
+        # target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
 
     data = np.array([h.ravel() for h in annots.hog_hog])
-
-    target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
-    print(ut.dict_hist(ut.flatten(healthy_annots.case_tags)))
 
     # Build scipy / scikit data standards
     ds = sklearn.datasets.base.Bunch(
         ibs=ibs,
         aids=annots.aids,
-        data=data,
-        target=target,
         name='sharks',
         DESCR='injured-vs-healthy whale sharks',
-        target_names=['healthy', 'injured'],
+        data=data,
+        target=target,
+        target_names=target_names,
+        target_labels=enc.transform(target_names),
+        enc=enc,
     )
     problem = ClfProblem(ds)
     problem.print_support_info()
 
     result_list = []
-    for train_idx, test_idx in problem.gen_crossval_idxs():
+    train_idx, test_idx = problem.gen_sample_idxs()
+    # for train_idx, test_idx in problem.gen_crossval_idxs(n_folds=4, n_run=1):
+    #     break
+    if True:
         clf = problem.fit_new_classifier(train_idx)
         result = problem.test_classifier(clf, test_idx)
         result_list.append(result)
@@ -205,12 +308,12 @@ def learn_injured_sharks():
     df = reduce(addfunc, [result.df for result in result_list])
     df['easiness'] = df['decision'].abs()
     df['hardness'] = 1 / df['easiness']
-    df['failed'] = df['is_fp'] + df['is_fn']
+    df['failed'] = df['pred'] != df['target']
     df['aid'] = ut.take(ds.aids, df.index)
     df['target'] = ut.take(ds.target, df.index)
 
     report = sklearn.metrics.classification_report(
-        y_true=df['target'], y_pred=df['decision'] > 0,
+        y_true=df['target'], y_pred=df['pred'],
         target_names=result.ds.target_names)
     print(report)
 
@@ -229,7 +332,7 @@ def learn_injured_sharks():
         df_chunk = df.take(df[sortby].argsort()[::-1])
         if target is not None:
             df_chunk = df_chunk[df_chunk['target'] == target]
-        df_chunk = df_chunk[df_chunk['is_' + err] > 0]
+        df_chunk = df_chunk[df_chunk[err] > 0]
         if True:
             start = int(len(df_chunk) // 2 - np.ceil(n / 2))
             stop  = int(len(df_chunk) // 2 + np.floor(n / 2))
@@ -249,23 +352,19 @@ def learn_injured_sharks():
 
     #def confusion_by_label():
     # Print Confusion by label
+
     for target in [0, 1]:
         df_target = df[df['target'] == target]
-        df_err = df_target[['is_tp', 'is_fp', 'is_fn', 'is_tn']]
+        df_err = df_target[['tp', 'fp', 'fn', 'tn']]
         print('target = %r' % (ds.target_names[target]))
-        print('df_err.sum() =%s' % (ut.repr3(df_err.sum().to_dict()),))
+        print('df_err.sum() =%s' % (ut.repr3(df_err.sum().astype(np.int32).to_dict()),))
 
-    #n = 3
-    #df_list = [
-    #    grab_subchunk('easiness', 'tn', 1, n),
-    #    grab_subchunk('easiness', 'tn', 0, n),
-    #    grab_subchunk('hardness', 'fp', 1, n),
-    #    grab_subchunk('hardness', 'fp', 0, n),
-    #    grab_subchunk('hardness', 'fn', 1, n),
-    #    grab_subchunk('hardness', 'fn', 0, n),
-    #    grab_subchunk('easiness', 'tp', 1, n),
-    #    grab_subchunk('easiness', 'tp', 0, n),
-    #]
+    for true_target in [0, 1]:
+        for pred_target in [0, 1]:
+            df_pred_target = df[df['target'] == pred_target]
+            df_err = df_target[['tp', 'fp', 'fn', 'tn']]
+            print('target = %r' % (ds.target_names[target]))
+            print('df_err.sum() =%s' % (ut.repr3(df_err.sum().astype(np.int32).to_dict()),))
 
     n = 4
     df_list = [
