@@ -64,10 +64,6 @@ def get_sharks_dataset(target_type=None):
         alias_map = ut.build_alias_map(regex_map, tag_vocab)
         case_tags2 = ut.alias_tags(case_tags, alias_map)
     elif target_type == 'multiclass1':
-        target_names = ['healthy', 'injur-trunc', 'injur-other']
-
-        case_tags = all_annots.case_tags
-
         regex_map = [
             ('injur-trunc', 'injur-trunc'),
             ('healthy', 'healthy'),
@@ -79,22 +75,31 @@ def get_sharks_dataset(target_type=None):
         print('unmapped = %r' % (unmapped,))
 
         case_tags2 = ut.alias_tags(case_tags, alias_map)
+    elif target_type == 'multiclass2':
+        regex_map = [
+            ('injur-trunc', 'injur-trunc'),
+            ('healthy', 'healthy'),
+            ('injur-.*', None),
+        ]
+        tag_vocab = ut.flat_unique(*case_tags)
+        alias_map = ut.build_alias_map(regex_map, tag_vocab)
+        unmapped = list(set(tag_vocab) - set(alias_map.keys()))
+        print('unmapped = %r' % (unmapped,))
+
+        case_tags2 = ut.alias_tags(case_tags, alias_map)
     elif target_type == '_experimental_multilabel':
+        pass
         # Binarize into multi-class labels
         # http://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
-        pass
         #menc = preprocessing.MultiLabelBinarizer()
         #menc.fit(annot_tags)
         #target = menc.transform(annot_tags)
-        #target_names = menc.classes_
         #enc = menc
     else:
         raise ValueError('Unknown target_type=%r' % (target_type,))
         # henc = preprocessing.OneHotEncoder()
         # henc.fit(menc.transform(annot_tags))
         # target = henc.transform(menc.transform(annot_tags))
-        # target_names = henc.classes_
-
         # target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
 
     ntags_list = np.array(ut.lmap(len, case_tags2))
@@ -113,6 +118,7 @@ def get_sharks_dataset(target_type=None):
     annot_tags = ut.compress(case_tags2, is_single_tag)
     annots = all_annots.compress(is_single_tag)
     annot_tag_hist = ut.dict_hist(ut.flatten(annot_tags))
+    print('Final Annot Tags')
     print(ut.repr3(annot_tag_hist))
 
     # target_names = ['healthy', 'injured']
@@ -188,7 +194,7 @@ class ClfProblem(object):
         X = clf._compute_kernel(X)
 
         clf3 = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
-                              decision_function_shape='ovr')
+                               decision_function_shape='ovr')
         clf3.fit(x_train3, y_train3)
 
         clf2 = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
@@ -204,10 +210,14 @@ class ClfProblem(object):
         dec2 = clf2._dense_decision_function(X)
         dec3 = clf3._dense_decision_function(X)
 
-        predictions = dec2 < 0
-        confidences = dec2
-        n_classes = len(clf2.classes_)
-        _ovr_decision_function(predictions, confidences, n_classes)
+
+
+        if True:
+
+            return final
+        else:
+            _ovr_decision_function(predictions, confidences, n_classes)
+
         y_pred2
 
         predictions = dec3 < 0
@@ -232,29 +242,42 @@ class ClfProblem(object):
         target = problem.ds.target
         x_test = data.take(test_idx, axis=0)
         y_true = target.take(test_idx, axis=0)
-        y_pred = clf.predict(x_test)
-        # Get notion of confidence / probability of decision
-        #y_conf = clf.decision_function(x_test)
 
         if len(clf.classes_) == 2:
-            x_test = x_test[0:10]
+            # Adapt _ovr_decision_function for 2-class case
+            # This is simply a linear scaling into a probability based on the
+            # other members of this query.
             X = clf._validate_for_predict(x_test)
             X = clf._compute_kernel(X)
-            y_conf = clf._dense_decision_function(X)
-            # Hack to force 2-class problem to use ovr structure
-            if clf.decision_function_shape == 'ovr' and len(clf.classes_) == 2:
-                y_conf = -y_conf
-                from sklearn.multiclass import _ovr_decision_function
-                predictions = y_conf < 0
-                confidences = y_conf
-                n_classes = len(clf.classes_)
-                _ovr_decision_function(predictions, confidences, n_classes)
+            _dec2 = clf._dense_decision_function(X)
+            dec2 = -_dec2
 
-        X = x_test[0:10]
+            n_samples = dec2.shape[0]
+            n_classes = len(clf.classes_)
+            final = np.zeros((n_samples, n_classes))
+            confidence_max = max(np.abs(dec2.max()), np.abs(dec2.min()))
+            norm_conf = ((dec2.T[0] / confidence_max) + 1) / 2
+            final.T[0] = 1 - norm_conf
+            final.T[1] = norm_conf
+            # output comparable to multiclass version
+            y_conf = final
+        else:
+            # Get notion of confidence / probability of decision
+            y_conf = clf.decision_function(x_test)
+
+        y_pred = y_conf.argmax(axis=1)
+        #if False:
+        #    real_pred = clf.predict(x_test)
+        #    real_conf = clf.decision_function(x_test)
+        #    np.all(y_pred == real_pred)
+        #    np.all((real_conf > 0) == real_pred)
+        #    np.all((norm_conf > 0) == real_pred)
+        #    assert np.all(dec2.ravel() == real_conf)
+
         result = ClfSingleResult(problem.ds, test_idx, y_true, y_pred, y_conf)
         return result
 
-    def stratified_sample_idxs(problem, frac=.2, split_frac=.75):
+    def stratified_2sample_idxs(problem, frac=.2, split_frac=.75):
         target = problem.ds.target
         target_labels = problem.ds.target_labels
 
@@ -345,6 +368,32 @@ class ClfSingleResult(object):
         print(report)
 
 
+def stratified_sample_idxs_balanced(target, frac=.2, balanced=True):
+    rng = np.random.RandomState(43)
+    sample = []
+    for label in np.unique(target):
+        target_idxs = np.where(target == label)[0]
+        subset_size = int(len(target_idxs) * frac)
+        rand_idx = ut.random_indexes(len(target_idxs), subset_size, rng=rng)
+        sample_idx = ut.take(target_idxs, rand_idx)
+        sample.append(sample_idx)
+    sample_idx = np.array(sorted(ut.flatten(sample)))
+    return sample_idx
+
+
+def stratified_sample_idxs_unbalanced(target, size=1000):
+    rng = np.random.RandomState(43)
+    sample = []
+    for label in np.unique(target):
+        target_idxs = np.where(target == label)[0]
+        subset_size = size
+        rand_idx = ut.random_indexes(len(target_idxs), subset_size, rng=rng)
+        sample_idx = ut.take(target_idxs, rand_idx)
+        sample.append(sample_idx)
+    sample_idx = np.array(sorted(ut.flatten(sample)))
+    return sample_idx
+
+
 def learn_injured_sharks():
     r"""
     References:
@@ -363,17 +412,24 @@ def learn_injured_sharks():
     pt.qt4ensure()
 
     target_type = 'binary'
-    target_type='multiclass1'
+    target_type = 'multiclass1'
+    target_type = 'multiclass2'
     ds = classify_shark.get_sharks_dataset(target_type)
+
+    # Sample the dataset
+    #idxs = stratified_sample_idxs_balanced(ds.target, .5)
+    idxs = stratified_sample_idxs_unbalanced(ds.target, 1000)
+    ds.target = ds.target.take(idxs, axis=0)
+    ds.data = ds.data.take(idxs, axis=0)
+    ds.aids = ut.take(ds.aids, idxs)
 
     problem = classify_shark.ClfProblem(ds)
     problem.print_support_info()
 
     result_list = []
-    #train_idx, test_idx = problem.stratified_sample_idxs()
-    n_folds = 4
+    #train_idx, test_idx = problem.stratified_2sample_idxs()
+    n_folds = 2
     for train_idx, test_idx in problem.gen_crossval_idxs(n_folds):
-        pass
         clf = problem.fit_new_classifier(train_idx)
         result = problem.test_classifier(clf, test_idx)
         result_list.append(result)
@@ -384,7 +440,8 @@ def learn_injured_sharks():
     for result in result_list:
         result.print_report()
 
-    [set(s1).intersection(set(s2)) for s1, s2 in ut.combinations([result.df.index for result in result_list], 2)]
+    isect_sets = [set(s1).intersection(set(s2)) for s1, s2 in ut.combinations([result.df.index for result in result_list], 2)]
+    assert all([len(s) == 0 for s in isect_sets]), ('cv sets should not intersect')
 
     pd.set_option("display.max_rows", 20)
 
@@ -401,6 +458,7 @@ def learn_injured_sharks():
     print(report)
 
     confusion = sklearn.metrics.confusion_matrix(df['target'], df['pred'])
+    print('Confusion Matrix:')
     print(pd.DataFrame(confusion, columns=result.ds.target_names, index=result.ds.target_names))
 
     #def confusion_by_label():
@@ -459,7 +517,7 @@ def learn_injured_sharks():
     config = ds.config
 
     fnum = 1
-    pnum_ = pt.make_pnum_nextgen(nCols=len(places), nSubplots=len(df_list))
+    pnum_ = pt.make_pnum_nextgen(nRows=len(places), nSubplots=len(df_list))
     for df_chunk in df_list:
         if len(df_chunk) == 0:
             import vtool as vt
