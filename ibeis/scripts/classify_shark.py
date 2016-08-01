@@ -315,10 +315,12 @@ def learn_injured_sharks():
     for result in result_list:
         result.print_report()
 
+    [set(s1).intersection(set(s2)) for s1, s2 in ut.combinations([result.df.index for result in result_list], 2)]
+
+    pd.set_option("display.max_rows", 20)
+
     # Combine information from results
-    #result_list = multi_result.result_list
-    addfunc = ut.partial(pd.DataFrame.add, fill_value=np.nan)
-    df = reduce(addfunc, [result.df for result in result_list])
+    df = pd.concat([result.df for result in result_list])
     df['hardness'] = 1 / df['easiness']
     df['aid'] = ut.take(ds.aids, df.index)
     df['target'] = ut.take(ds.target, df.index)
@@ -329,16 +331,8 @@ def learn_injured_sharks():
         target_names=result.ds.target_names)
     print(report)
 
-    # Order by hardness and grab only failures
-    hard_df = df.take(df['hardness'].argsort()[::-1])
-    hard_df = hard_df[hard_df['failed'] > 0]
-    # Order by easiness and grab only successes
-    easy_df = df.take(df['easiness'].argsort()[::-1])
-    easy_df = easy_df[easy_df['failed'] == 0]
-    df1 = hard_df.take(range(6))
-    df1.nice = 'Hard Failure Cases'
-    df2 = easy_df.take(range(6))
-    df2.nice = 'Easy Success Cases'
+    confusion = sklearn.metrics.confusion_matrix(df['target'], df['pred'])
+    print(pd.DataFrame(confusion, columns=result.ds.target_names, index=result.ds.target_names))
 
     def grab_subchunk(sortby, err, target, n):
         df_chunk = df.take(df[sortby].argsort()[::-1])
