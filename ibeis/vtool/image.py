@@ -735,15 +735,78 @@ def resize_image_by_scale(img, scale, interpolation=None):
 def resized_dims_and_ratio(img_size, max_dsize):
     """
     returns resized dimensions to get ``img_size`` to fit into ``max_dsize``
+
+    FIXME:
+        Should specifying a None force the use of the original dim?
+
+    Args:
+        img_size (tuple):
+        max_dsize (tuple):
+
+    Returns:
+        tuple: (dsize, ratio)
+
+    CommandLine:
+        python -m vtool.image resized_dims_and_ratio --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> img_size = (200, 100)
+        >>> max_dsize = (150, 150)
+        >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
+        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> print(result)
+        (dsize, ratio) = ((150, 75), 0.75)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> img_size = (200, 100)
+        >>> max_dsize = (5000, 1000)
+        >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
+        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> print(result)
+        (dsize, ratio) = ((2000, 1000), 10.0)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> img_size = (200, 100)
+        >>> max_dsize = (5000, None)
+        >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
+        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> print(result)
+        (dsize, ratio) = ((200, 100), 1.0)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> img_size = (200, 100)
+        >>> max_dsize = (None, None)
+        >>> (dsize, ratio) = resized_dims_and_ratio(img_size, max_dsize)
+        >>> result = ('(dsize, ratio) = %s' % (ut.repr2((dsize, ratio)),))
+        >>> print(result)
+        (dsize, ratio) = ((200, 100), 1.0)
     """
     #if isinstance(max_dsize, (tuple, list, np.ndarray)):
     max_width, max_height = max_dsize
     width, height = img_size
-    if max_width is None:
-        max_width = width
-    if max_height is None:
-        max_height = height
-    ratio = min(max_width / width, max_height / height)
+    if False:
+        if max_width is not None and max_height is not None:
+            ratio = min(max_width / width, max_height / height)
+        elif max_width is not None:
+            ratio = max_width / width
+        elif max_width is not None:
+            ratio = max_height / height
+        else:
+            ratio = 1.0
+    else:
+        if max_width is None:
+            max_width = width
+        if max_height is None:
+            max_height = height
+        ratio = min(max_width / width, max_height / height)
     dsize = (int(round(width * ratio)), int(round(height * ratio)))
     return dsize, ratio
 
@@ -1437,11 +1500,9 @@ def resize_to_maxdims(img, max_dsize=(64, 64),
         >>> # ENABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
         >>> img_fpath = ut.grab_test_imgpath('carl.jpg')
         >>> img = vt.imread(img_fpath)
         >>> max_dsize = (1024, 1024)
-        >>> # execute function
         >>> img2 = resize_to_maxdims(img, max_dsize)
         >>> print('img.shape = %r' % (img.shape,))
         >>> print('img2.shape = %r' % (img2.shape,))
