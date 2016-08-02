@@ -130,7 +130,7 @@ def user_option(parent=None, msg='msg', title='user_option',
     return reply
 
 
-def user_input(parent=None, msg='msg', title='user_input'):
+def user_input(parent=None, msg='msg', title='user_input', text=''):
     r"""
     Args:
         parent (None):
@@ -141,24 +141,22 @@ def user_input(parent=None, msg='msg', title='user_input'):
         str:
 
     CommandLine:
-        python -m guitool.guitool_dialogs --test-user_input
+        python -m guitool.guitool_dialogs --test-user_input --show
 
     Example:
         >>> # GUI_DOCTEST
         >>> from guitool.guitool_dialogs import *  # NOQA
-        >>> # build test data
         >>> parent = None
         >>> msg = 'msg'
         >>> title = 'user_input'
-        >>> # execute function
+        >>> text = 'default text'
         >>> import guitool
         >>> guitool.ensure_qtapp()
-        >>> dpath = user_input(parent, msg, title)
-        >>> # verify results
+        >>> dpath = user_input(parent, msg, title, text)
         >>> result = str(dpath)
         >>> print(result)
     """
-    reply, ok = QtWidgets.QInputDialog.getText(parent, title, msg)
+    reply, ok = QtWidgets.QInputDialog.getText(parent, title, msg, text=text)
     if not ok:
         return None
     return str(reply)
