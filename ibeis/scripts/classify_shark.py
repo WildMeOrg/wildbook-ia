@@ -15,9 +15,10 @@ from plottool import abstract_interaction
 
 @ut.reloadable_class
 class InteractAnnotClasses(abstract_interaction.AbstractInteraction):
-    def __init__(inter, ibs, config, df_chunks, **kwargs):
+    def __init__(inter, ibs, config, df_chunks, nCols, **kwargs):
         inter.df_chunks = df_chunks
         inter.ibs = ibs
+        inter.nCols = nCols
         inter.config = config
         inter._init_lists()
         super(InteractAnnotClasses, inter).__init__(**kwargs)
@@ -35,7 +36,7 @@ class InteractAnnotClasses(abstract_interaction.AbstractInteraction):
         inter._ensure_running()
         inter._init_lists()
 
-        pnum_ = pt.make_pnum_nextgen(nRows=3, nSubplots=len(inter.df_chunks))
+        pnum_ = pt.make_pnum_nextgen(nCols=inter.nCols, nSubplots=len(inter.df_chunks))
         for df_chunk in inter.df_chunks:
             ibs = inter.ibs
             config = inter.config
@@ -176,6 +177,11 @@ def get_sharks_dataset(target_type=None):
     print('Cleaned tags')
     print(ut.repr3(ut.dict_hist(ut.flatten(case_tags))))
 
+    ntags_list = np.array(ut.lmap(len, case_tags))
+    is_no_tag = ntags_list == 0
+    is_single_tag = ntags_list == 1
+    is_multi_tag = ntags_list > 1
+
     if target_type == 'binary':
         regex_map = [
             ('injur-.*', 'injured'),
@@ -306,6 +312,7 @@ class ClfProblem(object):
         """
         http://leon.bottou.org/research/stochastic
         http://blog.explainmydata.com/2012/06/ntrain-24853-ntest-25147-ncorrupt.html
+        http://scikit-learn.org/stable/modules/svm.html#svm-classification
         """
         print('[problem] train classifier on %d data points' % (len(train_idx)))
         data = problem.ds.data
@@ -314,6 +321,15 @@ class ClfProblem(object):
         y_train = target.take(train_idx, axis=0)
         clf = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
                               decision_function_shape='ovr')
+        # C, penalty, loss
+
+        #param_grid = {'C': [1e3, 5e3, 1e4, 5e4, 1e5],
+        #              'gamma': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1], }
+        #param_grid = {'C': [1e3, 5e3, 1e4, 5e4, 1e5],
+        #              'gamma': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1], }
+        #clf = GridSearchCV(SVC(kernel='rbf', class_weight='balanced'), param_grid)
+        #clf = clf.fit(X_train_pca, y_train)
+
         clf.fit(x_train, y_train)
         return clf
 
@@ -503,17 +519,17 @@ def learn_injured_sharks():
     # Sample the dataset
     #idxs = classify_shark.stratified_sample_idxs_balanced(ds.target, .5)
     #idxs = classify_shark.stratified_sample_idxs_unbalanced(ds.target, 1500)
-    idxs = classify_shark.stratified_sample_idxs_unbalanced(ds.target, 3000)
-    ds.target = ds.target.take(idxs, axis=0)
-    ds.data = ds.data.take(idxs, axis=0)
-    ds.aids = ut.take(ds.aids, idxs)
+    #idxs = classify_shark.stratified_sample_idxs_unbalanced(ds.target, 1000)
+    #ds.target = ds.target.take(idxs, axis=0)
+    #ds.data = ds.data.take(idxs, axis=0)
+    #ds.aids = ut.take(ds.aids, idxs)
 
     problem = classify_shark.ClfProblem(ds)
     problem.print_support_info()
 
     result_list = []
     #train_idx, test_idx = problem.stratified_2sample_idxs()
-    n_folds = 2
+    n_folds = 5
     for train_idx, test_idx in problem.gen_crossval_idxs(n_folds):
         clf = problem.fit_new_classifier(train_idx)
         result = problem.test_classifier(clf, test_idx)
@@ -545,8 +561,8 @@ def learn_injured_sharks():
 
     confusion = sklearn.metrics.confusion_matrix(df['target'], df['pred'])
     print('Confusion Matrix:')
-    print(pd.DataFrame(confusion, columns=result.ds.target_names,
-                       index=result.ds.target_names))
+    print(pd.DataFrame(confusion, columns=[' ' + m for m in result.ds.target_names],
+                       index=['gt ' + m for m in result.ds.target_names]))
 
     def snapped_slice(size, frac, n):
         start = int(size * frac - np.ceil(n / 2))
@@ -579,10 +595,10 @@ def learn_injured_sharks():
             df_chunk.nice = place_name
         return df_chunk
 
-    n = 4
+    n = 5
     #places = ['start', 'middle', 'end']
     #fracs = [0.0, .5, 1.0]
-    fracs = [1.0, 0.9, 0.7]
+    fracs = [.7, .8, .9, 1.0]
     df_chunks = [grab_subchunk(frac, n, target)
                  for frac in fracs for target in ds.target_labels]
 
@@ -590,7 +606,7 @@ def learn_injured_sharks():
     ibs = ds.ibs
     config = ds.config
 
-    inter = classify_shark.InteractAnnotClasses(ibs, config, df_chunks)
+    inter = classify_shark.InteractAnnotClasses(ibs, config, df_chunks, nCols=len(ds.target_labels))
     inter.start()
 
     #fnum = 1
