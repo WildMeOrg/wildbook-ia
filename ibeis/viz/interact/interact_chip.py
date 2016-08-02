@@ -315,11 +315,11 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         if resp is not None:
             try:
                 print('resp = %r' % (resp,))
-                ibs.set_annot_tag_text([aid], [text])
-                print('changed annot tag text')
+                print('[ctx] set_annot_tag_text aid=%r resp=%r' % (aid, resp))
+                ibs.set_annot_tag_text(aid, resp)
                 new_text = ibs.get_annot_tag_text([aid])[0]
                 print('new_text = %r' % (new_text,))
-                assert new_text == text, 'should have had text change'
+                assert new_text == resp, 'should have had text change'
             except Exception as ex:
                 ut.printex(ex, 'error in dev edit tags')
                 raise

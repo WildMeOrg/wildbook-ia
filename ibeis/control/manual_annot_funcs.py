@@ -3261,9 +3261,9 @@ def set_annot_tag_text(ibs, aid_list, annot_tags_list, duplicate_behavior='error
         annot_tags_list
 
     """
+    #print('[ibs] set_annot_tag_text of aids=%r to tags=%r' % (aid_list, annot_tags_list))
     id_iter = aid_list
     colnames = (ANNOT_TAG_TEXT,)
-    print('Setting annot tag text of %r to %r' % (aid_list, annot_tags_list))
     ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_tags_list,
                id_iter, duplicate_behavior=duplicate_behavior)
 
