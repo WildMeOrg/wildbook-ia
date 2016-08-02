@@ -1177,12 +1177,9 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     def root(depc):
         return depc.root_tablename
 
-    def delete_root(depc, root_rowids, _debug=False):
+    def delete_root(depc, root_rowids, delete_extern=None, _debug=False, table_config_filter=None):
         r"""
-        Deletes all properties of a root object.
-        (with a default config)
-
-        FIXME: make this work for all configs
+        Deletes all properties of a root object regardless of config
 
         Args:
             root_rowids (list):
@@ -1201,15 +1198,72 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> depc.get('fgweight', [1])
             >>> depc.delete_root(root_rowids, _debug=0)
         """
-        graph = depc.make_graph(implicit=False)
+        #graph = depc.make_graph(implicit=False)
         # hack
         # check to make sure child does not have another parent
-        children = [child for child in graph.succ[depc.root_tablename]
-                    if sum([len(e) for e in graph.pred[child].values()]) == 1]
-        for tablename in children:
-            depc.delete_property(tablename, root_rowids, _debug=_debug)
+        rowid_dict = depc.get_allconfig_descendant_rowids(root_rowids, table_config_filter)
+        #children = [child for child in graph.succ[depc.root_tablename]
+        #            if sum([len(e) for e in graph.pred[child].values()]) == 1]
+        #depc.delete_property(tablename, root_rowids, _debug=_debug)
+        num_deleted = 0
+        for tablename, table_rowids in rowid_dict.items():
+            if tablename == depc.root:
+                continue
+            table = depc[tablename]
+            num_deleted += table.delete_rows(table_rowids,
+                                             delete_extern=delete_extern)
+        return num_deleted
 
-    def notify_root_changed(depc, root_rowids, prop):
+    def get_allconfig_descendant_rowids(depc, root_rowids, table_config_filter=None):
+        import networkx as nx
+
+        #list(nx.topological_sort(nx.bfs_tree(graph, depc.root)))
+        #decendants = nx.descendants(graph, depc.root)
+        #raise NotImplementedError()
+
+        graph = depc.make_graph(implicit=True)
+        root = depc.root
+        rowid_dict = {}
+        rowid_dict[root] = root_rowids
+
+        # Find all rowids that inherit from the specific root rowids
+        sinks = list(nx.sink_nodes(nx.bfs_tree(graph, depc.root)))
+        for target_tablename in sinks:
+            path = nx.shortest_path(graph, root, target_tablename)
+            for parent, child in ut.itertwo(path):
+                child_table = depc[child]
+                relevant_col_attrs = [attrs for attrs in child_table.parent_col_attrs
+                                      if attrs['parent_table'] == parent]
+                parent_colnames = [attrs['intern_colname'] for attrs in relevant_col_attrs]
+
+                params_iter = list(zip(rowid_dict[parent]))
+
+                for parent_colname in parent_colnames:
+                    child_rowids = child_table.db.get_where2(child_table.tablename,
+                                                             (child_table.rowid_colname,),
+                                                             params_iter,
+                                                             unpack_scalars=False,
+                                                             andwhere_colnames=[parent_colname])
+                    child_rowids = ut.flatten(child_rowids)
+                    if table_config_filter is not None:
+                        config_filter = table_config_filter.get(child_table.tablename, None)
+                        if config_filter is not None:
+                            # If a config filter is specified only grab rows that
+                            # meed the filter
+                            tbl_cfgids = child_table.get_row_cfgid(child_rowids)
+                            cfgid2_rowids = ut.group_items(child_rowids, tbl_cfgids)
+                            unique_cfgids = cfgid2_rowids.keys()
+                            unique_cfgids = ut.filter_Nones(unique_cfgids)
+                            unique_configs = child_table.get_config_from_rowid(unique_cfgids)
+                            passed_rowids = []
+                            for config, cfgid in zip(unique_configs, tbl_cfgids):
+                                if all([config[key] == val for key, val in config_filter.items()]):
+                                    passed_rowids.extend(cfgid2_rowids[cfgid])
+                            child_rowids = passed_rowids
+                    rowid_dict[child] = ut.unique(child_rowids + rowid_dict.get(child, []))
+        return rowid_dict
+
+    def notify_root_changed(depc, root_rowids, prop, force_delete=False):
         """
         this is where we are notified that a "registered" root property has
         changed.
@@ -1220,7 +1274,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         #depc.delete_property(key, root_rowids)
         # TODO: check which properties were invalidated by this prop
         # TODO; remove invalidated properties
-        #depc.delete_root(root_rowids)
+        if force_delete:
+            depc.delete_root(root_rowids)
 
     def clear_all(depc):
         print('Clearning all cached data in %r' % (depc,))
