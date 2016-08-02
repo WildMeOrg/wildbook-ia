@@ -263,6 +263,9 @@ class APIItemModel(API_MODEL_BASE):
                 'inconsistent col_visible_list')
             assert len(col_name_list) == len(col_level_list), (
                 'inconsistent collevel')
+            for colname, flag, func in zip(col_name_list, col_edit_list, col_setter_list):
+                if flag:
+                    assert func is not None, 'column=%r is editable but func is None' % (colname,)
 
         model.clear_cache()
 
@@ -634,7 +637,7 @@ class APIItemModel(API_MODEL_BASE):
         try:
             return setter(row_id, value)
         except Exception as ex:
-            ut.printex(ex, 'ERROR: setting data: row_id=%r, setter=%r' % (row_id, setter))
+            ut.printex(ex, 'ERROR: setting data: row_id=%r, setter=%r, col=%r' % (row_id, setter, col))
             raise
 
     #------------------------
