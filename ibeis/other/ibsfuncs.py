@@ -1661,7 +1661,7 @@ def aidstr(aid, ibs=None, notes=False):
 
 
 @register_ibs_method
-@ut.time_func
+#@ut.time_func
 #@profile
 def update_exemplar_special_imageset(ibs):
     # FIXME SLOW
@@ -1676,7 +1676,7 @@ def update_exemplar_special_imageset(ibs):
 
 
 @register_ibs_method
-@ut.time_func
+#@ut.time_func
 #@profile
 def update_reviewed_unreviewed_image_special_imageset(ibs, reviewed=True, unreviewed=True):
     """
@@ -1699,7 +1699,7 @@ def update_reviewed_unreviewed_image_special_imageset(ibs, reviewed=True, unrevi
 
 
 @register_ibs_method
-@ut.time_func
+#@ut.time_func
 #@profile
 def update_all_image_special_imageset(ibs):
     # FIXME SLOW
@@ -1804,7 +1804,7 @@ def update_ungrouped_special_imageset(ibs):
 
 
 @register_ibs_method
-@ut.time_func
+#@ut.time_func
 @profile
 def update_special_imagesets(ibs):
     if ut.get_argflag('--readonly-mode'):

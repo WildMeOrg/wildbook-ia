@@ -681,9 +681,17 @@ def delete_annots(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.deleter
 def delete_annot_imgthumbs(ibs, aid_list):
+    # Less hacky
+    gid_list_ = ibs.get_annot_gids(aid_list)
+    table_config_filter = {
+        'thumbnails': {
+            'draw_annots': True,
+        }
+    }
+    ibs.depc_image.delete_root(gid_list_, table_config_filter)
+
     # MEGA HACK FOR QT
     config2_ = {'thumbsize': 221}
-    gid_list_ = ibs.get_annot_gids(aid_list)
     ibs.delete_image_thumbs(gid_list_, **config2_)
     # ibs.delete_image_thumbs(gid_list_)
 
@@ -2556,7 +2564,7 @@ def set_annot_thetas(ibs, aid_list, theta_list, delete_thumbs=True):
         ibs.delete_annot_chips(aid_list)  # Changing theta redefines the chips
         ibs.delete_annot_imgthumbs(aid_list)
     ibs.update_annot_visual_uuids(aid_list)
-    ibs.depc_annot.notify_root_changed(aid_list, 'theta')
+    ibs.depc_annot.notify_root_changed(aid_list, 'theta', force_delete=True)
 
 
 @register_ibs_method
@@ -2594,7 +2602,7 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
         ibs.delete_annot_chips(aid_list)  # INVALIDATE THUMBNAILS
         ibs.delete_annot_imgthumbs(aid_list)
     ibs.update_annot_visual_uuids(aid_list)
-    ibs.depc_annot.notify_root_changed(aid_list, 'verts')
+    ibs.depc_annot.notify_root_changed(aid_list, 'verts', force_delete=True)
 
 
 # PROBCHIP
@@ -3255,6 +3263,7 @@ def set_annot_tag_text(ibs, aid_list, annot_tags_list, duplicate_behavior='error
     """
     id_iter = aid_list
     colnames = (ANNOT_TAG_TEXT,)
+    print('Setting annot tag text of %r to %r' % (aid_list, annot_tags_list))
     ibs.db.set(const.ANNOTATION_TABLE, colnames, annot_tags_list,
                id_iter, duplicate_behavior=duplicate_behavior)
 

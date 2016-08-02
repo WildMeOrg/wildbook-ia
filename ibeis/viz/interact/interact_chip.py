@@ -74,13 +74,13 @@ def show_annot_context_menu(ibs, aid, qwin, qpoint, refresh_func=None,
         python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show
 
     """
-    import guitool
+    import guitool as gt
     callback_list = build_annot_context_options(
         ibs, aid, refresh_func=refresh_func,
         with_interact_name=with_interact_name,
         with_interact_chip=with_interact_chip,
         with_interact_image=with_interact_image, config2_=config2_)
-    guitool.popup_menu(qwin, qpoint, callback_list)
+    gt.popup_menu(qwin, qpoint, callback_list)
 
 
 def build_annot_context_options(ibs, aid, refresh_func=None,
@@ -122,7 +122,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         >>> result = ('callback_list = %s' % (ut.list_str(callback_list, nl=4),))
         >>> print(result)
     """
-    import guitool
+    import guitool as gt
     is_exemplar = ibs.get_annot_exemplar_flags(aid)
 
     def refresh_wrp(func):
@@ -180,16 +180,16 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         ]
 
     if with_interact_name and not ibs.is_nid_unknown(nid):
-        from ibeis.viz.interact import interact_name
+        #from ibeis.viz.interact import interact_name
+        #callback_list.append(
+        #    ('Interact name', partial(interact_name.ishow_name, ibs,
+        #                                        nid, fnum=None))
+        #)
+        from ibeis.viz import viz_graph2
+        nid = ibs.get_annot_nids(aid)
         callback_list.append(
-            ('Interact name', partial(interact_name.ishow_name, ibs,
-                                                nid, fnum=None))
-        )
-        from ibeis.viz import viz_graph
-        callback_list.append(
-            ('Interact name graph',
-             partial(viz_graph.make_name_graph_interaction,
-                               ibs, nids=None, aids=[aid])),
+            ('New Split Interact (Annots)',
+             partial(viz_graph2.make_qt_graph_interface, ibs, nids=[nid])),
         )
 
     if with_interact_image:
@@ -258,7 +258,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         tags = ibs.get_annot_case_tags([aid])[0]
         tags = [_.lower() for _ in tags]
 
-        case_hotlink_list = guitool.make_word_hotlinks(case_list,
+        case_hotlink_list = gt.make_word_hotlinks(case_list,
                                                        after_colon=True)
 
         def _wrap_set_annot_prop(prop, toggle_val):
@@ -306,7 +306,26 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         if config2_ is not None:
             print('config2_.__dict__ = %s' % (ut.repr3(config2_.__dict__),))
 
-    callback_list += [
+    dev_callback_list = []
+
+    def dev_edit_annot_tags():
+        print('ibs = %r' % (ibs,))
+        text = ibs.get_annot_tag_text([aid])[0]
+        resp = gt.user_input(title='edit tags', msg=text, text=text)
+        if resp is not None:
+            try:
+                print('resp = %r' % (resp,))
+                ibs.set_annot_tag_text([aid], [text])
+                print('changed annot tag text')
+                new_text = ibs.get_annot_tag_text([aid])[0]
+                print('new_text = %r' % (new_text,))
+                assert new_text == text, 'should have had text change'
+            except Exception as ex:
+                ut.printex(ex, 'error in dev edit tags')
+                raise
+
+    dev_callback_list += [
+        ('dev Edit Annot Ta&gs', dev_edit_annot_tags),
         ('dev print annot info', print_annot_info),
         ('dev refresh', pt.update),
     ]
@@ -323,10 +342,12 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
             ut.embed()
             #pt.plt.ion()
             pass
-        callback_list += [
+        dev_callback_list += [
             ('dev chip context embed', dev_embed),
             ('dev chip context debug', dev_debug),
         ]
+    if len(dev_callback_list) > 0:
+        callback_list += [('Dev', dev_callback_list)]
     return callback_list
 
 
@@ -339,10 +360,9 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
 #        print('[ic] viztype=%r' % viztype)
 #        if viztype == 'chip':
 #            if event.button == 3:   # right-click
-#                import guitool
 #                from ibeis.viz.interact import interact_chip
 #                height = fig.canvas.geometry().height()
-#                qpoint = guitool.newQPoint(event.x, height - event.y)
+#                qpoint = gt.newQPoint(event.x, height - event.y)
 #                refresh_func = partial(_chip_view, **kwargs)
 #                interact_chip.show_annot_context_menu(
 #                    ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func,
@@ -432,10 +452,10 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
                 _chip_view(**kwargs)
         else:
             if event.button == 3:   # right-click
-                import guitool
+                import guitool as gt
                 #from ibeis.viz.interact import interact_chip
                 height = fig.canvas.geometry().height()
-                qpoint = guitool.newQPoint(event.x, height - event.y)
+                qpoint = gt.newQPoint(event.x, height - event.y)
                 refresh_func = partial(_chip_view, **kwargs)
 
                 callback_list = build_annot_context_options(
@@ -443,7 +463,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
                     with_interact_chip=False,
                     config2_=config2_)
                 qwin = fig.canvas
-                guitool.popup_menu(qwin, qpoint, callback_list)
+                gt.popup_menu(qwin, qpoint, callback_list)
                 #interact_chip.show_annot_context_menu(
                 #    ibs, aid, fig.canvas, qpoint, refresh_func=refresh_func,
                 #    with_interact_chip=False, config2_=config2_)

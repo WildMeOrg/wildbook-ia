@@ -700,7 +700,7 @@ def set_image_orientation(ibs, gid_list, orientation_list):
     val_list = ((orientation,) for orientation in orientation_list)
     id_iter = ((gid,) for gid in gid_list)
     ibs.db.set(const.IMAGE_TABLE, colnames, val_list, id_iter)
-    # ibs.depc_image.notify_root_changed(gid_list, 'img')
+    ibs.depc_image.notify_root_changed(gid_list, 'image_orientation')
 
 
 #
@@ -815,6 +815,19 @@ def get_image_thumbpath(ibs, gid_list, ensure_paths=False, **config):
     #                               read_extern=False)
     if DEBUG_THUMB:
         print('[GET} thumbpath_list = %r' % (thumbpath_list,))
+    return thumbpath_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+# @register_api('/api/image/thumbpath/', methods=['GET'])
+def get_image_thumbnail(ibs, gid_list, **config):
+    r"""
+    Returns:
+        list_ (list): the thumbnail path of each gid
+    """
+    depc = ibs.depc_image
+    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config)
     return thumbpath_list
 
 
@@ -1810,7 +1823,8 @@ def delete_images(ibs, gid_list, trash_images=True):
         ut.ensuredir(trash_dir)
         gpath_list2 = [join(trash_dir, gname + ext) for (gname, ext) in
                        zip(gname_list, ext_list)]
-        ut.copy_list(gpath_list, gpath_list2, ioerr_ok=True, oserror_ok=True, lbl='Trashing Images')
+        ut.copy_list(gpath_list, gpath_list2, ioerr_ok=True, oserror_ok=True,
+                     lbl='Trashing Images')
     else:
         for gpath in gpath_list:
             ut.delete(gpath)
@@ -1864,6 +1878,8 @@ def delete_image_thumbs(ibs, gid_list, **config2_):
         print('[ibs] deleting %d image thumbnails' % len(gid_list))
         if DEBUG_THUMB:
             print('{THUMB DELETE} config2_ = %r' % (config2_,))
+
+    # TODO: delete all configs?
     num_deleted = ibs.depc_image.delete_property('thumbnails', gid_list,
                                                  config=config2_)
 

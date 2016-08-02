@@ -51,7 +51,8 @@ def setup_dummy_menus():
 
 
 def setup_menus(mainwin, back=None):
-    print('[guimenus] creating menus')
+    if ut.VERBOSE:
+        print('[guimenus] creating menus')
     mainwin.menubar = guitool.newMenubar(mainwin)
     if back is None:
         back = DummyBack()

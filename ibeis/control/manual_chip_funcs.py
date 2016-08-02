@@ -268,7 +268,7 @@ def delete_annot_chips(ibs, aid_list, config2_=None):
         URL:    /api/chip/
     """
     thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
-    print(thumbpath_list)
+    #print(thumbpath_list)
     #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')
     ut.remove_existing_fpaths(thumbpath_list, quiet=False, lbl='chip_thumbs')
     ibs.depc_annot.delete_property('chips', aid_list, config=config2_)

@@ -8,7 +8,128 @@ import sklearn.svm
 import sklearn.metrics
 import sklearn.model_selection
 from sklearn import preprocessing
+import plottool as pt
+from plottool import abstract_interaction
 (print, rrr, profile) = ut.inject2(__name__, '[classify_shark]')
+
+
+@ut.reloadable_class
+class InteractAnnotClasses(abstract_interaction.AbstractInteraction):
+    def __init__(inter, ibs, config, df_chunks, **kwargs):
+        inter.df_chunks = df_chunks
+        inter.ibs = ibs
+        inter.config = config
+        inter._init_lists()
+        super(InteractAnnotClasses, inter).__init__(**kwargs)
+
+    def _init_lists(inter):
+        inter.offset_lists = []
+        inter.sizes_lists = []
+        inter.sf_lists = []
+        inter.ax_list = []
+        inter.metadata_lists = []
+        inter.data_lists = []
+
+    def _show_page(inter):
+        from ibeis_cnn import draw_results
+        inter._ensure_running()
+        inter._init_lists()
+
+        pnum_ = pt.make_pnum_nextgen(nRows=3, nSubplots=len(inter.df_chunks))
+        for df_chunk in inter.df_chunks:
+            ibs = inter.ibs
+            config = inter.config
+            annots_chunk = ibs.annots(df_chunk['aid'].values, config=config)
+            #data_lists = [(np.array(annots_chunk.hog_img) * 255).astype(np.uint8),
+            #              annots_chunk.chips]
+            #data_lists = [annots_chunk.chips]
+            data_lists = [ibs.get_image_thumbnail(annots_chunk.gids, draw_annots=True)]
+            label_list = (1 - df_chunk['failed']).values
+            flat_metadata = df_chunk.to_dict(orient='list')
+            flat_metadata['tags'] = annots_chunk.case_tags
+            tup = draw_results.get_patch_chunk(data_lists, label_list,
+                                               flat_metadata,
+                                               draw_meta=['decision', 'tags'],
+                                               vert=False, fontScale=4.0)
+            inter.metadata_lists.append(flat_metadata)
+            img, offset_list, sf_list, sizes_list = tup
+            inter.offset_lists.append(offset_list)
+            inter.sf_lists.append(sf_list)
+            inter.sizes_lists.append(sizes_list)
+            inter.data_lists.append(data_lists)
+            fig, ax = pt.imshow(img, fnum=inter.fnum, pnum=pnum_())
+            ax.set_title(df_chunk.nice)
+            inter.ax_list.append(ax)
+        pt.adjust_subplots2(top=.95, left=0, right=1, bottom=.00, hspace=.1, wspace=0)
+
+    def on_click_inside(inter, event, ax):
+        print('click inside')
+
+        def get_label_index(inter, event, ax):
+            """ generalize """
+            x, y = event.xdata, event.ydata
+            def find_offset_index(offsets, sizes, x, y):
+                x1_pts = offsets.T[0]
+                x2_pts = offsets.T[0] + sizes.T[0]
+                y1_pts = offsets.T[1]
+                y2_pts = offsets.T[1] + sizes.T[1]
+
+                in_bounds = np.logical_and.reduce([
+                    x >= x1_pts, x < x2_pts,
+                    y >= y1_pts, y < y2_pts
+                ])
+                valid_idxs = np.where(in_bounds)[0]
+                #print('valid_idxs = %r' % (valid_idxs,))
+                assert len(valid_idxs) == 1
+                return valid_idxs[0]
+            try:
+                # Find plot axes index
+                px = inter.ax_list.index(ax)
+            except ValueError:
+                label_index = None
+            else:
+                offsets = np.array(inter.offset_lists[px])
+                sfs = np.array(inter.sf_lists[px])
+                orig_sizes = np.array(inter.sizes_lists[px])
+                sizes = np.array(orig_sizes) * sfs
+                data_list = inter.data_lists[px]
+                data_per_label = len(data_list)
+                #num_rows = data_per_label
+                num_cols = (len(offsets) // data_per_label)
+                _subindex = find_offset_index(offsets, sizes, x, y)
+                row_index = _subindex // num_cols
+                col_index = _subindex % num_cols
+                #label_index = inter.multiindicies[plot_index][row_index]
+                print('_subindex = %r' % (_subindex,))
+                print('row_index = %r' % (row_index,))
+                print('col_index = %r' % (col_index,))
+                print('px = %r' % (px,))
+                #print('label_index = %r' % (label_index,))
+                label_index = (px, col_index)
+            return label_index
+
+        options = []
+
+        label_index = get_label_index(inter, event, ax)
+
+        if label_index is not None:
+            px, col_index = label_index
+            flat_metadata = inter.metadata_lists[px]
+
+            if 'aid' in flat_metadata:
+                from ibeis.viz.interact import interact_chip
+                ibs = inter.ibs
+                aid = flat_metadata['aid'][col_index]
+                if ibs is not None:
+                    options += interact_chip.build_annot_context_options(ibs, aid)
+                    print('Annot Info:' + ut.repr3(inter.ibs.get_annot_info([aid], case_tags=True)))
+
+        if event.button == 3:
+            #options = inter.context_option_funcs[index]()
+            options += [
+                ('Present', pt.present),
+            ]
+            inter.show_popup_menu(options, event)
 
 
 def get_sharks_dataset(target_type=None):
@@ -183,48 +304,8 @@ class ClfProblem(object):
 
     def fit_new_classifier(problem, train_idx):
         """
-        x_train2 = np.random.rand(100, 2)
-        y_train2 = np.random.randint(0, 2, size=100)
-
-        x_train3 = np.random.rand(100, 2)
-        y_train3 = np.random.randint(0, 3, size=100)
-
-        x_test = np.random.rand(10, 2)
-        X = clf._validate_for_predict(x_test)
-        X = clf._compute_kernel(X)
-
-        clf3 = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
-                               decision_function_shape='ovr')
-        clf3.fit(x_train3, y_train3)
-
-        clf2 = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
-                              decision_function_shape='ovr')
-        clf2.fit(x_train2, y_train2)
-
-        y_pred2 = clf2.predict(x_test)
-        y_pred3 = clf3.predict(x_test)
-
-        clf2.decision_function(x_test)
-        clf3.decision_function(x_test)
-
-        dec2 = clf2._dense_decision_function(X)
-        dec3 = clf3._dense_decision_function(X)
-
-
-
-        if True:
-
-            return final
-        else:
-            _ovr_decision_function(predictions, confidences, n_classes)
-
-        y_pred2
-
-        predictions = dec3 < 0
-        confidences = dec3
-        n_classes = len(clf3.classes_)
-        _ovr_decision_function(predictions, confidences, n_classes)
-        y_pred3
+        http://leon.bottou.org/research/stochastic
+        http://blog.explainmydata.com/2012/06/ntrain-24853-ntest-25147-ncorrupt.html
         """
         print('[problem] train classifier on %d data points' % (len(train_idx)))
         data = problem.ds.data
@@ -300,10 +381,11 @@ class ClfProblem(object):
     def gen_crossval_idxs(problem, n_folds=2):
         xvalkw = dict(n_folds=n_folds, shuffle=True, random_state=43432)
         target = problem.ds.target
-        #skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-        import sklearn.cross_validation
-        skf = sklearn.cross_validation.StratifiedKFold(target, **xvalkw)
-        _iter = skf
+        #import sklearn.cross_validation
+        #skf = sklearn.cross_validation.StratifiedKFold(target, **xvalkw)
+        #_iter = skf
+        skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
+        _iter = skf.split(y=target)
         msg = 'cross-val test on %s' % (problem.ds.name)
         for count, (train_idx, test_idx) in enumerate(ut.ProgIter(_iter, lbl=msg)):
             yield train_idx, test_idx
@@ -404,21 +486,24 @@ def learn_injured_sharks():
 
     Example:
         >>> from ibeis.scripts.classify_shark import *  # NOQA
+        >>> learn_injured_sharks()
     """
     from ibeis.scripts import classify_shark
+    import sklearn.metrics
     import plottool as pt
     import pandas as pd
 
     pt.qt4ensure()
 
     target_type = 'binary'
-    target_type = 'multiclass1'
-    target_type = 'multiclass2'
+    #target_type = 'multiclass1'
+    #target_type = 'multiclass2'
     ds = classify_shark.get_sharks_dataset(target_type)
 
     # Sample the dataset
-    #idxs = stratified_sample_idxs_balanced(ds.target, .5)
-    idxs = stratified_sample_idxs_unbalanced(ds.target, 1000)
+    #idxs = classify_shark.stratified_sample_idxs_balanced(ds.target, .5)
+    #idxs = classify_shark.stratified_sample_idxs_unbalanced(ds.target, 1500)
+    idxs = classify_shark.stratified_sample_idxs_unbalanced(ds.target, 3000)
     ds.target = ds.target.take(idxs, axis=0)
     ds.data = ds.data.take(idxs, axis=0)
     ds.aids = ut.take(ds.aids, idxs)
@@ -440,7 +525,8 @@ def learn_injured_sharks():
     for result in result_list:
         result.print_report()
 
-    isect_sets = [set(s1).intersection(set(s2)) for s1, s2 in ut.combinations([result.df.index for result in result_list], 2)]
+    isect_sets = [set(s1).intersection(set(s2)) for s1, s2 in ut.combinations([
+        result.df.index for result in result_list], 2)]
     assert all([len(s) == 0 for s in isect_sets]), ('cv sets should not intersect')
 
     pd.set_option("display.max_rows", 20)
@@ -459,23 +545,8 @@ def learn_injured_sharks():
 
     confusion = sklearn.metrics.confusion_matrix(df['target'], df['pred'])
     print('Confusion Matrix:')
-    print(pd.DataFrame(confusion, columns=result.ds.target_names, index=result.ds.target_names))
-
-    #def confusion_by_label():
-    # Print Confusion by label
-
-    #for target in [0, 1]:
-    #    df_target = df[df['target'] == target]
-    #    df_err = df_target[['tp', 'fp', 'fn', 'tn']]
-    #    print('target = %r' % (ds.target_names[target]))
-    #    print('df_err.sum() =%s' % (ut.repr3(df_err.sum().astype(np.int32).to_dict()),))
-
-    #for true_target in [0, 1]:
-    #    for pred_target in [0, 1]:
-    #        df_pred_target = df[df['target'] == pred_target]
-    #        df_err = df_target[['tp', 'fp', 'fn', 'tn']]
-    #        print('target = %r' % (ds.target_names[target]))
-    #        print('df_err.sum() =%s' % (ut.repr3(df_err.sum().astype(np.int32).to_dict()),))
+    print(pd.DataFrame(confusion, columns=result.ds.target_names,
+                       index=result.ds.target_names))
 
     def snapped_slice(size, frac, n):
         start = int(size * frac - np.ceil(n / 2))
@@ -492,12 +563,12 @@ def learn_injured_sharks():
         sl = slice(start, stop)
         return sl
 
-    def grab_subchunk(place, n, target):
+    def grab_subchunk(frac, n, target):
         df_chunk = df.take(df['hardness'].argsort())
         if target is not None:
             df_chunk = df_chunk[df_chunk['target'] == target]
         #df_chunk = df_chunk[df_chunk[err] > 0]
-        frac = {'start': 0.0, 'middle': 0.5, 'end': 1.0}[place]
+        #frac = {'start': 0.0, 'middle': 0.5, 'end': 1.0}[place]
         sl = snapped_slice(len(df_chunk), frac, n)
         idx = df_chunk.index[sl]
         df_chunk = df_chunk.loc[idx]
@@ -509,50 +580,60 @@ def learn_injured_sharks():
         return df_chunk
 
     n = 4
-    places = ['start', 'middle', 'end']
-    df_list = [grab_subchunk(place, n, target) for place in places for target in ds.target_labels]
+    #places = ['start', 'middle', 'end']
+    #fracs = [0.0, .5, 1.0]
+    fracs = [1.0, 0.9, 0.7]
+    df_chunks = [grab_subchunk(frac, n, target)
+                 for frac in fracs for target in ds.target_labels]
 
-    from ibeis_cnn import draw_results
+    #from ibeis_cnn import draw_results
     ibs = ds.ibs
     config = ds.config
 
-    fnum = 1
-    pnum_ = pt.make_pnum_nextgen(nRows=len(places), nSubplots=len(df_list))
-    for df_chunk in df_list:
-        if len(df_chunk) == 0:
-            import vtool as vt
-            img = vt.get_no_symbol(size=(n * 100, 200))
-            #size=(200, 100))
-            #img = np.zeros((10, 10), dtype=np.uint8)
-        else:
-            annots_chunk = ibs.annots(df_chunk['aid'].values, config=config)
-            data_lists = [(np.array(annots_chunk.hog_img) * 255).astype(np.uint8), annots_chunk.chips]
-            label_list = (1 - df_chunk['failed']).values
-            flat_metadata = df_chunk.to_dict(orient='list')
-            flat_metadata['tags'] = annots_chunk.case_tags
-            tup = draw_results.get_patch_chunk(data_lists, label_list, flat_metadata, draw_meta=['decision', 'tags'], vert=False, fontScale=4.0)
-            img, offset_list, sf_list, stacked_orig_sizes = tup
-        fig, ax = pt.imshow(img, fnum=fnum, pnum=pnum_())
-        ax.set_title(df_chunk.nice)
-    pt.adjust_subplots2(top=.95, left=0, right=1, bottom=.00, hspace=.1, wspace=0)
+    inter = classify_shark.InteractAnnotClasses(ibs, config, df_chunks)
+    inter.start()
 
-    if False:
-        pt.qt4ensure()
-        subset_df = df_chunk
-        for idx in ut.InteractiveIter(subset_df.index.values):
-            dfrow = subset_df.loc[idx]
-            assert dfrow['aid'] == ds.aids[idx]
-            annot = ibs.annots([dfrow['aid']], config=config)
-            hogimg = annot.hog_img[0]
-            chip = annot.chips[0]
-            pt.clf()
-            pt.imshow(hogimg, pnum=(1, 2, 1))
-            pt.imshow(chip, pnum=(1, 2, 2))
-            pt.set_xlabel(str(annot.case_tags[0]))
-            fig = pt.gcf()
-            print(dfrow)
-            fig.show()
-            fig.canvas.draw()
+    #fnum = 1
+    #pnum_ = pt.make_pnum_nextgen(nRows=len(places), nSubplots=len(df_chunks))
+    #for df_chunk in df_chunks:
+    #    if len(df_chunk) == 0:
+    #        import vtool as vt
+    #        img = vt.get_no_symbol(size=(n * 100, 200))
+    #        #size=(200, 100))
+    #        #img = np.zeros((10, 10), dtype=np.uint8)
+    #    else:
+    #        annots_chunk = ibs.annots(df_chunk['aid'].values, config=config)
+    #        data_lists = [(np.array(annots_chunk.hog_img) * 255).astype(np.uint8),
+    #                      annots_chunk.chips]
+    #        label_list = (1 - df_chunk['failed']).values
+    #        flat_metadata = df_chunk.to_dict(orient='list')
+    #        flat_metadata['tags'] = annots_chunk.case_tags
+    #        tup = draw_results.get_patch_chunk(data_lists, label_list,
+    #                                           flat_metadata,
+    #                                           draw_meta=['decision', 'tags'],
+    #                                           vert=False, fontScale=4.0)
+    #        img, offset_list, sf_list, stacked_orig_sizes = tup
+    #    fig, ax = pt.imshow(img, fnum=fnum, pnum=pnum_())
+    #    ax.set_title(df_chunk.nice)
+    #pt.adjust_subplots2(top=.95, left=0, right=1, bottom=.00, hspace=.1, wspace=0)
+
+    #if False:
+    #    pt.qt4ensure()
+    #    subset_df = df_chunk
+    #    for idx in ut.InteractiveIter(subset_df.index.values):
+    #        dfrow = subset_df.loc[idx]
+    #        assert dfrow['aid'] == ds.aids[idx]
+    #        annot = ibs.annots([dfrow['aid']], config=config)
+    #        hogimg = annot.hog_img[0]
+    #        chip = annot.chips[0]
+    #        pt.clf()
+    #        pt.imshow(hogimg, pnum=(1, 2, 1))
+    #        pt.imshow(chip, pnum=(1, 2, 2))
+    #        pt.set_xlabel(str(annot.case_tags[0]))
+    #        fig = pt.gcf()
+    #        print(dfrow)
+    #        fig.show()
+    #        fig.canvas.draw()
 
 if __name__ == '__main__':
     r"""

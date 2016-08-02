@@ -270,6 +270,10 @@ class AnnotGroups(ut.NiceRepr):
         return [a.aids for a in self.annots_list]
 
     @property
+    def images(self, config=None):
+        return self._ibs.images(self.gids, config)
+
+    @property
     def case_tags(self):
         ams_list = self._ibs.get_unflat_am_rowids(self.aids)
         tags = self._ibs.unflat_map(self._ibs.get_annotmatch_case_tags, ams_list)

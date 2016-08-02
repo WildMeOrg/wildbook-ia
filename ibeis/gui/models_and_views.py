@@ -14,6 +14,9 @@ print, rrr, profile = ut.inject2(__name__, '[newgui_models]')
 #---------------------
 
 
+VERBOSE_GUI = ut.VERBOSE or ut.get_argflag(('--verbose-gui', '--verbgui'))
+
+
 class IBEISTableWidget(APIItemWidget):
     def __init__(widget, headers=None, parent=None, *args):
         widget.ibswin = parent
@@ -90,7 +93,8 @@ class IBEISTableView(APITableView):
         tblview.ibswin = parent
 
     def _change_imageset(tblview, imgsetid):
-        print('[gui.IBEISTableView] _change_imageset(%r)' % (imgsetid))
+        if VERBOSE_GUI:
+            print('[gui.IBEISTableView] _change_imageset(%r)' % (imgsetid))
         tblview.verticalScrollBar().setSliderPosition(0)
         model = tblview.model()
         if model is not None:
@@ -127,7 +131,8 @@ class IBEISItemModel(IBEISITEMMODEL_BASE):
         return model.original_iders[0](imgsetid=model.imgsetid)
 
     def _change_imageset(model, imgsetid):
-        print('[gui.IBEISItemModel] _change_imageset(%r)' % (imgsetid))
+        if VERBOSE_GUI:
+            print('[gui.IBEISItemModel] _change_imageset(%r)' % (imgsetid))
         model.imgsetid = imgsetid
         with ChangeLayoutContext([model]):
             super(IBEISItemModel, model)._update_rows()
@@ -145,7 +150,8 @@ class IBEISTreeView(APITreeView):
         treeview.ibswin = parent
 
     def _change_imageset(treeview, imgsetid):
-        print('[gui.IBEISTreeView] _change_imageset(%r)' % (imgsetid))
+        if VERBOSE_GUI:
+            print('[gui.IBEISTreeView] _change_imageset(%r)' % (imgsetid))
         treeview.verticalScrollBar().setSliderPosition(0)
         model = treeview.model()
         if model is not None:

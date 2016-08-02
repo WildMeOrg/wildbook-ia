@@ -54,3 +54,7 @@ but the verts are shown when editing)
 * Better editing of annotation tags
 * Add tags for images as well.
 
+
+* Replace print statements in classes with dedicated loggers
+This will allow debug info to be written to file and not stdout and separate 
+the streams of different print statements.

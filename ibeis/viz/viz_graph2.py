@@ -1345,6 +1345,9 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, init_mode='rereview'):
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=win, freq=10)
     """
+    #print('make_qt_graph_interface init()')
+    #print('nids = %r' % (nids,))
+    #print('aids = %r' % (aids,))
     if nids is not None and aids is None:
         aids = ut.flatten(ibs.get_name_aids(nids))
     if aids is None:
