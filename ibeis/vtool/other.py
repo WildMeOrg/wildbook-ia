@@ -2304,6 +2304,46 @@ def calc_sample_from_error_bars(err_frac, pop, conf_level=.95, prior=.5):
     print(ut.msgblock('Calculate Required Sample Size', '\n'.join(lines)))
 
 
+def inbounds(num, low, high, eq=False):
+    r"""
+    Args:
+        num (scalar or ndarray):
+        low (scalar or ndarray):
+        high (scalar or ndarray):
+        eq (bool):
+
+    Returns:
+        scalar or ndarray: is_inbounds
+
+    CommandLine:
+        python -m utool.util_alg --test-inbounds
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> import utool as ut
+        >>> num = np.array([[ 0.   ,  0.431,  0.279],
+        ...                 [ 0.204,  0.352,  0.08 ],
+        ...                 [ 0.107,  0.325,  0.179]])
+        >>> low  = .1
+        >>> high = .4
+        >>> eq = False
+        >>> is_inbounds = inbounds(num, low, high, eq)
+        >>> result = ut.numpy_str(is_inbounds)
+        >>> print(result)
+        np.array([[False, False,  True],
+                  [ True,  True, False],
+                  [ True,  True,  True]], dtype=bool)
+
+    """
+    import operator as op
+    less    = op.le if eq else op.lt
+    greater = op.ge if eq else op.gt
+    and_ = np.logical_and if isinstance(num, np.ndarray) else op.and_
+    is_inbounds = and_(greater(num, low), less(num, high))
+    return is_inbounds
+
+
 if __name__ == '__main__':
     """
     CommandLine:
