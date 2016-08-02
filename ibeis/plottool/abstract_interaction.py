@@ -132,6 +132,21 @@ class AbstractInteraction(object):
         print('is_down = ' + ut.repr2(self.is_down))
         print('is_drag = ' + ut.repr2(self.is_drag))
 
+    def _preshow_page(self):
+        self._ensure_running()
+        if self.debug:
+            print('[pt.a] show page')
+        self.fig = ih.begin_interaction(self.interaction_name, fnum=self.fnum)
+
+    def _postshow_page(self):
+        self.connect_callbacks()
+
+    def _show_page(self):
+        if hasattr(self, 'plot'):
+            self.plot(fnum=self.fnum, pnum=(1, 1, 1))
+        else:
+            self.static_plot(fnum=self.fnum, pnum=(1, 1, 1))
+
     def show_page(self, *args):
         """
         Hack: this function should probably not be defined, but it is for
@@ -139,15 +154,9 @@ class AbstractInteraction(object):
         Override this or create static plot function
         (preferably override)
         """
-        self._ensure_running()
-        if self.debug:
-            print('[pt.a] show page')
-        self.fig = ih.begin_interaction(self.interaction_name, fnum=self.fnum)
-        if hasattr(self, 'plot'):
-            self.plot(fnum=self.fnum, pnum=(1, 1, 1))
-        else:
-            self.static_plot(fnum=self.fnum, pnum=(1, 1, 1))
-        self.connect_callbacks()
+        self._preshow_page()
+        self._show_page()
+        self._postshow_page()
 
     def connect_callbacks(self):
         if self.debug:
