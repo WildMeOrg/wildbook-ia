@@ -494,6 +494,8 @@ def make_agraph(graph_):
                 pt_arr = np.array(pt_list) / 72.0
                 new_ptstr_list = list(map(str, pt_arr))
                 new_ptstr_ = ','.join(new_ptstr_list)
+                if anode.attr['pin'] is True:
+                    anode.attr['pin'] = 'true'
                 if anode.attr['pin'] == 'true':
                     new_ptstr = new_ptstr_ + '!'
                 else:
@@ -1074,6 +1076,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                         width = graph_dim * .0005
                 except Exception:
                     pass
+            arrow_width = kwargs.get('arrow_width', width)
 
             if not as_directed and end_pt is not None:
                 pass
@@ -1168,7 +1171,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                     dxy = (dxy / np.sqrt(np.sum(dxy ** 2))) * .1
                     dx, dy = dxy
                     rx, ry = end_pt[0], end_pt[1]
-                    patch1 = mpl.patches.FancyArrow(rx, ry, dx, dy, width=width,
+                    patch1 = mpl.patches.FancyArrow(rx, ry, dx, dy, width=arrow_width,
                                                     length_includes_head=True,
                                                     color=color,
                                                     head_starts_at_zero=False)
@@ -1177,7 +1180,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                     dxy = (dxy / np.sqrt(np.sum(dxy ** 2))) * .1
                     dx, dy = dxy
                     rx, ry = other_points[-1][0], other_points[-1][1]
-                    patch1 = mpl.patches.FancyArrow(rx, ry, dx, dy, width=width,
+                    patch1 = mpl.patches.FancyArrow(rx, ry, dx, dy, width=arrow_width,
                                                     length_includes_head=True,
                                                     color=color,
                                                     head_starts_at_zero=True)
