@@ -1061,8 +1061,8 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
 
     def evaluate_dnids(cm, qreq_=None, ibs=None):
         if qreq_ is not None:
-            #cm.qnid = qreq_.qannots.lookup([cm.qaid]).nids[0]
-            #dnid_list = qreq_.dannots.lookup(cm.daid_list).nids
+            #cm.qnid = qreq_.qannots.loc([cm.qaid]).nids[0]
+            #dnid_list = qreq_.dannots.loc(cm.daid_list).nids
             cm.qnid = qreq_.get_qreq_annot_nids(cm.qaid)
             dnid_list = qreq_.get_qreq_annot_nids(cm.daid_list)
             #ibs = qreq_.ibs

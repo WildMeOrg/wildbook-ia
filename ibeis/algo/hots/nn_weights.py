@@ -374,7 +374,7 @@ def get_name_normalizers(qaid, qreq_, Knorm, neighb_idx):
     """
     assert Knorm == qreq_.qparams.Knorm, 'inconsistency in qparams'
     # Get the top names you do not want your normalizer to be from
-    #qnid = qreq_.internal_qannots.lookup([qaid]).nids[0]
+    #qnid = qreq_.internal_qannots.loc([qaid]).nids[0]
     qnid = qreq_.get_qreq_annot_nids(qaid)
     K = len(neighb_idx.T) - Knorm
     assert K > 0, 'K cannot be 0'

@@ -1726,8 +1726,8 @@ class MainWindowBackend(GUIBACK_BASE):
             back.user_warning(msg='There are no ungrouped images.')
             raise guiexcept.UserCancel
 
-        seconds_thresh = new_config['seconds_thresh']
-        use_gps = new_config['use_gps']
+        #seconds_thresh = new_config['seconds_thresh']
+        #use_gps = new_config['use_gps']
 
         #from ibeis.algo.preproc import preproc_occurrence
         #flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
@@ -1738,7 +1738,9 @@ class MainWindowBackend(GUIBACK_BASE):
 
         if reply == options[0]:
             #back.ibs.delete_all_imagesets()
-            back.ibs.compute_occurrences(seconds_thresh=seconds_thresh, use_gps=use_gps)
+            #config = new_config
+            #back.ibs.compute_occurrences(config=ibs.cfg.occur_cfg)
+            back.ibs.compute_occurrences(config=new_config)
         elif reply == options[1]:
             # Add to existing imaesets
             imagesettext_list = ibs.get_imageset_text(existing_imgset_id_list)
@@ -2999,7 +3001,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def import_images_from_file(back, gpath_list=None, refresh=True, as_annots=False,
-                                clock_offset=True):
+                                clock_offset=False):
         r"""
         File -> Import Images From File
 
@@ -3061,7 +3063,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
     @blocking_slot()
     def import_images_from_dir(back, dir_=None, size_filter=None, refresh=True,
-                               clock_offset=True, return_dir=False, defaultdir=None):
+                               clock_offset=False, return_dir=False, defaultdir=None):
         """ File -> Import Images From Directory"""
         print('[back] import_images_from_dir')
         if dir_ is None:
@@ -3141,7 +3143,7 @@ class MainWindowBackend(GUIBACK_BASE):
             #back.front.update_tables([gh.IMAGESET_TABLE])
             back.front.update_tables()
 
-    def _process_new_images(back, refresh, gid_list, clock_offset=True):
+    def _process_new_images(back, refresh, gid_list, clock_offset=False):
         if refresh:
             back.ibs.update_special_imagesets()
             back.front.update_tables([gh.IMAGE_TABLE, gh.IMAGESET_TABLE])

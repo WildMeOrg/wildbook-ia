@@ -3808,7 +3808,9 @@ def get_unflat_annots_speeds_list2(ibs, aids_list):
         # Lookup values in SQL only once
         unique_unixtimes = ibs.get_annot_image_unixtimes_asfloat(unique_aids)
         unique_gps = ibs.get_annot_image_gps(unique_aids)
-        unique_gps = np.array([(np.nan if lat == -1 else lat, np.nan if lon == -1 else lon) for (lat, lon) in unique_gps])
+        unique_gps = np.array([
+            (np.nan if lat == -1 else lat, np.nan if lon == -1 else lon)
+            for (lat, lon) in unique_gps])
         unique_gps = vt.atleast_nd(unique_gps, 2)
         if len(unique_gps) == 0:
             unique_gps.shape = (0, 2)
@@ -3849,8 +3851,9 @@ def get_annotpair_speeds(ibs, aid_pairs, unique_aids=None):
     # Lookup values in SQL only once
     unique_unixtimes = ibs.get_annot_image_unixtimes_asfloat(unique_aids)
     unique_gps = ibs.get_annot_image_gps(unique_aids)
-    unique_gps = np.array([(np.nan if lat == -1 else lat, np.nan if lon == -1 else lon)
-                           for (lat, lon) in unique_gps])
+    unique_gps = np.array([
+        (np.nan if lat == -1 else lat, np.nan if lon == -1 else lon)
+        for (lat, lon) in unique_gps])
     unique_gps = vt.atleast_nd(unique_gps, 2)
     if len(unique_gps) == 0:
         unique_gps.shape = (0, 2)
@@ -5835,25 +5838,7 @@ def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
 
 
 @register_ibs_method
-def temp_group_annot_occurrences(ibs, aid_list):
-    """
-    """
-    from ibeis.algo.preproc import preproc_occurrence
-    gid_list = ibs.get_annot_gids(aid_list)
-    import vtool as vt
-    gid2_aid = ut.group_items(aid_list, gid_list)
-    unique_gids, groupxs = vt.group_indices(np.array(gid_list))
-    #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
-    with ut.Timer('computing imagesets'):
-        flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
-            ibs, gid_list)
-        occurid2_gid = ut.group_items(flat_gids, flat_imgsetids)
-        occurid2_aids = ut.map_dict_vals(ut.flatten, ut.map_dict_vals(ut.partial(ut.take, gid2_aid), occurid2_gid))
-    return occurid2_aids
-
-
-@register_ibs_method
-def compute_occurrences(ibs, seconds_thresh=None, use_gps=None):
+def compute_occurrences(ibs, config=None):
     """
     Clusters ungrouped images into imagesets representing occurrences
 
@@ -5892,7 +5877,7 @@ def compute_occurrences(ibs, seconds_thresh=None, use_gps=None):
     #gid_list = ibs.get_valid_gids(require_unixtime=False, reviewed=False)
     with ut.Timer('computing imagesets'):
         flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
-            ibs, gid_list, seconds_thresh=seconds_thresh, use_gps=use_gps)
+            ibs, gid_list, config=config)
         sortx = ut.argsort(flat_imgsetids)
         flat_imgsetids = ut.take(flat_imgsetids, sortx)
         flat_gids = ut.take(flat_gids, sortx)

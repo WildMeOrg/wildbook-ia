@@ -7,6 +7,7 @@ import sklearn.datasets
 import sklearn.svm
 import sklearn.metrics
 import sklearn.model_selection
+import sklearn.grid_search
 from sklearn import preprocessing
 import plottool as pt
 from plottool import abstract_interaction
@@ -135,6 +136,19 @@ class InteractAnnotClasses(abstract_interaction.AbstractInteraction):
 
 def get_sharks_dataset(target_type=None):
     """
+    Ignore:
+        # Binarize into multi-class labels
+        # http://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
+        #menc = preprocessing.MultiLabelBinarizer()
+        #menc.fit(annot_tags)
+        #target = menc.transform(annot_tags)
+        #enc = menc
+        # henc = preprocessing.OneHotEncoder()
+        # henc.fit(menc.transform(annot_tags))
+        # target = henc.transform(menc.transform(annot_tags))
+        # target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
+
+        >>> target_type = 'binary'
         >>> from ibeis.scripts.classify_shark import *  # NOQA
     """
     import ibeis
@@ -187,47 +201,25 @@ def get_sharks_dataset(target_type=None):
             ('injur-.*', 'injured'),
             ('healthy', 'healthy'),
         ]
-        tag_vocab = ut.flat_unique(*case_tags)
-        alias_map = ut.build_alias_map(regex_map, tag_vocab)
-        case_tags2 = ut.alias_tags(case_tags, alias_map)
     elif target_type == 'multiclass1':
         regex_map = [
             ('injur-trunc', 'injur-trunc'),
             ('healthy', 'healthy'),
             ('injur-.*', 'injur-other'),
         ]
-        tag_vocab = ut.flat_unique(*case_tags)
-        alias_map = ut.build_alias_map(regex_map, tag_vocab)
-        unmapped = list(set(tag_vocab) - set(alias_map.keys()))
-        print('unmapped = %r' % (unmapped,))
-
-        case_tags2 = ut.alias_tags(case_tags, alias_map)
     elif target_type == 'multiclass2':
         regex_map = [
             ('injur-trunc', 'injur-trunc'),
             ('healthy', 'healthy'),
             ('injur-.*', None),
         ]
-        tag_vocab = ut.flat_unique(*case_tags)
-        alias_map = ut.build_alias_map(regex_map, tag_vocab)
-        unmapped = list(set(tag_vocab) - set(alias_map.keys()))
-        print('unmapped = %r' % (unmapped,))
-
-        case_tags2 = ut.alias_tags(case_tags, alias_map)
-    elif target_type == '_experimental_multilabel':
-        pass
-        # Binarize into multi-class labels
-        # http://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
-        #menc = preprocessing.MultiLabelBinarizer()
-        #menc.fit(annot_tags)
-        #target = menc.transform(annot_tags)
-        #enc = menc
     else:
         raise ValueError('Unknown target_type=%r' % (target_type,))
-        # henc = preprocessing.OneHotEncoder()
-        # henc.fit(menc.transform(annot_tags))
-        # target = henc.transform(menc.transform(annot_tags))
-        # target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
+    tag_vocab = ut.flat_unique(*case_tags)
+    alias_map = ut.build_alias_map(regex_map, tag_vocab)
+    unmapped = list(set(tag_vocab) - set(alias_map.keys()))
+    print('unmapped = %r' % (unmapped,))
+    case_tags2 = ut.alias_tags(case_tags, alias_map)
 
     ntags_list = np.array(ut.lmap(len, case_tags2))
     is_no_tag = ntags_list == 0
@@ -272,33 +264,9 @@ def get_sharks_dataset(target_type=None):
     return ds
 
 
-#@ut.reloadable_class
-#class ClfMultiResult(object):
-#    def __init__(multi_result, result_list):
-#        multi_result.result_list = result_list
-
-#    def compile_results(multi_result):
-#        import pandas as pd
-#        result_list = multi_result.result_list
-#        multi_result.df = reduce(ut.partial(pd.DataFrame.add, fill_value=0), [result.df for result in result_list])
-#        #hardness = 1 / multi_result.df['decision'].abs()
-
-#    def get_hardest_fail_idxs(multi_result):
-#        df = multi_result.df
-#        sortx = multi_result.hardness.argsort()[::-1]
-#        # Order by hardness
-#        df = multi_result.df.take(sortx)
-#        failed = multi_result.df['is_fp'] + multi_result.df['is_fn']
-#        # Grab only failures
-#        hard_fail_idxs = failed[failed > 0].index.values
-#        return hard_fail_idxs
-
-
 @ut.reloadable_class
 class ClfProblem(object):
-    """
-    Harness for researching a classification problem
-    """
+    """ Harness for researching a classification problem """
     def __init__(problem, ds):
         problem.ds = ds
 
@@ -310,9 +278,11 @@ class ClfProblem(object):
 
     def fit_new_classifier(problem, train_idx):
         """
-        http://leon.bottou.org/research/stochastic
-        http://blog.explainmydata.com/2012/06/ntrain-24853-ntest-25147-ncorrupt.html
-        http://scikit-learn.org/stable/modules/svm.html#svm-classification
+        References:
+            http://leon.bottou.org/research/stochastic
+            http://blog.explainmydata.com/2012/06/ntrain-24853-ntest-25147-ncorrupt.html
+            http://scikit-learn.org/stable/modules/svm.html#svm-classification
+            http://scikit-learn.org/stable/modules/grid_search.html
         """
         print('[problem] train classifier on %d data points' % (len(train_idx)))
         data = problem.ds.data
@@ -321,17 +291,64 @@ class ClfProblem(object):
         y_train = target.take(train_idx, axis=0)
         clf = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
                               decision_function_shape='ovr')
-        # C, penalty, loss
 
+        # C, penalty, loss
         #param_grid = {'C': [1e3, 5e3, 1e4, 5e4, 1e5],
         #              'gamma': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1], }
         #param_grid = {'C': [1e3, 5e3, 1e4, 5e4, 1e5],
         #              'gamma': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1], }
         #clf = GridSearchCV(SVC(kernel='rbf', class_weight='balanced'), param_grid)
         #clf = clf.fit(X_train_pca, y_train)
-
         clf.fit(x_train, y_train)
         return clf
+
+    def fit_new_linear_svm(problem, train_idx):
+        print('[problem] train classifier on %d data points' % (len(train_idx)))
+        data = problem.ds.data
+        target = problem.ds.target
+        x_train = data.take(train_idx, axis=0)
+        y_train = target.take(train_idx, axis=0)
+        clf = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
+                              decision_function_shape='ovr')
+        clf.fit(x_train, y_train)
+
+    def gridsearch_linear_svm_params(problem, train_idx):
+        """
+        Example:
+            >>> from ibeis.scripts.classify_shark import *  # NOQA
+            >>> from ibeis.scripts import classify_shark
+            >>> ds = classify_shark.get_sharks_dataset('binary')
+            >>> problem = classify_shark.ClfProblem(ds)
+            >>> problem.print_support_info()
+        """
+        with ut.Timer('cv'):
+            data = problem.ds.data
+            target = problem.ds.target
+
+            train_idx = stratified_sample_idxs_unbalanced(target, 3500)
+
+            x_train = data.take(train_idx, axis=0)
+            y_train = target.take(train_idx, axis=0)
+            param_grid = {
+                #'C': [1, .5, .1, 5, 10, 100],
+                #'C': [1, 1e-1, 1e-2, 1e-3]
+                #'C': [1, 1e-1, 1e-2, 1e-3]
+                'C': np.linspace(1, 1e-5, 15)
+                #'loss': ['l2', 'l1'],
+                #'penalty': ['l2', 'l1'],
+            }
+            _clf = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
+                                   decision_function_shape='ovr')
+            clf = sklearn.grid_search.GridSearchCV(_clf, param_grid, n_jobs=2,
+                                                   iid=False, cv=5)
+            clf.fit(x_train, y_train)
+            print('clf.best_params_ = %r' % (clf.best_params_,))
+            print("Best parameters set found on development set:")
+            print(clf.best_params_)
+            print("Grid scores on development set:")
+            for params, mean_score, scores in clf.grid_scores_:
+                print("%0.3f (+/-%0.03f) for %r"
+                      % (mean_score, scores.std() * 2, params))
 
     def test_classifier(problem, clf, test_idx):
         print('[problem] test classifier on %d data points' % (len(test_idx),))
@@ -363,13 +380,6 @@ class ClfProblem(object):
             y_conf = clf.decision_function(x_test)
 
         y_pred = y_conf.argmax(axis=1)
-        #if False:
-        #    real_pred = clf.predict(x_test)
-        #    real_conf = clf.decision_function(x_test)
-        #    np.all(y_pred == real_pred)
-        #    np.all((real_conf > 0) == real_pred)
-        #    np.all((norm_conf > 0) == real_pred)
-        #    assert np.all(dec2.ravel() == real_conf)
 
         result = ClfSingleResult(problem.ds, test_idx, y_true, y_pred, y_conf)
         return result
@@ -429,18 +439,6 @@ class ClfSingleResult(object):
         y_conf = result.y_conf
         test_idx = result.test_idx
 
-        # passed = y_pred == y_true
-        # failed = y_pred != y_true
-        #confusion = sklearn.metrics.confusion_matrix(y_true, y_pred)
-
-        # is_tn = np.logical_and(passed, y_true == 0)
-        # is_fp = np.logical_and(failed, y_true == 0)
-        # is_fn = np.logical_and(failed, y_true == 1)
-        # is_tp = np.logical_and(passed, y_true == 1)
-
-        # columns = ['tn', 'fp', 'fn', 'tp', 'decision', 'pred']
-        # column_data = [is_tn, is_fp, is_fn, is_tp, y_conf, y_pred]
-
         index = pd.Series(test_idx, name='test_idx')
         if len(result.ds.target_names) == 1:
             y_conf
@@ -451,13 +449,6 @@ class ClfSingleResult(object):
         column_data = [y_pred, easiness]
         data = dict(zip(columns, column_data))
         result.df = pd.DataFrame(data, index, columns)
-
-        y_true
-        #result.decision = pd.Series(y_conf, index, name='decision', dtype=np.float)
-
-        #result._compiled['confusion'] = confusion
-        #score = (1 - (sum(passed) / len(passed)))
-        #result._compiled['score'] = score
 
     def print_report(result):
         report = sklearn.metrics.classification_report(
@@ -508,7 +499,7 @@ def learn_injured_sharks():
     import sklearn.metrics
     import plottool as pt
     import pandas as pd
-
+    pd.set_option("display.max_rows", 20)
     pt.qt4ensure()
 
     target_type = 'binary'
@@ -529,7 +520,8 @@ def learn_injured_sharks():
 
     result_list = []
     #train_idx, test_idx = problem.stratified_2sample_idxs()
-    n_folds = 5
+
+    n_folds = 10
     for train_idx, test_idx in problem.gen_crossval_idxs(n_folds):
         clf = problem.fit_new_classifier(train_idx)
         result = problem.test_classifier(clf, test_idx)
@@ -545,8 +537,6 @@ def learn_injured_sharks():
         result.df.index for result in result_list], 2)]
     assert all([len(s) == 0 for s in isect_sets]), ('cv sets should not intersect')
 
-    pd.set_option("display.max_rows", 20)
-
     # Combine information from results
     df = pd.concat([result.df for result in result_list])
     df['hardness'] = 1 / df['easiness']
@@ -561,7 +551,7 @@ def learn_injured_sharks():
 
     confusion = sklearn.metrics.confusion_matrix(df['target'], df['pred'])
     print('Confusion Matrix:')
-    print(pd.DataFrame(confusion, columns=[' ' + m for m in result.ds.target_names],
+    print(pd.DataFrame(confusion, columns=[m for m in result.ds.target_names],
                        index=['gt ' + m for m in result.ds.target_names]))
 
     def snapped_slice(size, frac, n):
@@ -583,8 +573,6 @@ def learn_injured_sharks():
         df_chunk = df.take(df['hardness'].argsort())
         if target is not None:
             df_chunk = df_chunk[df_chunk['target'] == target]
-        #df_chunk = df_chunk[df_chunk[err] > 0]
-        #frac = {'start': 0.0, 'middle': 0.5, 'end': 1.0}[place]
         sl = snapped_slice(len(df_chunk), frac, n)
         idx = df_chunk.index[sl]
         df_chunk = df_chunk.loc[idx]
@@ -595,61 +583,15 @@ def learn_injured_sharks():
             df_chunk.nice = place_name
         return df_chunk
 
-    n = 5
-    #places = ['start', 'middle', 'end']
-    #fracs = [0.0, .5, 1.0]
-    fracs = [.7, .8, .9, 1.0]
+    n = 4
+    fracs = [0.0, .7, .8, .9, 1.0]
     df_chunks = [grab_subchunk(frac, n, target)
                  for frac in fracs for target in ds.target_labels]
 
-    #from ibeis_cnn import draw_results
     ibs = ds.ibs
     config = ds.config
-
     inter = classify_shark.InteractAnnotClasses(ibs, config, df_chunks, nCols=len(ds.target_labels))
     inter.start()
-
-    #fnum = 1
-    #pnum_ = pt.make_pnum_nextgen(nRows=len(places), nSubplots=len(df_chunks))
-    #for df_chunk in df_chunks:
-    #    if len(df_chunk) == 0:
-    #        import vtool as vt
-    #        img = vt.get_no_symbol(size=(n * 100, 200))
-    #        #size=(200, 100))
-    #        #img = np.zeros((10, 10), dtype=np.uint8)
-    #    else:
-    #        annots_chunk = ibs.annots(df_chunk['aid'].values, config=config)
-    #        data_lists = [(np.array(annots_chunk.hog_img) * 255).astype(np.uint8),
-    #                      annots_chunk.chips]
-    #        label_list = (1 - df_chunk['failed']).values
-    #        flat_metadata = df_chunk.to_dict(orient='list')
-    #        flat_metadata['tags'] = annots_chunk.case_tags
-    #        tup = draw_results.get_patch_chunk(data_lists, label_list,
-    #                                           flat_metadata,
-    #                                           draw_meta=['decision', 'tags'],
-    #                                           vert=False, fontScale=4.0)
-    #        img, offset_list, sf_list, stacked_orig_sizes = tup
-    #    fig, ax = pt.imshow(img, fnum=fnum, pnum=pnum_())
-    #    ax.set_title(df_chunk.nice)
-    #pt.adjust_subplots2(top=.95, left=0, right=1, bottom=.00, hspace=.1, wspace=0)
-
-    #if False:
-    #    pt.qt4ensure()
-    #    subset_df = df_chunk
-    #    for idx in ut.InteractiveIter(subset_df.index.values):
-    #        dfrow = subset_df.loc[idx]
-    #        assert dfrow['aid'] == ds.aids[idx]
-    #        annot = ibs.annots([dfrow['aid']], config=config)
-    #        hogimg = annot.hog_img[0]
-    #        chip = annot.chips[0]
-    #        pt.clf()
-    #        pt.imshow(hogimg, pnum=(1, 2, 1))
-    #        pt.imshow(chip, pnum=(1, 2, 2))
-    #        pt.set_xlabel(str(annot.case_tags[0]))
-    #        fig = pt.gcf()
-    #        print(dfrow)
-    #        fig.show()
-    #        fig.canvas.draw()
 
 if __name__ == '__main__':
     r"""

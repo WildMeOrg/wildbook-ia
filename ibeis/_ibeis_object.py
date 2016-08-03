@@ -58,12 +58,18 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
 
     def _make_getter(objname, attrname):
         ibs_funcname = 'get_%s_%s' % (objname, attrname)
-        def ibs_getter(self, *args, **kwargs):
-            if self._ibs is None:
-                return self._internal_attrs[attrname]
+        #def ibs_getter(self, *args, **kwargs):
+        def ibs_getter(self):
+            if self._ibs is None or (self._caching and
+                                     attrname in self._internal_attrs):
+                data = self._internal_attrs[attrname]
             else:
                 ibs_callable = getattr(self._ibs, ibs_funcname)
-                return ibs_callable(self._rowids, *args, **kwargs)
+                #data = ibs_callable(self._rowids, *args, **kwargs)
+                data = ibs_callable(self._rowids)
+                if self._caching:
+                    self._internal_attrs[attrname] = data
+            return data
         ut.set_funcname(ibs_getter, ibs_funcname)
         return ibs_getter
 
@@ -93,10 +99,11 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
         attrname = '%s_%s' % (tbl, col)
         def ibs_cfg_getter(self):
             if self._ibs is None:
-                return self._internal_attrs[attrname]
+                data = self._internal_attrs[attrname]
             else:
                 depc = getattr(self._ibs, depc_name)
-                return depc.get(tbl, self._rowids, col, config=self._config)
+                data = depc.get(tbl, self._rowids, col, config=self._config)
+            return data
         ut.set_funcname(ibs_cfg_getter, 'get_' + attrname)
         return ibs_cfg_getter
 
@@ -141,26 +148,21 @@ class ObjectScalar0D(ut.NiceRepr, ut.HashComparable2):
 
 #@ut.reloadable_class
 class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
-    def __init__(self, rowids, ibs, config=None):
+    def __init__(self, rowids, ibs, config=None, caching=False):
         self._rowids = rowids
-        self._ibs = ibs
-        self._islist = True
-        self._config = config
+        #self._islist = True
+        # Internal cache
         self._internal_attrs = {}
-        self._rowid_to_idx = None
+        # Internal behaviors
+        self._ibs = ibs
+        self._config = config
+        self._caching = caching
+        # Private attributes
+        self.__rowid_to_idx = None
         #ut.make_index_lookup(self._rowids)
 
-    def lookup_idxs(self, rowids):
-        if self._rowid_to_idx is None:
-            self._rowid_to_idx = ut.make_index_lookup(self._rowids)
-        idx_list = ut.take(self._rowid_to_idx, rowids)
-        return idx_list
-
-    def loc(self, rowids):
-        idxs = self.lookup_idxs(rowids)
-        return self.take(idxs)
-
-    lookup = loc  # TODO: depricate lookup, use loc to be more like pandas
+    def set_caching(self, flag):
+        self._caching = flag
 
     def __nice__(self):
         return '(num=%r)' % (len(self))
@@ -176,6 +178,20 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         new = self.__class__(rowids, self._ibs, self._config)
         return new
 
+    def take(self, idxs):
+        rowids = ut.take(self._rowids, idxs)
+        newself = self.__class__(rowids, ibs=self._ibs, config=self._config,
+                                 caching=self._caching)
+        _new_internal = {key: ut.take(val, idxs)
+                         for key, val in self._internal_attrs.items()}
+        newself._internal_attrs = _new_internal
+        return newself
+
+    def preload(self, *attrs):
+        assert self._ibs is not None, 'must be connected to preload'
+        for attrname in attrs:
+            self._internal_attrs[attrname] = getattr(self, attrname)
+
     def group_uuid(self):
         sorted_uuids = sorted(self.uuids)
         group_uuid = ut.util_hash.augment_uuid(*sorted_uuids)
@@ -187,11 +203,6 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         been assumed to be preloaded.
         """
         self._ibs = None
-
-    def preload(self, *attrs):
-        assert self._ibs is not None, 'must be connected to preload'
-        for attrname in attrs:
-            self._internal_attrs[attrname] = getattr(self, attrname)
 
     def __iter__(self):
         return iter(self._rowids)
@@ -207,14 +218,6 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         if not isinstance(idx, slice):
             raise AssertionError('only slice supported currently')
         return self.take(idx)
-
-    def take(self, idxs):
-        rowids = ut.take(self._rowids, idxs)
-        newself = self.__class__(rowids, self._ibs, self._config)
-        _new_internal = {key: ut.take(val, idxs)
-                         for key, val in self._internal_attrs.items()}
-        newself._internal_attrs = _new_internal
-        return newself
 
     def compress(self,  flags):
         idxs = ut.where(flags)
@@ -244,6 +247,18 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         unique_labels, groupxs = self.group_indicies(labels)
         groups = [self.take(idxs) for idxs in groupxs]
         return unique_labels, groups
+
+    def lookup_idxs(self, rowids):
+        """ Lookup subset indicies by rowids """
+        if self.__rowid_to_idx is None:
+            self.__rowid_to_idx = ut.make_index_lookup(self._rowids)
+        idx_list = ut.take(self.__rowid_to_idx, rowids)
+        return idx_list
+
+    def loc(self, rowids):
+        """ Lookup subset by rowids """
+        idxs = self.lookup_idxs(rowids)
+        return self.take(idxs)
 
     # def filter(self, filterkw):
     #     pass

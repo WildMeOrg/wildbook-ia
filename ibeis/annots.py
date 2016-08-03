@@ -14,11 +14,14 @@ BASE_TYPE = type
 
 
 @register_ibs_method
-def annots(ibs, aids=None, config=None):
+def annots(ibs, aids=None, **kwargs):
+    """ Makes an Annots object """
     if aids is None:
         aids = ibs.get_valid_aids()
+    elif aids.__class__.__name__ == 'Annots':
+        return aids
     aids = ut.ensure_iterable(aids)
-    return Annots(aids, ibs, config)
+    return Annots(aids, ibs, **kwargs)
 
 
 @register_ibs_method
@@ -160,8 +163,8 @@ class Annots(_ibeis_object.ObjectList1D):
         <Annots(num=13)>
 
     """
-    def __init__(self, aids, ibs, config=None):
-        super(Annots, self).__init__(aids, ibs, config)
+    #def __init__(self, aids, ibs, config=None, caching=False):
+    #    super(Annots, self).__init__(aids, ibs, config, caching)
 
     @property
     def aids(self):

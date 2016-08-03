@@ -1032,7 +1032,9 @@ def get_dbinfo(ibs, verbose=True,
             from ibeis.algo.preproc import preproc_occurrence
             gid_list = ibs.get_annot_gids(aid_list)
             gid2_aids = ut.group_items(aid_list, gid_list)
-            flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(ibs, gid_list, seconds_thresh=4 * 60 * 60, verbose=False)
+            config = {'seconds_thresh': 4 * 60 * 60}
+            flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
+                ibs, gid_list, config=config, verbose=False)
             occurid2_gids = ut.group_items(flat_gids, flat_imgsetids)
             occurid2_aids = {oid: ut.flatten(ut.take(gid2_aids, gids)) for oid, gids in occurid2_gids.items()}
             return occurid2_aids

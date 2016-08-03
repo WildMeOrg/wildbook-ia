@@ -114,8 +114,8 @@ for modname in ut.ProgIter(AUTOLOAD_PLUGIN_MODNAMES, 'loading plugins',
 # NOTE: new plugin code needs to be hacked in here currently
 # this is not a long term solution.  THE Long term solution is to get these
 # working (which are partially integrated)
-#     python -m ibeis --tf dev_autogen_explicit_imports
-#     python -m ibeis --tf dev_autogen_explicit_injects
+#     python -m ibeis dev_autogen_explicit_imports
+#     python -m ibeis dev_autogen_explicit_injects
 
 # Ensure that all injectable modules are imported before constructing the
 # class instance
@@ -126,7 +126,7 @@ try:
         raise ImportError
     else:
         """
-        python -m ibeis --tf dev_autogen_explicit_injects
+        python -m ibeis dev_autogen_explicit_injects
         """
         from ibeis.control import _autogen_explicit_controller
         BASE_CLASS = _autogen_explicit_controller.ExplicitInjectIBEISController

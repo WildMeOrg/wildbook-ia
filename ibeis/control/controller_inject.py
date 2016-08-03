@@ -785,11 +785,10 @@ def dev_autogen_explicit_injects():
         >>> dev_autogen_explicit_injects()
     """
     import ibeis  # NOQA
+    import ibeis.control.IBEISControl
     classname = CONTROLLER_CLASSNAME
     regen_command = (
-        'python -m ibeis.control.controller_inject '
-        '--exec-dev_autogen_explicit_injects')
-    import ibeis.control.IBEISControl
+        'python -m ibeis dev_autogen_explicit_injects')
     conditional_imports = [
         modname for modname in ibeis.control.IBEISControl.AUTOLOAD_PLUGIN_MODNAMES
         if isinstance(modname, tuple)
@@ -798,7 +797,7 @@ def dev_autogen_explicit_injects():
         classname, regen_command, conditional_imports)
     dpath = ut.get_module_dir(ibeis.control.IBEISControl)
     fpath = ut.unixjoin(dpath, '_autogen_explicit_controller.py')
-    ut.writeto(fpath, source_block)
+    ut.writeto(fpath, source_block, verbose=2)
 
 
 def make_ibs_register_decorator(modname):

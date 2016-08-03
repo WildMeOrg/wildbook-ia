@@ -12,11 +12,14 @@ BASE_TYPE = type
 
 
 @register_ibs_method
-def images(ibs, gids=None, config=None):
+def images(ibs, gids=None, **kwargs):
+    """ Makes an Images object """
     if gids is None:
         gids = ibs.get_valid_gids()
+    elif gids.__class__.__name__ == 'Images':
+        return gids
     gids = ut.ensure_iterable(gids)
-    return Images(gids, ibs, config)
+    return Images(gids, ibs, **kwargs)
 
 
 @register_ibs_method
@@ -25,6 +28,8 @@ def imagesets(ibs, gsids=None, text=None):
         gsids = ibs.get_imageset_imgsetids_from_text(text)
     if gsids is None:
         gsids = ibs.get_valid_imgsetids()
+    elif gsids.__class__.__name__ == 'ImageSets':
+        return gsids
     gsids = ut.ensure_iterable(gsids)
     return ImageSets(gsids, ibs)
 
@@ -34,21 +39,24 @@ class ImageIBEISPropertyInjector(BASE_TYPE):
         super(ImageIBEISPropertyInjector, metaself).__init__(name, bases, dct)
         metaself.rrr = rrr
         #misc = [ 'instancelist', 'gids_with_aids', 'lazydict', ]  #
-        attrs = ['aids', 'aids_of_species', 'annot_uuids',
-                 'annot_uuids_of_species', 'annotation_bboxes',
-                 'annotation_thetas', 'contributor_rowid', 'contributor_tag',
-                 'datetime', 'datetime_str', 'detect_confidence',
-                 'detectpaths', 'enabled', 'exts', 'gid', 'glrids', 'gnames',
-                 'gps', 'gsgrids', 'heights', 'imagesettext', 'imgset_uuids',
-                 'imgsetids', 'lat', 'location_codes', 'lon', 'missing_uuid',
-                 'name_uuids', 'nids', 'notes', 'num_annotations',
-                 'orientation', 'orientation_str', 'party_rowids', 'party_tag',
-                 'paths', 'reviewed', 'sizes', 'species_rowids',
-                 'species_uuids', 'thumbpath', 'thumbtup', 'time_statstr',
-                 'timedelta_posix', 'unixtime',
-                 'uris',
-                 'imgdata',
-                 'uris_original', 'uuids', 'widths']
+        attrs = [
+            'aids', 'aids_of_species', 'annot_uuids',
+            'annot_uuids_of_species', 'annotation_bboxes',
+            'annotation_thetas', 'contributor_rowid', 'contributor_tag',
+            'datetime', 'datetime_str', 'detect_confidence',
+            'detectpaths', 'enabled', 'exts', 'gid', 'glrids', 'gnames',
+            'gps', 'gps2', 'gsgrids', 'heights', 'imagesettext',
+            'imgset_uuids', 'imgsetids', 'lat', 'location_codes', 'lon',
+            'missing_uuid', 'name_uuids', 'nids', 'notes',
+            'num_annotations', 'orientation', 'orientation_str',
+            'party_rowids', 'party_tag', 'paths', 'reviewed', 'sizes',
+            'species_rowids', 'species_uuids', 'thumbpath', 'thumbtup',
+            'time_statstr', 'timedelta_posix',
+            'unixtime', 'unixtime_asfloat',
+            'unixtime2',
+            'uris', 'uris_original', 'uuids', 'widths'
+            'imgdata',
+        ]
         #inverse_attrs = [
         #     'gids_from_uuid',
         #]
@@ -76,8 +84,8 @@ class Images(_ibeis_object.ObjectList1D):
         >>> print(g)
         <Images(num=13)>
     """
-    def __init__(self, gids, ibs, config=None):
-        super(Images, self).__init__(gids, ibs, config)
+    #def __init__(self, gids, ibs, config=None):
+    #    super(Images, self).__init__(gids, ibs, config)
 
     @property
     def gids(self):

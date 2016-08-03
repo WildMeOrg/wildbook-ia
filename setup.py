@@ -3,7 +3,10 @@
 from __future__ import absolute_import, division, print_function
 import six
 from utool import util_setup
-from setuptools import setup
+import setuptools
+
+
+setman = util_setup.SetupManager()
 
 
 CHMOD_PATTERNS = [
@@ -149,6 +152,17 @@ if six.PY2:
 INSTALL_REQUIRES += INSTALL_OPTIONAL
 
 
+@setman.register_command
+def autogen_explicit_imports():
+    """
+    Excpliticly generated injectable code in order to aid auto complete
+    programs like jedi as well as allow for a more transparent stack trace.
+    """
+    import ibeis  # NOQA
+    from ibeis.control import controller_inject
+    controller_inject.dev_autogen_explicit_injects()
+
+
 if __name__ == '__main__':
     print('[setup] Entering IBEIS setup')
     kwargs = util_setup.setuptools_setup(
@@ -161,7 +175,6 @@ if __name__ == '__main__':
         license=util_setup.read_license('LICENSE'),
         long_description=util_setup.parse_readme('README.md'),
         ext_modules=util_setup.find_ext_modules(),
-        cmdclass=util_setup.get_cmdclass(),
         project_dirs=PROJECT_DIRS,
         chmod_patterns=CHMOD_PATTERNS,
         clutter_patterns=CLUTTER_PATTERNS,
@@ -172,4 +185,7 @@ if __name__ == '__main__':
         ],
         #cython_files=CYTHON_FILES,
     )
-    setup(**kwargs)
+
+    kwargs['cmdclass'] = setman.get_cmdclass()
+
+    setuptools.setup(**kwargs)

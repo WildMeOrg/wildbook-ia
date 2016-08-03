@@ -93,7 +93,8 @@ def _get_all_image_rowids(ibs):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/image/', methods=['GET'])
-def get_valid_gids(ibs, imgsetid=None, require_unixtime=False, require_gps=None, reviewed=None):
+def get_valid_gids(ibs, imgsetid=None, require_unixtime=False,
+                   require_gps=None, reviewed=None):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -1215,6 +1216,34 @@ def get_image_unixtime(ibs, gid_list):
 
 
 @register_ibs_method
+@ut.accepts_numpy
+@accessor_decors.getter_1to1
+@register_api('/api/image/unixtime_asfloat/', methods=['GET'])
+def get_image_unixtime_asfloat(ibs, gid_list):
+    r"""
+    Returns:
+        list_ (list): a list of times that the images were taken by gid.
+
+    Returns:
+        list_ (list): np.nan if no timedata exists for a given gid
+    """
+    unixtime_list = ibs.get_image_unixtime(gid_list)
+    unixtime_list = np.array(unixtime_list, dtype=np.float)
+    # Fix problem in sql and make -1 be nans or nulls
+    unixtime_list[unixtime_list == -1] = np.nan
+    return unixtime_list
+
+
+@register_ibs_method
+@ut.accepts_numpy
+@accessor_decors.getter_1to1
+@register_api('/api/image/unixtime2/', methods=['GET'])
+def get_image_unixtime2(ibs, gid_list):
+    """ alias for get_image_unixtime_asfloat """
+    return ibs.get_image_unixtime_asfloat(gid_list)
+
+
+@register_ibs_method
 @accessor_decors.getter_1to1
 def get_image_datetime_str(ibs, gid_list):
     unixtime_list = ibs.get_image_unixtime(gid_list)
@@ -1247,6 +1276,30 @@ def get_image_gps(ibs, gid_list):
     gps_list = ibs.db.get(const.IMAGE_TABLE, ('image_gps_lat', 'image_gps_lon'), gid_list)
     # REPLACE -1 with np.nan FIXME in SQL
     #gps_list = [(np.nan if lat == -1 else lat, np.nan if lon == -1 else lon) for (lat, lon) in gps_list]
+    return gps_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/image/gps2/', methods=['GET'], __api_plural_check__=False)
+def get_image_gps2(ibs, gid_list):
+    r"""
+    Like get_image_gps, but fixes the SQL problem where -1 indicates a nan value.
+
+    Returns:
+        gps_list (list): -1 if no timedata exists for a given gid
+
+    RESTful:
+        Method: GET
+        URL:    /api/image/gps/
+    """
+    gps_list = ibs.db.get(const.IMAGE_TABLE, ('image_gps_lat', 'image_gps_lon'), gid_list)
+    gps_list = [(np.nan if lat == -1 else lat, np.nan if lon == -1 else lon)
+                for (lat, lon) in gps_list]
+    #gps_list = [
+    #    (np.nan, np.nan) if (lat == -1 and lon == -1) else (lat, lon)
+    #    for (lat, lon) in gps_list
+    #]
     return gps_list
 
 
