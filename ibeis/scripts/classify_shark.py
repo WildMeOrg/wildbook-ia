@@ -11,6 +11,7 @@ import sklearn.grid_search
 from sklearn import preprocessing
 import plottool as pt
 from plottool import abstract_interaction
+from ibeis_cnn.models import abstract_models
 (print, rrr, profile) = ut.inject2(__name__, '[classify_shark]')
 
 
@@ -132,6 +133,105 @@ class InteractAnnotClasses(abstract_interaction.AbstractInteraction):
                 ('Present', pt.present),
             ]
             inter.show_popup_menu(options, event)
+
+
+@ut.reloadable_class
+class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
+    #def __init__(self):
+    #    super(WhaleSharkInjuryModel, self).__init__()
+
+    def initialize_architecture(model, verbose=ut.VERBOSE, **kwargs):
+        r"""
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.scripts.classify_shark import *  # NOQA
+            >>> verbose = True
+            >>> data_shape = tuple(ut.get_argval('--datashape', type_=list,
+            >>>                                  default=(256, 256, 3)))
+            >>> model = WhaleSharkInjuryModel(batch_size=128,
+            >>>                               data_shape=data_shape)
+            >>> output_layer = model.initialize_architecture()
+            >>> model.print_dense_architecture_str()
+            >>> ut.quit_if_noshow()
+            >>> model.show_architecture_image()
+            >>> ut.show_if_requested()
+        """
+        from ibeis_cnn.__LASAGNE__ import layers
+        from ibeis_cnn.__LASAGNE__ import nonlinearities
+        from ibeis_cnn import custom_layers
+
+        print('[model] initialize_architecture')
+
+        _P = ut.partial
+
+        # nonlineararities
+        softmax = nonlinearities.softmax
+        lru = nonlinearities.LeakyRectify(leakiness=(1. / 10.))
+        initkw = dict(nonlinearity=lru)
+
+        # Layer types that will be used
+        Conv2DLayer = custom_layers.Conv2DLayer
+        MaxPool2DLayer = custom_layers.MaxPool2DLayer
+        DropoutLayer = layers.DropoutLayer
+        DenseLayer = layers.DenseLayer
+        FeaturePoolLayer = layers.FeaturePoolLayer
+
+        # Pretrained weights
+        _CaffeNet = abstract_models.PretrainedNetwork('caffenet')
+        W1 = _CaffeNet.get_pretrained_layer(0)
+        W2 = _CaffeNet.get_pretrained_layer(2)
+
+        output_dims = 2
+
+        network_layers_def = [
+            _P(layers.InputLayer, shape=model.input_shape, name='I0'),
+            _P(layers.GaussianNoiseLayer, name='G0'),
+
+            # Convolution 1
+            _P(Conv2DLayer, num_filters=32, filter_size=(11, 11), stride=(1, 1),
+               name='C1', W=W1, **initkw),
+            _P(DropoutLayer, p=.10, name='D1'),
+
+            # Convolution 2
+            _P(Conv2DLayer, num_filters=32, filter_size=(5, 5), stride=(1, 1),
+               name='C2', W=W2, **initkw),
+            _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P2'),
+            _P(DropoutLayer, p=.10, name='D2'),
+
+            # Convolution 3
+            _P(Conv2DLayer, num_filters=64, filter_size=(3, 3), stride=(1, 1),
+               name='C3', **initkw),
+            _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P3'),
+            _P(DropoutLayer, p=.30, name='D3'),
+
+            # Convolution 4
+            _P(Conv2DLayer, num_filters=128, filter_size=(3, 3), stride=(1, 1),
+               name='C4', **initkw),
+            _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P4'),
+            _P(DropoutLayer, p=.30, name='D4'),
+
+            # Convolution 5
+            _P(Conv2DLayer, num_filters=128, filter_size=(3, 3), stride=(1, 1),
+               name='C5', **initkw),
+            _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P5'),
+
+            # --- BEGIN DENSE NETWORK ---
+            _P(DenseLayer, num_units=512, name='F6', **initkw),
+            _P(FeaturePoolLayer, pool_size=2, name='P6'),
+            _P(DropoutLayer, p=.50, name='D6'),
+
+            _P(DenseLayer, num_units=512, name='F7', **initkw),
+            _P(FeaturePoolLayer, pool_size=2, name='P7'),
+            _P(DropoutLayer, p=.50, name='D7'),
+
+            _P(DenseLayer, num_units=output_dims, nonlinearity=softmax, name='F8'),
+        ]
+        network_layers = abstract_models.evaluate_layer_list(
+            network_layers_def, verbose=verbose)
+        #model.network_layers = network_layers
+        output_layer = network_layers[-1]
+        model.output_layer = output_layer
+        return output_layer
 
 
 def get_sharks_dataset(target_type=None):
