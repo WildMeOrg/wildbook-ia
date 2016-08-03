@@ -213,7 +213,9 @@ def zoom_factory(ax=None, zoomable_list=[], base_scale=1.1):
     return zoom_fun
 
 
-def pan_factory(ax):
+def pan_factory(ax=None):
+    if ax is None:
+        ax = pt.gca()
     self = PanEvents(ax)
     ax = self.ax
     fig = ax.get_figure()  # get the figure of interest
