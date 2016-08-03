@@ -1108,10 +1108,25 @@ def turk_additional():
         name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)
     else:
         name_aid_combined_list = []
+
+    region_str = 'UNKNOWN'
+    if aid is not None and gid is not None:
+        imgsetid_list = ibs.get_image_imgsetids(gid)
+        imgset_text_list = ibs.get_imageset_text(imgsetid_list)
+        imgset_text_list = [
+            imgset_text
+            for imgset_text in imgset_text_list
+            if 'GGR Special Zone' in imgset_text
+        ]
+        assert len(imgset_text_list) < 2
+        if len(imgset_text_list) == 1:
+            region_str = imgset_text_list[0]
+
     return appf.template('turk', 'additional',
                          imgsetid=imgsetid,
                          gid=gid,
                          aid=aid,
+                         region_str=region_str,
                          value_sex=value_sex,
                          value_age=value_age,
                          image_path=gpath,
