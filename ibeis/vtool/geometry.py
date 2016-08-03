@@ -319,7 +319,6 @@ def closest_point_on_line(p, e1, e2):
     return pt_on_line
 
 
-
 def closest_point_on_verts(p, verts):
     import vtool as vt
     candidates = [closest_point_on_line_segment(p, e1, e2) for e1, e2 in ut.itertwo(verts)]
@@ -449,6 +448,18 @@ def cvt_bbox_xywh_to_pt1pt2(xywh, sx=1.0, sy=1.0, round_=True):
         pt1 = ((x1 * sx), (y1 * sy))
         pt2 = ((x2 * sx), (y2 * sy))
     return (pt1, pt2)
+
+
+def scale_bbox(bbox, sx, sy=None):
+    if sy is None:
+        sy = sx
+    from vtool import linalg
+    centerx, centery = bbox_center(bbox)
+    S = linalg.scale_around_mat3x3(sx, sy, centerx, centery)
+    verts = np.array(verts_from_bbox(bbox))
+    vertsT = linalg.transform_points_with_homography(S, verts.T).T
+    bboxT = bbox_from_verts(vertsT)
+    return bboxT
 
 
 def scaled_verts_from_bbox_gen(bbox_list, theta_list, sx=1, sy=1):

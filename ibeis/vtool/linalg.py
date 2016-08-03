@@ -170,6 +170,7 @@ def rotation_mat2x2(theta):
 
 
 def transform_around(M, x, y):
+    """ translates to origin, applies transform and then translates back """
     tr1_ = translation_mat3x3(-x, -y)
     tr2_ = translation_mat3x3(x, y)
     M_ = tr2_.dot(M).dot(tr1_)
@@ -453,7 +454,7 @@ def transform_points_with_homography(H, _xys):
     """
     Args:
         H (ndarray[float64_t, ndim=2]):  homography/perspective matrix
-        _xys (ndarray[ndim=2]): (N x 2) array
+        _xys (ndarray[ndim=2]): (2 x N) array
     """
     xyz  = add_homogenous_coordinate(_xys)
     xyz_t = matrix_multiply(H, xyz)
