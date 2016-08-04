@@ -124,24 +124,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
     #    pass
 
 
-def get_sharks_dataset(target_type=None, data_type='hog'):
-    """
-    Ignore:
-        # Binarize into multi-class labels
-        # http://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
-        #menc = preprocessing.MultiLabelBinarizer()
-        #menc.fit(annot_tags)
-        #target = menc.transform(annot_tags)
-        #enc = menc
-        # henc = preprocessing.OneHotEncoder()
-        # henc.fit(menc.transform(annot_tags))
-        # target = henc.transform(menc.transform(annot_tags))
-        # target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
-
-        >>> target_type = 'binary'
-        >>> data_type = 'chip'
-        >>> from ibeis.scripts.classify_shark import *  # NOQA
-    """
+def get_shark_labels_and_metadata(target_type=None):
     import ibeis
     ibs = ibeis.opendb('WS_ALL')
     config = {
@@ -241,129 +224,123 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
     metadata = dict(
         aids=np.array(annots.aids),
     )
+    tup = ibs, annots, target, target_names, config, metadata, enc
+    return tup
+
+
+def get_sharks_dataset(target_type=None, data_type='hog'):
+    """
+    Ignore:
+        # Binarize into multi-class labels
+        # http://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
+        #menc = preprocessing.MultiLabelBinarizer()
+        #menc.fit(annot_tags)
+        #target = menc.transform(annot_tags)
+        #enc = menc
+        # henc = preprocessing.OneHotEncoder()
+        # henc.fit(menc.transform(annot_tags))
+        # target = henc.transform(menc.transform(annot_tags))
+        # target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
+
+        >>> target_type = 'binary'
+        >>> data_type = 'chip'
+        >>> from ibeis.scripts.classify_shark import *  # NOQA
+    """
 
     data = None
 
     if data_type == 'hog':
+        tup = get_shark_labels_and_metadata(target_type)
+        ibs, annots, target, target_names, config, metadata, enc = tup
         data = np.array([h.ravel() for h in annots.hog_hog])
+        ds = sklearn.datasets.base.Bunch(
+            ibs=ibs,
+            #data=data,
+            name='sharks',
+            DESCR='injured-vs-healthy whale sharks',
+            target_names=target_names,
+            target_labels=enc.transform(target_names),
+            config=config,
+            target=target,
+            enc=enc,
+            data=data,
+            **metadata
+        )
+        return ds
     elif data_type == 'chip':
-        data_shape = config['dim_size']
-        trail_cfgstr = ibs.depc_annot.get_config_trail_str('chips', config)
-        trail_hashstr = ut.hashstr27(trail_cfgstr)
-        visual_uuids = annots.visual_uuids
-        metadata['visual_uuids'] = visual_uuids
-        chips_hashstr = ut.hashstr_arr27(annots.visual_uuids, 'chips')
-        cfgstr = chips_hashstr + '_' + trail_hashstr
-        training_dpath = ibs.get_neuralnet_dir()
-        ut.ensuredir(training_dpath)
-        data_fpath = ut.unixjoin(training_dpath, 'data_%s.hdf5' % (cfgstr,))
-        labels_fpath = ut.unixjoin(training_dpath, 'labels_%s.hdf5' % (cfgstr,))
-        metadata_fpath = ut.unixjoin(training_dpath, 'metadata_%s.pkl' % (cfgstr,))
+        from ibeis_cnn.dataset import DataSet
+        alias_key = 'sharks_' + target_type
 
         # ut.delete(data_fpath)
         # ut.delete(labels_fpath)
         # ut.delete(metadata_fpath)
+        try:
+            dataset = DataSet.from_alias_key(alias_key)
+        except Exception:
+            tup = get_shark_labels_and_metadata(target_type)
+            ibs, annots, target, target_names, config, metadata, enc = tup
+            ibs, annots, target, target_names, config, metadata, enc = tup
+            data_shape = config['dim_size'] + (3,)
+            trail_cfgstr = ibs.depc_annot.get_config_trail_str('chips', config)
+            trail_hashstr = ut.hashstr27(trail_cfgstr)
+            visual_uuids = annots.visual_uuids
+            metadata['visual_uuids'] = np.array(visual_uuids)
+            chips_hashstr = ut.hashstr_arr27(annots.visual_uuids, 'chips')
+            cfgstr = chips_hashstr + '_' + trail_hashstr
+            training_dpath = ibs.get_neuralnet_dir()
+            ut.ensuredir(training_dpath)
+            data_fpath = ut.unixjoin(training_dpath, 'data_%s.hdf5' % (cfgstr,))
+            labels_fpath = ut.unixjoin(training_dpath, 'labels_%s.hdf5' % (cfgstr,))
+            metadata_fpath = ut.unixjoin(training_dpath, 'metadata_%s.pkl' % (cfgstr,))
 
-        if not ut.checkpath(data_fpath, verbose=True):
-            #with ut.Timer('one'):
-            # 16 seconds with good response time
-
-            chip_gen = ibs.depc_annot.get('chips', annots.aids, 'img',
-                                          eager=False, config=config)
-            data = np.array(list(ut.ProgIter(chip_gen, lbl='reading chips',
-                                             nTotal=len(annots))))
-            labels = target
-            ut.save_data(data_fpath, data)
-            ut.save_data(labels_fpath, labels)
-            ut.save_data(metadata_fpath, metadata)
-
-            if False:
-                #annots_ = annots.take(slice(0, 1000))
-                annots_ = annots
-                nTotal = len(annots_.aids)
-                shape = (nTotal, 256, 256, 3)
+            if not ut.checkpath(data_fpath, verbose=True):
+                import vtool as vt
+                nTotal = len(annots)
+                chip_gen = ibs.depc_annot.get('chips', annots.aids, 'img',
+                                              eager=False, config=config)
+                iternd_ = iter(ut.ProgIter(chip_gen, nTotal=nTotal))
+                shape = (nTotal) + tuple(config['dim_size']) + (3,)
                 dtype = np.uint8
+                data = vt.fromiter_nd(iternd_, shape=shape, dtype=dtype)  # NOQA
+                labels = target
+                ut.save_data(data_fpath, data)
+                ut.save_data(labels_fpath, labels)
+                ut.save_data(metadata_fpath, metadata)
 
-                with ut.Timer('one'):
-                    # 36 seconds with bad response time
-                    data1 = np.array(annots_.chips)
-                    del data1
+            # hack for caching num_labels
+            #labels = ut.load_data(labels_fpath)
+            num_labels = len(labels)
+            output_dims = len(target_names)
 
-                with ut.Timer('four'):
-                    chip_gen = ibs.depc_annot.get('chips', annots_.aids, 'img',
-                                                  eager=False, config=config)
-                    iternd_ = iter(ut.ProgIter(chip_gen, nTotal=nTotal))
-                    data4_1 = vt.fromiter_nd(iternd_, shape=shape, dtype=dtype)  # NOQA
+            dataset = DataSet(
+                alias_key=alias_key,
+                data_fpath=data_fpath,
+                labels_fpath=labels_fpath,
+                metadata_fpath=metadata_fpath,
+                training_dpath=training_dpath,
+                data_per_label=1,
+                output_dims=output_dims,
+                data_shape=data_shape,
+                num_labels=num_labels,
+            )
+            dataset.build_auxillary_data()
+            dataset.register_self()
+            dataset.save_alias(dataset.alias_key)
 
-                with ut.Timer('two'):
-                    chip_gen = ibs.depc_annot.get('chips', annots_.aids, 'img',
-                                                  eager=False, config=config)
-                    _prog_iter = ut.ProgIter(chip_gen, nTotal=nTotal)
-                    data2 = np.array(list(_prog_iter))
-                    del data2
+    # parse training arguments
+    train_config = ut.argparse_dict(dict(
+        learning_rate_schedule=15,
+        max_epochs=1200,
+        learning_rate_adjust=.8,
+    ))
+    X_train, y_train = dataset.load_subset('train')
+    X_valid, y_valid = dataset.load_subset('valid')
 
-                with ut.Timer('one2'):
-                    # 36 seconds with bad response time
-                    data1 = np.array(annots_.chips)
-                    del data1
-
-                with ut.Timer('three'):
-                    # It really bugs me that this is so slow
-                    def fromiter_nd_slow(iternd_, shape, dtype):
-                        count = np.prod(shape)
-                        iter1d = ut.iflatten(a.ravel() for a in iternd_)
-                        #iter1d = (bit for a in iternd_ for bit in a.ravel())
-                        arr = np.fromiter(iter1d, count=count, dtype=dtype).reshape(shape)
-                        return arr
-
-                    chip_gen = ibs.depc_annot.get('chips', annots_.aids, 'img',
-                                                  eager=False, config=config)
-                    _prog_iter = iter(ut.ProgIter(chip_gen, nTotal=nTotal))
-                    iternd_ = _prog_iter
-                    #x = np.fromiter(iternd_, count=nTotal, dtype=img_dtype)
-
-                    shape = (nTotal, 256, 256, 3)
-                    dtype = np.uint8
-                    data3 = fromiter_nd_slow(iternd_, shape=shape, dtype=dtype)  # NOQA
-                    del data3
-
-                ##np.fromiter(ut.iflatten((a.ravel() for a in _prog_iter)), count=len(annots_.aids) * 256 * 256 * 3,
-                #    #dtype=np.uint8)
-
-        from ibeis_cnn import dataset
-        alias_key = 'sharks_' + target_type
-        dataset = dataset.DataSet.from_alias_key(alias_key)
-        # hack for caching num_labels
-        #labels = ut.load_data(labels_fpath)
-        num_labels = len(labels)
-        output_dims = len(target_names)
-
-        dataset = dataset.DataSet.new_training_set(
-            alias_key=alias_key,
-            data_fpath=data_fpath,
-            labels_fpath=labels_fpath,
-            metadata_fpath=metadata_fpath,
-            training_dpath=training_dpath,
-            data_per_label=1,
-            output_dims=output_dims,
-            data_shape=data_shape,
-            num_labels=num_labels,
-        )
-
-    ds = sklearn.datasets.base.Bunch(
-        ibs=ibs,
-        #data=data,
-        name='sharks',
-        DESCR='injured-vs-healthy whale sharks',
-        target_names=target_names,
-        target_labels=enc.transform(target_names),
-        config=config,
-        target=target,
-        enc=enc,
-        data=data,
-        **metadata
-    )
-    return ds
+    model = WhaleSharkInjuryModel(batch_size=128,
+                                  data_shape=dataset.data_shape)
+    model.initialize_architecture()
+    model.print_dense_architecture_str()
+    model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
 
 
 @ut.reloadable_class
