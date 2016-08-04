@@ -5969,7 +5969,7 @@ def compute_ggr_imagesets(ibs, gid_list=None):
 
 
 @register_ibs_method
-def compute_ggr_fix_gps(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 hours
+def compute_ggr_fix_gps_names(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 hours
     # Get all aids
     aid_list = ibs.get_valid_aids()
     num_all = len(aid_list)
@@ -5987,6 +5987,7 @@ def compute_ggr_fix_gps(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 h
     num_found = 0
     recovered_aid_list = []
     recovered_gps_list = []
+    recovered_dist_list = []
     for aid in aid_list:
         # Get annotation information
         unixtime = ibs.get_annot_image_unixtimes(aid)
@@ -6007,6 +6008,7 @@ def compute_ggr_fix_gps(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 h
         if closest_gps is not None and closest_diff <= min_diff:
             recovered_aid_list.append(aid)
             recovered_gps_list.append(closest_gps)
+            recovered_dist_list.append(closest_diff)
             num_found += 1
             h = closest_diff // 3600
             closest_diff %= 3600
@@ -6017,11 +6019,11 @@ def compute_ggr_fix_gps(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 h
             print('\tDIFF   : %d H, %d M, %d S' % (h, m, s, ))
             print('\tNEW GPS: %s' % (closest_gps, ))
     print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_known, num_found, ))
-    return recovered_aid_list, recovered_gps_list
+    return recovered_aid_list, recovered_gps_list, recovered_dist_list
 
 
 @register_ibs_method
-def compute_ggr_fix_gps_2(ibs, min_diff=86400, individual=True):  # 86,400 = 60 sec x 60 min X 24 hours
+def compute_ggr_fix_gps_contributors(ibs, min_diff=86400, individual=True):
     # Get all aids
     aid_list = ibs.get_valid_aids()
     num_all = len(aid_list)
@@ -6031,8 +6033,8 @@ def compute_ggr_fix_gps_2(ibs, min_diff=86400, individual=True):  # 86,400 = 60 
     aid_list = ut.filter_items(aid_list, flag_list)
     num_bad = len(aid_list)
     # Get found GPS list via naming
-    vals = ibs.compute_ggr_fix_gps(min_diff=min_diff)
-    recovered_aid_list, recovered_gps_list = vals
+    vals = ibs.compute_ggr_fix_gps_names(min_diff=min_diff)
+    recovered_aid_list, recovered_gps_list, recovered_dist_list = vals
     unrecovered_aid_list = list(set(aid_list) - set(recovered_aid_list))
     num_unrecovered = len(unrecovered_aid_list)
 
@@ -6079,6 +6081,7 @@ def compute_ggr_fix_gps_2(ibs, min_diff=86400, individual=True):  # 86,400 = 60 
             if closest_gps is not None and closest_diff <= min_diff:
                 recovered_aid_list.append(aid)
                 recovered_gps_list.append(closest_gps)
+                recovered_dist_list.append(closest_diff)
                 num_found += 1
                 h = closest_diff // 3600
                 closest_diff %= 3600
@@ -6099,7 +6102,29 @@ def compute_ggr_fix_gps_2(ibs, min_diff=86400, individual=True):  # 86,400 = 60 
     print('Recovered  : %d' % (num_recovered, ))
     print('Unrecovered: %d' % (num_unrecovered, ))
     print('Not Found  : %r' % (not_found, ))
-    return recovered_aid_list, recovered_gps_list
+    return recovered_aid_list, recovered_gps_list, recovered_dist_list
+
+
+@register_ibs_method
+def commit_ggr_fix_gps_2(ibs, **kwargs):
+    vals = ibs.compute_ggr_fix_gps_contributors(**kwargs)
+    recovered_aid_list, recovered_gps_list, recovered_dist_list = vals
+    recovered_gid_list = ibs.get_annot_gids(recovered_aid_list)
+
+    zipped = zip(recovered_gid_list, recovered_gps_list, recovered_dist_list)
+    assignment_dict = {}
+    for gid, gps, dist in zipped:
+        if gid not in assignment_dict:
+            assignment_dict[gid] = []
+        assignment_dict[gid].append((dist, gps))
+
+    for assignment_gid in assignment_dict:
+        assignment_list = sorted(assignment_dict[assignment_gid])
+        assignment_gps = assignment_list[0][1]
+        print(assignment_list)
+        print(len(assignment_list))
+        print(assignment_gid, assignment_gps)
+        # ibs.set_image_gps([assignment_gid], [assignment_gps])
 
 
 if __name__ == '__main__':
