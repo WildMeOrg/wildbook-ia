@@ -538,6 +538,9 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
     # Find maxima
     import vtool as vt
     maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(hist, centers, maxima_thresh)
+    argmaxima = np.array(ut.ensure_iterable(argmaxima))
+    maxima_y = np.array(ut.ensure_iterable(maxima_y))
+    maxima_x = np.array(ut.ensure_iterable(maxima_x))
     if len(argmaxima) > 0 and argmaxima[-1] == len(hist) - 1:
         argmaxima = argmaxima[:-1]
         maxima_x = maxima_x[:-1]
@@ -549,11 +552,17 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
     # Expand parabola points around submaxima
     x123, y123 = vt.maxima_neighbors(argmaxima, hist, centers)
     # Find submaxima
-    submaxima_x, submaxima_y = vt.interpolate_submaxima(argmaxima, hist, centers)
-    # Extract parabola points
-    coeff_list =  [np.polyfit(xtup, ytup, 2) for xtup, ytup in zip(x123.T, y123.T)]
-    xpoints = [np.linspace(x1, x3, 50) for (x1, x2, x3) in x123.T]
-    ypoints = [np.polyval(coeff, x_pts) for x_pts, coeff in zip(xpoints, coeff_list)]
+    if len(argmaxima) == 0:
+        submaxima_x = []
+        submaxima_y = []
+        xpoints = []
+        ypoints = []
+    else:
+        submaxima_x, submaxima_y = vt.interpolate_submaxima(argmaxima, hist, centers)
+        # Extract parabola points
+        coeff_list =  [np.polyfit(xtup, ytup, 2) for xtup, ytup in zip(x123.T, y123.T)]
+        xpoints = [np.linspace(x1, x3, 50) for (x1, x2, x3) in x123.T]
+        ypoints = [np.polyval(coeff, x_pts) for x_pts, coeff in zip(xpoints, coeff_list)]
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
     linecolor = 'w' if use_darkbackground else 'k'
