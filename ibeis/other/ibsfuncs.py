@@ -5983,7 +5983,6 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
                 # Assign closest
                 if closest_gps is not None and closest_diff <= min_diff:
                     point = closest_gps
-                    print(point)
 
         if point == (-1, -1):
             skipped += 1
