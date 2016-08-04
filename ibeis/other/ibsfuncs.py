@@ -5985,6 +5985,7 @@ def compute_ggr_fix_gps(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 h
     num_known = len(aid_list)
     # Find close GPS
     num_found = 0
+    recovered_aid_list = []
     for aid in aid_list:
         # Get annotation information
         unixtime = ibs.get_annot_image_unixtimes(aid)
@@ -6003,6 +6004,7 @@ def compute_ggr_fix_gps(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 h
                 closest_gps = gps_
         # Assign closest
         if closest_gps is not None and closest_diff <= min_diff:
+            recovered_aid_list.append(aid)
             num_found += 1
             h = closest_diff // 3600
             closest_diff %= 3600
@@ -6013,6 +6015,76 @@ def compute_ggr_fix_gps(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 h
             print('\tDIFF   : %d H, %d M, %d S' % (h, m, s, ))
             print('\tNEW GPS: %s' % (closest_gps, ))
     print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_known, num_found, ))
+    return recovered_aid_list
+
+
+@register_ibs_method
+def compute_ggr_fix_gps_2(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 hours
+    # Get all aids
+    aid_list = ibs.get_valid_aids()
+    num_all = len(aid_list)
+    gps_list = ibs.get_annot_image_gps(aid_list)
+    flag_list = [ gps == (-1, -1) for gps in gps_list ]
+    # Get bad GPS aids
+    aid_list = ut.filter_items(aid_list, flag_list)
+    num_bad = len(aid_list)
+    # Get found GPS list via naming
+    recovered_aid_list = ibs.compute_ggr_fix_gps()
+    unrecovered_aid_list = list(set(aid_list) - set(recovered_aid_list))
+    num_unrecovered = len(unrecovered_aid_list)
+
+    gid_list = ibs.get_valid_gids()
+    note_list = ibs.get_image_notes(gid_list)
+    note_list = [
+        ','.join(note.strip().split(',')[:-1])
+        for note in note_list
+    ]
+
+    num_found = 0
+    recovered_aid_list = []
+    for aid in unrecovered_aid_list:
+        gid = ibs.get_annot_gids(aid)
+        unixtime = ibs.get_image_unixtime(gid)
+        index = gid_list.index(gid)
+        note = note_list[index]
+
+        # Find siblings in the same car
+        sibling_gid_list = [
+            gid
+            for gid_, note_ in zip(gid_list, note_list)
+            if note_ == note
+        ]
+
+        # Get valid GPS
+        gps_list = ibs.get_image_gps(sibling_gid_list)
+        flag_list = [ gps != (-1, -1) for gps in gps_list ]
+        gid_list_  = ut.compress(sibling_gid_list, flag_list)
+
+        # If found, get closest image
+        if len(gid_list_) > 0:
+            gps_list_  = ibs.get_image_gps(gid_list_)
+            unixtime_list_ = ibs.get_image_unixtime(gid_list_)
+            # Find closest
+            closest_diff, closest_gps = np.inf, None
+            for unixtime_, gps_ in zip(unixtime_list_, gps_list_):
+                diff = abs(unixtime - unixtime_)
+                if diff < closest_diff and gps_ != (-1, -1):
+                    closest_diff = diff
+                    closest_gps = gps_
+            # Assign closest
+            if closest_gps is not None and closest_diff <= min_diff:
+                recovered_aid_list.append(aid)
+                num_found += 1
+                h = closest_diff // 3600
+                closest_diff %= 3600
+                m = closest_diff // 60
+                closest_diff %= 60
+                s = closest_diff
+                print('FOUND LOCATION FOR AID %d' % (aid, ))
+                print('\tDIFF   : %d H, %d M, %d S' % (h, m, s, ))
+                print('\tNEW GPS: %s' % (closest_gps, ))
+    print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found, ))
+    return recovered_aid_list
 
 
 if __name__ == '__main__':
