@@ -233,6 +233,9 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         model.output_layer = output_layer
         return output_layer
 
+    #def fit_interactive(X_train, y_train, X_valid, y_valid):
+    #    pass
+
 
 def get_sharks_dataset(target_type=None):
     """
@@ -389,7 +392,7 @@ class ClfProblem(object):
         target = problem.ds.target
         x_train = data.take(train_idx, axis=0)
         y_train = target.take(train_idx, axis=0)
-        clf = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
+        clf = sklearn.svm.SVC(kernel='linear', C=.1, class_weight='balanced',
                               decision_function_shape='ovr')
 
         # C, penalty, loss
@@ -408,7 +411,7 @@ class ClfProblem(object):
         target = problem.ds.target
         x_train = data.take(train_idx, axis=0)
         y_train = target.take(train_idx, axis=0)
-        clf = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
+        clf = sklearn.svm.SVC(kernel='linear', C=.1, class_weight='balanced',
                               decision_function_shape='ovr')
         clf.fit(x_train, y_train)
 
@@ -433,7 +436,10 @@ class ClfProblem(object):
                 #'C': [1, .5, .1, 5, 10, 100],
                 #'C': [1, 1e-1, 1e-2, 1e-3]
                 #'C': [1, 1e-1, 1e-2, 1e-3]
-                'C': np.linspace(1, 1e-5, 15)
+                #'C': np.linspace(1, 1e-5, 15)
+                #'C': np.linspace(.2, 1e-5, 15)
+                #'C': np.logspace(np.log10(1e-3), np.log10(.1), 30, base=10)
+                'C': np.logspace(.22, .32, 10),
                 #'loss': ['l2', 'l1'],
                 #'penalty': ['l2', 'l1'],
             }
@@ -449,6 +455,38 @@ class ClfProblem(object):
             for params, mean_score, scores in clf.grid_scores_:
                 print("%0.3f (+/-%0.03f) for %r"
                       % (mean_score, scores.std() * 2, params))
+
+            #clf.best_params_ = {u'C': 0.07143785714285722}
+            #Best parameters set found on development set:
+            #{u'C': 0.07143785714285722}
+            #Grid scores on development set:
+            #0.729 (+/-0.016) for {u'C': 1.0}
+            #0.729 (+/-0.019) for {u'C': 0.92857214285714285}
+            #0.733 (+/-0.017) for {u'C': 0.85714428571428569}
+            #0.734 (+/-0.015) for {u'C': 0.78571642857142865}
+            #0.736 (+/-0.016) for {u'C': 0.71428857142857138}
+            #0.739 (+/-0.020) for {u'C': 0.64286071428571434}
+            #0.742 (+/-0.020) for {u'C': 0.57143285714285719}
+            #0.743 (+/-0.021) for {u'C': 0.50000500000000003}
+            #0.746 (+/-0.023) for {u'C': 0.42857714285714288}
+            #0.749 (+/-0.023) for {u'C': 0.35714928571428572}
+            #0.755 (+/-0.025) for {u'C': 0.28572142857142857}
+            #0.760 (+/-0.027) for {u'C': 0.21429357142857142}
+            #0.762 (+/-0.025) for {u'C': 0.14286571428571437}
+            #0.770 (+/-0.036) for {u'C': 0.07143785714285722}
+            #0.664 (+/-0.031) for {u'C': 1.0000000000000001e-05}
+
+            #0.774 (+/-0.039) for {u'C': 0.017433288221999882}
+            #0.775 (+/-0.039) for {u'C': 0.020433597178569417}
+            #0.774 (+/-0.039) for {u'C': 0.023950266199874861}
+            #0.777 (+/-0.038) for {u'C': 0.02807216203941177}
+            #0.775 (+/-0.036) for {u'C': 0.032903445623126679}
+            #0.773 (+/-0.033) for {u'C': 0.038566204211634723}
+
+        xdata = [t[0]['C'] for t in clf.grid_scores_]
+        ydata = [t[1] for t in clf.grid_scores_]
+        pt.plot(xdata, ydata, '-rx')
+        pt.draw_hist_subbin_maxima(ydata, xdata)
 
     def test_classifier(problem, clf, test_idx):
         print('[problem] test classifier on %d data points' % (len(test_idx),))
