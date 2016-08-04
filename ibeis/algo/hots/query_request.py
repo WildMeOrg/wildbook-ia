@@ -437,14 +437,16 @@ class QueryRequest(object):
         qreq_.internal_daids = np.array(daid_list)
         # Use new annotation objects
         config = qreq_.get_internal_data_config2()
-        qreq_._internal_dannots = qreq_.ibs.annots(qreq_.internal_daids, config)
+        qreq_._internal_dannots = qreq_.ibs.annots(qreq_.internal_daids,
+                                                   config=config)
 
     def _set_internal_qaids(qreq_, qaid_list):
         qreq_.internal_qaids_mask = None  # Invalidate mask
         qreq_.internal_qaids = np.array(qaid_list)
         # Use new annotation objects
         config = qreq_.get_internal_query_config2()
-        qreq_._internal_qannots = qreq_.ibs.annots(qreq_.internal_qaids, config)
+        qreq_._internal_qannots = qreq_.ibs.annots(qreq_.internal_qaids,
+                                                   config=config)
 
     def shallowcopy(qreq_, qaids=None):
         """

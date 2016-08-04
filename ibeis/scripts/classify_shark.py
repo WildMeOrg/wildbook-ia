@@ -16,129 +16,16 @@ from ibeis_cnn.models import abstract_models
 
 
 @ut.reloadable_class
-class InteractAnnotClasses(abstract_interaction.AbstractInteraction):
-    def __init__(inter, ibs, config, df_chunks, nCols, **kwargs):
-        inter.df_chunks = df_chunks
-        inter.ibs = ibs
-        inter.nCols = nCols
-        inter.config = config
-        inter._init_lists()
-        super(InteractAnnotClasses, inter).__init__(**kwargs)
-
-    def _init_lists(inter):
-        inter.offset_lists = []
-        inter.sizes_lists = []
-        inter.sf_lists = []
-        inter.ax_list = []
-        inter.metadata_lists = []
-        inter.data_lists = []
-
-    def _show_page(inter):
-        from ibeis_cnn import draw_results
-        inter._ensure_running()
-        inter._init_lists()
-
-        pnum_ = pt.make_pnum_nextgen(nCols=inter.nCols, nSubplots=len(inter.df_chunks))
-        for df_chunk in inter.df_chunks:
-            ibs = inter.ibs
-            config = inter.config
-            annots_chunk = ibs.annots(df_chunk['aid'].values, config=config)
-            #data_lists = [(np.array(annots_chunk.hog_img) * 255).astype(np.uint8),
-            #              annots_chunk.chips]
-            #data_lists = [annots_chunk.chips]
-            data_lists = [ibs.get_image_thumbnail(annots_chunk.gids, draw_annots=True)]
-            label_list = (1 - df_chunk['failed']).values
-            flat_metadata = df_chunk.to_dict(orient='list')
-            flat_metadata['tags'] = annots_chunk.case_tags
-            tup = draw_results.get_patch_chunk(data_lists, label_list,
-                                               flat_metadata,
-                                               draw_meta=['decision', 'tags'],
-                                               vert=False, fontScale=4.0)
-            inter.metadata_lists.append(flat_metadata)
-            img, offset_list, sf_list, sizes_list = tup
-            inter.offset_lists.append(offset_list)
-            inter.sf_lists.append(sf_list)
-            inter.sizes_lists.append(sizes_list)
-            inter.data_lists.append(data_lists)
-            fig, ax = pt.imshow(img, fnum=inter.fnum, pnum=pnum_())
-            ax.set_title(df_chunk.nice)
-            inter.ax_list.append(ax)
-        pt.adjust_subplots2(top=.95, left=0, right=1, bottom=.00, hspace=.1, wspace=0)
-
-    def on_click_inside(inter, event, ax):
-        print('click inside')
-
-        def get_label_index(inter, event, ax):
-            """ generalize """
-            x, y = event.xdata, event.ydata
-            def find_offset_index(offsets, sizes, x, y):
-                x1_pts = offsets.T[0]
-                x2_pts = offsets.T[0] + sizes.T[0]
-                y1_pts = offsets.T[1]
-                y2_pts = offsets.T[1] + sizes.T[1]
-
-                in_bounds = np.logical_and.reduce([
-                    x >= x1_pts, x < x2_pts,
-                    y >= y1_pts, y < y2_pts
-                ])
-                valid_idxs = np.where(in_bounds)[0]
-                #print('valid_idxs = %r' % (valid_idxs,))
-                assert len(valid_idxs) == 1
-                return valid_idxs[0]
-            try:
-                # Find plot axes index
-                px = inter.ax_list.index(ax)
-            except ValueError:
-                label_index = None
-            else:
-                offsets = np.array(inter.offset_lists[px])
-                sfs = np.array(inter.sf_lists[px])
-                orig_sizes = np.array(inter.sizes_lists[px])
-                sizes = np.array(orig_sizes) * sfs
-                data_list = inter.data_lists[px]
-                data_per_label = len(data_list)
-                #num_rows = data_per_label
-                num_cols = (len(offsets) // data_per_label)
-                _subindex = find_offset_index(offsets, sizes, x, y)
-                row_index = _subindex // num_cols
-                col_index = _subindex % num_cols
-                #label_index = inter.multiindicies[plot_index][row_index]
-                print('_subindex = %r' % (_subindex,))
-                print('row_index = %r' % (row_index,))
-                print('col_index = %r' % (col_index,))
-                print('px = %r' % (px,))
-                #print('label_index = %r' % (label_index,))
-                label_index = (px, col_index)
-            return label_index
-
-        options = []
-
-        label_index = get_label_index(inter, event, ax)
-
-        if label_index is not None:
-            px, col_index = label_index
-            flat_metadata = inter.metadata_lists[px]
-
-            if 'aid' in flat_metadata:
-                from ibeis.viz.interact import interact_chip
-                ibs = inter.ibs
-                aid = flat_metadata['aid'][col_index]
-                if ibs is not None:
-                    options += interact_chip.build_annot_context_options(ibs, aid)
-                    print('Annot Info:' + ut.repr3(inter.ibs.get_annot_info([aid], case_tags=True)))
-
-        if event.button == 3:
-            #options = inter.context_option_funcs[index]()
-            options += [
-                ('Present', pt.present),
-            ]
-            inter.show_popup_menu(options, event)
-
-
-@ut.reloadable_class
 class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
-    #def __init__(self):
-    #    super(WhaleSharkInjuryModel, self).__init__()
+    """
+    Example:
+        >>> from ibeis.scripts.classify_shark import *  # NOQA
+        >>> from ibeis.scripts import classify_shark
+        >>> ds = classify_shark.get_sharks_dataset('binary', 'chip')
+        >>> problem = classify_shark.ClfProblem(ds)
+        >>> problem.print_support_info()
+        >>> ibs = ds.ibs
+    """
 
     def initialize_architecture(model, verbose=ut.VERBOSE, **kwargs):
         r"""
@@ -237,7 +124,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
     #    pass
 
 
-def get_sharks_dataset(target_type=None):
+def get_sharks_dataset(target_type=None, data_type='hog'):
     """
     Ignore:
         # Binarize into multi-class labels
@@ -252,6 +139,7 @@ def get_sharks_dataset(target_type=None):
         # target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
 
         >>> target_type = 'binary'
+        >>> data_type = 'chip'
         >>> from ibeis.scripts.classify_shark import *  # NOQA
     """
     import ibeis
@@ -349,20 +237,131 @@ def get_sharks_dataset(target_type=None):
     target = enc.transform(ut.flatten(annot_tags))
     target_names = enc.classes_
 
-    data = np.array([h.ravel() for h in annots.hog_hog])
-
     # Build scipy / scikit data standards
+    metadata = dict(
+        aids=np.array(annots.aids),
+    )
+
+    data = None
+
+    if data_type == 'hog':
+        data = np.array([h.ravel() for h in annots.hog_hog])
+    elif data_type == 'chip':
+        data_shape = config['dim_size']
+        trail_cfgstr = ibs.depc_annot.get_config_trail_str('chips', config)
+        trail_hashstr = ut.hashstr27(trail_cfgstr)
+        visual_uuids = annots.visual_uuids
+        metadata['visual_uuids'] = visual_uuids
+        chips_hashstr = ut.hashstr_arr27(annots.visual_uuids, 'chips')
+        cfgstr = chips_hashstr + '_' + trail_hashstr
+        training_dpath = ibs.get_neuralnet_dir()
+        ut.ensuredir(training_dpath)
+        data_fpath = ut.unixjoin(training_dpath, 'data_%s.hdf5' % (cfgstr,))
+        labels_fpath = ut.unixjoin(training_dpath, 'labels_%s.hdf5' % (cfgstr,))
+        metadata_fpath = ut.unixjoin(training_dpath, 'metadata_%s.pkl' % (cfgstr,))
+
+        # ut.delete(data_fpath)
+        # ut.delete(labels_fpath)
+        # ut.delete(metadata_fpath)
+
+        if not ut.checkpath(data_fpath, verbose=True):
+            #with ut.Timer('one'):
+            # 16 seconds with good response time
+
+            chip_gen = ibs.depc_annot.get('chips', annots.aids, 'img',
+                                          eager=False, config=config)
+            data = np.array(list(ut.ProgIter(chip_gen, lbl='reading chips',
+                                             nTotal=len(annots))))
+            labels = target
+            ut.save_data(data_fpath, data)
+            ut.save_data(labels_fpath, labels)
+            ut.save_data(metadata_fpath, metadata)
+
+            if False:
+                #annots_ = annots.take(slice(0, 1000))
+                annots_ = annots
+                nTotal = len(annots_.aids)
+                shape = (nTotal, 256, 256, 3)
+                dtype = np.uint8
+
+                with ut.Timer('one'):
+                    # 36 seconds with bad response time
+                    data1 = np.array(annots_.chips)
+                    del data1
+
+                with ut.Timer('four'):
+                    chip_gen = ibs.depc_annot.get('chips', annots_.aids, 'img',
+                                                  eager=False, config=config)
+                    iternd_ = iter(ut.ProgIter(chip_gen, nTotal=nTotal))
+                    data4_1 = vt.fromiter_nd(iternd_, shape=shape, dtype=dtype)  # NOQA
+
+                with ut.Timer('two'):
+                    chip_gen = ibs.depc_annot.get('chips', annots_.aids, 'img',
+                                                  eager=False, config=config)
+                    _prog_iter = ut.ProgIter(chip_gen, nTotal=nTotal)
+                    data2 = np.array(list(_prog_iter))
+                    del data2
+
+                with ut.Timer('one2'):
+                    # 36 seconds with bad response time
+                    data1 = np.array(annots_.chips)
+                    del data1
+
+                with ut.Timer('three'):
+                    # It really bugs me that this is so slow
+                    def fromiter_nd_slow(iternd_, shape, dtype):
+                        count = np.prod(shape)
+                        iter1d = ut.iflatten(a.ravel() for a in iternd_)
+                        #iter1d = (bit for a in iternd_ for bit in a.ravel())
+                        arr = np.fromiter(iter1d, count=count, dtype=dtype).reshape(shape)
+                        return arr
+
+                    chip_gen = ibs.depc_annot.get('chips', annots_.aids, 'img',
+                                                  eager=False, config=config)
+                    _prog_iter = iter(ut.ProgIter(chip_gen, nTotal=nTotal))
+                    iternd_ = _prog_iter
+                    #x = np.fromiter(iternd_, count=nTotal, dtype=img_dtype)
+
+                    shape = (nTotal, 256, 256, 3)
+                    dtype = np.uint8
+                    data3 = fromiter_nd_slow(iternd_, shape=shape, dtype=dtype)  # NOQA
+                    del data3
+
+                ##np.fromiter(ut.iflatten((a.ravel() for a in _prog_iter)), count=len(annots_.aids) * 256 * 256 * 3,
+                #    #dtype=np.uint8)
+
+        from ibeis_cnn import dataset
+        alias_key = 'sharks_' + target_type
+        dataset = dataset.DataSet.from_alias_key(alias_key)
+        # hack for caching num_labels
+        #labels = ut.load_data(labels_fpath)
+        num_labels = len(labels)
+        output_dims = len(target_names)
+
+        dataset = dataset.DataSet.new_training_set(
+            alias_key=alias_key,
+            data_fpath=data_fpath,
+            labels_fpath=labels_fpath,
+            metadata_fpath=metadata_fpath,
+            training_dpath=training_dpath,
+            data_per_label=1,
+            output_dims=output_dims,
+            data_shape=data_shape,
+            num_labels=num_labels,
+        )
+
     ds = sklearn.datasets.base.Bunch(
         ibs=ibs,
-        aids=annots.aids,
+        #data=data,
         name='sharks',
         DESCR='injured-vs-healthy whale sharks',
-        data=data,
-        target=target,
         target_names=target_names,
         target_labels=enc.transform(target_names),
+        config=config,
+        target=target,
         enc=enc,
-        config=config
+        data=data,
+        **metadata
     )
     return ds
 
@@ -392,7 +391,7 @@ class ClfProblem(object):
         target = problem.ds.target
         x_train = data.take(train_idx, axis=0)
         y_train = target.take(train_idx, axis=0)
-        clf = sklearn.svm.SVC(kernel='linear', C=.1, class_weight='balanced',
+        clf = sklearn.svm.SVC(kernel='linear', C=.28, class_weight='balanced',
                               decision_function_shape='ovr')
 
         # C, penalty, loss
@@ -411,7 +410,7 @@ class ClfProblem(object):
         target = problem.ds.target
         x_train = data.take(train_idx, axis=0)
         y_train = target.take(train_idx, axis=0)
-        clf = sklearn.svm.SVC(kernel='linear', C=.1, class_weight='balanced',
+        clf = sklearn.svm.SVC(kernel='linear', C=.28, class_weight='balanced',
                               decision_function_shape='ovr')
         clf.fit(x_train, y_train)
 
@@ -439,11 +438,11 @@ class ClfProblem(object):
                 #'C': np.linspace(1, 1e-5, 15)
                 #'C': np.linspace(.2, 1e-5, 15)
                 #'C': np.logspace(np.log10(1e-3), np.log10(.1), 30, base=10)
-                'C': np.logspace(.22, .32, 10),
+                'C': np.linspace(.1, .3, 20),
                 #'loss': ['l2', 'l1'],
                 #'penalty': ['l2', 'l1'],
             }
-            _clf = sklearn.svm.SVC(kernel='linear', C=1, class_weight='balanced',
+            _clf = sklearn.svm.SVC(kernel='linear', C=.28, class_weight='balanced',
                                    decision_function_shape='ovr')
             clf = sklearn.grid_search.GridSearchCV(_clf, param_grid, n_jobs=2,
                                                    iid=False, cv=5)
@@ -455,6 +454,11 @@ class ClfProblem(object):
             for params, mean_score, scores in clf.grid_scores_:
                 print("%0.3f (+/-%0.03f) for %r"
                       % (mean_score, scores.std() * 2, params))
+            xdata = np.array([t[0]['C'] for t in clf.grid_scores_])
+            ydata = np.array([t[1] for t in clf.grid_scores_])
+
+            #pt.plot(xdata, ydata, '-rx')
+            pt.draw_hist_subbin_maxima(ydata, xdata)
 
             #clf.best_params_ = {u'C': 0.07143785714285722}
             #Best parameters set found on development set:
@@ -482,11 +486,6 @@ class ClfProblem(object):
             #0.777 (+/-0.038) for {u'C': 0.02807216203941177}
             #0.775 (+/-0.036) for {u'C': 0.032903445623126679}
             #0.773 (+/-0.033) for {u'C': 0.038566204211634723}
-
-        xdata = [t[0]['C'] for t in clf.grid_scores_]
-        ydata = [t[1] for t in clf.grid_scores_]
-        pt.plot(xdata, ydata, '-rx')
-        pt.draw_hist_subbin_maxima(ydata, xdata)
 
     def test_classifier(problem, clf, test_idx):
         print('[problem] test classifier on %d data points' % (len(test_idx),))
@@ -730,6 +729,126 @@ def learn_injured_sharks():
     config = ds.config
     inter = classify_shark.InteractAnnotClasses(ibs, config, df_chunks, nCols=len(ds.target_labels))
     inter.start()
+
+
+@ut.reloadable_class
+class InteractAnnotClasses(abstract_interaction.AbstractInteraction):
+    def __init__(inter, ibs, config, df_chunks, nCols, **kwargs):
+        inter.df_chunks = df_chunks
+        inter.ibs = ibs
+        inter.nCols = nCols
+        inter.config = config
+        inter._init_lists()
+        super(InteractAnnotClasses, inter).__init__(**kwargs)
+
+    def _init_lists(inter):
+        inter.offset_lists = []
+        inter.sizes_lists = []
+        inter.sf_lists = []
+        inter.ax_list = []
+        inter.metadata_lists = []
+        inter.data_lists = []
+
+    def _show_page(inter):
+        from ibeis_cnn import draw_results
+        inter._ensure_running()
+        inter._init_lists()
+
+        pnum_ = pt.make_pnum_nextgen(nCols=inter.nCols, nSubplots=len(inter.df_chunks))
+        for df_chunk in inter.df_chunks:
+            ibs = inter.ibs
+            config = inter.config
+            annots_chunk = ibs.annots(df_chunk['aid'].values, config=config)
+            #data_lists = [(np.array(annots_chunk.hog_img) * 255).astype(np.uint8),
+            #              annots_chunk.chips]
+            #data_lists = [annots_chunk.chips]
+            data_lists = [ibs.get_image_thumbnail(annots_chunk.gids, draw_annots=True)]
+            label_list = (1 - df_chunk['failed']).values
+            flat_metadata = df_chunk.to_dict(orient='list')
+            flat_metadata['tags'] = annots_chunk.case_tags
+            tup = draw_results.get_patch_chunk(data_lists, label_list,
+                                               flat_metadata,
+                                               draw_meta=['decision', 'tags'],
+                                               vert=False, fontScale=4.0)
+            inter.metadata_lists.append(flat_metadata)
+            img, offset_list, sf_list, sizes_list = tup
+            inter.offset_lists.append(offset_list)
+            inter.sf_lists.append(sf_list)
+            inter.sizes_lists.append(sizes_list)
+            inter.data_lists.append(data_lists)
+            fig, ax = pt.imshow(img, fnum=inter.fnum, pnum=pnum_())
+            ax.set_title(df_chunk.nice)
+            inter.ax_list.append(ax)
+        pt.adjust_subplots2(top=.95, left=0, right=1, bottom=.00, hspace=.1, wspace=0)
+
+    def on_click_inside(inter, event, ax):
+        print('click inside')
+
+        def get_label_index(inter, event, ax):
+            """ generalize """
+            x, y = event.xdata, event.ydata
+            def find_offset_index(offsets, sizes, x, y):
+                x1_pts = offsets.T[0]
+                x2_pts = offsets.T[0] + sizes.T[0]
+                y1_pts = offsets.T[1]
+                y2_pts = offsets.T[1] + sizes.T[1]
+
+                in_bounds = np.logical_and.reduce([
+                    x >= x1_pts, x < x2_pts,
+                    y >= y1_pts, y < y2_pts
+                ])
+                valid_idxs = np.where(in_bounds)[0]
+                #print('valid_idxs = %r' % (valid_idxs,))
+                assert len(valid_idxs) == 1
+                return valid_idxs[0]
+            try:
+                # Find plot axes index
+                px = inter.ax_list.index(ax)
+            except ValueError:
+                label_index = None
+            else:
+                offsets = np.array(inter.offset_lists[px])
+                sfs = np.array(inter.sf_lists[px])
+                orig_sizes = np.array(inter.sizes_lists[px])
+                sizes = np.array(orig_sizes) * sfs
+                data_list = inter.data_lists[px]
+                data_per_label = len(data_list)
+                #num_rows = data_per_label
+                num_cols = (len(offsets) // data_per_label)
+                _subindex = find_offset_index(offsets, sizes, x, y)
+                row_index = _subindex // num_cols
+                col_index = _subindex % num_cols
+                #label_index = inter.multiindicies[plot_index][row_index]
+                print('_subindex = %r' % (_subindex,))
+                print('row_index = %r' % (row_index,))
+                print('col_index = %r' % (col_index,))
+                print('px = %r' % (px,))
+                #print('label_index = %r' % (label_index,))
+                label_index = (px, col_index)
+            return label_index
+
+        options = []
+
+        label_index = get_label_index(inter, event, ax)
+
+        if label_index is not None:
+            px, col_index = label_index
+            flat_metadata = inter.metadata_lists[px]
+
+            if 'aid' in flat_metadata:
+                from ibeis.viz.interact import interact_chip
+                ibs = inter.ibs
+                aid = flat_metadata['aid'][col_index]
+                if ibs is not None:
+                    options += interact_chip.build_annot_context_options(ibs, aid)
+                    print('Annot Info:' + ut.repr3(inter.ibs.get_annot_info([aid], case_tags=True)))
+
+        if event.button == 3:
+            #options = inter.context_option_funcs[index]()
+            options += [
+                ('Present', pt.present),
+            ]
+            inter.show_popup_menu(options, event)
 
 if __name__ == '__main__':
     r"""

@@ -780,7 +780,7 @@ def draw_twoday_count(ibs, visit_info_list_):
 
             for g, t_xy in zip(graph_list_, t_xy_list):
                 ut.translate_graph(g, t_xy)
-                ut.pin_nodes(g)
+                nx.set_node_attributes(g, 'pin', 'true')
 
             new_graph = nx.compose_all(graph_list_)
             #pt.show_nx(new_graph, layout='custom', node_labels=False, as_directed=False)  # NOQA
@@ -841,7 +841,7 @@ def draw_twoday_count(ibs, visit_info_list_):
 
         graph_list = [graph1_, graph2_]
         twoday_graph = stack_graphs(graph_list, vert=True, pad=None)
-        ut.pin_nodes(twoday_graph)
+        nx.set_node_attributes(twoday_graph, 'pin', 'true')
 
         if debug:
             ut.nx_delete_None_edge_attr(twoday_graph)
