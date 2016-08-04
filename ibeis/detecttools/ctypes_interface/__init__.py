@@ -13,10 +13,13 @@ __VERBOSE__ = '--verbose' in sys.argv
 
 
 def get_lib_fname_list(libname):
-    '''
-    input <libname>: library name (e.g. 'hesaff', not 'libhesaff')
-    returns <libnames>: list of plausible library file names
-    '''
+    """
+    Args:
+        libname (str): library name (e.g. 'hesaff', not 'libhesaff')
+
+    Returns:
+        list: list of plausible library file names
+    """
     if sys.platform.startswith('win32'):
         libnames = ['lib' + libname + '.dll', libname + '.dll']
     elif sys.platform.startswith('darwin'):
@@ -29,11 +32,13 @@ def get_lib_fname_list(libname):
 
 
 def get_lib_dpath_list(root_dir):
-    '''
-    input <root_dir>: deepest directory to look for a library (dll, so, dylib)
-    returns <libnames>: list of plausible directories to look.
-    '''
-    'returns possible lib locations'
+    """
+    Args:
+        root_dir (str): deepest directory to look for a library (dll, so, dylib)
+
+    Returns:
+        list: plausible directories to look for libraries
+    """
     get_lib_dpath_list = [root_dir,
                           join(root_dir, 'lib'),
                           join(root_dir, 'build'),
@@ -42,7 +47,7 @@ def get_lib_dpath_list(root_dir):
 
 
 def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
-    'Search for the library'
+    """ Search for the library """
     lib_fname_list = get_lib_fname_list(libname)
     tried_fpaths = []
     while root_dir is not None:
@@ -78,13 +83,15 @@ def find_lib_fpath(libname, root_dir, recurse_down=True, verbose=False):
 def load_clib(libname, root_dir):
     """
     Does the work.
-    Args:
-        libname:  library name (e.g. 'hesaff', not 'libhesaff')
 
-        root_dir: the deepest directory searched for the
-                  library file (dll, dylib, or so).
+    Args:
+        libname (str):  library name (e.g. 'hesaff', not 'libhesaff')
+
+        root_dir (str): the deepest directory searched for the library file
+            (dll, dylib, or so).
+
     Returns:
-        clib: a ctypes object used to interface with the library
+        ctypes.cdll: clib a ctypes object used to interface with the library
     """
     lib_fpath = find_lib_fpath(libname, root_dir)
     try:
@@ -100,9 +107,12 @@ def load_clib(libname, root_dir):
     except OSError as ex:
         print('[C!] Caught OSError:\n%s' % ex)
         errsuffix = 'Is there a missing dependency?'
+    except AttributeError as ex:
+        print('[C!] Caught Exception:\n%s' % ex)
+        errsuffix = 'Was the library correctly compiled? Maybe rebuild?'
     except Exception as ex:
         print('[C!] Caught Exception:\n%s' % ex)
-        errsuffix = 'Was the library correctly compiled?'
+        errsuffix = 'Was the library correctly compiled? Maybe rebuild?'
     print('[C!] cwd=%r' % os.getcwd())
     print('[C!] load_clib(libname=%r root_dir=%r)' % (libname, root_dir))
     print('[C!] lib_fpath = %r' % lib_fpath)
