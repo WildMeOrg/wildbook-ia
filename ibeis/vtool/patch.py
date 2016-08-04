@@ -1140,7 +1140,8 @@ def test_ondisk_find_patch_fpath_dominant_orientations(patch_fpath, bins=36,
     return find_patch_dominant_orientations(patch, bins=bins, maxima_thresh=maxima_thresh, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
 
 
-def find_patch_dominant_orientations(patch, bins=36, maxima_thresh=.8, DEBUG_ROTINVAR=False):
+def find_patch_dominant_orientations(patch, bins=36, maxima_thresh=.8,
+                                     DEBUG_ROTINVAR=False):
     """
     helper
     """
@@ -1162,11 +1163,12 @@ def find_patch_dominant_orientations(patch, bins=36, maxima_thresh=.8, DEBUG_ROT
     # FIXME: Not taking account to gmag
     #bins = 3
     #bins = 8
-    hist, centers = get_orientation_histogram(gori, gori_weights, bins=bins, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+    hist, centers = get_orientation_histogram(gori, gori_weights, bins=bins,
+                                              DEBUG_ROTINVAR=DEBUG_ROTINVAR)
     # Find submaxima
-    submaxima_x, submaxima_y = htool.hist_interpolated_submaxima(hist, centers,
-                                                                 maxima_thresh=maxima_thresh,
-                                                                 DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+    submaxima_x, submaxima_y = htool.argsubmaxima(hist, centers,
+                                                  maxima_thresh=maxima_thresh,
+                                                  DEBUG_ROTINVAR=DEBUG_ROTINVAR)
     if DEBUG_ROTINVAR:
         htool.show_ori_image(gori, gori_weights / 255.0, patch, gradx, grady)
         pt.set_figtitle('python orimg')
@@ -1219,7 +1221,9 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8,
         >>> bins = 36
         >>> maxima_thresh = .8
         >>> # execute function
-        >>> new_oris = find_dominant_kp_orientations(imgBGR, kp, bins, maxima_thresh, DEBUG_ROTINVAR=True)
+        >>> new_oris = find_dominant_kp_orientations(imgBGR, kp, bins,
+        >>>                                          maxima_thresh,
+        >>>                                          DEBUG_ROTINVAR=True)
         >>> # verify results
         >>> result = 'new_oris = %r' % (new_oris,)
     """
@@ -1237,40 +1241,12 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8,
             pt.draw_kpts2(np.array([kp]), pts=True, rect=True)
             pt.imshow(patch, fnum=fnum, pnum=(1, 2, 2))
             pt.draw_kpts2(np.array([wkp]), pts=True, rect=True)
-            #pt.df2.plt.show()
-    #gradx, grady = patch_gradient(patch, gaussian_weighted=False)
-    #gori = patch_ori(gradx, grady)
-    #gmag = patch_mag(gradx, grady)
-    #gaussian_weighted = True
-    ## do gaussian weighting correctly
-    #gori_weights = gaussian_weight_patch(gmag) if gaussian_weighted else gmag
-    #if DEBUG_ROTINVAR:
-    #    print(ktool.kpts_docrepr(patch[::10, ::10], 'PATCH[::10]', False))
-    #    print(ktool.kpts_docrepr(gradx[::10, ::10], 'gradx[::10]', False))
-    #    print(ktool.kpts_docrepr(grady[::10, ::10], 'grady[::10]', False))
-    #    #print(ktool.kpts_docrepr(patch, 'PATCH', False))
-    #    print(ktool.kpts_docrepr(gori[::10, ::10], 'ORI[::10]', False))
-    #    print(ktool.kpts_docrepr(gmag[::10, ::10], 'MAG[::10]', False))
-    #    print(ktool.kpts_docrepr(gori_weights[::10, ::10], 'WEIGHTS[::10]', False))
-    ## FIXME: Not taking account to gmag
-    ##bins = 3
-    ##bins = 8
-    #hist, centers = get_orientation_histogram(gori, gori_weights, bins=bins, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
-    ## Find submaxima
-    #submaxima_x, submaxima_y = htool.hist_interpolated_submaxima(hist, centers,
-    #                                                             maxima_thresh=maxima_thresh,
-    #                                                             DEBUG_ROTINVAR=DEBUG_ROTINVAR)
-    #if DEBUG_ROTINVAR:
-    #    htool.show_ori_image(gori, gori_weights, patch, gradx, grady)
-    ##ut.embed()
-    #submax_ori_offsets = submaxima_x
     # Compute new orientation(s) for this keypoint
-    submax_ori_offsets = find_patch_dominant_orientations(patch, bins=bins, maxima_thresh=maxima_thresh, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+    submax_ori_offsets = find_patch_dominant_orientations(patch, bins=bins,
+                                                          maxima_thresh=maxima_thresh,
+                                                          DEBUG_ROTINVAR=DEBUG_ROTINVAR)
     old_ori = kp[-1]
     new_oris = (old_ori + (submax_ori_offsets + ktool.GRAVITY_THETA)) % TAU
-    #new_oris = (old_ori + (submax_ori_offsets - 0)) % TAU
-    #submax_ori = submaxima_x[submaxima_y.argmax()]
-    #ori_offsets = [submax_ori]  # normalize w.r.t. gravity
     return new_oris
 
 
@@ -1324,9 +1300,9 @@ def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False)
     hist_, edges_ = htool.interpolated_histogram(flat_oris, flat_weights,
                                                  range_, bins,
                                                  interpolation_wrap=True,
-                                                 DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+                                                 _debug=DEBUG_ROTINVAR)
     # Duplicate the first and last edges so neighbor information is contiguous
-    hist, edges = htool.wrap_histogram(hist_, edges_, DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+    hist, edges = htool.wrap_histogram(hist_, edges_, _debug=DEBUG_ROTINVAR)
     centers = htool.hist_edges_to_centers(edges)
     return hist, centers
 

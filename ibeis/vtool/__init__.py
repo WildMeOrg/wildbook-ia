@@ -170,7 +170,7 @@ if DOELSE:
                              warpHomog,) 
     from vtool.histogram import (get_histinfo_str, hist_argmaxima, 
                                  hist_argmaxima2, hist_edges_to_centers, 
-                                 hist_interpolated_submaxima, 
+                                 argsubmaxima, 
                                  interpolate_submaxima, interpolated_histogram, 
                                  maxima_neighbors, maximum_parabola_point, 
                                  readable_interpolate_submaxima, 
