@@ -6019,7 +6019,7 @@ def compute_ggr_fix_gps(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 h
 
 
 @register_ibs_method
-def compute_ggr_fix_gps_2(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 hours
+def compute_ggr_fix_gps_2(ibs, min_diff=86400, individual=True):  # 86,400 = 60 sec x 60 min X 24 hours
     # Get all aids
     aid_list = ibs.get_valid_aids()
     num_all = len(aid_list)
@@ -6035,13 +6035,15 @@ def compute_ggr_fix_gps_2(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24
 
     gid_list = ibs.get_valid_gids()
     note_list = ibs.get_image_notes(gid_list)
+    temp = -1 if individual else -2
     note_list = [
-        ','.join(note.strip().split(',')[:-1])
+        ','.join(note.strip().split(',')[:temp])
         for note in note_list
     ]
 
+    not_found = set([])
     num_found = 0
-    recovered_aid_list = []
+    # recovered_aid_list = []
     for aid in unrecovered_aid_list:
         gid = ibs.get_annot_gids(aid)
         unixtime = ibs.get_image_unixtime(gid)
@@ -6050,7 +6052,7 @@ def compute_ggr_fix_gps_2(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24
 
         # Find siblings in the same car
         sibling_gid_list = [
-            gid
+            gid_
             for gid_, note_ in zip(gid_list, note_list)
             if note_ == note
         ]
@@ -6062,6 +6064,8 @@ def compute_ggr_fix_gps_2(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24
 
         # If found, get closest image
         if len(gid_list_) > 0:
+            if note in not_found:
+                not_found.remove(note)
             gps_list_  = ibs.get_image_gps(gid_list_)
             unixtime_list_ = ibs.get_image_unixtime(gid_list_)
             # Find closest
@@ -6083,7 +6087,10 @@ def compute_ggr_fix_gps_2(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24
                 print('FOUND LOCATION FOR AID %d' % (aid, ))
                 print('\tDIFF   : %d H, %d M, %d S' % (h, m, s, ))
                 print('\tNEW GPS: %s' % (closest_gps, ))
+        else:
+            not_found.add(note)
     print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found, ))
+    recovered_aid_list = list(set(recovered_aid_list))
     return recovered_aid_list
 
 
