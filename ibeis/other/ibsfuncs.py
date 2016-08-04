@@ -5900,7 +5900,7 @@ def compute_occurrences(ibs, config=None):
 
 
 @register_ibs_method
-def compute_ggr_imagesets(ibs, gid_list=None):
+def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
     from matplotlib.path import Path
 
     point_dict = {
@@ -5941,13 +5941,53 @@ def compute_ggr_imagesets(ibs, gid_list=None):
 
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
+
     gps_list = ibs.get_image_gps(gid_list)
+    note_list = ibs.get_image_notes(gid_list)
+    temp = -1 if individual else -2
+    note_list = [
+        ','.join(note.strip().split(',')[:temp])
+        for note in note_list
+    ]
 
     skipped = 0
     for gid, point in zip(gid_list, gps_list):
         if point == (-1, -1):
+            unixtime = ibs.get_image_unixtime(gid)
+            index = gid_list.index(gid)
+            note = note_list[index]
+
+            # Find siblings in the same car
+            sibling_gid_list = [
+                gid_
+                for gid_, note_ in zip(gid_list, note_list)
+                if note_ == note
+            ]
+
+            # Get valid GPS
+            gps_list = ibs.get_image_gps(sibling_gid_list)
+            flag_list = [ gps != (-1, -1) for gps in gps_list ]
+            gid_list_  = ut.compress(sibling_gid_list, flag_list)
+
+            # If found, get closest image
+            if len(gid_list_) > 0:
+                gps_list_  = ibs.get_image_gps(gid_list_)
+                unixtime_list_ = ibs.get_image_unixtime(gid_list_)
+                # Find closest
+                closest_diff, closest_gps = np.inf, None
+                for unixtime_, gps_ in zip(unixtime_list_, gps_list_):
+                    diff = abs(unixtime - unixtime_)
+                    if diff < closest_diff and gps_ != (-1, -1):
+                        closest_diff = diff
+                        closest_gps = gps_
+                # Assign closest
+                if closest_gps is not None and closest_diff <= min_diff:
+                    point = closest_gps
+
+        if point == (-1, -1):
             skipped += 1
             continue
+
         found = False
         for zone in sorted(path_dict.keys()):
             path = path_dict[zone]
