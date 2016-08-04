@@ -71,7 +71,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         W1 = _CaffeNet.get_pretrained_layer(0)
         W2 = _CaffeNet.get_pretrained_layer(2)
 
-        output_dims = 2
+        output_dims = model.output_dims
 
         network_layers_def = [
             _P(layers.InputLayer, shape=model.input_shape, name='I0'),
@@ -106,11 +106,11 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P5'),
 
             # --- BEGIN DENSE NETWORK ---
-            _P(DenseLayer, num_units=512, name='F6', **initkw),
+            _P(DenseLayer, num_units=256, name='F6', **initkw),
             _P(FeaturePoolLayer, pool_size=2, name='P6'),
             _P(DropoutLayer, p=.50, name='D6'),
 
-            _P(DenseLayer, num_units=512, name='F7', **initkw),
+            _P(DenseLayer, num_units=256, name='F7', **initkw),
             _P(FeaturePoolLayer, pool_size=2, name='P7'),
             _P(DropoutLayer, p=.50, name='D7'),
 
@@ -282,7 +282,6 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         except Exception:
             tup = get_shark_labels_and_metadata(target_type)
             ibs, annots, target, target_names, config, metadata, enc = tup
-            ibs, annots, target, target_names, config, metadata, enc = tup
             data_shape = config['dim_size'] + (3,)
             trail_cfgstr = ibs.depc_annot.get_config_trail_str('chips', config)
             trail_hashstr = ut.hashstr27(trail_cfgstr)
@@ -302,13 +301,14 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
                 chip_gen = ibs.depc_annot.get('chips', annots.aids, 'img',
                                               eager=False, config=config)
                 iternd_ = iter(ut.ProgIter(chip_gen, nTotal=nTotal))
-                shape = (nTotal) + tuple(config['dim_size']) + (3,)
+                shape = (nTotal,) + tuple(config['dim_size']) + (3,)
                 dtype = np.uint8
                 data = vt.fromiter_nd(iternd_, shape=shape, dtype=dtype)  # NOQA
                 labels = target
                 ut.save_data(data_fpath, data)
                 ut.save_data(labels_fpath, labels)
                 ut.save_data(metadata_fpath, metadata)
+                del data
 
             # hack for caching num_labels
             #labels = ut.load_data(labels_fpath)
@@ -339,8 +339,10 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
     X_train, y_train = dataset.load_subset('train')
     X_valid, y_valid = dataset.load_subset('valid')
 
-    model = WhaleSharkInjuryModel(batch_size=128,
-                                  data_shape=dataset.data_shape)
+    from ibeis.scripts import classify_shark
+    model = classify_shark.WhaleSharkInjuryModel(batch_size=128,
+                                                 data_shape=dataset.data_shape)
+    model.output_dims = 1
     model.initialize_architecture()
     model.print_dense_architecture_str()
     model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
@@ -407,7 +409,8 @@ class ClfProblem(object):
             data = problem.ds.data
             target = problem.ds.target
 
-            train_idx = stratified_sample_idxs_unbalanced(target, 3500)
+            #train_idx = stratified_sample_idxs_unbalanced(target, 3000)
+            train_idx = stratified_sample_idxs_unbalanced(target, 4000)
 
             x_train = data.take(train_idx, axis=0)
             y_train = target.take(train_idx, axis=0)
@@ -418,14 +421,16 @@ class ClfProblem(object):
                 #'C': np.linspace(1, 1e-5, 15)
                 #'C': np.linspace(.2, 1e-5, 15)
                 #'C': np.logspace(np.log10(1e-3), np.log10(.1), 30, base=10)
-                'C': np.linspace(.1, .3, 20),
+                #'C': np.linspace(.1, .3, 20),
+                #'C': np.linspace(1.0, .22, 20),
+                'C': np.linspace(1.0, .01, 40),
                 #'loss': ['l2', 'l1'],
                 #'penalty': ['l2', 'l1'],
             }
             _clf = sklearn.svm.SVC(kernel='linear', C=.28, class_weight='balanced',
                                    decision_function_shape='ovr')
-            clf = sklearn.grid_search.GridSearchCV(_clf, param_grid, n_jobs=2,
-                                                   iid=False, cv=5)
+            clf = sklearn.grid_search.GridSearchCV(_clf, param_grid, n_jobs=6,
+                                                   iid=False, cv=2, verbose=3)
             clf.fit(x_train, y_train)
             print('clf.best_params_ = %r' % (clf.best_params_,))
             print("Best parameters set found on development set:")
@@ -437,7 +442,15 @@ class ClfProblem(object):
             xdata = np.array([t[0]['C'] for t in clf.grid_scores_])
             ydata = np.array([t[1] for t in clf.grid_scores_])
 
+            y_data_std = np.array([t[2].std() for t in clf.grid_scores_])
+            ydata_mean = ydata
+            y_data_max = ydata_mean + y_data_std
+            y_data_min = ydata_mean - y_data_std
+
             #pt.plot(xdata, ydata, '-rx')
+            pt.figure(fnum=pt.ensure_fnum(None))
+            ax = pt.gca()
+            ax.fill_between(xdata, y_data_min, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
             pt.draw_hist_subbin_maxima(ydata, xdata)
 
             #clf.best_params_ = {u'C': 0.07143785714285722}
