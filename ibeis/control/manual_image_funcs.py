@@ -1218,7 +1218,6 @@ def get_image_unixtime(ibs, gid_list):
 @register_ibs_method
 @ut.accepts_numpy
 @accessor_decors.getter_1to1
-@register_api('/api/image/unixtime_asfloat/', methods=['GET'])
 def get_image_unixtime_asfloat(ibs, gid_list):
     r"""
     Returns:
