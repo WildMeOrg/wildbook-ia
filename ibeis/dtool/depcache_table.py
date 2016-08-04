@@ -1786,6 +1786,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         config_rowid = table.get_config_rowid(config)
 
         initial_rowid_list = table._get_rowid(parent_ids_, config=config)
+        initial_rowid_list = list(initial_rowid_list)
 
         if table.depc._debug:
             print('[deptbl.add] initial_rowid_list = %s' %
@@ -1930,6 +1931,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         Ensures that output is the same length as input. Inserts necessary Nones
         """
         if ALLOW_NONE_YIELD:
+            # FIXME: turn into generator
             rowid_list = ut.ungroup([rowid_list_], [idxs1], len(parent_rowids) - 1)
         else:
             rowid_list = rowid_list_
@@ -1990,6 +1992,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             # get existing rowids, delete them, recompute the request
             rowid_list_ = table._get_rowid(parent_ids_, config=config,
                                            eager=True, nInput=None)
+            rowid_list_ = list(rowid_list_)
             needs_recompute_rowids = ut.filter_Nones(rowid_list_)
             try:
                 table._recompute_and_store(needs_recompute_rowids)
@@ -2033,6 +2036,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             print('_get_rowid config_rowid = %s' % (config_rowid))
         andwhere_colnames = table.superkey_colnames
         params_iter = (ids_ + (config_rowid,) for ids_ in parent_ids_)
+        # TODO: make sure things that call this can accept a generator
+        # Then remove this next line
         params_iter = list(params_iter)
         #print('**params_iter = %r' % (params_iter,))
         rowid_list = table.db.get_where2(table.tablename, colnames,
@@ -2222,6 +2227,9 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             >>> prop_list = table.get_row_data(tbl_rowids, colnames, **kwargs)
             >>> prop_list0 = ut.take_column(prop_list, [0, 1, 2]) # take small data
             >>> result = (ut.repr2(prop_list0, nl=1))
+            >>> prop_gen = table.get_row_data(tbl_rowids, colnames, eager=False)
+            >>> assert list(prop_gen) == prop_list
+            >>> chips = table.get_row_data(tbl_rowids, 'chip', eager=False)
             >>> print(result)
             [
                 [372, (545, 372), 'chip_chip_id=1_pyrappzicqoskdjq.png'],
@@ -2243,6 +2251,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             >>> read_extern = False
             >>> tbl_rowids = depc.get_rowids('chip', aids, config=config)
             >>> data_fpaths = depc.get('chip', aids, 'chip', config=config, read_extern=False)
+            >>> # Ensure data is recomputed if an external file is missing
             >>> ut.remove_file_list(data_fpaths)
             >>> data = table.get_row_data(tbl_rowids, 'chip', read_extern=False, ensure=False)
             >>> data = table.get_row_data(tbl_rowids, 'chip', read_extern=False, ensure=True)
@@ -2287,42 +2296,72 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         #if table.default_onthefly:
         #table._onthefly_dataget
         #else:
-        eager = True
-        nInput = None
-        raw_prop_list = table.get_internal_columns(
-            nonNone_tbl_rowids, flat_intern_colnames, eager, nInput,
-            unpack_scalars=True, keepwrap=True)
+        if nInput is None and ut.is_listlike(nonNone_tbl_rowids):
+            nInput = len(nonNone_tbl_rowids)
 
-        if len(raw_prop_list) > 0:
-            # print('raw_prop_list = %r' % (raw_prop_list,))
-            raw_prop_list = list(raw_prop_list)  # TODO tee iterator instead?
-            for try_num in range(num_retries + 1):
-                tries_left = num_retries - try_num
-                try:
-                    prop_listT = table._resolve_any_external_data(
-                        nonNone_tbl_rowids, raw_prop_list, extern_resolve_tups,
-                        ensure, read_extern, delete_on_fail, tries_left,
-                        _debug)
-                except ExternalStorageException:
-                    if tries_left == 0:
-                        raise
-            ####
-            # Unflatten data into any given nested structure
-            nested_proplistT = ut.list_unflat_take(prop_listT, nesting_xs)
-            for tx in ut.where([isinstance(xs, list) for xs in nesting_xs]):
-                nested_proplistT[tx] = list(zip(*nested_proplistT[tx]))
-            prop_list = list(zip(*nested_proplistT))
-            ####
-            # Unpack single column datas if requested
-            if unpack_columns:
-                prop_list = [None if p is None else p[0] for p in prop_list]
+        generator_version = not eager
+
+        raw_prop_list = table.get_internal_columns(
+            nonNone_tbl_rowids, flat_intern_colnames, eager=eager,
+            nInput=nInput, unpack_scalars=True, keepwrap=True)
+
+        #if len(raw_prop_list) > 0:
+        if nInput > 0:
+            if generator_version:
+                def _generator_resolve_all():
+                    extern_dpath = table.extern_dpath
+                    for rawprop in raw_prop_list:
+                        exprop = list(rawprop)
+                        # Modify prop with external data
+                        for extern_colx, read_func in extern_resolve_tups:
+                            uri = exprop[extern_colx]
+                            uri_full = join(extern_dpath, uri)
+                            if read_extern:
+                                data = read_func(uri_full)
+                            else:
+                                data = uri_full
+                                if ensure:
+                                    ut.assertpath(uri_full)
+                            exprop[extern_colx] = data
+                        nestprop = ut.list_unflat_take(exprop, nesting_xs)
+                        yield nestprop
+                prop_gen = _generator_resolve_all()
+                if unpack_columns:
+                    prop_gen = (None if p is None else p[0] for p in prop_gen)
+                assert len(idxs2) == 0, 'noneager mode not fully worked out yet'
+                return prop_gen
+            else:
+                # print('raw_prop_list = %r' % (raw_prop_list,))
+                if num_retries > 0:
+                    raw_prop_list = list(raw_prop_list)  # TODO tee iterator instead?
+                for try_num in range(num_retries + 1):
+                    tries_left = num_retries - try_num
+                    try:
+                        prop_listT = table._resolve_any_external_data(
+                            nonNone_tbl_rowids, raw_prop_list, extern_resolve_tups,
+                            ensure, read_extern, delete_on_fail, tries_left,
+                            _debug)
+                    except ExternalStorageException:
+                        if tries_left == 0:
+                            raise
+                ####
+                # Unflatten data into any given nested structure
+                nested_proplistT = ut.list_unflat_take(prop_listT, nesting_xs)
+                for tx in ut.where([isinstance(xs, list) for xs in nesting_xs]):
+                    nested_proplistT[tx] = list(zip(*nested_proplistT[tx]))
+                prop_list = list(zip(*nested_proplistT))
+                ####
+                # Unpack single column datas if requested
+                if unpack_columns:
+                    prop_list = [None if p is None else p[0] for p in prop_list]
         else:
             prop_list = []
 
         if ALLOW_NONE_YIELD:
-            prop_list = ut.ungroup(
-                [prop_list, [None] * len(idxs2)],
-                [idxs1, idxs2], len(tbl_rowids) - 1)
+            if len(idxs2) > 0:
+                prop_list = ut.ungroup(
+                    [prop_list, [None] * len(idxs2)],
+                    [idxs1, idxs2], len(tbl_rowids) - 1)
         return prop_list
 
     def _resolve_any_external_data(table, nonNone_tbl_rowids, raw_prop_list,
@@ -2336,6 +2375,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         except TypeError as ex:
             ut.printex(ex, 'error on prop_list shape', keys=['raw_prop_list'])
             raise
+
         for extern_colx, read_func in extern_resolve_tups:
             if _debug:
                 print('[deptbl.get_row_data] read_func = %r' % (read_func,))

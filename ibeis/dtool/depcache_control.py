@@ -327,6 +327,23 @@ class _CoreDependencyCache(object):
                     print(' config_ = %r' % (config_,))
         return config_
 
+    def get_config_trail(depc, tablename, config):
+        graph = depc.make_graph(implicit=True)
+        tablename_list = ut.nx_all_nodes_between(graph, depc.root,
+                                                 tablename)
+        tablename_list = ut.nx_topsort_nodes(graph, tablename_list)
+        config_trail = []
+        for tablekey in tablename_list:
+            if tablekey in depc.configclass_dict:
+                config_ = depc._ensure_config(tablekey, config)
+                config_trail.append(config_)
+        return config_trail
+
+    def get_config_trail_str(depc, tablename, config):
+        config_trail = depc.get_config_trail(tablename, config)
+        trail_cfgstr = '_'.join([x.get_cfgstr() for x in config_trail])
+        return trail_cfgstr
+
     # -----------------------------
     # STATE GETTERS
 
@@ -628,9 +645,15 @@ class _CoreDependencyCache(object):
                 fpath_list = [join(extern_dpath, fname) for fname in fname_list]
                 return fpath_list
 
-            rowid_kw = dict(config=config, ensure=ensure, eager=eager,
+            if nInput is None and ut.is_listlike(root_rowids):
+                nInput = len(root_rowids)
+
+            rowid_kw = dict(config=config,
+                            nInput=nInput,
+                            eager=eager,
+                            ensure=ensure,
                             recompute=recompute, recompute_all=recompute_all,
-                            nInput=nInput, _debug=_debug)
+                            _debug=_debug)
 
             rowdata_kw = dict(read_extern=read_extern, _debug=_debug,
                               num_retries=num_retries, eager=eager,
