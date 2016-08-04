@@ -2344,6 +2344,44 @@ def inbounds(num, low, high, eq=False):
     return is_inbounds
 
 
+def fromiter_nd(iter_, shape, dtype):
+    """
+    Like np.fromiter but handles iterators that generated
+    n-dimensional arrays. Slightly faster than np.array.
+
+    maybe commit to numpy?
+
+    Args:
+        iter_ (iter): an iterable that generates homogenous ndarrays
+        shape (tuple): the expected output shape
+        dtype (dtype): the numpy datatype of the generated ndarrays
+
+    CommandLine:
+        python -m vtool.other fromiter_nd --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> dtype = np.float
+        >>> total = 11
+        >>> rng = np.random.RandomState(0)
+        >>> iter_ = (rng.rand(5, 7, 3) for _ in range(total))
+        >>> shape = (11, 5, 7, 3)
+        >>> result = fromiter_nd(iter_, shape, dtype)
+        >>> assert result.shape == shape
+    """
+    num_rows = shape[0]
+    chunksize = np.prod(shape[1:])
+    itemsize = np.dtype(dtype).itemsize
+    # Create dtype that makes an entire ndarray appear as a single item
+    chunk_dtype = np.dtype((np.void, itemsize * chunksize))
+    arr = np.fromiter(iter_, count=num_rows, dtype=chunk_dtype)
+    # Convert back to original dtype and shape
+    arr = arr.view(dtype)
+    arr.shape = shape
+    return arr
+
+
 if __name__ == '__main__':
     """
     CommandLine:
