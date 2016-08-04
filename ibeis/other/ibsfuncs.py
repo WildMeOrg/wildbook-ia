@@ -6093,8 +6093,8 @@ def compute_ggr_fix_gps_2(ibs, min_diff=86400, individual=True):  # 86,400 = 60 
         else:
             not_found.add(note)
     print('%d \ %d \ %d \ %d' % (num_all, num_bad, num_unrecovered, num_found, ))
-    num_recovered = len(num_unrecovered)
-    num_unrecovered = num_unrecovered - num_found
+    num_recovered = len(recovered_aid_list)
+    num_unrecovered = num_bad - len(recovered_aid_list)
     print('Missing GPS: %d' % (num_bad, ))
     print('Recovered  : %d' % (num_recovered, ))
     print('Unrecovered: %d' % (num_unrecovered, ))
