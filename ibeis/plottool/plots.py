@@ -510,7 +510,8 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
     return fig
 
 
-def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.8, **kwargs):
+def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
+                            maxima_thresh=None, **kwargs):
     r"""
     Args:
         hist (ndarray):
@@ -519,20 +520,18 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.
     CommandLine:
         python -m plottool.plots --test-draw_hist_subbin_maxima --show
 
-
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.plots import *  # NOQA
         >>> import plottool as pt
-        >>> # build test data
         >>> hist = np.array([    6.73, 8.69, 0.00, 0.00, 34.62, 29.16, 0.00, 0.00, 6.73, 8.69])
         >>> centers = np.array([-0.39, 0.39, 1.18, 1.96,  2.75,  3.53, 4.32, 5.11, 5.89, 6.68])
-        >>> TAU = np.pi * 2
-        >>> bin_colors = pt.df2.plt.get_cmap('hsv')(centers / TAU)
-        >>> # execute function
+        >>> bin_colors = pt.df2.plt.get_cmap('hsv')(centers / vt.TAU)
         >>> use_darkbackground = True
-        >>> result = draw_hist_subbin_maxima(hist, centers, bin_colors, use_darkbackground=use_darkbackground)
-        >>> # verify results
+        >>> maxima_thresh = .8
+        >>> result = draw_hist_subbin_maxima(hist, centers, bin_colors,
+        >>>                                  maxima_thresh
+        >>>                                  use_darkbackground=use_darkbackground)
         >>> print(result)
         >>> pt.show_if_requested()
     """
@@ -543,59 +542,47 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None, maxima_thresh=.
     x123, y123 = vt.maxima_neighbors(argmaxima, hist, centers)
     # Find submaxima
     submaxima_x, submaxima_y = vt.interpolate_submaxima(argmaxima, hist, centers)
-
     # Extract parabola points
     coeff_list =  [np.polyfit(xtup, ytup, 2) for xtup, ytup in zip(x123.T, y123.T)]
     xpoints = [np.linspace(x1, x3, 50) for (x1, x2, x3) in x123.T]
     ypoints = [np.polyval(coeff, x_pts) for x_pts, coeff in zip(xpoints, coeff_list)]
 
-    #xpoints = []
-    #ypoints = []
-    #for xtup, ytup in zip(x123.T, y123.T):
-    #    (x1, x2, x3) = xtup  # DUPLICATE CODE!!
-    #    (y1, y2, y3) = ytup  # DUPLICATE CODE!!
-    #    coeff = np.polyfit((x1, x2, x3), (y1, y2, y3), 2)
-    #    x_pts = np.linspace(x1, x3, 50)
-    #    y_pts = np.polyval(coeff, x_pts)
-    #    xpoints.append(x_pts)
-    #    ypoints.append(y_pts)
+    use_darkbackground = kwargs.get('use_darkbackground', None)
+    linecolor = 'w' if use_darkbackground else 'k'
 
-    maxima_thresh_val = maxima_y.max() * maxima_thresh
-    plt.plot(centers, [maxima_thresh_val] * len(centers), 'r--')
-    OLD = False
-    if OLD:
-        plt.plot(centers, hist, 'o-', colors=df2.distinct_colors(len(centers)))
-        plt.plot(centers, hist, 'o-', colors=df2.distinct_colors(len(centers)))
-        plt.plot(centers, hist, 'bo-')            # Draw hist
+    # Draw threshold lines
+    if maxima_thresh is not None:
+        maxima_thresh_val = maxima_y.max() * maxima_thresh
+        plt.plot(centers, [maxima_thresh_val] * len(centers), 'r--')
+    # Draw linear interpolation lines
+    if bin_colors is None:
+        bin_colors = 'r'
+        plt.plot(centers, hist, linecolor + '-')
     else:
-        #bin_colors = None
-        if bin_colors is None:
-            bin_colors = 'r'
-            plt.plot(centers, hist, 'w-')
-        else:
-            # Draw Lines
-            #import matplotlib as mpl
-            # Create a colormap using exact specified colors
-            #bin_cmap = mpl.colors.ListedColormap(bin_colors)
-            # HACK USE bin_color somehow
-            bin_cmap = plt.get_cmap('hsv')  # HACK
-            #mpl.colors.ListedColormap(bin_colors)
-            colorline(centers, hist, cmap=bin_cmap)
-        # Draw Submax Parabola
-        for x_pts, y_pts in zip(xpoints, ypoints):
-            plt.plot(x_pts, y_pts, 'y--')
-        # Draw maxbin
-        plt.scatter(maxima_x,    maxima_y,    marker='o', color='w',  s=50)
-        # Draw submaxbin
-        plt.scatter(submaxima_x, submaxima_y, marker='*', color='r', s=100)
-        # Draw Bins
-        plt.scatter(centers, hist, c=bin_colors, marker='o', s=25)
+        # TODO use bin_color correctly
+        #import matplotlib as mpl
+        # Create a colormap using exact specified colors
+        #bin_cmap = mpl.colors.ListedColormap(bin_colors)
+        bin_cmap = plt.get_cmap('hsv')  # HACK
+        #mpl.colors.ListedColormap(bin_colors)
+        colorline(centers, hist, cmap=bin_cmap)
+    # Draw Submax Parabola
+    for x_pts, y_pts in zip(xpoints, ypoints):
+        plt.plot(x_pts, y_pts, 'y--')
+    # Draw maxbin
+    plt.scatter(maxima_x,    maxima_y,    marker='o', color=linecolor,  s=50)
+    # Draw submaxbin
+    plt.scatter(submaxima_x, submaxima_y, marker='*', color='r', s=100)
+    # Draw Bins
+    plt.scatter(centers, hist, c=bin_colors, marker='o', s=25)
 
-        use_darkbackground = kwargs.get('use_darkbackground', None)
-        if use_darkbackground is None:
-            use_darkbackground = is_default_dark_bg()
-        if use_darkbackground:
-            df2.dark_background()
+    if use_darkbackground is None:
+        use_darkbackground = is_default_dark_bg()
+    if use_darkbackground:
+        df2.dark_background()
+    print('submaxima_x = %r' % (submaxima_x,))
+    print('submaxima_y = %r' % (submaxima_y,))
+    #return (submaxima_x, submaxima_y)
 
 
 def zoom_effect01(ax1, ax2, xmin, xmax, **kwargs):
