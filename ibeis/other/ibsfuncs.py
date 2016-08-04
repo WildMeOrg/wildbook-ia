@@ -5969,7 +5969,7 @@ def compute_ggr_imagesets(ibs, gid_list=None):
 
 
 @register_ibs_method
-def compute_ggr_fix_gps_names(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24 hours
+def compute_ggr_fix_gps_names(ibs, min_diff=1800):  # 86,400 = 60 sec x 60 min X 24 hours
     # Get all aids
     aid_list = ibs.get_valid_aids()
     num_all = len(aid_list)
@@ -6023,7 +6023,7 @@ def compute_ggr_fix_gps_names(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min 
 
 
 @register_ibs_method
-def compute_ggr_fix_gps_contributors(ibs, min_diff=86400, individual=True):
+def compute_ggr_fix_gps_contributors(ibs, min_diff=1800, individual=True):
     # Get all aids
     aid_list = ibs.get_valid_aids()
     num_all = len(aid_list)
@@ -6106,7 +6106,7 @@ def compute_ggr_fix_gps_contributors(ibs, min_diff=86400, individual=True):
 
 
 @register_ibs_method
-def commit_ggr_fix_gps_2(ibs, **kwargs):
+def commit_ggr_fix_gps(ibs, **kwargs):
     vals = ibs.compute_ggr_fix_gps_contributors(**kwargs)
     recovered_aid_list, recovered_gps_list, recovered_dist_list = vals
     recovered_gid_list = ibs.get_annot_gids(recovered_aid_list)
@@ -6121,10 +6121,7 @@ def commit_ggr_fix_gps_2(ibs, **kwargs):
     for assignment_gid in assignment_dict:
         assignment_list = sorted(assignment_dict[assignment_gid])
         assignment_gps = assignment_list[0][1]
-        print(assignment_list)
-        print(len(assignment_list))
-        print(assignment_gid, assignment_gps)
-        # ibs.set_image_gps([assignment_gid], [assignment_gps])
+        ibs.set_image_gps([assignment_gid], [assignment_gps])
 
 
 if __name__ == '__main__':
