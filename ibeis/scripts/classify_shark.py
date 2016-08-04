@@ -6,7 +6,10 @@ import sklearn
 import sklearn.datasets
 import sklearn.svm
 import sklearn.metrics
-import sklearn.model_selection
+try:
+    import sklearn.model_selection
+except ImportError:
+    pass
 import sklearn.grid_search
 from sklearn import preprocessing
 import plottool as pt
