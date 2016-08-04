@@ -6029,7 +6029,7 @@ def compute_ggr_fix_gps_2(ibs, min_diff=86400):  # 86,400 = 60 sec x 60 min X 24
     aid_list = ut.filter_items(aid_list, flag_list)
     num_bad = len(aid_list)
     # Get found GPS list via naming
-    recovered_aid_list = ibs.compute_ggr_fix_gps()
+    recovered_aid_list = ibs.compute_ggr_fix_gps(min_diff=min_diff)
     unrecovered_aid_list = list(set(aid_list) - set(recovered_aid_list))
     num_unrecovered = len(unrecovered_aid_list)
 
