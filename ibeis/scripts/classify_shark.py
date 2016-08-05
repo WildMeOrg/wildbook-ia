@@ -213,8 +213,8 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         max_epochs=1200,
         learning_rate_adjust=.8,
     ))
-    #X_train, y_train = dataset.load_subset('train')
-    X_train, y_train = dataset.load_subset('test')
+    X_train, y_train = dataset.load_subset('train')
+    #X_train, y_train = dataset.load_subset('test')
     X_valid, y_valid = dataset.load_subset('valid')
 
     model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
