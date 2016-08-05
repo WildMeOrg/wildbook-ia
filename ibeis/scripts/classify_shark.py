@@ -32,6 +32,10 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
 
     def initialize_architecture(model, verbose=ut.VERBOSE, **kwargs):
         r"""
+
+        CommandLine:
+            python -m ibeis.scripts.classify_shark get_sharks_dataset --show
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.scripts.classify_shark import *  # NOQA
@@ -75,10 +79,10 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
 
         network_layers_def = [
             _P(layers.InputLayer, shape=model.input_shape, name='I0'),
-            _P(layers.GaussianNoiseLayer, name='G0'),
+            #_P(layers.GaussianNoiseLayer, name='G0'),
 
             # Convolution 1
-            _P(Conv2DLayer, num_filters=16, filter_size=(11, 11), stride=(1, 1),
+            _P(Conv2DLayer, num_filters=24, filter_size=(11, 11), stride=(1, 1),
                name='C1', **initkw),
             _P(DropoutLayer, p=.10, name='D1'),
 
@@ -186,14 +190,18 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
     # Define model
     from ibeis.scripts import classify_shark
     model = classify_shark.WhaleSharkInjuryModel(
-        batch_size=128,
+        #batch_size=32,
+        batch_size=32,
+        arch_tag=dataset.alias_key,
         data_shape=dataset.data_shape,
         output_dims=dataset.output_dims,
     )
     #model.output_dims = 1
     model.initialize_architecture()
-    #model.print_dense_architecture_str()
-    #model.build()
+    model.print_dense_architecture_str()
+    #import sys
+    #sys.exit(1)
+    model.build()
 
     # parse training arguments
     train_config = ut.argparse_dict(dict(
@@ -201,8 +209,7 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         max_epochs=1200,
         learning_rate_adjust=.8,
     ))
-    #X_train, y_train = dataset.load_subset('train')
-    X_train, y_train = dataset.load_subset('test')
+    X_train, y_train = dataset.load_subset('train')
     X_valid, y_valid = dataset.load_subset('valid')
 
     model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
