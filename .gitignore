@@ -138,3 +138,5 @@ model.npy
 model.*.npy
 test/
 test_*.npy
+
+ibeis/control/_autogen_explicit_controller.py

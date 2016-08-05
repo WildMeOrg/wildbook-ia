@@ -192,7 +192,7 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
     )
     #model.output_dims = 1
     model.initialize_architecture()
-    model.print_dense_architecture_str()
+    #model.print_dense_architecture_str()
     #model.build()
 
     # parse training arguments
