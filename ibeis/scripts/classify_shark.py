@@ -146,7 +146,7 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         # target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
 
     CommandLine:
-        python -m ibeis.scripts.classify_shark get_sharks_dataset --show
+        python -m ibeis.scripts.classify_shark get_sharks_dataset --show --monitor
 
     Example:
         >>> target_type = 'binary'
@@ -191,12 +191,14 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
     from ibeis.scripts import classify_shark
     model = classify_shark.WhaleSharkInjuryModel(
         #batch_size=32,
-        batch_size=32,
+        batch_size=16,
         arch_tag=dataset.alias_key,
         data_shape=dataset.data_shape,
+        # No regularization
         weight_decay=None,
         #output_dims=dataset.output_dims,
-        output_dims=1
+        output_dims=2,
+        learning_rate=.00001,
     )
     #model.output_dims = 1
     model.initialize_architecture()
@@ -211,7 +213,8 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         max_epochs=1200,
         learning_rate_adjust=.8,
     ))
-    X_train, y_train = dataset.load_subset('train')
+    #X_train, y_train = dataset.load_subset('train')
+    X_train, y_train = dataset.load_subset('test')
     X_valid, y_valid = dataset.load_subset('valid')
 
     model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
