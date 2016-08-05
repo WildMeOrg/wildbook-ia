@@ -67,9 +67,9 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         FeaturePoolLayer = layers.FeaturePoolLayer
 
         # Pretrained weights
-        _CaffeNet = abstract_models.PretrainedNetwork('caffenet')
-        W1 = _CaffeNet.get_pretrained_layer(0)
-        W2 = _CaffeNet.get_pretrained_layer(2)
+        #_CaffeNet = abstract_models.PretrainedNetwork('caffenet')
+        #W1 = _CaffeNet.get_pretrained_layer(0)
+        #W2 = _CaffeNet.get_pretrained_layer(2)
 
         output_dims = model.output_dims
 
@@ -78,39 +78,39 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             _P(layers.GaussianNoiseLayer, name='G0'),
 
             # Convolution 1
-            _P(Conv2DLayer, num_filters=32, filter_size=(11, 11), stride=(1, 1),
-               name='C1', W=W1, **initkw),
+            _P(Conv2DLayer, num_filters=16, filter_size=(11, 11), stride=(1, 1),
+               name='C1', **initkw),
             _P(DropoutLayer, p=.10, name='D1'),
 
             # Convolution 2
-            _P(Conv2DLayer, num_filters=32, filter_size=(5, 5), stride=(1, 1),
-               name='C2', W=W2, **initkw),
+            _P(Conv2DLayer, num_filters=16, filter_size=(5, 5), stride=(1, 1),
+               name='C2', **initkw),
             _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P2'),
             _P(DropoutLayer, p=.10, name='D2'),
 
             # Convolution 3
-            _P(Conv2DLayer, num_filters=64, filter_size=(3, 3), stride=(1, 1),
+            _P(Conv2DLayer, num_filters=32, filter_size=(3, 3), stride=(1, 1),
                name='C3', **initkw),
             _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P3'),
             _P(DropoutLayer, p=.30, name='D3'),
 
             # Convolution 4
-            _P(Conv2DLayer, num_filters=128, filter_size=(3, 3), stride=(1, 1),
+            _P(Conv2DLayer, num_filters=64, filter_size=(3, 3), stride=(1, 1),
                name='C4', **initkw),
             _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P4'),
             _P(DropoutLayer, p=.30, name='D4'),
 
             # Convolution 5
-            _P(Conv2DLayer, num_filters=128, filter_size=(3, 3), stride=(1, 1),
+            _P(Conv2DLayer, num_filters=64, filter_size=(3, 3), stride=(1, 1),
                name='C5', **initkw),
             _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P5'),
 
             # --- BEGIN DENSE NETWORK ---
-            _P(DenseLayer, num_units=256, name='F6', **initkw),
+            _P(DenseLayer, num_units=128, name='F6', **initkw),
             _P(FeaturePoolLayer, pool_size=2, name='P6'),
             _P(DropoutLayer, p=.50, name='D6'),
 
-            _P(DenseLayer, num_units=256, name='F7', **initkw),
+            _P(DenseLayer, num_units=128, name='F7', **initkw),
             _P(FeaturePoolLayer, pool_size=2, name='P7'),
             _P(DropoutLayer, p=.50, name='D7'),
 
@@ -201,7 +201,8 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         max_epochs=1200,
         learning_rate_adjust=.8,
     ))
-    X_train, y_train = dataset.load_subset('train')
+    #X_train, y_train = dataset.load_subset('train')
+    X_train, y_train = dataset.load_subset('test')
     X_valid, y_valid = dataset.load_subset('valid')
 
     model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
