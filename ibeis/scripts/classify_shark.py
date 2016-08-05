@@ -66,7 +66,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         # Layer types that will be used
         Conv2DLayer = custom_layers.Conv2DLayer
         MaxPool2DLayer = custom_layers.MaxPool2DLayer
-        DropoutLayer = layers.DropoutLayer
+        DropoutLayer = layers.DropoutLayer  # NOQA
         DenseLayer = layers.DenseLayer
         FeaturePoolLayer = layers.FeaturePoolLayer
 
@@ -84,25 +84,25 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             # Convolution 1
             _P(Conv2DLayer, num_filters=24, filter_size=(11, 11), stride=(1, 1),
                name='C1', **initkw),
-            _P(DropoutLayer, p=.10, name='D1'),
+            #_P(DropoutLayer, p=.10, name='D1'),
 
             # Convolution 2
             _P(Conv2DLayer, num_filters=16, filter_size=(5, 5), stride=(1, 1),
                name='C2', **initkw),
             _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P2'),
-            _P(DropoutLayer, p=.10, name='D2'),
+            #_P(DropoutLayer, p=.10, name='D2'),
 
             # Convolution 3
             _P(Conv2DLayer, num_filters=32, filter_size=(3, 3), stride=(1, 1),
                name='C3', **initkw),
             _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P3'),
-            _P(DropoutLayer, p=.30, name='D3'),
+            #_P(DropoutLayer, p=.30, name='D3'),
 
             # Convolution 4
             _P(Conv2DLayer, num_filters=64, filter_size=(3, 3), stride=(1, 1),
                name='C4', **initkw),
             _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P4'),
-            _P(DropoutLayer, p=.30, name='D4'),
+            #_P(DropoutLayer, p=.30, name='D4'),
 
             # Convolution 5
             _P(Conv2DLayer, num_filters=64, filter_size=(3, 3), stride=(1, 1),
@@ -112,11 +112,11 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             # --- BEGIN DENSE NETWORK ---
             _P(DenseLayer, num_units=128, name='F6', **initkw),
             _P(FeaturePoolLayer, pool_size=2, name='P6'),
-            _P(DropoutLayer, p=.50, name='D6'),
+            #_P(DropoutLayer, p=.50, name='D6'),
 
             _P(DenseLayer, num_units=128, name='F7', **initkw),
             _P(FeaturePoolLayer, pool_size=2, name='P7'),
-            _P(DropoutLayer, p=.50, name='D7'),
+            #_P(DropoutLayer, p=.50, name='D7'),
 
             _P(DenseLayer, num_units=output_dims, nonlinearity=softmax, name='F8'),
         ]
@@ -194,7 +194,9 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         batch_size=32,
         arch_tag=dataset.alias_key,
         data_shape=dataset.data_shape,
-        output_dims=dataset.output_dims,
+        weight_decay=None,
+        #output_dims=dataset.output_dims,
+        output_dims=1
     )
     #model.output_dims = 1
     model.initialize_architecture()
