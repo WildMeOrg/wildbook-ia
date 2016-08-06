@@ -15,6 +15,8 @@ git clone https://github.com/Erotemic/ibeis.git
 cd ibeis
 
 python super_setup.py --bootstrap
+OR (if in virtual environment)
+python super_setup.py --bootstrap --nosudo
 OR
 ./_scripts/bootstrap.py
 THEN
@@ -200,6 +202,7 @@ python_version = platform.python_version()
 
 # We only support python 2.7
 PY3 = '--py3' in sys.argv
+PY2 = not PY3
 assert PY3  or python_version.startswith('2.7'), \
     'IBEIS currently supports python 2.7,  Instead got python=%r. use --py3 to override' % python_version
 
@@ -207,7 +210,7 @@ assert PY3  or python_version.startswith('2.7'), \
 
 if PY3:
     pythoncmd = 'python3'
-else:
+elif PY2:
     pythoncmd = 'python' if WIN32 else 'python2.7'
 
 
@@ -389,13 +392,20 @@ def define_custom_scripts(tpl_rman):
             'sys_dist_packages': ut.get_global_dist_packages_dir(),
             'venv_site_packages': ut.get_site_packages_dir(),
         }
+        # sys_dist_packages = ut.get_global_dist_packages_dir()
+        # sys_pyqt_dir = sys_dist_packages + '/PyQt4'
         # Allows us to use a system qt install in a virtual environment.
         system_to_venv = ut.codeblock(
             r"""
+            sudo apt-get install python-qt4
             # STARTBLOCK bash
-            ln -s {sys_dist_packages}/PyQt4/ {venv_site_packages}/PyQt4
-            ln -s {sys_dist_packages}/sip*.so {venv_site_packages}/
-            ln -s {sys_dist_packages}/sip*.py {venv_site_packages}/
+            if [ -d {sys_dist_packages}/PyQt4 ]; then
+                ln -s {sys_dist_packages}/PyQt4/ {venv_site_packages}/PyQt4
+                ln -s {sys_dist_packages}/sip*.so {venv_site_packages}/
+                ln -s {sys_dist_packages}/sip*.py {venv_site_packages}/
+            else
+                echo "QT4 DOES NOT SEEM TO BE INSTALLED ON THE SYSTEM"
+            fi
             # ENDBLOCK bash
             """).format(**fmtdict)
         tpl_rman['PyQt4'].add_script('system_to_venv', system_to_venv)
@@ -452,6 +462,7 @@ def define_custom_scripts(tpl_rman):
                 export PYTHON3_PACKAGES_PATH=$LOCAL_PREFIX/lib/python3.4/site-packages
                 export _SUDO=""
             fi
+            export PYTHON_PACKAGES_PATH=$PYTHON3_PACKAGES_PATH
 
             echo "LOCAL_PREFIX = $LOCAL_PREFIX"
             echo "PYTHON3_PACKAGES_PATH = $PYTHON3_PACKAGES_PATH"
@@ -465,13 +476,41 @@ def define_custom_scripts(tpl_rman):
                 -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
                 -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
                 ..
-            export PYTHON_PACKAGES_PATH=$PYTHON3_PACKAGES_PATH
 
             export NCPUS=$(grep -c ^processor /proc/cpuinfo)
             make -j$NCPUS
             # ENDBLOCK
             """))
-    else:
+
+        tpl_rman['cv2'].add_script('install', ut.codeblock(
+            r"""
+            # STARTBLOCK bash
+            cd $CODE_DIR/opencv/build34
+            if [[ "$VIRTUAL_ENV" == ""  ]]; then
+                export LOCAL_PREFIX=/usr/local
+                export PYTHON3_PACKAGES_PATH=$LOCAL_PREFIX/lib/python3.4/dist-packages
+                export _SUDO="sudo"
+            else
+                export LOCAL_PREFIX=$VIRTUAL_ENV/local
+                export PYTHON3_PACKAGES_PATH=$LOCAL_PREFIX/lib/python3.4/site-packages
+                export _SUDO=""
+            fi
+            export PYTHON_PACKAGES_PATH=$PYTHON3_PACKAGES_PATH
+
+            $_SUDO make install
+            # Hack because cv2 does not want to be installed for some reason
+            cp lib/cv2.so $PYTHON_PACKAGES_PATH
+            # Test makesure things working
+            python -c "import numpy; print(numpy.__file__)"
+            python -c "import numpy; print(numpy.__version__)"
+            python -c "import cv2; print(cv2.__version__)"
+            python -c "import cv2; print(cv2.__file__)"
+            #python -c "import vtool"
+            # Check if we have contrib modules
+            python -c "import cv2; print(cv2.xfeatures2d)"
+            # ENDBLOCK
+            """))
+    elif PY2:
         # TODO: allow system installation as well
         tpl_rman['cv2'].add_script('build', ut.codeblock(
             r"""
@@ -511,23 +550,36 @@ def define_custom_scripts(tpl_rman):
             # ENDBLOCK
             """))
 
-    tpl_rman['cv2'].add_script('install', ut.codeblock(
-        r"""
-        # STARTBLOCK bash
-        $_SUDO make install
-        # Hack because cv2 does not want to be installed for some reason
-        cp lib/cv2.so $PYTHON_PACKAGES_PATH
-        # Test makesure things working
-        python -c "import numpy; print(numpy.__file__)"
-        python -c "import numpy; print(numpy.__version__)"
-        python -c "import cv2; print(cv2.__version__)"
-        python -c "import cv2; print(cv2.__file__)"
-        #python -c "import vtool"
-        # Check if we have contrib modules
-        python -c "import cv2; print(cv2.xfeatures2d)"
-        # ENDBLOCK
-        """)
-    )
+        tpl_rman['cv2'].add_script('install', ut.codeblock(
+            r"""
+            # STARTBLOCK bash
+            cd $CODE_DIR/opencv/build27
+
+            if [[ "$VIRTUAL_ENV" == ""  ]]; then
+                export LOCAL_PREFIX=/usr/local
+                export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/dist-packages
+                export _SUDO="sudo"
+            else
+                export LOCAL_PREFIX=$VIRTUAL_ENV/local
+                export PYTHON2_PACKAGES_PATH=$LOCAL_PREFIX/lib/python2.7/site-packages
+                export _SUDO=""
+            fi
+            export PYTHON_PACKAGES_PATH=$PYTHON2_PACKAGES_PATH
+
+            $_SUDO make install
+            # Hack because cv2 does not want to be installed for some reason
+            cp lib/cv2.so $PYTHON_PACKAGES_PATH
+            # Test makesure things working
+            python -c "import numpy; print(numpy.__file__)"
+            python -c "import numpy; print(numpy.__version__)"
+            python -c "import cv2; print(cv2.__version__)"
+            python -c "import cv2; print(cv2.__file__)"
+            #python -c "import vtool"
+            # Check if we have contrib modules
+            python -c "import cv2; print(cv2.xfeatures2d)"
+            # ENDBLOCK
+            """))
+define_custom_scripts(tpl_rman)
 
 #     """
 #     export THEANO_FLAGS="device=cpu,print_active_device=True,enable_initial_driver_test=True"
@@ -588,6 +640,23 @@ if GET_ARGFLAG('--status'):
     sys.exit(0)
 
 ibeis_rman.ensure()
+
+
+# HACKED IN SCRIPTS WHILE IM STILL FIGURING OUT TPL DEPS
+if GET_ARGFLAG('--build-opencv'):
+    cv_repo = tpl_rman['cv2']
+    script = cv_repo.get_script('build')
+    script.exec_()
+
+if GET_ARGFLAG('--install-opencv'):
+    cv_repo = tpl_rman['cv2']
+    script = cv_repo.get_script('install')
+    script.exec_()
+
+if GET_ARGFLAG('--pyqt-venv'):
+    script = tpl_rman['PyQt4'].get_script('system_to_venv')
+    script.exec_()
+#_===
 
 if GET_ARGFLAG('--fix') or GET_ARGFLAG('--check'):
     missing_dynlib = tpl_rman.check_cpp_build()

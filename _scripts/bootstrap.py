@@ -209,7 +209,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
 
     if not PYTHON3:
         PREREQ_PYPKG_LIST += [
-            'functools32',
+            # 'functools32',
             # 'functools32',
             #'sip',
             #'PyQt4',
@@ -227,7 +227,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'autopep8',
         'flake8',
         'guppy',
-        'functools32',
+        # 'functools32',
         'argparse',
         'h5py',
         'memory-profiler',
