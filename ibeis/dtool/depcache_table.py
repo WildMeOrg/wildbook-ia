@@ -2346,10 +2346,13 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
                             raise
                 ####
                 # Unflatten data into any given nested structure
-                nested_proplistT = ut.list_unflat_take(prop_listT, nesting_xs)
-                for tx in ut.where([isinstance(xs, list) for xs in nesting_xs]):
-                    nested_proplistT[tx] = list(zip(*nested_proplistT[tx]))
-                prop_list = list(zip(*nested_proplistT))
+                if len(prop_listT) > 0:
+                    nested_proplistT = ut.list_unflat_take(prop_listT, nesting_xs)
+                    for tx in ut.where([isinstance(xs, list) for xs in nesting_xs]):
+                        nested_proplistT[tx] = list(zip(*nested_proplistT[tx]))
+                    prop_list = list(zip(*nested_proplistT))
+                else:
+                    prop_list = []
                 ####
                 # Unpack single column datas if requested
                 if unpack_columns:
