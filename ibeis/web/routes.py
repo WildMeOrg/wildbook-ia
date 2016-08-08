@@ -1226,6 +1226,45 @@ def dbinfo():
     return dbinfo_str_formatted
 
 
+@register_route('/test/counts.jsp', methods=['GET'], __api_postfix_check__=False)
+def wb_counts():
+    fmt_str = '''<p># Annotations: <b>%d</b></p>
+<p># MediaAssets (images): <b>%d</b></p>
+<p># MarkedIndividuals: <b>%d</b></p>
+<p># Encounters: <b>null</b></p>
+<p># Occurrences: <b>%d</b></p>'''
+
+    try:
+        ibs = current_app.ibs
+
+        nid_list = ibs.get_valid_nids()
+        aids_list = ibs.get_name_aids(nid_list)
+        nid_list = [
+            nid
+            for nid, aid_list in zip(nid_list, aids_list)
+            if nid > 0 and len(aids_list) > 0
+        ]
+        aid_list = ut.flatten(ibs.get_name_aids(nid_list))
+        gid_list = ibs.get_annot_gids(aid_list)
+        imgset_id_list = ut.flatten(ibs.get_image_imgsetids(gid_list))
+
+        valid_nid_list = list(set(nid_list))
+        valid_aid_list = list(set(aid_list))
+        valid_gid_list = list(set(gid_list))
+        valid_imgset_id_list = list(set(imgset_id_list))
+
+        num_nid = len(valid_nid_list)
+        num_aid = len(valid_aid_list)
+        num_gid = len(valid_gid_list)
+        num_imgset = len(valid_imgset_id_list)
+
+        args = (num_aid, num_gid, num_nid, num_imgset, )
+        counts_str = fmt_str % args
+    except:
+        counts_str = ''
+    return counts_str
+
+
 @register_route('/404/', methods=['GET'])
 def error404(exception=None):
     import traceback

@@ -651,10 +651,12 @@ def get_ibeis_flask_route(__name__):
     if __name__ == '__main__':
         return ut.dummy_args_decor
     if GLOBAL_APP_ENABLED:
-        def register_route(rule, __api_prefix_check__=True, **options):
+        def register_route(rule, __api_prefix_check__=True,
+                           __api_postfix_check__=True, **options):
             if __api_prefix_check__:
                 assert not rule.startswith('/api/'), 'Cannot start a route rule (%r) with the prefix "/api/"' % (rule, )
-            assert rule.endswith('/'), 'A route should always end in a forward-slash'
+            if __api_postfix_check__:
+                assert rule.endswith('/'), 'A route should always end in a forward-slash'
             assert 'methods' in options, 'A route should always have a specified methods list'
             # if '_' in rule:
             #     print('CONSIDER RENAMING RULE: %r' % (rule, ))
