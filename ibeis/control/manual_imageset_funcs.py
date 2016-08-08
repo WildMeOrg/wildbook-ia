@@ -183,7 +183,7 @@ def get_imageset_num_imgs_reviewed(ibs, imgsetid_list):
         >>> ibs, config2_ = testdata_ibs()
         >>> # Reset and compute imagesets
         >>> ibs.delete_all_imagesets()
-        >>> ibs.compute_occurrences()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
         >>> num_reviwed_list = ibs.get_imageset_num_imgs_reviewed(imgsetid_list)
         >>> result = num_reviwed_list
@@ -211,7 +211,7 @@ def get_imageset_num_annots_reviewed(ibs, imgsetid_list):
         >>> ibs, config2_ = testdata_ibs()
         >>> # Reset and compute imagesets
         >>> ibs.delete_all_imagesets()
-        >>> ibs.compute_occurrences()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
         >>> num_reviwed_list = ibs.get_imageset_num_imgs_reviewed(imgsetid_list)
         >>> result = num_reviwed_list
@@ -428,7 +428,7 @@ def get_imageset_aids(ibs, imgsetid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> ibs.delete_imagesets(ibs.get_valid_imgsetids())
-        >>> ibs.compute_occurrences()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
         >>> aids_list = get_imageset_aids(ibs, imgsetid_list)
         >>> result = ('aids_list = %s' % (str(aids_list),))
@@ -470,7 +470,7 @@ def get_imageset_uuids(ibs, imgsetid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> ibs.delete_imagesets(ibs.get_valid_imgsetids())
-        >>> ibs.compute_occurrences()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
         >>> aids_list = get_imageset_aids(ibs, imgsetid_list)
         >>> result = ('aids_list = %s' % (str(aids_list),))
@@ -589,7 +589,7 @@ def get_imageset_nids(ibs, imgsetid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs.delete_imagesets(ibs.get_valid_imgsetids())
-        >>> ibs.compute_occurrences()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
         >>> nids_list = ibs.get_imageset_nids(imgsetid_list)
         >>> result = nids_list
@@ -633,7 +633,7 @@ def get_imageset_name_uuids(ibs, imgsetid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs.delete_imagesets(ibs.get_valid_imgsetids())
-        >>> ibs.compute_occurrences()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
         >>> nids_list = ibs.get_imageset_nids(imgsetid_list)
         >>> result = nids_list

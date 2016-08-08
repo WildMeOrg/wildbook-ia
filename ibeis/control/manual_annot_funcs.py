@@ -127,34 +127,28 @@ def get_valid_aids(ibs, imgsetid=None, include_only_gid_list=None,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
-        >>> from ibeis import constants as const
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
+        >>> ut.exec_funckw(get_valid_aids, globals())
         >>> imgsetid = 1
-        >>> ibs.delete_all_imagesets()
-        >>> ibs.compute_occurrences()
-        >>> include_only_gid_list = None
         >>> yaw = 'no-filter'
-        >>> is_exemplar = None
-        >>> species = const.TEST_SPECIES.ZEB_PLAIN
+        >>> species = ibs.const.TEST_SPECIES.ZEB_PLAIN
         >>> is_known = False
-        >>> # execute function
-        >>> aid_list = get_valid_aids(ibs, imgsetid, include_only_gid_list, yaw, is_exemplar, species, is_known)
-        >>> ut.assert_eq(ibs.get_annot_names(aid_list), [const.UNKNOWN] * 2, 'bad name')
+        >>> ibs.delete_all_imagesets()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
+        >>> aid_list = get_valid_aids(ibs, imgsetid=imgsetid, species=species, is_known=is_known)
+        >>> ut.assert_eq(ibs.get_annot_names(aid_list), [ibs.const.UNKNOWN] * 2, 'bad name')
         >>> ut.assert_eq(ibs.get_annot_species(aid_list), [species] * 2, 'bad species')
         >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [False] * 2, 'bad exemplar')
-        >>> # verify results
         >>> result = str(aid_list)
         >>> print(result)
+
         [1, 4]
 
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> # execute function
         >>> aid_list1 = get_valid_aids(ibs, is_exemplar=True)
         >>> aid_list2 = get_valid_aids(ibs, is_exemplar=False)
         >>> intersect_aids = set(aid_list1).intersection(aid_list2)
@@ -844,12 +838,9 @@ def get_annot_exemplar_flags(ibs, aid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> # execute function
         >>> gid_list = get_annot_exemplar_flags(ibs, aid_list)
-        >>> # verify results
         >>> result = str(gid_list)
         >>> print(result)
     """
@@ -1009,12 +1000,9 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> # execute function
         >>> contact_aids = ibs.get_annot_contact_aids(aid_list)
-        >>> # verify results
         >>> contact_gids = ibs.unflat_map(ibs.get_annot_gids, contact_aids)
         >>> gid_list = ibs.get_annot_gids(aid_list)
         >>> for gids, gid, aids, aid in zip(contact_gids, gid_list, contact_aids, aid_list):
@@ -1026,12 +1014,9 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb2')
         >>> aid_list = ibs.get_valid_aids()
-        >>> # execute function
         >>> contact_aids = ibs.get_annot_contact_aids(aid_list)
-        >>> # verify results
         >>> contact_gids = ibs.unflat_map(ibs.get_annot_gids, contact_aids)
         >>> gid_list = ibs.get_annot_gids(aid_list)
         >>> print('contact_aids = %r' % (contact_aids,))
@@ -2019,12 +2004,9 @@ def get_annot_image_datetime_str(ibs, aid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_annot_funcs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> # execute function
         >>> datetime_list = get_annot_image_datetime_str(ibs, aid_list)
-        >>> # verify results
         >>> result = str(datetime_list)
         >>> print(result)
     """

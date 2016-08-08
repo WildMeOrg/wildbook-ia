@@ -1064,7 +1064,7 @@ def copy_imagesets(ibs, imgsetid_list):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs.delete_all_imagesets()
-        >>> ibs.compute_occurrences()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
         >>> # execute function
         >>> new_imgsetid_list = copy_imagesets(ibs, imgsetid_list)
@@ -1073,7 +1073,7 @@ def copy_imagesets(ibs, imgsetid_list):
         >>> assert [2] == list(set(map(len, ibs.get_image_imgsetids(ibs.get_valid_gids()))))
         >>> print(result)
         >>> ibs.delete_all_imagesets()
-        >>> ibs.compute_occurrences()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
     """
     all_imagesettext_list = ibs.get_imageset_text(ibs.get_valid_imgsetids())
     imagesettext_list = ibs.get_imageset_text(imgsetid_list)
@@ -1740,7 +1740,7 @@ def get_ungrouped_gids(ibs):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs.delete_all_imagesets()
-        >>> ibs.compute_occurrences()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> ibs.update_special_imagesets()
         >>> # Now we want to remove some images from a non-special imageset
         >>> nonspecial_imgsetids = [i for i in ibs.get_valid_imgsetids() if i not in ibs.get_special_imgsetids()]
@@ -2194,7 +2194,7 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs._clean_species()
         >>> ibs.delete_all_imagesets()
-        >>> ibs.compute_occurrences()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> # execute function
         >>> imgsetid = ibs.get_valid_imgsetids()[1]
         >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, imgsetid=imgsetid)
@@ -5850,7 +5850,7 @@ def compute_occurrences(ibs, config=None):
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> import ibeis  # NOQA
         >>> ibs = ibeis.opendb('testdb1')
-        >>> ibs.compute_occurrences()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> ibs.update_special_imagesets()
         >>> # Remove some images from a non-special imageset
         >>> nonspecial_imgsetids = [i for i in ibs.get_valid_imgsetids() if i not in ibs.get_special_imgsetids()]
@@ -5862,7 +5862,7 @@ def compute_occurrences(ibs, config=None):
         >>> #Now let's make sure that when we recompute imagesets, our non-special imgsetid remains the same
         >>> print('PRE COMPUTE: ImageSets are %r' % ibs.get_valid_imgsetids())
         >>> print('Containing: %r' % ibs.get_imageset_gids(ibs.get_valid_imgsetids()))
-        >>> ibs.compute_occurrences()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> print('COMPUTE: New imagesets are %r' % ibs.get_valid_imgsetids())
         >>> print('Containing: %r' % ibs.get_imageset_gids(ibs.get_valid_imgsetids()))
         >>> ibs.update_special_imagesets()

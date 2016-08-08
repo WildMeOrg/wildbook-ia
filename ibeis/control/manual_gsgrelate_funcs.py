@@ -109,13 +109,13 @@ def unrelate_images_and_imagesets(ibs, gid_list, imgsetid_list):
         >>> ibs = ibeis.opendb('testdb1')
         >>> # Reset and compute imagesets
         >>> ibs.delete_all_imagesets()
-        >>> ibs.compute_occurrences()
+        >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
         >>> gids_list = ibs.get_imageset_gids(imgsetid_list)
-        >>> assert len(imgsetid_list) == 2
-        >>> assert len(gids_list) == 2
-        >>> assert len(gids_list[0]) == 7
-        >>> assert len(gids_list[1]) == 6
+        >>> assert len(imgsetid_list) == 2, 'bad len %r' % (len(imgsetid_list),)
+        >>> assert len(gids_list) == 2, 'bad len %r' % (len(gids_list),)
+        >>> assert len(gids_list[0]) == 7, 'bad len %r' % (len(gids_list[0]),)
+        >>> assert len(gids_list[1]) == 6, 'bad len %r' % (len(gids_list[1]),)
         >>> # Add imageset 2 gids to imageset 1 so an image belongs to multiple imagesets
         >>> imgset2_gids = gids_list[1][0:1]
         >>> imgset1_imgsetids = imgsetid_list[0:1]
@@ -131,8 +131,8 @@ def unrelate_images_and_imagesets(ibs, gid_list, imgsetid_list):
         >>> result = str(gids_list_)
         >>> print(result)
         >>> # imgset2_gids should now only be in imageset1
-        >>> assert imgset2_gids[0] in gids_list_[0]
-        >>> assert imgset2_gids[0] not in gids_list_[1]
+        >>> assert imgset2_gids[0] in gids_list_[0], 'imgset2_gids should now only be in imageset1'
+        >>> assert imgset2_gids[0] not in gids_list_[1], 'imgset2_gids should now only be in imageset1'
     """
     # WHAT IS THIS FUNCTION? FIXME CALLS WEIRD FUNCTION
     if ut.VERBOSE:

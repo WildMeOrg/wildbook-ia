@@ -168,17 +168,14 @@ def get_timedelta_str(ibs, aid1, aid2):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.viz.viz_helpers import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid1 = 1
-        >>> aid2 = 8
-        >>> # execute function
+        >>> aid1, aid2 = 1, 8
         >>> timedelta_str = get_timedelta_str(ibs, aid1, aid2)
-        >>> # verify results
         >>> result = str(timedelta_str)
         >>> print(result)
-        td(+2:28:22)
+        td(2 hours 28 minutes 22 seconds)
 
+        td(+2:28:22)
         td(02:28:22)
     """
     gid1, gid2 = ibs.get_annot_gids([aid1, aid2])

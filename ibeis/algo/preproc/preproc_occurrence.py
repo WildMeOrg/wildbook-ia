@@ -30,6 +30,10 @@ def ibeis_compute_occurrences(ibs, gid_list, config=None, verbose=None):
         python -m ibeis --tf ibeis_compute_occurrences:0 --show
         TODO: FIXME: good example of autogen doctest return failure
     """
+    if config is None:
+        config = {'use_gps': False, 'seconds_thresh': 600}
+        #from ibeis.algo import Config
+        #config = Config.OccurrenceConfig().asdict()
     occur_labels, occur_gids = compute_occurrence_groups(ibs, gid_list, config,
                                                          verbose=verbose)
     if True:

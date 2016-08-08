@@ -1008,7 +1008,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> fm = cm.fm_list[cm.daid2_idx[2]]
         >>> num_matches = len(fm)
         >>> print('vsone num_matches = %r' % num_matches)
-        >>> ut.assert_inbounds(num_matches, 100, 300, 'vsmany nmatches out of bounds')
+        >>> ut.assert_inbounds(num_matches, 100, 400, 'vsmany nmatches out of bounds')
         >>> ut.quit_if_noshow()
         >>> cm.score_csum(qreq_)
         >>> cm_list[0].ishow_single_annotmatch(qreq_)

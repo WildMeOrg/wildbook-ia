@@ -158,12 +158,36 @@ def time_dist_km(sec1, sec2, km_per_sec=KM_PER_SEC):
 
 def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='seconds'):
     # Package data and pick distance function
-    import vtool as vt
+
+    def atleast_nd(arr, n, tofront=False):
+        r""" ut.static_func_source(vt.atleast_nd) """
+        arr_ = np.asanyarray(arr)
+        ndims = len(arr_.shape)
+        if n is not None and ndims <  n:
+            # append the required number of dimensions to the end
+            if tofront:
+                expander = (None,) * (n - ndims) + (Ellipsis,)
+            else:
+                expander = (Ellipsis,) + (None,) * (n - ndims)
+            arr_ = arr_[expander]
+        return arr_
+
+    def ensure_column_shape(arr, num_cols):
+        r""" ut.static_func_source(vt.ensure_column_shape) """
+        arr_ = np.asanyarray(arr)
+        if len(arr_.shape) == 0:
+            pass
+        elif len(arr_.shape) == 1:
+            arr_.shape = (arr_.size, num_cols)
+        else:
+            assert arr_.shape[1] == num_cols, 'bad number of cols'
+        return arr_
+
     if latlons is None and posixtimes is None:
         dist_func = None
         X_data = None
     elif latlons is None and posixtimes is not None:
-        X_data = vt.atleast_nd(posixtimes, 2)
+        X_data = atleast_nd(posixtimes, 2)
         if thresh_units == 'seconds':
             dist_func = time_dist_sec
         elif thresh_units == 'km':
@@ -176,8 +200,9 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
         elif thresh_units == 'km':
             dist_func = space_distance_km
     else:
-        posixtimes = vt.atleast_nd(posixtimes, 2)
-        latlons = np.array(latlons)
+        posixtimes = atleast_nd(posixtimes, 2)
+        latlons = ensure_column_shape(latlons, 2)
+        #latlons = np.array(latlons, ndmin=2)
         X_data = np.hstack([posixtimes, latlons])
         if thresh_units == 'seconds':
             dist_func = functools.partial(timespace_distance_sec,
