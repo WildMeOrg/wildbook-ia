@@ -133,72 +133,72 @@ if DOELSE:
     from guitool import qtype
     from guitool import stripe_proxy_model
     from guitool import filter_proxy_model
-    from guitool.guitool_main import (GuitoolApplication, IS_ROOT_WINDOW, QAPP,
-                                      QUIET, VERBOSE, activate_qwindow,
-                                      ensure_qapp, ensure_qtapp,
-                                      exit_application, get_qtapp, init_qtapp,
-                                      ping_python_interpreter,
-                                      pyqtRemoveInputHook, qtapp_loop,
-                                      qtapp_loop_nonblocking,
-                                      remove_pyqt_input_hook,)
-    from guitool.guitool_components import (ALIGN_DICT, ConfigConfirmWidget,
-                                            DEBUG_WIDGET, GuiProgContext,
-                                            GuitoolWidget, PROG_TEXT, ProgHook,
-                                            ResizableTextEdit, Spoiler,
-                                            WIDGET_BASE, adjust_font,
-                                            fix_child_attr_heirarchy,
-                                            fix_child_size_heirarchy,
-                                            getAvailableFonts, get_nested_attr,
-                                            get_widget_text_width,
-                                            layoutSplitter, make_style_sheet,
-                                            msg_event, newButton, newCheckBox,
-                                            newComboBox, newFont, newFrame,
-                                            newLabel, newLineEdit, newMenu,
-                                            newMenuAction, newMenubar,
-                                            newOutputLog, newProgressBar,
-                                            newQPoint, newScrollArea,
-                                            newSizePolicy, newSplitter,
-                                            newTabWidget, newTextEdit,
-                                            newWidget, print_widget_heirarchy,
-                                            prop_text_map,
-                                            walk_widget_heirarchy,)
-    from guitool.guitool_dialogs import (ResizableMessageBox, SELDIR_CACHEID,
-                                         are_you_sure, build_nested_qmenu,
-                                         connect_context_menu, msgbox,
-                                         newDirectoryDialog, newFileDialog,
-                                         popup_menu, select_directory,
-                                         select_files, select_images,
-                                         user_info, user_input, user_option,
-                                         user_question,)
-    from guitool.guitool_decorators import (DEBUG, checks_qt_error, signal_,
-                                            slot_,)
-    from guitool.guitool_misc import (ALT_KEY, BlockContext, GUILoggingHandler,
-                                      GUILoggingSender, QLoggedOutput,
-                                      find_used_chars, get_cplat_tab_height,
-                                      get_view_selection_as_str,
-                                      make_word_hotlinks,)
-    from guitool.api_item_model import (APIItemModel, API_MODEL_BASE,
-                                        ChangeLayoutContext, QVariantHack,
-                                        default_method_decorator,
-                                        simple_thumbnail_widget, updater,)
-    from guitool.api_tree_view import (APITreeView, API_VIEW_BASE,)
-    from guitool.api_table_view import (APITableView,)
-    from guitool.qtype import (ItemDataRoles, LOCALE, QLocale, QString,
-                               QT_BUTTON_TYPES, QT_COMBO_TYPES,
-                               QT_DELEGATE_TYPES, QT_ICON_TYPES,
-                               QT_IMAGE_TYPES, QT_PIXMAP_TYPES, QVariant,
-                               SIMPLE_CASTING, cast_from_qt, cast_into_qt,
-                               infer_coltype, locale_float, numpy_to_qicon,
-                               numpy_to_qpixmap, qindexinfo, to_qcolor,)
-    from guitool.stripe_proxy_model import (STRIPE_PROXY_BASE,
-                                            STRIP_PROXY_META_CLASS,
-                                            STRIP_PROXY_SIX_BASE,
-                                            StripeProxyModel,)
-    from guitool.filter_proxy_model import (BASE_CLASS, FilterProxyModel,)
+    from guitool.guitool_main import (GuitoolApplication, IS_ROOT_WINDOW, QAPP, 
+                                      QUIET, VERBOSE, activate_qwindow, 
+                                      ensure_qapp, ensure_qtapp, 
+                                      exit_application, get_qtapp, init_qtapp, 
+                                      ping_python_interpreter, 
+                                      pyqtRemoveInputHook, qtapp_loop, 
+                                      qtapp_loop_nonblocking, 
+                                      remove_pyqt_input_hook,) 
+    from guitool.guitool_components import (ALIGN_DICT, ConfigConfirmWidget, 
+                                            DEBUG_WIDGET, GuiProgContext, 
+                                            GuitoolWidget, PROG_TEXT, ProgHook, 
+                                            ResizableTextEdit, Spoiler, 
+                                            WIDGET_BASE, adjust_font, 
+                                            fix_child_attr_heirarchy, 
+                                            fix_child_size_heirarchy, 
+                                            getAvailableFonts, get_nested_attr, 
+                                            get_widget_text_width, 
+                                            layoutSplitter, make_style_sheet, 
+                                            msg_event, newButton, newCheckBox, 
+                                            newComboBox, newFont, newFrame, 
+                                            newLabel, newLineEdit, newMenu, 
+                                            newMenuAction, newMenubar, 
+                                            newOutputLog, newProgressBar, 
+                                            newQPoint, newScrollArea, 
+                                            newSizePolicy, newSplitter, 
+                                            newTabWidget, newTextEdit, 
+                                            newWidget, print_widget_heirarchy, 
+                                            prop_text_map, 
+                                            walk_widget_heirarchy,) 
+    from guitool.guitool_dialogs import (ResizableMessageBox, SELDIR_CACHEID, 
+                                         are_you_sure, build_nested_qmenu, 
+                                         connect_context_menu, msgbox, 
+                                         newDirectoryDialog, newFileDialog, 
+                                         popup_menu, select_directory, 
+                                         select_files, select_images, 
+                                         user_info, user_input, user_option, 
+                                         user_question,) 
+    from guitool.guitool_decorators import (DEBUG, checks_qt_error, signal_, 
+                                            slot_,) 
+    from guitool.guitool_misc import (ALT_KEY, BlockContext, GUILoggingHandler, 
+                                      GUILoggingSender, QLoggedOutput, 
+                                      find_used_chars, get_cplat_tab_height, 
+                                      get_view_selection_as_str, 
+                                      make_option_dict, make_word_hotlinks,) 
+    from guitool.api_item_model import (APIItemModel, API_MODEL_BASE, 
+                                        ChangeLayoutContext, QVariantHack, 
+                                        default_method_decorator, 
+                                        simple_thumbnail_widget, updater,) 
+    from guitool.api_tree_view import (APITreeView, API_VIEW_BASE,) 
+    from guitool.api_table_view import (APITableView,) 
+    from guitool.qtype import (ItemDataRoles, LOCALE, QLocale, QString, 
+                               QT_BUTTON_TYPES, QT_COMBO_TYPES, 
+                               QT_DELEGATE_TYPES, QT_ICON_TYPES, 
+                               QT_IMAGE_TYPES, QT_PIXMAP_TYPES, QVariant, 
+                               SIMPLE_CASTING, cast_from_qt, cast_into_qt, 
+                               infer_coltype, locale_float, numpy_to_qicon, 
+                               numpy_to_qpixmap, qindexinfo, to_qcolor,) 
+    from guitool.stripe_proxy_model import (STRIPE_PROXY_BASE, 
+                                            STRIP_PROXY_META_CLASS, 
+                                            STRIP_PROXY_SIX_BASE, 
+                                            StripeProxyModel,) 
+    from guitool.filter_proxy_model import (BASE_CLASS, FilterProxyModel,) 
     import utool
     print, rrr, profile = utool.inject2(__name__, '[guitool]')
-
-
+    
+    
     def reassign_submodule_attributes(verbose=True):
         """
         why reloading all the modules doesnt do this I don't know
@@ -225,8 +225,8 @@ if DOELSE:
                     continue
                 seen_.add(attr)
                 setattr(guitool, attr, getattr(submod, attr))
-
-
+    
+    
     def reload_subs(verbose=True):
         """ Reloads guitool and submodules """
         if verbose:
