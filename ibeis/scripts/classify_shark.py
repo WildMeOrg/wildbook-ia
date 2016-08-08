@@ -37,7 +37,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             python -m ibeis.scripts.classify_shark get_sharks_dataset --show
 
         Example:
-            >>> # ENABLE_DOCTEST
+            >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.classify_shark import *  # NOQA
             >>> verbose = True
             >>> data_shape = tuple(ut.get_argval('--datashape', type_=list,
@@ -146,6 +146,7 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         # target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
 
     CommandLine:
+        python -m ibeis.scripts.classify_shark get_sharks_dataset
         python -m ibeis.scripts.classify_shark get_sharks_dataset --show --monitor
 
     Example:

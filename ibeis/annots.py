@@ -53,7 +53,9 @@ ANNOT_BASE_ATTRS = [
     # Occurrence / Encounter
     'encounter_text', 'occurrence_text', 'primary_imageset',
     # Tags
-    'all_tags', 'case_tags', 'annotmatch_tags', 'notes',
+    'all_tags',
+    #'case_tags',
+    'annotmatch_tags', 'notes',
     # Processing State
     'reviewed', 'reviewed_matching_aids', 'has_reviewed_matching_aids',
     'num_reviewed_matching_aids', 'detect_confidence',

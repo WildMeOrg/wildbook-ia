@@ -140,7 +140,7 @@ def reg_std_version_check(version, modname):
 
 
 reg_std_version_check('1.5.3', 'pynmea2')
-reg_std_version_check(None, 'wget')
+#reg_std_version_check(None, 'wget')
 reg_std_version_check(None, 'pygco')
 reg_std_version_check('6.0.8', 'pip')
 reg_std_version_check('1.1.1', 'utool')

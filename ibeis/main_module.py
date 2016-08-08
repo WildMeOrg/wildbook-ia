@@ -50,13 +50,13 @@ def _parse_args():
     params.parse_args()
 
 
-#@profile
+@profile
 def _init_matplotlib():
     from plottool import __MPL_INIT__
     __MPL_INIT__.init_matplotlib()
 
 
-#@profile
+@profile
 def _init_gui(activate=True):
     import guitool
     if NOT_QUIET:
@@ -74,7 +74,7 @@ def _init_gui(activate=True):
     return back
 
 
-#@profile
+@profile
 def _init_ibeis(dbdir=None, verbose=None, use_cache=True, web=None, **kwargs):
     """
     Private function that calls code to create an ibeis controller
@@ -232,7 +232,7 @@ def set_newfile_permissions():
     #print('new_mask  = %o' % (mask,))
 
 
-#@profile
+@profile
 def main(gui=True, dbdir=None, defaultdb='cache',
          allow_newdir=False, db=None,
          delete_ibsdir=False,
@@ -512,7 +512,7 @@ def test_main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
     return ibs
 
 
-#@profile
+@profile
 def _preload(mpl=True, par=True, logging=True):
     """ Sets up python environment """
     import utool as ut
@@ -544,7 +544,7 @@ def _preload(mpl=True, par=True, logging=True):
     #return params.args
 
 
-#@profile
+@profile
 def main_loop(main_locals, rungui=True, ipy=False, persist=True):
     """
     Runs the qt loop if the GUI was initialized and returns an executable string
