@@ -1237,16 +1237,17 @@ def wb_counts():
     try:
         ibs = current_app.ibs
 
-        nid_list = ibs.get_valid_nids()
-        aids_list = ibs.get_name_aids(nid_list)
-        nid_list = [
-            nid
-            for nid, aid_list in zip(nid_list, aids_list)
-            if nid > 0 and len(aids_list) > 0
-        ]
-        aid_list = ut.flatten(ibs.get_name_aids(nid_list))
+        aid_list = ibs.get_valid_aids()
+        nid_list = ibs.get_annot_nids(aid_list)
+        nid_list = [ nid for nid in nid_list if nid > 0 ]
         gid_list = ibs.get_annot_gids(aid_list)
-        imgset_id_list = ut.flatten(ibs.get_image_imgsetids(gid_list))
+        imgset_id_list = ibs.get_valid_imgsetids()
+        aids_list = ibs.get_imageset_aids(imgset_id_list)
+        imgset_id_list = [
+            imgset_id
+            for imgset_id, aid_list_ in zip(imgset_id_list, aids_list)
+            if len(aid_list_) > 0
+        ]
 
         valid_nid_list = list(set(nid_list))
         valid_aid_list = list(set(aid_list))
