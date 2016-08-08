@@ -1250,7 +1250,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         rowid_dict[root] = root_rowids
 
         # Find all rowids that inherit from the specific root rowids
-        sinks = list(nx.sink_nodes(nx.bfs_tree(graph, depc.root)))
+        sinks = list(ut.nx_sink_nodes(nx.bfs_tree(graph, depc.root)))
         for target_tablename in sinks:
             path = nx.shortest_path(graph, root, target_tablename)
             for parent, child in ut.itertwo(path):

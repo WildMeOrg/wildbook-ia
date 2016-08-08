@@ -2228,7 +2228,9 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             >>> prop_list0 = ut.take_column(prop_list, [0, 1, 2]) # take small data
             >>> result = (ut.repr2(prop_list0, nl=1))
             >>> prop_gen = table.get_row_data(tbl_rowids, colnames, eager=False)
-            >>> assert list(prop_gen) == prop_list
+            >>> prop_list2 = list(prop_gen)
+            >>> assert len(prop_list2) == len(prop_list), 'inconsistent lens'
+            >>> assert all([ut.lists_eq(prop_list2[1], prop_list[1]) for x in range(len(prop_list))]), 'inconsistent vals'
             >>> chips = table.get_row_data(tbl_rowids, 'chip', eager=False)
             >>> print(result)
             [
@@ -2305,8 +2307,23 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             nonNone_tbl_rowids, flat_intern_colnames, eager=eager,
             nInput=nInput, unpack_scalars=True, keepwrap=True)
 
+        def tup_unflat_take(items_list, unflat_index_list):
+            r"""
+            Hack for depcache, that needs a tuple version of ut.list_unflat_take
+            """
+            def tuptake(list_, index_list):
+                try:
+                    return tuple([list_[index] for index in index_list])
+                except TypeError:
+                    return list_[index_list]
+
+            return tuple([tup_unflat_take(items_list, xs)
+                          if isinstance(xs, list) else
+                          tuptake(items_list, xs)
+                          for xs in unflat_index_list])
+
         #if len(raw_prop_list) > 0:
-        if nInput > 0:
+        if nInput > 0 and len(nonNone_tbl_rowids) > 0:
             if generator_version:
                 def _generator_resolve_all():
                     extern_dpath = table.extern_dpath
@@ -2323,7 +2340,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
                                 if ensure:
                                     ut.assertpath(uri_full)
                             exprop[extern_colx] = data
-                        nestprop = ut.list_unflat_take(exprop, nesting_xs)
+                        #nestprop = ut.list_unflat_take(exprop, nesting_xs)
+                        nestprop = tup_unflat_take(exprop, nesting_xs)
                         yield nestprop
                 prop_gen = _generator_resolve_all()
                 if unpack_columns:
