@@ -24,12 +24,10 @@ Ignore:
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip
-import numpy as np
-import matplotlib as mpl
-import utool as ut
-import vtool as vt
 import six
 import dtool
+import numpy as np
+import utool as ut
 (print, rrr, profile) = ut.inject2(__name__, '[nxhelpers]')
 
 
@@ -188,6 +186,7 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
     """
     #print('[viz_graph] drawing %d images' % len(img_list))
     # Thumb stackartist
+    import vtool as vt
     import plottool as pt
     #ax  = pt.gca()
 
@@ -795,6 +794,7 @@ def format_anode_pos(xy, pin=True):
 
 
 def _get_node_size(graph, node, node_size):
+    import vtool as vt
     if node_size is not None and node in node_size:
         return node_size[node]
     nattrs = graph.node[node]
@@ -822,6 +822,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     # python -m dtool --tf DependencyCache.make_graph --show
     """
     import plottool as pt
+    import vtool as vt
+    import matplotlib as mpl
 
     patch_dict = {
         'patch_frame_dict': {},

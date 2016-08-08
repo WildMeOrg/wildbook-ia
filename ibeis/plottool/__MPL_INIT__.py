@@ -39,7 +39,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import sys
 import os
 import utool as ut
+from six.moves import builtins
 ut.noinject(__name__, '[plottool.__MPL_INIT__]')
+
+try:
+    profile = getattr(builtins, 'profile')
+except AttributeError:
+    def profile(func):
+        return func
 
 
 __IS_INITIALIZED__ = False
@@ -234,6 +241,7 @@ def _init_mpl_mainprocess(verbose=VERBOSE_MPLINIT):
     _init_mpl_rcparams()
 
 
+@profile
 def init_matplotlib(verbose=VERBOSE_MPLINIT):
     if ut.in_main_process():
         PyQt, pyqt_version = get_pyqt()
