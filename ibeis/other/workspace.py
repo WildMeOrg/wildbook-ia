@@ -153,8 +153,8 @@ def find_most_disitnctive_keypoints():
         python -m ibeis.workflow --exec-find_most_disitnctive_keypoints --show
 
     Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.workspace import *  # NOQA
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.other.workspace import *  # NOQA
         >>> find_most_disitnctive_keypoints()
     """
     import ibeis
