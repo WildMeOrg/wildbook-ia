@@ -82,12 +82,12 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             #_P(layers.GaussianNoiseLayer, name='G0'),
 
             # Convolution 1
-            _P(Conv2DLayer, num_filters=24, filter_size=(11, 11), stride=(1, 1),
+            _P(Conv2DLayer, num_filters=32, filter_size=(11, 11), stride=(1, 1),
                name='C1', **initkw),
             #_P(DropoutLayer, p=.10, name='D1'),
 
             # Convolution 2
-            _P(Conv2DLayer, num_filters=16, filter_size=(5, 5), stride=(1, 1),
+            _P(Conv2DLayer, num_filters=32, filter_size=(5, 5), stride=(1, 1),
                name='C2', **initkw),
             _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P2'),
             #_P(DropoutLayer, p=.10, name='D2'),
@@ -178,7 +178,7 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         return ds
     elif data_type == 'chip':
         from ibeis_cnn.dataset import DataSet
-        alias_key = 'sharks_' + target_type
+        alias_key = 'sharks224_' + target_type
 
         # ut.delete(data_fpath)
         # ut.delete(labels_fpath)
@@ -214,11 +214,11 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         max_epochs=1200,
         learning_rate_adjust=.8,
     ))
-    X_train, y_train = dataset.load_subset('train')
+    #X_train, y_train = dataset.load_subset('train')
     #X_train, y_train = dataset.load_subset('test')
-    X_valid, y_valid = dataset.load_subset('valid')
+    #X_valid, y_valid = dataset.load_subset('valid')
 
-    model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
+    #model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
 
 
 def build_cnn_shark_dataset(target_type, alias_key):
@@ -279,7 +279,8 @@ def get_shark_labels_and_metadata(target_type=None):
     import ibeis
     ibs = ibeis.opendb('WS_ALL')
     config = {
-        'dim_size': (256, 256),
+        #'dim_size': (256, 256),
+        'dim_size': (224, 224),
         'resize_dim': 'wh'
     }
     all_annots = ibs.annots(config=config)
