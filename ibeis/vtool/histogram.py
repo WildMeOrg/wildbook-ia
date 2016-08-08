@@ -71,7 +71,7 @@ def hist_argmaxima(hist, centers=None, maxima_thresh=None):
         >>> maxima_x, maxima_y, argmaxima = hist_argmaxima(hist, centers)
         >>> result = str((maxima_x, maxima_y, argmaxima))
         >>> print(result)
-        (array([ 2.75]), array([ 34.62]), array([4]))
+        (array([ 0.39,  2.75]), array([  8.69,  34.62]), array([1, 4]))
     """
     # FIXME: Not handling general cases
     # [0] index because argrelmaxima returns a tuple

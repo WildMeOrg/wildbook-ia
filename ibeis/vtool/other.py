@@ -2382,6 +2382,24 @@ def fromiter_nd(iter_, shape, dtype):
     return arr
 
 
+def ensure_column_shape(arr, num_cols):
+    arr_ = np.asanyarray(arr)
+    if len(arr_.shape) == 0:
+        pass
+    elif len(arr_.shape) == 1:
+        arr_.shape = (arr_.size, num_cols)
+    else:
+        assert arr_.shape[1] == num_cols, 'bad number of cols'
+    return arr_
+
+
+#def asarray2(arr, dtype=None, default_shape=None):
+#    if len(arr) == 0:
+#        arr = np.empty(default_shape, dtype=dtype)
+#    else:
+#        arr_ = np.asarray(arr, dtype=dtype)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
