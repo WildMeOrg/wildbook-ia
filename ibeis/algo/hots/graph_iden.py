@@ -516,7 +516,8 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.graph_iden import *  # NOQA
         >>> infr = testdata_infr()
-        >>> print('infr = %s' % (infr,))
+        >>> result = ('infr = %s' % (infr,))
+        >>> print(result)
         infr = <AnnotInference(nAids=6, nEdges=0)>
     """
 
@@ -829,8 +830,8 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         # TODO: use current nids
         qreq_ = ibs.new_query_request(aid_list, aid_list, cfgdict=cfgdict)
         cm_list = qreq_.execute(prog_hook=prog_hook)
-        infr.cm_list = qreq_
-        infr.qreq_ = cm_list
+        infr.cm_list = cm_list
+        infr.qreq_ = qreq_
 
     def exec_vsone(infr, prog_hook=None):
         # Post process ranks_top and bottom vsmany queries with vsone

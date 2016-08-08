@@ -1084,8 +1084,8 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
         >>> verbose = True
         >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(p=['default:codename=vsone'])
         >>> nns, neighb_idx, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list, Knorm = args
-        >>> qannot = qreq_.ibs.annots([qaid], qreq_.qparams)
-        >>> dannot = qreq_.ibs.annots([daid], qreq_.qparams)
+        >>> qannot = qreq_.ibs.annots([qaid], config=qreq_.qparams)
+        >>> dannot = qreq_.ibs.annots([daid], config=qreq_.qparams)
         >>> # execute function
         >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)
         >>> # check results
@@ -1111,8 +1111,8 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
         >>> nns, neighb_idx, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list, Knorm = args
         >>> # execute function
         >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)
-        >>> qannot = qreq_.ibs.annots([qaid], qreq_.qparams)
-        >>> dannot = qreq_.ibs.annots(vmt.daid, qreq_.qparams)
+        >>> qannot = qreq_.ibs.annots([qaid], config=qreq_.qparams)
+        >>> dannot = qreq_.ibs.annots(vmt.daid, config=qreq_.qparams)
         >>> # check results
         >>> assert ut.allsame(list(map(len, vmt[:-2]))), 'need same num rows'
         >>> ut.assert_inbounds(vmt.qfx, -1, qannot.num_feats)
