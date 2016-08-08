@@ -5945,22 +5945,48 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
     gps_list = ibs.get_image_gps(gid_list)
     note_list = ibs.get_image_notes(gid_list)
     temp = -1 if individual else -2
-    note_list = [
+    note_list_ = [
         ','.join(note.strip().split(',')[:temp])
         for note in note_list
     ]
+    note_list = [
+        ','.join(note.strip().split(',')[:-1])
+        for note in note_list
+    ]
 
+    special_zone_map = {
+        'GGR,13,A' : None,
+        'GGR,14,A' : 1,
+        'GGR,15,A' : None,
+        'GGR,19,A' : 2,
+        'GGR,23,A' : None,
+        'GGR,24,A' : 1,
+        'GGR,25,A' : 1,
+        'GGR,27,A' : 1,
+        'GGR,29,A' : 1,
+        'GGR,37,A' : 1,
+        'GGR,38,C' : 1,
+        'GGR,40,A' : 1,
+        'GGR,41,B' : 1,
+        'GGR,44,A' : None,
+        'GGR,45,A' : None,
+        'GGR,46,A' : 1,
+        'GGR,62,B' : 1,
+        'GGR,97,B' : 2,
+    }
+
+    skipped_list = []
     skipped = 0
     for gid, point in zip(gid_list, gps_list):
         if point == (-1, -1):
             unixtime = ibs.get_image_unixtime(gid)
             index = gid_list.index(gid)
-            note = note_list[index]
+            note = note_list_[index]
 
             # Find siblings in the same car
             sibling_gid_list = [
                 gid_
-                for gid_, note_ in zip(gid_list, note_list)
+                for gid_, note_ in zip(gid_list, note_list_)
                 if note_ == note
             ]
 
@@ -5985,6 +6011,15 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
                     point = closest_gps
 
         if point == (-1, -1):
+            note = note_list[index]
+            if note in special_zone_map:
+                zone = special_zone_map[note]
+                if zone is not None:
+                    imageset_dict[zone].append(gid)
+                    continue
+
+        if point == (-1, -1):
+            skipped_list.append(note)
             skipped += 1
             continue
 
@@ -6006,6 +6041,8 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
         ibs.delete_gsgr_imageset_relations(imageset_id)
         ibs.set_image_imgsetids(gid_list, [imageset_id] * len(gid_list))
     print('SKIPPED %d IMAGES' % (skipped, ))
+    skipped_list = sorted(list(set(skipped_list)))
+    print('skipped_list = %r' % (skipped_list, ))
 
 
 @register_ibs_method
