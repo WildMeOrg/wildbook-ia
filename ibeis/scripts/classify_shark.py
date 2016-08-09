@@ -131,6 +131,106 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
     #    pass
 
 
+def shark_net():
+    """
+    CommandLine:
+        python -m ibeis.scripts.classify_shark shark_net
+
+    Example:
+        >>> from ibeis.scripts.classify_shark import *  # NOQA
+        >>> shark_net()
+    """
+    import ibeis
+    ibs = ibeis.opendb('WS_ALL')
+
+    config = {
+        'dim_size': (224, 224),
+        'resize_dim': 'wh'
+    }
+
+    # Define model
+    from ibeis.scripts import classify_shark
+    training_dpath = ut.ensuredir(ibs.get_neuralnet_dir() + '2')
+    model = classify_shark.WhaleSharkInjuryModel(
+        #batch_size=32,
+        batch_size=16,
+        #arch_tag=dataset.alias_key,
+        #data_shape=dataset.data_shape,
+        arch_tag='ws244',
+        data_shape=config['dim_size'] + (3,),
+        # No regularization
+        weight_decay=None,
+        training_dpath=training_dpath,
+        #output_dims=dataset.output_dims,
+        output_dims=2,
+        learning_rate=.00001,
+    )
+    model.initialize_architecture()
+    model.print_dense_architecture_str()
+    model.build()
+
+    tup = get_shark_labels_and_metadata('binary', ibs=ibs, config=config)
+    ibs, annots, target, target_names, config, metadata, enc = tup
+    labels = annots.nids
+    from ibeis_cnn.dataset import stratified_label_shuffle_split
+    rng = np.random.RandomState(22019)
+    train_idx, test_idx = stratified_label_shuffle_split(target, labels, [.8, .2], rng=rng)
+
+    # Dont even bother with dataset
+    from os.path import join
+    data_fpath = join(ut.ensuredir(join(training_dpath, 'datacache')), 'data.cPkl')
+    if not ut.checkpath(data_fpath) or False:
+        import vtool as vt
+        nTotal = len(annots)
+        chip_gen = ibs.depc_annot.get('chips', annots.aids, 'img',
+                                      eager=False, config=config)
+        iternd_ = iter(ut.ProgIter(chip_gen, nTotal=nTotal))
+        shape = (nTotal,) + tuple(config['dim_size']) + (3,)
+        dtype = np.uint8
+        data = vt.fromiter_nd(iternd_, shape=shape, dtype=dtype)  # NOQA
+        ut.save_data(data_fpath, data)
+    else:
+        data = ut.load_data(data_fpath)
+
+    dataset = ut.ColumnLists({'X': data, 'y': target, 'labels': labels})
+    train_dataset = dataset.take(train_idx)
+    test_dataset = dataset.take(test_idx)
+
+    model.train_config = dict(
+        era_schedule=100,
+        max_epochs=1200,
+        learning_rate_adjust=.8,
+    )
+
+    X_train = train_dataset['X']
+    y_train = train_dataset['y']
+    label_train = train_dataset['labels']
+    rng = np.random.RandomState(90120)
+    learn_idx, valid_idx = stratified_label_shuffle_split(y_train, label_train, [.8, .2], rng=rng)
+
+    model.fit(X_train, y_train, valid_idx=valid_idx)
+
+    # Split training into a learn / valid set
+    #learn_dataset = train_dataset.take(learn_idx)
+    #valid_dataset = train_dataset.take(valid_idx)
+
+    #import sklearn.cross_validation
+    #xvalkw = dict(test_size=.2, n_iter=1, random_state=848903)
+    #import sklearn.model_selection
+    #xvalkw = dict(test_size=.2, n_iter=1, random_state=848903)
+    #lss = sklearn.model_selection.LabelShuffleSplit(target, **xvalkw)
+    #train_idx, test_idx, list(sss)[0]
+
+    ## parse training arguments
+
+    #X_train, y_train = dataset.load_subset('train')
+    #X_train, y_train = dataset.load_subset('test')
+    #X_valid, y_valid = dataset.load_subset('valid')
+
+    #model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
+    pass
+
+
 def get_sharks_dataset(target_type=None, data_type='hog'):
     """
     Ignore:
@@ -177,48 +277,19 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         )
         return ds
     elif data_type == 'chip':
-        from ibeis_cnn.dataset import DataSet
-        alias_key = 'sharks224_' + target_type
+        assert False
+        pass
+        #from ibeis_cnn.dataset import DataSet
+        #alias_key = 'sharks224_' + target_type
 
-        # ut.delete(data_fpath)
-        # ut.delete(labels_fpath)
-        # ut.delete(metadata_fpath)
-        try:
-            dataset = DataSet.from_alias_key(alias_key)
-        except Exception:
-            dataset = build_cnn_shark_dataset(target_type, alias_key)
+        ## ut.delete(data_fpath)
+        ## ut.delete(labels_fpath)
+        ## ut.delete(metadata_fpath)
+        #try:
+        #    dataset = DataSet.from_alias_key(alias_key)
+        #except Exception:
+        #    dataset = build_cnn_shark_dataset(target_type, alias_key)
 
-    # Define model
-    from ibeis.scripts import classify_shark
-    model = classify_shark.WhaleSharkInjuryModel(
-        #batch_size=32,
-        batch_size=16,
-        arch_tag=dataset.alias_key,
-        data_shape=dataset.data_shape,
-        # No regularization
-        weight_decay=None,
-        #output_dims=dataset.output_dims,
-        output_dims=2,
-        learning_rate=.00001,
-    )
-    #model.output_dims = 1
-    model.initialize_architecture()
-    model.print_dense_architecture_str()
-    #import sys
-    #sys.exit(1)
-    model.build()
-
-    # parse training arguments
-    train_config = ut.argparse_dict(dict(
-        learning_rate_schedule=15,
-        max_epochs=1200,
-        learning_rate_adjust=.8,
-    ))
-    #X_train, y_train = dataset.load_subset('train')
-    #X_train, y_train = dataset.load_subset('test')
-    #X_valid, y_valid = dataset.load_subset('valid')
-
-    #model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
 
 
 def build_cnn_shark_dataset(target_type, alias_key):
@@ -275,14 +346,16 @@ def build_cnn_shark_dataset(target_type, alias_key):
     return dataset
 
 
-def get_shark_labels_and_metadata(target_type=None):
+def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     import ibeis
-    ibs = ibeis.opendb('WS_ALL')
-    config = {
-        #'dim_size': (256, 256),
-        'dim_size': (224, 224),
-        'resize_dim': 'wh'
-    }
+    if ibs is None:
+        ibs = ibeis.opendb('WS_ALL')
+    if config is None:
+        config = {
+            #'dim_size': (256, 256),
+            'dim_size': (224, 224),
+            'resize_dim': 'wh'
+        }
     all_annots = ibs.annots(config=config)
 
     TARGET_TYPE = 'binary'
