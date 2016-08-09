@@ -5955,6 +5955,9 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
     ]
 
     special_zone_map = {
+        'GGR,3,A' : None,
+        'GGR,8,A' : None,
+        'GGR,10,A' : None,
         'GGR,13,A' : None,
         'GGR,14,A' : 1,
         'GGR,15,A' : None,
@@ -5965,6 +5968,7 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
         'GGR,27,A' : 1,
         'GGR,29,A' : 1,
         'GGR,37,A' : 1,
+        'GGR,37,B' : 1,
         'GGR,38,C' : 1,
         'GGR,40,A' : 1,
         'GGR,41,B' : 1,
@@ -5972,7 +5976,11 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
         'GGR,45,A' : 2,
         'GGR,46,A' : 1,
         'GGR,62,B' : 1,
+        'GGR,86,A' : None,
+        'GGR,96,A' : None,
         'GGR,97,B' : 2,
+        'GGR,108,A' : 1,
+        'GGR,118,C' : 6,
     }
 
     skipped_gid_list = []
