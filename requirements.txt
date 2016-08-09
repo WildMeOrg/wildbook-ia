@@ -25,4 +25,5 @@ requests>=2.5.0
 pyasn1>=0.1.7
 pynmea2>=1.5.3
 Flask==0.10.1
+lockfile>=0.10.2
 -e git+https://github.com/cameronbwhite/Flask-CAS.git@master#egg=flask_cas
