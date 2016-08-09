@@ -5959,7 +5959,7 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
         'GGR,14,A' : 1,
         'GGR,15,A' : None,
         'GGR,19,A' : 2,
-        'GGR,23,A' : None,
+        'GGR,23,A' : 1,
         'GGR,24,A' : 1,
         'GGR,25,A' : 1,
         'GGR,27,A' : 1,
@@ -5969,13 +5969,14 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
         'GGR,40,A' : 1,
         'GGR,41,B' : 1,
         'GGR,44,A' : None,
-        'GGR,45,A' : None,
+        'GGR,45,A' : 2,
         'GGR,46,A' : 1,
         'GGR,62,B' : 1,
         'GGR,97,B' : 2,
     }
 
-    skipped_list = []
+    skipped_gid_list = []
+    skipped_note_list = []
     skipped = 0
     for gid, point in zip(gid_list, gps_list):
         if point == (-1, -1):
@@ -6019,7 +6020,8 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
                     continue
 
         if point == (-1, -1):
-            skipped_list.append(note)
+            skipped_gid_list.append(gid)
+            skipped_note_list.append(note)
             skipped += 1
             continue
 
@@ -6041,8 +6043,9 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
         ibs.delete_gsgr_imageset_relations(imageset_id)
         ibs.set_image_imgsetids(gid_list, [imageset_id] * len(gid_list))
     print('SKIPPED %d IMAGES' % (skipped, ))
-    skipped_list = sorted(list(set(skipped_list)))
-    print('skipped_list = %r' % (skipped_list, ))
+    skipped_note_list = sorted(list(set(skipped_note_list)))
+    print('skipped_note_list = %r' % (skipped_note_list, ))
+    print('skipped_gid_list = %r' % (skipped_gid_list, ))
 
 
 @register_ibs_method
