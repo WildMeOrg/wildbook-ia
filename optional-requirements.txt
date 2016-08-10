@@ -9,6 +9,7 @@ nose>=1.3.7
 pytest>=2.9.2
 memory_profiler
 h5py
+pygco
 GitPython>=2.0.7
 Shapely>=1.5.7
 coverage>=3.7.1
