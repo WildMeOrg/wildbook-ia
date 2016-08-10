@@ -1226,7 +1226,7 @@ def dbinfo():
     return dbinfo_str_formatted
 
 
-@register_route('/test/counts.jsp', methods=['GET'], __api_postfix_check__=False)
+@register_route('/counts/', methods=['GET'], __api_postfix_check__=False)
 def wb_counts():
     fmt_str = '''<p># Annotations: <b>%d</b></p>
 <p># MediaAssets (images): <b>%d</b></p>
@@ -1271,6 +1271,16 @@ def wb_counts():
     except:
         counts_str = ''
     return counts_str
+
+
+@register_route('/test/counts.jsp', methods=['GET'], __api_postfix_check__=False)
+def wb_counts_alias1():
+    return wb_counts()
+
+
+@register_route('/gzgc/counts.jsp', methods=['GET'], __api_postfix_check__=False)
+def wb_counts_alias2():
+    return wb_counts()
 
 
 @register_route('/404/', methods=['GET'])
