@@ -117,7 +117,8 @@ def prepare_dict_uuids(class_dict, ibs):
         daid_list = class_dict['daid_list']
         dnid_list = ibs.get_name_rowids_from_text(class_dict['dname_list'])
         # if anything is unknown need to set to be negative daid
-        dnid_list = [-daid if dnid == ibs.const.UNKNOWN_NAME_ROWID else dnid
+        check_set = set([None, ibs.const.UNKNOWN_NAME_ROWID])
+        dnid_list = [-daid if dnid in check_set else dnid
                      for daid, dnid in zip(daid_list, dnid_list)]
         class_dict['dnid_list'] = dnid_list
     if 'qnid' not in class_dict and 'qname' in class_dict:

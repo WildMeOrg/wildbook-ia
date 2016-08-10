@@ -1226,12 +1226,12 @@ def dbinfo():
     return dbinfo_str_formatted
 
 
-@register_route('/test/counts.jsp', methods=['GET'], __api_postfix_check__=False)
+@register_route('/counts/', methods=['GET'])
 def wb_counts():
     fmt_str = '''<p># Annotations: <b>%d</b></p>
 <p># MediaAssets (images): <b>%d</b></p>
 <p># MarkedIndividuals: <b>%d</b></p>
-<p># Encounters: <b>null</b></p>
+<p># Encounters: <b>%d</b></p>
 <p># Occurrences: <b>%d</b></p>'''
 
     try:
@@ -1253,17 +1253,34 @@ def wb_counts():
         valid_aid_list = list(set(aid_list))
         valid_gid_list = list(set(gid_list))
         valid_imgset_id_list = list(set(imgset_id_list))
+        valid_imgset_id_list = list(set(imgset_id_list))
+
+        aids_list = ibs.get_imageset_aids(valid_imgset_id_list)
+        nids_list = map(ibs.get_annot_nids, aids_list)
+        nids_list = map(set, nids_list)
+        nids_list = ut.flatten(nids_list)
 
         num_nid = len(valid_nid_list)
         num_aid = len(valid_aid_list)
         num_gid = len(valid_gid_list)
         num_imgset = len(valid_imgset_id_list)
+        num_encounters = len(nids_list)
 
-        args = (num_aid, num_gid, num_nid, num_imgset, )
+        args = (num_aid, num_gid, num_nid, num_encounters, num_imgset, )
         counts_str = fmt_str % args
     except:
         counts_str = ''
     return counts_str
+
+
+@register_route('/test/counts.jsp', methods=['GET'], __api_postfix_check__=False)
+def wb_counts_alias1():
+    return wb_counts()
+
+
+@register_route('/gzgc/counts.jsp', methods=['GET'], __api_postfix_check__=False)
+def wb_counts_alias2():
+    return wb_counts()
 
 
 @register_route('/404/', methods=['GET'])
