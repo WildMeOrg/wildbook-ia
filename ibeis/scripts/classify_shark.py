@@ -150,24 +150,6 @@ def shark_net():
     target_type = 'binary'
     # ut.delete(ibs.get_neuralnet_dir())  # to reset
     dataset = build_cnn_shark_dataset(target_type)
-    dataset.load_splitsets()
-
-    if not dataset.has_splitset('learn'):
-        from ibeis_cnn.dataset import stratified_label_shuffle_split
-        rng = np.random.RandomState(22019)
-        nids = np.array(dataset.metadata['nid'])
-        # Partition into a testing and training dataset
-        y = dataset.labels
-        train_idx, test_idx = stratified_label_shuffle_split(y, nids, [.8, .2], rng=rng)
-        nids_train = nids.take(train_idx, axis=0)
-        y_train = y.take(train_idx, axis=0)
-        dataset.add_splitset('test', test_idx)
-        # dataset.add_splitset('train', train_idx)
-        # Partition training into learning and validation
-        rng = np.random.RandomState(90120)
-        learn_idx, valid_idx = stratified_label_shuffle_split(y_train, nids_train, [.8, .2], rng=rng)
-        dataset.add_splitset('learn', learn_idx)
-        dataset.add_splitset('valid', valid_idx)
 
     # Define model
     model = classify_shark.WhaleSharkInjuryModel(
@@ -281,6 +263,25 @@ def build_cnn_shark_dataset(target_type):
         # dataset.build_auxillary_data()
         dataset.register_self()
         dataset.save_alias(dataset.alias_key)
+
+    dataset.load_splitsets()
+
+    if not dataset.has_splitset('learn'):
+        from ibeis_cnn.dataset import stratified_label_shuffle_split
+        rng = np.random.RandomState(22019)
+        nids = np.array(dataset.metadata['nid'])
+        # Partition into a testing and training dataset
+        y = dataset.labels
+        train_idx, test_idx = stratified_label_shuffle_split(y, nids, [.8, .2], rng=rng)
+        nids_train = nids.take(train_idx, axis=0)
+        y_train = y.take(train_idx, axis=0)
+        dataset.add_splitset('test', test_idx)
+        # dataset.add_splitset('train', train_idx)
+        # Partition training into learning and validation
+        rng = np.random.RandomState(90120)
+        learn_idx, valid_idx = stratified_label_shuffle_split(y_train, nids_train, [.8, .2], rng=rng)
+        dataset.add_splitset('learn', learn_idx)
+        dataset.add_splitset('valid', valid_idx)
     return dataset
 
 
