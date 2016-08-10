@@ -84,7 +84,6 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             # Convolution 1
             _P(Conv2DLayer, num_filters=32, filter_size=(11, 11), stride=(1, 1),
                name='C1', **initkw),
-            #_P(DropoutLayer, p=.10, name='D1'),
 
             # Convolution 2
             _P(Conv2DLayer, num_filters=32, filter_size=(5, 5), stride=(1, 1),
@@ -102,7 +101,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             _P(Conv2DLayer, num_filters=64, filter_size=(3, 3), stride=(1, 1),
                name='C4', **initkw),
             _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P4'),
-            #_P(DropoutLayer, p=.30, name='D4'),
+            _P(DropoutLayer, p=.30, name='D4'),
 
             # Convolution 5
             _P(Conv2DLayer, num_filters=64, filter_size=(3, 3), stride=(1, 1),
@@ -111,12 +110,12 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
 
             # --- BEGIN DENSE NETWORK ---
             _P(DenseLayer, num_units=128, name='F6', **initkw),
-            _P(FeaturePoolLayer, pool_size=2, name='P6'),
-            #_P(DropoutLayer, p=.50, name='D6'),
+            # _P(FeaturePoolLayer, pool_size=2, name='P6'),
+            _P(DropoutLayer, p=.50, name='D6'),
 
-            _P(DenseLayer, num_units=128, name='F7', **initkw),
-            _P(FeaturePoolLayer, pool_size=2, name='P7'),
-            #_P(DropoutLayer, p=.50, name='D7'),
+            # _P(DenseLayer, num_units=128, name='F7', **initkw),
+            # # _P(FeaturePoolLayer, pool_size=2, name='P7'),
+            # _P(DropoutLayer, p=.50, name='D7'),
 
             _P(DenseLayer, num_units=output_dims, nonlinearity=softmax, name='F8'),
         ]
@@ -290,6 +289,37 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         #except Exception:
         #    dataset = build_cnn_shark_dataset(target_type, alias_key)
 
+    # Define model
+    from ibeis.scripts import classify_shark
+    model = classify_shark.WhaleSharkInjuryModel(
+        #batch_size=32,
+        batch_size=16,
+        arch_tag=dataset.alias_key,
+        data_shape=dataset.data_shape,
+        # No regularization
+        weight_decay=None,
+        #output_dims=dataset.output_dims,
+        output_dims=2,
+        learning_rate=.0001,
+    )
+    #model.output_dims = 1
+    model.initialize_architecture()
+    model.print_dense_architecture_str()
+    #import sys
+    #sys.exit(1)
+    model.build()
+
+    # parse training arguments
+    train_config = ut.argparse_dict(dict(
+        learning_rate_schedule=15,
+        max_epochs=1200,
+        learning_rate_adjust=.8,
+    ))
+    #X_train, y_train = dataset.load_subset('train')
+    #X_train, y_train = dataset.load_subset('test')
+    #X_valid, y_valid = dataset.load_subset('valid')
+
+    #model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
 
 
 def build_cnn_shark_dataset(target_type, alias_key):
@@ -297,16 +327,20 @@ def build_cnn_shark_dataset(target_type, alias_key):
     tup = get_shark_labels_and_metadata(target_type)
     ibs, annots, target, target_names, config, metadata, enc = tup
     data_shape = config['dim_size'] + (3,)
+
+    # Build dataset configuration string
     trail_cfgstr = ibs.depc_annot.get_config_trail_str('chips', config)
     trail_hashstr = ut.hashstr27(trail_cfgstr)
     visual_uuids = annots.visual_uuids
     metadata['visual_uuids'] = np.array(visual_uuids)
     chips_hashstr = ut.hashstr_arr27(annots.visual_uuids, 'chips')
     cfgstr = chips_hashstr + '_' + trail_hashstr
+
+    # Make dataset default paths
     training_dpath = ibs.get_neuralnet_dir()
     ut.ensuredir(training_dpath)
-    data_fpath = ut.unixjoin(training_dpath, 'data_%s.hdf5' % (cfgstr,))
-    labels_fpath = ut.unixjoin(training_dpath, 'labels_%s.hdf5' % (cfgstr,))
+    data_fpath = ut.unixjoin(training_dpath, 'data_%s.pkl' % (cfgstr,))
+    labels_fpath = ut.unixjoin(training_dpath, 'labels_%s.pkl' % (cfgstr,))
     metadata_fpath = ut.unixjoin(training_dpath, 'metadata_%s.pkl' % (cfgstr,))
 
     if not ut.checkpath(data_fpath, verbose=True):
@@ -316,11 +350,9 @@ def build_cnn_shark_dataset(target_type, alias_key):
                                       eager=False, config=config)
         iternd_ = iter(ut.ProgIter(chip_gen, nTotal=nTotal))
         shape = (nTotal,) + tuple(config['dim_size']) + (3,)
-        dtype = np.uint8
-        data = vt.fromiter_nd(iternd_, shape=shape, dtype=dtype)  # NOQA
-        labels = target
+        data = vt.fromiter_nd(iternd_, shape=shape, dtype=np.uint8)  # NOQA
         ut.save_data(data_fpath, data)
-        ut.save_data(labels_fpath, labels)
+        ut.save_data(labels_fpath, target)
         ut.save_data(metadata_fpath, metadata)
         del data
 
@@ -340,7 +372,7 @@ def build_cnn_shark_dataset(target_type, alias_key):
         data_shape=data_shape,
         num_labels=num_labels,
     )
-    dataset.build_auxillary_data()
+    # dataset.build_auxillary_data()
     dataset.register_self()
     dataset.save_alias(dataset.alias_key)
     return dataset
