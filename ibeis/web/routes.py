@@ -1226,7 +1226,7 @@ def dbinfo():
     return dbinfo_str_formatted
 
 
-@register_route('/counts/', methods=['GET'], __api_postfix_check__=False)
+@register_route('/counts/', methods=['GET'])
 def wb_counts():
     fmt_str = '''<p># Annotations: <b>%d</b></p>
 <p># MediaAssets (images): <b>%d</b></p>
