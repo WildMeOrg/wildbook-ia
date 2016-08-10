@@ -139,75 +139,58 @@ def shark_net():
         >>> from ibeis.scripts.classify_shark import *  # NOQA
         >>> shark_net()
     """
+    from ibeis.scripts import classify_shark
     import ibeis
     ibs = ibeis.opendb('WS_ALL')
-
     config = {
         'dim_size': (224, 224),
         'resize_dim': 'wh'
     }
 
+    target_type = 'binary'
+    dataset = build_cnn_shark_dataset(target_type)
+
+    if not dataset.has_splitset('train') or not dataset.has_splitset('test'):
+        from ibeis_cnn.dataset import stratified_label_shuffle_split
+        rng = np.random.RandomState(22019)
+        nids = np.array(dataset.metadata['nid'])
+        # Partition into a testing and training dataset
+        y = dataset.labels
+        train_idx, test_idx = stratified_label_shuffle_split(y, nids, [.8, .2], rng=rng)
+        nids_train = nids.take(train_idx, axis=0)
+        y_train = y.take(train_idx, axis=0)
+        dataset.add_splitset('test', test_idx)
+        # dataset.add_splitset('train', train_idx)
+        # Partition training into learning and validation
+        rng = np.random.RandomState(90120)
+        learn_idx, valid_idx = stratified_label_shuffle_split(y_train, nids_train, [.8, .2], rng=rng)
+        dataset.add_splitset('learn', learn_idx)
+        dataset.add_splitset('valid', valid_idx)
+
     # Define model
-    from ibeis.scripts import classify_shark
-    training_dpath = ut.ensuredir(ibs.get_neuralnet_dir() + '2')
     model = classify_shark.WhaleSharkInjuryModel(
-        #batch_size=32,
-        batch_size=16,
-        #arch_tag=dataset.alias_key,
-        #data_shape=dataset.data_shape,
+        batch_size=32,
         arch_tag='ws244',
         data_shape=config['dim_size'] + (3,),
         # No regularization
         weight_decay=None,
-        training_dpath=training_dpath,
-        #output_dims=dataset.output_dims,
+        training_dpath = ibs.get_neuralnet_dir(),
         output_dims=2,
-        learning_rate=.00001,
+        learning_rate=.001,
     )
     model.initialize_architecture()
-    model.print_dense_architecture_str()
-    model.build()
-
-    tup = get_shark_labels_and_metadata('binary', ibs=ibs, config=config)
-    ibs, annots, target, target_names, config, metadata, enc = tup
-    labels = annots.nids
-    from ibeis_cnn.dataset import stratified_label_shuffle_split
-    rng = np.random.RandomState(22019)
-    train_idx, test_idx = stratified_label_shuffle_split(target, labels, [.8, .2], rng=rng)
-
-    # Dont even bother with dataset
-    from os.path import join
-    data_fpath = join(ut.ensuredir(join(training_dpath, 'datacache')), 'data.cPkl')
-    if not ut.checkpath(data_fpath) or False:
-        import vtool as vt
-        nTotal = len(annots)
-        chip_gen = ibs.depc_annot.get('chips', annots.aids, 'img',
-                                      eager=False, config=config)
-        iternd_ = iter(ut.ProgIter(chip_gen, nTotal=nTotal))
-        shape = (nTotal,) + tuple(config['dim_size']) + (3,)
-        dtype = np.uint8
-        data = vt.fromiter_nd(iternd_, shape=shape, dtype=dtype)  # NOQA
-        ut.save_data(data_fpath, data)
-    else:
-        data = ut.load_data(data_fpath)
-
-    dataset = ut.ColumnLists({'X': data, 'y': target, 'labels': labels})
-    train_dataset = dataset.take(train_idx)
-    test_dataset = dataset.take(test_idx)
-
-    model.train_config = dict(
+    model.print_layer_info()
+    model.train_config.update(**dict(
         era_schedule=100,
         max_epochs=1200,
         learning_rate_adjust=.8,
-    )
+        monitor=True,
+    ))
 
-    X_train = train_dataset['X']
-    y_train = train_dataset['y']
-    label_train = train_dataset['labels']
-    rng = np.random.RandomState(90120)
-    learn_idx, valid_idx = stratified_label_shuffle_split(y_train, label_train, [.8, .2], rng=rng)
+    X_learn, y_learn = dataset.load_subset('learn')
+    X_valid, y_valid = dataset.load_subset('valid')
 
-    model.fit(X_train, y_train, valid_idx=valid_idx)
+    model.fit(X_learn, y_learn, X_valid=X_valid, y_valid=y_valid)
 
     # Split training into a learn / valid set
     #learn_dataset = train_dataset.take(learn_idx)
@@ -228,6 +211,70 @@ def shark_net():
 
     #model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
     pass
+
+
+def build_cnn_shark_dataset(target_type):
+    from ibeis_cnn.dataset import DataSet
+    tup = get_shark_labels_and_metadata(target_type)
+    ibs, annots, target, target_names, config, metadata, enc = tup
+    data_shape = config['dim_size'] + (3,)
+
+    # Build dataset configuration string
+    trail_cfgstr = ibs.depc_annot.get_config_trail_str('chips', config)
+    trail_hashstr = ut.hashstr27(trail_cfgstr)
+    visual_uuids = annots.visual_uuids
+    metadata['visual_uuid'] = np.array(visual_uuids)
+    metadata['nid'] = np.array(annots.nids)
+    chips_hashstr = ut.hashstr_arr27(annots.visual_uuids, 'chips')
+    cfgstr = chips_hashstr + '_' + trail_hashstr
+
+    # Try and preload dataset if possible
+    alias_key = 'sharks224_' + target_type
+    try:
+        dataset = DataSet.from_alias_key(alias_key)
+    except Exception:
+        # Make dataset default paths
+        training_dpath = ibs.get_neuralnet_dir()
+        ut.ensuredir(training_dpath)
+        data_fpath = ut.unixjoin(training_dpath, 'data_%s.pkl' % (cfgstr,))
+        labels_fpath = ut.unixjoin(training_dpath, 'labels_%s.pkl' % (cfgstr,))
+        metadata_fpath = ut.unixjoin(training_dpath, 'metadata_%s.pkl' % (cfgstr,))
+
+        if not ut.checkpath(data_fpath, verbose=True):
+            import vtool as vt
+            nTotal = len(annots)
+            chip_gen = ibs.depc_annot.get('chips', annots.aids, 'img',
+                                          eager=False, config=config)
+            iter_ = iter(ut.ProgIter(chip_gen, nTotal=nTotal, lbl='load chip'))
+            shape = (nTotal,) + tuple(config['dim_size']) + (3,)
+            data = vt.fromiter_nd(iter_, shape=shape, dtype=np.uint8)  # NOQA
+            labels = target
+            ut.save_data(data_fpath, data)
+            ut.save_data(labels_fpath, labels)
+            ut.save_data(metadata_fpath, metadata)
+            del data
+        else:
+            # hack for caching num_labels
+            labels = ut.load_data(labels_fpath)
+        num_labels = len(labels)
+        output_dims = len(target_names)
+
+        dataset = DataSet(
+            alias_key=alias_key,
+            data_fpath=data_fpath,
+            labels_fpath=labels_fpath,
+            metadata_fpath=metadata_fpath,
+            training_dpath=training_dpath,
+            dataset_dpath=training_dpath,  # TODO: make this different
+            data_per_label=1,
+            output_dims=output_dims,
+            data_shape=data_shape,
+            num_labels=num_labels,
+        )
+        # dataset.build_auxillary_data()
+        dataset.register_self()
+        dataset.save_alias(dataset.alias_key)
+    return dataset
 
 
 def get_sharks_dataset(target_type=None, data_type='hog'):
@@ -289,93 +336,37 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         #except Exception:
         #    dataset = build_cnn_shark_dataset(target_type, alias_key)
 
-    # Define model
-    from ibeis.scripts import classify_shark
-    model = classify_shark.WhaleSharkInjuryModel(
-        #batch_size=32,
-        batch_size=16,
-        arch_tag=dataset.alias_key,
-        data_shape=dataset.data_shape,
-        # No regularization
-        weight_decay=None,
-        #output_dims=dataset.output_dims,
-        output_dims=2,
-        learning_rate=.0001,
-    )
-    #model.output_dims = 1
-    model.initialize_architecture()
-    model.print_dense_architecture_str()
-    #import sys
-    #sys.exit(1)
-    model.build()
+    # # Define model
+    # from ibeis.scripts import classify_shark
+    # model = classify_shark.WhaleSharkInjuryModel(
+    #     #batch_size=32,
+    #     batch_size=16,
+    #     arch_tag=dataset.alias_key,
+    #     data_shape=dataset.data_shape,
+    #     # No regularization
+    #     weight_decay=None,
+    #     #output_dims=dataset.output_dims,
+    #     output_dims=2,
+    #     learning_rate=.0001,
+    # )
+    # #model.output_dims = 1
+    # model.initialize_architecture()
+    # model.print_dense_architecture_str()
+    # #import sys
+    # #sys.exit(1)
+    # model.build()
 
-    # parse training arguments
-    train_config = ut.argparse_dict(dict(
-        learning_rate_schedule=15,
-        max_epochs=1200,
-        learning_rate_adjust=.8,
-    ))
-    #X_train, y_train = dataset.load_subset('train')
+    # # parse training arguments
+    # train_config = ut.argparse_dict(dict(
+    #     learning_rate_schedule=15,
+    #     max_epochs=1200,
+    #     learning_rate_adjust=.8,
+    # ))
+    # #X_train, y_train = dataset.load_subset('train')
     #X_train, y_train = dataset.load_subset('test')
     #X_valid, y_valid = dataset.load_subset('valid')
 
     #model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
-
-
-def build_cnn_shark_dataset(target_type, alias_key):
-    from ibeis_cnn.dataset import DataSet
-    tup = get_shark_labels_and_metadata(target_type)
-    ibs, annots, target, target_names, config, metadata, enc = tup
-    data_shape = config['dim_size'] + (3,)
-
-    # Build dataset configuration string
-    trail_cfgstr = ibs.depc_annot.get_config_trail_str('chips', config)
-    trail_hashstr = ut.hashstr27(trail_cfgstr)
-    visual_uuids = annots.visual_uuids
-    metadata['visual_uuids'] = np.array(visual_uuids)
-    chips_hashstr = ut.hashstr_arr27(annots.visual_uuids, 'chips')
-    cfgstr = chips_hashstr + '_' + trail_hashstr
-
-    # Make dataset default paths
-    training_dpath = ibs.get_neuralnet_dir()
-    ut.ensuredir(training_dpath)
-    data_fpath = ut.unixjoin(training_dpath, 'data_%s.pkl' % (cfgstr,))
-    labels_fpath = ut.unixjoin(training_dpath, 'labels_%s.pkl' % (cfgstr,))
-    metadata_fpath = ut.unixjoin(training_dpath, 'metadata_%s.pkl' % (cfgstr,))
-
-    if not ut.checkpath(data_fpath, verbose=True):
-        import vtool as vt
-        nTotal = len(annots)
-        chip_gen = ibs.depc_annot.get('chips', annots.aids, 'img',
-                                      eager=False, config=config)
-        iternd_ = iter(ut.ProgIter(chip_gen, nTotal=nTotal))
-        shape = (nTotal,) + tuple(config['dim_size']) + (3,)
-        data = vt.fromiter_nd(iternd_, shape=shape, dtype=np.uint8)  # NOQA
-        ut.save_data(data_fpath, data)
-        ut.save_data(labels_fpath, target)
-        ut.save_data(metadata_fpath, metadata)
-        del data
-
-    # hack for caching num_labels
-    #labels = ut.load_data(labels_fpath)
-    num_labels = len(labels)
-    output_dims = len(target_names)
-
-    dataset = DataSet(
-        alias_key=alias_key,
-        data_fpath=data_fpath,
-        labels_fpath=labels_fpath,
-        metadata_fpath=metadata_fpath,
-        training_dpath=training_dpath,
-        data_per_label=1,
-        output_dims=output_dims,
-        data_shape=data_shape,
-        num_labels=num_labels,
-    )
-    # dataset.build_auxillary_data()
-    dataset.register_self()
-    dataset.save_alias(dataset.alias_key)
-    return dataset
 
 
 def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
