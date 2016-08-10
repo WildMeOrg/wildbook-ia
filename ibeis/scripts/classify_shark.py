@@ -110,12 +110,12 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
 
             # --- BEGIN DENSE NETWORK ---
             _P(DenseLayer, num_units=128, name='F6', **initkw),
-            # _P(FeaturePoolLayer, pool_size=2, name='P6'),
+            _P(FeaturePoolLayer, pool_size=2, name='P6'),
             _P(DropoutLayer, p=.50, name='D6'),
 
-            # _P(DenseLayer, num_units=128, name='F7', **initkw),
-            # # _P(FeaturePoolLayer, pool_size=2, name='P7'),
-            # _P(DropoutLayer, p=.50, name='D7'),
+            _P(DenseLayer, num_units=128, name='F7', **initkw),
+            _P(FeaturePoolLayer, pool_size=2, name='P7'),
+            _P(DropoutLayer, p=.50, name='D7'),
 
             _P(DenseLayer, num_units=output_dims, nonlinearity=softmax, name='F8'),
         ]
@@ -157,7 +157,8 @@ def shark_net():
         arch_tag='ws244',
         data_shape=config['dim_size'] + (3,),
         # No regularization
-        weight_decay=None,
+        # weight_decay=None,
+        weight_decay=.0001,
         training_dpath = ibs.get_neuralnet_dir(),
         output_dims=2,
         learning_rate=.001,
@@ -165,7 +166,7 @@ def shark_net():
     model.initialize_architecture()
     model.print_layer_info()
     model.train_config.update(**dict(
-        era_schedule=100,
+        era_schedule=50,
         max_epochs=1200,
         learning_rate_adjust=.8,
         monitor=True,
