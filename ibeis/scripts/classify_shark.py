@@ -148,9 +148,11 @@ def shark_net():
     }
 
     target_type = 'binary'
+    # ut.delete(ibs.get_neuralnet_dir())  # to reset
     dataset = build_cnn_shark_dataset(target_type)
+    dataset.load_splitsets()
 
-    if not dataset.has_splitset('train') or not dataset.has_splitset('test'):
+    if not dataset.has_splitset('learn'):
         from ibeis_cnn.dataset import stratified_label_shuffle_split
         rng = np.random.RandomState(22019)
         nids = np.array(dataset.metadata['nid'])
@@ -189,6 +191,11 @@ def shark_net():
 
     X_learn, y_learn = dataset.load_subset('learn')
     X_valid, y_valid = dataset.load_subset('valid')
+
+    model.ensure_training_state(X_learn, y_learn)
+
+    model.build_backprop_func()
+    model.build_forward_func()
 
     model.fit(X_learn, y_learn, X_valid=X_valid, y_valid=y_valid)
 
