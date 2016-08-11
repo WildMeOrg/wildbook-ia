@@ -152,10 +152,10 @@ def shark_net():
     # ------------
     model = classify_shark.WhaleSharkInjuryModel(
         training_dpath=ibs.get_neuralnet_dir(),
+        output_dims=2,
         batch_size=32,
         data_shape=config['dim_size'] + (3,),
         weight_decay=.001,
-        output_dims=2,
         learning_rate=.001,
     )
     model.initialize_architecture()
