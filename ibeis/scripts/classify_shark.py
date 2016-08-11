@@ -191,7 +191,7 @@ def build_cnn_shark_dataset(target_type):
     """
     >>> from ibeis.scripts.classify_shark import *  # NOQA
     >>> target_type = 'binary'
-    >>> build_cnn_shark_dataset(target_type)
+    >>> dataset = build_cnn_shark_dataset(target_type)
     """
     target_type = 'binary'
     from ibeis_cnn.dataset import DataSet
@@ -230,9 +230,9 @@ def build_cnn_shark_dataset(target_type):
         labels = target
         # Save data where dataset expects it to be
         dataset.save(data, labels, metadata, data_per_label=1)
+    if not dataset.has_split('learn'):
         from ibeis_cnn.dataset import stratified_label_shuffle_split
         nids = np.array(dataset.metadata['nid'])
-    if not dataset.has_split('learn'):
         # Partition into a testing and training dataset
         y = dataset.labels
         train_idx, test_idx = stratified_label_shuffle_split(y, nids, [.8, .2], rng=22019)
