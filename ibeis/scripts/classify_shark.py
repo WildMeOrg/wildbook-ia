@@ -151,13 +151,10 @@ def shark_net():
     # Define model
     # ------------
     model = classify_shark.WhaleSharkInjuryModel(
-        batch_size=32,
-        arch_tag='ws244',
-        data_shape=config['dim_size'] + (3,),
-        # No regularization
-        # weight_decay=None,
-        weight_decay=.001,
         training_dpath=ibs.get_neuralnet_dir(),
+        batch_size=32,
+        data_shape=config['dim_size'] + (3,),
+        weight_decay=.001,
         output_dims=2,
         learning_rate=.001,
     )
@@ -193,12 +190,17 @@ def shark_net():
 
 
 def build_cnn_shark_dataset(target_type):
+    """
+    >>> from ibeis.scripts.classify_shark import *  # NOQA
+    >>> target_type = 'binary'
+    """
     target_type = 'binary'
     from ibeis_cnn.dataset import DataSet
     from ibeis.scripts import classify_shark
     tup = classify_shark.get_shark_labels_and_metadata(target_type)
     ibs, annots, target, target_names, config, metadata, enc = tup
     data_shape = config['dim_size'] + (3,)
+    nTotal = len(annots)
 
     # Build dataset configuration string
     trail_cfgstr = ibs.depc_annot.get_config_trail_str('chips', config)
@@ -210,37 +212,28 @@ def build_cnn_shark_dataset(target_type):
     cfgstr = chips_hashstr + '_' + trail_hashstr
 
     training_dpath = ibs.get_neuralnet_dir()
-    dataset = DataSet(cfgstr, training_dpath=training_dpath, name='shark')
+    dataset = DataSet(cfgstr,
+                      data_shape=data_shape,
+                      num_data=nTotal,
+                      training_dpath=training_dpath,
+                      name='injur-shark')
 
-    if not ut.checkpath(dataset.data_fpath, verbose=True):
+    try:
+        dataset.load()
+    except IOError:
         import vtool as vt
         dataset.ensure_dirs()
-        nTotal = len(annots)
         chip_gen = ibs.depc_annot.get('chips', annots.aids, 'img',
                                       eager=False, config=config)
         iter_ = iter(ut.ProgIter(chip_gen, nTotal=nTotal, lbl='load chip'))
         shape = (nTotal,) + data_shape
         data = vt.fromiter_nd(iter_, shape=shape, dtype=np.uint8)  # NOQA
         labels = target
-        ut.save_data(dataset.data_fpath, data)
-        ut.save_data(dataset.labels_fpath, labels)
-        ut.save_data(dataset.metadata_fpath, metadata)
-        del data
-        dataset.data_info = {
-            'data_shape': data_shape,
-            'num_labels': len(labels),
-            'output_dims': len(target_names),
-            'data_per_label': 1,
-        }
-        dataset.save_info()
-        #dataset.register_self()
-    else:
-        labels = dataset.labels
-        # dataset.build_auxillary_data()
-        #dataset.save_alias(dataset.alias_key)
-
-    dataset.load_splitsets()
-    if not dataset.has_splitset('learn'):
+        # Save data where dataset expects it to be
+        dataset.save(data, labels, metadata)
+        dataset.data_info['num_labels'] = len(labels)
+        dataset.data_info['output_dims'] = len(target_names)
+        dataset.data_info['data_per_label'] = 1
         from ibeis_cnn.dataset import stratified_label_shuffle_split
         rng = np.random.RandomState(22019)
         nids = np.array(dataset.metadata['nid'])
@@ -249,13 +242,13 @@ def build_cnn_shark_dataset(target_type):
         train_idx, test_idx = stratified_label_shuffle_split(y, nids, [.8, .2], rng=rng)
         nids_train = nids.take(train_idx, axis=0)
         y_train = y.take(train_idx, axis=0)
-        dataset.add_splitset('test', test_idx)
-        # dataset.add_splitset('train', train_idx)
         # Partition training into learning and validation
         rng = np.random.RandomState(90120)
         learn_idx, valid_idx = stratified_label_shuffle_split(y_train, nids_train, [.8, .2], rng=rng)
-        dataset.add_splitset('learn', learn_idx)
-        dataset.add_splitset('valid', valid_idx)
+        dataset.add_split('test', test_idx)
+        dataset.add_split('learn', learn_idx)
+        dataset.add_split('valid', valid_idx)
+        dataset.clear_cache('full')
     return dataset
 
 
