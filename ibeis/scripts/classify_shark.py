@@ -6,11 +6,6 @@ import sklearn
 import sklearn.datasets
 import sklearn.svm
 import sklearn.metrics
-try:
-    import sklearn.model_selection
-except ImportError:
-    pass
-import sklearn.grid_search
 from sklearn import preprocessing
 import plottool as pt
 from plottool import abstract_interaction
@@ -34,90 +29,49 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         r"""
 
         CommandLine:
-            python -m ibeis.scripts.classify_shark get_sharks_dataset --show
+            python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.initialize_architecture
+            python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.initialize_architecture --show
 
+            python -m ibeis.scripts.classify_shark shark_net
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.classify_shark import *  # NOQA
             >>> verbose = True
             >>> data_shape = tuple(ut.get_argval('--datashape', type_=list,
             >>>                                  default=(256, 256, 3)))
-            >>> model = WhaleSharkInjuryModel(batch_size=128, output_dims=2,
+            >>> model = WhaleSharkInjuryModel(batch_size=32, output_dims=2,
             >>>                               data_shape=data_shape)
             >>> model.initialize_architecture()
-            >>> model.print_dense_architecture_str()
+            >>> model.print_model_info_str()
             >>> ut.quit_if_noshow()
             >>> model.show_architecture_image()
             >>> ut.show_if_requested()
         """
-        from ibeis_cnn.__LASAGNE__ import layers
-        from ibeis_cnn.__LASAGNE__ import nonlinearities
+        import ibeis_cnn.__LASAGNE__ as lasange
         from ibeis_cnn import custom_layers
-
         print('[model] initialize_architecture')
-
-        _P = ut.partial
-
-        # nonlineararities
-        softmax = nonlinearities.softmax
-        lru = nonlinearities.LeakyRectify(leakiness=(1. / 10.))
-        initkw = dict(nonlinearity=lru)
-
-        # Layer types that will be used
-        Conv2DLayer = custom_layers.Conv2DLayer
-        MaxPool2DLayer = custom_layers.MaxPool2DLayer
-        DropoutLayer = layers.DropoutLayer  # NOQA
-        DenseLayer = layers.DenseLayer
-        FeaturePoolLayer = layers.FeaturePoolLayer
-
-        # Pretrained weights
-        #_CaffeNet = abstract_models.PretrainedNetwork('caffenet')
-        #W1 = _CaffeNet.get_pretrained_layer(0)
-        #W2 = _CaffeNet.get_pretrained_layer(2)
-
-        output_dims = model.output_dims
+        lru = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 10.))
+        bundles = custom_layers.make_bundles(
+            nonlinearity=lru, batch_norm=True,
+        )
+        InputBundle          = bundles['InputBundle']
+        ConvBundle           = bundles['ConvBundle']
+        ConvPoolBundle       = bundles['ConvPoolBundle']
+        FullyConnectedBundle = bundles['FullyConnectedBundle']
+        SoftmaxBundle        = bundles['SoftmaxBundle']
 
         network_layers_def = [
-            _P(layers.InputLayer, shape=model.input_shape, name='I0'),
-            #_P(layers.GaussianNoiseLayer, name='G0'),
-
-            # Convolution 1
-            _P(Conv2DLayer, num_filters=32, filter_size=(11, 11), stride=(1, 1),
-               name='C1', **initkw),
-
-            # Convolution 2
-            _P(Conv2DLayer, num_filters=32, filter_size=(5, 5), stride=(1, 1),
-               name='C2', **initkw),
-            _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P2'),
-            #_P(DropoutLayer, p=.10, name='D2'),
-
-            # Convolution 3
-            _P(Conv2DLayer, num_filters=32, filter_size=(3, 3), stride=(1, 1),
-               name='C3', **initkw),
-            _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P3'),
-            #_P(DropoutLayer, p=.30, name='D3'),
-
-            # Convolution 4
-            _P(Conv2DLayer, num_filters=64, filter_size=(3, 3), stride=(1, 1),
-               name='C4', **initkw),
-            _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P4'),
-            _P(DropoutLayer, p=.30, name='D4'),
-
-            # Convolution 5
-            _P(Conv2DLayer, num_filters=64, filter_size=(3, 3), stride=(1, 1),
-               name='C5', **initkw),
-            _P(MaxPool2DLayer, pool_size=(2, 2), stride=(2, 2), name='P5'),
-
-            # --- BEGIN DENSE NETWORK ---
-            _P(DenseLayer, num_units=128, name='F6', **initkw),
-            _P(FeaturePoolLayer, pool_size=2, name='P6'),
-            _P(DropoutLayer, p=.50, name='D6'),
-
-            #_P(DenseLayer, num_units=128, name='F7', **initkw),
-            #_P(FeaturePoolLayer, pool_size=2, name='P7'),
-            #_P(DropoutLayer, p=.50, name='D7'),
-
-            _P(DenseLayer, num_units=output_dims, nonlinearity=softmax, name='F8'),
+            InputBundle(shape=model.input_shape, noise=False),
+            # Convolutional layers
+            ConvBundle(num_filters=32, filter_size=(11, 11)),
+            #ConvPoolBundle(num_filters=32, filter_size=(11, 11)),
+            ConvPoolBundle(num_filters=32, filter_size=(5, 5)),
+            ConvPoolBundle(num_filters=32, filter_size=(3, 3)),
+            ConvPoolBundle(num_filters=64, filter_size=(3, 3)),
+            ConvPoolBundle(num_filters=64, filter_size=(3, 3)),
+            # Fully connected layers
+            FullyConnectedBundle(num_units=128),
+            SoftmaxBundle(num_units=model.output_dims)
         ]
         network_layers = abstract_models.evaluate_layer_list(
             network_layers_def, verbose=verbose)
@@ -153,17 +107,17 @@ def shark_net():
     model = classify_shark.WhaleSharkInjuryModel(
         training_dpath=ibs.get_neuralnet_dir(),
         output_dims=2,
-        batch_size=64,
         data_shape=config['dim_size'] + (3,),
+        batch_size=32,
         weight_decay=.001,
         learning_rate=.001,
     )
     model.initialize_architecture()
     model.print_layer_info()
     model.train_config.update(**dict(
-        era_schedule=50,
+        era_size=50,
         max_epochs=1200,
-        learning_rate_adjust=.8,
+        rate_decay=.8,
         monitor=True,
     ))
     model.build_backprop_func()
@@ -247,6 +201,7 @@ def build_cnn_shark_dataset(target_type):
         dataset.add_split('learn', learn_idx)
         dataset.add_split('valid', valid_idx)
         dataset.clear_cache('full')
+    dataset.ensure_symlinked()
     return dataset
 
 
@@ -297,49 +252,6 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
         return ds
     elif data_type == 'chip':
         assert False
-        pass
-        #from ibeis_cnn.dataset import DataSet
-        #alias_key = 'sharks224_' + target_type
-
-        ## ut.delete(data_fpath)
-        ## ut.delete(labels_fpath)
-        ## ut.delete(metadata_fpath)
-        #try:
-        #    dataset = DataSet.from_alias_key(alias_key)
-        #except Exception:
-        #    dataset = build_cnn_shark_dataset(target_type, alias_key)
-
-    # # Define model
-    # from ibeis.scripts import classify_shark
-    # model = classify_shark.WhaleSharkInjuryModel(
-    #     #batch_size=32,
-    #     batch_size=16,
-    #     arch_tag=dataset.alias_key,
-    #     data_shape=dataset.data_shape,
-    #     # No regularization
-    #     weight_decay=None,
-    #     #output_dims=dataset.output_dims,
-    #     output_dims=2,
-    #     learning_rate=.0001,
-    # )
-    # #model.output_dims = 1
-    # model.initialize_architecture()
-    # model.print_dense_architecture_str()
-    # #import sys
-    # #sys.exit(1)
-    # model.build()
-
-    # # parse training arguments
-    # train_config = ut.argparse_dict(dict(
-    #     learning_rate_schedule=15,
-    #     max_epochs=1200,
-    #     learning_rate_adjust=.8,
-    # ))
-    # #X_train, y_train = dataset.load_subset('train')
-    #X_train, y_train = dataset.load_subset('test')
-    #X_valid, y_valid = dataset.load_subset('valid')
-
-    #model.fit_interactive(X_train, y_train, X_valid, y_valid, dataset, train_config)
 
 
 def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
@@ -506,6 +418,12 @@ class ClfProblem(object):
             >>> problem = classify_shark.ClfProblem(ds)
             >>> problem.print_support_info()
         """
+        try:
+            import sklearn.model_selection
+        except ImportError:
+            pass
+        import sklearn.grid_search
+
         with ut.Timer('cv'):
             data = problem.ds.data
             target = problem.ds.target
