@@ -341,6 +341,10 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         review_pair = review_pair[0]
         annot_uuid_1 = review_pair['annot_uuid_1']
         annot_uuid_2 = review_pair['annot_uuid_2']
+
+    ibs.web_check_uuids(qannot_uuid_list=[annot_uuid_1],
+                        dannot_uuid_list=[annot_uuid_2])
+
     aid_1 = ibs.get_annot_aids_from_uuid(annot_uuid_1)
     aid_2 = ibs.get_annot_aids_from_uuid(annot_uuid_2)
 
