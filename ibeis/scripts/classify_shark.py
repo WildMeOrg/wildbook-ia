@@ -230,16 +230,17 @@ def build_cnn_shark_dataset(target_type):
         # Save data where dataset expects it to be
         dataset.save(data, labels, metadata, data_per_label=1)
         from ibeis_cnn.dataset import stratified_label_shuffle_split
-        rng = np.random.RandomState(22019)
         nids = np.array(dataset.metadata['nid'])
         # Partition into a testing and training dataset
         y = dataset.labels
-        train_idx, test_idx = stratified_label_shuffle_split(y, nids, [.8, .2], rng=rng)
+        train_idx, test_idx = stratified_label_shuffle_split(y, nids, [.8, .2], rng=22019)
         nids_train = nids.take(train_idx, axis=0)
         y_train = y.take(train_idx, axis=0)
         # Partition training into learning and validation
-        rng = np.random.RandomState(90120)
-        learn_idx, valid_idx = stratified_label_shuffle_split(y_train, nids_train, [.8, .2], rng=rng)
+        learn_idx, valid_idx = stratified_label_shuffle_split(y_train, nids_train, [.8, .2], idx=train_idx, rng=90120)
+        assert len(np.intersect1d(learn_idx, test_idx)) == 0
+        assert len(np.intersect1d(valid_idx, test_idx)) == 0
+        assert len(np.intersect1d(learn_idx, valid_idx)) == 0
         dataset.add_split('test', test_idx)
         dataset.add_split('learn', learn_idx)
         dataset.add_split('valid', valid_idx)
