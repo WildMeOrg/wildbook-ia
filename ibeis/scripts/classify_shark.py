@@ -230,10 +230,7 @@ def build_cnn_shark_dataset(target_type):
         data = vt.fromiter_nd(iter_, shape=shape, dtype=np.uint8)  # NOQA
         labels = target
         # Save data where dataset expects it to be
-        dataset.save(data, labels, metadata)
-        dataset.data_info['num_labels'] = len(labels)
-        dataset.data_info['output_dims'] = len(target_names)
-        dataset.data_info['data_per_label'] = 1
+        dataset.save(data, labels, metadata, data_per_label=1)
         from ibeis_cnn.dataset import stratified_label_shuffle_split
         rng = np.random.RandomState(22019)
         nids = np.array(dataset.metadata['nid'])
