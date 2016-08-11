@@ -166,6 +166,8 @@ def shark_net():
         learning_rate_adjust=.8,
         monitor=True,
     ))
+    model.build_backprop_func()
+    model.build_forward_func()
 
     # ------------
     # Define dataset
@@ -180,11 +182,7 @@ def shark_net():
 
     X_learn, y_learn = dataset.load_subset('learn')
     X_valid, y_valid = dataset.load_subset('valid')
-
     model.ensure_training_state(X_learn, y_learn)
-
-    model.build_backprop_func()
-    model.build_forward_func()
 
     model.fit(X_learn, y_learn, X_valid=X_valid, y_valid=y_valid)
 
