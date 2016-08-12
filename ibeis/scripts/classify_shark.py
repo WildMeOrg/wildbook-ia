@@ -108,14 +108,14 @@ def shark_net():
         training_dpath=ibs.get_neuralnet_dir(),
         output_dims=2,
         data_shape=config['dim_size'] + (3,),
-        batch_size=32,
-        weight_decay=.001,
-        learning_rate=.001,
+        batch_size=64,
+        weight_decay=.01,
+        learning_rate=.0001,
     )
     model.initialize_architecture()
     model.print_layer_info()
     model.train_config.update(**dict(
-        era_size=50,
+        era_size=3,
         max_epochs=1200,
         rate_decay=.8,
         monitor=True,
