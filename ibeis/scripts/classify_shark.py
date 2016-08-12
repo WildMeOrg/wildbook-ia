@@ -16,6 +16,8 @@ from ibeis_cnn.models import abstract_models
 def shark_net():
     """
     CommandLine:
+        python -m ibeis.scripts.classify_shark shark_net
+        python -m ibeis.scripts.classify_shark shark_net --dry
         python -m ibeis.scripts.classify_shark shark_net --vd
 
     Example:
@@ -52,6 +54,10 @@ def shark_net():
     )
     model.initialize_architecture()
     model.print_layer_info()
+
+    if ut.get_argflag('--dry'):
+        return
+
     model.train_config.update(**dict(
         era_size=3,
         max_epochs=1200,
@@ -91,15 +97,16 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.initialize_architecture
             python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.initialize_architecture --show
 
-            python -m ibeis.scripts.classify_shark shark_net
+            python -m ibeis.scripts.classify_shark shark_net --dry --show
             python -m ibeis.scripts.classify_shark shark_net --vd
+
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.classify_shark import *  # NOQA
             >>> verbose = True
             >>> data_shape = tuple(ut.get_argval('--datashape', type_=list,
-            >>>                                  default=(256, 256, 3)))
-            >>> model = WhaleSharkInjuryModel(batch_size=32, output_dims=2,
+            >>>                                  default=(224, 224, 3)))
+            >>> model = WhaleSharkInjuryModel(batch_size=64, output_dims=2,
             >>>                               data_shape=data_shape)
             >>> model.initialize_architecture()
             >>> model.print_model_info_str()
@@ -110,26 +117,35 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         import ibeis_cnn.__LASAGNE__ as lasange
         from ibeis_cnn import custom_layers
         print('[model] initialize_architecture')
-        lru = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 10.))
+        lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 10.))
         bundles = custom_layers.make_bundles(
-            nonlinearity=lru, batch_norm=True,
+            nonlinearity=lrelu, batch_norm=True,
+            filter_size=(3, 3), stride=(1, 1),
+            pool_size=(2, 2), pool_stride=(2, 2)
         )
         InputBundle          = bundles['InputBundle']
         ConvBundle           = bundles['ConvBundle']
-        ConvPoolBundle       = bundles['ConvPoolBundle']
         FullyConnectedBundle = bundles['FullyConnectedBundle']
         SoftmaxBundle        = bundles['SoftmaxBundle']
 
         network_layers_def = [
             InputBundle(shape=model.input_shape, noise=False),
             # Convolutional layers
-            ConvBundle(num_filters=32, filter_size=(11, 11)),
-            #ConvPoolBundle(num_filters=32, filter_size=(11, 11)),
-            ConvPoolBundle(num_filters=32, filter_size=(5, 5)),
-            ConvPoolBundle(num_filters=32, filter_size=(3, 3)),
-            ConvPoolBundle(num_filters=64, filter_size=(3, 3)),
-            ConvPoolBundle(num_filters=64, filter_size=(3, 3)),
+            ConvBundle(num_filters=32, pool=True),
+
+            ConvBundle(num_filters=32),
+            ConvBundle(num_filters=32, pool=True),
+
+            ConvBundle(num_filters=64),
+            ConvBundle(num_filters=128, pool=True),
+
+            ConvBundle(num_filters=256),
+            ConvBundle(num_filters=256, pool=True),
+
+            ConvBundle(num_filters=256),
+
             # Fully connected layers
+            FullyConnectedBundle(num_units=128),
             FullyConnectedBundle(num_units=128),
             SoftmaxBundle(num_units=model.output_dims)
         ]
@@ -163,7 +179,7 @@ def build_cnn_shark_dataset(target_type):
     trail_hashstr = ut.hashstr27(trail_cfgstr)
     visual_uuids = annots.visual_uuids
     metadata['visual_uuid'] = np.array(visual_uuids)
-    metadata['nid'] = np.array(annots.nids)
+    #metadata['nids'] = np.array(annots.nids)
     chips_hashstr = ut.hashstr_arr27(annots.visual_uuids, 'chips')
     cfgstr = chips_hashstr + '_' + trail_hashstr
 
@@ -190,7 +206,7 @@ def build_cnn_shark_dataset(target_type):
         dataset.save(data, labels, metadata, data_per_label=1)
     if not dataset.has_split('learn'):
         from ibeis_cnn.dataset import stratified_label_shuffle_split
-        nids = np.array(dataset.metadata['nid'])
+        nids = np.array(dataset.metadata['nids'])
         # Partition into a testing and training dataset
         y = dataset.labels
         train_idx, test_idx = stratified_label_shuffle_split(y, nids, [.8, .2], rng=22019)
@@ -235,27 +251,24 @@ def get_sharks_dataset(target_type=None, data_type='hog'):
     """
 
     data = None
-
-    if data_type == 'hog':
-        tup = get_shark_labels_and_metadata(target_type)
-        ibs, annots, target, target_names, config, metadata, enc = tup
-        data = np.array([h.ravel() for h in annots.hog_hog])
-        ds = sklearn.datasets.base.Bunch(
-            ibs=ibs,
-            #data=data,
-            name='sharks',
-            DESCR='injured-vs-healthy whale sharks',
-            target_names=target_names,
-            target_labels=enc.transform(target_names),
-            config=config,
-            target=target,
-            enc=enc,
-            data=data,
-            **metadata
-        )
-        return ds
-    elif data_type == 'chip':
-        assert False
+    tup = get_shark_labels_and_metadata(target_type)
+    ibs, annots, target, target_names, config, metadata, enc = tup
+    data = np.array([h.ravel() for h in annots.hog_hog])
+    # Build scipy / scikit data standards
+    ds = sklearn.datasets.base.Bunch(
+        ibs=ibs,
+        #data=data,
+        name='sharks',
+        DESCR='injured-vs-healthy whale sharks',
+        target_names=target_names,
+        target_labels=enc.transform(target_names),
+        config=config,
+        target=target,
+        enc=enc,
+        data=data,
+        **metadata
+    )
+    return ds
 
 
 def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
@@ -357,10 +370,10 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     target = enc.transform(ut.flatten(annot_tags))
     target_names = enc.classes_
 
-    # Build scipy / scikit data standards
-    metadata = dict(
-        aids=np.array(annots.aids),
-    )
+    metadata = {
+        'aids': np.array(annots.aids),
+        'nids': np.array(annots.nids),
+    }
     tup = ibs, annots, target, target_names, config, metadata, enc
     return tup
 
@@ -558,15 +571,19 @@ class ClfProblem(object):
         return train_idx, test_idx
 
     def gen_crossval_idxs(problem, n_folds=2):
-        xvalkw = dict(n_folds=n_folds, shuffle=True, random_state=43432)
-        target = problem.ds.target
-        #import sklearn.cross_validation
-        #skf = sklearn.cross_validation.StratifiedKFold(target, **xvalkw)
-        #_iter = skf
-        skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-        _iter = skf.split(y=target)
+        y = problem.ds.target
+        rng = 43432
+        #if hasattr(problem.ds, 'nids'):
+        #    labels = problem.ds.nids
+        xvalkw = dict(n_folds=n_folds, shuffle=True, random_state=rng)
+        import sklearn.cross_validation
+        skf = sklearn.cross_validation.StratifiedKFold(y, **xvalkw)
+        _iter = skf
+        #import sklearn.model_selection
+        #skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
+        #_iter = skf.split(X=np.empty(len(y)), y=y)
         msg = 'cross-val test on %s' % (problem.ds.name)
-        for count, (train_idx, test_idx) in enumerate(ut.ProgIter(_iter, lbl=msg)):
+        for count, (train_idx, test_idx) in enumerate(ut.ProgIter(_iter, nTotal=n_folds, lbl=msg)):
             yield train_idx, test_idx
 
 
@@ -643,6 +660,9 @@ def learn_injured_sharks():
 
     TODO:
         * Change unreviewed healthy tags to healthy-likely
+
+    CommandLine:
+        python -m ibeis.scripts.classify_shark learn_injured_sharks
 
     Example:
         >>> from ibeis.scripts.classify_shark import *  # NOQA
