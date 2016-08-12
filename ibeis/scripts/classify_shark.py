@@ -45,7 +45,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             >>> model.initialize_architecture()
             >>> model.print_model_info_str()
             >>> ut.quit_if_noshow()
-            >>> model.show_architecture_image()
+            >>> model.show_arch()
             >>> ut.show_if_requested()
         """
         import ibeis_cnn.__LASAGNE__ as lasange
