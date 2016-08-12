@@ -13,6 +13,65 @@ from ibeis_cnn.models import abstract_models
 (print, rrr, profile) = ut.inject2(__name__, '[classify_shark]')
 
 
+def shark_net():
+    """
+    CommandLine:
+        python -m ibeis.scripts.classify_shark shark_net --vd
+
+    Example:
+        >>> from ibeis.scripts.classify_shark import *  # NOQA
+        >>> shark_net()
+    """
+    from ibeis.scripts import classify_shark
+    import ibeis
+    ibs = ibeis.opendb('WS_ALL')  # NOQA
+    config = {
+        'dim_size': (224, 224),
+        'resize_dim': 'wh'
+    }
+
+    # ------------
+    # Define dataset
+    # ------------
+    target_type = 'binary'
+    # ut.delete(ibs.get_neuralnet_dir())  # to reset
+    dataset = build_cnn_shark_dataset(target_type)
+
+    # ------------
+    # Define model
+    # ------------
+    model = classify_shark.WhaleSharkInjuryModel(
+        name='injur-shark',
+        dataset_dpath=dataset.dataset_dpath,
+        # ibs.get_neuralnet_dir(),
+        output_dims=2,
+        data_shape=config['dim_size'] + (3,),
+        batch_size=64,
+        weight_decay=.01,
+        learning_rate=.0001,
+    )
+    model.initialize_architecture()
+    model.print_layer_info()
+    model.train_config.update(**dict(
+        era_size=3,
+        max_epochs=1200,
+        rate_decay=.8,
+        monitor=True,
+    ))
+
+    model.build_backprop_func()
+    model.build_forward_func()
+
+    # ---------------
+    # Setup and learn
+    # ---------------
+
+    X_learn, y_learn = dataset.load_subset('learn')
+    X_valid, y_valid = dataset.load_subset('valid')
+    model.ensure_training_state(X_learn, y_learn)
+    model.fit(X_learn, y_learn, X_valid=X_valid, y_valid=y_valid)
+
+
 @ut.reloadable_class
 class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
     """
@@ -85,64 +144,6 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
     #    pass
 
 
-def shark_net():
-    """
-    CommandLine:
-        python -m ibeis.scripts.classify_shark shark_net
-
-    Example:
-        >>> from ibeis.scripts.classify_shark import *  # NOQA
-        >>> shark_net()
-    """
-    from ibeis.scripts import classify_shark
-    import ibeis
-    ibs = ibeis.opendb('WS_ALL')  # NOQA
-    config = {
-        'dim_size': (224, 224),
-        'resize_dim': 'wh'
-    }
-
-    # ------------
-    # Define dataset
-    # ------------
-    target_type = 'binary'
-    # ut.delete(ibs.get_neuralnet_dir())  # to reset
-    dataset = build_cnn_shark_dataset(target_type)
-
-    # ------------
-    # Define model
-    # ------------
-    model = classify_shark.WhaleSharkInjuryModel(
-        dataset_dpath=dataset.dataset_dpath,
-        # ibs.get_neuralnet_dir(),
-        output_dims=2,
-        data_shape=config['dim_size'] + (3,),
-        batch_size=64,
-        weight_decay=.01,
-        learning_rate=.0001,
-    )
-    model.initialize_architecture()
-    model.print_layer_info()
-    model.train_config.update(**dict(
-        era_size=3,
-        max_epochs=1200,
-        rate_decay=.8,
-        monitor=True,
-    ))
-    model.build_backprop_func()
-    model.build_forward_func()
-
-    # ---------------
-    # Setup and learn
-    # ---------------
-
-    X_learn, y_learn = dataset.load_subset('learn')
-    X_valid, y_valid = dataset.load_subset('valid')
-    model.ensure_training_state(X_learn, y_learn)
-
-    model.fit(X_learn, y_learn, X_valid=X_valid, y_valid=y_valid)
-
-
 def build_cnn_shark_dataset(target_type):
     """
     >>> from ibeis.scripts.classify_shark import *  # NOQA
@@ -172,6 +173,7 @@ def build_cnn_shark_dataset(target_type):
                       num_data=nTotal,
                       training_dpath=training_dpath,
                       name='injur-shark')
+    print(dataset.dataset_id)
 
     try:
         dataset.load()
