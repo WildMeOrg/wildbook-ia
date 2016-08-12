@@ -33,6 +33,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.initialize_architecture --show
 
             python -m ibeis.scripts.classify_shark shark_net
+            python -m ibeis.scripts.classify_shark shark_net --vd
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.classify_shark import *  # NOQA
@@ -95,17 +96,25 @@ def shark_net():
     """
     from ibeis.scripts import classify_shark
     import ibeis
-    ibs = ibeis.opendb('WS_ALL')
+    ibs = ibeis.opendb('WS_ALL')  # NOQA
     config = {
         'dim_size': (224, 224),
         'resize_dim': 'wh'
     }
 
     # ------------
+    # Define dataset
+    # ------------
+    target_type = 'binary'
+    # ut.delete(ibs.get_neuralnet_dir())  # to reset
+    dataset = build_cnn_shark_dataset(target_type)
+
+    # ------------
     # Define model
     # ------------
     model = classify_shark.WhaleSharkInjuryModel(
-        training_dpath=ibs.get_neuralnet_dir(),
+        dataset_dpath=dataset.dataset_dpath,
+        # ibs.get_neuralnet_dir(),
         output_dims=2,
         data_shape=config['dim_size'] + (3,),
         batch_size=64,
@@ -122,13 +131,6 @@ def shark_net():
     ))
     model.build_backprop_func()
     model.build_forward_func()
-
-    # ------------
-    # Define dataset
-    # ------------
-    target_type = 'binary'
-    # ut.delete(ibs.get_neuralnet_dir())  # to reset
-    dataset = build_cnn_shark_dataset(target_type)
 
     # ---------------
     # Setup and learn
