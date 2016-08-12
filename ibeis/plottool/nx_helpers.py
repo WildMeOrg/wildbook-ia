@@ -942,8 +942,12 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             stackkw = patch_kw.copy()
             stackkw['linewidths'] = .2
             stackkw['edgecolor'] = 'k'
-            xshift = -width * (.1 / (depth ** (1 / 3))) / 3
-            yshift = height * (.1 / (depth ** (1 / 3))) / 2
+            #xshift = -width * (.1 / (depth ** (1 / 3))) / 3
+            #yshift = height * (.1 / (depth ** (1 / 3))) / 2
+            #xshift = -width * (.05) / 6
+            #yshift = height * (.05) / 2
+            xshift = -200 * (.05) / 6
+            yshift = 200 * (.05) / 2
             stackkw['shift'] = np.array([xshift, yshift])
             patch = pt.cartoon_stacked_rects(xy_bl, width, height, num=depth, **stackkw)
             patch.xy = xy
