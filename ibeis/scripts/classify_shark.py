@@ -66,8 +66,8 @@ def shark_net():
     # Setup and learn
     # ---------------
 
-    X_learn, y_learn = dataset.load_subset('learn')
-    X_valid, y_valid = dataset.load_subset('valid')
+    X_learn, y_learn = dataset.subset('learn')
+    X_valid, y_valid = dataset.subset('valid')
     model.ensure_training_state(X_learn, y_learn)
     model.fit(X_learn, y_learn, X_valid=X_valid, y_valid=y_valid)
 
