@@ -13,7 +13,7 @@ from ibeis_cnn.models import abstract_models
 (print, rrr, profile) = ut.inject2(__name__, '[classify_shark]')
 
 
-def shark_net():
+def shark_net(dry=False):
     """
     CommandLine:
         python -m ibeis.scripts.classify_shark shark_net
@@ -37,7 +37,7 @@ def shark_net():
     # ------------
     target_type = 'binary'
     # ut.delete(ibs.get_neuralnet_dir())  # to reset
-    dataset = build_cnn_shark_dataset(target_type)
+    dataset = classify_shark.build_cnn_shark_dataset(target_type)
 
     # ------------
     # Define model
@@ -55,8 +55,8 @@ def shark_net():
     model.initialize_architecture()
     model.print_layer_info()
 
-    if ut.get_argflag('--dry'):
-        return
+    if dry or ut.get_argflag('--dry'):
+        return model, dataset
 
     model.train_config.update(**dict(
         era_size=3,
