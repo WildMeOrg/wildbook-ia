@@ -65,8 +65,8 @@ def shark_net():
         monitor=True,
     ))
 
-    model.build_backprop_func()
-    model.build_forward_func()
+    #model.build_backprop_func()
+    #model.build_forward_func()
 
     # ---------------
     # Setup and learn
@@ -74,7 +74,7 @@ def shark_net():
 
     X_learn, y_learn = dataset.subset('learn')
     X_valid, y_valid = dataset.subset('valid')
-    model.ensure_training_state(X_learn, y_learn)
+    #model.ensure_training_state(X_learn, y_learn)
     model.fit(X_learn, y_learn, X_valid=X_valid, y_valid=y_valid)
 
 
@@ -445,7 +445,18 @@ class ClfProblem(object):
             data = problem.ds.data
             target = problem.ds.target
 
-            #train_idx = stratified_sample_idxs_unbalanced(target, 3000)
+            def stratified_sample_idxs_unbalanced(target, size=1000):
+                rng = np.random.RandomState(43)
+                sample = []
+                for label in np.unique(target):
+                    target_idxs = np.where(target == label)[0]
+                    subset_size = size
+                    rand_idx = ut.random_indexes(len(target_idxs), subset_size, rng=rng)
+                    sample_idx = ut.take(target_idxs, rand_idx)
+                    sample.append(sample_idx)
+                sample_idx = np.array(sorted(ut.flatten(sample)))
+                return sample_idx
+
             train_idx = stratified_sample_idxs_unbalanced(target, 4000)
 
             x_train = data.take(train_idx, axis=0)
@@ -573,17 +584,23 @@ class ClfProblem(object):
     def gen_crossval_idxs(problem, n_folds=2):
         y = problem.ds.target
         rng = 43432
-        #if hasattr(problem.ds, 'nids'):
-        #    labels = problem.ds.nids
-        xvalkw = dict(n_folds=n_folds, shuffle=True, random_state=rng)
-        import sklearn.cross_validation
-        skf = sklearn.cross_validation.StratifiedKFold(y, **xvalkw)
-        _iter = skf
-        #import sklearn.model_selection
-        #skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-        #_iter = skf.split(X=np.empty(len(y)), y=y)
+        if hasattr(problem.ds, 'nids'):
+            # Ensure that an individual does not appear in both the train
+            # and the test dataset
+            from ibeis_cnn.dataset import stratified_kfold_label_split
+            labels = problem.ds.nids
+            _iter = stratified_kfold_label_split(y, labels, n_folds=n_folds, rng=rng)
+        else:
+            xvalkw = dict(n_folds=n_folds, shuffle=True, random_state=rng)
+            import sklearn.cross_validation
+            skf = sklearn.cross_validation.StratifiedKFold(y, **xvalkw)
+            _iter = skf
+            #import sklearn.model_selection
+            #skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
+            #_iter = skf.split(X=np.empty(len(y)), y=y)
         msg = 'cross-val test on %s' % (problem.ds.name)
-        for count, (train_idx, test_idx) in enumerate(ut.ProgIter(_iter, nTotal=n_folds, lbl=msg)):
+        progiter = ut.ProgIter(_iter, nTotal=n_folds, lbl=msg)
+        for train_idx, test_idx in progiter:
             yield train_idx, test_idx
 
 
@@ -627,32 +644,6 @@ class ClfSingleResult(object):
         print(report)
 
 
-def stratified_sample_idxs_balanced(target, frac=.2, balanced=True):
-    rng = np.random.RandomState(43)
-    sample = []
-    for label in np.unique(target):
-        target_idxs = np.where(target == label)[0]
-        subset_size = int(len(target_idxs) * frac)
-        rand_idx = ut.random_indexes(len(target_idxs), subset_size, rng=rng)
-        sample_idx = ut.take(target_idxs, rand_idx)
-        sample.append(sample_idx)
-    sample_idx = np.array(sorted(ut.flatten(sample)))
-    return sample_idx
-
-
-def stratified_sample_idxs_unbalanced(target, size=1000):
-    rng = np.random.RandomState(43)
-    sample = []
-    for label in np.unique(target):
-        target_idxs = np.where(target == label)[0]
-        subset_size = size
-        rand_idx = ut.random_indexes(len(target_idxs), subset_size, rng=rng)
-        sample_idx = ut.take(target_idxs, rand_idx)
-        sample.append(sample_idx)
-    sample_idx = np.array(sorted(ut.flatten(sample)))
-    return sample_idx
-
-
 def learn_injured_sharks():
     r"""
     References:
@@ -679,14 +670,6 @@ def learn_injured_sharks():
     #target_type = 'multiclass1'
     #target_type = 'multiclass2'
     ds = classify_shark.get_sharks_dataset(target_type)
-
-    # Sample the dataset
-    #idxs = classify_shark.stratified_sample_idxs_balanced(ds.target, .5)
-    #idxs = classify_shark.stratified_sample_idxs_unbalanced(ds.target, 1500)
-    #idxs = classify_shark.stratified_sample_idxs_unbalanced(ds.target, 1000)
-    #ds.target = ds.target.take(idxs, axis=0)
-    #ds.data = ds.data.take(idxs, axis=0)
-    #ds.aids = ut.take(ds.aids, idxs)
 
     problem = classify_shark.ClfProblem(ds)
     problem.print_support_info()
