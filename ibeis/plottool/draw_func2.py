@@ -452,7 +452,9 @@ def render_figure_to_image(fig, **savekw):
 
 class RenderingContext(object):
     def __init__(self):
-        pass
+        self.image = None
+        self.fig = None
+        self.was_interactive = None
 
     def __enter__(self):
         import plottool as pt
@@ -1236,7 +1238,7 @@ def rotate_plot(theta=TAU / 8, ax=None):
     iup()
 
 
-def cartoon_stacked_rects(xy, width, height, num=4, **kwargs):
+def cartoon_stacked_rects(xy, width, height, num=4, shift=None, **kwargs):
     """
     pt.figure()
     xy = (.5, .5)
@@ -1245,10 +1247,18 @@ def cartoon_stacked_rects(xy, width, height, num=4, **kwargs):
     ax = pt.gca()
     ax.add_collection(col)
     """
-    shift = np.array([-width, height]) * (.1 / num)
+    if shift is None:
+        shift = np.array([-width, height]) * (.1 / num)
     xy = np.array(xy)
-    patch_list = [mpl.patches.Rectangle(xy + shift * count, width, height)
+    rectkw = dict(
+        ec=kwargs.pop('ec', None),
+        lw=kwargs.pop('lw', None),
+        linestyle=kwargs.pop('linestyle', None),
+    )
+    patch_list = [mpl.patches.Rectangle(xy + shift * count, width, height,
+                                        **rectkw)
                   for count in reversed(range(num))]
+    print(kwargs)
     col = mpl.collections.PatchCollection(patch_list, **kwargs)
     return col
 

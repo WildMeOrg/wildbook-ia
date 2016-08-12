@@ -127,7 +127,8 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
     node_size = layout_info['node']['size']
     node_pos = layout_info['node']['pos']
     if node_size is not None:
-        half_size_arr = np.array(ut.take(node_size, graph.nodes())) / 2.
+        size_arr = np.array(ut.take(node_size, graph.nodes()))
+        half_size_arr = size_arr / 2.
         pos_arr = np.array(ut.take(node_pos, graph.nodes()))
         # autoscale does not seem to work
         #ul_pos = pos_arr - half_size_arr
@@ -371,6 +372,17 @@ def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
             'node': {k: nx.get_node_attributes(graph, k) for k in node_keys},
             'edge': {k: nx.get_edge_attributes(graph, k) for k in edge_keys},
         }
+        # Post checks
+        node_info = layout_info['node']
+        if 'size' not in node_info:
+            if 'width' in node_info and 'height' in node_info:
+                node_info['size'] = {
+                    node: (node_info['width'][node], node_info['height'][node])
+                    for node in graph.nodes()
+                }
+                #node_info['size'] = list(zip(node_info['width'],
+                #                             node_info['height']))
+
     elif layout == 'agraph':
         # PREFERED LAYOUT WITH MOST CONTROL
         _, layout_info = nx_agraph_layout(graph, verbose=verbose,
@@ -841,7 +853,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     # print('layout_info = %r' % (layout_info,))
     node_pos = layout_info['node']['pos']
     node_size = layout_info['node']['size']
-    splines = layout_info['graph']['splines']
+    splines = layout_info['graph'].get('splines', 'line')
     # edge_startpoints = layout_info['edge']['start_pt']
 
     if as_directed is None:
@@ -886,20 +898,22 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         elif node_shape in ['none', 'box', 'rect', 'rectangle', 'rhombus']:
             width, height = _get_node_size(graph, node, node_size)
             angle = 45 if node_shape == 'rhombus' else 0
+            # Convert xy to center position
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
 
             # rounded = angle == 0
             rounded = 'rounded' in graph.node.get(node, {}).get('style', '')
             isdiag = 'diagonals' in graph.node.get(node, {}).get('style', '')
 
+            from matplotlib import patches
+
             if rounded:
-                from matplotlib import patches
                 rpad = 20
                 xy_bl = np.array(xy_bl) + rpad
-                width -= rpad
-                height -= rpad
+                width -= rpad * 2
+                height -= rpad * 2
                 boxstyle = patches.BoxStyle.Round(pad=rpad)
-                patch = mpl.patches.FancyBboxPatch(
+                patch = patches.FancyBboxPatch(
                     xy_bl, width, height, boxstyle=boxstyle, **patch_kw)
             else:
                 bbox = list(xy_bl) + [width, height]
@@ -912,21 +926,33 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                         _xy + [         0,  height / 2],
                         _xy + [ width / 2,           0],
                     ]
-                    patch = mpl.patches.Polygon(newverts_, **patch_kw)
+                    patch = patches.Polygon(newverts_, **patch_kw)
                 else:
-                    patch = mpl.patches.Rectangle(
+                    patch = patches.Rectangle(
                         xy_bl, width, height, angle=angle,
                         **patch_kw)
+
             patch.center = xy
         #if style == 'rounded'
         #elif node_shape in ['roundbox']:
         elif node_shape == 'stack':
             width, height = _get_node_size(graph, node, node_size)
             xy_bl = (xy[0] - width // 2, xy[1] - height // 2)
-            patch = pt.cartoon_stacked_rects(xy_bl, width, height, **patch_kw)
+            depth = nattrs.get('depth', 4)
+            stackkw = patch_kw.copy()
+            stackkw['linewidths'] = .2
+            stackkw['edgecolor'] = 'k'
+            xshift = -width * (.1 / (depth ** (1 / 3))) / 3
+            yshift = height * (.1 / (depth ** (1 / 3))) / 2
+            stackkw['shift'] = np.array([xshift, yshift])
+            patch = pt.cartoon_stacked_rects(xy_bl, width, height, num=depth, **stackkw)
             patch.xy = xy
         else:
             raise NotImplementedError('Unknown node_shape=%r' % (node_shape,))
+
+        show_center = 0
+        if show_center:
+            pt.plot(xy[0], xy[1], 'xr')
 
         zorder = nattrs.get('zorder', None)
         if True:
