@@ -1258,7 +1258,6 @@ def cartoon_stacked_rects(xy, width, height, num=4, shift=None, **kwargs):
     patch_list = [mpl.patches.Rectangle(xy + shift * count, width, height,
                                         **rectkw)
                   for count in reversed(range(num))]
-    print(kwargs)
     col = mpl.collections.PatchCollection(patch_list, **kwargs)
     return col
 
