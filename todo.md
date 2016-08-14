@@ -58,3 +58,8 @@ but the verts are shown when editing)
 * Replace print statements in classes with dedicated loggers
 This will allow debug info to be written to file and not stdout and separate 
 the streams of different print statements.
+
+
+* Delay the execution of costly imports such as theano and matplotlib to allow for 
+a faster startup time of the program. Only incur the cost of initialization if these 
+modules are used. The same goes for dtool databases and database backups.

@@ -842,6 +842,50 @@ def detect_sharks(ibs, gids):
         inter.start()
 
 
+def train_part_detector():
+    """
+    Problem:
+        healthy sharks usually have a mostly whole body shot
+        injured sharks usually have a close up shot.
+        This distribution of images is likely what the injur-shark net is picking up on.
+
+    The goal is to train a detector that looks for things that look
+    like the distribution of injured sharks.
+
+    We will run this on healthy sharks to find the parts of
+    """
+    import ibeis
+    ibs = ibeis.opendb('WS_ALL')
+    imgset = ibs.imagesets(text='Injured Sharks')
+    injured_annots = imgset.annots[0]
+
+    config = {
+        'dim_size': (224, 224),
+        'resize_dim': 'wh'
+    }
+
+    from pydarknet import Darknet_YOLO_Detector
+    data_path = ibs.export_to_xml()
+    output_path = join(ibs.get_cachedir(), 'training', 'localizer')
+    ut.ensuredir(output_path)
+    dark = Darknet_YOLO_Detector()
+    results = dark.train(data_path, output_path)
+    del dark
+
+    localizer_weight_path, localizer_config_path, localizer_class_path = results
+    classifier_model_path = ibs.classifier_train()
+    labeler_model_path = ibs.labeler_train()
+    output_path = join(ibs.get_cachedir(), 'training', 'detector')
+    ut.ensuredir(output_path)
+    ut.copy(localizer_weight_path, join(output_path, 'localizer.weights'))
+    ut.copy(localizer_config_path, join(output_path, 'localizer.config'))
+    ut.copy(localizer_class_path,  join(output_path, 'localizer.classes'))
+    ut.copy(classifier_model_path, join(output_path, 'classifier.npy'))
+    ut.copy(labeler_model_path,    join(output_path, 'labeler.npy'))
+
+    # ibs.detector_train()
+
+
 def parse_shark_tags(orig_fname_list):
     """
     >>> orig_fname_list = parsed['orig_fname']

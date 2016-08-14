@@ -32,6 +32,9 @@ CLASS_INJECT_KEY, register_ibs_method = (
 
 @register_ibs_method
 def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=False):
+    """
+    Creates training XML for training models
+    """
     import random
     from datetime import date
     # try:

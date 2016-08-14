@@ -7,8 +7,6 @@ import sklearn.datasets
 import sklearn.svm
 import sklearn.metrics
 from sklearn import preprocessing
-import plottool as pt
-from plottool import abstract_interaction
 from ibeis_cnn.models import abstract_models
 (print, rrr, profile) = ut.inject2(__name__, '[classify_shark]')
 
@@ -403,7 +401,7 @@ class ClfProblem(object):
         target = problem.ds.target
         x_train = data.take(train_idx, axis=0)
         y_train = target.take(train_idx, axis=0)
-        clf = sklearn.svm.SVC(kernel='linear', C=.17, class_weight='balanced',
+        clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
                               decision_function_shape='ovr')
 
         # C, penalty, loss
@@ -422,7 +420,7 @@ class ClfProblem(object):
         target = problem.ds.target
         x_train = data.take(train_idx, axis=0)
         y_train = target.take(train_idx, axis=0)
-        clf = sklearn.svm.SVC(kernel='linear', C=.17, class_weight='balanced',
+        clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
                               decision_function_shape='ovr')
         clf.fit(x_train, y_train)
 
@@ -474,7 +472,7 @@ class ClfProblem(object):
                 #'loss': ['l2', 'l1'],
                 #'penalty': ['l2', 'l1'],
             }
-            _clf = sklearn.svm.SVC(kernel='linear', C=.17, class_weight='balanced',
+            _clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
                                    decision_function_shape='ovr')
             clf = sklearn.grid_search.GridSearchCV(_clf, param_grid, n_jobs=6,
                                                    iid=False, cv=5, verbose=3)
@@ -495,6 +493,7 @@ class ClfProblem(object):
             y_data_min = ydata_mean - y_data_std
 
             #pt.plot(xdata, ydata, '-rx')
+            import plottool as pt
             pt.figure(fnum=pt.ensure_fnum(None))
             ax = pt.gca()
             ax.fill_between(xdata, y_data_min, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
@@ -653,11 +652,12 @@ def learn_injured_sharks():
         * Change unreviewed healthy tags to healthy-likely
 
     CommandLine:
-        python -m ibeis.scripts.classify_shark learn_injured_sharks
+        python -m ibeis.scripts.classify_shark learn_injured_sharks --show
 
     Example:
         >>> from ibeis.scripts.classify_shark import *  # NOQA
         >>> learn_injured_sharks()
+        >>> ut.show_if_requested()
     """
     from ibeis.scripts import classify_shark
     import sklearn.metrics
@@ -746,128 +746,9 @@ def learn_injured_sharks():
 
     ibs = ds.ibs
     config = ds.config
-    inter = classify_shark.InteractAnnotClasses(ibs, config, df_chunks, nCols=len(ds.target_labels))
+    from ibeis_cnn import draw_results
+    inter = draw_results.make_InteractClasses(ibs, config, df_chunks, nCols=len(ds.target_labels))
     inter.start()
-
-
-@ut.reloadable_class
-class InteractAnnotClasses(abstract_interaction.AbstractInteraction):
-    def __init__(inter, ibs, config, df_chunks, nCols, **kwargs):
-        inter.df_chunks = df_chunks
-        inter.ibs = ibs
-        inter.nCols = nCols
-        inter.config = config
-        inter._init_lists()
-        super(InteractAnnotClasses, inter).__init__(**kwargs)
-
-    def _init_lists(inter):
-        inter.offset_lists = []
-        inter.sizes_lists = []
-        inter.sf_lists = []
-        inter.ax_list = []
-        inter.metadata_lists = []
-        inter.data_lists = []
-
-    def _show_page(inter):
-        from ibeis_cnn import draw_results
-        inter._ensure_running()
-        inter._init_lists()
-
-        pnum_ = pt.make_pnum_nextgen(nCols=inter.nCols, nSubplots=len(inter.df_chunks))
-        for df_chunk in inter.df_chunks:
-            ibs = inter.ibs
-            config = inter.config
-            annots_chunk = ibs.annots(df_chunk['aid'].values, config=config)
-            #data_lists = [(np.array(annots_chunk.hog_img) * 255).astype(np.uint8),
-            #              annots_chunk.chips]
-            #data_lists = [annots_chunk.chips]
-            data_lists = [ibs.get_image_thumbnail(annots_chunk.gids, draw_annots=True)]
-            label_list = (1 - df_chunk['failed']).values
-            flat_metadata = df_chunk.to_dict(orient='list')
-            flat_metadata['tags'] = annots_chunk.case_tags
-            tup = draw_results.get_patch_chunk(data_lists, label_list,
-                                               flat_metadata,
-                                               draw_meta=['decision', 'tags'],
-                                               vert=False, fontScale=4.0)
-            inter.metadata_lists.append(flat_metadata)
-            img, offset_list, sf_list, sizes_list = tup
-            inter.offset_lists.append(offset_list)
-            inter.sf_lists.append(sf_list)
-            inter.sizes_lists.append(sizes_list)
-            inter.data_lists.append(data_lists)
-            fig, ax = pt.imshow(img, fnum=inter.fnum, pnum=pnum_())
-            ax.set_title(df_chunk.nice)
-            inter.ax_list.append(ax)
-        pt.adjust_subplots2(top=.95, left=0, right=1, bottom=.00, hspace=.1, wspace=0)
-
-    def on_click_inside(inter, event, ax):
-        print('click inside')
-
-        def get_label_index(inter, event, ax):
-            """ generalize """
-            x, y = event.xdata, event.ydata
-            def find_offset_index(offsets, sizes, x, y):
-                x1_pts = offsets.T[0]
-                x2_pts = offsets.T[0] + sizes.T[0]
-                y1_pts = offsets.T[1]
-                y2_pts = offsets.T[1] + sizes.T[1]
-
-                in_bounds = np.logical_and.reduce([
-                    x >= x1_pts, x < x2_pts,
-                    y >= y1_pts, y < y2_pts
-                ])
-                valid_idxs = np.where(in_bounds)[0]
-                #print('valid_idxs = %r' % (valid_idxs,))
-                assert len(valid_idxs) == 1
-                return valid_idxs[0]
-            try:
-                # Find plot axes index
-                px = inter.ax_list.index(ax)
-            except ValueError:
-                label_index = None
-            else:
-                offsets = np.array(inter.offset_lists[px])
-                sfs = np.array(inter.sf_lists[px])
-                orig_sizes = np.array(inter.sizes_lists[px])
-                sizes = np.array(orig_sizes) * sfs
-                data_list = inter.data_lists[px]
-                data_per_label = len(data_list)
-                #num_rows = data_per_label
-                num_cols = (len(offsets) // data_per_label)
-                _subindex = find_offset_index(offsets, sizes, x, y)
-                row_index = _subindex // num_cols
-                col_index = _subindex % num_cols
-                #label_index = inter.multiindicies[plot_index][row_index]
-                print('_subindex = %r' % (_subindex,))
-                print('row_index = %r' % (row_index,))
-                print('col_index = %r' % (col_index,))
-                print('px = %r' % (px,))
-                #print('label_index = %r' % (label_index,))
-                label_index = (px, col_index)
-            return label_index
-
-        options = []
-
-        label_index = get_label_index(inter, event, ax)
-
-        if label_index is not None:
-            px, col_index = label_index
-            flat_metadata = inter.metadata_lists[px]
-
-            if 'aid' in flat_metadata:
-                from ibeis.viz.interact import interact_chip
-                ibs = inter.ibs
-                aid = flat_metadata['aid'][col_index]
-                if ibs is not None:
-                    options += interact_chip.build_annot_context_options(ibs, aid)
-                    print('Annot Info:' + ut.repr3(inter.ibs.get_annot_info([aid], case_tags=True)))
-
-        if event.button == 3:
-            #options = inter.context_option_funcs[index]()
-            options += [
-                ('Present', pt.present),
-            ]
-            inter.show_popup_menu(options, event)
 
 if __name__ == '__main__':
     r"""
