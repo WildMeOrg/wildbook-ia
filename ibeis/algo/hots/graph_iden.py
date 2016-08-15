@@ -528,7 +528,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         3: 'unreviewed',
     }
 
-    def __init__(infr, ibs, aids, nids=None, autoinit=False, verbose=True):
+    def __init__(infr, ibs, aids, nids=None, autoinit=False, verbose=False):
         infr.verbose = verbose
         if infr.verbose:
             print('[infr] __init__')
@@ -536,6 +536,8 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         infr.aids = aids
         if nids is None:
             nids = ibs.get_annot_nids(aids)
+        if ut.isscalar(nids):
+            nids = [nids] * len(aids)
         infr.orig_name_labels = nids
         #if current_nids is None:
         #    current_nids = nids
@@ -694,16 +696,10 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         ibs = infr.ibs
         annots = ibs.annots(infr.aids)
         am_rowids, aid_pairs = annots.get_am_rowids_and_pairs()
-        #aid_pairs = list(it.combinations(aids, 2))
-        #aids1 = ut.take_column(aid_pairs, 0)
-        #aids2 = ut.take_column(aid_pairs, 1)
-        #am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
-        #flags = ut.not_list(ut.flag_None_items(am_rowids))
-        #am_rowids = ut.compress(am_rowids, flags)
-        #aid_pairs = ut.compress(aid_pairs, flags)
         aids1 = ut.take_column(aid_pairs, 0)
         aids2 = ut.take_column(aid_pairs, 1)
 
+        # Use tags to infer truth
         props = ['SplitCase', 'JoinCase', 'Photobomb']
         flags_list = ibs.get_annotmatch_prop(props, am_rowids)
         is_split, is_merge, is_pb = flags_list
@@ -711,6 +707,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         is_merge = np.array(is_merge).astype(np.bool)
         is_pb = np.array(is_pb).astype(np.bool)
 
+        # Use explicit truth state to mark truth
         truth = np.array(ibs.get_annotmatch_truth(am_rowids))
         # Hack, if we didnt set it, it probably means it matched
         need_truth = np.array(ut.flag_None_items(truth)).astype(np.bool)
@@ -718,15 +715,11 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         need_aids2 = ut.compress(aids2, need_truth)
         needed_truth = ibs.get_aidpair_truths(need_aids1, need_aids2)
         truth[need_truth] = needed_truth
-        #truth = [
-        #    ibs.get_aidpair_truths([aid1], [aid2])[0]
-        #    if t is None else t
-        #    for t, aid1, aid2 in zip(truth, aids1, aids2)
-        #]
-        #ut.replace_nones(truth, ibs.const.TRUTH_MATCH)
+
+        # Add information from relevant tags
         truth = np.array(truth, dtype=np.int)
         truth[is_split] = ibs.const.TRUTH_NOT_MATCH
-        #truth[is_pb] = ibs.const.TRUTH_NOT_MATCH
+        truth[is_pb] = ibs.const.TRUTH_NOT_MATCH
         truth[is_merge] = ibs.const.TRUTH_MATCH
 
         p_match = (truth == ibs.const.TRUTH_MATCH).astype(np.float)
@@ -743,10 +736,6 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
                 'p_notcomp': p_notcomp[count],
             }
             user_feedback[edge].append(review)
-
-        # merge_aid_pairs = ibs.filter_aidpairs_by_tags(has_any='JoinCase')
-        # for aid1, aid2 in merge_aid_pairs:
-        #     infr.add_feedback(aid1, aid2, 'match')
         return user_feedback
 
     def initialize_graph(infr):
@@ -849,7 +838,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         pass
 
     def add_feedback(infr, aid1, aid2, state):
-        """ External helepr """
+        """ External helper """
         if infr.verbose:
             print('[infr] add_feedback(%r, %r, %r)' % (aid1, aid2, state))
 

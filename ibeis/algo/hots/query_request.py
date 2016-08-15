@@ -1215,6 +1215,26 @@ class QueryRequest(object):
         return fname_list
 
     def execute(qreq_, qaids=None, prog_hook=None):
+        """
+
+        CommandLine:
+            python -m ibeis.algo.hots.query_request execute --show
+
+        Example:
+            >>> # SLOW_DOCTEST
+            >>> from ibeis.algo.hots.query_request import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.test_main(db='testdb1')
+            >>> qaids = [1]
+            >>> daids = [1, 2, 3, 4, 5]
+            >>> qreq_ = ibs.new_query_request(qaids, daids)
+            >>> cm_list = qreq_.execute()
+            >>> # Show results
+            >>> ut.quit_if_noshow()
+            >>> cm = cm_list[0]
+            >>> cm.ishow_analysis(qreq_)
+            >>> ut.show_if_requested()
+        """
         if qaids is not None:
             shallow_qreq_ = qreq_.shallowcopy(qaids=qaids)
             cm_list = qreq_.ibs.query_chips(qreq_=shallow_qreq_,

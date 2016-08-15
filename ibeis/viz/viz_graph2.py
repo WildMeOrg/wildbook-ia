@@ -28,7 +28,8 @@ else:
 FigureCanvas = backend_qt.FigureCanvasQTAgg
 
 
-DEVELOPER_MODE = False
+DEVELOPER_MODE = True  # False
+#ut.is_developer()
 
 
 GRAPH_REVIEW_CFG_DEFAULTS = {
@@ -535,6 +536,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             #_tmp_dev_graph_widget_init(self, use_image)
             #DevGraphWidget(use_image=True)
         else:
+            self.graph_widget = None
             self.graph_tab = None
 
         #self.signal_state_update.connect(self.on_state_update)
@@ -620,7 +622,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         if structure_changed:
             self.populate_node_model()
             self.populate_edge_model()
-        self.graph_widget.on_state_update()
+        if self.graph_widget is not None:
+            self.graph_widget.on_state_update()
 
     def apply_scores(self):
         with gt.GuiProgContext('Computing Matches', self.prog_bar) as ctx:
@@ -653,7 +656,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             infr.reset_name_labels()
             infr.reset_feedback()
             infr.apply_feedback_edges()
-            infr.mst_review()
+            #infr.mst_review()
             infr.remove_name_labels()
             infr.apply_match_scores()
             ctx.set_progress(2, 3)

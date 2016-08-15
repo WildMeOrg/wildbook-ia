@@ -180,6 +180,84 @@ def sight_resight_count(nvisit1, nvisit2, resight):
     return pl_index, pl_error
 
 
+def dans_splits(ibs):
+    """
+    python -m ibeis dans_splits --show
+
+    Example:
+        >>> # DISABLE_DOCTEST GGR
+        >>> from ibeis.other.dbinfo import *  # NOQA
+        >>> import ibeis
+        >>> dbdir = '/media/danger/GGR/GGR-IBEIS'
+        >>> dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
+        >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
+        >>> import guitool as gt
+        >>> gt.ensure_qtapp()
+        >>> win = dans_splits(ibs)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> gt.qtapp_loop(qwin=win)
+    """
+    #pair = 9262, 932
+
+    dans_aids = [26548, 2190, 9418, 29965, 14738, 26600, 3039, 2742, 8249,
+                 20154, 8572, 4504, 34941, 4040, 7436, 31866, 28291,
+                 16009, 7378, 14453, 2590, 2738, 22442, 26483, 21640, 19003,
+                 13630, 25395, 20015, 14948, 21429, 19740, 7908, 23583, 14301,
+                 26912, 30613, 19719, 21887, 8838, 16184, 9181, 8649, 8276,
+                 14678, 21950, 4925, 13766, 12673, 8417, 2018, 22434, 21149,
+                 14884, 5596, 8276, 14650, 1355, 21725, 21889, 26376, 2867,
+                 6906, 4890, 21524, 6690, 14738, 1823, 35525, 9045, 31723,
+                 2406, 5298, 15627, 31933, 19535, 9137, 21002, 2448,
+                 32454, 12615, 31755, 20015, 24573, 32001, 23637, 3192, 3197,
+                 8702, 1240, 5596, 33473, 23874, 9558, 9245, 23570, 33075,
+                 23721, 7157, 24012, 33405, 23791, 19498, 33149, 9558, 4971,
+                 34183, 24853, 9321, 23691, 9723, 9236, 9723, 7158, 21078,
+                 32300, 8700, 15334, 6050, 23277, 31164, 14103, 26836, 29742,
+                 21231, 8007, 10388, 33387, 4319, 26880, 8007, 7157, 31164,
+                 32300, 26836, 19862, 32140]
+
+    is_hyrbid = [7123, 7166]  # NOQA
+
+    annots = ibs.annots(dans_aids)
+    unique_nids = ut.unique(annots.nids)
+    grouped_aids = ibs.get_name_aids(unique_nids)
+    annot_groups = ibs._annot_groups(grouped_aids)
+
+    split_props = {'splitcase', 'photobomb'}
+    needs_tag = [len(split_props.intersection(ut.flatten(tags))) == 0 for tags in annot_groups.case_tags]
+    num_needs_tag = sum(needs_tag)
+    num_had_split = len(needs_tag) - num_needs_tag
+    print('num_had_split = %r' % (num_had_split,))
+    print('num_needs_tag = %r' % (num_needs_tag,))
+
+    all_annot_groups = ibs._annot_groups(ibs.group_annots_by_name(ibs.get_valid_aids())[0])
+    all_has_split = [len(split_props.intersection(ut.flatten(tags))) > 0 for tags in all_annot_groups.case_tags]
+
+    num_nondan = sum(all_has_split) - num_had_split
+    print('num_nondan = %r' % (num_nondan,))
+
+    from ibeis.algo.hots import graph_iden
+    from ibeis.viz import viz_graph2
+    import guitool as gt
+    import plottool as pt
+    pt.qt4ensure()
+    gt.ensure_qtapp()
+
+    aids_list = ut.compress(grouped_aids, needs_tag)
+    aids_list = [a for a in aids_list if len(a) > 1]
+    print('len(aids_list) = %r' % (len(aids_list),))
+
+    for aids in aids_list:
+        infr = graph_iden.AnnotInference(ibs, aids)
+        infr.initialize_graph()
+        win = viz_graph2.AnnotGraphWidget(infr=infr, use_image=False,
+                                          init_mode='rereview')
+        win.populate_edge_model()
+        win.show()
+        return win
+
+
 def split_analysis(ibs):
     """
     CommandLine:
@@ -188,7 +266,11 @@ def split_analysis(ibs):
         python -m ibeis split_analysis --show --good
 
     Ignore:
+        # mount
         sshfs -o idmap=user lev:/ ~/lev
+
+        # unmount
+        fusermount -u ~/lev
 
     Example:
         >>> # DISABLE_DOCTEST GGR
@@ -472,7 +554,8 @@ def split_analysis(ibs):
     reasonable_infr = ut.compress(splittable_infrs, flags1)
 
     new_sizes_list = ut.take_column(relabel_stats, 'new_sizes')
-    flags2 = [len(sizes) == 2 and sum(sizes) > 4 and (min(sizes) / max(sizes)) > .3 for sizes in new_sizes_list]
+    flags2 = [len(sizes) == 2 and sum(sizes) > 4 and (min(sizes) / max(sizes)) > .3
+              for sizes in new_sizes_list]
     reasonable_infr = ut.compress(splittable_infrs, flags2)
     print('#reasonable_infr = %r' % (len(reasonable_infr),))
 

@@ -26,7 +26,7 @@ def annots(ibs, aids=None, **kwargs):
 
 @register_ibs_method
 def _annot_groups(ibs, aids_list=None, config=None):
-    annots_list = [ibs.annots(aids, config) for aids in aids_list]
+    annots_list = [ibs.annots(aids, config=config) for aids in aids_list]
     return AnnotGroups(annots_list, ibs)
 
 
@@ -280,6 +280,7 @@ class AnnotGroups(ut.NiceRepr):
 
     @property
     def case_tags(self):
+        """ returns pairwise tags within the annotation group """
         ams_list = self._ibs.get_unflat_am_rowids(self.aids)
         tags = self._ibs.unflat_map(self._ibs.get_annotmatch_case_tags, ams_list)
         return tags
