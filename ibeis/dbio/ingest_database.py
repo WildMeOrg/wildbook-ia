@@ -12,6 +12,17 @@ python -m ibeis --tf ingest_rawdata --db PZ_OlPej2016 --imgdir /raid/raw/OlPejPZ
 rsync -avhzP <user>@<host>:<remotedir>  <path-to-raw-imgs>
 # --- RUN INGEST SCRIPT ---
 python -m ibeis --tf ingest_rawdata --db <new-ibeis-db-name> --imgdir <path-to-raw-imgs> --ingest-type=named_folders --species=<optional> --fmtkey=<optional>
+
+
+
+Example:
+    >>> dbdir = <your new database directory>
+    >>> gpath_list = <path to your images>
+    >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=True)
+    >>> gid_list_ = ibs.add_images(gpath_list, auto_localize=False)  # NOQA
+    >>> # use whole images as annotations
+    >>> aid_list = ibs.use_images_as_annotations(gid_list_, adjust_percent=0)
+
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
