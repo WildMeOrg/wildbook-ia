@@ -39,6 +39,7 @@ CLUTTER_PATTERNS = [
     'test_pyflann_ptsdata.npz',
     '_timeings.txt',
     'timeings.txt',
+    'test_times.txt',
     'raw_profile.txt',
     'Tgen.sh',
     'IBEISApp.pkg',
