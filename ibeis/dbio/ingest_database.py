@@ -28,6 +28,7 @@ Example:
     >>> ibs.set_annot_names(aid_list, name_list)
     >>> occur_text_list = <occurrence that images belongs to>
     >>> ibs.set_image_imagesettext(gid_list_, occur_text_list)
+    >>> ibs.append_annot_case_tags(aid_list, ut.lmap(list, turtle_tag_list))
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
