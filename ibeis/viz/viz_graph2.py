@@ -505,8 +505,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.edge_api_widget.view.connect_single_key_to_slot(gt.ALT_KEY, self.on_alt_pressed)
 
         self.status_bar.addNewButton('Reset Rereview', pressed=self.reset_rereview)
-        if DEVELOPER_MODE:
-            self.status_bar.addNewButton('Reset Original', pressed=self.reset_original)
+        #if DEVELOPER_MODE:
+        #    self.status_bar.addNewButton('Reset Original', pressed=self.reset_original)
         self.status_bar.addNewButton('Reset Empty', pressed=self.reset_empty)
 
         self.num_names_lbl = self.status_bar.addNewLabel('NUM_NAMES_LBL')
@@ -664,18 +664,18 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.repopulate()
             ctx.set_progress(3, 3)
 
-    def reset_original(self):
-        print('[graph] reset_original')
-        with gt.GuiProgContext('Reset Original', self.prog_bar) as ctx:
-            ctx.set_progress(0, 3)
-            self.preset_unfiltered_config()
-            infr = self.infr
-            infr.reset_feedback()
-            infr.reset_name_labels()
-            infr.apply_cuts()
-            infr.mst_review()
-            self.repopulate()
-            ctx.set_progress(3, 3)
+    #def reset_original(self):
+    #    print('[graph] reset_original')
+    #    with gt.GuiProgContext('Reset Original', self.prog_bar) as ctx:
+    #        ctx.set_progress(0, 3)
+    #        self.preset_unfiltered_config()
+    #        infr = self.infr
+    #        infr.reset_feedback()
+    #        infr.reset_name_labels()
+    #        infr.apply_cuts()
+    #        infr.mst_review()
+    #        self.repopulate()
+    #        ctx.set_progress(3, 3)
 
     def reset_empty(self):
         self.init_mode = 'split'

@@ -211,13 +211,15 @@ def dans_splits(ibs):
                  2406, 5298, 15627, 31933, 19535, 9137, 21002, 2448,
                  32454, 12615, 31755, 20015, 24573, 32001, 23637, 3192, 3197,
                  8702, 1240, 5596, 33473, 23874, 9558, 9245, 23570, 33075,
-                 23721, 7157, 24012, 33405, 23791, 19498, 33149, 9558, 4971,
-                 34183, 24853, 9321, 23691, 9723, 9236, 9723, 7158, 21078,
-                 32300, 8700, 15334, 6050, 23277, 31164, 14103, 26836, 29742,
-                 21231, 8007, 10388, 33387, 4319, 26880, 8007, 7157, 31164,
-                 32300, 26836, 19862, 32140]
+                 23721,  24012, 33405, 23791, 19498, 33149, 9558, 4971,
+                 34183, 24853, 9321, 23691, 9723, 9236, 9723,  21078,
+                 32300, 8700, 15334, 6050, 23277, 31164, 14103,
+                 21231, 8007, 10388, 33387, 4319, 26880, 8007, 31164,
+                 32300, 32140]
 
-    is_hyrbid = [7123, 7166]  # NOQA
+    is_hyrbid = [7123, 7166, 7157, 7158, ]  # NOQA
+    needs_mask = [26836, 29742]  # NOQA
+    justfine = [19862]  # NOQA
 
     annots = ibs.annots(dans_aids)
     unique_nids = ut.unique(annots.nids)
@@ -231,11 +233,10 @@ def dans_splits(ibs):
     print('num_had_split = %r' % (num_had_split,))
     print('num_needs_tag = %r' % (num_needs_tag,))
 
-    all_annot_groups = ibs._annot_groups(ibs.group_annots_by_name(ibs.get_valid_aids())[0])
-    all_has_split = [len(split_props.intersection(ut.flatten(tags))) > 0 for tags in all_annot_groups.case_tags]
-
-    num_nondan = sum(all_has_split) - num_had_split
-    print('num_nondan = %r' % (num_nondan,))
+    #all_annot_groups = ibs._annot_groups(ibs.group_annots_by_name(ibs.get_valid_aids())[0])
+    #all_has_split = [len(split_props.intersection(ut.flatten(tags))) > 0 for tags in all_annot_groups.case_tags]
+    #num_nondan = sum(all_has_split) - num_had_split
+    #print('num_nondan = %r' % (num_nondan,))
 
     from ibeis.algo.hots import graph_iden
     from ibeis.viz import viz_graph2
@@ -256,6 +257,52 @@ def dans_splits(ibs):
         win.populate_edge_model()
         win.show()
         return win
+    assert False
+
+
+def fix_splits_interaction(ibs):
+    """
+    python -m ibeis fix_splits_interaction --show
+
+    Example:
+        >>> # DISABLE_DOCTEST GGR
+        >>> from ibeis.other.dbinfo import *  # NOQA
+        >>> import ibeis
+        >>> dbdir = '/media/danger/GGR/GGR-IBEIS'
+        >>> dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
+        >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
+        >>> import guitool as gt
+        >>> gt.ensure_qtapp()
+        >>> win = fix_splits_interaction(ibs)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> gt.qtapp_loop(qwin=win)
+    """
+    split_props = {'splitcase', 'photobomb'}
+    all_annot_groups = ibs._annot_groups(ibs.group_annots_by_name(ibs.get_valid_aids())[0])
+    all_has_split = [len(split_props.intersection(ut.flatten(tags))) > 0 for tags in all_annot_groups.case_tags]
+    tosplit_annots = ut.compress(all_annot_groups.annots_list, all_has_split)
+
+    tosplit_annots = ut.take(tosplit_annots, ut.argsort(ut.lmap(len, tosplit_annots)))[::-1]
+    print('len(tosplit_annots) = %r' % (len(tosplit_annots),))
+    aids_list = [a.aids for a in tosplit_annots]
+
+    from ibeis.algo.hots import graph_iden
+    from ibeis.viz import viz_graph2
+    import guitool as gt
+    import plottool as pt
+    pt.qt4ensure()
+    gt.ensure_qtapp()
+
+    for aids in ut.InteractiveIter(aids_list):
+        infr = graph_iden.AnnotInference(ibs, aids)
+        infr.initialize_graph()
+        win = viz_graph2.AnnotGraphWidget(infr=infr, use_image=False,
+                                          init_mode='rereview')
+        win.populate_edge_model()
+        win.show()
+    return win
+    #assert False
 
 
 def split_analysis(ibs):
