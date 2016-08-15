@@ -16,13 +16,18 @@ python -m ibeis --tf ingest_rawdata --db <new-ibeis-db-name> --imgdir <path-to-r
 
 
 Example:
+    >>> # The scripts in this file essentiall do this:
     >>> dbdir = <your new database directory>
     >>> gpath_list = <path to your images>
     >>> ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=True)
     >>> gid_list_ = ibs.add_images(gpath_list, auto_localize=False)  # NOQA
     >>> # use whole images as annotations
     >>> aid_list = ibs.use_images_as_annotations(gid_list_, adjust_percent=0)
-
+    >>> # Extra stuff
+    >>> name_list = <names that correspond to your annots>
+    >>> ibs.set_annot_names(aid_list, name_list)
+    >>> occur_text_list = <occurrence that images belongs to>
+    >>> ibs.set_image_imagesettext(gid_list_, occur_text_list)
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range
