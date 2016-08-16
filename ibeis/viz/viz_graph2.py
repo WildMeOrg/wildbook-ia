@@ -239,13 +239,24 @@ class DevGraphWidget(gt.GuitoolWidget):
         #layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
 
         #draw_implicit=graph_widget.show_cuts)
-        graph_widget.plotinfo = pt.show_nx(graph_widget.infr.graph,
-                                           layout='custom', as_directed=False,
-                                           ax=graph_widget.mpl_wgt.ax,
-                                           #layoutkw=layoutkw,
-                                           #node_labels=True, modify_ax=False,
-                                           use_image=graph_widget.use_image_cb.isChecked(),
-                                           verbose=0)
+        try:
+            graph_widget.plotinfo = pt.show_nx(graph_widget.infr.graph,
+                                               layout='custom', as_directed=False,
+                                               ax=graph_widget.mpl_wgt.ax,
+                                               #layoutkw=layoutkw,
+                                               #node_labels=True, modify_ax=False,
+                                               use_image=graph_widget.use_image_cb.isChecked(),
+                                               verbose=0)
+        except IOError:
+            graph_widget.infr.initialize_visual_node_attrs()
+            graph_widget.plotinfo = pt.show_nx(graph_widget.infr.graph,
+                                               layout='custom', as_directed=False,
+                                               ax=graph_widget.mpl_wgt.ax,
+                                               #layoutkw=layoutkw,
+                                               #node_labels=True, modify_ax=False,
+                                               use_image=graph_widget.use_image_cb.isChecked(),
+                                               verbose=0)
+            pass
         # graph_widget.mpl_wgt.ax.set_aspect('auto')
         graph_widget.mpl_wgt.ax.set_aspect('equal')
         # graph_widget.mpl_wgt.ax.set_aspect('scaled')
@@ -1146,6 +1157,15 @@ def get_filtered_edges(ibs, graph, review_cfg):
 
 
 def make_edge_api(infr, review_cfg={}):
+    """
+    TODO:
+        mark an edge that would cause an inconsistency
+        to be marked as a deeper red.
+        These are edges we currently believe to be false
+        By default edges should not be red. they should be a light unknown yellow.
+        Dark unknown yellow is for noncomparable annotations
+
+    """
     graph = infr.graph
     ibs = infr.ibs
 
@@ -1326,8 +1346,8 @@ def make_edge_api(infr, review_cfg={}):
         'timedelta': ('aid1', 'aid2'),
         'speed': ('aid1', 'aid2'),
         'kmdist': ('aid1', 'aid2'),
-        'matched'     : ('aid1', 'aid2'),
-        'reviewed'    : ('aid1', 'aid2'),
+        'matched': ('aid1', 'aid2'),
+        'reviewed': ('aid1', 'aid2'),
         'tags': ('aid1', 'aid2'),
         'cc_size1': ('aid1', 'aid2'),
         'cc_size2': ('aid1', 'aid2'),
