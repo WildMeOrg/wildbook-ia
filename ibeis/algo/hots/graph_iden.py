@@ -612,7 +612,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         """ Resets feedback edges to state of the SQL annotmatch table """
         if infr.verbose:
             print('[infr] reset_feedback')
-        infr.user_feedback = infr.load_user_feedback()
+        infr.user_feedback = infr.read_user_feedback()
 
     def remove_feedback(infr):
         if infr.verbose:
@@ -675,7 +675,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             # Check for consistency
         return num_names, num_inconsistent
 
-    def load_user_feedback(infr):
+    def read_user_feedback(infr):
         """
         Loads feedback from annotmatch table
 
@@ -683,7 +683,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
-            >>> user_feedback = infr.load_user_feedback()
+            >>> user_feedback = infr.read_user_feedback()
             >>> result =('user_feedback = %s' % (ut.repr2(user_feedback, nl=1),))
             >>> print(result)
             user_feedback = {
@@ -692,7 +692,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             }
         """
         if infr.verbose:
-            print('[infr] load_user_feedback')
+            print('[infr] read_user_feedback')
         ibs = infr.ibs
         annots = ibs.annots(infr.aids)
         am_rowids, aid_pairs = annots.get_am_rowids_and_pairs()
@@ -737,6 +737,18 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             }
             user_feedback[edge].append(review)
         return user_feedback
+
+    @staticmethod
+    def pandas_feedback_format(user_feedback):
+        import pandas as pd
+        aid_pairs = list(user_feedback.keys())
+        probs_ = list(user_feedback.values())
+        probs = ut.take_column(probs_, -1)
+        df = pd.DataFrame.from_dict(probs)
+        df['aid1'] = ut.take_column(aid_pairs, 0)
+        df['aid2'] = ut.take_column(aid_pairs, 1)
+        df.index = pd.Index(aid_pairs)
+        return df
 
     def initialize_graph(infr):
         if infr.verbose:

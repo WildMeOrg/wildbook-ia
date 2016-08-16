@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
 from six.moves import zip, map, filter, range  # NOQA
@@ -9,32 +9,6 @@ print, rrr, profile = ut.inject2(__name__, '[annotmatch_funcs]')
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
-
-
-def setup_pzmtest_subgraph():
-    import ibeis
-    ibs = ibeis.opendb(db='PZ_MTEST')
-    nids = ibs.get_valid_nids()
-    aids_list = ibs.get_name_aids(nids)
-
-    import itertools
-    unflat_edges = (list(itertools.product(aids, aids)) for aids in aids_list)
-    aid_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
-    aids1 = ut.get_list_column(aid_pairs, 0)
-    aids2 = ut.get_list_column(aid_pairs, 1)
-
-    rng = np.random.RandomState(0)
-    flags = rng.rand(len(aids1)) > .878
-    aids1 = ut.compress(aids1, flags)
-    aids2 = ut.compress(aids2, flags)
-
-    for aid1, aid2 in zip(aids1, aids2):
-        ibs.set_annot_pair_as_positive_match(aid1, aid2)
-        ibs.set_annot_pair_as_positive_match(aid2, aid1)
-
-    rowids = ibs._get_all_annotmatch_rowids()
-    aids1 = ibs.get_annotmatch_aid1(rowids)
-    aids2 = ibs.get_annotmatch_aid2(rowids)
 
 
 @register_ibs_method
@@ -80,72 +54,25 @@ def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
                                     force_method=None):
     """
     # This one is slow because aid2 is the second part of the index
-
-    TODO autogenerate
-
     Returns a list of the aids that were reviewed as candidate matches to the input aid
-
-    aid_list = ibs.get_valid_aids()
-
-    CommandLine:
-        python -m ibeis.annotmatch_funcs --exec-get_annotmatch_rowids_from_aid2 --show
-
-    Example2:
-        >>> # TIME TEST
-        >>> # setup_pzmtest_subgraph()
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
-        >>> aid2_list = ibs.get_valid_aids()
-        >>> func_list = [
-        >>>     partial(ibs.get_annotmatch_rowids_from_aid2, force_method=1),
-        >>>     partial(ibs.get_annotmatch_rowids_from_aid2, force_method=2),
-        >>> ]
-        >>> num_list = [1, 10, 50, 100, 300, 325, 350, 400, 500]
-        >>> def args_list(count, aid2_list=aid2_list, num_list=num_list):
-        >>>    return (aid2_list[0:num_list[count]],)
-        >>> searchkw = dict(
-        >>>     func_labels=['sql', 'numpy'],
-        >>>     count_to_xtick=lambda count, args: len(args[0]),
-        >>>     title='Timings of get_annotmatch_rowids_from_aid2',
-        >>> )
-        >>> niters = len(num_list)
-        >>> time_result = ut.gridsearch_timer(func_list, args_list, niters, **searchkw)
-        >>> time_result['plot_timings']()
-        >>> ut.show_if_requested()
     """
     from ibeis.control import _autogen_annotmatch_funcs
-
-    if force_method is None:
-        force_method = 1
     if nInput is None:
         nInput = len(aid2_list)
-    if nInput == 0:
-        return []
-    if force_method == 1:
-        if True:
-            # HACK IN INDEX
-            ibs.db.connection.execute(
-                '''
-                CREATE INDEX IF NOT EXISTS aid2_to_am ON {ANNOTMATCH_TABLE} (annot_rowid2);
-                '''.format(ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
-                           annot_rowid2=_autogen_annotmatch_funcs.ANNOT_ROWID2)).fetchall()
-        colnames = (_autogen_annotmatch_funcs.ANNOTMATCH_ROWID,)
-        # FIXME: col_rowid is not correct
-        params_iter = zip(aid2_list)
-        andwhere_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID2]
-        annotmatch_rowid_list = ibs.db.get_where2(
-            ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, andwhere_colnames,
-            eager=eager, nInput=nInput, unpack_scalars=False)
-    else:
-        import vtool as vt
-        all_annotmatch_rowids = np.array(ibs._get_all_annotmatch_rowids())
-        aids2 = np.array(ibs.get_annotmatch_aid2(all_annotmatch_rowids))
-        unique_aid2, groupxs2 = vt.group_indices(aids2)
-        rowids2_ = vt.apply_grouping(all_annotmatch_rowids, groupxs2)
-        rowids2_ = [_.tolist() for _ in rowids2_]
-        maping2 = ut.defaultdict(list, zip(unique_aid2, rowids2_))
-        annotmatch_rowid_list = ut.dict_take(maping2, aid2_list)
+    if True:
+        # HACK IN INDEX
+        ibs.db.connection.execute(
+            '''
+            CREATE INDEX IF NOT EXISTS aid2_to_am ON {ANNOTMATCH_TABLE} (annot_rowid2);
+            '''.format(ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
+                       annot_rowid2=_autogen_annotmatch_funcs.ANNOT_ROWID2)).fetchall()
+    colnames = (_autogen_annotmatch_funcs.ANNOTMATCH_ROWID,)
+    # FIXME: col_rowid is not correct
+    params_iter = zip(aid2_list)
+    andwhere_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID2]
+    annotmatch_rowid_list = ibs.db.get_where2(
+        ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, andwhere_colnames,
+        eager=eager, nInput=nInput, unpack_scalars=False)
     annotmatch_rowid_list = list(map(sorted, annotmatch_rowid_list))
     return annotmatch_rowid_list
 
@@ -156,11 +83,7 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None,
                                    force_method=None):
     """
     Undirected version
-
-    TODO autogenerate
-
     Returns a list of the aids that were reviewed as candidate matches to the input aid
-
     aid_list = ibs.get_valid_aids()
 
     CommandLine:
@@ -178,82 +101,16 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None,
         >>>                                                        eager, nInput)
         >>> result = ('annotmatch_rowid_list = %s' % (str(annotmatch_rowid_list),))
         >>> print(result)
-
-    Example2:
-        >>> # TIME TEST
-        >>> # setup_pzmtest_subgraph()
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> from functools import partial
-        >>> func_list = [
-        >>>     partial(ibs.get_annotmatch_rowids_from_aid),
-        >>>     partial(ibs.get_annotmatch_rowids_from_aid, force_method=1),
-        >>> ]
-        >>> num_list = [1, 10, 50, 100, 300, 325, 350, 400, 500]
-        >>> def args_list(count, aid_list=aid_list, num_list=num_list):
-        >>>    return (aid_list[0:num_list[count]],)
-        >>> searchkw = dict(
-        >>>     func_labels=['combo', 'sql', 'numpy'],
-        >>>     count_to_xtick=lambda count, args: len(args[0]),
-        >>>     title='Timings of get_annotmatch_rowids_from_aid',
-        >>> )
-        >>> niters = len(num_list)
-        >>> time_result = ut.gridsearch_timer(func_list, args_list, niters, **searchkw)
-        >>> time_result['plot_timings']()
-        >>> ut.show_if_requested()
     """
     #from ibeis.control import _autogen_annotmatch_funcs
     if nInput is None:
         nInput = len(aid_list)
-    if force_method is None:
-        force_method = 1
-    if nInput is None:
-        nInput = len(aid_list)
     if nInput == 0:
         return []
-    if (force_method == 1):
-        rowids1 = ibs.get_annotmatch_rowids_from_aid1(aid_list)
-        rowids2 = ibs.get_annotmatch_rowids_from_aid2(aid_list)
-        annotmatch_rowid_list = [ut.unique(ut.flatten(p))
-                                 for p in zip(rowids1, rowids2)]
-    else:
-        # This (was previously) much much faster than the other methods for
-        # large queries
-        import vtool as vt
-        all_annotmatch_rowids = np.array(ibs._get_all_annotmatch_rowids())
-        # FIXME: aids1 returns with Nones sometimes...
-        aids1 = ibs.get_annotmatch_aid1(all_annotmatch_rowids)
-        aids2 = ibs.get_annotmatch_aid2(all_annotmatch_rowids)
-
-        # FIXME: these should never have Nones
-        flags = ut.not_list(ut.or_lists(ut.flag_None_items(aids1),
-                                        ut.flag_None_items(aids2)))
-        aids1 = np.array(ut.compress(aids1, flags))
-        aids2 = np.array(ut.compress(aids2, flags))
-
-        unique_aid1, groupxs1 = vt.group_indices(aids1)
-        unique_aid2, groupxs2 = vt.group_indices(aids2)
-        rowids1_ = vt.apply_grouping(all_annotmatch_rowids, groupxs1)
-        rowids2_ = vt.apply_grouping(all_annotmatch_rowids, groupxs2)
-        rowids1_ = [_.tolist() for _ in rowids1_]
-        rowids2_ = [_.tolist() for _ in rowids2_]
-        maping1 = dict(zip(unique_aid1, rowids1_))
-        maping2 = dict(zip(unique_aid2, rowids2_))
-        mapping = ut.defaultdict(list, ut.dict_union3(maping1, maping2))
-        annotmatch_rowid_list = ut.dict_take(mapping, aid_list)
-    #if False:
-    #    # VERY SLOW
-    #    colnames = (_autogen_annotmatch_funcs.ANNOTMATCH_ROWID,)
-    #    # FIXME: col_rowid is not correct
-    #    params_iter = list(zip(aid_list, aid_list))
-    #    where_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID1,
-    #                      _autogen_annotmatch_funcs.ANNOT_ROWID2]
-    #    with ut.Timer('one'):
-    #        annotmatch_rowid_list1 = ibs.db.get_where3(  # NOQA
-    #            ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, where_colnames,
-    #            logicop='OR', eager=eager, nInput=nInput, unpack_scalars=False)
+    rowids1 = ibs.get_annotmatch_rowids_from_aid1(aid_list)
+    rowids2 = ibs.get_annotmatch_rowids_from_aid2(aid_list)
+    annotmatch_rowid_list = [ut.unique(ut.flatten(p))
+                             for p in zip(rowids1, rowids2)]
     # Ensure funciton output is consistent
     annotmatch_rowid_list = list(map(sorted, annotmatch_rowid_list))
     return annotmatch_rowid_list
@@ -348,23 +205,6 @@ def set_annot_pair_as_reviewed(ibs, aid1, aid2):
     ibs.set_annotmatch_confidence(annotmatch_rowids, [confidence])
     print('... set truth=%r' % (truth,))
 
-    #if annotmatch_rowid is not None:
-    #    ibs.set_annotmatch_truth([annotmatch_rowid], [truth])
-    #    ibs.set_annotmatch_confidence([annotmatch_rowid], [confidence])
-    #else:
-    #    ibs.add_annotmatch([aid1], [aid2], annotmatch_truth_list=[truth], annotmatch_confidence_list=[confidence])
-
-
-#@register_ibs_method
-#def add_or_update_annotmatch(ibs, aid1, aid2, truth, confidence):
-#    annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])[0]
-#    # TODO: sql add or update?
-#    if annotmatch_rowid is not None:
-#        ibs.set_annotmatch_truth([annotmatch_rowid], [truth])
-#        ibs.set_annotmatch_confidence([annotmatch_rowid], [confidence])
-#    else:
-#        ibs.add_annotmatch([aid1], [aid2], annotmatch_truth_list=[truth], annotmatch_confidence_list=[confidence])
-
 
 @register_ibs_method
 def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
@@ -399,7 +239,6 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
         >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
         >>> dryrun = True
         >>> status = set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun)
-        >>> # verify results
         >>> print(status)
     """
     def _set_annot_name_rowids(aid_list, nid_list):
@@ -489,13 +328,10 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid1, aid2 = ibs.get_valid_aids()[0:2]
         >>> dryrun = True
-        >>> # execute function
         >>> result = set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun)
-        >>> # verify results
         >>> print(result)
     """
     def _set_annot_name_rowids(aid_list, nid_list):
@@ -556,9 +392,9 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
     return status
 
 
-@register_ibs_method
-def set_annot_pair_as_unknown_match(ibs, aid1, aid2, dryrun=False, on_nontrivial_merge=None):
-    pass
+#@register_ibs_method
+#def set_annot_pair_as_unknown_match(ibs, aid1, aid2, dryrun=False, on_nontrivial_merge=None):
+#    pass
 
 
 @register_ibs_method
@@ -590,19 +426,11 @@ def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
         >>> result = ut.repr2(timedelta_list, precision=2)
         >>> print(result)
         np.array([  7.57e+07,   7.57e+07,   2.41e+06,   1.98e+08,   9.69e+07])
-
     """
-    #unixtime_list1 = np.array(ibs.get_annot_image_unixtimes(aid_list1), dtype=np.float)
-    #unixtime_list2 = np.array(ibs.get_annot_image_unixtimes(aid_list2), dtype=np.float)
     unixtime_list1 = ibs.get_annot_image_unixtimes_asfloat(aid_list1)
     unixtime_list2 = ibs.get_annot_image_unixtimes_asfloat(aid_list2)
-    #unixtime_list1[unixtime_list1 == -1] = np.nan
-    #unixtime_list2[unixtime_list2 == -1] = np.nan
     timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
     return timedelta_list
-
-
-# AUTOGENED CONSTANTS:
 
 
 @register_ibs_method
@@ -630,14 +458,11 @@ def get_annot_num_reviewed_matching_aids(ibs, aid1_list, eager=True, nInput=None
         >>> # DISABLE_DOCTEST
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb2')
         >>> aid1_list = ibs.get_valid_aids()
         >>> eager = True
         >>> nInput = None
-        >>> # execute function
         >>> num_annot_reviewed_list = get_annot_num_reviewed_matching_aids(ibs, aid_list, eager, nInput)
-        >>> # verify results
         >>> result = str(num_annot_reviewed_list)
         >>> print(result)
     """
@@ -650,15 +475,9 @@ def get_annot_num_reviewed_matching_aids(ibs, aid1_list, eager=True, nInput=None
 def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
     """
     Returns a list of the aids that were reviewed as candidate matches to the input aid
-
-    aid_list = ibs.get_valid_aids()
     """
     ANNOT_ROWID1 = 'annot_rowid1'
     ANNOT_ROWID2 = 'annot_rowid2'
-    #params_iter = [(aid, aid) for aid in aid_list]
-    #[(aid, aid) for aid in aid_list]
-    #colnames = (ANNOT_ROWID1, ANNOT_ROWID2)
-    #where_colnames = (ANNOT_ROWID1, ANNOT_ROWID2)
     params_iter = [(aid,) for aid in aid_list]
     colnames = (ANNOT_ROWID2,)
     andwhere_colnames = (ANNOT_ROWID1,)
@@ -667,11 +486,6 @@ def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
                                   andwhere_colnames=andwhere_colnames,
                                   eager=eager, unpack_scalars=False,
                                   nInput=nInput)
-    #logicop = 'OR'
-    #aids_list = ibs.db.get_where3(
-    #    const.ANNOTMATCH_TABLE, colnames, params_iter,
-    #    where_colnames=where_colnames, logicop=logicop, eager=eager,
-    #    unpack_scalars=False, nInput=nInput)
     return aids_list
 
 
@@ -702,15 +516,12 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.annotmatch_funcs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb2')
         >>> aid_list = ibs.get_valid_aids()
         >>> pairs = list(ut.product(aid_list, aid_list))
         >>> aid1_list = ut.get_list_column(pairs, 0)
         >>> aid2_list = ut.get_list_column(pairs, 1)
-        >>> # execute function
         >>> annotmatch_reviewed_list = get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list)
-        >>> # verify results
         >>> reviewed_pairs = ut.compress(pairs, annotmatch_reviewed_list)
         >>> result = len(reviewed_pairs)
         >>> print(result)
@@ -718,142 +529,6 @@ def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
     """
     am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aid1_list, aid2_list)
     return ibs.get_annotmatch_reviewed(am_rowids)
-    #annotmatch_truth_list1 = ibs.get_annot_pair_truth(aid1_list, aid2_list)
-    #annotmatch_truth_list2 = ibs.get_annot_pair_truth(aid2_list, aid1_list)
-    #annotmatch_truth_list = ut.or_lists(
-    #    ut.flag_not_None_items(annotmatch_truth_list1),
-    #    ut.flag_not_None_items(annotmatch_truth_list2))
-    #annotmatch_reviewed_list = [truth is not None for truth in annotmatch_truth_list]
-    #return annotmatch_truth_list
-
-
-def review_tagged_splits():
-    """
-
-    CommandLine:
-        python -m ibeis.annotmatch_funcs --exec-review_tagged_splits --show
-        python -m ibeis.annotmatch_funcs --exec-review_tagged_splits --show --db
-
-    Example:
-        >>> from ibeis.gui.guiback import *  # NOQA
-        >>> import numpy as np
-        >>> #back = testdata_guiback(defaultdb='PZ_Master1', activate=False)
-        >>> #ibs = back.ibs
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
-        >>> # Find aids that still need splits
-        >>> aid_pair_list = ibs.filter_aidpairs_by_tags(has_any='SplitCase')
-        >>> truth_list = ibs.get_aidpair_truths(*zip(*aid_pair_list))
-        >>> _aid_list = ut.compress(aid_pair_list, truth_list)
-        >>> _nids_list = ibs.unflat_map(ibs.get_annot_name_rowids, _aid_list)
-        >>> _nid_list = ut.get_list_column(_nids_list, 0)
-        >>> import vtool as vt
-        >>> split_nids, groupxs = vt.group_indices(np.array(_nid_list))
-        >>> problem_aids_list = vt.apply_grouping(np.array(_aid_list), groupxs)
-        >>> #
-        >>> split_aids_list = ibs.get_name_aids(split_nids)
-        >>> assert len(split_aids_list) > 0, 'SPLIT cases are finished'
-        >>> problem_aids = problem_aids_list[0]
-        >>> aid_list = split_aids_list[0]
-        >>> #
-        >>> print('Run splits for tagd problem cases %r' % (problem_aids))
-        >>> #back.run_annot_splits(aid_list)
-        >>> print('Review splits for tagd problem cases %r' % (problem_aids))
-        >>> from ibeis.viz import viz_graph
-        >>> nid = split_nids[0]
-        >>> selected_aids = np.unique(problem_aids.ravel()).tolist()
-        >>> selected_aids = [] if ut.get_argflag('--noselect') else  selected_aids
-        >>> print('selected_aids = %r' % (selected_aids,))
-        >>> selected_aids = []
-        >>> aids = ibs.get_name_aids(nid)
-        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids,
-        >>>                                              with_all=False,
-        >>>                                              selected_aids=selected_aids,
-        >>>                                              with_images=True,
-        >>>                                              prog='neato', rankdir='LR',
-        >>>                                              augment_graph=False,
-        >>>                                              ensure_edges=problem_aids.tolist())
-        >>> ut.show_if_requested()
-
-        rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])
-        ibs.get_annotmatch_prop('SplitCase', rowids)
-        #ibs.set_annotmatch_prop('SplitCase', rowids, [False])
-    """
-    pass
-
-
-def review_subgraph(ibs, nid_list):
-    r"""
-    CommandLine:
-        python -m ibeis.annotmatch_funcs --exec-review_subgraph --show
-
-    Example:
-        >>> # SCRIPT
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> nid_list = ibs.get_valid_nids()[0:5]
-        >>> result = review_subgraph(ibs, nid_list)
-        >>> ut.show_if_requested()
-    """
-    from ibeis.viz import viz_graph
-    self = viz_graph.make_name_graph_interaction(ibs, nid_list)
-    return self
-
-
-def review_tagged_joins():
-    """
-
-    CommandLine:
-        python -m ibeis.annotmatch_funcs --exec-review_tagged_joins --show --db PZ_Master1
-        python -m ibeis.annotmatch_funcs --exec-review_tagged_joins --show --db testdb1
-
-    Example:
-        >>> from ibeis.gui.guiback import *  # NOQA
-        >>> import numpy as np
-        >>> import vtool as vt
-        >>> #back = testdata_guiback(defaultdb='PZ_Master1', activate=False)
-        >>> #ibs = back.ibs
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
-        >>> # Find aids that still need Joins
-        >>> aid_pair_list = ibs.filter_aidpairs_by_tags(has_any='JoinCase')
-        >>> if ibs.get_dbname() == 'testdb1':
-        >>>     aid_pair_list = [[1, 2]]
-        >>> truth_list_ = ibs.get_aidpair_truths(*zip(*aid_pair_list))
-        >>> truth_list = truth_list_ != 1
-        >>> _aid_list = ut.compress(aid_pair_list, truth_list)
-        >>> _nids_list = np.array(ibs.unflat_map(ibs.get_annot_name_rowids, _aid_list))
-        >>> edge_ids = vt.get_undirected_edge_ids(_nids_list)
-        >>> edge_ids = np.array(edge_ids)
-        >>> unique_edgeids, groupxs = vt.group_indices(edge_ids)
-        >>> problem_aids_list = vt.apply_grouping(np.array(_aid_list), groupxs)
-        >>> problem_nids_list = vt.apply_grouping(np.array(_nids_list), groupxs)
-        >>> join_nids = [np.unique(nids.ravel()) for nids in problem_nids_list]
-        >>> join_aids_list = ibs.unflat_map(ibs.get_name_aids, join_nids)
-        >>> assert len(join_aids_list) > 0, 'JOIN cases are finished'
-        >>> problem_aid_pairs = problem_aids_list[0]
-        >>> aid_list = join_aids_list[0]
-        >>> #
-        >>> print('Run JOINS for taged problem cases %r' % (problem_aid_pairs))
-        >>> #back.run_annot_splits(aid_list)
-        >>> print('Review splits for tagd problem cases %r' % (problem_aid_pairs))
-        >>> from ibeis.viz import viz_graph
-        >>> nids = join_nids[0]
-        >>> selected_aids = np.unique(problem_aid_pairs.ravel()).tolist()
-        >>> ut.flatten(ibs.get_name_aids(nids))
-        >>> aids = ibs.sample_annots_general(ut.flatten(ibs.get_name_aids(nids)), sample_per_name=4, verbose=True)
-        >>> import itertools
-        >>> aids = ut.unique(aids + selected_aids)
-        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, selected_aids=selected_aids, with_all=False, invis_edges=list(itertools.combinations(selected_aids, 2)))
-        >>> #self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids)
-        >>> ut.show_if_requested()
-
-        rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])
-        ibs.get_annotmatch_prop('SplitCase', rowids)
-        #ibs.set_annotmatch_prop('SplitCase', rowids, [False])
-    """
-    pass
 
 
 if __name__ == '__main__':

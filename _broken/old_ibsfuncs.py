@@ -518,3 +518,116 @@ def get_fastest_names(ibs, nid_list=None):
     nid_list_      = nid_list__.take(sortx)
     maxspeed_list_ = maxspeed_list__.take(sortx)
     return nid_list_, maxspeed_list_
+
+
+def review_tagged_splits():
+    """
+
+    CommandLine:
+        python -m ibeis.annotmatch_funcs --exec-review_tagged_splits --show
+        python -m ibeis.annotmatch_funcs --exec-review_tagged_splits --show --db
+
+    Example:
+        >>> from ibeis.gui.guiback import *  # NOQA
+        >>> import numpy as np
+        >>> #back = testdata_guiback(defaultdb='PZ_Master1', activate=False)
+        >>> #ibs = back.ibs
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> # Find aids that still need splits
+        >>> aid_pair_list = ibs.filter_aidpairs_by_tags(has_any='SplitCase')
+        >>> truth_list = ibs.get_aidpair_truths(*zip(*aid_pair_list))
+        >>> _aid_list = ut.compress(aid_pair_list, truth_list)
+        >>> _nids_list = ibs.unflat_map(ibs.get_annot_name_rowids, _aid_list)
+        >>> _nid_list = ut.get_list_column(_nids_list, 0)
+        >>> import vtool as vt
+        >>> split_nids, groupxs = vt.group_indices(np.array(_nid_list))
+        >>> problem_aids_list = vt.apply_grouping(np.array(_aid_list), groupxs)
+        >>> #
+        >>> split_aids_list = ibs.get_name_aids(split_nids)
+        >>> assert len(split_aids_list) > 0, 'SPLIT cases are finished'
+        >>> problem_aids = problem_aids_list[0]
+        >>> aid_list = split_aids_list[0]
+        >>> #
+        >>> print('Run splits for tagd problem cases %r' % (problem_aids))
+        >>> #back.run_annot_splits(aid_list)
+        >>> print('Review splits for tagd problem cases %r' % (problem_aids))
+        >>> from ibeis.viz import viz_graph
+        >>> nid = split_nids[0]
+        >>> selected_aids = np.unique(problem_aids.ravel()).tolist()
+        >>> selected_aids = [] if ut.get_argflag('--noselect') else  selected_aids
+        >>> print('selected_aids = %r' % (selected_aids,))
+        >>> selected_aids = []
+        >>> aids = ibs.get_name_aids(nid)
+        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids,
+        >>>                                              with_all=False,
+        >>>                                              selected_aids=selected_aids,
+        >>>                                              with_images=True,
+        >>>                                              prog='neato', rankdir='LR',
+        >>>                                              augment_graph=False,
+        >>>                                              ensure_edges=problem_aids.tolist())
+        >>> ut.show_if_requested()
+
+        rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])
+        ibs.get_annotmatch_prop('SplitCase', rowids)
+        #ibs.set_annotmatch_prop('SplitCase', rowids, [False])
+    """
+    pass
+
+
+def review_tagged_joins():
+    """
+
+    CommandLine:
+        python -m ibeis.annotmatch_funcs --exec-review_tagged_joins --show --db PZ_Master1
+        python -m ibeis.annotmatch_funcs --exec-review_tagged_joins --show --db testdb1
+
+    Example:
+        >>> from ibeis.gui.guiback import *  # NOQA
+        >>> import numpy as np
+        >>> import vtool as vt
+        >>> #back = testdata_guiback(defaultdb='PZ_Master1', activate=False)
+        >>> #ibs = back.ibs
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> # Find aids that still need Joins
+        >>> aid_pair_list = ibs.filter_aidpairs_by_tags(has_any='JoinCase')
+        >>> if ibs.get_dbname() == 'testdb1':
+        >>>     aid_pair_list = [[1, 2]]
+        >>> truth_list_ = ibs.get_aidpair_truths(*zip(*aid_pair_list))
+        >>> truth_list = truth_list_ != 1
+        >>> _aid_list = ut.compress(aid_pair_list, truth_list)
+        >>> _nids_list = np.array(ibs.unflat_map(ibs.get_annot_name_rowids, _aid_list))
+        >>> edge_ids = vt.get_undirected_edge_ids(_nids_list)
+        >>> edge_ids = np.array(edge_ids)
+        >>> unique_edgeids, groupxs = vt.group_indices(edge_ids)
+        >>> problem_aids_list = vt.apply_grouping(np.array(_aid_list), groupxs)
+        >>> problem_nids_list = vt.apply_grouping(np.array(_nids_list), groupxs)
+        >>> join_nids = [np.unique(nids.ravel()) for nids in problem_nids_list]
+        >>> join_aids_list = ibs.unflat_map(ibs.get_name_aids, join_nids)
+        >>> assert len(join_aids_list) > 0, 'JOIN cases are finished'
+        >>> problem_aid_pairs = problem_aids_list[0]
+        >>> aid_list = join_aids_list[0]
+        >>> #
+        >>> print('Run JOINS for taged problem cases %r' % (problem_aid_pairs))
+        >>> #back.run_annot_splits(aid_list)
+        >>> print('Review splits for tagd problem cases %r' % (problem_aid_pairs))
+        >>> from ibeis.viz import viz_graph
+        >>> nids = join_nids[0]
+        >>> selected_aids = np.unique(problem_aid_pairs.ravel()).tolist()
+        >>> ut.flatten(ibs.get_name_aids(nids))
+        >>> aids = ibs.sample_annots_general(ut.flatten(ibs.get_name_aids(nids)), sample_per_name=4, verbose=True)
+        >>> import itertools
+        >>> aids = ut.unique(aids + selected_aids)
+        >>> self = viz_graph.make_name_graph_interaction(ibs, aids=aids, selected_aids=selected_aids, with_all=False, invis_edges=list(itertools.combinations(selected_aids, 2)))
+        >>> #self = viz_graph.make_name_graph_interaction(ibs, nids, selected_aids=selected_aids)
+        >>> ut.show_if_requested()
+
+        rowids = ibs.get_annotmatch_rowid_from_superkey(problem_aids.T[0], problem_aids.T[1])
+        ibs.get_annotmatch_prop('SplitCase', rowids)
+        #ibs.set_annotmatch_prop('SplitCase', rowids, [False])
+    """
+    pass
+
+
+

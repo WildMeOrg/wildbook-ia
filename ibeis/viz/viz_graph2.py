@@ -876,6 +876,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         #print('aid_list = %r' % (aid_list,))
         #print('name_list = %r' % (name_list,))
 
+        old_feedback = infr.pandas_feedback_format(infr.read_user_feedback())
+        new_feedback = infr.pandas_feedback_format(infr.user_feedback)
+
         # LOG ACTIVITY
         import logging
         # ut.vd(review_log_dir)

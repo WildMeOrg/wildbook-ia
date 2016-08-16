@@ -164,6 +164,14 @@ def autogen_explicit_imports():
     controller_inject.dev_autogen_explicit_injects()
 
 
+def autogen_explicit_controller():
+    """
+    python -m ibeis dev_autogen_explicit_injects
+    TODO: make this a setup command
+    """
+    pass
+
+
 if __name__ == '__main__':
     print('[setup] Entering IBEIS setup')
     kwargs = util_setup.setuptools_setup(
