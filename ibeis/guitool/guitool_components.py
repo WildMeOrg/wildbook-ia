@@ -5,12 +5,10 @@ from six.moves import map, range  # NOQA
 from guitool.__PYQT__ import QtCore, QtGui
 from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__.QtCore import Qt
-import functools
-import utool
-import utool as ut  # NOQA
+import utool as ut
 from guitool import guitool_dialogs
 import weakref
-(print, rrr, profile) = utool.inject2(__name__, '[guitool_components]')
+(print, rrr, profile) = ut.inject2(__name__, '[guitool_components]')
 
 DEBUG_WIDGET = ut.get_argflag('--debugwidget')
 
@@ -120,14 +118,32 @@ def newTabWidget(parent, horizontalStretch=1, verticalStretch=1):
     return tabwgt
 
 
+def newToolbar(widget):
+    """ Defines the menubar on top of the main widget """
+    toolbar = QtWidgets.QToolBar(widget)
+    #toolbar.setGeometry(QtCore.QRect(0, 0, 1013, 23))
+    toolbar.setContextMenuPolicy(Qt.DefaultContextMenu)
+    #menubar.setDefaultUp(False)
+    #menubar.setNativeMenuBar(False)
+    setattr(toolbar, 'newMenu', ut.partial(newMenu, toolbar))
+    widget.addWidget(toolbar)
+    #menubar.show()
+    return toolbar
+
+
 def newMenubar(widget):
     """ Defines the menubar on top of the main widget """
     menubar = QtWidgets.QMenuBar(widget)
-    menubar.setGeometry(QtCore.QRect(0, 0, 1013, 23))
+    #menubar.setGeometry(QtCore.QRect(0, 0, 1013, 23))
     menubar.setContextMenuPolicy(Qt.DefaultContextMenu)
     menubar.setDefaultUp(False)
     menubar.setNativeMenuBar(False)
-    widget.setMenuBar(menubar)
+    setattr(menubar, 'newMenu', ut.partial(newMenu, menubar))
+    if hasattr(widget, 'setMenuBar'):
+        widget.setMenuBar(menubar)
+    else:
+        widget.addWidget(menubar)
+        #menubar.show()
     return menubar
 
 
@@ -135,56 +151,69 @@ def newQPoint(x, y):
     return QtCore.QPoint(int(round(x)), int(round(y)))
 
 
-def newMenu(widget, menubar, name, text):
-    """ Defines each menu category in the menubar """
-    menu = QtWidgets.QMenu(menubar)
-    menu.setObjectName(name)
+def newMenu(parent, text, name=None):
+    """ Defines each menu category in the menubar/toolbar/menu """
+    menu = QtWidgets.QMenu(parent)
+    if name is not None:
+        menu.setObjectName(name)
     menu.setTitle(text)
     # Define a custom newAction function for the menu
     # The QT function is called addAction
-    newAction = functools.partial(newMenuAction, widget, name)
-    setattr(menu, 'newAction', newAction)
-    # Add the menu to the menubar
-    menubar.addAction(menu.menuAction())
+    setattr(menu, 'newAction', ut.partial(newMenuAction, menu))
+    setattr(menu, 'newMenu', ut.partial(newMenu, menu))
+    # Add the menu to the parent menu/menubar
+    parent.addAction(menu.menuAction())
     return menu
 
 
-def newMenuAction(front, menu_name, name=None, text=None, shortcut=None,
-                  tooltip=None, slot_fn=None, enabled=True):
+def newMenuAction(menu, name=None, text=None, shortcut=None,
+                  tooltip=None, slot_fn=None, enabled=True, triggered=None):
     """
     Added as a helper function to menus
     """
-    if name is None:
-        # it is usually better to specify the name explicitly
-        name = ut.convert_text_to_varname('action' + text)
-    assert name is not None, 'menuAction name cannot be None'
+    # convert to new style
+    if triggered is not None:
+        slot_fn = triggered
+    triggered = slot_fn
+
+    if text is None:
+        if triggered is not None:
+            text = ut.get_funcname(triggered)
+        else:
+            text = None
+
+    #if name is None:
+    #    # it is usually better to specify the name explicitly
+    #    name = ut.convert_text_to_varname('action' + text)
+    #assert name is not None, 'menuAction name cannot be None'
+
     # Dynamically add new menu actions programatically
-    action_name = name
-    action_text = text
     action_shortcut = shortcut
     action_tooltip  = tooltip
-    if hasattr(front, action_name):
-        raise Exception('menu action already defined')
+    #if hasattr(menu, name):
+    #    raise Exception('menu action already defined')
     # Create new action
-    action = QtWidgets.QAction(front)
-    setattr(front, action_name, action)
+    action = QtWidgets.QAction(menu)
+    #setattr(parent, name, action)
+
     action.setEnabled(enabled)
     action.setShortcutContext(QtCore.Qt.ApplicationShortcut)
-    menu = getattr(front, menu_name)
+    #menu = getattr(parent, menu_name)
+    #menu = parent
     menu.addAction(action)
-    if action_text is None:
-        action_text = action_name
-    if action_text is not None:
-        action.setText(action_text)
+    if text is None:
+        text = name
+    if text is not None:
+        action.setText(text)
     if action_tooltip is not None:
         action.setToolTip(action_tooltip)
     if action_shortcut is not None:
         action.setShortcut(action_shortcut)
         #action.setShortcutContext(Qt.WidgetWithChildrenShortcut)
         action.setShortcutContext(Qt.WindowShortcut)
-        #print('<%s>.setShortcut(%r)' % (action_name, action_shortcut,))
-    if slot_fn is not None:
-        action.triggered.connect(slot_fn)
+        #print('<%s>.setShortcut(%r)' % (name, action_shortcut,))
+    if triggered is not None:
+        action.triggered.connect(triggered)
     return action
 
 
@@ -1797,7 +1826,7 @@ def getAvailableFonts():
 
 def layoutSplitter(splitter):
     old_sizes = splitter.sizes()
-    phi = utool.get_phi()
+    phi = ut.get_phi()
     total = sum(old_sizes)
     ratio = 1 / phi
     sizes = []
