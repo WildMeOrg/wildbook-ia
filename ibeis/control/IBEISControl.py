@@ -488,8 +488,15 @@ class IBEISController(BASE_CLASS):
     def _init_sql(ibs, request_dbversion=None):
         """ Load or create sql database """
         from ibeis.other import duct_tape  # NOQA
-        ibs._init_sqldbcore(request_dbversion=request_dbversion)
+        # LOAD THE DEPENDENCY CACHE BEFORE THE MAIN DATABASE SO THAT ANY UPDATE
+        # CALLS TO THE CORE DATABASE WILL HAVE ACCESS TO THE CACHE DATABASES IF
+        # THEY ARE NEEDED.  THIS IS A DECISION MADE ON 8/16/16 BY JP AND JC TO
+        # ALLOW FOR COLUMN DATA IN THE CORE DATABASE TO BE MIGRATED TO THE CACHE
+        # DATABASE DURING A POST UPDATE FUNCTION ROUTINE, WHICH HAS TO BE LOADED
+        # FIRST AND DEFINED IN ORDER TO MAKE THE SUBSEQUENT WRITE CALLS TO THE
+        # RELEVANT CACHE DATABASE
         ibs._init_depcache()
+        ibs._init_sqldbcore(request_dbversion=request_dbversion)
         # ibs.db.dump_schema()
         # ibs.db.dump()
         ibs._init_rowid_constants()
