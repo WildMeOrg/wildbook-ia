@@ -185,6 +185,140 @@ def add_annotmatch_undirected(ibs, aids1, aids2):
 
 
 @register_ibs_method
+def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
+    r"""
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list1 (int):  list of annotation ids
+        aid_list2 (int):  list of annotation ids
+
+    Returns:
+        list: timedelta_list
+
+    CommandLine:
+        python -m ibeis.annotmatch_funcs --test-get_annot_pair_timdelta
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.annotmatch_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> aid_list = ibs.get_valid_aids(hasgt=True)
+        >>> unixtimes = ibs.get_annot_image_unixtimes(aid_list)
+        >>> aid_list = ut.compress(aid_list, np.array(unixtimes) != -1)
+        >>> gt_aids_list = ibs.get_annot_groundtruth(aid_list, daid_list=aid_list)
+        >>> aid_list1 = [aid for aid, gt_aids in zip(aid_list, gt_aids_list) if len(gt_aids) > 0][0:5]
+        >>> aid_list2 = [gt_aids[0] for gt_aids in gt_aids_list if len(gt_aids) > 0][0:5]
+        >>> timedelta_list = ibs.get_annot_pair_timdelta(aid_list1, aid_list2)
+        >>> result = ut.repr2(timedelta_list, precision=2)
+        >>> print(result)
+        np.array([  7.57e+07,   7.57e+07,   2.41e+06,   1.98e+08,   9.69e+07])
+    """
+    unixtime_list1 = ibs.get_annot_image_unixtimes_asfloat(aid_list1)
+    unixtime_list2 = ibs.get_annot_image_unixtimes_asfloat(aid_list2)
+    timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
+    return timedelta_list
+
+
+@register_ibs_method
+def get_annot_has_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
+    num_reviewed_list = ibs.get_annot_num_reviewed_matching_aids(aid_list)
+    has_reviewed_list = [num_reviewed > 0 for num_reviewed in num_reviewed_list]
+    return has_reviewed_list
+
+
+@register_ibs_method
+def get_annot_num_reviewed_matching_aids(ibs, aid1_list, eager=True, nInput=None):
+    r"""
+    Args:
+        aid_list (int):  list of annotation ids
+        eager (bool):
+        nInput (None):
+
+    Returns:
+        list: num_annot_reviewed_list
+
+    CommandLine:
+        python -m ibeis.annotmatch_funcs --test-get_annot_num_reviewed_matching_aids
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.annotmatch_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb2')
+        >>> aid1_list = ibs.get_valid_aids()
+        >>> eager = True
+        >>> nInput = None
+        >>> num_annot_reviewed_list = get_annot_num_reviewed_matching_aids(ibs, aid_list, eager, nInput)
+        >>> result = str(num_annot_reviewed_list)
+        >>> print(result)
+    """
+    aids_list = ibs.get_annot_reviewed_matching_aids(aid1_list, eager=eager, nInput=nInput)
+    num_annot_reviewed_list = list(map(len, aids_list))
+    return num_annot_reviewed_list
+
+
+@register_ibs_method
+def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
+    """
+    Returns a list of the aids that were reviewed as candidate matches to the input aid
+    """
+    ANNOT_ROWID1 = 'annot_rowid1'
+    ANNOT_ROWID2 = 'annot_rowid2'
+    params_iter = [(aid,) for aid in aid_list]
+    colnames = (ANNOT_ROWID2,)
+    andwhere_colnames = (ANNOT_ROWID1,)
+    aids_list = ibs.db.get_where2(ibs.const.ANNOTMATCH_TABLE, colnames,
+                                  params_iter,
+                                  andwhere_colnames=andwhere_colnames,
+                                  eager=eager, unpack_scalars=False,
+                                  nInput=nInput)
+    return aids_list
+
+
+@register_ibs_method
+def get_annot_pair_truth(ibs, aid1_list, aid2_list):
+    """
+    CAREFUL: uses annot match table for truth, so only works if reviews have happend
+    """
+    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_undirected_superkey(aid1_list, aid2_list)
+    annotmatch_truth_list = ibs.get_annotmatch_truth(annotmatch_rowid_list)
+    return annotmatch_truth_list
+
+
+@register_ibs_method
+def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
+    r"""
+    Args:
+        aid1_list (list):
+        aid2_list (list):
+
+    Returns:
+        list: annotmatch_reviewed_list
+
+    CommandLine:
+        python -m ibeis.annotmatch_funcs --test-get_annot_pair_is_reviewed
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.annotmatch_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb2')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> pairs = list(ut.product(aid_list, aid_list))
+        >>> aid1_list = ut.get_list_column(pairs, 0)
+        >>> aid2_list = ut.get_list_column(pairs, 1)
+        >>> annotmatch_reviewed_list = get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list)
+        >>> reviewed_pairs = ut.compress(pairs, annotmatch_reviewed_list)
+        >>> result = len(reviewed_pairs)
+        >>> print(result)
+        104
+    """
+    am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aid1_list, aid2_list)
+    return ibs.get_annotmatch_reviewed(am_rowids)
+
+
+@register_ibs_method
 def set_annot_pair_as_reviewed(ibs, aid1, aid2):
     """ denote that this match was reviewed and keep whatever status it is given """
     isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
@@ -194,13 +328,13 @@ def set_annot_pair_as_reviewed(ibs, aid1, aid2):
         nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
         truth = ibs.const.TRUTH_MATCH if (nid1 == nid2) else ibs.const.TRUTH_NOT_MATCH
 
-    #annotmatch_rowid = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])[0]
+    # Ensure a row exists for this pair
     annotmatch_rowids = ibs.add_annotmatch_undirected([aid1], [aid2])
-    ibs.set_annotmatch_reviewed(annotmatch_rowids, [True])
 
     # Old functionality, remove. Reviewing should not set truth
     confidence  = 0.5
     #ibs.add_or_update_annotmatch(aid1, aid2, truth, confidence)
+    ibs.set_annotmatch_reviewed(annotmatch_rowids, [True])
     ibs.set_annotmatch_truth(annotmatch_rowids, [truth])
     ibs.set_annotmatch_confidence(annotmatch_rowids, [confidence])
     print('... set truth=%r' % (truth,))
@@ -395,140 +529,6 @@ def set_annot_pair_as_negative_match(ibs, aid1, aid2, dryrun=False,
 #@register_ibs_method
 #def set_annot_pair_as_unknown_match(ibs, aid1, aid2, dryrun=False, on_nontrivial_merge=None):
 #    pass
-
-
-@register_ibs_method
-def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
-    r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid_list1 (int):  list of annotation ids
-        aid_list2 (int):  list of annotation ids
-
-    Returns:
-        list: timedelta_list
-
-    CommandLine:
-        python -m ibeis.annotmatch_funcs --test-get_annot_pair_timdelta
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> aid_list = ibs.get_valid_aids(hasgt=True)
-        >>> unixtimes = ibs.get_annot_image_unixtimes(aid_list)
-        >>> aid_list = ut.compress(aid_list, np.array(unixtimes) != -1)
-        >>> gt_aids_list = ibs.get_annot_groundtruth(aid_list, daid_list=aid_list)
-        >>> aid_list1 = [aid for aid, gt_aids in zip(aid_list, gt_aids_list) if len(gt_aids) > 0][0:5]
-        >>> aid_list2 = [gt_aids[0] for gt_aids in gt_aids_list if len(gt_aids) > 0][0:5]
-        >>> timedelta_list = ibs.get_annot_pair_timdelta(aid_list1, aid_list2)
-        >>> result = ut.repr2(timedelta_list, precision=2)
-        >>> print(result)
-        np.array([  7.57e+07,   7.57e+07,   2.41e+06,   1.98e+08,   9.69e+07])
-    """
-    unixtime_list1 = ibs.get_annot_image_unixtimes_asfloat(aid_list1)
-    unixtime_list2 = ibs.get_annot_image_unixtimes_asfloat(aid_list2)
-    timedelta_list = np.abs(unixtime_list1 - unixtime_list2)
-    return timedelta_list
-
-
-@register_ibs_method
-def get_annot_has_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
-    num_reviewed_list = ibs.get_annot_num_reviewed_matching_aids(aid_list)
-    has_reviewed_list = [num_reviewed > 0 for num_reviewed in num_reviewed_list]
-    return has_reviewed_list
-
-
-@register_ibs_method
-def get_annot_num_reviewed_matching_aids(ibs, aid1_list, eager=True, nInput=None):
-    r"""
-    Args:
-        aid_list (int):  list of annotation ids
-        eager (bool):
-        nInput (None):
-
-    Returns:
-        list: num_annot_reviewed_list
-
-    CommandLine:
-        python -m ibeis.annotmatch_funcs --test-get_annot_num_reviewed_matching_aids
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
-        >>> aid1_list = ibs.get_valid_aids()
-        >>> eager = True
-        >>> nInput = None
-        >>> num_annot_reviewed_list = get_annot_num_reviewed_matching_aids(ibs, aid_list, eager, nInput)
-        >>> result = str(num_annot_reviewed_list)
-        >>> print(result)
-    """
-    aids_list = ibs.get_annot_reviewed_matching_aids(aid1_list, eager=eager, nInput=nInput)
-    num_annot_reviewed_list = list(map(len, aids_list))
-    return num_annot_reviewed_list
-
-
-@register_ibs_method
-def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
-    """
-    Returns a list of the aids that were reviewed as candidate matches to the input aid
-    """
-    ANNOT_ROWID1 = 'annot_rowid1'
-    ANNOT_ROWID2 = 'annot_rowid2'
-    params_iter = [(aid,) for aid in aid_list]
-    colnames = (ANNOT_ROWID2,)
-    andwhere_colnames = (ANNOT_ROWID1,)
-    aids_list = ibs.db.get_where2(ibs.const.ANNOTMATCH_TABLE, colnames,
-                                  params_iter,
-                                  andwhere_colnames=andwhere_colnames,
-                                  eager=eager, unpack_scalars=False,
-                                  nInput=nInput)
-    return aids_list
-
-
-@register_ibs_method
-def get_annot_pair_truth(ibs, aid1_list, aid2_list):
-    """
-    CAREFUL: uses annot match table for truth, so only works if reviews have happend
-    """
-    annotmatch_rowid_list = ibs.get_annotmatch_rowid_from_undirected_superkey(aid1_list, aid2_list)
-    annotmatch_truth_list = ibs.get_annotmatch_truth(annotmatch_rowid_list)
-    return annotmatch_truth_list
-
-
-@register_ibs_method
-def get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list):
-    r"""
-    Args:
-        aid1_list (list):
-        aid2_list (list):
-
-    Returns:
-        list: annotmatch_reviewed_list
-
-    CommandLine:
-        python -m ibeis.annotmatch_funcs --test-get_annot_pair_is_reviewed
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.annotmatch_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb2')
-        >>> aid_list = ibs.get_valid_aids()
-        >>> pairs = list(ut.product(aid_list, aid_list))
-        >>> aid1_list = ut.get_list_column(pairs, 0)
-        >>> aid2_list = ut.get_list_column(pairs, 1)
-        >>> annotmatch_reviewed_list = get_annot_pair_is_reviewed(ibs, aid1_list, aid2_list)
-        >>> reviewed_pairs = ut.compress(pairs, annotmatch_reviewed_list)
-        >>> result = len(reviewed_pairs)
-        >>> print(result)
-        104
-    """
-    am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aid1_list, aid2_list)
-    return ibs.get_annotmatch_reviewed(am_rowids)
 
 
 if __name__ == '__main__':

@@ -738,16 +738,25 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             user_feedback[edge].append(review)
         return user_feedback
 
-    @staticmethod
-    def pandas_feedback_format(user_feedback):
+    #@staticmethod
+    def pandas_feedback_format(infr, user_feedback):
         import pandas as pd
         aid_pairs = list(user_feedback.keys())
+        aids1 = ut.take_column(aid_pairs, 0)
+        aids2 = ut.take_column(aid_pairs, 1)
+        ibs = infr.ibs
+
+        am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+        #am_rowids = np.array(ut.replace_nones(am_rowids, np.nan))
         probs_ = list(user_feedback.values())
         probs = ut.take_column(probs_, -1)
         df = pd.DataFrame.from_dict(probs)
-        df['aid1'] = ut.take_column(aid_pairs, 0)
-        df['aid2'] = ut.take_column(aid_pairs, 1)
-        df.index = pd.Index(aid_pairs)
+        df['aid1'] = aids1
+        df['aid2'] = aids2
+        df['am_rowid'] = am_rowids
+        df.set_index('am_rowid')
+        df.index = pd.Index(am_rowids, name='am_rowid')
+        #df.index = pd.Index(aid_pairs, name=('aid1', 'aid2'))
         return df
 
     def initialize_graph(infr):

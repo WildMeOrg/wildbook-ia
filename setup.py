@@ -158,18 +158,12 @@ def autogen_explicit_imports():
     """
     Excpliticly generated injectable code in order to aid auto complete
     programs like jedi as well as allow for a more transparent stack trace.
+
+    python -m ibeis dev_autogen_explicit_injects
     """
     import ibeis  # NOQA
     from ibeis.control import controller_inject
     controller_inject.dev_autogen_explicit_injects()
-
-
-def autogen_explicit_controller():
-    """
-    python -m ibeis dev_autogen_explicit_injects
-    TODO: make this a setup command
-    """
-    pass
 
 
 if __name__ == '__main__':

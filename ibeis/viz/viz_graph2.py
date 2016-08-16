@@ -876,9 +876,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         #print('aid_list = %r' % (aid_list,))
         #print('name_list = %r' % (name_list,))
 
-        old_feedback = infr.pandas_feedback_format(infr.read_user_feedback())
-        new_feedback = infr.pandas_feedback_format(infr.user_feedback)
-
         # LOG ACTIVITY
         import logging
         # ut.vd(review_log_dir)
@@ -912,10 +909,42 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         # logger.info('_initial_feedback = ' + ut.repr2(self.infr._initial_feedback, nl=1))
         logger.info('user_feedback = ' + ut.repr2(self.infr.user_feedback, nl=1))
 
+        # keep track of residual data
+        old_feedback = infr.pandas_feedback_format(infr.read_user_feedback())
+        new_feedback = infr.pandas_feedback_format(infr.user_feedback)
+        old, new = old_feedback.align(new_feedback)
+        changed = (old != new)['p_match']
+        old_df = old.loc[changed]
+        new_df = new.loc[changed]
+
+        pdkw = dict(max_rows=len(changed) + 1)
+        logger.info('old_df =\n' + old_df.to_string(**pdkw))
+        logger.info('new_df =\n' + new_df.to_string(**pdkw))
+
         ibs = self.infr.ibs
         dryrun = False
         if not dryrun:
+            # Set names
             ibs.set_annot_names(aid_list, name_list)
+
+            # Add am rowids for nonexisting rows
+            if len(new_df) > 0:
+                not_exists = np.isnan(new_df['am_rowid'].values)
+                needs_add = new_df.iloc[not_exists]
+                am_rowids = ibs.add_annotmatch_undirected(needs_add['aid1'].values,
+                                                          needs_add['aid2'].values)
+                new_df.loc[not_exists, 'am_rowid'] = am_rowids
+                new_df.set_index('am_rowid')
+
+                # Set residual matching data
+                truth_options = [ibs.const.TRUTH_MATCH,
+                                 ibs.const.TRUTH_NOT_MATCH,
+                                 ibs.const.TRUTH_UNKNOWN]
+                truth_keys = ['p_match', 'p_nomatch', 'p_notcomp']
+                truth_idxs = new_df[truth_keys].values.argmax(axis=1)
+                new_truth = ut.take(truth_options, truth_idxs)
+                am_rowids = new_df['am_rowid'].values
+                ibs.set_annotmatch_truth(am_rowids, new_truth)
         else:
             print('DRY RUN. NOT DOING ANYTHING')
         gt.user_info(self, 'Name Change Complete')
