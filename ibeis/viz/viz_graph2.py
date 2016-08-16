@@ -612,7 +612,10 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         else:
             self.state_lbl.setText('Consistent')
             self.state_lbl.setColor('black', self.infr.truth_colors['match'][0:3] * 255)
-        self.num_names_lbl.setText('Names: %d' % (status['num_names'],))
+        #self.num_names_lbl.setText('Names: %d' % (status['num_names'],))
+        self.num_names_lbl.setText('Names: max=%r, min=%r' % (
+            status['num_names_max'],
+            status['num_names_min'],))
 
         #self.signal_state_update.emit(structure_changed)
         self.on_state_update(structure_changed)
@@ -1258,6 +1261,13 @@ def make_edge_api(infr, review_cfg={}):
         }
         return thumbdat
 
+    def get_num_other(aid):
+        node = infr.aid_to_node[aid]
+        node_to_name_label = nx.get_node_attributes(graph, 'name_label')
+        name_label = node_to_name_label[node]
+        labels = list(node_to_name_label.values())
+        return labels.count(name_label)
+
     aids1, aids2 = get_filtered_edges(ibs, graph, review_cfg)
 
     col_name_list = [
@@ -1270,6 +1280,8 @@ def make_edge_api(infr, review_cfg={}):
         'kmdist',
         'speed',
         'tags',
+        'cc_size1',
+        'cc_size2',
         'aid1', 'aid2',
         #'data',
     ]
@@ -1297,6 +1309,8 @@ def make_edge_api(infr, review_cfg={}):
         'score':  edge_attr_getter('score'),
         'rank':  edge_attr_getter('rank', -1),
         'tags': get_pair_tags,
+        'cc_size1': lambda edge: get_num_other(edge[0]),
+        'cc_size2': lambda edge: get_num_other(edge[1]),
         'thumb1': ibs.get_annot_chip_thumbtup,
         'thumb2': ibs.get_annot_chip_thumbtup,
         'match_thumb': get_match_thumbtup,
@@ -1315,6 +1329,8 @@ def make_edge_api(infr, review_cfg={}):
         'matched'     : ('aid1', 'aid2'),
         'reviewed'    : ('aid1', 'aid2'),
         'tags': ('aid1', 'aid2'),
+        'cc_size1': ('aid1', 'aid2'),
+        'cc_size2': ('aid1', 'aid2'),
     }
     col_types_dict = {
         'rank': int,
@@ -1324,6 +1340,8 @@ def make_edge_api(infr, review_cfg={}):
         'thumb1': 'PIXMAP',
         'thumb2': 'PIXMAP',
         'match_thumb': 'PIXMAP',
+        'cc_size1': int,
+        'cc_size2': int,
     }
 
     col_display_role_func_dict = {
@@ -1341,6 +1359,8 @@ def make_edge_api(infr, review_cfg={}):
         'index': 42,
         'aid1': 50,
         'aid2': 50,
+        'cc_size1': 80,
+        'cc_size2': 80,
         'score': 65,
         'rank': 42,
         #'timedelta': 65,

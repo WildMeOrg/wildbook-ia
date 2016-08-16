@@ -660,11 +660,11 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             >>> infr.add_feedback(5, 6, 'nomatch')
             >>> infr.add_feedback(1, 2, 'match')
             >>> infr.apply_feedback_edges()
-            >>> tup = infr.connected_compoment_status()
-            >>> (num_names, num_inconsistent) = tup
+            >>> status = infr.connected_compoment_status()
+            >>> print(ut.repr3(status))
         """
         cc_subgraphs = infr.connected_compoment_reviewed_subgraphs()
-        num_names = len(cc_subgraphs)
+        num_names_max = len(cc_subgraphs)
 
         ccx_to_aids = {
             ccx: list(nx.get_node_attrs(cc, 'aid').values())
@@ -689,14 +689,31 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
                     ccx1, ccx2 = ccx2, ccx1
                 separated_ccxs.add((ccx1, ccx2))
 
-        g = nx.Graph()
-        g.add_edges_from(separated_ccxs)
-        # Find minimum number of connected compoments possible
-        # Each edge represents that two nodes must be separated
-        nodes = list(g.nodes())
-        node = nodes
-        nx.complement(g)
-        #pass
+        def minimum_number_compoments_possible(nodes, negative_edges):
+            """
+            Find minimum number of connected compoments possible
+            Each edge represents that two nodes must be separated
+            """
+            num = 0
+            gnew = nx.Graph()
+            gnew.add_nodes_from(nodes)
+            gnew.add_edges_from(separated_ccxs)
+            gbar = nx.complement(gnew)
+            unseen = list(gnew.nodes())
+            while len(unseen) > 0:
+                n1 = unseen[0]
+                unseen.remove(n1)
+                num += 1
+                neigbs = list(gbar.neighbors(n1))
+                while len(neigbs) > 0:
+                    n2 = neigbs[0]
+                    unseen.remove(n2)
+                    gnew = nx.contracted_nodes(gnew, n1, n2)
+                    gbar = nx.complement(gnew)
+                    neigbs = list(gbar.neighbors(n1))
+            return num
+        num_names_min = minimum_number_compoments_possible(infr.aids, separated_ccxs)
+        # pass
 
         #for count, subgraph in enumerate(cc_subgraphs):
         #    sub_reviewed_states = nx.get_edge_attrs(subgraph, 'reviewed_state')
@@ -709,8 +726,9 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         #        num_inconsistent += 1
 
         status = dict(
-            num_names=num_names,
+            num_names_max=num_names_max,
             num_inconsistent=len(inconsistent_ccxs),
+            num_names_min=num_names_min,
         )
 
         return status
