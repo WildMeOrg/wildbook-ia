@@ -612,7 +612,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         """ Resets feedback edges to state of the SQL annotmatch table """
         if infr.verbose:
             print('[infr] reset_feedback')
-        infr.user_feedback = infr.load_user_feedback()
+        infr.user_feedback = infr.read_user_feedback()
 
     def remove_feedback(infr):
         if infr.verbose:
@@ -675,7 +675,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             # Check for consistency
         return num_names, num_inconsistent
 
-    def load_user_feedback(infr):
+    def read_user_feedback(infr):
         """
         Loads feedback from annotmatch table
 
@@ -683,7 +683,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
-            >>> user_feedback = infr.load_user_feedback()
+            >>> user_feedback = infr.read_user_feedback()
             >>> result =('user_feedback = %s' % (ut.repr2(user_feedback, nl=1),))
             >>> print(result)
             user_feedback = {
@@ -692,7 +692,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             }
         """
         if infr.verbose:
-            print('[infr] load_user_feedback')
+            print('[infr] read_user_feedback')
         ibs = infr.ibs
         annots = ibs.annots(infr.aids)
         am_rowids, aid_pairs = annots.get_am_rowids_and_pairs()
@@ -738,6 +738,27 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             user_feedback[edge].append(review)
         return user_feedback
 
+    #@staticmethod
+    def _pandas_feedback_format(infr, user_feedback):
+        import pandas as pd
+        aid_pairs = list(user_feedback.keys())
+        aids1 = ut.take_column(aid_pairs, 0)
+        aids2 = ut.take_column(aid_pairs, 1)
+        ibs = infr.ibs
+
+        am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+        #am_rowids = np.array(ut.replace_nones(am_rowids, np.nan))
+        probs_ = list(user_feedback.values())
+        probs = ut.take_column(probs_, -1)
+        df = pd.DataFrame.from_dict(probs)
+        df['aid1'] = aids1
+        df['aid2'] = aids2
+        df['am_rowid'] = am_rowids
+        df.set_index('am_rowid')
+        df.index = pd.Index(am_rowids, name='am_rowid')
+        #df.index = pd.Index(aid_pairs, name=('aid1', 'aid2'))
+        return df
+
     def initialize_graph(infr):
         if infr.verbose:
             print('[infr] initialize_graph')
@@ -755,6 +776,61 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         nx.set_node_attrs(graph, 'name_label', node_to_nid)
         nx.set_node_attrs(graph, 'orig_name_label', node_to_nid)
         infr.aid_to_node = ut.invert_dict(infr.node_to_aid)
+
+    def match_residuals(infr):
+        """ Returns information about state change of annotmatches """
+        old_feedback = infr._pandas_feedback_format(infr.read_user_feedback())
+        new_feedback = infr._pandas_feedback_format(infr.user_feedback)
+        new_df, old_df = infr._make_residuals(old_feedback, new_feedback)
+        return new_df, old_df
+
+    @staticmethod
+    def _make_residuals(old_feedback, new_feedback):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> import pandas as pd
+            >>> old_data = [
+            >>>     [1, 0, 0, 100, 101, 1000],
+            >>>     [0, 1, 0, 101, 102, 1001],
+            >>>     [0, 1, 0, 103, 104, 1003],
+            >>>     [1, 0, 0, 101, 104, 1004],
+            >>> ]
+            >>> new_data = [
+            >>>     [1, 0, 0, 101, 102, 1001],
+            >>>     [0, 1, 0, 103, 104, 1002],
+            >>>     [0, 1, 0, 101, 104, 1003],
+            >>>     [1, 0, 0, 102, 103, None],
+            >>>     [1, 0, 0, 100, 103, None],
+            >>>     [0, 0, 1, 107, 109, None],
+            >>> ]
+            >>> columns = ['p_match', 'p_nomatch', 'p_noncomp', 'aid1', 'aid2', 'am_rowid']
+            >>> old_feedback = pd.DataFrame(old_data, columns=columns)
+            >>> new_feedback = pd.DataFrame(new_data, columns=columns)
+            >>> old_feedback.set_index('am_rowid', inplace=True, drop=False)
+            >>> new_feedback.set_index('am_rowid', inplace=True, drop=False)
+            >>> new_df, old_df = AnnotInference._make_residuals(old_feedback, new_feedback)
+            >>> # post
+            >>> is_add = np.isnan(new_df['am_rowid'].values)
+            >>> add_df = new_df.loc[]
+            >>> add_ams = [2000, 2001, 2002]
+            >>> add_df['am_rowid'] = add_ams
+            >>> add_df.set_index('am_rowid', drop=False, inplace=True)
+        """
+        import pandas as pd
+        existing_ams = new_feedback['am_rowid'][~np.isnan(new_feedback['am_rowid'])]
+        both_ams = np.intersect1d(old_feedback['am_rowid'], existing_ams).astype(np.int)
+
+        all_new_df = new_feedback.loc[both_ams]
+        all_old_df = old_feedback.loc[both_ams]
+        is_changed = ~np.all(all_new_df.values == all_old_df.values, axis=1)
+
+        new_df_ = all_new_df[is_changed]
+        add_df = new_feedback.loc[np.isnan(new_feedback['am_rowid'])].copy()
+
+        old_df = all_old_df[is_changed]
+        new_df = pd.concat([new_df_, add_df])
+        return new_df, old_df
 
     #def add_edges(infr, aid_pairs):
     #    #attr_dict={}):

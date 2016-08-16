@@ -909,10 +909,44 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         # logger.info('_initial_feedback = ' + ut.repr2(self.infr._initial_feedback, nl=1))
         logger.info('user_feedback = ' + ut.repr2(self.infr.user_feedback, nl=1))
 
+        # keep track of residual data
+        new_df, old_df = infr.match_residuals()
+        num_added = len(old_df) - len(new_df)
+        num_changed = len(old_df)
+
+        pdkw = dict(max_rows=len(new_df) + 1)
+        #print_ = print
+        print_ = logger.info
+        print_('There were %d added annot match rows' % (num_added,))
+        print_('There were %d changed annot match rows' % (num_changed,))
+        print_('---DATAFRAME\nold_df =\n' + old_df.to_string(**pdkw))
+        print_('---DATAFRAME\nnew_df =\n' + new_df.to_string(**pdkw))
+
         ibs = self.infr.ibs
         dryrun = False
         if not dryrun:
+            # Set names
             ibs.set_annot_names(aid_list, name_list)
+
+            # Add am rowids for nonexisting rows
+            if len(new_df) > 0:
+                is_add = np.isnan(new_df['am_rowid'].values)
+                add_df = new_df.loc[is_add]
+                add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
+                                                        add_df['aid2'].values)
+                new_df.loc[is_add, 'am_rowid'] = add_ams
+                new_df.set_index('am_rowid', drop=False, inplace=True)
+
+                # Set residual matching data
+                truth_options = [ibs.const.TRUTH_MATCH,
+                                 ibs.const.TRUTH_NOT_MATCH,
+                                 ibs.const.TRUTH_UNKNOWN]
+                truth_keys = ['p_match', 'p_nomatch', 'p_notcomp']
+                truth_idxs = new_df[truth_keys].values.argmax(axis=1)
+                new_truth = ut.take(truth_options, truth_idxs)
+                am_rowids = new_df['am_rowid'].values
+
+                ibs.set_annotmatch_truth(am_rowids, new_truth)
         else:
             print('DRY RUN. NOT DOING ANYTHING')
         gt.user_info(self, 'Name Change Complete')
