@@ -544,7 +544,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         assert len(aids) == len(nids), 'must correspond'
         #assert len(aids) == len(current_nids)
         infr.graph = None
-        infr.user_feedback = {}
+        infr.user_feedback = ut.ddict(list)
         infr.thresh = .5
         infr.cm_list = None
         infr.qreq_ = None
@@ -641,19 +641,79 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         cc_subgraphs = [graph.subgraph(cc) for cc in ccs]
         return cc_subgraphs
 
-    def connected_compoment_reviewed_labeling(infr):
+    def connected_compoment_status(infr):
+        r"""
+        Args:
+
+
+        Returns:
+            tuple: (num_names, num_inconsistent)
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden connected_compoment_status --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> infr.add_feedback(2, 3, 'nomatch')
+            >>> infr.add_feedback(5, 6, 'nomatch')
+            >>> infr.add_feedback(1, 2, 'match')
+            >>> infr.apply_feedback_edges()
+            >>> tup = infr.connected_compoment_status()
+            >>> (num_names, num_inconsistent) = tup
+        """
         cc_subgraphs = infr.connected_compoment_reviewed_subgraphs()
-        num_inconsistent = 0
         num_names = len(cc_subgraphs)
 
-        for count, subgraph in enumerate(cc_subgraphs):
-            reviewed_states = nx.get_edge_attrs(subgraph, 'reviewed_state')
-            inconsistent_edges = [edge for edge, val in reviewed_states.items()
-                                  if val == 'nomatch']
-            if len(inconsistent_edges) > 0:
-                #print('Inconsistent')
-                num_inconsistent += 1
-        return num_names, num_inconsistent
+        ccx_to_aids = {
+            ccx: list(nx.get_node_attrs(cc, 'aid').values())
+            for ccx, cc in enumerate(cc_subgraphs)
+        }
+        aid_to_ccx = {
+            aid: ccx for ccx, aids in ccx_to_aids.items() for aid in aids
+        }
+
+        all_reviewed_states = nx.get_edge_attrs(infr.graph, 'reviewed_state')
+        separated_ccxs = set([])
+        inconsistent_ccxs = set([])
+        for edge, state in all_reviewed_states.items():
+            if state == 'nomatch':
+                ccx1 = aid_to_ccx[edge[0]]
+                ccx2 = aid_to_ccx[edge[1]]
+                # Determine number of negative matches within a compoment
+                if ccx1 == ccx2:
+                    inconsistent_ccxs.add(ccx1)
+                # Determine the number of compoments that should not be joined
+                if ccx1 > ccx2:
+                    ccx1, ccx2 = ccx2, ccx1
+                separated_ccxs.add((ccx1, ccx2))
+
+        g = nx.Graph()
+        g.add_edges_from(separated_ccxs)
+        # Find minimum number of connected compoments possible
+        # Each edge represents that two nodes must be separated
+        nodes = list(g.nodes())
+        node = nodes
+        nx.complement(g)
+        #pass
+
+        #for count, subgraph in enumerate(cc_subgraphs):
+        #    sub_reviewed_states = nx.get_edge_attrs(subgraph, 'reviewed_state')
+        #    inconsistent_edges = [
+        #        edge for edge, val in sub_reviewed_states.items()
+        #        if val == 'nomatch'
+        #    ]
+        #    if len(inconsistent_edges) > 0:
+        #        #print('Inconsistent')
+        #        num_inconsistent += 1
+
+        status = dict(
+            num_names=num_names,
+            num_inconsistent=len(inconsistent_ccxs),
+        )
+
+        return status
 
     def connected_compoment_reviewed_relabel(infr):
         if infr.verbose:
@@ -812,10 +872,10 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             >>> new_df, old_df = AnnotInference._make_residuals(old_feedback, new_feedback)
             >>> # post
             >>> is_add = np.isnan(new_df['am_rowid'].values)
-            >>> add_df = new_df.loc[]
+            >>> add_df = new_df.loc[is_add]
             >>> add_ams = [2000, 2001, 2002]
-            >>> add_df['am_rowid'] = add_ams
-            >>> add_df.set_index('am_rowid', drop=False, inplace=True)
+            >>> new_df.loc[is_add, 'am_rowid'] = add_ams
+            >>> new_df.set_index('am_rowid', drop=False, inplace=True)
         """
         import pandas as pd
         existing_ams = new_feedback['am_rowid'][~np.isnan(new_feedback['am_rowid'])]

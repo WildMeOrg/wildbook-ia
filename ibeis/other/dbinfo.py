@@ -284,6 +284,8 @@ def fix_splits_interaction(ibs):
     tosplit_annots = ut.compress(all_annot_groups.annots_list, all_has_split)
 
     tosplit_annots = ut.take(tosplit_annots, ut.argsort(ut.lmap(len, tosplit_annots)))[::-1]
+    if ut.get_argflag('--reverse'):
+        tosplit_annots = tosplit_annots[::-1]
     print('len(tosplit_annots) = %r' % (len(tosplit_annots),))
     aids_list = [a.aids for a in tosplit_annots]
 

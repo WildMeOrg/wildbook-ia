@@ -28,7 +28,8 @@ else:
 FigureCanvas = backend_qt.FigureCanvasQTAgg
 
 
-DEVELOPER_MODE = True  # False
+#DEVELOPER_MODE = False  # False
+#DEVELOPER_MODE = True
 #ut.is_developer()
 
 
@@ -139,24 +140,24 @@ class DevGraphWidget(gt.GuitoolWidget):
         bbar1.addNewButton('Mark: Non-Match', pressed=graph_widget.mark_nonmatch)
         bbar1.addNewButton('Mark: Not-Comp', pressed=graph_widget.mark_notcomp)
 
-        if DEVELOPER_MODE:
-            thresh_wgt = bbar1.addNewWidget(orientation=Qt.Horizontal, margin=1)
-            thresh_wgt.addNewLabel('Thresh:')
-            graph_widget.thresh_lbl = thresh_wgt.addNewLineEdit('.5', editable=False)
+        #if DEVELOPER_MODE:
+        #    thresh_wgt = bbar1.addNewWidget(orientation=Qt.Horizontal, margin=1)
+        #    thresh_wgt.addNewLabel('Thresh:')
+        #    graph_widget.thresh_lbl = thresh_wgt.addNewLineEdit('.5', editable=False)
 
         bbar2.addNewButton('Deselect', pressed=graph_widget.deselect)
         bbar2.addNewButton('Show Annots', pressed=graph_widget.show_selected)
 
-        if DEVELOPER_MODE:
-            def _simple_button2(func, refresh=True):
-                def _simple_onevent():
-                    func()
-                    if refresh:
-                        graph_widget.draw_gon_state_updateraph()
-                wrapped_func = ut.preserve_sig(_simple_onevent, func)
-                bbar2.addNewButton(pressed=wrapped_func)
-            bbar2.addNewButton('Infer Cut', pressed=graph_widget.infer_cut)
-            _simple_button2(infr.apply_all)
+        #if DEVELOPER_MODE:
+        #    def _simple_button2(func, refresh=True):
+        #        def _simple_onevent():
+        #            func()
+        #            if refresh:
+        #                graph_widget.draw_gon_state_updateraph()
+        #        wrapped_func = ut.preserve_sig(_simple_onevent, func)
+        #        bbar2.addNewButton(pressed=wrapped_func)
+        #    bbar2.addNewButton('Infer Cut', pressed=graph_widget.infer_cut)
+        #    _simple_button2(infr.apply_all)
 
         def refresh_via_cb(flag):
             graph_widget.on_state_update()
@@ -173,40 +174,40 @@ class DevGraphWidget(gt.GuitoolWidget):
             'Pin Positions', changed=graph_widget.set_pin_state, checked=False)
 
         #Debug row
-        if DEVELOPER_MODE:
-            bbar3 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
+        #if DEVELOPER_MODE:
+        #    bbar3 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
 
-            def _simple_button3(func, text=None, refresh=True):
-                def _simple_onevent():
-                    func()
-                    if refresh:
-                        graph_widget.on_state_update()
-                wrapped_func = ut.preserve_sig(_simple_onevent, func)
-                bbar3.addNewButton(text, pressed=wrapped_func)
+        #    def _simple_button3(func, text=None, refresh=True):
+        #        def _simple_onevent():
+        #            func()
+        #            if refresh:
+        #                graph_widget.on_state_update()
+        #        wrapped_func = ut.preserve_sig(_simple_onevent, func)
+        #        bbar3.addNewButton(text, pressed=wrapped_func)
 
-            _simple_button3(parent.reset_all)
+        #    _simple_button3(parent.reset_all)
 
-            _simple_button3(infr.reset_feedback)
-            _simple_button3(infr.reset_name_labels)
+        #    _simple_button3(infr.reset_feedback)
+        #    _simple_button3(infr.reset_name_labels)
 
-            _simple_button3(infr.remove_feedback)
-            _simple_button3(infr.remove_name_labels)
+        #    _simple_button3(infr.remove_feedback)
+        #    _simple_button3(infr.remove_name_labels)
 
-            bbar3.layout().addSpacing(10)
-            _simple_button3(infr.mst_review)
-            _simple_button3(infr.connected_compoment_reviewed_relabel)
-            bbar3.layout().addSpacing(10)
+        #    bbar3.layout().addSpacing(10)
+        #    _simple_button3(infr.mst_review)
+        #    _simple_button3(infr.connected_compoment_reviewed_relabel)
+        #    bbar3.layout().addSpacing(10)
 
-            _simple_button3(infr.apply_mst)
-            _simple_button3(parent.apply_scores)
-            _simple_button3(infr.apply_feedback_edges)
-            _simple_button3(infr.apply_weights)
-            _simple_button3(infr.apply_cuts)
-            #_simple_button3(graph_widget.infr.remove_cuts)
+        #    _simple_button3(infr.apply_mst)
+        #    _simple_button3(parent.apply_scores)
+        #    _simple_button3(infr.apply_feedback_edges)
+        #    _simple_button3(infr.apply_weights)
+        #    _simple_button3(infr.apply_cuts)
+        #    #_simple_button3(graph_widget.infr.remove_cuts)
 
-            bbar3.layout().addSpacing(10)
-            _simple_button3(parent.update_state)
-            _simple_button3(graph_widget.draw_graph, refresh=False)
+        #    bbar3.layout().addSpacing(10)
+        #    _simple_button3(parent.update_state)
+        #    _simple_button3(graph_widget.draw_graph, refresh=False)
 
         # Connect signals and slots
         graph_widget.mpl_wgt.click_inside_signal.connect(graph_widget.on_click_inside)
@@ -231,8 +232,8 @@ class DevGraphWidget(gt.GuitoolWidget):
         )
 
         # Update Qt things
-        if DEVELOPER_MODE:
-            graph_widget.thresh_lbl.setText('%.2f' % (graph_widget.infr.thresh))
+        #if DEVELOPER_MODE:
+        #    graph_widget.thresh_lbl.setText('%.2f' % (graph_widget.infr.thresh))
 
         # Update MPL things
         #layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
@@ -252,39 +253,39 @@ class DevGraphWidget(gt.GuitoolWidget):
         for aid in graph_widget.selected_aids:
             graph_widget.highlight_aid(aid, True)
 
-        if DEVELOPER_MODE:
-            #ut.util_graph.graph_info(graph_widget.infr.graph, verbose=True)
-            xy = (1, graph_widget.infr.thresh)
-            xytext = (2.5, .3 if graph_widget.infr.thresh < .5 else .7)
-            #print('xy = %r' % (xy,))
-            #print('xytext = %r' % (xytext,))
-            #print('graph_widget.infr.thresh = %r' % (graph_widget.infr.thresh,))
+        #if DEVELOPER_MODE:
+        #    #ut.util_graph.graph_info(graph_widget.infr.graph, verbose=True)
+        #    xy = (1, graph_widget.infr.thresh)
+        #    xytext = (2.5, .3 if graph_widget.infr.thresh < .5 else .7)
+        #    #print('xy = %r' % (xy,))
+        #    #print('xytext = %r' % (xytext,))
+        #    #print('graph_widget.infr.thresh = %r' % (graph_widget.infr.thresh,))
 
-            if graph_widget.cb is not None:
-                ax = graph_widget.cb.ax
-                from plottool import plot_helpers as ph
-                ph.del_plotdat(graph_widget.mpl_wgt.ax, pt.DF2_DIVIDER_KEY)
-                ph.del_plotdat(graph_widget.mpl_wgt.ax, 'df2_div_axes')
-                ax.cla()
-                ax.xaxis.set_ticks_position('none')
-                ax.set_xticks([])
-                ax.axes.get_xaxis().set_visible(False)
+        #    if graph_widget.cb is not None:
+        #        ax = graph_widget.cb.ax
+        #        from plottool import plot_helpers as ph
+        #        ph.del_plotdat(graph_widget.mpl_wgt.ax, pt.DF2_DIVIDER_KEY)
+        #        ph.del_plotdat(graph_widget.mpl_wgt.ax, 'df2_div_axes')
+        #        ax.cla()
+        #        ax.xaxis.set_ticks_position('none')
+        #        ax.set_xticks([])
+        #        ax.axes.get_xaxis().set_visible(False)
 
-            _normal_ticks = np.linspace(0, 1, num=11)
-            _normal_scores = np.linspace(0, 1, num=500)
-            _normal_colors = graph_widget.infr.get_colored_weights(_normal_scores)
-            cb = pt.colorbar(_normal_scores, _normal_colors, lbl='weights',
-                             ticklabels=_normal_ticks)
+        #    _normal_ticks = np.linspace(0, 1, num=11)
+        #    _normal_scores = np.linspace(0, 1, num=500)
+        #    _normal_colors = graph_widget.infr.get_colored_weights(_normal_scores)
+        #    cb = pt.colorbar(_normal_scores, _normal_colors, lbl='weights',
+        #                     ticklabels=_normal_ticks)
 
-            graph_widget.thresh_annot = cb.ax.annotate(
-                'threshold',
-                xy=xy,
-                xytext=xytext,
-                arrowprops=dict(
-                    alpha=.5,
-                    fc="0.6",
-                    connectionstyle="angle3,angleA=90,angleB=0"),)
-            graph_widget.cb = cb
+        #    graph_widget.thresh_annot = cb.ax.annotate(
+        #        'threshold',
+        #        xy=xy,
+        #        xytext=xytext,
+        #        arrowprops=dict(
+        #            alpha=.5,
+        #            fc="0.6",
+        #            connectionstyle="angle3,angleA=90,angleB=0"),)
+        #    graph_widget.cb = cb
 
         graph_widget.mpl_wgt.canvas.draw()
         # fig.canvas.blit(ax.bbox)
@@ -486,6 +487,16 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.infr = infr
         # self.config = InferenceConfig()
 
+        #if DEVELOPER_MODE:
+        self.menubar = gt.newMenubar(self)
+        self.menuFile = self.menubar.newMenu('Dev')
+        self.menuFile.newAction(triggered=self.print_info)
+        self.menuFile.newAction(triggered=self.embed)
+        #self.dev_bar = self.addNewWidget(
+        #    orientation=Qt.Horizontal, vertical_stretch=1, margin=1, spacing=1)
+        #self.dev_bar.addNewButton(pressed=self.print_info)
+        #self.dev_bar.addNewButton(pressed=self.embed)
+
         graph_tables_widget = self.addNewTabWidget(verticalStretch=1)
 
         self.status_bar = self.addNewWidget(
@@ -519,12 +530,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         self.node_tab.addWidget(self.node_api_widget)
         self.edge_tab.addWidget(self.edge_api_widget)
-
-        if DEVELOPER_MODE:
-            self.dev_bar = self.addNewWidget(
-                orientation=Qt.Horizontal, vertical_stretch=1, margin=1, spacing=1)
-            self.dev_bar.addNewButton(pressed=self.print_info)
-            self.dev_bar.addNewButton(pressed=self.embed)
 
         if self.init_mode in ['split', 'rereview']:
             # TODO: separate graph view into its own class
@@ -600,14 +605,14 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.infr.apply_cuts()
 
         # Set gui status indicators
-        num_names, num_inconsistent = self.infr.connected_compoment_reviewed_labeling()
-        if num_inconsistent:
-            self.state_lbl.setText('Inconsistent Names: %d' % (num_inconsistent,))
+        status = self.infr.connected_compoment_status()
+        if status['num_inconsistent']:
+            self.state_lbl.setText('Inconsistent Names: %d' % (status['num_inconsistent'],))
             self.state_lbl.setColor('black', self.infr.truth_colors['nomatch'][0:3] * 255)
         else:
             self.state_lbl.setText('Consistent')
             self.state_lbl.setColor('black', self.infr.truth_colors['match'][0:3] * 255)
-        self.num_names_lbl.setText('Names: %d' % (num_names,))
+        self.num_names_lbl.setText('Names: %d' % (status['num_names'],))
 
         #self.signal_state_update.emit(structure_changed)
         self.on_state_update(structure_changed)
@@ -980,12 +985,12 @@ def make_node_api(infr):
     aids = sorted(list(infr.graph.nodes()))
     col_name_list = [
         'aid',
-        'data',
+        #'data',
         'thumb',
         'name_label'
     ]
-    if not DEVELOPER_MODE:
-        col_name_list.remove('data')
+    #if not DEVELOPER_MODE:
+    #    col_name_list.remove('data')
 
     def get_node_data(aid):
         data = infr.graph.node[aid].copy()
@@ -1266,11 +1271,11 @@ def make_edge_api(infr, review_cfg={}):
         'speed',
         'tags',
         'aid1', 'aid2',
-        'data',
+        #'data',
     ]
 
-    if not DEVELOPER_MODE:
-        col_name_list.remove('data')
+    #if not DEVELOPER_MODE:
+    #    col_name_list.remove('data')
 
     if not review_cfg['show_match_thumb']:
         # FIXME; do one-vs-one scoring instead
@@ -1281,9 +1286,12 @@ def make_edge_api(infr, review_cfg={}):
         'aid1': aids1,
         'aid2': aids2,
         'data': get_edge_data,
-        'timedelta': lambda edge: (edge_assert(edge), ibs.get_unflat_annots_timedelta_list([edge])[0][0])[1],
-        'speed': lambda edge: (edge_assert(edge), ibs.get_unflat_annots_speeds_list2([edge])[0][0])[1],
-        'kmdist': lambda edge: (edge_assert(edge), ibs.get_unflat_annots_kmdists_list([edge])[0][0])[1],
+        'timedelta': lambda edge: (edge_assert(edge),
+                                   ibs.get_unflat_annots_timedelta_list([edge])[0][0])[1],
+        'speed': lambda edge: (edge_assert(edge),
+                               ibs.get_unflat_annots_speeds_list2([edge])[0][0])[1],
+        'kmdist': lambda edge: (edge_assert(edge),
+                                ibs.get_unflat_annots_kmdists_list([edge])[0][0])[1],
         'matched':  get_match_text,
         'reviewed':  edge_attr_getter('reviewed_state', 'unreviewed'),
         'score':  edge_attr_getter('score'),
@@ -1445,7 +1453,8 @@ def ggr_random_name_splits():
     orig_all_annots = ibs.annots(orig_aids)
     orig_unique_nids, orig_grouped_annots_ = orig_all_annots.group(orig_all_annots.nids)
     # Ensure we get everything
-    orig_grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(orig_unique_nids)]
+    orig_grouped_annots = [ibs.annots(aids_)
+                           for aids_ in ibs.get_name_aids(orig_unique_nids)]
 
     # pip install quantumrandom
     if False:
@@ -1483,7 +1492,8 @@ def ggr_random_name_splits():
             'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
             'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
         })
-    refiltered_sample = [ibs.filter_annots_general(annot.aids, filter_kw=filter_kw_) for annot in orig_annot_sample]
+    refiltered_sample = [ibs.filter_annots_general(annot.aids, filter_kw=filter_kw_)
+                         for annot in orig_annot_sample]
     is_ok = (np.array(ut.lmap(len, refiltered_sample)) >= 2)
     ok_part_orig_sample = ut.compress(orig_annot_sample, is_ok)
     ok_part_orig_nids = [x.nids[0] for x in ok_part_orig_sample]
@@ -1509,7 +1519,8 @@ def ggr_random_name_splits():
 
     # Remove the ok part from this sample
     remain_unique_nids = ut.setdiff(unique_nids, ok_part_orig_nids)
-    remain_grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(remain_unique_nids)]
+    remain_grouped_annots = [ibs.annots(aids_) for aids_ in
+                             ibs.get_name_aids(remain_unique_nids)]
 
     sample_size = 75
     import vtool as vt
@@ -1522,7 +1533,9 @@ def ggr_random_name_splits():
 
     annot_sample_nofilter = ok_part_orig_sample + remain_annot_sample
     # Filter out all bad parts
-    annot_sample_filter = [ibs.annots(ibs.filter_annots_general(annot.aids, filter_kw=filter_kw_)) for annot in annot_sample_nofilter]
+    annot_sample_filter = [ibs.annots(ibs.filter_annots_general(annot.aids,
+                                                                filter_kw=filter_kw_))
+                           for annot in annot_sample_nofilter]
     annot_sample = annot_sample_filter
 
     win = None
@@ -1530,7 +1543,8 @@ def ggr_random_name_splits():
     for annots in ut.InteractiveIter(annot_sample):
         if win is not None:
             win.close()
-        win = viz_graph2.make_qt_graph_interface(ibs, aids=annots.aids, init_mode='rereview')
+        win = viz_graph2.make_qt_graph_interface(ibs, aids=annots.aids,
+                                                 init_mode='rereview')
         print(win)
 
     sample_groups = ibeis.annots.AnnotGroups(annot_sample, ibs)
