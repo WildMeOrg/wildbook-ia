@@ -774,13 +774,16 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
                 # Seed a new "minimum compoment"
                 num += 1
                 # Grab a random unused node n1
-                idx1 = np.random.randint(0, len(unused))
+                #idx1 = np.random.randint(0, len(unused))
+                idx1 = 0
                 n1 = unused[idx1]
                 unused.remove(n1)
                 neigbs = list(g_pos.neighbors(n1))
+                neigbs = ut.isect(neigbs, unused)
                 while len(neigbs) > 0:
                     # Find node n2, that n1 could be connected to
-                    idx2 = np.random.randint(0, len(neigbs))
+                    #idx2 = np.random.randint(0, len(neigbs))
+                    idx2 = 0
                     n2 = neigbs[idx2]
                     unused.remove(n2)
                     # Collapse negative information of n1 and n2
@@ -789,6 +792,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
                     g_pos = nx.complement(g_neg)
                     # Iterate until n1 has no more possible connections
                     neigbs = list(g_pos.neighbors(n1))
+                    neigbs = ut.isect(neigbs, unused)
             print('num = %r' % (num,))
             return num
 
