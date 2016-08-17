@@ -384,6 +384,19 @@ class AnnotInferenceVisualization(object):
                 'headlabel', 'linestyle', 'color', 'stroke', 'lw', 'end_pt',
                 'start_pt', 'head_lp', 'alpha', 'ctrl_pts', 'pos', 'zorder']
 
+    @property
+    def visual_node_attrs(infr):
+        return ['color', 'framewidth', 'image', 'label',
+                'pos', 'shape', 'size', 'height', 'width', 'zorder']
+
+    def simplify_graph(infr, graph):
+        s = graph.copy()
+        for attr in infr.visual_edge_attrs:
+            ut.nx_delete_edge_attr(s, attr)
+        for attr in infr.visual_node_attrs:
+            ut.nx_delete_node_attr(s, attr)
+        return s
+
     def update_visual_attrs(infr, graph=None, show_cuts=False,
                             show_reviewed_cuts=True, only_reviewed=False):
         if infr.verbose:
@@ -414,23 +427,39 @@ class AnnotInferenceVisualization(object):
         # Color nodes by name label
         ut.color_nodes(graph, labelattr='name_label')
 
-        # Update color and linewidth based on scores/weight
-        edges, edge_weights, edge_colors = infr.get_colored_edge_weights(graph)
-        #nx.set_edge_attrs(graph, 'len', _dz(edges, [10]))
-        nx.set_edge_attrs(graph, 'color', _dz(edges, edge_colors))
-        maxlw = 4
-        minlw = .5
-        lw = ((maxlw - minlw) * edge_weights + minlw)
-        nx.set_edge_attrs(graph, 'lw', _dz(edges, lw))
-
-        # Mark reviewed edges witha stroke
         reviewed_states = nx.get_edge_attrs(graph, 'reviewed_state')
 
-        edge2_stroke = {
-            edge: {'linewidth': 3, 'foreground': infr.truth_colors[state]}
-            for edge, state in reviewed_states.items()
-        }
-        nx.set_edge_attrs(graph, 'stroke', edge2_stroke)
+        SPLIT_MODE = True
+        if not SPLIT_MODE:
+            # Update color and linewidth based on scores/weight
+            edges, edge_weights, edge_colors = infr.get_colored_edge_weights(graph)
+            #nx.set_edge_attrs(graph, 'len', _dz(edges, [10]))
+            nx.set_edge_attrs(graph, 'color', _dz(edges, edge_colors))
+            minlw, maxlw = .5, 4
+            lw = ((maxlw - minlw) * edge_weights + minlw)
+            nx.set_edge_attrs(graph, 'lw', _dz(edges, lw))
+
+            # Mark reviewed edges witha stroke
+            edge_to_stroke = {
+                edge: {'linewidth': 3, 'foreground': infr.truth_colors[state]}
+                for edge, state in reviewed_states.items()
+            }
+            nx.set_edge_attrs(graph, 'stroke', edge_to_stroke)
+        else:
+            # Mark reviewed edges witha color
+            edge_to_color = {
+                edge: infr.truth_colors[state]
+                for edge, state in reviewed_states.items()
+            }
+            nx.set_edge_attrs(graph, 'color', edge_to_color)
+
+            # Mark edges that might be splits with strokes
+            possible_split_edges = infr.find_possible_binary_splits()
+            edge_to_stroke = {
+                edge: {'linewidth': 3, 'foreground': pt.ORANGE}
+                for edge in ut.unique(possible_split_edges)
+            }
+            nx.set_edge_attrs(graph, 'stroke', edge_to_stroke)
 
         # Are cuts visible or invisible?
         edge2_cut = nx.get_edge_attrs(graph, 'is_cut')
@@ -448,6 +477,7 @@ class AnnotInferenceVisualization(object):
 
         if only_reviewed:
             # only reviewed edges contribute
+            edges = list(graph.edges())
             unreviewed_edges = ut.setdiff(edges, reviewed_states.keys())
             nx.set_edge_attrs(graph, 'implicit', _dz(unreviewed_edges, [True]))
             nx.set_edge_attrs(graph, 'style', _dz(unreviewed_edges, ['invis']))
@@ -1475,6 +1505,28 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         infr.apply_feedback_edges()
         infr.apply_weights()
         infr.infer_cut()
+
+    def find_possible_binary_splits(infr):
+        #s = infr.simplify_graph(infr.graph)
+
+        flagged_edges = []
+
+        for subgraph in infr.connected_compoment_reviewed_subgraphs():
+            inconsistent_edges = [
+                edge
+                for edge, state in nx.get_edge_attrs(subgraph, 'reviewed_state').items()
+                if state == 'nomatch']
+            subgraph.remove_edges_from(inconsistent_edges)
+            subgraph = infr.simplify_graph(subgraph)
+            for s, t in inconsistent_edges:
+                edgeset = nx.minimum_edge_cut(subgraph, s, t)
+                edgeset = set([tuple(sorted(edge)) for edge in edgeset])
+                flagged_edges.append(edgeset)
+                #print('x = %r' % (x,))
+            #cut_value, partition = nx.stoer_wagner(subgraph)
+            #pass
+        edges = ut.flatten(flagged_edges)
+        return edges
 
 
 def piecewise_weighting(infr, normscores, edges):

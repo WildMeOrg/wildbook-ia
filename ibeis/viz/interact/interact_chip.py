@@ -247,6 +247,8 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         ]),
     ]
 
+    # TODO: add set species
+
     callback_list += [
         ('Set &multiple: %r' % (not current_multiple), set_multiple_func(not current_multiple)),
     ]

@@ -1008,9 +1008,7 @@ def make_node_api(infr):
 
     def get_node_data(aid):
         data = infr.graph.node[aid].copy()
-        ut.delete_dict_keys(data,
-                            ['color', 'framewidth', 'image', 'label',
-                             'pos', 'shape', 'size', 'height', 'width'])
+        ut.delete_dict_keys(data, infr.visual_node_attrs)
         return ut.repr2(data, precision=2)
     col_getter_dict = {
         'aid': np.array(aids),
@@ -1296,10 +1294,10 @@ def make_edge_api(infr, review_cfg={}):
         'match_thumb',
         'matched', 'reviewed',
         'score', 'rank',
+        'tags',
         'timedelta',
         'kmdist',
         'speed',
-        'tags',
         'cc_size1',
         'cc_size2',
         'aid1', 'aid2',
