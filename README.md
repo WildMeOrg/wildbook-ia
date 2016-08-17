@@ -50,25 +50,26 @@ binaries available. These can be downloaded from: http://cs.rpi.edu/hotspotter/
 ### Spatial Verification
 ![alt text](http://i.imgur.com/VCz0j9C.jpg "sver")
 ```bash
-python -m vtool.spatial_verification --test-spatially_verify_kpts
+python -m vtool.spatial_verification --test-spatially_verify_kpts --show
 ```
 
 ### Name Scoring
 ![alt text](http://i.imgur.com/IDUnxu2.jpg "namematch")
 ```bash
-python -m ibeis.algo.hots.chip_match --exec-show_single_namematch --qaid 1 --show
+python -m ibeis.algo.hots.chip_match show_single_namematch --qaid 1 --show
 ```
 
 ### Identification Ranking 
 ![alt text](http://i.imgur.com/BlajchI.jpg "rankedmatches")
 ```bash
-python -m ibeis.algo.hots.chip_match --exec-show_ranked_matches --show --qaid 86
+python -m ibeis.algo.hots.chip_match show_ranked_matches --show --qaid 86
 ```
 
 ### Inference
 ![alt text](http://i.imgur.com/RYeeENl.jpg "encgraph")
 ```bash
-python -m ibeis.algo.preproc.preproc_encounter --exec-compute_encounter_groups --show
+# broken
+# python -m ibeis.algo.preproc.preproc_encounter compute_encounter_groups --show
 ```
 
 # Internal Modules
@@ -414,12 +415,8 @@ python -m ibeis delete_cache --db testdb1
 
 # Show a single annotations
 python -m ibeis.viz.viz_chip show_chip --db PZ_MTEST --aid 1 --show
-
 # Show annotations 1, 3, 5, and 11
 python -m ibeis.viz.viz_chip show_many_chips --db PZ_MTEST --aids=1,3,5,11 --show
-
-# Query annotation 2
-python -m ibeis.viz.viz_qres show_qres --db PZ_MTEST --qaids=2 --show
 
 
 # Database Stats for all our important datasets:
@@ -433,10 +430,9 @@ python -m ibeis.viz.viz_qres show_qres --db PZ_MTEST --qaids=2 --show
 
 # Current Experiments:
 
+# Main experiments
 python -m ibeis --tf draw_annot_scoresep --db PZ_MTEST -a default -t best --show
-
 python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl
-
 # Show disagreement cases
 ibeis --tf draw_match_cases --db PZ_MTEST -a default:size=20 \
     -t default:K=[1,4] \
@@ -476,13 +472,10 @@ python -m vtool.coverage_grid --test-gridsearch_coverage_grid --show
 # Test Spatially Constrained Scoring
 python -m ibeis.algo.hots.vsone_pipeline --test-compute_query_constrained_matches --show
 python -m ibeis.algo.hots.vsone_pipeline --test-gridsearch_constrained_matches --show
-python -m ibeis.algo.hots.vsone_pipeline --test-gridsearch_constrained_matches --show --testindex 2
 
 # Test VsMany ReRanking
 python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show
 python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog
-python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL
-python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --db GZ_ALL
 
 # Problem cases with the back spot
 python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 425
