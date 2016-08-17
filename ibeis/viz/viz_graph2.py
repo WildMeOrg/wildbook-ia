@@ -624,7 +624,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.state_lbl.setText('Consistent')
             self.state_lbl.setColor('black', self.infr.truth_colors['match'][0:3] * 255)
         #self.num_names_lbl.setText('Names: %d' % (status['num_names'],))
-        self.num_names_lbl.setText('Names: max=%r, min=%r' % (
+        self.num_names_lbl.setText('Names: max=%r, ~min=%r' % (
             status['num_names_max'],
             status['num_names_min'],))
 

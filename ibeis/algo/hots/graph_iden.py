@@ -694,6 +694,24 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             Find minimum number of connected compoments possible
             Each edge represents that two nodes must be separated
 
+            This code doesn't solve the problem. The problem is NP-complete and
+            reduces to minimum clique cover. This might be an approximation though.
+
+            >>> import networkx as nx
+            >>> nodes = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+            >>> edges = [(1, 2), (2, 3), (3, 1),
+            >>>          (4, 5), (5, 6), (6, 4),
+            >>>          (7, 8), (8, 9), (9, 7),
+            >>>          (1, 4), (4, 7), (7, 1),
+            >>>         ]
+            >>> g_pos = nx.Graph()
+            >>> g_pos.add_edges_from(edges)
+            >>> import plottool as pt
+            >>> pt.qt4ensure()
+            >>> g_neg = nx.complement(g_pos)
+            >>> pt.show_nx(g_neg)
+            >>> negative_edges = g_neg.edges()
+
             >>> nodes = [1, 2, 3, 4, 5, 6, 7]
             >>> negative_edges = [(1, 2), (2, 3), (4, 5)]
             >>> minimum_number_compoments_possible(nodes, negative_edges)
@@ -712,12 +730,14 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
                 # Seed a new "minimum compoment"
                 num += 1
                 # Grab a random unused node n1
-                n1 = unused[0]
+                idx1 = np.random.randint(0, len(unused))
+                n1 = unused[idx1]
                 unused.remove(n1)
                 neigbs = list(g_pos.neighbors(n1))
                 while len(neigbs) > 0:
                     # Find node n2, that n1 could be connected to
-                    n2 = neigbs[0]
+                    idx2 = np.random.randint(0, len(neigbs))
+                    n2 = neigbs[idx2]
                     unused.remove(n2)
                     # Collapse negative information of n1 and n2
                     g_neg = nx.contracted_nodes(g_neg, n1, n2)
@@ -725,6 +745,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
                     g_pos = nx.complement(g_neg)
                     # Iterate until n1 has no more possible connections
                     neigbs = list(g_pos.neighbors(n1))
+            print('num = %r' % (num,))
             return num
         num_names_min = minimum_number_compoments_possible(infr.aids, separated_ccxs)
         # pass
