@@ -253,56 +253,6 @@ git subtree push --prefix _page origin gh-pages
 ###
 
 
-#### OLD Environment Setup:
-```bash
-
-Use super_setup.py instead
-
-# Navigate to your code directory
-export CODE_DIR=~/code
-cd $CODE_DIR
-
-# Clone the IBEIS repositories 
-git clone https://github.com/WildbookOrg/utool.git
-git clone https://github.com/WildbookOrg/vtool.git
-git clone https://github.com/WildbookOrg/plottool.git
-git clone https://github.com/WildbookOrg/guitool.git
-git clone https://github.com/WildbookOrg/hesaff.git
-git clone https://github.com/WildbookOrg/ibeis.git
-#
-# Set the previous repos up for development by running
-#
-# > sudo python setup.py develop
-#
-# in each directory
-
-
-# e.g.
-sudo python $CODE_DIR/utool/setup.py develop
-sudo python $CODE_DIR/vtool/setup.py develop
-sudo python $CODE_DIR/hesaff/setup.py develop
-sudo python $CODE_DIR/plottool/setup.py develop
-sudo python $CODE_DIR/guitool/setup.py develop
-sudo python $CODE_DIR/ibeis/setup.py develop
-
-
-# Then clone these repos (these do not have setup.py files)
-git clone https://github.com/bluemellophone/detecttools.git
-git clone https://github.com/Erotemic/opencv.git
-git clone https://github.com/WildbookOrg/flann.git
-git clone https://github.com/bluemellophone/pyrf.git
-# For repos with C++ code use the unix/mingw build script in the repo:
-# e.g.
-sudo ~/code/opencv/unix_build.sh
-sudo ~/code/flann/unix_build.sh
-sudo ~/code/pyrf/unix_build.sh
-
-# If you want to train random forests with pyrf clone
-# https://github.com/bluemellophone/IBEIS2014.git
-# otherwise you dont need this
-```
-
-
 # Example usage
 
 (Note: This list is far from complete)
