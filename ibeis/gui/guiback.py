@@ -24,7 +24,6 @@ import six  # NOQA
 import sys
 import functools
 import traceback  # NOQA
-import guitool
 import utool as ut
 import guitool as gt
 from guitool import slot_, signal_, cast_from_qt
@@ -67,7 +66,7 @@ def backreport(func):
             error_msg = 'Error: %s' % (ex,)
             import traceback  # NOQA
             detailed_msg = traceback.format_exc()
-            guitool.msgbox(title="Error Catch!", msg=error_msg, detailed_msg=detailed_msg)
+            gt.msgbox(title="Error Catch!", msg=error_msg, detailed_msg=detailed_msg)
             raise
         return result
     backreport_wrapper = ut.preserve_sig(backreport_wrapper, func)
@@ -80,7 +79,7 @@ def backblock(func):
     way to make it more general?
     """
     @functools.wraps(func)
-    #@guitool.checks_qt_error
+    #@gt.checks_qt_error
     @backreport
     def bacblock_wrapper(back, *args, **kwargs):
         _wasBlocked_ = back.front.blockSignals(True)
@@ -88,7 +87,7 @@ def backblock(func):
             result = func(back, *args, **kwargs)
         except Exception:
             #error_msg = "Error caught while performing function. \n %r" % ex
-            #guitool.msgbox(title="Error Catch!", msg=error_msg)
+            #gt.msgbox(title="Error Catch!", msg=error_msg)
             raise
         finally:
             back.front.blockSignals(_wasBlocked_)
@@ -116,7 +115,7 @@ def blocking_slot(*types_):
     return wrap_bslot
 
 
-class CustomAnnotCfgSelector(guitool.GuitoolWidget):
+class CustomAnnotCfgSelector(gt.GuitoolWidget):
     """
     CommandLine:
         python -m ibeis.gui.guiback CustomAnnotCfgSelector --show
@@ -129,7 +128,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         >>> from ibeis.gui.guiback import *  # NOQA
         >>> import ibeis
         >>> import guitool as gt
-        >>> guitool.ensure_qtapp()
+        >>> gt.ensure_qtapp()
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> self = CustomAnnotCfgSelector(ibs)
         >>> rect = gt.QtWidgets.QDesktopWidget().availableGeometry(screen=0)
@@ -294,9 +293,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         # testlog.pressed.connect(self.log_query)
         # button_bar.addWidget(testlog)
 
-        self.prog_bar = guitool.addNewProgressBar(self, visible=False)
-        #self.addWidget(self.prog_bar)
-
+        self.prog_bar = self.addNewProgressBar(visible=False)
         gt.fix_child_attr_heirarchy(self, 'setSpacing', 0)
         gt.fix_child_attr_heirarchy(self, 'setMargin', 2)
         self.cfg_needs_update = True
@@ -629,7 +626,7 @@ class CustomAnnotCfgSelector(guitool.GuitoolWidget):
         self.load_previous_query(row)
 
 
-class NewDatabaseWidget(guitool.GuitoolWidget):
+class NewDatabaseWidget(gt.GuitoolWidget):
     r"""
     Args:
         parent (None): (default = None)
@@ -641,7 +638,7 @@ class NewDatabaseWidget(guitool.GuitoolWidget):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.gui.guiback import *  # NOQA
         >>> import guitool as gt
-        >>> guitool.ensure_qtapp()
+        >>> gt.ensure_qtapp()
         >>> self = NewDatabaseWidget(back=None)
         >>> self.resize(400, 200)
         >>> self.show()
@@ -720,7 +717,7 @@ class NewDatabaseWidget(guitool.GuitoolWidget):
     def change_workdir(self):
         print('change workdir')
         ut.colorprint('change workdir', 'yellow')
-        new_workdir = guitool.select_directory(
+        new_workdir = gt.select_directory(
             'Select new work directory',
             other_sidebar_dpaths=[self.workdir_row.edit.text()])
         if new_workdir is not None:
@@ -738,7 +735,7 @@ class NewDatabaseWidget(guitool.GuitoolWidget):
 
     def create_in_customdir(self):
         print('Create in Custom')
-        new_dbdir = guitool.select_directory(
+        new_dbdir = gt.select_directory(
             'Select directory for %s' % (self.dbname),
             other_sidebar_dpaths=[self.workdir_row.edit.text()])
         current_choice = normpath(join(new_dbdir, self.dbname))
@@ -760,7 +757,7 @@ class NewDatabaseWidget(guitool.GuitoolWidget):
 #------------------------
 # Backend MainWindow Class
 #------------------------
-#QtReloadingMetaClass = ut.reloading_meta_metaclass_factory(guitool.QtCore.pyqtWrapperType)
+#QtReloadingMetaClass = ut.reloading_meta_metaclass_factory(gt.QtCore.pyqtWrapperType)
 
 GUIBACK_BASE = QtCore.QObject
 
@@ -783,7 +780,7 @@ class MainWindowBackend(GUIBACK_BASE):
         >>> back = testdata_guiback(defaultdb=None)
         >>> ut.quit_if_noshow()
         >>> ut.quit_if_noshow()
-        >>> guitool.qtapp_loop(qwin=back.front, freq=10)
+        >>> gt.qtapp_loop(qwin=back.front, freq=10)
     """
     # Backend Signals
     updateWindowTitleSignal = signal_(str)
@@ -1390,7 +1387,7 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> aids2 = back.ibs.get_image_aids(gid)
             >>> #assert len(aids2) == len(aids1) - 1
             >>> ut.quit_if_noshow()
-            >>> guitool.qtapp_loop(back.mainwin, frequency=100)
+            >>> gt.qtapp_loop(back.mainwin, frequency=100)
         """
         print('[back] delete_annot, aid_list = %r' % (aid_list, ))
         if aid_list is None:
@@ -1927,10 +1924,10 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> back.show_advanced_id_interface()
             >>> back.cleanup()
             >>> ut.quit_if_noshow()
-            >>> import guitool
-            >>> #guitool.ensure_qapp()  # must be ensured before any embeding
+            >>> import guitool as gt
+            >>> #gt.ensure_qapp()  # must be ensured before any embeding
             >>> import plottool as pt
-            >>> guitool.qtapp_loop(qwin=back)
+            >>> gt.qtapp_loop(qwin=back)
         """
         #from ibeis.init import filter_annots
         #filter_kw = filter_annots.get_default_annot_filter_form()
@@ -2421,7 +2418,7 @@ class MainWindowBackend(GUIBACK_BASE):
             'seed': 42,
         })
         #ibswgt = None
-        dlg = guitool.ConfigConfirmWidget.as_dialog(
+        dlg = gt.ConfigConfirmWidget.as_dialog(
             title='Confirm Merge Query',
             msg='Confirm',
             config=config)
@@ -2746,7 +2743,7 @@ class MainWindowBackend(GUIBACK_BASE):
         print('[back] view_model_dir')
         log_fpath = ut.get_current_log_fpath()
         log_text = back.ibs.get_current_log_text()
-        guitool.msgbox('Click show details to view logs from log_fpath=%r' % (log_fpath,), detailed_msg=log_text)
+        gt.msgbox('Click show details to view logs from log_fpath=%r' % (log_fpath,), detailed_msg=log_text)
         #ut.startfile(back.ibs.get_logdir())
 
     @slot_()
@@ -2895,7 +2892,7 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> dbdir = None
             >>> result = back.new_database(dbdir)
             >>> ut.quit_if_noshow()
-            >>> guitool.qtapp_loop(qwin=back.front, freq=10)
+            >>> gt.qtapp_loop(qwin=back.front, freq=10)
         """
         if new_dbdir is None:
             old = False
@@ -2915,7 +2912,7 @@ class MainWindowBackend(GUIBACK_BASE):
                     use_cache=False)
                 if reply == 'Choose Directory':
                     print('[back] new_database(): SELECT A DIRECTORY')
-                    putdir = guitool.select_directory(
+                    putdir = gt.select_directory(
                         'Select new database directory',
                         other_sidebar_dpaths=[back.get_work_directory()])
                 elif reply == 'My Work Dir':
@@ -2969,7 +2966,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if dbdir is None:
             print('[back] new_database(): SELECT A DIRECTORY')
             #director
-            dbdir = guitool.select_directory('Open a database directory', other_sidebar_dpaths=[back.get_work_directory()])
+            dbdir = gt.select_directory('Open a database directory', other_sidebar_dpaths=[back.get_work_directory()])
             if dbdir is None:
                 return
         print('[back] open_database(dbdir=%r)' % dbdir)
@@ -3036,7 +3033,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if back.ibs is None:
             raise ValueError('back.ibs is None! must open IBEIS database first')
         if gpath_list is None:
-            gpath_list = guitool.select_images('Select image files to import')
+            gpath_list = gt.select_images('Select image files to import')
         gid_list = back.ibs.add_images(gpath_list, as_annots=as_annots)
         back._process_new_images(refresh, gid_list, clock_offset=clock_offset)
         return gid_list
@@ -3067,7 +3064,7 @@ class MainWindowBackend(GUIBACK_BASE):
         """ File -> Import Images From Directory"""
         print('[back] import_images_from_dir')
         if dir_ is None:
-            dir_ = guitool.select_directory('Select directory with images in it', directory=defaultdir)
+            dir_ = gt.select_directory('Select directory with images in it', directory=defaultdir)
         if dir_ is None:
             return
         gpath_list = ut.list_images(dir_, fullpath=True, recursive=True)
@@ -3112,7 +3109,7 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> result = ('gid_list = %s' % (str(gid_list),))
             >>> print(result)
             >>> ut.quit_if_noshow()
-            >>> guitool.qtapp_loop(back.mainwin, frequency=100)
+            >>> gt.qtapp_loop(back.mainwin, frequency=100)
         """
         print('[back] import_images_from_dir_with_smart')
         gid_list, add_dir_ = back.import_images_from_dir(
@@ -3130,10 +3127,10 @@ class MainWindowBackend(GUIBACK_BASE):
         if gid_list is not None and len(gid_list) > 0:
             if smart_xml_fpath is None:
                 name_filter = 'XML Files (*.xml)'
-                xml_path_list = guitool.select_files(caption='Select Patrol XML File:',
-                                                     directory=defaultdir,
-                                                     name_filter=name_filter,
-                                                     single_file=True)
+                xml_path_list = gt.select_files(caption='Select Patrol XML File:',
+                                                directory=defaultdir,
+                                                name_filter=name_filter,
+                                                single_file=True)
                 # xml_path_list = ['/Users/bluemellophone/Desktop/LWC_000261.xml']
                 assert len(xml_path_list) == 1, "Must specity one Patrol XML file"
                 smart_xml_fpath = xml_path_list[0]
@@ -3168,32 +3165,32 @@ class MainWindowBackend(GUIBACK_BASE):
         """ File -> Quit"""
         print('[back] ')
         #back.cleanup()
-        guitool.exit_application()
+        gt.exit_application()
 
     #--------------------------------------------------------------------------
     # Helper functions
     #--------------------------------------------------------------------------
 
     def user_info(back, **kwargs):
-        return guitool.user_info(parent=back.front, **kwargs)
+        return gt.user_info(parent=back.front, **kwargs)
 
     def user_warning(back, title='Warning', **kwargs):
-        return guitool.user_info(parent=back.front, title=title, **kwargs)
+        return gt.user_info(parent=back.front, title=title, **kwargs)
 
     def user_input(back, msg='user input', **kwargs):
-        return guitool.user_input(parent=back.front, msg=msg, **kwargs)
+        return gt.user_input(parent=back.front, msg=msg, **kwargs)
 
     def user_option(back, **kwargs):
         if kwargs.get('config', None) is not None:
             # options, config, msg, title
-            dlg = guitool.ConfigConfirmWidget.as_dialog(**kwargs)
+            dlg = gt.ConfigConfirmWidget.as_dialog(**kwargs)
             #dlg.resize(700, 500)
             confirm_widget = dlg.widget
             dlg.exec_()
             return confirm_widget.confirm_option, confirm_widget.config
-            #return guitool.user_option(parent=back.front, **kwargs)
+            #return gt.user_option(parent=back.front, **kwargs)
         else:
-            return guitool.user_option(parent=back.front, **kwargs)
+            return gt.user_option(parent=back.front, **kwargs)
 
     def are_you_sure(back, use_msg=None, title='Confirmation', default=None, action=None, detailed_msg=None):
         """ Prompt user for conformation before changing something """
@@ -3321,7 +3318,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def assert_modules(back):
         from ibeis.tests import assert_modules
         detailed_msg = assert_modules.assert_modules()
-        guitool.msgbox(msg="Running checks", title="Module Checks", detailed_msg=detailed_msg)
+        gt.msgbox(msg="Running checks", title="Module Checks", detailed_msg=detailed_msg)
 
     @slot_()
     def display_dbinfo(back):
@@ -3341,14 +3338,14 @@ class MainWindowBackend(GUIBACK_BASE):
         """
         dbinfo = back.ibs.get_dbinfo_str()
         print(dbinfo)
-        guitool.msgbox(msg=back.ibs.get_infostr(), title="DBInfo", detailed_msg=dbinfo)
+        gt.msgbox(msg=back.ibs.get_infostr(), title="DBInfo", detailed_msg=dbinfo)
 
     @slot_()
     def show_about_message(back):
         import ibeis
         version = ibeis.__version__
         about_msg = 'IBEIS version %s\nImage Based Ecological Information System\nhttp://ibeis.org/' % (version,)
-        guitool.msgbox(msg=about_msg, title='About')
+        gt.msgbox(msg=about_msg, title='About')
 
     @slot_()
     def take_screenshot(back):
@@ -3358,7 +3355,7 @@ class MainWindowBackend(GUIBACK_BASE):
         #screengrab_fpath = ut.truepath('~/latex/ibeis_userguide/figures/filemenu.jpg')
 
         # Find the focused window
-        app = guitool.get_qtapp()
+        app = gt.get_qtapp()
         widget = app.focusWidget()
         if widget is None or widget == 0:
             widget = back.mainwin
