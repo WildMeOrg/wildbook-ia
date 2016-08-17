@@ -1,6 +1,6 @@
 ![Logo](_installers/WildBook_logo_72dpi-03.png)
 
-NOTICE: The main github repo has moved to https://github.com/WildbookOrg/ibeis
+NOTICE: The main github repo is now: https://github.com/WildbookOrg/ibeis
 
 # IBEIS - Image Analysis
 
