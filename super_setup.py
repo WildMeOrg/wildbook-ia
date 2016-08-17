@@ -560,16 +560,17 @@ def execute_commands(tpl_rman, ibeis_rman):
         for repo in ibeis_rman.repos:
             repo.rrr()
             gitrepo = repo.as_gitpython()
-            print('gitrepo = %r' % (gitrepo,))
-            print('repo.branches = %s' % (ut.repr3(repo.branches),))
-            print('repo.active_branch = %r' % (repo.active_branch,))
-            print('repo.remotes = %s' % (ut.repr3(repo.remotes),))
-            print('repo.active_remote = %s' % (ut.repr3(repo.active_remote),))
+            # print('gitrepo = %r' % (gitrepo,))
+            # print('repo.branches = %s' % (ut.repr3(repo.branches),))
+            # print('repo.active_branch = %r' % (repo.active_branch,))
+            # print('repo.remotes = %s' % (ut.repr3(repo.remotes),))
+            # print('repo.active_remote = %s' % (ut.repr3(repo.active_remote),))
 
             remotes = repo.remotes
+            wildme_url = repo._new_repo_url(user=wildme_user, fmt='ssh')
+
             # Ensure there is a remote under the wildme name
             if wildme_remote not in remotes:
-                wildme_url = repo._new_repo_url(user=wildme_user, fmt='ssh')
                 gitrepo.create_remote(wildme_remote, wildme_url)
 
             if 'origin' in remotes:
@@ -581,6 +582,8 @@ def execute_commands(tpl_rman, ibeis_rman):
                         # first add a remote that is the original origin
                         origin_url = origin['url']
                         gitrepo.create_remote(origin_user, origin_url)
+                    gitorigin = gitrepo.remote('origin')
+                    gitorigin.set_url(wildme_url)
 
     # Commands on global git repos
     if GET_ARGFLAG('--status'):
