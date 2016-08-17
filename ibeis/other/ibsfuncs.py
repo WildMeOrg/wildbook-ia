@@ -1125,16 +1125,23 @@ def delete_all_recomputable_data(ibs):
 
 
 @register_ibs_method
-def delete_cache(ibs, delete_chips=False, delete_imagesets=False):
+def delete_cache(ibs, delete_imagesets=False):
     """
     Deletes the cache directory in the database directory.
-    Can specify to delete encoutners and chips as well.
+    Can specify to delete encoutners as well.
+
+    CommandLine:
+        python -m ibeis delete_cache --db testdb1
+
+    Example:
+        >>> # SCRIPT
+        >>> import ibeis
+        >>> ibs = ibeis.opendb()
+        >>> result = ibs.delete_cache()
     """
     ibs.ensure_directories()
     ibs.delete_cachedir()
     ibs.ensure_directories()
-    if delete_chips:
-        ibs.delete_all_chips()
     if delete_imagesets:
         ibs.delete_all_imagesets()
 
@@ -1144,7 +1151,15 @@ def delete_cachedir(ibs):
     """
     Deletes the cache directory in the database directory.
 
-    (does not remove chips)
+    CommandLine:
+        python -m ibeis.other.ibsfuncs delete_cachedir
+        python -m ibeis delete_cachedir --db testdb1
+
+    Example:
+        >>> # SCRIPT
+        >>> import ibeis
+        >>> ibs = ibeis.opendb()
+        >>> result = ibs.delete_cachedir()
     """
     print('[ibs] delete_cachedir')
     # Need to close depc before restarting

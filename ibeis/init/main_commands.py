@@ -96,7 +96,7 @@ def postload_commands(ibs, back):
     if params.args.delete_cache:
         ibs.delete_cache()
     if params.args.delete_cache_complete:
-        ibs.delete_cache(delete_chips=True, delete_imagesets=True)
+        ibs.delete_cache(delete_imagesets=True)
     if params.args.delete_query_cache:
         ibs.delete_qres_cache()
     if params.args.set_all_species is not None:
