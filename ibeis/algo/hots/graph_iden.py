@@ -689,13 +689,14 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
                     ccx1, ccx2 = ccx2, ccx1
                 separated_ccxs.add((ccx1, ccx2))
 
-        def minimum_number_compoments_possible(nodes, negative_edges):
+        def approx_min_num_components(nodes, negative_edges):
             """
             Find minimum number of connected compoments possible
             Each edge represents that two nodes must be separated
 
             This code doesn't solve the problem. The problem is NP-complete and
-            reduces to minimum clique cover. This might be an approximation though.
+            reduces to minimum clique cover (MCC). This might be an
+            approximation though.
 
             >>> import networkx as nx
             >>> nodes = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -721,10 +722,23 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             g_neg = nx.Graph()
             g_neg.add_nodes_from(nodes)
             g_neg.add_edges_from(negative_edges)
+
+            # Collapse all nodes with degree 0
+            deg0_nodes = [n for n, d in g_neg.degree_iter() if d == 0]
+            for u, v in ut.itertwo(deg0_nodes):
+                g_neg = nx.contracted_nodes(g_neg, v, u)
+
             # Initialize unused nodes to be everything
             unused = list(g_neg.nodes())
             # complement of the graph contains all possible positive edges
             g_pos = nx.complement(g_neg)
+
+            if False:
+                from networkx.algorithms.approximation import clique
+                maxiset, cliques = clique.clique_removal(g_pos)
+                num = len(cliques)
+                return num
+
             # Iterate until we have used all nodes
             while len(unused) > 0:
                 # Seed a new "minimum compoment"
@@ -747,7 +761,8 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
                     neigbs = list(g_pos.neighbors(n1))
             print('num = %r' % (num,))
             return num
-        num_names_min = minimum_number_compoments_possible(infr.aids, separated_ccxs)
+
+        num_names_min = approx_min_num_components(infr.aids, separated_ccxs)
         # pass
 
         #for count, subgraph in enumerate(cc_subgraphs):

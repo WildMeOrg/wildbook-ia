@@ -227,7 +227,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     # Nested viewpoints
     callback_list += [
         #('Set Viewpoint: ' + key, set_yaw_func(key))
-        ('Set &Viewpoint: ',  [
+        ('Set &Viewpoint (%s): ' % (current_yawtext,),  [
             ('&' + str(count) + ' ' +
              ('*' if current_yawtext == key else '') + key,
              set_yaw_func(key))
@@ -238,7 +238,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
     # Nested qualities
     callback_list += [
         #('Set Quality: ' + key, set_quality_func(key))
-        ('Set &Quality: ',  [
+        ('Set &Quality (%s): ' % (current_qualtext,),  [
             ('&' + str(count) + ' ' + ('*' if current_qualtext == key else '') +
              '&' + key,
              set_quality_func(key))
