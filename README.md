@@ -327,6 +327,7 @@ python dev.py --prequit --dump-argv
 # Dump Current SQL Schema to stdout 
 python dev.py --dump-schema --postquit
 
+
 #------------------
 # Convert a hotspotter database to IBEIS
 #------------------
@@ -341,18 +342,6 @@ python dev.py --cmd --gui
 
 # Convinience: Convert ALL hotspotter databases
 python dev.py -t convert_hsdbs --force-delete
-
-
-python dev.py --convert --force-delete --db Frogs
-python dev.py --convert --force-delete --db GIR_Tanya
-python dev.py --convert --force-delete --db GZ_All
-python dev.py --convert --force-delete --db Rhinos_Stewart
-python dev.py --convert --force-delete --db WD_Siva
-python dev.py --convert --force-delete --db WY_Toads
-python dev.py --convert --force-delete --db WS_hard
-python dev.py --convert --force-delete --db Wildebeast
-python dev.py --convert --force-delete --db PZ_FlankHack
-python dev.py --convert --force-delete --db PZ_MTEST
 
 
 #--------------
@@ -434,58 +423,13 @@ python -m ibeis.viz.viz_qres show_qres --db PZ_MTEST --qaids=2 --show
 
 
 # Database Stats for all our important datasets:
-./dev.py --allgt -t dbinfo --db PZ_RoseMary | grep -F "[dbinfo]"
 ./dev.py --allgt -t dbinfo --db PZ_MTEST | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db PZ_FlankHack | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db OP_Trip14_Encounter-80_nImg=555 | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db OP_Trip14_Encounter-224_nImg=222 | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db OP_Trip14 | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db GZ_ALL | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db GZ_Siva | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db MISC_Jan12 | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db GIR_Tanya | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db LF_Bajo_bonito | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db LF_WEST_POINT_OPTIMIZADAS | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db LF_OPTIMIZADAS_NI_V_E | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db Rhinos_Stewart | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db Elephants_Stewart | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db WY_Toads | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db Frogs | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db Wildebeest | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db Seals | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db JAG_Kelly | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db JAG_Kieryn | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db polar_bears | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db snails_drop1 | grep -F "[dbinfo]"
-./dev.py --allgt -t dbinfo --db WD_Siva | grep -F "[dbinfo]"
-
-python dev.py --dbdir /raid/work2/MBB_Grevys/GZ_Archetype_Appends_4GB -t dbinfo | grep -F "[dbinfo]"
-python dev.py --dbdir /raid/work2/MBB_Grevys/GZ_Elleni_16GB -t dbinfo | grep -F "[dbinfo]"
-python dev.py --dbdir /raid/work2/MBB_Grevys/GZ_Archetype_Laikipia_5GB -t dbinfo | grep -F "[dbinfo]"
-python dev.py --dbdir /raid/work2/MBB_Grevys/GZ_3D_Encounters_group1 -t dbinfo | grep -F "[dbinfo]"
-python dev.py --dbdir /raid/work2/MBB_Grevys/GZ_3D_Encounters_group2 -t dbinfo | grep -F "[dbinfo]"
-for i in $(/bin/ls /raid/work2/MBB_Grevys/GZ_EncounterGroups); do
-    python dev.py --dbdir /raid/work2/MBB_Grevys/GZ_EncounterGroups/$i -t dbinfo | grep -F "[dbinfo]"
-done
-
-python dev.py --dbdir /raid/work2/DanPrinctonDrive/HSDB_pztest2 -t dbinfo | grep -F "[dbinfo]"
-python dev.py --dbdir /raid/work2/DanPrinctonDrive/elephants-dan-princton-drive-march-2014 -t dbinfo | grep -F "[dbinfo]"
 
 # Some mass editing of metadata
 ./dev.py --db PZ_FlankHack --edit-notes
 ./dev.py --db GZ_Siva --edit-notes
 ./dev.py --db GIR_Tanya --edit-notes
-./dev.py --allgt -t dbinfo --db Elephants_Stewart --set-all-species elephant_savanna
-./dev.py --allgt -t dbinfo --db polar_bears --set-all-species bear_polar
 ./dev.py --allgt -t dbinfo --db GZ_ALL --set-all-species zebra_grevys
-./dev.py --allgt -t dbinfo --db PZ_FlankHack --set-all-species zebra_plains
-./dev.py --allgt -t dbinfo --db GIR_Tanya --set-all-species giraffe
-./dev.py --allgt -t dbinfo --db LF_Bajo_bonito --set-all-species lionfish
-./dev.py --allgt -t dbinfo --db LF_WEST_POINT_OPTIMIZADAS --set-all-species lionfish
-./dev.py --allgt -t dbinfo --db LF_OPTIMIZADAS_NI_V_E --set-all-species lionfish
-./dev.py --allgt -t dbinfo --db JAG_Kelly --set-all-species jaguar
-./dev.py --allgt -t dbinfo --db JAG_Kieryn --set-all-species jaguar
-./dev.py --allgt -t dbinfo --db Wildebeest --set-all-species wildebeest
 
 # Current Experiments:
 
@@ -500,32 +444,21 @@ ibeis --tf draw_match_cases --db PZ_MTEST -a default:size=20 \
 
 # SMK TESTS
 python dev.py -t smk2 --allgt --db PZ_MTEST --nocache-big --nocache-query --qindex 0:20
-python dev.py -t smk2 --allgt --db GZ_ALL --nocache-big --nocache-query --qindex 0:20
-
 python dev.py -t smk2 --allgt --db PZ_MTEST --qindex 20:30 --va
-python dev.py -t smk2 --allgt --db PZ_Master0
 
 # Feature Tuning
 python dev.py -t test_feats -w --show --db PZ_MTEST --allgt --qindex 1:2
 
 python dev.py -t featparams -w --show --db PZ_MTEST --allgt
 python dev.py -t featparams_big -w --show --db PZ_MTEST --allgt
-python dev.py -t featparams_big -w --show --db GZ_ALL --allgt
- --allgt --qindex 1:2
-
 
 # NEW DATABASE TEST
-python dev.py -t best --db seals2 --allgt
-python dev.py -t best --db seals2 --allgt --vh --vf
 python dev.py -t best --db seals2 --allgt
 
 # Testing Distinctivness Parameters
 python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db GZ_ALL --aid 2
 python -m ibeis.algo.hots.distinctiveness_normalizer --test-get_distinctiveness --show --db PZ_MTEST --aid 10
 python -m ibeis.algo.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db GZ_ALL --aid 2
-
-python -m ibeis.algo.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db PZ_MTEST --aid 5
-python -m ibeis.algo.hots.distinctiveness_normalizer --test-test_single_annot_distinctiveness_params --show --db PZ_MTEST --aid 1
 
 
 # 2D Gaussian Curves
@@ -558,31 +491,11 @@ python dev.py -t custom:score_method=csum,prescore_method=csum --db GZ_ALL --sho
 # Shows vsone results with some of the competing cases
 python -m ibeis.algo.hots.vsone_pipeline --test-vsone_reranking --show --homog --db GZ_ALL --qaid 662 --daid_list=425,342,678,233
 
-
 # More rerank vsone tests
 python -c "import utool as ut; ut.write_modscript_alias('Tbig.sh', 'dev.py', '--allgt  --db PZ_Master0')"
 sh Tbig.sh -t custom:rrvsone_on=True custom 
 sh Tbig.sh -t custom:rrvsone_on=True custom --noqcache
 
-
-# TODO: 
-# static lnbnn, normonly, and count test
-# combinme vsone and vsmany matches in vsone rr 
-
-# Sanity Check 
-# Make sure vsmany and onevsone are exactly the same
-python dev.py --setdb --db PZ_Master0
-python dev.py --setdb --db PZ_MTEST
-
-# These yeild the same results for vsmany and vsone reanking
-# notice that name scoring and feature scoring are turned off. 
-# also everything is reranked
-#----
-python dev.py --allgt -t \
-    custom:fg_on=False \
-    custom:rrvsone_on=True,prior_coeff=1,unconstrained_coeff=0.0,fs_lnbnn_min=0,fs_lnbnn_max=1,nAnnotPerNameVsOne=200,nNameShortlistVsone=200,fg_on=False \
-    --print-confusion-stats --print-gtscore --noqcache
-#----
 
 #----
 # Turning back on name scoring and feature scoring and restricting to rerank a subset
@@ -604,44 +517,12 @@ python dev.py --allgt -t \
     custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
 \
   --db PZ_MTEST
-
 #--print-confusion-stats --print-gtscore
 #----
 
-#----
-python dev.py --allgt -t \
-    custom \
-    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=200,nNameShortlistVsone=200 \
-    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20 \
-    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0,fs_lnbnn_min=0.0,fs_lnbnn_max=1.0,nAnnotPerNameVsOne=2,nNameShortlistVsone=20 \
-   --db PZ_Master0 
-#----
-
-python dev.py --allgt -t \
-    custom:rrvsone_on=True,prior_coeff=1.0,unconstrained_coeff=0.0\
-    custom:rrvsone_on=True,prior_coeff=.0,unconstrained_coeff=1.0 \
-    custom:rrvsone_on=True,prior_coeff=.5,unconstrained_coeff=0.5 \
-   --db PZ_Master0
-
-python dev.py --allgt -t custom --db PZ_Master0 --va --show
-
-
-
---noqcache
-
-python dev.py --allgt -t custom custom:rrvsone_on=True
-
 
 # Testing no affine invaraiance and rotation invariance
-dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_MTEST --va --show
-
-dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_MTEST --allgt
-
-dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db GZ_ALL --allgt
-
-
-python dev.py -t custom:affine_invariance=True,rotation_invariance=True custom:affine_invariance=False,rotation_invariance=True custom:affine_invariance=True,rotation_invariance=False custom:affine_invariance=False,rotation_invariance=False --db PZ_Master0 --allgt --index 0:10 --va --show
-
+dev.py -t custom:AI=True,RI=True custom:AI=False,RI=True custom:AI=True,RI=False custom:AI=False,RI=False --db PZ_MTEST --show
 ```
 
 #---------------
