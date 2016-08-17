@@ -263,7 +263,8 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
 
     tpl_rman = ut.RepoManager([], CODE_DIR, label='tpl', pythoncmd=pythoncmd)
     if not GET_ARGFLAG('--ignore-opencv'):
-        tpl_rman.add_repo(ut.Repo('https://github.com/Itseez/opencv.git', CODE_DIR, modname='cv2'))
+        cv_repo = ut.Repo('https://github.com/Itseez/opencv.git', CODE_DIR, modname='cv2')
+        tpl_rman.add_repo(cv_repo)
 
     if WITH_GUI:
         ibeis_rman.add_repos([
@@ -277,7 +278,8 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             tpl_rman.add_repo(ut.Repo(modname=('PyQt4', 'PyQt5')))
 
     if WITH_CUSTOM_TPL:
-        ibeis_rman.add_repo(ut.Repo('https://github.com/Erotemic/flann.git', CODE_DIR, modname='pyflann'))
+        flann_repo = ut.Repo('https://github.com/Erotemic/flann.git', CODE_DIR, modname='pyflann')
+        ibeis_rman.add_repo(flann_repo)
         ibeis_rman.add_repos([
             'https://github.com/Erotemic/hesaff.git',
         ])
@@ -538,7 +540,8 @@ def execute_commands(tpl_rman, ibeis_rman):
 
     ut.init_catch_ctrl_c()
 
-    if 1:
+    if 0:
+        print('Version Check Source:')
         for repo in tpl_rman.repos:
             print('python -c "import {0}; print({0}.__file__)"'.format(repo.modname))
             print('python -c "import {0}; print({0}.__version__)"'.format(repo.modname))
@@ -549,26 +552,35 @@ def execute_commands(tpl_rman, ibeis_rman):
 
     print('ibeis_rman = %r' % (ibeis_rman,))
 
-    if False:
-        MOVE_TO_WILDME = True
-        if MOVE_TO_WILDME:
-            repo = ibeis_rman.repos[0]
+    if GET_ARGFLAG('--move-wildme'):
+
+        wildme_user = 'WildbookOrg'
+        wildme_remote = 'wildme'
+
+        for repo in ibeis_rman.repos:
+            repo.rrr()
             gitrepo = repo.as_gitpython()
+            print('gitrepo = %r' % (gitrepo,))
+            print('repo.branches = %s' % (ut.repr3(repo.branches),))
+            print('repo.active_branch = %r' % (repo.active_branch,))
+            print('repo.remotes = %s' % (ut.repr3(repo.remotes),))
+            print('repo.active_remote = %s' % (ut.repr3(repo.active_remote),))
 
-            for remote in gitrepo.remotes:
-                if remote.name == 'origin':
-                    url = list(remote.urls)
-                    if 'github' in url:
-                        break
+            remotes = repo.remotes
+            # Ensure there is a remote under the wildme name
+            if wildme_remote not in remotes:
+                wildme_url = repo._new_repo_url(user=wildme_user, fmt='ssh')
+                gitrepo.create_remote(wildme_remote, wildme_url)
 
-            gitrepo.create_remote('origin', repo.remotes.origin.url)
-
-            tb = gitrepo.active_branch.tracking_branch()
-
-            for branch in gitrepo.branches:
-                if branch.name == repo.active_branch():
-                    break
-                gitrepo.branches[-2]
+            if 'origin' in remotes:
+                origin = remotes['origin']
+                origin_user = origin['username']
+                if origin_user != wildme_user:
+                    # CHANGE TO WILDME AS DEFAULT
+                    if origin_user not in remotes:
+                        # first add a remote that is the original origin
+                        origin_url = origin['url']
+                        gitrepo.create_remote(origin_user, origin_url)
 
     # Commands on global git repos
     if GET_ARGFLAG('--status'):
