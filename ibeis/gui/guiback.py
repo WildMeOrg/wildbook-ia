@@ -127,7 +127,6 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.gui.guiback import *  # NOQA
         >>> import ibeis
-        >>> import guitool as gt
         >>> gt.ensure_qtapp()
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> self = CustomAnnotCfgSelector(ibs)
@@ -565,7 +564,6 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         #assert not self.cfg_needs_update, 'NEED TO APPLY ACFG/PCFG BEFORE EXECUTING'
         if self.cfg_needs_update:
             options = ['Apply now and continue', 'Apply now and wait']
-            import guitool as gt
             reply = gt.user_option(
                 msg=ut.codeblock(
                     '''
@@ -637,7 +635,6 @@ class NewDatabaseWidget(gt.GuitoolWidget):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.gui.guiback import *  # NOQA
-        >>> import guitool as gt
         >>> gt.ensure_qtapp()
         >>> self = NewDatabaseWidget(back=None)
         >>> self.resize(400, 200)
@@ -1924,7 +1921,6 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> back.show_advanced_id_interface()
             >>> back.cleanup()
             >>> ut.quit_if_noshow()
-            >>> import guitool as gt
             >>> #gt.ensure_qapp()  # must be ensured before any embeding
             >>> import plottool as pt
             >>> gt.qtapp_loop(qwin=back)
