@@ -556,33 +556,29 @@ def execute_commands(tpl_rman, ibeis_rman):
 
         wildme_user = 'WildbookOrg'
         wildme_remote = 'wildme'
-
         for repo in ibeis_rman.repos:
-            repo.rrr()
             gitrepo = repo.as_gitpython()
-            # print('gitrepo = %r' % (gitrepo,))
-            # print('repo.branches = %s' % (ut.repr3(repo.branches),))
-            # print('repo.active_branch = %r' % (repo.active_branch,))
-            # print('repo.remotes = %s' % (ut.repr3(repo.remotes),))
-            # print('repo.active_remote = %s' % (ut.repr3(repo.active_remote),))
-
-            remotes = repo.remotes
             wildme_url = repo._new_repo_url(user=wildme_user, fmt='ssh')
+            remotes = repo.remotes
+            print('Checking %s for move to wildme' % (repo,))
 
             # Ensure there is a remote under the wildme name
             if wildme_remote not in remotes:
+                print('  * Create remote %r: %r' % (wildme_remote, wildme_url))
                 gitrepo.create_remote(wildme_remote, wildme_url)
 
             if 'origin' in remotes:
                 origin = remotes['origin']
                 origin_user = origin['username']
                 if origin_user != wildme_user:
-                    # CHANGE TO WILDME AS DEFAULT
                     if origin_user not in remotes:
                         # first add a remote that is the original origin
                         origin_url = origin['url']
+                        print('  * Create remote %r: %r' % (origin_user, origin_url,))
                         gitrepo.create_remote(origin_user, origin_url)
+                    # change origin to use wildme url
                     gitorigin = gitrepo.remote('origin')
+                    print('  * Change origin url to %r' % (wildme_url,))
                     gitorigin.set_url(wildme_url)
 
     # Commands on global git repos
