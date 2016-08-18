@@ -7,6 +7,588 @@ from os.path import splitext, join, exists, dirname
 import utool as ut
 
 
+def _needs_redownload(fpath, seconds_thresh):
+    if exists(fpath):
+        file_info = ut.get_file_info(fpath)
+        dt = ut.parse_timestamp(file_info['last_modified'], utc=True)
+        delta = dt - ut.utcnow_tz()
+        redownload = delta.total_seconds() > seconds_thresh
+    else:
+        redownload = True
+    return redownload
+
+
+def parse_whaleshark_org():
+    """
+    Read list of all iamges from wildbook
+
+    >>> from ibeis.scripts.getshark import *  # NOQA
+    """
+    from xml.dom.minidom import parseString
+    from ibeis.scripts import getshark
+
+    url = 'www.whaleshark.org/listImages.jsp'
+    number = None
+
+    cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo')
+    cache_fapth = join(cache_dpath, 'listImagesSharks.xml')
+
+    # redownload every 30 days or so
+    if getshark._needs_redownload(cache_fapth, 60 * 60 * 24 * 30):
+        XMLdata = ut.url_read_text(url)
+        ut.writeto(cache_fapth, XMLdata)
+    else:
+        XMLdata = ut.readfrom(cache_fapth)
+
+    # Parse attributes out of XML
+    dom = parseString(XMLdata.encode('utf8'))
+    if number:
+        maxCount = min(number, len(dom.getElementsByTagName('img')))
+    else:
+        maxCount = len(dom.getElementsByTagName('img'))
+    parsed_info = ut.ddict(list)
+    print('Reading XML information from %d images...' % maxCount)
+    shark_elements = dom.getElementsByTagName('shark')
+    _prog = ut.ProgPartial(bs=True, freq=10)
+    for shark in _prog(shark_elements, lbl='parsing shark elements'):
+        localCount = 0
+        for encounter in shark.getElementsByTagName('encounter'):
+            for img in encounter.getElementsByTagName('img'):
+                localCount += 1
+
+                img_url = img.getAttribute('href')
+                ext = splitext(img_url)[1].lower()
+                nameid = shark.getAttribute('number')
+
+                new_fname = '%s-%i%s' % (
+                    nameid, localCount, ext)
+
+                parsed_info['img_url'].append(img_url)
+                parsed_info['nameid'].append(nameid)
+                parsed_info['localid'].append(localCount)
+                # might be different due to prefix
+                parsed_info['new_fname'].append(new_fname)
+
+                parsed_info['encounter'].append(encounter.getAttribute('number'))
+
+                #print('Parsed %i / %i files.' % (len(parsed_info['orig_fname']), maxCount))
+                if number is not None and len(parsed_info['orig_fname']) == number:
+                    break
+
+    keywords, url_to_keys, parsed2 = getshark.parse_whaleshark_org_keywords()
+    print('Parsed %d keywords' % (len(keywords),))
+
+    parsed_ = ut.ColumnLists(parsed_info)
+    print('Parsed %d urls' % (len(parsed_),))
+
+    # Check for duplicate urls
+    dups = ut.find_duplicate_items(parsed_['img_url'])
+    groups = parsed_.group('img_url')
+    # Rectiry expected duplicate info
+    d = {}
+    for key in parsed_.keys():
+        vals = [g[key] for g in groups]
+        assert all([ut.allsame(v) for v in vals])
+        d[key] = ut.take_column(vals, 0)
+    parsed2 = ut.ColumnLists(d)
+
+    toremove = []
+    for url, idxs in dups.items():
+        dupinfo = parsed_.take(idxs)
+        del dupinfo[['localid', 'new_fname', 'img_url']]
+        can_fix = True
+        for key, vals in dupinfo.asdict().items():
+            if not ut.allsame(vals):
+                print(dupinfo.ascsv())
+                print(('Duplicate items have different values'))
+                # May need to fix a case when annoations happen in WB
+                assert False, 'cant have this happen'
+                can_fix = False
+        if can_fix:
+            toremove += idxs[1:]
+    print('Removing %d duplicate urls' % (len(toremove),))
+    flags = ut.not_list(ut.index_to_boolmask(toremove))
+    parsed = parsed_.compress(flags)
+
+    if False:
+        # TRY TO FIGURE OUT WHY URLS ARE MISSING IN STEP 1
+        parsed1 = parsed
+        encounter_to_parsed1 = parsed1.group_items('encounter')
+        encounter_to_parsed2 = parsed2.group_items('encounter')
+
+        url_to_parsed1 = parsed1.group_items('img_url')
+        url_to_parsed2 = parsed2.group_items('img_url')
+
+        def set_overlap(set1, set2):
+            set1 = set(set1)
+            set2 = set(set2)
+            return ut.odict([
+                ('s1', len(set1)),
+                ('s2', len(set2)),
+                ('isect', len(set1.intersection(set2))),
+                ('union', len(set1.union(set2))),
+                ('s1 - s2', len(set1.difference(set2))),
+                ('s2 - s1', len(set2.difference(set1))),
+            ])
+        print('encounter overlap: ' + ut.repr3(set_overlap(encounter_to_parsed1, encounter_to_parsed2)))
+        print('url overlap: ' + ut.repr3(set_overlap(url_to_parsed1, url_to_parsed2)))
+
+        url1 = list(url_to_parsed1.keys())
+        url2 = list(url_to_parsed2.keys())
+        # remove common prefixes
+        from os.path import commonprefix, basename  # NOQA
+        cp1 = commonprefix(url1)
+        cp2 = commonprefix(url2)
+        #suffix1 = sorted([u[len(cp1):].lower() for u in url1])
+        #suffix2 = sorted([u[len(cp2):].lower() for u in url2])
+        suffix1 = sorted([u[len(cp1):] for u in url1])
+        suffix2 = sorted([u[len(cp2):] for u in url2])
+        print('suffix overlap: ' + ut.repr3(set_overlap(suffix1, suffix2)))
+        set1 = set(suffix1)
+        set2 = set(suffix2)
+        only1 = list(set1 - set1.intersection(set2))
+        only2 = list(set2 - set1.intersection(set2))
+
+        import numpy as np
+        for suf in ut.ProgIter(only2, bs=True):
+            dist = np.array(ut.edit_distance(suf, only1))
+            idx = ut.argsort(dist)[0:3]
+            if dist[idx][0] < 3:
+                close = ut.take(only1, idx)
+                print('---')
+                print('suf = %r' % (join(cp2, suf),))
+                print('close = %s' % (ut.repr3([join(cp1, c) for c in close]),))
+                print('---')
+                break
+
+    # Associate keywords with original images
+    #lower_urls = [x.lower() for x in parsed['img_url']]
+    url_to_idx = ut.make_index_lookup(parsed['img_url'])
+    parsed['keywords'] = [[] for _ in range(len(parsed))]
+    for url, keys in url_to_keys.items():
+        # hack because urls are note in the same format
+        url = url.replace('wildbook_data_dir', 'shepherd_data_dir')
+        url = url.lower()
+        if url in url_to_idx:
+            idx = url_to_idx[url]
+            parsed['keywords'][idx].extend(keys)
+    missing_from_step1
+    print('missing_from_step1 = %r' % (missing_from_step1,))
+    return parsed
+
+
+def parse_whaleshark_org_keywords():
+    from ibeis.scripts import getshark
+    url = 'http://www.whaleshark.org/getKeywordImages.jsp'
+    cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo')
+
+    def cached_json_request(url_):
+        import requests
+        cache_fpath = join(cache_dpath, 'req_' + ut.hashstr27(url_) + '.json')
+        if getshark._needs_redownload(cache_fpath, 60 * 60 * 24 * 30):
+            resp = requests.get(url_)
+            assert resp.status_code == 200
+            dict_ = resp.json()
+            ut.save_data(cache_fpath, dict_)
+        else:
+            dict_ = ut.load_data(cache_fpath)
+        return dict_
+
+    keywords = cached_json_request(url)['keywords']
+    key_list = ut.take_column(keywords, 'indexName')
+
+    keyed_images = {}
+    for key in ut.ProgIter(key_list, lbl='reading index', bs=True):
+        key_url = url + '?indexName={indexName}'.format(indexName=key)
+        keyed_images[key] = cached_json_request(key_url)['images']
+
+    url_to_keys = ut.ddict(list)
+    for key, images in keyed_images.items():
+        for imgdict in images:
+            url_to_keys[imgdict['url']].append(key)
+
+    parsed_info2 = ut.ddict(list)
+    for key, images in keyed_images.items():
+        for imgdict in images:
+            parsed_info2['img_url'].append(imgdict['url'])
+            parsed_info2['encounter'].append(imgdict['correspondingEncounterNumber'])
+            parsed_info2['keywords'].append([key])
+    parsed2_ = ut.ColumnLists(parsed_info2)
+
+    # Assert no unfixable duplicates exist
+    dups = ut.find_duplicate_items(parsed2_['img_url'])
+    for url, idxs in dups.items():
+        dupinfo = parsed2_.take(idxs)
+        del dupinfo[['img_url', 'keywords']]
+        for key, vals in dupinfo.asdict().items():
+            if not ut.allsame(vals):
+                print(dupinfo.ascsv())
+                print(('Duplicate items have different values'))
+                # May need to fix a case when annoations happen in WB
+                assert False, 'cant have this happen'
+
+    # Rectiry expected duplicate info
+    groups = parsed2_.group(parsed2_['img_url'])[1]
+    d = {}
+    d['keywords'] = [ut.unique(ut.flatten(g['keywords'])) for g in groups]
+    for key in parsed2_.keys():
+        if key == 'keywords':
+            continue
+        vals = [g[key] for g in groups]
+        assert all([ut.allsame(v) for v in vals])
+        d[key] = ut.take_column(vals, 0)
+    parsed2 = ut.ColumnLists(d)
+
+    return keywords, url_to_keys, parsed2
+
+
+def postprocess_filenames(parsed, download_dir):
+    from os.path import commonprefix, basename  # NOQA
+    print('Parsed %d images' % (len(parsed)))
+    # Postprocess
+    parsed['new_fpath'] = [join(download_dir, _fname)
+                                for _fname in parsed['new_fname']]
+    prefix = commonprefix(parsed['img_url'])
+    parsed['orig_fname'] = [url_[len(prefix):] for url_ in parsed['img_url']]
+
+    parsed['ext'] = [splitext(_fname)[-1] for _fname in parsed['new_fname']]
+
+    # Filter based on image type (keep only jpgs)
+    ext_flags = [ext_ in ['.jpg', '.jpeg'] for ext_ in parsed['ext']]
+
+    parsed = parsed.compress(ext_flags)
+    num_removed = sum(ut.not_list(ext_flags))
+    print('Removed %d images based on extensions' % (num_removed,))
+    return parsed
+
+
+def postprocess_tags(parsed):
+    # Filter to only images matching the appropriate tags
+    from ibeis.scripts import getshark
+    parsed['tags'] = getshark.parse_shark_fname_tags(parsed['orig_fname'])
+
+    tag_flags = ut.filterflags_general_tags(
+        parsed['tags'],
+        #has_any=['view-left'],
+        #none_match=['qual.*', 'view-top', 'part-.*', 'cropped'],
+    )
+    if not all(tag_flags):
+        print('Tags before choosing:' +
+              ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']))))
+        parsed = parsed.compress(tag_flags)
+        print('Tags after choosing:' +
+              ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']))))
+    num_removed = sum(ut.not_list(tag_flags))
+    print('Removed %d images based on tags' % (num_removed,))
+    return parsed
+
+
+def download_missing_images(parsed):
+    exist_flags = ut.lmap(exists, parsed['new_fpath'])
+    missing_flags = ut.not_list(exist_flags)
+    print('nExist = %r / %r' % (sum(exist_flags), len(exist_flags)))
+    print('nMissing = %r / %r' % (sum(missing_flags), len(exist_flags)))
+    if any(missing_flags):
+        missing = parsed.compress(missing_flags)
+        print('Downloading missing subset')
+        _iter = list(zip(missing['img_url'], missing['new_fpath']))
+        _prog = ut.ProgPartial(bs=True, freq=10)
+        for img_url, new_fpath in _prog(_iter, lbl='downloading sharks'):
+            try:
+                ut.download_url(img_url, new_fpath, verbose=False)
+            except ZeroDivisionError:
+                pass
+
+
+def sync_whalesharks():
+    """
+    MAIN ENTRY POINT
+
+    Syncronizes our ibeis database with whaleshark.org
+
+    #cd ~/work/WS_ALL
+    python -m ibeis.scripts.getshark
+
+    cd /media/raid/raw/WhaleSharks_WB/
+
+    >>> from ibeis.scripts.getshark import *  # NOQA
+    """
+    from ibeis.scripts import getshark
+
+    # Prepare the output directory for writing, if it doesn't exist
+    output_dir = 'sharkimages'
+    ut.ensuredir(output_dir)
+    download_dir = join('/media/raid/raw/WhaleSharks_WB/', output_dir)
+
+    # Read ALL data from whaleshark.org
+    parsed = getshark.parse_whaleshark_org()
+    parsed = postprocess_filenames(parsed, download_dir)
+    parsed = postprocess_tags(parsed)
+
+    # Download images that we dont have yet
+    download_missing_images(parsed)
+
+    # Change variable name to info now that we downloaded
+    info = parsed.copy()
+    del info['ext']
+    del info['localid']
+
+    # Remove corrupted or ill-formatted images
+    print('Checking for corrupted images')
+    import vtool as vt
+    info = info.compress(vt.filterflags_valid_images(info['new_fpath']))
+
+    # Rectify duplicate information
+    # Stride of 1 is what IA uses internally
+    _prog = ut.ProgPartial(bs=True, freq=10)
+    info['uuid'] = [ut.get_file_uuid(fpath_, stride=1)
+                    for fpath_ in _prog(info['new_fpath'], lbl='uuid check')]
+
+    info_groups = info.group(info['uuid'])[1]
+    multi_groups  = [g for g in info_groups if len(g) > 1]
+    single_groups = [g for g in info_groups if len(g) == 1]
+
+    fixed_groups = []
+    for group in multi_groups:
+        newgroup = {}
+        for key in group.keys():
+            val = group[key]
+            # flatten tag lists otherwise take the first item
+            if isinstance(val[0], (tuple, list)):
+                val_ = ut.unique(ut.flatten(val))
+            else:
+                val_ = val[0]
+            newgroup[key] = [val_]
+        fixed_groups.append(ut.ColumnLists(newgroup))
+    singles = ut.ColumnLists.flatten(single_groups)
+    fixed = ut.ColumnLists.flatten(fixed_groups)
+    info = singles + fixed
+
+    # Check these images against what currently exists in WS_ALL
+    import ibeis
+    import numpy as np
+    ibs = ibeis.opendb('WS_ALL')
+    #images = ibs.images()
+    #cur_img_uuids = [ut.get_file_uuid(fpath_, stride=8)
+    #                 for fpath_ in _prog(images.paths)]
+    #cur_img_uuids = [ut.get_file_uuid(fpath_, stride=1)
+    #                 for fpath_ in _prog(images.paths, freq=10)]
+    #new_img_uuids = info['uuid']
+
+    # Get info for items not yet in database
+    if True:
+        info_gid_list = ibs.get_image_gids_from_uuid(info['uuid'])
+        new_info = info.compress(ut.flag_None_items(info_gid_list))
+
+        gid_list = ibs.add_images(new_info['new_fpath'])
+        new_info['gid'] = gid_list
+
+        failed_flags = ut.flag_None_items(new_info['gid'])
+        print('# failed %s' % (sum(failed_flags)),)
+        passed_flags = ut.not_list(failed_flags)
+        new_info = new_info.compress(passed_flags)
+        ut.assert_all_not_None(new_info['gid'])
+        #ibs.get_image_uris_original(clist['gid'])
+        assert len(ut.find_duplicate_items(new_info['gid'])) == 0
+        ibs.set_image_uris_original(new_info['gid'], new_info['img_url'], overwrite=True)
+
+        images_new = ibs.images(new_info['gid'])
+        is_empty_annots = np.array(images_new.num_annotations) == 0
+
+        # TODO: multis
+        empty_new_info = new_info.compress(is_empty_annots)
+        empty_new_images = images_new.compress(is_empty_annots)
+        gids = empty_new_images.gids
+        #empty_cur_annots = ibs.annots(ut.flatten(empty_cur_images.aids))
+
+        config = {
+            'algo'            : 'yolo',
+            'sensitivity'     : 0.2,
+            'config_filepath' : ut.truepath('~/work/WS_ALL/localizer_backup/detect.yolo.2.cfg'),
+            'weight_filepath' : ut.truepath('~/work/WS_ALL/localizer_backup/detect.yolo.2.39000.weights'),
+            'class_filepath'  : ut.truepath('~/work/WS_ALL/localizer_backup/detect.yolo.2.cfg.classes'),
+        }
+        depc = ibs.depc_image
+
+        images = ibs.images(gids)
+        images = images.compress([ext_ not in ['.gif'] for ext_ in images.exts])
+        gid_list = images.gids
+
+        # result is a tuple: (score, bbox_list, theta_list, conf_list, class_list)
+        results_list = depc.get_property('localizations', gid_list, None, config=config)  # NOQA
+
+        results_list2 = []
+        multi_gids = []
+        failed_gids = []
+
+        for gid, res in zip(gid_list, results_list):
+            score, bbox_list, theta_list, conf_list, class_list = res
+            if len(bbox_list) == 0:
+                failed_gids.append(gid)
+            elif len(bbox_list) == 1:
+                results_list2.append((gid, bbox_list, theta_list))
+            elif len(bbox_list) > 1:
+                multi_gids.append(gid)
+                idx = conf_list.argmax()
+                res2 = (gid, bbox_list[idx:idx + 1], theta_list[idx:idx + 1])
+                results_list2.append(res2)
+
+        if False:
+            ibs.set_image_imagesettext(failed_gids, ['Fixme'] * len(failed_gids))
+            ibs.set_image_imagesettext(multi_gids, ['Fixme2'] * len(multi_gids))
+
+        # Reorder empty_info to be aligned with results
+        localized_imgs = ibs.images(ut.take_column(results_list2, 0))
+        empty_new_info_ = empty_new_info.loc_by_key('gid', localized_imgs.gids)
+        assert all([len(a) == 0 for a in localized_imgs.aids])
+
+        #old_annots = ibs.annots(ut.flatten(localized_imgs.aids))
+        #old_tags = old_annots.case_tags
+
+        # Override old bboxes
+        bboxes = np.array(ut.take_column(results_list2, 1))[:, 0, :]
+        thetas = np.array(ut.take_column(results_list2, 2))[:, 0]
+        names = empty_new_info_['nameid']
+        species = ['whale_shark'] * len(localized_imgs)
+        aid_list = ibs.add_annots(localized_imgs.gids, bbox_list=bboxes,
+                                  theta_list=thetas, name_list=names,
+                                  species_list=species)
+        aid_list
+        #ibs.set_annot_bboxes(old_annots.aids, bboxes)
+
+    if True:
+        info_gid_list = ibs.get_image_gids_from_uuid(info['uuid'])
+        # Get info for items already in database
+        cur_info = info.compress(ut.flag_not_None_items(info_gid_list))
+        cur_info['gid'] = ut.compress(info_gid_list, ut.flag_not_None_items(info_gid_list))
+        cur_images = ibs.images(cur_info['gid'])
+        assert cur_images.uuids == cur_info['uuid']
+        num_bad_orig_uri = sum([x != y for x, y in zip(cur_images.uris_original, cur_info['img_url'])])
+        sum([x == y for x, y in zip(cur_images.gnames, cur_info['orig_fname'])])
+
+        # Use the wildbook urls as original uris
+        if num_bad_orig_uri > 0:
+            print('Fixing %d original uris' % (num_bad_orig_uri,))
+            ibs.set_image_uris_original(cur_images.gids, cur_info['img_url'], overwrite=True)
+        else:
+            print('All %d original uris do not need fixing' % len(cur_images))
+
+        # TODO: multis
+        is_single_annots = np.array(cur_images.num_annotations) == 1
+        single_cur_info = cur_info.compress(is_single_annots)
+        single_cur_images = cur_images.compress(is_single_annots)
+        single_cur_annots = ibs.annots(ut.flatten(single_cur_images.aids))
+
+        # Map viewpoint onto images
+        mapping = [
+            ('view-left', 'left'),
+            ('view-right', 'right'),
+            ('view-back', 'back'),
+        ]
+        for tag, yaw_text in mapping:
+            tag_flags = ut.filterflags_general_tags(single_cur_info['tags'], has_any=[tag])
+            _annots = single_cur_annots.compress(tag_flags)
+            _annots = _annots.compress(ut.flag_None_items(_annots.yaw_texts))
+            print('%d/%d annots need fixed yaws %r' % (len(_annots), len(single_cur_annots), tag,))
+            _annots.yaw_texts = [yaw_text] * len(_annots)
+
+        # Fix Species
+        bad_flags = [s == '____' for s in single_cur_annots.species]
+        _annots = single_cur_annots.compress(bad_flags)
+        print('%d/%d annots need fixed species' % (len(_annots), len(single_cur_annots)))
+        _annots.species = ['whale_shark'] * len(_annots)
+
+        # Fix Injur / Healthy Tags
+        flags = (np.array(ut.lmap(len, single_cur_annots.case_tags)) == 0)
+        _annots = single_cur_annots.compress(flags)
+        _info = single_cur_info.compress(flags)
+        print('%d/%d annots have no tags' % (len(_annots), len(single_cur_annots)))
+        # reparse tags (dev only, delete the next line)
+        _info['tags'] = getshark.parse_shark_fname_tags(_info['orig_fname'])
+        print('Tags from WB imgnames:' +
+              ut.repr3(ut.dict_hist(ut.flatten(_info['tags']))))
+        probably_healthy_flags = ut.filterflags_general_tags(_info['tags'],
+                                                             none_match=['injur-.*', 'cropped', 'notch'])
+        probably_healthy_annots = _annots.compress(probably_healthy_flags)
+        ibs.set_annot_prop('healthy', probably_healthy_annots.aids, [True] * len(probably_healthy_annots))
+        ibs.set_image_imagesettext(probably_healthy_annots.gids, ['Probably Healthy'] * len(probably_healthy_annots))
+
+        probably_injured_flags = ut.filterflags_general_tags(_info['tags'], any_startswith=('injur-'))
+        probably_injured_annots = _annots.compress(probably_injured_flags)
+        injur_tags = [[t for t in ts if t.startswith('injur-')] for ts in _info['tags']]
+        injur_tags = ut.compress(injur_tags, probably_injured_flags)
+        probably_injured_annots = _annots.compress(probably_injured_annots)
+        ibs.append_annot_case_tags(probably_injured_annots.aids, injur_tags)
+        ibs.set_image_imagesettext(probably_injured_annots.gids, ['Probably Injured'] * len(probably_injured_annots))
+
+        # manually reviewed some
+        flags = ut.filterflags_general_tags(probably_healthy_annots.case_tags, has_any=['error:other'])
+        actually_unhealthy = probably_healthy_annots.compress(flags)
+        ibs.append_annot_case_tags(actually_unhealthy.aids, ['injur-unknown'] * len(actually_unhealthy))
+        ibs.set_annot_prop('healthy', actually_unhealthy.aids, [False] * len(actually_unhealthy))
+        ibs.set_annot_prop('error:other', actually_unhealthy.aids, [False] * len(actually_unhealthy))
+        ibs.set_image_imagesettext(actually_unhealthy.gids, ['Probably Injured'] * len(actually_unhealthy))
+
+        ibs.unrelate_images_and_imagesets(actually_unhealthy.gids, [ibs.imagesets(text='Probably Healthy')._rowids[0]] * len(actually_unhealthy.gids))
+
+        # TODO: cls
+
+        x = ibs.annots(ibs.imagesets(text='Non-Injured Sharks').aids[0])
+        y = ibs.annots(ibs.imagesets(text='Injured Sharks').aids[0])
+
+        #healthy_annots = ibs.annots(ibs.imagesets(text='Non-Injured Sharks').aids[0])
+        #ibs.set_annot_prop('healthy', healthy_annots.aids, [True] * len(healthy_annots))
+        #['healthy' in t and len(t) > 0 for t in single_cur_annots.case_tags]
+        #healthy_tags = []
+
+    #ut.find_duplicate_items(cur_img_uuids)
+    #ut.find_duplicate_items(new_img_uuids)
+    #cur_uuids = set(cur_img_uuids)
+    #new_uuids = set(new_img_uuids)
+    #both_uuids = new_uuids.intersection(cur_uuids)
+    #only_cur = cur_uuids - both_uuids
+    #only_new = new_uuids - both_uuids
+    #print('len(cur_uuids) = %r' % (len(cur_uuids)))
+    #print('len(new_uuids) = %r' % (len(new_uuids)))
+    #print('len(both_uuids) = %r' % (len(both_uuids)))
+    #print('len(only_cur) = %r' % (len(only_cur)))
+    #print('len(only_new) = %r' % (len(only_new)))
+
+    # Ensure that data in both sets are syncronized
+    #images_both = []
+
+    if False:
+        print('Removing small images')
+        import numpy as np
+        imgsize_list = np.array([vt.open_image_size(gpath) for gpath in parsed['new_fpath']])
+        sqrt_area_list = np.sqrt(np.prod(imgsize_list, axis=1))
+        areq_flags_list = sqrt_area_list >= 750
+        parsed = parsed.compress(areq_flags_list)
+
+    if False:
+        grouped_idxs = ut.group_items(list(range(len(parsed['nameid']))),
+                                      parsed['nameid'])
+        keep_idxs = sorted(ut.flatten([idxs for key, idxs in grouped_idxs.items() if len(idxs) >= 2]))
+        parsed = parsed.take(keep_idxs)
+
+    if False:
+        print('Moving images to secondary directory')
+        named_outputdir = 'named-left-sharkimages'
+        # Build names
+        parsed['namedir_fpath'] = [
+            join(named_outputdir, _nameid, _fname)
+            for _fname, _nameid in zip(parsed['new_fname'],
+                                       parsed['nameid'])]
+        # Create directories
+        ut.ensuredir(named_outputdir)
+        named_dirs = ut.unique_ordered(list(map(dirname, parsed['namedir_fpath'])))
+        for dir_ in named_dirs:
+            ut.ensuredir(dir_)
+        # Copy
+        ut.copy_files_to(src_fpath_list=parsed['new_fpath'],
+                         dst_fpath_list=parsed['namedir_fpath'])
+
+
 def purge_ensure_one_annot_per_images(ibs):
     """
     pip install Pipe
@@ -403,372 +985,6 @@ def get_injured_sharks():
     #for
 
 
-def sync_whalesharks():
-    """
-    Syncronizes our ibeis database with whaleshark.org
-
-    #cd ~/work/WS_ALL
-    python -m ibeis.scripts.getshark
-
-    cd /media/raid/raw/WhaleSharks_WB/
-
-    >>> from ibeis.scripts.getshark import *  # NOQA
-    """
-    from ibeis.scripts import getshark
-    from xml.dom.minidom import parseString
-
-    url = 'www.whaleshark.org/listImages.jsp'
-    XMLdata = ut.url_read(url)
-    number = None
-
-    #ut.writeto('listImagesSharks.xml', XMLdata)
-    #ut.editfile('listImagesSharks.xml')
-
-    # Prepare the output directory for writing, if it doesn't exist
-    output_dir = 'sharkimages'
-    ut.ensuredir(output_dir)
-    download_dir = join('/media/raid/raw/WhaleSharks_WB/', output_dir)
-
-    _prog = ut.ProgPartial(bs=True, freq=10)
-
-    # Parse attributes out of XML
-    dom = parseString(XMLdata)
-    if number:
-        maxCount = min(number, len(dom.getElementsByTagName('img')))
-    else:
-        maxCount = len(dom.getElementsByTagName('img'))
-    parsed_info = ut.ddict(list)
-    print('Reading XML information from %d images...' % maxCount)
-    shark_elements = dom.getElementsByTagName('shark')
-    for shark in _prog(shark_elements, lbl='parsing shark elements'):
-        localCount = 0
-        for encounter in shark.getElementsByTagName('encounter'):
-            for img in encounter.getElementsByTagName('img'):
-                localCount += 1
-
-                img_url = img.getAttribute('href')
-                ext = splitext(img_url)[1].lower()
-                nameid = shark.getAttribute('number')
-
-                new_fname = '%s-%i%s' % (
-                    nameid, localCount, ext)
-
-                parsed_info['img_url'].append(img_url)
-                parsed_info['nameid'].append(nameid)
-                parsed_info['localid'].append(localCount)
-                # might be different due to prefix
-                parsed_info['new_fname'].append(new_fname)
-
-                #print('Parsed %i / %i files.' % (len(parsed_info['orig_fname']), maxCount))
-                if number is not None and len(parsed_info['orig_fname']) == number:
-                    break
-
-    #orig_fname = split(img_url)[1]
-    #parsed_info['orig_fname'] = (orig_fname)
-
-    # Postprocess
-    parsed = ut.ColumnLists(parsed_info)
-    parsed['new_fpath'] = [join(download_dir, _fname)
-                                for _fname in parsed['new_fname']]
-
-    from os.path import commonprefix, basename  # NOQA
-    prefix = commonprefix(parsed['img_url'])
-    parsed['orig_fname'] = [url_[len(prefix):] for url_ in parsed['img_url']]
-
-    print('Filtering parsed images')
-    parsed['ext'] = [splitext(_fname)[-1] for _fname in parsed['new_fname']]
-
-    # Filter based on image type (keep only jpgs)
-    ext_flags = [ext_ in ['.jpg', '.jpeg'] for ext_ in parsed['ext']]
-    parsed = parsed.compress(ext_flags)
-
-    # Filter to only images matching the appropriate tags
-    parsed['tags'] = getshark.parse_shark_tags(parsed['orig_fname'])
-    print('Tags before choosing:' +
-          ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']))))
-
-    tag_flags = ut.filterflags_general_tags(
-        parsed['tags'],
-        #has_any=['view-left'],
-        #none_match=['qual.*', 'view-top', 'part-.*', 'cropped'],
-    )
-    parsed = parsed.compress(tag_flags)
-    print('Tags after choosing:' +
-          ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']))))
-
-    # Download images that we dont have yet
-    exists_list = ut.lmap(exists, parsed['new_fpath'])
-    print('nExist = %r / %r' % (sum(exists_list), len(exists_list)))
-    print('nMissing = %r / %r' % (len(exists_list) - sum(exists_list), len(exists_list)))
-    missing = parsed.compress(ut.not_list(exists_list))
-    print('Downloading selected subset')
-    _iter = list(zip(missing['img_url'], missing['new_fpath']))
-    for img_url, new_fpath in _prog(_iter, lbl='downloading sharks'):
-        try:
-            ut.download_url(img_url, new_fpath, verbose=False)
-        except ZeroDivisionError:
-            pass
-
-    # Change variable name to info now that we downloaded
-    info = parsed.copy()
-    del info['ext']
-    del info['localid']
-
-    # Remove corrupted or ill-formatted images
-    print('Checking for corrupted images')
-    import vtool as vt
-    info = info.compress(vt.filterflags_valid_images(info['new_fpath']))
-
-    # Rectify duplicate information
-    # Stride of 1 is what IA uses internally
-    info['uuid'] = [ut.get_file_uuid(fpath_, stride=1)
-                      for fpath_ in _prog(info['new_fpath'], lbl='uuid check')]
-
-    info_groups = info.group(info['uuid'])[1]
-    multi_groups  = [g for g in info_groups if len(g) > 1]
-    single_groups = [g for g in info_groups if len(g) == 1]
-
-    fixed_groups = []
-    for group in multi_groups:
-        newgroup = {}
-        for key in group.keys():
-            val = group[key]
-            # flatten tag lists otherwise take the first item
-            if isinstance(val[0], (tuple, list)):
-                val_ = ut.unique(ut.flatten(val))
-            else:
-                val_ = val[0]
-            newgroup[key] = [val_]
-        fixed_groups.append(ut.ColumnLists(newgroup))
-    singles = ut.ColumnLists.flatten(single_groups)
-    fixed = ut.ColumnLists.flatten(fixed_groups)
-    info = singles + fixed
-
-    # Check these images against what currently exists in WS_ALL
-    import ibeis
-    import numpy as np
-    ibs = ibeis.opendb('WS_ALL')
-    #images = ibs.images()
-    #cur_img_uuids = [ut.get_file_uuid(fpath_, stride=8)
-    #                 for fpath_ in _prog(images.paths)]
-    #cur_img_uuids = [ut.get_file_uuid(fpath_, stride=1)
-    #                 for fpath_ in _prog(images.paths, freq=10)]
-    #new_img_uuids = info['uuid']
-
-    # Get info for items not yet in database
-    if True:
-        info_gid_list = ibs.get_image_gids_from_uuid(info['uuid'])
-        new_info = info.compress(ut.flag_None_items(info_gid_list))
-
-        gid_list = ibs.add_images(new_info['new_fpath'])
-        new_info['gid'] = gid_list
-
-        failed_flags = ut.flag_None_items(new_info['gid'])
-        print('# failed %s' % (sum(failed_flags)),)
-        passed_flags = ut.not_list(failed_flags)
-        new_info = new_info.compress(passed_flags)
-        ut.assert_all_not_None(new_info['gid'])
-        #ibs.get_image_uris_original(clist['gid'])
-        assert len(ut.find_duplicate_items(new_info['gid'])) == 0
-        ibs.set_image_uris_original(new_info['gid'], new_info['img_url'], overwrite=True)
-
-        images_new = ibs.images(new_info['gid'])
-        is_empty_annots = np.array(images_new.num_annotations) == 0
-
-        # TODO: multis
-        empty_new_info = new_info.compress(is_empty_annots)
-        empty_new_images = images_new.compress(is_empty_annots)
-        gids = empty_new_images.gids
-        #empty_cur_annots = ibs.annots(ut.flatten(empty_cur_images.aids))
-
-        config = {
-            'algo'            : 'yolo',
-            'sensitivity'     : 0.2,
-            'config_filepath' : ut.truepath('~/work/WS_ALL/localizer_backup/detect.yolo.2.cfg'),
-            'weight_filepath' : ut.truepath('~/work/WS_ALL/localizer_backup/detect.yolo.2.39000.weights'),
-            'class_filepath'  : ut.truepath('~/work/WS_ALL/localizer_backup/detect.yolo.2.cfg.classes'),
-        }
-        depc = ibs.depc_image
-
-        images = ibs.images(gids)
-        images = images.compress([ext_ not in ['.gif'] for ext_ in images.exts])
-        gid_list = images.gids
-
-        # result is a tuple: (score, bbox_list, theta_list, conf_list, class_list)
-        results_list = depc.get_property('localizations', gid_list, None, config=config)  # NOQA
-
-        results_list2 = []
-        multi_gids = []
-        failed_gids = []
-
-        for gid, res in zip(gid_list, results_list):
-            score, bbox_list, theta_list, conf_list, class_list = res
-            if len(bbox_list) == 0:
-                failed_gids.append(gid)
-            elif len(bbox_list) == 1:
-                results_list2.append((gid, bbox_list, theta_list))
-            elif len(bbox_list) > 1:
-                multi_gids.append(gid)
-                idx = conf_list.argmax()
-                res2 = (gid, bbox_list[idx:idx + 1], theta_list[idx:idx + 1])
-                results_list2.append(res2)
-
-        if False:
-            ibs.set_image_imagesettext(failed_gids, ['Fixme'] * len(failed_gids))
-            ibs.set_image_imagesettext(multi_gids, ['Fixme2'] * len(multi_gids))
-
-        # Reorder empty_info to be aligned with results
-        localized_imgs = ibs.images(ut.take_column(results_list2, 0))
-        empty_new_info_ = empty_new_info.loc_by_key('gid', localized_imgs.gids)
-        assert all([len(a) == 0 for a in localized_imgs.aids])
-
-        #old_annots = ibs.annots(ut.flatten(localized_imgs.aids))
-        #old_tags = old_annots.case_tags
-
-        # Override old bboxes
-        bboxes = np.array(ut.take_column(results_list2, 1))[:, 0, :]
-        thetas = np.array(ut.take_column(results_list2, 2))[:, 0]
-        names = empty_new_info_['nameid']
-        species = ['whale_shark'] * len(localized_imgs)
-        aid_list = ibs.add_annots(localized_imgs.gids, bbox_list=bboxes,
-                                  theta_list=thetas, name_list=names,
-                                  species_list=species)
-        aid_list
-        #ibs.set_annot_bboxes(old_annots.aids, bboxes)
-
-    if True:
-        info_gid_list = ibs.get_image_gids_from_uuid(info['uuid'])
-        # Get info for items already in database
-        cur_info = info.compress(ut.flag_not_None_items(info_gid_list))
-        cur_info['gid'] = ut.compress(info_gid_list, ut.flag_not_None_items(info_gid_list))
-        cur_images = ibs.images(cur_info['gid'])
-        assert cur_images.uuids == cur_info['uuid']
-        num_bad_orig_uri = sum([x != y for x, y in zip(cur_images.uris_original, cur_info['img_url'])])
-        sum([x == y for x, y in zip(cur_images.gnames, cur_info['orig_fname'])])
-
-        # Use the wildbook urls as original uris
-        if num_bad_orig_uri > 0:
-            print('Fixing %d original uris' % (num_bad_orig_uri,))
-            ibs.set_image_uris_original(cur_images.gids, cur_info['img_url'], overwrite=True)
-        else:
-            print('All %d original uris do not need fixing' % len(cur_images))
-
-        # TODO: multis
-        is_single_annots = np.array(cur_images.num_annotations) == 1
-        single_cur_info = cur_info.compress(is_single_annots)
-        single_cur_images = cur_images.compress(is_single_annots)
-        single_cur_annots = ibs.annots(ut.flatten(single_cur_images.aids))
-
-        # Map viewpoint onto images
-        mapping = [
-            ('view-left', 'left'),
-            ('view-right', 'right'),
-            ('view-back', 'back'),
-        ]
-        for tag, yaw_text in mapping:
-            tag_flags = ut.filterflags_general_tags(single_cur_info['tags'], has_any=[tag])
-            _annots = single_cur_annots.compress(tag_flags)
-            _annots = _annots.compress(ut.flag_None_items(_annots.yaw_texts))
-            print('%d/%d annots need fixed yaws %r' % (len(_annots), len(single_cur_annots), tag,))
-            _annots.yaw_texts = [yaw_text] * len(_annots)
-
-        # Fix Species
-        bad_flags = [s == '____' for s in single_cur_annots.species]
-        _annots = single_cur_annots.compress(bad_flags)
-        print('%d/%d annots need fixed species' % (len(_annots), len(single_cur_annots)))
-        _annots.species = ['whale_shark'] * len(_annots)
-
-        # Fix Injur / Healthy Tags
-        flags = (np.array(ut.lmap(len, single_cur_annots.case_tags)) == 0)
-        _annots = single_cur_annots.compress(flags)
-        _info = single_cur_info.compress(flags)
-        print('%d/%d annots have no tags' % (len(_annots), len(single_cur_annots)))
-        # reparse tags (dev only, delete the next line)
-        _info['tags'] = getshark.parse_shark_tags(_info['orig_fname'])
-        print('Tags from WB imgnames:' +
-              ut.repr3(ut.dict_hist(ut.flatten(_info['tags']))))
-        probably_healthy_flags = ut.filterflags_general_tags(_info['tags'],
-                                                             none_match=['injur-.*', 'cropped', 'notch'])
-        probably_healthy_annots = _annots.compress(probably_healthy_flags)
-        ibs.set_annot_prop('healthy', probably_healthy_annots.aids, [True] * len(probably_healthy_annots))
-        ibs.set_image_imagesettext(probably_healthy_annots.gids, ['Probably Healthy'] * len(probably_healthy_annots))
-
-        probably_injured_flags = ut.filterflags_general_tags(_info['tags'], any_startswith=('injur-'))
-        probably_injured_annots = _annots.compress(probably_injured_flags)
-        injur_tags = [[t for t in ts if t.startswith('injur-')] for ts in _info['tags']]
-        injur_tags = ut.compress(injur_tags, probably_injured_flags)
-        probably_injured_annots = _annots.compress(probably_injured_annots)
-        ibs.append_annot_case_tags(probably_injured_annots.aids, injur_tags)
-        ibs.set_image_imagesettext(probably_injured_annots.gids, ['Probably Injured'] * len(probably_injured_annots))
-
-        # manually reviewed some
-        flags = ut.filterflags_general_tags(probably_healthy_annots.case_tags, has_any=['error:other'])
-        actually_unhealthy = probably_healthy_annots.compress(flags)
-        ibs.append_annot_case_tags(actually_unhealthy.aids, ['injur-unknown'] * len(actually_unhealthy))
-        ibs.set_annot_prop('healthy', actually_unhealthy.aids, [False] * len(actually_unhealthy))
-        ibs.set_annot_prop('error:other', actually_unhealthy.aids, [False] * len(actually_unhealthy))
-        ibs.set_image_imagesettext(actually_unhealthy.gids, ['Probably Injured'] * len(actually_unhealthy))
-
-        ibs.unrelate_images_and_imagesets(actually_unhealthy.gids, [ibs.imagesets(text='Probably Healthy')._rowids[0]] * len(actually_unhealthy.gids))
-
-        # TODO: cls
-
-        x = ibs.annots(ibs.imagesets(text='Non-Injured Sharks').aids[0])
-        y = ibs.annots(ibs.imagesets(text='Injured Sharks').aids[0])
-
-        #healthy_annots = ibs.annots(ibs.imagesets(text='Non-Injured Sharks').aids[0])
-        #ibs.set_annot_prop('healthy', healthy_annots.aids, [True] * len(healthy_annots))
-        #['healthy' in t and len(t) > 0 for t in single_cur_annots.case_tags]
-        #healthy_tags = []
-
-    #ut.find_duplicate_items(cur_img_uuids)
-    #ut.find_duplicate_items(new_img_uuids)
-    #cur_uuids = set(cur_img_uuids)
-    #new_uuids = set(new_img_uuids)
-    #both_uuids = new_uuids.intersection(cur_uuids)
-    #only_cur = cur_uuids - both_uuids
-    #only_new = new_uuids - both_uuids
-    #print('len(cur_uuids) = %r' % (len(cur_uuids)))
-    #print('len(new_uuids) = %r' % (len(new_uuids)))
-    #print('len(both_uuids) = %r' % (len(both_uuids)))
-    #print('len(only_cur) = %r' % (len(only_cur)))
-    #print('len(only_new) = %r' % (len(only_new)))
-
-    # Ensure that data in both sets are syncronized
-    #images_both = []
-
-    if False:
-        print('Removing small images')
-        import numpy as np
-        imgsize_list = np.array([vt.open_image_size(gpath) for gpath in parsed['new_fpath']])
-        sqrt_area_list = np.sqrt(np.prod(imgsize_list, axis=1))
-        areq_flags_list = sqrt_area_list >= 750
-        parsed = parsed.compress(areq_flags_list)
-
-    if False:
-        grouped_idxs = ut.group_items(list(range(len(parsed['nameid']))),
-                                      parsed['nameid'])
-        keep_idxs = sorted(ut.flatten([idxs for key, idxs in grouped_idxs.items() if len(idxs) >= 2]))
-        parsed = parsed.take(keep_idxs)
-
-    if False:
-        print('Moving images to secondary directory')
-        named_outputdir = 'named-left-sharkimages'
-        # Build names
-        parsed['namedir_fpath'] = [
-            join(named_outputdir, _nameid, _fname)
-            for _fname, _nameid in zip(parsed['new_fname'],
-                                       parsed['nameid'])]
-        # Create directories
-        ut.ensuredir(named_outputdir)
-        named_dirs = ut.unique_ordered(list(map(dirname, parsed['namedir_fpath'])))
-        for dir_ in named_dirs:
-            ut.ensuredir(dir_)
-        # Copy
-        ut.copy_files_to(src_fpath_list=parsed['new_fpath'],
-                         dst_fpath_list=parsed['namedir_fpath'])
-
-
 def detect_sharks(ibs, gids):
     #import ibeis
     #ibs = ibeis.opendb('WS_ALL')
@@ -857,12 +1073,12 @@ def train_part_detector():
     import ibeis
     ibs = ibeis.opendb('WS_ALL')
     imgset = ibs.imagesets(text='Injured Sharks')
-    injured_annots = imgset.annots[0]
+    injured_annots = imgset.annots[0]  # NOQA
 
-    config = {
-        'dim_size': (224, 224),
-        'resize_dim': 'wh'
-    }
+    #config = {
+    #    'dim_size': (224, 224),
+    #    'resize_dim': 'wh'
+    #}
 
     from pydarknet import Darknet_YOLO_Detector
     data_path = ibs.export_to_xml()
@@ -886,8 +1102,10 @@ def train_part_detector():
     # ibs.detector_train()
 
 
-def parse_shark_tags(orig_fname_list):
+def parse_shark_fname_tags(orig_fname_list):
     """
+    Parses potential tags from the filename
+
     >>> orig_fname_list = parsed['orig_fname']
     """
     import re
@@ -1037,7 +1255,7 @@ def parse_shark_tags(orig_fname_list):
     known_img_tag_list = [list(set(tags).intersection(set(valid_tags)))
                           for tags in all_img_tag_list]
 
-    if 1:
+    if 0:
         # Help figure out which tags are important
         _parsed_tags = ut.flatten(all_img_tag_list)
 
