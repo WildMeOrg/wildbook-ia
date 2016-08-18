@@ -35,7 +35,7 @@ def shark_net(dry=False):
     # ------------
     target_type = 'binary'
     # ut.delete(ibs.get_neuralnet_dir())  # to reset
-    dataset = classify_shark.build_cnn_shark_dataset(target_type)
+    dataset = classify_shark.get_shark_dataset(target_type, 'chip')
 
     # ------------
     # Define model
@@ -171,13 +171,13 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
     #    pass
 
 
-def build_cnn_shark_dataset(target_type):
+def get_shark_dataset(target_type='binary', data_type='chip'):
     """
     >>> from ibeis.scripts.classify_shark import *  # NOQA
     >>> target_type = 'binary'
-    >>> dataset = build_cnn_shark_dataset(target_type)
+    >>> data_type = 'hog'
+    >>> dataset = get_shark_dataset(target_type)
     """
-    target_type = 'binary'
     from ibeis_cnn.dataset import DataSet
     from ibeis.scripts import classify_shark
     tup = classify_shark.get_shark_labels_and_metadata(target_type)
@@ -193,93 +193,137 @@ def build_cnn_shark_dataset(target_type):
     #metadata['nids'] = np.array(annots.nids)
     chips_hashstr = ut.hashstr_arr27(annots.visual_uuids, 'chips')
     cfgstr = chips_hashstr + '_' + trail_hashstr
+    name = 'injur-shark'
+
+    if data_type == 'hog':
+        cfgstr = 'hog_' + cfgstr
+        name += '-hog'
 
     training_dpath = ibs.get_neuralnet_dir()
     dataset = DataSet(cfgstr,
                       data_shape=data_shape,
                       num_data=nTotal,
                       training_dpath=training_dpath,
-                      name='injur-shark')
+                      name=name)
+
     print(dataset.dataset_id)
+
+    dataset.setprop('ibs', ibs)
+    dataset.setprop('annots', annots)
+    dataset.setprop('target_names', target_names)
+    dataset.setprop('config', config)
+    dataset.setprop('enc', enc)
 
     try:
         dataset.load()
     except IOError:
         import vtool as vt
         dataset.ensure_dirs()
-        chip_gen = ibs.depc_annot.get('chips', annots.aids, 'img',
-                                      eager=False, config=config)
-        iter_ = iter(ut.ProgIter(chip_gen, nTotal=nTotal, lbl='load chip'))
-        shape = (nTotal,) + data_shape
-        data = vt.fromiter_nd(iter_, shape=shape, dtype=np.uint8)  # NOQA
-        labels = target
-        # Save data where dataset expects it to be
-        dataset.save(data, labels, metadata, data_per_label=1)
+
+        if data_type == 'hog':
+            data = np.array([h.ravel() for h in annots.hog_hog])
+            labels = target
+            # Save data where dataset expects it to be
+            dataset.save(data, labels, metadata, data_per_label=1)
+        else:
+            chip_gen = ibs.depc_annot.get('chips', annots.aids, 'img',
+                                          eager=False, config=config)
+            iter_ = iter(ut.ProgIter(chip_gen, nTotal=nTotal, lbl='load chip'))
+            shape = (nTotal,) + data_shape
+            data = vt.fromiter_nd(iter_, shape=shape, dtype=np.uint8)  # NOQA
+            labels = target
+            # Save data where dataset expects it to be
+            dataset.save(data, labels, metadata, data_per_label=1)
+
+    from ibeis_cnn.dataset import stratified_label_shuffle_split
     if not dataset.has_split('learn'):
-        from ibeis_cnn.dataset import stratified_label_shuffle_split
         nids = np.array(dataset.metadata['nids'])
         # Partition into a testing and training dataset
         y = dataset.labels
-        train_idx, test_idx = stratified_label_shuffle_split(y, nids, [.8, .2], rng=22019)
+        train_idx, test_idx = stratified_label_shuffle_split(
+            y, nids, [.8, .2], rng=22019)
         nids_train = nids.take(train_idx, axis=0)
         y_train = y.take(train_idx, axis=0)
         # Partition training into learning and validation
-        learn_idx, valid_idx = stratified_label_shuffle_split(y_train, nids_train, [.8, .2], idx=train_idx, rng=90120)
+        learn_idx, valid_idx = stratified_label_shuffle_split(
+            y_train, nids_train,
+            [.8, .2], idx=train_idx, rng=90120)
         assert len(np.intersect1d(learn_idx, test_idx)) == 0
         assert len(np.intersect1d(valid_idx, test_idx)) == 0
         assert len(np.intersect1d(learn_idx, valid_idx)) == 0
+        if data_type == 'hog':
+            dataset.add_split('train', train_idx)
         dataset.add_split('test', test_idx)
         dataset.add_split('learn', learn_idx)
         dataset.add_split('valid', valid_idx)
         dataset.clear_cache('full')
+
+    if data_type == 'hog':
+        # hack
+        y = dataset.labels
+        nids = np.array(dataset.metadata['nids'])
+        train_idx, test_idx = stratified_label_shuffle_split(
+            y, nids, [.8, .2], rng=22019)
+        nids_train = nids.take(train_idx, axis=0)
+        y_train = y.take(train_idx, axis=0)
+        # Partition training into learning and validation
+        learn_idx, valid_idx = stratified_label_shuffle_split(
+            y_train, nids_train,
+            [.8, .2], idx=train_idx, rng=90120)
+        dataset._split_idxs = {}
+        dataset._split_idxs['learn'] = learn_idx
+        dataset._split_idxs['valid'] = valid_idx
+        dataset._split_idxs['train'] = train_idx
+        dataset._split_idxs['test'] = test_idx
+
     dataset.ensure_symlinked()
     return dataset
 
 
-def get_sharks_dataset(target_type=None, data_type='hog'):
-    """
-    Ignore:
-        # Binarize into multi-class labels
-        # http://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
-        #menc = preprocessing.MultiLabelBinarizer()
-        #menc.fit(annot_tags)
-        #target = menc.transform(annot_tags)
-        #enc = menc
-        # henc = preprocessing.OneHotEncoder()
-        # henc.fit(menc.transform(annot_tags))
-        # target = henc.transform(menc.transform(annot_tags))
-        # target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
+#def get_sharks_dataset(target_type=None, data_type='hog'):
+#    """
+#    Ignore:
+#        # Binarize into multi-class labels
+#        # http://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
+#        #menc = preprocessing.MultiLabelBinarizer()
+#        #menc.fit(annot_tags)
+#        #target = menc.transform(annot_tags)
+#        #enc = menc
+#        # henc = preprocessing.OneHotEncoder()
+#        # henc.fit(menc.transform(annot_tags))
+#        # target = henc.transform(menc.transform(annot_tags))
+#        # target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
 
-    CommandLine:
-        python -m ibeis.scripts.classify_shark get_sharks_dataset
-        python -m ibeis.scripts.classify_shark get_sharks_dataset --show --monitor
+#    CommandLine:
+#        python -m ibeis.scripts.classify_shark get_sharks_dataset
+#        python -m ibeis.scripts.classify_shark get_sharks_dataset --show --monitor
 
-    Example:
-        >>> target_type = 'binary'
-        >>> data_type = 'chip'
-        >>> from ibeis.scripts.classify_shark import *  # NOQA
-        >>> get_sharks_dataset(target_type, data_type)
-    """
+#    Example:
+#        >>> target_type = 'binary'
+#        >>> data_type = 'chip'
+#        >>> from ibeis.scripts.classify_shark import *  # NOQA
+#        >>> get_sharks_dataset(target_type, data_type)
+#    """
 
-    data = None
-    tup = get_shark_labels_and_metadata(target_type)
-    ibs, annots, target, target_names, config, metadata, enc = tup
-    data = np.array([h.ravel() for h in annots.hog_hog])
-    # Build scipy / scikit data standards
-    ds = sklearn.datasets.base.Bunch(
-        ibs=ibs,
-        #data=data,
-        name='sharks',
-        DESCR='injured-vs-healthy whale sharks',
-        target_names=target_names,
-        target_labels=enc.transform(target_names),
-        config=config,
-        target=target,
-        enc=enc,
-        data=data,
-        **metadata
-    )
-    return ds
+#    data = None
+#    tup = get_shark_labels_and_metadata(target_type)
+#    ibs, annots, target, target_names, config, metadata, enc = tup
+#    data = np.array([h.ravel() for h in annots.hog_hog])
+#    # Build scipy / scikit data standards
+#    ds = sklearn.datasets.base.Bunch(
+#        ibs=ibs,
+#        #data=data,
+#        name='sharks',
+#        DESCR='injured-vs-healthy whale sharks',
+#        target_names=target_names,
+#        target_labels=enc.transform(target_names),
+#        config=config,
+#        target=target,
+#        enc=enc,
+#        data=data,
+#        **metadata
+#    )
+#    return ds
 
 
 def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
@@ -512,6 +556,33 @@ class ClfProblem(object):
             ax.fill_between(xdata, y_data_min, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
             pt.draw_hist_subbin_maxima(ydata, xdata)
 
+            #clf.best_params_ = {u'C': 0.07143785714285722}
+            #Best parameters set found on development set:
+            #{u'C': 0.07143785714285722}
+            #Grid scores on development set:
+            #0.729 (+/-0.016) for {u'C': 1.0}
+            #0.729 (+/-0.019) for {u'C': 0.92857214285714285}
+            #0.733 (+/-0.017) for {u'C': 0.85714428571428569}
+            #0.734 (+/-0.015) for {u'C': 0.78571642857142865}
+            #0.736 (+/-0.016) for {u'C': 0.71428857142857138}
+            #0.739 (+/-0.020) for {u'C': 0.64286071428571434}
+            #0.742 (+/-0.020) for {u'C': 0.57143285714285719}
+            #0.743 (+/-0.021) for {u'C': 0.50000500000000003}
+            #0.746 (+/-0.023) for {u'C': 0.42857714285714288}
+            #0.749 (+/-0.023) for {u'C': 0.35714928571428572}
+            #0.755 (+/-0.025) for {u'C': 0.28572142857142857}
+            #0.760 (+/-0.027) for {u'C': 0.21429357142857142}
+            #0.762 (+/-0.025) for {u'C': 0.14286571428571437}
+            #0.770 (+/-0.036) for {u'C': 0.07143785714285722}
+            #0.664 (+/-0.031) for {u'C': 1.0000000000000001e-05}
+
+            #0.774 (+/-0.039) for {u'C': 0.017433288221999882}
+            #0.775 (+/-0.039) for {u'C': 0.020433597178569417}
+            #0.774 (+/-0.039) for {u'C': 0.023950266199874861}
+            #0.777 (+/-0.038) for {u'C': 0.02807216203941177}
+            #0.775 (+/-0.036) for {u'C': 0.032903445623126679}
+            #0.773 (+/-0.033) for {u'C': 0.038566204211634723}
+
     def test_classifier(problem, clf, test_idx):
         print('[problem] test classifier on %d data points' % (len(test_idx),))
         data = problem.ds.data
@@ -629,7 +700,7 @@ class ClfSingleResult(object):
         print(report)
 
 
-def learn_injured_sharks():
+def shark_svm():
     r"""
     References:
         http://scikit-learn.org/stable/model_selection.html
@@ -638,11 +709,11 @@ def learn_injured_sharks():
         * Change unreviewed healthy tags to healthy-likely
 
     CommandLine:
-        python -m ibeis.scripts.classify_shark learn_injured_sharks --show
+        python -m ibeis.scripts.classify_shark shark_svm --show
 
     Example:
         >>> from ibeis.scripts.classify_shark import *  # NOQA
-        >>> learn_injured_sharks()
+        >>> shark_svm()
         >>> ut.show_if_requested()
     """
     from ibeis.scripts import classify_shark
@@ -655,7 +726,14 @@ def learn_injured_sharks():
     target_type = 'binary'
     #target_type = 'multiclass1'
     #target_type = 'multiclass2'
-    ds = classify_shark.get_sharks_dataset(target_type)
+    #dataset = classify_shark.get_shark_dataset(target_type)
+
+    ds = classify_shark.get_shark_dataset(target_type, 'hog')
+    # Make resemble old dataset
+    # FIXME; make ibeis_cnn dataset work here too
+    #annots = ds.getprop('annots')
+    ds.enc = ds.getprop('enc')
+    ds.target = ds.labels
 
     problem = classify_shark.ClfProblem(ds)
     problem.print_support_info()
@@ -663,11 +741,18 @@ def learn_injured_sharks():
     result_list = []
     #train_idx, test_idx = problem.stratified_2sample_idxs()
 
-    n_folds = 10
-    for train_idx, test_idx in problem.gen_crossval_idxs(n_folds):
-        clf = problem.fit_new_classifier(train_idx)
-        result = problem.test_classifier(clf, test_idx)
-        result_list.append(result)
+    train_idx = ds._split_idxs['train']
+    test_idx = ds._split_idxs['test']
+
+    clf = problem.fit_new_classifier(train_idx)
+    result = problem.test_classifier(clf, test_idx)
+    result_list.append(result)
+
+    #n_folds = 10
+    #for train_idx, test_idx in problem.gen_crossval_idxs(n_folds):
+    #    clf = problem.fit_new_classifier(train_idx)
+    #    result = problem.test_classifier(clf, test_idx)
+    #    result_list.append(result)
 
     for result in result_list:
         result.compile_results()

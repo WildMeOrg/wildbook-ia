@@ -4,300 +4,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 #import getopt
 #import sys
 from os.path import splitext, join, exists, dirname
+from os.path import commonprefix, basename  # NOQA
 import utool as ut
-
-
-def _needs_redownload(fpath, seconds_thresh):
-    if exists(fpath):
-        file_info = ut.get_file_info(fpath)
-        dt = ut.parse_timestamp(file_info['last_modified'], utc=True)
-        delta = dt - ut.utcnow_tz()
-        redownload = delta.total_seconds() > seconds_thresh
-    else:
-        redownload = True
-    return redownload
-
-
-def parse_whaleshark_org():
-    """
-    Read list of all iamges from wildbook
-
-    >>> from ibeis.scripts.getshark import *  # NOQA
-    """
-    from xml.dom.minidom import parseString
-    from ibeis.scripts import getshark
-
-    url = 'www.whaleshark.org/listImages.jsp'
-    number = None
-
-    cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo')
-    cache_fapth = join(cache_dpath, 'listImagesSharks.xml')
-
-    # redownload every 30 days or so
-    if getshark._needs_redownload(cache_fapth, 60 * 60 * 24 * 30):
-        XMLdata = ut.url_read_text(url)
-        ut.writeto(cache_fapth, XMLdata)
-    else:
-        XMLdata = ut.readfrom(cache_fapth)
-
-    # Parse attributes out of XML
-    dom = parseString(XMLdata.encode('utf8'))
-    if number:
-        maxCount = min(number, len(dom.getElementsByTagName('img')))
-    else:
-        maxCount = len(dom.getElementsByTagName('img'))
-    parsed_info = ut.ddict(list)
-    print('Reading XML information from %d images...' % maxCount)
-    shark_elements = dom.getElementsByTagName('shark')
-    _prog = ut.ProgPartial(bs=True, freq=10)
-    for shark in _prog(shark_elements, lbl='parsing shark elements'):
-        localCount = 0
-        for encounter in shark.getElementsByTagName('encounter'):
-            for img in encounter.getElementsByTagName('img'):
-                localCount += 1
-
-                img_url = img.getAttribute('href')
-                ext = splitext(img_url)[1].lower()
-                nameid = shark.getAttribute('number')
-
-                new_fname = '%s-%i%s' % (
-                    nameid, localCount, ext)
-
-                parsed_info['img_url'].append(img_url)
-                parsed_info['nameid'].append(nameid)
-                parsed_info['localid'].append(localCount)
-                # might be different due to prefix
-                parsed_info['new_fname'].append(new_fname)
-
-                parsed_info['encounter'].append(encounter.getAttribute('number'))
-
-                #print('Parsed %i / %i files.' % (len(parsed_info['orig_fname']), maxCount))
-                if number is not None and len(parsed_info['orig_fname']) == number:
-                    break
-
-    keywords, url_to_keys, parsed2 = getshark.parse_whaleshark_org_keywords()
-    print('Parsed %d keywords' % (len(keywords),))
-
-    parsed_ = ut.ColumnLists(parsed_info)
-    print('Parsed %d urls' % (len(parsed_),))
-
-    # Check for duplicate urls
-    dups = ut.find_duplicate_items(parsed_['img_url'])
-    groups = parsed_.group('img_url')
-    # Rectiry expected duplicate info
-    d = {}
-    for key in parsed_.keys():
-        vals = [g[key] for g in groups]
-        assert all([ut.allsame(v) for v in vals])
-        d[key] = ut.take_column(vals, 0)
-    parsed2 = ut.ColumnLists(d)
-
-    toremove = []
-    for url, idxs in dups.items():
-        dupinfo = parsed_.take(idxs)
-        del dupinfo[['localid', 'new_fname', 'img_url']]
-        can_fix = True
-        for key, vals in dupinfo.asdict().items():
-            if not ut.allsame(vals):
-                print(dupinfo.ascsv())
-                print(('Duplicate items have different values'))
-                # May need to fix a case when annoations happen in WB
-                assert False, 'cant have this happen'
-                can_fix = False
-        if can_fix:
-            toremove += idxs[1:]
-    print('Removing %d duplicate urls' % (len(toremove),))
-    flags = ut.not_list(ut.index_to_boolmask(toremove))
-    parsed = parsed_.compress(flags)
-
-    if False:
-        # TRY TO FIGURE OUT WHY URLS ARE MISSING IN STEP 1
-        parsed1 = parsed
-        encounter_to_parsed1 = parsed1.group_items('encounter')
-        encounter_to_parsed2 = parsed2.group_items('encounter')
-
-        url_to_parsed1 = parsed1.group_items('img_url')
-        url_to_parsed2 = parsed2.group_items('img_url')
-
-        def set_overlap(set1, set2):
-            set1 = set(set1)
-            set2 = set(set2)
-            return ut.odict([
-                ('s1', len(set1)),
-                ('s2', len(set2)),
-                ('isect', len(set1.intersection(set2))),
-                ('union', len(set1.union(set2))),
-                ('s1 - s2', len(set1.difference(set2))),
-                ('s2 - s1', len(set2.difference(set1))),
-            ])
-        print('encounter overlap: ' + ut.repr3(set_overlap(encounter_to_parsed1, encounter_to_parsed2)))
-        print('url overlap: ' + ut.repr3(set_overlap(url_to_parsed1, url_to_parsed2)))
-
-        url1 = list(url_to_parsed1.keys())
-        url2 = list(url_to_parsed2.keys())
-        # remove common prefixes
-        from os.path import commonprefix, basename  # NOQA
-        cp1 = commonprefix(url1)
-        cp2 = commonprefix(url2)
-        #suffix1 = sorted([u[len(cp1):].lower() for u in url1])
-        #suffix2 = sorted([u[len(cp2):].lower() for u in url2])
-        suffix1 = sorted([u[len(cp1):] for u in url1])
-        suffix2 = sorted([u[len(cp2):] for u in url2])
-        print('suffix overlap: ' + ut.repr3(set_overlap(suffix1, suffix2)))
-        set1 = set(suffix1)
-        set2 = set(suffix2)
-        only1 = list(set1 - set1.intersection(set2))
-        only2 = list(set2 - set1.intersection(set2))
-
-        import numpy as np
-        for suf in ut.ProgIter(only2, bs=True):
-            dist = np.array(ut.edit_distance(suf, only1))
-            idx = ut.argsort(dist)[0:3]
-            if dist[idx][0] < 3:
-                close = ut.take(only1, idx)
-                print('---')
-                print('suf = %r' % (join(cp2, suf),))
-                print('close = %s' % (ut.repr3([join(cp1, c) for c in close]),))
-                print('---')
-                break
-
-    # Associate keywords with original images
-    #lower_urls = [x.lower() for x in parsed['img_url']]
-    url_to_idx = ut.make_index_lookup(parsed['img_url'])
-    parsed['keywords'] = [[] for _ in range(len(parsed))]
-    for url, keys in url_to_keys.items():
-        # hack because urls are note in the same format
-        url = url.replace('wildbook_data_dir', 'shepherd_data_dir')
-        url = url.lower()
-        if url in url_to_idx:
-            idx = url_to_idx[url]
-            parsed['keywords'][idx].extend(keys)
-    missing_from_step1
-    print('missing_from_step1 = %r' % (missing_from_step1,))
-    return parsed
-
-
-def parse_whaleshark_org_keywords():
-    from ibeis.scripts import getshark
-    url = 'http://www.whaleshark.org/getKeywordImages.jsp'
-    cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo')
-
-    def cached_json_request(url_):
-        import requests
-        cache_fpath = join(cache_dpath, 'req_' + ut.hashstr27(url_) + '.json')
-        if getshark._needs_redownload(cache_fpath, 60 * 60 * 24 * 30):
-            resp = requests.get(url_)
-            assert resp.status_code == 200
-            dict_ = resp.json()
-            ut.save_data(cache_fpath, dict_)
-        else:
-            dict_ = ut.load_data(cache_fpath)
-        return dict_
-
-    keywords = cached_json_request(url)['keywords']
-    key_list = ut.take_column(keywords, 'indexName')
-
-    keyed_images = {}
-    for key in ut.ProgIter(key_list, lbl='reading index', bs=True):
-        key_url = url + '?indexName={indexName}'.format(indexName=key)
-        keyed_images[key] = cached_json_request(key_url)['images']
-
-    url_to_keys = ut.ddict(list)
-    for key, images in keyed_images.items():
-        for imgdict in images:
-            url_to_keys[imgdict['url']].append(key)
-
-    parsed_info2 = ut.ddict(list)
-    for key, images in keyed_images.items():
-        for imgdict in images:
-            parsed_info2['img_url'].append(imgdict['url'])
-            parsed_info2['encounter'].append(imgdict['correspondingEncounterNumber'])
-            parsed_info2['keywords'].append([key])
-    parsed2_ = ut.ColumnLists(parsed_info2)
-
-    # Assert no unfixable duplicates exist
-    dups = ut.find_duplicate_items(parsed2_['img_url'])
-    for url, idxs in dups.items():
-        dupinfo = parsed2_.take(idxs)
-        del dupinfo[['img_url', 'keywords']]
-        for key, vals in dupinfo.asdict().items():
-            if not ut.allsame(vals):
-                print(dupinfo.ascsv())
-                print(('Duplicate items have different values'))
-                # May need to fix a case when annoations happen in WB
-                assert False, 'cant have this happen'
-
-    # Rectiry expected duplicate info
-    groups = parsed2_.group(parsed2_['img_url'])[1]
-    d = {}
-    d['keywords'] = [ut.unique(ut.flatten(g['keywords'])) for g in groups]
-    for key in parsed2_.keys():
-        if key == 'keywords':
-            continue
-        vals = [g[key] for g in groups]
-        assert all([ut.allsame(v) for v in vals])
-        d[key] = ut.take_column(vals, 0)
-    parsed2 = ut.ColumnLists(d)
-
-    return keywords, url_to_keys, parsed2
-
-
-def postprocess_filenames(parsed, download_dir):
-    from os.path import commonprefix, basename  # NOQA
-    print('Parsed %d images' % (len(parsed)))
-    # Postprocess
-    parsed['new_fpath'] = [join(download_dir, _fname)
-                                for _fname in parsed['new_fname']]
-    prefix = commonprefix(parsed['img_url'])
-    parsed['orig_fname'] = [url_[len(prefix):] for url_ in parsed['img_url']]
-
-    parsed['ext'] = [splitext(_fname)[-1] for _fname in parsed['new_fname']]
-
-    # Filter based on image type (keep only jpgs)
-    ext_flags = [ext_ in ['.jpg', '.jpeg'] for ext_ in parsed['ext']]
-
-    parsed = parsed.compress(ext_flags)
-    num_removed = sum(ut.not_list(ext_flags))
-    print('Removed %d images based on extensions' % (num_removed,))
-    return parsed
-
-
-def postprocess_tags(parsed):
-    # Filter to only images matching the appropriate tags
-    from ibeis.scripts import getshark
-    parsed['tags'] = getshark.parse_shark_fname_tags(parsed['orig_fname'])
-
-    tag_flags = ut.filterflags_general_tags(
-        parsed['tags'],
-        #has_any=['view-left'],
-        #none_match=['qual.*', 'view-top', 'part-.*', 'cropped'],
-    )
-    if not all(tag_flags):
-        print('Tags before choosing:' +
-              ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']))))
-        parsed = parsed.compress(tag_flags)
-        print('Tags after choosing:' +
-              ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']))))
-    num_removed = sum(ut.not_list(tag_flags))
-    print('Removed %d images based on tags' % (num_removed,))
-    return parsed
-
-
-def download_missing_images(parsed):
-    exist_flags = ut.lmap(exists, parsed['new_fpath'])
-    missing_flags = ut.not_list(exist_flags)
-    print('nExist = %r / %r' % (sum(exist_flags), len(exist_flags)))
-    print('nMissing = %r / %r' % (sum(missing_flags), len(exist_flags)))
-    if any(missing_flags):
-        missing = parsed.compress(missing_flags)
-        print('Downloading missing subset')
-        _iter = list(zip(missing['img_url'], missing['new_fpath']))
-        _prog = ut.ProgPartial(bs=True, freq=10)
-        for img_url, new_fpath in _prog(_iter, lbl='downloading sharks'):
-            try:
-                ut.download_url(img_url, new_fpath, verbose=False)
-            except ZeroDivisionError:
-                pass
+(print, rrr, profile) = ut.inject2(__name__, '[getshark]')
 
 
 def sync_whalesharks():
@@ -589,6 +298,346 @@ def sync_whalesharks():
                          dst_fpath_list=parsed['namedir_fpath'])
 
 
+def _needs_redownload(fpath, seconds_thresh):
+    if exists(fpath):
+        file_info = ut.get_file_info(fpath)
+        dt = ut.parse_timestamp(file_info['last_modified'], utc=True)
+        delta = dt - ut.utcnow_tz()
+        redownload = delta.total_seconds() > seconds_thresh
+    else:
+        redownload = True
+    return redownload
+
+
+def parse_whaleshark_org():
+    """
+    Read list of all iamges from wildbook
+
+    >>> from ibeis.scripts.getshark import *  # NOQA
+    """
+    from xml.dom.minidom import parseString
+    from ibeis.scripts import getshark
+
+    url = 'www.whaleshark.org/listImages.jsp'
+    number = None
+
+    cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo')
+    cache_fapth = join(cache_dpath, 'listImagesSharks.xml')
+
+    # redownload every 30 days or so
+    if getshark._needs_redownload(cache_fapth, 60 * 60 * 24 * 30):
+        XMLdata = ut.url_read_text(url)
+        ut.writeto(cache_fapth, XMLdata)
+    else:
+        XMLdata = ut.readfrom(cache_fapth)
+
+    # Parse attributes out of XML
+    dom = parseString(XMLdata.encode('utf8'))
+    if number:
+        maxCount = min(number, len(dom.getElementsByTagName('img')))
+    else:
+        maxCount = len(dom.getElementsByTagName('img'))
+    parsed_info = ut.ddict(list)
+    print('Reading XML information from %d images...' % maxCount)
+    shark_elements = dom.getElementsByTagName('shark')
+    _prog = ut.ProgPartial(bs=True, freq=10)
+    for shark in _prog(shark_elements, lbl='parsing shark elements'):
+        localCount = 0
+        for encounter in shark.getElementsByTagName('encounter'):
+            for img in encounter.getElementsByTagName('img'):
+                localCount += 1
+
+                img_url = img.getAttribute('href')
+                ext = splitext(img_url)[1].lower()
+                nameid = shark.getAttribute('number')
+
+                new_fname = '%s-%i%s' % (
+                    nameid, localCount, ext)
+
+                parsed_info['img_url'].append(img_url)
+                parsed_info['nameid'].append(nameid)
+                parsed_info['localid'].append(localCount)
+                # might be different due to prefix
+                parsed_info['new_fname'].append(new_fname)
+
+                parsed_info['encounter'].append(encounter.getAttribute('number'))
+
+                #print('Parsed %i / %i files.' % (len(parsed_info['orig_fname']), maxCount))
+                if number is not None and len(parsed_info['orig_fname']) == number:
+                    break
+
+    keywords, url_to_keys, parsed2 = getshark.parse_whaleshark_org_keywords()
+    print('Parsed %d keywords' % (len(keywords),))
+    print('Parsed %d urls from keywords' % (len(parsed2),))
+
+    parsed_ = ut.ColumnLists(parsed_info)
+    print('Parsed %d urls' % (len(parsed_),))
+
+    # Check and rectify for duplicate urls
+    unique_urls, idxs = parsed_.group_indicies('img_url')
+    toremove = []
+    for url, idxs in zip(unique_urls, idxs):
+        if len(idxs) == 1:
+            continue
+        dupinfo = parsed_.take(idxs)
+        del dupinfo[['localid', 'new_fname', 'img_url']]
+        can_fix = True
+        for key, vals in dupinfo.asdict().items():
+            if not ut.allsame(vals):
+                print(dupinfo.ascsv())
+                print(('Duplicate items have different values'))
+                # May need to fix a case when annoations happen in WB
+                assert False, 'cant have this happen'
+                can_fix = False
+        if can_fix:
+            toremove += idxs[1:]
+    print('Removing %d duplicate urls' % (len(toremove),))
+    flags = ut.not_list(ut.index_to_boolmask(toremove))
+    parsed1 = parsed_.compress(flags)
+
+    prefix = commonprefix(parsed1['img_url'])
+    parsed1['suffix'] = [url_[len(prefix):] for url_ in parsed1['img_url']]
+
+    # Apply keywords to existing images
+    suffix_to_idx = ut.make_index_lookup(parsed1['suffix'])
+    matching_idx = ut.dict_take(suffix_to_idx, parsed2['suffix'], None)
+    match_idx1 = ut.filter_Nones(matching_idx)
+    #matching1 = parsed1.take(match_idx1)
+    matching2 = parsed2.take(ut.where(matching_idx))
+    print('There are %d items in common' % (len(matching2),))
+    nonmatching2 = parsed2.take(ut.where(ut.not_list(matching_idx)))
+
+    # add in default values for parsed2
+    nonmatching2['nameid'] = [None] * len(nonmatching2)
+    nonmatching2['localid'] = [None] * len(nonmatching2)
+
+    # Merge keywords from matching parts in parsed2 into parsed1
+    parsed1['keywords'] = [[] for _ in range(len(parsed1))]
+    for idx1, keys in zip(match_idx1, matching2['keywords']):
+        parsed1['keywords'][idx1].extend(keys)
+
+    parsed = parsed1 + nonmatching2
+    print('Parsed %d total urls' % (len(parsed),))
+    return parsed
+
+    #if False:
+    #    # TRY TO FIGURE OUT WHY URLS ARE MISSING IN STEP 1
+    #    encounter_to_parsed1 = parsed1.group_items('encounter')
+    #    encounter_to_parsed2 = parsed2.group_items('encounter')
+
+    #    url_to_parsed1 = parsed1.group_items('img_url')
+    #    url_to_parsed2 = parsed2.group_items('img_url')
+
+    #    def set_overlap(set1, set2):
+    #        set1 = set(set1)
+    #        set2 = set(set2)
+    #        return ut.odict([
+    #            ('s1', len(set1)),
+    #            ('s2', len(set2)),
+    #            ('isect', len(set1.intersection(set2))),
+    #            ('union', len(set1.union(set2))),
+    #            ('s1 - s2', len(set1.difference(set2))),
+    #            ('s2 - s1', len(set2.difference(set1))),
+    #        ])
+    #    print('encounter overlap: ' + ut.repr3(set_overlap(encounter_to_parsed1, encounter_to_parsed2)))
+    #    print('url overlap: ' + ut.repr3(set_overlap(url_to_parsed1, url_to_parsed2)))
+
+    #    url1 = list(url_to_parsed1.keys())
+    #    url2 = list(url_to_parsed2.keys())
+    #    # remove common prefixes
+    #    from os.path import commonprefix, basename  # NOQA
+    #    cp1 = commonprefix(url1)
+    #    cp2 = commonprefix(url2)
+    #    #suffix1 = sorted([u[len(cp1):].lower() for u in url1])
+    #    #suffix2 = sorted([u[len(cp2):].lower() for u in url2])
+    #    suffix1 = sorted([u[len(cp1):] for u in url1])
+    #    suffix2 = sorted([u[len(cp2):] for u in url2])
+    #    print('suffix overlap: ' + ut.repr3(set_overlap(suffix1, suffix2)))
+    #    set1 = set(suffix1)
+    #    set2 = set(suffix2)
+    #    only1 = list(set1 - set1.intersection(set2))
+    #    only2 = list(set2 - set1.intersection(set2))
+
+    #    import numpy as np
+    #    for suf in ut.ProgIter(only2, bs=True):
+    #        dist = np.array(ut.edit_distance(suf, only1))
+    #        idx = ut.argsort(dist)[0:3]
+    #        if dist[idx][0] < 3:
+    #            close = ut.take(only1, idx)
+    #            print('---')
+    #            print('suf = %r' % (join(cp2, suf),))
+    #            print('close = %s' % (ut.repr3([join(cp1, c) for c in close]),))
+    #            print('---')
+    #            break
+
+    #    # Associate keywords with original images
+    #    #lower_urls = [x.lower() for x in parsed['img_url']]
+    #    url_to_idx = ut.make_index_lookup(parsed1['img_url'])
+    #    parsed1['keywords'] = [[] for _ in range(len(parsed1))]
+    #    for url, keys in url_to_keys.items():
+    #        # hack because urls are note in the same format
+    #        url = url.replace('wildbook_data_dir', 'shepherd_data_dir')
+    #        url = url.lower()
+    #        if url in url_to_idx:
+    #            idx = url_to_idx[url]
+    #            parsed1['keywords'][idx].extend(keys)
+
+
+def parse_whaleshark_org_keywords():
+    from ibeis.scripts import getshark
+    url = 'http://www.whaleshark.org/getKeywordImages.jsp'
+    cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo')
+
+    def cached_json_request(url_):
+        import requests
+        cache_fpath = join(cache_dpath, 'req_' + ut.hashstr27(url_) + '.json')
+        if getshark._needs_redownload(cache_fpath, 60 * 60 * 24 * 30):
+            resp = requests.get(url_)
+            assert resp.status_code == 200
+            dict_ = resp.json()
+            ut.save_data(cache_fpath, dict_)
+        else:
+            dict_ = ut.load_data(cache_fpath)
+        return dict_
+
+    keywords = cached_json_request(url)['keywords']
+    key_list = ut.take_column(keywords, 'indexName')
+
+    keyed_images = {}
+    for key in ut.ProgIter(key_list, lbl='reading index', bs=True):
+        key_url = url + '?indexName={indexName}'.format(indexName=key)
+        keyed_images[key] = cached_json_request(key_url)['images']
+
+    url_to_keys = ut.ddict(list)
+    for key, images in keyed_images.items():
+        for imgdict in images:
+            url_to_keys[imgdict['url']].append(key)
+
+    parsed_info2 = ut.ddict(list)
+    for key, images in keyed_images.items():
+        for imgdict in images:
+            parsed_info2['img_url'].append(imgdict['url'])
+            parsed_info2['encounter'].append(imgdict['correspondingEncounterNumber'])
+            parsed_info2['keywords'].append([key])
+    parsed2_ = ut.ColumnLists(parsed_info2)
+
+    # Assert no unfixable duplicates exist
+    dups = ut.find_duplicate_items(parsed2_['img_url'])
+    for url, idxs in dups.items():
+        dupinfo = parsed2_.take(idxs)
+        del dupinfo[['img_url', 'keywords']]
+        for key, vals in dupinfo.asdict().items():
+            if not ut.allsame(vals):
+                print(dupinfo.ascsv())
+                print(('Duplicate items have different values'))
+                # May need to fix a case when annoations happen in WB
+                assert False, 'cant have this happen'
+
+    # Rectiry expected duplicate info
+    groups = parsed2_.group(parsed2_['img_url'])[1]
+    d = {}
+    d['keywords'] = [ut.unique(ut.flatten(g['keywords'])) for g in groups]
+    for key in parsed2_.keys():
+        if key == 'keywords':
+            continue
+        vals = [g[key] for g in groups]
+        assert all([ut.allsame(v) for v in vals])
+        d[key] = ut.take_column(vals, 0)
+    parsed2 = ut.ColumnLists(d)
+
+    prefix = commonprefix(parsed2['img_url'])
+    parsed2['suffix'] = [url_[len(prefix):] for url_ in parsed2['img_url']]
+    parsed2['new_fname'] = [suffix.replace('/', '--') for suffix in parsed2['suffix']]
+    return keywords, url_to_keys, parsed2
+
+
+def postprocess_filenames(parsed, download_dir):
+    from os.path import commonprefix, basename  # NOQA
+    # Postprocess
+    parsed['new_fpath'] = [join(download_dir, _fname)
+                                for _fname in parsed['new_fname']]
+    prefix = commonprefix(parsed['img_url'])
+    parsed['orig_fname'] = [url_[len(prefix):] for url_ in parsed['img_url']]
+
+    parsed['ext'] = [splitext(_fname)[-1] for _fname in parsed['new_fname']]
+
+    # Filter based on image type (keep only jpgs)
+    ext_flags = [ext_ in ['.jpg', '.jpeg'] for ext_ in parsed['ext']]
+
+    parsed = parsed.compress(ext_flags)
+    num_removed = sum(ut.not_list(ext_flags))
+    print('Removed %d images based on extensions' % (num_removed,))
+    return parsed
+
+
+def postprocess_tags(parsed):
+    # Filter to only images matching the appropriate tags
+    from ibeis.scripts import getshark
+    parsed['tags'] = getshark.parse_shark_fname_tags(parsed['orig_fname'])
+    # add keywords into tags
+    for t, k in zip(parsed['tags'], parsed['keywords']):
+        t += k
+
+    # Map tags
+    tags_list = parsed['tags']
+    cleaned_tags = ut.clean_tags(
+        tags_list,
+        direct_map=[
+            ('c429b13e4d232129014d251c74c60011', 'stranding'),
+            ('', None),
+        ],
+        regex_aug=[
+            ('other_injury', 'injur-other'),
+            ('truncation', 'injur-trunc'),
+            ('nicks', 'injur-nicks'),
+            ('scar', 'injur-scar'),
+            ('bite', 'injur-bite'),
+        ],
+    )
+    cleaned_tags = ut.clean_tags(
+        cleaned_tags,
+        regex_aug=[
+            ('injur-', 'injured'),
+        ],
+    )
+    parsed['tags'] = cleaned_tags
+
+    tag_flags = ut.filterflags_general_tags(
+        parsed['tags'],
+        #has_any=['view-left'],
+        #none_match=['qual.*', 'view-top', 'part-.*', 'cropped'],
+    )
+    if all(tag_flags):
+        print('Tags histogram:' +
+              ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']), ordered=True)))
+    else:
+        print('Tags before choosing:' +
+              ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']))))
+        parsed = parsed.compress(tag_flags)
+        print('Tags after choosing:' +
+              ut.repr3(ut.dict_hist(ut.flatten(parsed['tags']))))
+    num_removed = sum(ut.not_list(tag_flags))
+    print('Removed %d images based on tags' % (num_removed,))
+    return parsed
+
+
+def download_missing_images(parsed):
+    exist_flags = ut.lmap(exists, parsed['new_fpath'])
+    missing_flags = ut.not_list(exist_flags)
+    print('nExist = %r / %r' % (sum(exist_flags), len(exist_flags)))
+    print('nMissing = %r / %r' % (sum(missing_flags), len(exist_flags)))
+    if any(missing_flags):
+        missing = parsed.compress(missing_flags)
+        print('Downloading missing subset')
+        _iter = list(zip(missing['img_url'], missing['new_fpath']))
+        _prog = ut.ProgPartial(bs=True, freq=10)
+        for img_url, new_fpath in _prog(_iter, lbl='downloading sharks'):
+            try:
+                ut.download_url(img_url, new_fpath, verbose=False)
+            except ZeroDivisionError:
+                pass
+
+
 def purge_ensure_one_annot_per_images(ibs):
     """
     pip install Pipe
@@ -610,8 +659,6 @@ def purge_ensure_one_annot_per_images(ibs):
     empty_images = ut.where(np.array(images.num_annotations) == 0)
     print('empty_images = %r' % (empty_images,))
     #list(map(basename, map(dirname, images.uris_original)))
-
-    from os.path import basename, dirname
 
     def VecPipe(func):
         import pipe
