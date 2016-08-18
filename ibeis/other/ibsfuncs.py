@@ -5970,12 +5970,12 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
     ]
 
     special_zone_map = {
-        'GGR,3,A' : None,
-        'GGR,8,A' : None,
-        'GGR,10,A' : None,
-        'GGR,13,A' : None,
+        'GGR,3,A' : 1,
+        'GGR,8,A' : 2,
+        'GGR,10,A' : 1,
+        'GGR,13,A' : 1,
         'GGR,14,A' : 1,
-        'GGR,15,A' : None,
+        'GGR,15,A' : 1,
         'GGR,19,A' : 2,
         'GGR,23,A' : 1,
         'GGR,24,A' : 1,
@@ -5991,8 +5991,8 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
         'GGR,45,A' : 2,
         'GGR,46,A' : 1,
         'GGR,62,B' : 1,
-        'GGR,86,A' : None,
-        'GGR,96,A' : None,
+        'GGR,86,A' : 2,
+        'GGR,96,A' : 1,
         'GGR,97,B' : 2,
         'GGR,108,A' : 1,
         'GGR,118,C' : 6,
