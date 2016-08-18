@@ -568,18 +568,21 @@ def execute_commands(tpl_rman, ibeis_rman):
                 gitrepo.create_remote(wildme_remote, wildme_url)
 
             if 'origin' in remotes:
-                origin = remotes['origin']
-                origin_user = origin['username']
-                if origin_user != wildme_user:
-                    if origin_user not in remotes:
-                        # first add a remote that is the original origin
-                        origin_url = origin['url']
-                        print('  * Create remote %r: %r' % (origin_user, origin_url,))
-                        gitrepo.create_remote(origin_user, origin_url)
-                    # change origin to use wildme url
-                    gitorigin = gitrepo.remote('origin')
-                    print('  * Change origin url to %r' % (wildme_url,))
-                    gitorigin.set_url(wildme_url)
+                try:
+                    origin = remotes['origin']
+                    origin_user = origin['username']
+                    if origin_user != wildme_user:
+                        if origin_user not in remotes:
+                            # first add a remote that is the original origin
+                            origin_url = origin['url']
+                            print('  * Create remote %r: %r' % (origin_user, origin_url,))
+                            gitrepo.create_remote(origin_user, origin_url)
+                        # change origin to use wildme url
+                        gitorigin = gitrepo.remote('origin')
+                        print('  * Change origin url to %r' % (wildme_url,))
+                        gitorigin.set_url(wildme_url)
+                except:
+                    print('\tWARNING: COULD NOT MIGRATE REPO = %r' % (repo, ))
 
     # Commands on global git repos
     if GET_ARGFLAG('--status'):
