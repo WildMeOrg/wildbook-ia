@@ -43,19 +43,32 @@ def shark_net(dry=False):
     model = classify_shark.WhaleSharkInjuryModel(
         name='injur-shark',
         dataset_dpath=dataset.dataset_dpath,
-        # ibs.get_neuralnet_dir(),
+        training_dpath=ibs.get_neuralnet_dir(),
+        #
         output_dims=2,
         data_shape=config['dim_size'] + (3,),
         batch_size=64,
-        weight_decay=.01,
-        learning_rate=.0001,
     )
     model.initialize_architecture()
     model.print_layer_info()
 
+    if False:
+        state_fpath = model.get_model_state_fpath(dpath=model.trained_arch_dpath)
+        model.load_model_state(fpath=state_fpath)
+        X_test, y_test = dataset.subset('test')
+        y_pred = model.predict(X_test)
+        test_outptuts = model._predict(X_test)
+        y_pred = test_outptuts['predictions']
+        report = sklearn.metrics.classification_report(
+            y_true=y_test, y_pred=y_pred,
+        )
+        print(report)
+
     if dry or ut.get_argflag('--dry'):
         return model, dataset
 
+    model.learn_state.weight_decay = .01
+    model.learn_state.learning_rate = .0001
     model.train_config.update(**dict(
         era_size=3,
         max_epochs=1200,
