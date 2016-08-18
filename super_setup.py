@@ -552,18 +552,31 @@ def execute_commands(tpl_rman, ibeis_rman):
 
     print('ibeis_rman = %r' % (ibeis_rman,))
 
-    if GET_ARGFLAG('--move-wildme'):
-
+    wildme_ssh_flags = GET_ARGFLAG('--move-wildme') or GET_ARGFLAG('--move-wildme-ssh')
+    wildme_https_flags = GET_ARGFLAG('--move-wildme-https') or GET_ARGFLAG('--move-wildme-http')
+    if wildme_ssh_flags or wildme_https_flags:
         wildme_user = 'WildbookOrg'
         wildme_remote = 'wildme'
         for repo in ibeis_rman.repos:
             gitrepo = repo.as_gitpython()
-            wildme_url = repo._new_repo_url(user=wildme_user, fmt='ssh')
+            fmt = 'ssh' if wildme_ssh_flags else 'https'
+            wildme_url = repo._new_repo_url(user=wildme_user, fmt=fmt)
             remotes = repo.remotes
             print('Checking %s for move to wildme' % (repo,))
 
+            incorrect_version = False
+            if wildme_remote in remotes:
+                # Check correct version (SSH or HTTPS)
+                wildme_remote_ = remotes[wildme_remote]
+                wildme_url_ = wildme_remote_['url']
+                is_ssh = '@' in wildme_url_
+                incorrect_version = (is_ssh and wildme_https_flags) or (not is_ssh and wildme_ssh_flags)
+                if incorrect_version:
+                    print('  * Deleting remote %r: %r' % (wildme_remote, wildme_url_))
+                    gitrepo.delete_remote(wildme_remote)
+
             # Ensure there is a remote under the wildme name
-            if wildme_remote not in remotes:
+            if wildme_remote not in remotes or incorrect_version:
                 print('  * Create remote %r: %r' % (wildme_remote, wildme_url))
                 gitrepo.create_remote(wildme_remote, wildme_url)
 
@@ -571,7 +584,7 @@ def execute_commands(tpl_rman, ibeis_rman):
                 try:
                     origin = remotes['origin']
                     origin_user = origin['username']
-                    if origin_user != wildme_user:
+                    if origin_user != wildme_user or incorrect_version:
                         if origin_user not in remotes:
                             # first add a remote that is the original origin
                             origin_url = origin['url']
