@@ -45,7 +45,8 @@ def sync_whalesharks():
     # Remove corrupted or ill-formatted images
     print('Checking for corrupted images')
     import vtool as vt
-    info = info.compress(vt.filterflags_valid_images(info['new_fpath']))
+    isvalid = vt.filterflags_valid_images(info['new_fpath'])
+    info = info.compress(isvalid)
 
     # Rectify duplicate information
     # Stride of 1 is what IA uses internally

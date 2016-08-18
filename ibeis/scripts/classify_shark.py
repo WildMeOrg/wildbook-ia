@@ -737,6 +737,8 @@ def shark_svm():
     ds.target = ds.labels
     ds.target_names = ds.getprop('target_names')
     ds.target_labels = ds.enc.transform(ds.target_names)
+    ds.ibs = ds.getprop('ibs')
+    ds.config = ds.getprop('config')
 
     problem = classify_shark.ClfProblem(ds)
     problem.print_support_info()
