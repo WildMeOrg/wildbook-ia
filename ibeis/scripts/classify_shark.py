@@ -733,7 +733,10 @@ def shark_svm():
     # FIXME; make ibeis_cnn dataset work here too
     #annots = ds.getprop('annots')
     ds.enc = ds.getprop('enc')
+    ds.aids = ds.getprop('annots').aids
     ds.target = ds.labels
+    ds.target_names = ds.getprop('target_names')
+    ds.target_labels = ds.enc.transform(ds.target_names)
 
     problem = classify_shark.ClfProblem(ds)
     problem.print_support_info()
@@ -818,7 +821,8 @@ def shark_svm():
     ibs = ds.ibs
     config = ds.config
     from ibeis_cnn import draw_results
-    inter = draw_results.make_InteractClasses(ibs, config, df_chunks, nCols=len(ds.target_labels))
+    inter = draw_results.make_InteractClasses(ibs, config, df_chunks,
+                                              nCols=len(ds.target_labels))
     inter.start()
 
 if __name__ == '__main__':
