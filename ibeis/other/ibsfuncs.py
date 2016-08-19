@@ -5971,7 +5971,7 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
 
     special_zone_map = {
         'GGR,3,A' : 1,
-        'GGR,8,A' : 2,
+        'GGR,8,A' : 3,
         'GGR,10,A' : 1,
         'GGR,13,A' : 1,
         'GGR,14,A' : 1,
@@ -5991,7 +5991,7 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
         'GGR,45,A' : 2,
         'GGR,46,A' : 1,
         'GGR,62,B' : 1,
-        'GGR,86,A' : 2,
+        'GGR,86,A' : 3,
         'GGR,96,A' : 1,
         'GGR,97,B' : 2,
         'GGR,108,A' : 1,
