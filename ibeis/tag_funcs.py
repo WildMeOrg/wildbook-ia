@@ -101,7 +101,7 @@ ANNOTMATCH_PROPS_OLD_SET = set([_.lower() for _ in OLD_ANNOTMATCH_PROPS])
 #ANNOTMATCH_PROPS_STANDARD_SET = set([_.lower() for _ in ANNOTMATCH_PROPS_STANDARD])
 
 
-def consolodate_annotmatch_tags(case_tags):
+def consolodate_annotmatch_tags(old_tags):
     #return case_tags
     remove_tags = [
         'hard',
@@ -151,7 +151,7 @@ def consolodate_annotmatch_tags(case_tags):
     def cap_tags(tags):
         return [t[0].upper() + t[1:] for t in tags]
 
-    filtered_tags = list(map(filter_tags, case_tags))
+    filtered_tags = list(map(filter_tags, old_tags))
     mapped_tags = list(map(map_tags, filtered_tags))
     unique_tags = list(map(ut.unique_ordered,  mapped_tags))
     new_tags = list(map(cap_tags, unique_tags))
@@ -850,11 +850,29 @@ def append_annot_case_tags(ibs, aid_list, tag_list):
 
     TODO: remove
     """
-    tags_list = [tag if isinstance(tag, list) else [tag] for tag in tag_list]
+    # Ensure each item is a list
+    #tags_list = [tag if isinstance(tag, list) else [tag] for tag in tag_list]
+    if isinstance(tag_list, six.string_types):
+        # Apply single tag to everybody
+        tag_list = [tag_list] * len(aid_list)
+    tags_list = [ut.ensure_iterable(tag) for tag in tag_list]
     text_list = ibs.get_annot_tag_text(aid_list)
     orig_tags_list = [[] if note is None else _parse_note(note) for note in text_list]
-    new_tags_list = [t1 + t2 for t1, t2 in zip(tags_list, orig_tags_list)]
-    new_text_list = [';'.join(sorted(list(set(tags)))) for tags in new_tags_list]
+    new_tags_list = [ut.unique(t1 + t2) for t1, t2 in zip(tags_list, orig_tags_list)]
+    new_text_list = [';'.join(tags) for tags in new_tags_list]
+    ibs.set_annot_tag_text(aid_list, new_text_list)
+
+
+@register_ibs_method
+def remove_annot_case_tags(ibs, aid_list, tag_list):
+    if isinstance(tag_list, six.string_types):
+        # Apply single tag to everybody
+        tag_list = [tag_list] * len(aid_list)
+    tags_list = [ut.ensure_iterable(tag) for tag in tag_list]
+    text_list = ibs.get_annot_tag_text(aid_list)
+    orig_tags_list = [[] if note is None else _parse_note(note) for note in text_list]
+    new_tags_list = [ut.setdiff(t2, t1) for t1, t2 in zip(tags_list, orig_tags_list)]
+    new_text_list = [';'.join(tags) for tags in new_tags_list]
     ibs.set_annot_tag_text(aid_list, new_text_list)
 
 

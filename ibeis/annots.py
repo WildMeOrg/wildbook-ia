@@ -220,6 +220,12 @@ class Annots(_ibeis_object.ObjectList1D):
         from ibeis import core_annots
         return [core_annots.make_hog_block_image(hog) for hog in self.hog_hog]
 
+    def append_tags(self, tags):
+        self._ibs.append_annot_case_tags(self._rowids, tags)
+
+    def remove_tags(self, tags):
+        self._ibs.remove_annot_case_tags(self._rowids, tags)
+
 
 class _AnnotGroupPropInjector(BASE_TYPE):
     def __init__(metaself, name, bases, dct):
@@ -279,7 +285,7 @@ class AnnotGroups(ut.NiceRepr):
         return self._ibs.images(self.gids, config)
 
     @property
-    def case_tags(self):
+    def match_tags(self):
         """ returns pairwise tags within the annotation group """
         ams_list = self._ibs.get_unflat_am_rowids(self.aids)
         tags = self._ibs.unflat_map(self._ibs.get_annotmatch_case_tags, ams_list)

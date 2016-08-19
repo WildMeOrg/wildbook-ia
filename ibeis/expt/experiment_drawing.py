@@ -436,8 +436,8 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
         all_tags = reduce(combinetags, [gt_problem_tags, gf_problem_tags,
                                         other_problem_tags])
     if not ut.get_argflag('--fulltag'):
-        all_tags = [tag_funcs.consolodate_annotmatch_tags(case_tags)
-                    for case_tags in all_tags]
+        all_tags = [tag_funcs.consolodate_annotmatch_tags(tags)
+                    for tags in all_tags]
     # Get tags that match the filter
     if f is None:
         f = ['']

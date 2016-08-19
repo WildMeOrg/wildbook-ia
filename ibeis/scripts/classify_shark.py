@@ -357,7 +357,7 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
             ('nicks', 'injur-nicks'),
             ('scar', 'injur-scar'),
             ('bite', 'injur-bite'),
-            ('pose:novel', None),
+            (['primary', 'secondary', 'pose:novel'], None),
         ]
         alias_map = ut.build_alias_map(regex_map, tag_vocab)
         unmapped = list(set(tag_vocab) - set(alias_map.keys()))
@@ -383,6 +383,9 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     elif target_type == 'multiclass1':
         regex_map = [
             ('injur-trunc', 'injur-trunc'),
+            ('injur-scar', 'injur-scar'),
+            ('injur-bite', 'injur-scar'),
+            ('injur-nicks', 'injur-other'),
             ('healthy', 'healthy'),
             ('injur-.*', 'injur-other'),
         ]
@@ -723,8 +726,8 @@ def shark_svm():
     pd.set_option("display.max_rows", 20)
     pt.qt4ensure()
 
-    target_type = 'binary'
-    #target_type = 'multiclass1'
+    #target_type = 'binary'
+    target_type = 'multiclass1'
     #target_type = 'multiclass2'
     #dataset = classify_shark.get_shark_dataset(target_type)
 

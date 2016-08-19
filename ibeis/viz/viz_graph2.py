@@ -1547,8 +1547,8 @@ def ggr_random_name_splits():
     pop = len(grouped_annots)
     pername_list = ut.lmap(len, grouped_annots)
     groups = ibeis.annots.AnnotGroups(grouped_annots, ibs)
-    case_tags = [ut.unique(ut.flatten(t)) for t in groups.case_tags]
-    tag_case_hist = ut.dict_hist(ut.flatten(case_tags))
+    match_tags = [ut.unique(ut.flatten(t)) for t in groups.match_tags]
+    tag_case_hist = ut.dict_hist(ut.flatten(match_tags))
     print('name_pop = %r' % (pop,))
     print('Annots per Multiton Name' + ut.repr3(ut.get_stats(pername_list, use_median=True)))
     print('Name Tag Hist ' + ut.repr3(tag_case_hist))
@@ -1587,7 +1587,7 @@ def ggr_random_name_splits():
 
     sample_groups = ibeis.annots.AnnotGroups(annot_sample, ibs)
 
-    flat_tags = [ut.unique(ut.flatten(t)) for t in sample_groups.case_tags]
+    flat_tags = [ut.unique(ut.flatten(t)) for t in sample_groups.match_tags]
 
     print('Using Split and Photobomb')
     is_positive = ['photobomb' in t or 'splitcase' in t for t in flat_tags]

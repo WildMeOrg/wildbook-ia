@@ -227,14 +227,14 @@ def dans_splits(ibs):
     annot_groups = ibs._annot_groups(grouped_aids)
 
     split_props = {'splitcase', 'photobomb'}
-    needs_tag = [len(split_props.intersection(ut.flatten(tags))) == 0 for tags in annot_groups.case_tags]
+    needs_tag = [len(split_props.intersection(ut.flatten(tags))) == 0 for tags in annot_groups.match_tags]
     num_needs_tag = sum(needs_tag)
     num_had_split = len(needs_tag) - num_needs_tag
     print('num_had_split = %r' % (num_had_split,))
     print('num_needs_tag = %r' % (num_needs_tag,))
 
     #all_annot_groups = ibs._annot_groups(ibs.group_annots_by_name(ibs.get_valid_aids())[0])
-    #all_has_split = [len(split_props.intersection(ut.flatten(tags))) > 0 for tags in all_annot_groups.case_tags]
+    #all_has_split = [len(split_props.intersection(ut.flatten(tags))) > 0 for tags in all_annot_groups.match_tags]
     #num_nondan = sum(all_has_split) - num_had_split
     #print('num_nondan = %r' % (num_nondan,))
 
@@ -280,7 +280,7 @@ def fix_splits_interaction(ibs):
     """
     split_props = {'splitcase', 'photobomb'}
     all_annot_groups = ibs._annot_groups(ibs.group_annots_by_name(ibs.get_valid_aids())[0])
-    all_has_split = [len(split_props.intersection(ut.flatten(tags))) > 0 for tags in all_annot_groups.case_tags]
+    all_has_split = [len(split_props.intersection(ut.flatten(tags))) > 0 for tags in all_annot_groups.match_tags]
     tosplit_annots = ut.compress(all_annot_groups.annots_list, all_has_split)
 
     tosplit_annots = ut.take(tosplit_annots, ut.argsort(ut.lmap(len, tosplit_annots)))[::-1]

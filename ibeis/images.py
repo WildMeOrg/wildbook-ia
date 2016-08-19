@@ -99,6 +99,24 @@ class Images(_ibeis_object.ObjectList1D):
     def _annot_groups(self):
         return self._ibs._annot_groups(self.annots)
 
+    def remove_from_imageset(self, imageset_text):
+        ibs = self._ibs
+        if isinstance(imageset_text, six.string_types):
+            gsid = ibs.get_imageset_imgsetids_from_text(imageset_text)
+            gsids = [gsid] * len(self)
+        else:
+            gsids = ibs.get_imageset_imgsetids_from_text(imageset_text)
+        ibs.unrelate_images_and_imagesets(self.gids, gsids)
+
+    def append_to_imageset(self, imageset_text):
+        ibs = self._ibs
+        if isinstance(imageset_text, six.string_types):
+            gsid = ibs.get_imageset_imgsetids_from_text(imageset_text)
+            gsids = [gsid] * len(self)
+        else:
+            gsids = ibs.get_imageset_imgsetids_from_text(imageset_text)
+        ibs.add_image_relationship(self.gids, gsids)
+
 
 class ImageSetAttrInjector(BASE_TYPE):
     """
