@@ -173,7 +173,7 @@ def view():
     try:
         try:
             vals = dbinfo_.estimate_ggr_count(ibs)
-            nsight1, nsight2, resight, lp_index, lp_error = vals
+            nsight1, nsight2, resight, pl_index, pl_error = vals
             # pl_index = 'Undefined - Zero recaptured (k = 0)'
         except KeyError:
             c1 = bar_value_list4[-2]
