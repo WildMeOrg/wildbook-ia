@@ -37,7 +37,17 @@ def view():
         return date_list
 
     ibs = current_app.ibs
-    aid_list = ibs.filter_aids_count()
+
+    filter_kw = {
+        'multiple': None,
+        'minqual': 'good',
+        'is_known': True,
+        'min_pername': 1,
+        'view': ['right'],
+    }
+
+    aid_list = ibs.get_valid_aids()
+    aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
     gid_list = ibs.get_annot_gids(aid_list)
     nid_list = ibs.get_annot_name_rowids(aid_list)
     date_list = _date_list(gid_list)
@@ -153,20 +163,24 @@ def view():
     nid_list = ibs.get_valid_nids()
     contrib_list = ibs.get_valid_contrib_rowids()
     # nid_list = ibs.get_valid_nids()
-    aid_list_count = ibs.filter_aids_count()
-    # gid_list_count = list(set(ibs.get_annot_gids(aid_list_count)))
+    aid_list_count = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+    gid_list_count = list(set(ibs.get_annot_gids(aid_list_count)))
     nid_list_count_dup = ibs.get_annot_name_rowids(aid_list_count)
     nid_list_count = list(set(nid_list_count_dup))
 
     # Calculate the Petersen-Lincoln index form the last two days
+    from ibeis.other import dbinfo as dbinfo_
     try:
-        from ibeis.other import dbinfo as dbinfo_
-        c1 = bar_value_list4[-2]
-        c2 = bar_value_list4[-1]
-        c3 = bar_value_list6[-1]
-        pl_index, pl_error = dbinfo_.sight_resight_count(c1, c2, c3)
+        try:
+            vals = dbinfo_.estimate_ggr_count(ibs)
+            nsight1, nsight2, resight, lp_index, lp_error = vals
+            # pl_index = 'Undefined - Zero recaptured (k = 0)'
+        except KeyError:
+            c1 = bar_value_list4[-2]
+            c2 = bar_value_list4[-1]
+            c3 = bar_value_list6[-1]
+            pl_index, pl_error = dbinfo_.sight_resight_count(c1, c2, c3)
     except IndexError:
-        # pl_index = 'Undefined - Zero recaptured (k = 0)'
         pl_index = 0
         pl_error = 0
 
@@ -196,9 +210,6 @@ def view():
     ]
 
     valid_aids = ibs.get_valid_aids()
-    valid_gids = ibs.get_valid_gids()
-    valid_aids_ = (valid_aids)
-    valid_gids_ = (valid_gids)
     used_gids = list(set( ibs.get_annot_gids(valid_aids) ))
     used_contrib_tags = list(set( ibs.get_image_contributor_tag(used_gids) ))
 
@@ -283,15 +294,15 @@ def view():
                          contrib_list=contrib_list,
                          contrib_list_str=','.join(map(str, contrib_list)),
                          num_contribs=len(contrib_list),
-                         gid_list_count=valid_gids_,
-                         gid_list_count_str=','.join(map(str, valid_gids_)),
-                         num_gids_count=len(valid_gids_),
+                         gid_list_count=gid_list_count,
+                         gid_list_count_str=','.join(map(str, gid_list_count)),
+                         num_gids_count=len(gid_list_count),
                          aid_list=aid_list,
                          aid_list_str=','.join(map(str, aid_list)),
                          num_aids=len(aid_list),
-                         aid_list_count=valid_aids_,
-                         aid_list_count_str=','.join(map(str, valid_aids_)),
-                         num_aids_count=len(valid_aids_),
+                         aid_list_count=aid_list_count,
+                         aid_list_count_str=','.join(map(str, aid_list_count)),
+                         num_aids_count=len(aid_list_count),
                          nid_list=nid_list,
                          nid_list_str=','.join(map(str, nid_list)),
                          num_nids=len(nid_list),

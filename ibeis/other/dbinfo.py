@@ -714,7 +714,7 @@ def estimate_ggr_count(ibs):
 
     print('\nUsing Both:')
     filter_kw['multiple'] = None
-    estimate_twoday_count(ibs, day1, day2, filter_kw)
+    return estimate_twoday_count(ibs, day1, day2, filter_kw)
 
 
 def estimate_twoday_count(ibs, day1, day2, filter_kw):
@@ -786,6 +786,7 @@ def estimate_twoday_count(ibs, day1, day2, filter_kw):
     print('%d names on day 2' % (nsight2,))
     print('resight = %r' % (resight,))
     print('lp_index = %r ± %r' % (lp_index, lp_error))
+    return nsight1, nsight2, resight, lp_index, lp_error
 
 
 def draw_twoday_count(ibs, visit_info_list_):
