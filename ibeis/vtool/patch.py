@@ -350,23 +350,24 @@ def gaussian_patch(shape=(7, 7), sigma=1.0):
         sigma (float):
 
     CommandLine:
-        python -m vtool.patch --test-gaussian_patch2
+        python -m vtool.patch --test-gaussian_patch --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.patch import *  # NOQA
-        >>> # build test data
-        >>> shape = (7, 7)
-        >>> sigma = 1.0
-        >>> # execute function
+        >>> #shape = (7, 7)
+        >>> shape = (24, 24)
+        >>> sigma = None  # 1.0
         >>> gausspatch = gaussian_patch(shape, sigma)
-        >>> assert gausspatch.sum() == 1.0
-
-    Ignore:
-        import plottool as pt
-        pt.imshow(gausspatch * 255)
-        pt.update()
+        >>> sum_ = gausspatch.sum()
+        >>> ut.assert_almost_eq(sum_, 1.0)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(vt.norm01(gausspatch) * 255)
+        >>> ut.show_if_requested()
     """
+    if sigma is None:
+        sigma = 0.3 * ((min(shape) - 1) * 0.5 - 1) + 0.8
     if isinstance(sigma, (float)):
         sigma1 = sigma2 = sigma
     else:

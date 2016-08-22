@@ -44,11 +44,57 @@ def safe_vstack(tup, default_shape=(0,), default_dtype=np.float):
 
 
 def safe_cat(tup, axis=0, default_shape=(0,), default_dtype=np.float):
-    """ stacks a tuple even if it is empty """
-    try:
-        return np.concatenate(tup, axis=axis)
-    except ValueError:
-        return np.empty(default_shape, dtype=default_dtype)
+    """
+    stacks a tuple even if it is empty
+    Also deals with numpy bug where cat fails if an element in sequence is empty
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import vtool as vt
+        >>> # test1
+        >>> tup = []
+        >>> ut.assert_eq(vt.safe_cat(tup, axis=0).shape, (0,))
+        >>> # test2
+        >>> tup = (np.array([[1, 2, 3]]), np.array([[]]))
+        >>> s = vt.safe_cat(tup, axis=0)
+        >>> print(ut.hz_str('s = ', ut.repr2(s),))
+        >>> ut.assert_eq(s.shape, (1, 3))
+        >>> # test3
+        >>> tup = (np.array([[1, 2, 3]]), np.array([[3, 4, 5]]))
+        >>> s = vt.safe_cat(tup, axis=1)
+        >>> print(ut.hz_str('s = ', ut.repr2(s),))
+        >>> ut.assert_eq(s.shape, (1, 6))
+        >>> # test3
+        >>> tup = (np.array(1), np.array(2), np.array(3))
+        >>> s = vt.safe_cat(tup, axis=1)
+        >>> print(ut.hz_str('s = ', ut.repr2(s),))
+        >>> ut.assert_eq(s.shape, (1, 6))
+    """
+    if tup is None or len(tup) == 0:
+        stack = np.empty(default_shape, dtype=default_dtype)
+    else:
+        try:
+            stack = np.concatenate(tup, axis=axis)
+        except ValueError as ex1:
+            try:
+                # Ensure everything is at least a 1d array
+                tup_ = [np.atleast_1d(np.asarray(a)) for a in tup]
+                # remove empty parts
+                tup_ = [a for a in tup_ if a.size > 0]
+                stack = np.concatenate(tup_, axis=axis)
+            except ValueError:
+                # if axis == 0:
+                #     stack = np.hstack(tup)
+                # elif axis == 1:
+                #     stack = np.vstack(tup)
+                # elif axis == 3:
+                #     stack = np.dstack(tup)
+                # else:
+                raise ex1
+    return stack
+    # try:
+    #     return np.concatenate(tup, axis=axis)
+    # except ValueError:
 
 
 def median_abs_dev(arr_list, **kwargs):
@@ -2398,6 +2444,51 @@ def ensure_column_shape(arr, num_cols):
 #        arr = np.empty(default_shape, dtype=dtype)
 #    else:
 #        arr_ = np.asarray(arr, dtype=dtype)
+
+
+def make_video2(images, outdir):
+    n = str(int(np.ceil(np.log10(len(images)))))
+    fmt = 'frame_%0' + n + 'd.png'
+    ut.ensuredir(outdir)
+    for count, img in enumerate(images):
+        fname = join(outdir, fmt % (count))
+        vt.imwrite(fname, img)
+
+def make_video(images, outvid=None, fps=5, size=None,
+               is_color=True, format='XVID'):
+    """
+    Create a video from a list of images.
+
+    References:
+        http://www.xavierdupre.fr/blog/2016-03-30_nojs.html
+        http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
+
+    @param      outvid      output video
+    @param      images      list of images to use in the video
+    @param      fps         frame per second
+    @param      size        size of each frame
+    @param      is_color    color
+    @param      format      see http://www.fourcc.org/codecs.php
+
+    The function relies on http://opencv-python-tutroals.readthedocs.org/en/latest/.
+    By default, the video will have the size of the first image.
+    It will resize every image to this size before adding them to the video.
+    """
+    # format = 'MJPG'
+    # format = 'FMP4'
+    import cv2
+    fourcc = cv2.VideoWriter_fourcc(*str(format))
+    vid = None
+    for img in images:
+        if vid is None:
+            if size is None:
+                size = img.shape[1], img.shape[0]
+            vid = cv2.VideoWriter(outvid, fourcc, float(fps), size, is_color)
+        if size[0] != img.shape[1] and size[1] != img.shape[0]:
+            img = cv2.resize(img, size)
+        vid.write(img)
+    vid.release()
+    return vid
 
 
 if __name__ == '__main__':
