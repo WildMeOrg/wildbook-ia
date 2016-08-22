@@ -74,7 +74,7 @@ def shark_net(dry=False):
         max_epochs=1200,
         rate_decay=.8,
     ))
-    model.train_config['monitor'] = True
+    model.monitor_config['monitor'] = True
 
     #model.build_backprop_func()
     #model.build_forward_func()
@@ -136,7 +136,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         )
         InputBundle          = bundles['InputBundle']
         ConvBundle           = bundles['ConvBundle']
-        FullyConnectedBundle = bundles['FullyConnectedBundle']
+        DenseBundle = bundles['DenseBundle']
         SoftmaxBundle        = bundles['SoftmaxBundle']
 
         network_layers_def = [
@@ -156,8 +156,8 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             ConvBundle(num_filters=256),
 
             # Fully connected layers
-            FullyConnectedBundle(num_units=128),
-            FullyConnectedBundle(num_units=128),
+            DenseBundle(num_units=128),
+            DenseBundle(num_units=128),
             SoftmaxBundle(num_units=model.output_dims)
         ]
         network_layers = abstract_models.evaluate_layer_list(

@@ -93,7 +93,7 @@ def old_test_single_annot_distinctiveness_params(ibs, aid):
         for key, val in keyval_iter
     }
 
-    def constrain_config(cfg):
+    def consmonitor_config(cfg):
         """ encode what makes a configuration feasible """
         if cfg['cov_blur_on'] is False:
             cfg['cov_blur_ksize'] = None
@@ -110,7 +110,7 @@ def old_test_single_annot_distinctiveness_params(ibs, aid):
     print('Varied Dict: ')
     print(ut.dict_str(varied_dict))
 
-    cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict, constrain_config)
+    cfgdict_list, cfglbl_list = ut.make_constrained_cfg_and_lbl_list(varied_dict, consmonitor_config)
 
     # Get groundtruthish distinctivness map
     # for objective function
