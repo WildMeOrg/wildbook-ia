@@ -2447,12 +2447,15 @@ def ensure_column_shape(arr, num_cols):
 
 
 def make_video2(images, outdir):
+    import vtool as vt
+    from os.path import join
     n = str(int(np.ceil(np.log10(len(images)))))
     fmt = 'frame_%0' + n + 'd.png'
     ut.ensuredir(outdir)
     for count, img in enumerate(images):
         fname = join(outdir, fmt % (count))
         vt.imwrite(fname, img)
+
 
 def make_video(images, outvid=None, fps=5, size=None,
                is_color=True, format='XVID'):
