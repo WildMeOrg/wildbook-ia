@@ -69,12 +69,12 @@ def shark_net(dry=False):
 
     model.learn_state.weight_decay = .01
     model.learn_state.learning_rate = .0001
-    model.train_config.update(**dict(
+    model.hyperparams.update(**dict(
         era_size=3,
         max_epochs=1200,
         rate_decay=.8,
-        monitor=True,
     ))
+    model.train_config['monitor'] = True
 
     #model.build_backprop_func()
     #model.build_forward_func()
@@ -85,7 +85,7 @@ def shark_net(dry=False):
 
     X_learn, y_learn = dataset.subset('learn')
     X_valid, y_valid = dataset.subset('valid')
-    #model.ensure_training_state(X_learn, y_learn)
+    #model.ensure_data_params(X_learn, y_learn)
     model.fit(X_learn, y_learn, X_valid=X_valid, y_valid=y_valid)
 
 

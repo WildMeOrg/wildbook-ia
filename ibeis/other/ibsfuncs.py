@@ -461,6 +461,19 @@ def assert_lblannot_rowids_are_type(ibs, lblannot_rowid_list,
 
 
 @register_ibs_method
+def check_for_unregistered_images(ibs):
+    images = ibs.images()
+    # Check if any images in the image directory are unregistered
+    gpath_disk = set(ut.ls(ibs.imgdir))
+    gpath_registered = set(images.paths)
+    overlaps = ut.set_overlaps(gpath_disk, gpath_registered, 'ondisk', 'reg')
+    print('overlaps' + ut.repr3(overlaps))
+    # gpath_unregistered = gpath_disk - gpath_registered
+    # ut.remove_file_list(gpath_unregistered)
+    return overlaps
+
+
+@register_ibs_method
 def check_image_consistency(ibs, gid_list=None):
     r"""
     Args:
