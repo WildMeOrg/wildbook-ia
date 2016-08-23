@@ -202,7 +202,7 @@ def learn_annotscore_normalizer(qreq_, learnkw={}):
                                               part_attrs)
     _learnkw = {'monotonize': True}
     _learnkw.update(learnkw)
-    # timestamp = ut.get_printable_timestamp()
+    # timestamp = ut.get_timestamp()
     encoder = vt.ScoreNormalizer(**_learnkw)
     encoder.fit(scores, labels, attrs=attrs)
     encoder.cfgstr = 'annotscore'
@@ -353,7 +353,7 @@ def learn_featscore_normalizer(qreq_, datakw={}, learnkw={}):
         'qreq_cfg': qreq_.get_full_cfgstr(),
         'qreq_regen_info': getattr(qreq_, '_regen_info', {}),
     }
-    # 'timestamp': ut.get_printable_timestamp(),
+    # 'timestamp': ut.get_timestamp(),
 
     scorecfg_safe = scorecfg
     scorecfg_safe = re.sub('[' + re.escape('()= ') + ']', '', scorecfg_safe)

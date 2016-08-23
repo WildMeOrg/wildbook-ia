@@ -703,6 +703,44 @@ class ClfSingleResult(object):
         print(report)
 
 
+def get_model_state(clf):
+    model_attr_names = [
+        a for a in dir(clf)
+        if a.endswith('_') and not a.startswith('__')
+    ]
+    model_state = {a: getattr(clf, a)
+                   for a in model_attr_names}
+    return model_state
+
+
+def set_model_state(clf, model_state):
+    for a, val in model_state.items():
+        setattr(clf, val)
+
+    #svc_attrs = [
+    #    '_dual_coef_',
+    #    '_intercept_',
+    #    'class_weight_',
+    #    'classes_',
+    #    'coef_',
+    #    'dual_coef_',
+    #    'fit_status_',
+    #    'intercept_',
+    #    'n_support_',
+    #    'probA_',
+    #    'probB_',
+    #    'shape_fit_',
+    #    'support_',
+    #    'support_vectors_',
+    #]
+    #clf.classes_
+    #clf.class_weight
+    #clf.class_weight_
+    #clf.coef_
+    #clf.coef0
+    pass
+
+
 def shark_svm():
     r"""
     References:
@@ -752,7 +790,19 @@ def shark_svm():
     train_idx = ds._split_idxs['train']
     test_idx = ds._split_idxs['test']
 
-    clf = problem.fit_new_classifier(train_idx)
+    from os.path import join
+    model_dpath = join(ds.dataset_dpath, 'svms')
+    model_fpath = join(model_dpath, target_type + '_svc.cPkl')
+    if ut.checkpath(model_fpath):
+        clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
+                              decision_function_shape='ovr')
+        model_state = ut.load_data(model_fpath)
+        set_model_state(clf, model_state)
+    else:
+        clf = problem.fit_new_classifier(train_idx)
+        model_params = get_model_state(clf)
+        ut.save_data(model_fpath, model_params)
+
     result = problem.test_classifier(clf, test_idx)
     result_list.append(result)
 
