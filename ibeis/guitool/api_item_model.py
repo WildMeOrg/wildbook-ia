@@ -165,7 +165,8 @@ class APIItemModel(API_MODEL_BASE):
         model.headers = headers  # save the headers
         model.ider_filters = None
         model.num_rows_loaded = 0
-        model.num_rows_total = len(model.level_index_list)
+        model.num_rows_total = None
+        #len(model.level_index_list)
         #model.lazy_updater = None
         if headers is not None:
             model._update_headers(**headers)
@@ -284,8 +285,9 @@ class APIItemModel(API_MODEL_BASE):
         model.col_display_role_func_dict = headers.get('col_display_role_func_dict', None)
 
         model.num_rows_loaded = 0
-        model.num_cols_loaded = 0
+        #model.num_cols_loaded = 0
         model.num_rows_total = None
+        model.lazy_rows = True
 
         # calls model._update_rows()
         model._set_sort(col_sort_index, col_sort_reverse, rebuild_structure=True)
@@ -353,12 +355,8 @@ class APIItemModel(API_MODEL_BASE):
                     values = id_list
                 reverse = model.col_sort_reverse
 
-                #ut.embed()
                 # <NUMPY MULTIARRAY SORT>
-                #import utool
-                #with utool.embed_on_exception_context:
                 if True:
-                    #print('values = %r' % (values,))
                     if values is None:
                         print("SORTING VALUES IS NONE. VERY WEIRD")
                     if type_ is float:
@@ -368,22 +366,24 @@ class APIItemModel(API_MODEL_BASE):
                     sortx = vt.argsort_records([values, id_list], reverse=reverse)
                     # </NUMPY MULTIARRAY SORT>
                     nodes = ut.take(children, sortx)
-                    #sorted_pairs = sorted(zip(values, id_list, children), reverse=reverse)
-                    #nodes = [child for (value, id_, child) in sorted_pairs]
                     level = model.col_level_list[sort_index]
-                    #print("row_indices sorted")
                     if level == 0:
                         model.root_node.set_children(nodes)
                     # end sort
             if ut.USE_ASSERT:
                 assert nodes is not None, 'no indices'
             model.level_index_list = nodes
-            #if VERBOSE:
-            #    print('[APIItemModel] lazy_update_rows emmiting _rows_updated')
-            # EMIT THE NUMERR OF ROWS AND THE NAME OF FOR THE VIEW TO DISPLAY
-            model.num_rows_loaded = 0
-            model.num_cols_loaded = 0
+
+            # Book keeping for lazy loading rows
             model.num_rows_total = len(model.level_index_list)
+            #model.num_cols_total = len(model.col_name_list)
+            model.num_cols_loaded = 0
+
+            if model.lazy_rows:
+                model.num_rows_loaded = 0
+            else:
+                model.num_rows_loaded = model.num_rows_total
+            # emit the numerr of rows and the name of for the view to display
             model._rows_updated.emit(model.name, model.num_rows_total)
             if VERBOSE:
                 print('[APIItemModel] finished _update_rows')

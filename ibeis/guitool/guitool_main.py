@@ -1,13 +1,8 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
-# Python
-#import atexit
 import sys
 from guitool.__PYQT__ import QtCore
-# from guitool.__PYQT__ import QtGui
 from guitool.__PYQT__ import QtWidgets  # NOQA
-from guitool.__PYQT__.QtCore import pyqtRemoveInputHook
-import utool
-#print, print_, printDBG, rrr, profile = utool.inject(__name__, '[guitool]', DEBUG=False)
 import utool as ut
 ut.noinject(__name__, '[guitool.main]', DEBUG=False)
 
@@ -108,23 +103,24 @@ def qtapp_loop_nonblocking(qwin=None, **kwargs):
     #from IPython.lib.guisupport import start_event_loop_qt4
     #qapp = QtCore.QCoreApplication.instance()
     ##qapp.exec_()
-    #print('[utool.dbg] Starting ipython qt4 hook')
+    #print('[ut.dbg] Starting ipython qt4 hook')
     #enable_qt4()
     #start_event_loop_qt4(qapp)
 
 
 def remove_pyqt_input_hook():
-    pyqtRemoveInputHook()
+    QtCore.pyqtRemoveInputHook()
 
 
-def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420, init_signals=True, **kwargs):
+def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420,
+               init_signals=True, **kwargs):
     r"""
     Args:
         qwin (None): (default = None)
         ipy (bool): set to True if running with IPython (default = False)
         enable_activate_qwin (bool): (default = True)
         frequency (int): frequency to ping python interpreter (default = 420)
-        init_signals (bool): set to False if you are want to handle terminal signals yourself (default = True)
+        init_signals (bool): if False, handle terminal signals yourself (default = True)
 
     CommandLine:
         python -m guitool.guitool_main --test-qtapp_loop
@@ -182,7 +178,7 @@ def ping_python_interpreter(frequency=420):  # 4200):
 
 #@atexit.register
 def exit_application():
-    if utool.NOT_QUIET:
+    if ut.NOT_QUIET:
         print('[guitool] exiting application')
     QtWidgets.qApp.quit()
 
