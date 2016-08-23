@@ -346,7 +346,8 @@ class QueryResultsWidget(gt.APIItemWidget):
         #selected_qtindex_list = view.selectedIndexes()
         selected_qtindex_list = qres_wgt.selectedRows()
 
-        if len(selected_qtindex_list) == 1:
+        #if len(selected_qtindex_list) == 1:
+        for qtindex in selected_qtindex_list:
             print('event = %r ' % (event,))
             print('event.key() = %r ' % (event.key(),))
             qtindex = selected_qtindex_list[0]
@@ -405,8 +406,8 @@ class QueryResultsWidget(gt.APIItemWidget):
             model.layoutChanged.emit()
             print('emited data changed')
             #model.select()
-        else:
-            print('[key] Multiple %d selection' % (len(selected_qtindex_list),))
+        #else:
+        #    print('[key] Multiple %d selection' % (len(selected_qtindex_list),))
 
     @gt.slot_(QtCore.QModelIndex, QtCore.QPoint)
     def on_contextMenuRequested(qres_wgt, qtindex, qpoint):
