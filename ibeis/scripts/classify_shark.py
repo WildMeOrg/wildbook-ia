@@ -189,7 +189,6 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         >>> augment.show_augmented_patches(Xb, Xb_, yb, yb_, data_per_label=1)
         >>> ut.show_if_requested()
         """
-        print("AUGMENT")
         from ibeis_cnn import augment
         rng = np.random
         affperterb_ranges = dict(
