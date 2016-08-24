@@ -47,7 +47,7 @@ def shark_net(dry=False):
         #
         output_dims=2,
         data_shape=config['dim_size'] + (3,),
-        batch_size=32,
+        batch_size=64,
     )
     model.initialize_architecture()
     model.print_layer_info()
@@ -134,10 +134,10 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             filter_size=(3, 3), stride=(1, 1),
             pool_size=(2, 2), pool_stride=(2, 2)
         )
-        InputBundle          = bundles['InputBundle']
-        ConvBundle           = bundles['ConvBundle']
-        DenseBundle = bundles['DenseBundle']
-        SoftmaxBundle        = bundles['SoftmaxBundle']
+        InputBundle   = bundles['InputBundle']
+        ConvBundle    = bundles['ConvBundle']
+        DenseBundle   = bundles['DenseBundle']
+        SoftmaxBundle = bundles['SoftmaxBundle']
 
         network_layers_def = [
             InputBundle(shape=model.input_shape, noise=False),
@@ -156,8 +156,8 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             ConvBundle(num_filters=256),
 
             # Fully connected layers
-            DenseBundle(num_units=128),
-            DenseBundle(num_units=128),
+            DenseBundle(num_units=128, dropout=True),
+            DenseBundle(num_units=128, dropout=True),
             SoftmaxBundle(num_units=model.output_dims)
         ]
         network_layers = abstract_models.evaluate_layer_list(
