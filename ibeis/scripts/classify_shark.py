@@ -201,7 +201,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             enable_flip=True,
         )
         Xb_, yb_ = augment.augment_affine(
-            Xb, yb, rng=rng, inplace=False, data_per_label=1,
+            Xb, yb, rng=rng, inplace=True, data_per_label=1,
             affperterb_ranges=affperterb_ranges,
             aug_prop=.5,
         )
