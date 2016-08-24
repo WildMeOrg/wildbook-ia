@@ -877,6 +877,20 @@ def remove_annot_case_tags(ibs, aid_list, tag_list):
 
 
 @register_ibs_method
+def overwrite_annot_case_tags(ibs, aid_list, tag_list):
+    """
+    Completely replaces annotation tags.
+    BE VERY CAREFUL WITH THIS FUNCTION
+    """
+    assert all([ut.isiterable(tag) for tag in tag_list])
+    #text_list = ibs.get_annot_tag_text(aid_list)
+    #orig_tags_list = [[] if note is None else _parse_note(note) for note in text_list]
+    new_tags_list = tag_list
+    new_text_list = [';'.join(tags) for tags in new_tags_list]
+    ibs.set_annot_tag_text(aid_list, new_text_list)
+
+
+@register_ibs_method
 def remove_all_annot_case_tags(ibs, aid_list):
     ibs.set_annot_tag_text(aid_list, [''] * len(aid_list))
 

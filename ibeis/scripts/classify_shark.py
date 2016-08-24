@@ -47,7 +47,7 @@ def shark_net(dry=False):
         #
         output_dims=2,
         data_shape=config['dim_size'] + (3,),
-        batch_size=64,
+        batch_size=32,
     )
     model.initialize_architecture()
     model.print_layer_info()
@@ -68,11 +68,11 @@ def shark_net(dry=False):
         return model, dataset
 
     model.learn_state.weight_decay = .01
-    model.learn_state.learning_rate = .0001
+    model.learn_state.learning_rate = .00001
     model.hyperparams.update(**dict(
-        era_size=3,
+        era_size=5,
         max_epochs=1200,
-        rate_decay=.8,
+        rate_decay=.9,
     ))
     model.monitor_config['monitor'] = True
 
@@ -327,6 +327,11 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
 
 
 def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
+    """
+    >>> from ibeis.scripts.classify_shark import *  # NOQA
+    >>> target_type = 'multiclass3'
+    >>> data_type = 'hog'
+    """
     import ibeis
     if ibs is None:
         ibs = ibeis.opendb('WS_ALL')
@@ -339,38 +344,36 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     all_annots = ibs.annots(config=config)
 
     TARGET_TYPE = 'binary'
-    #TARGET_TYPE = 'multiclass1'
+    #TARGET_TYPE = 'multiclass3'
     if target_type is None:
         target_type = TARGET_TYPE
 
-    orig_case_tags = all_annots.case_tags
-    tag_vocab = ut.flat_unique(*orig_case_tags)
-    print('Original tags')
-    print(ut.repr3(ut.dict_hist(ut.flatten(orig_case_tags))))
+    #def cleanup_tags(orig_case_tags, tag_vocab):
+    #    regex_map = [
+    #        ('injur-trunc', 'injur-trunc'),
+    #        ('trunc', 'injur-trunc'),
+    #        ('healthy', 'healthy'),
+    #        (['injur-unknown', 'other_injury'], 'injur-other'),
+    #        ('nicks', 'injur-nicks'),
+    #        ('scar', 'injur-scar'),
+    #        ('bite', 'injur-bite'),
+    #        (['primary', 'secondary', 'pose:novel'], None),
+    #    ]
+    #    alias_map = ut.build_alias_map(regex_map, tag_vocab)
+    #    unmapped = list(set(tag_vocab) - set(alias_map.keys()))
+    #    case_tags = ut.alias_tags(orig_case_tags, alias_map)
+    #    print('unmapped = %r' % (unmapped,))
+    #    return case_tags
+    #case_tags = cleanup_tags(orig_case_tags, tag_vocab)
+    #print('Cleaned tags')
+    #print(ut.repr3(ut.dict_hist(ut.flatten(case_tags))))
 
-    def cleanup_tags(orig_case_tags, tag_vocab):
-        regex_map = [
-            ('injur-trunc', 'injur-trunc'),
-            ('trunc', 'injur-trunc'),
-            ('healthy', 'healthy'),
-            (['injur-unknown', 'other_injury'], 'injur-other'),
-            ('nicks', 'injur-nicks'),
-            ('scar', 'injur-scar'),
-            ('bite', 'injur-bite'),
-            (['primary', 'secondary', 'pose:novel'], None),
-        ]
-        alias_map = ut.build_alias_map(regex_map, tag_vocab)
-        unmapped = list(set(tag_vocab) - set(alias_map.keys()))
-        case_tags = ut.alias_tags(orig_case_tags, alias_map)
-        print('unmapped = %r' % (unmapped,))
-        return case_tags
+    from ibeis.scripts import getshark
+    category_tags = getshark.get_injur_categories(all_annots)
+    print('Base Category Tags tags')
+    print(ut.repr3(ut.dict_hist(ut.flatten(category_tags))))
 
-    case_tags = cleanup_tags(orig_case_tags, tag_vocab)
-
-    print('Cleaned tags')
-    print(ut.repr3(ut.dict_hist(ut.flatten(case_tags))))
-
-    ntags_list = np.array(ut.lmap(len, case_tags))
+    ntags_list = np.array(ut.lmap(len, category_tags))
     is_no_tag = ntags_list == 0
     is_single_tag = ntags_list == 1
     is_multi_tag = ntags_list > 1
@@ -380,16 +383,17 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
             ('injur-.*', 'injured'),
             ('healthy', 'healthy'),
         ]
-    elif target_type == 'multiclass1':
+    elif target_type == 'multiclass3':
         regex_map = [
             ('injur-trunc', 'injur-trunc'),
+            ('injur-nicks', 'injur-trunc'),
             ('injur-scar', 'injur-scar'),
             ('injur-bite', 'injur-scar'),
-            ('injur-nicks', 'injur-other'),
+            ('injur-gill', 'injur-scar'),
+            ('injur-other', None),
             ('healthy', 'healthy'),
-            ('injur-.*', 'injur-other'),
         ]
-    elif target_type == 'multiclass2':
+    elif target_type == 'multiclassX':
         regex_map = [
             ('injur-trunc', 'injur-trunc'),
             ('healthy', 'healthy'),
@@ -397,18 +401,32 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
         ]
     else:
         raise ValueError('Unknown target_type=%r' % (target_type,))
-    tag_vocab = ut.flat_unique(*case_tags)
+
+    tag_vocab = ut.flat_unique(*category_tags)
     alias_map = ut.build_alias_map(regex_map, tag_vocab)
     unmapped = list(set(tag_vocab) - set(alias_map.keys()))
     print('unmapped = %r' % (unmapped,))
-    case_tags2 = ut.alias_tags(case_tags, alias_map)
+    category_tags2 = ut.alias_tags(category_tags, alias_map)
 
-    ntags_list = np.array(ut.lmap(len, case_tags2))
+    ntags_list = np.array(ut.lmap(len, category_tags2))
     is_no_tag = ntags_list == 0
     is_single_tag = ntags_list == 1
     is_multi_tag = ntags_list > 1
 
-    print('Multi Tags: %s' % (ut.repr2(ut.compress(case_tags2, is_multi_tag), nl=1),))
+    print('Cleaned tags')
+    hist = ut.tag_hist(category_tags2)
+    print(ut.repr3(hist))
+
+    # Get tag co-occurrence
+    print('Co-Occurrence Freq')
+    co_occur = ut.tag_coocurrence(category_tags2)
+    print(ut.repr3(co_occur))
+
+    print('Co-Occurrence Percent')
+    co_occur_percent = ut.odict([(keys,  [100 * val / hist[k] for k in keys]) for
+                                 keys, val in co_occur.items()])
+    print(ut.repr3(co_occur_percent, precision=2, nl=1))
+
     multi_annots = all_annots.compress(is_multi_tag)  # NOQA
     #ibs.set_image_imagesettext(multi_annots.gids, ['MultiTaged'] * is_multi_tag.sum())
 
@@ -416,7 +434,7 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     print('can\'t use %r annots due to inconsistent labels' % (is_multi_tag.sum(),))
     print('will use %r annots with consistent labels' % (is_single_tag.sum(),))
 
-    annot_tags = ut.compress(case_tags2, is_single_tag)
+    annot_tags = ut.compress(category_tags2, is_single_tag)
     annots = all_annots.compress(is_single_tag)
     annot_tag_hist = ut.dict_hist(ut.flatten(annot_tags))
     print('Final Annot Tags')
@@ -714,31 +732,26 @@ def get_model_state(clf):
 
 
 def set_model_state(clf, model_state):
-    for a, val in model_state.items():
-        setattr(clf, val)
-
-    #svc_attrs = [
-    #    '_dual_coef_',
-    #    '_intercept_',
-    #    'class_weight_',
-    #    'classes_',
-    #    'coef_',
-    #    'dual_coef_',
-    #    'fit_status_',
-    #    'intercept_',
-    #    'n_support_',
-    #    'probA_',
-    #    'probB_',
-    #    'shape_fit_',
-    #    'support_',
-    #    'support_vectors_',
-    #]
-    #clf.classes_
-    #clf.class_weight
-    #clf.class_weight_
-    #clf.coef_
-    #clf.coef0
-    pass
+    attr_names = sorted(model_state.keys())
+    attr_names1 = [
+        'dual_coef_',
+    ]
+    attr_names2 = [
+        'coef_',
+    ]
+    attr_names3 = attr_names1 + attr_names2
+    attr_namesA = ut.isect(attr_names1, attr_names)
+    attr_namesB = ut.setdiff(attr_names, attr_names3)
+    attr_namesC = ut.isect(attr_names2, attr_names)
+    attr_names_ = attr_namesA + attr_namesB + attr_namesC
+    for a in attr_names_:
+        val = model_state[a]
+        print('a = %r' % (a,))
+        try:
+            setattr(clf, a, val)
+        except AttributeError:
+            val2 = getattr(clf, a)
+            assert np.all(val == val2)
 
 
 def shark_svm():
@@ -759,14 +772,9 @@ def shark_svm():
     """
     from ibeis.scripts import classify_shark
     import sklearn.metrics
-    import plottool as pt
-    import pandas as pd
-    pd.set_option("display.max_rows", 20)
-    pt.qt4ensure()
 
     #target_type = 'binary'
-    target_type = 'multiclass1'
-    #target_type = 'multiclass2'
+    target_type = 'multiclass3'
     #dataset = classify_shark.get_shark_dataset(target_type)
 
     ds = classify_shark.get_shark_dataset(target_type, 'hog')
@@ -784,9 +792,7 @@ def shark_svm():
     problem = classify_shark.ClfProblem(ds)
     problem.print_support_info()
 
-    result_list = []
     #train_idx, test_idx = problem.stratified_2sample_idxs()
-
     train_idx = ds._split_idxs['train']
     test_idx = ds._split_idxs['test']
 
@@ -796,15 +802,11 @@ def shark_svm():
     if ut.checkpath(model_fpath):
         clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
                               decision_function_shape='ovr')
-        model_state = ut.load_data(model_fpath)
-        set_model_state(clf, model_state)
+        clf.__dict__.update(**ut.load_data(model_fpath))
     else:
         clf = problem.fit_new_classifier(train_idx)
-        model_params = get_model_state(clf)
-        ut.save_data(model_fpath, model_params)
-
-    result = problem.test_classifier(clf, test_idx)
-    result_list.append(result)
+        ut.ensuredir(model_dpath)
+        ut.save_data(model_fpath, clf.__dict__)
 
     #n_folds = 10
     #for train_idx, test_idx in problem.gen_crossval_idxs(n_folds):
@@ -812,11 +814,45 @@ def shark_svm():
     #    result = problem.test_classifier(clf, test_idx)
     #    result_list.append(result)
 
-    for result in result_list:
-        result.compile_results()
+    if True:
+        result_list = []
+        result = problem.test_classifier(clf, test_idx)
+        result_list.append(result)
 
-    for result in result_list:
-        result.print_report()
+        for result in result_list:
+            result.compile_results()
+
+        for result in result_list:
+            result.print_report()
+
+        inspect_results(ds, result_list)
+    else:
+        result_list = []
+        result = problem.test_classifier(clf, train_idx)
+        result_list.append(result)
+        for result in result_list:
+            result.compile_results()
+        for result in result_list:
+            result.print_report()
+        inspect_results(ds, result_list)
+    if False:
+        result_list = []
+        # View support vectors
+        support_idxs = clf.support_
+        result = problem.test_classifier(clf, support_idxs)
+        result_list.append(result)
+        for result in result_list:
+            result.compile_results()
+        for result in result_list:
+            result.print_report()
+        inspect_results(ds, result_list)
+
+
+def inspect_results(ds, result_list):
+    import pandas as pd
+    import plottool as pt
+    pd.set_option("display.max_rows", 20)
+    pt.qt4ensure()
 
     isect_sets = [set(s1).intersection(set(s2)) for s1, s2 in ut.combinations([
         result.df.index for result in result_list], 2)]
@@ -842,42 +878,98 @@ def shark_svm():
     def snapped_slice(size, frac, n):
         start = int(size * frac - np.ceil(n / 2))
         stop  = int(size * frac + np.floor(n / 2))
+        buf = 0
         if stop >= size:
-            buf = (stop - size + 1)
-            start -= buf
-            stop -= buf
-        if start < 0:
+            buf = (size - stop - 1)
+        elif start < 0:
             buf = 0 - start
-            stop += buf
-            start += buf
+        stop += buf
+        start += buf
         assert stop < size, 'out of bounds'
         sl = slice(start, stop)
         return sl
 
+    def target_partition(target):
+        if target is None:
+            df_chunk = df
+        else:
+            df_chunk = df[df['target'] == target]
+        df_chunk = df_chunk.take(df_chunk['hardness'].argsort())
+        return df_chunk
+
     def grab_subchunk(frac, n, target):
-        df_chunk = df.take(df['hardness'].argsort())
-        if target is not None:
-            df_chunk = df_chunk[df_chunk['target'] == target]
+        df_chunk = target_partition(target)
         sl = snapped_slice(len(df_chunk), frac, n)
+        print('sl = %r' % (sl,))
         idx = df_chunk.index[sl]
         df_chunk = df_chunk.loc[idx]
-        place_name = 'hardness=%.2f' % (frac,)
+        min_frac = sl.start / len(df_chunk)
+        max_frac = sl.stop / len(df_chunk)
+        min_frac = sl.start
+        max_frac = sl.stop
+        place_name = 'hardness=%.2f (%d-%d)' % (frac, min_frac, max_frac)
         if target is not None:
             df_chunk.nice = place_name + ' ' + ds.target_names[target]
         else:
             df_chunk.nice = place_name
         return df_chunk
 
-    n = 4
-    fracs = [0.0, .7, .8, .9, 1.0]
-    df_chunks = [grab_subchunk(frac, n, target)
-                 for frac in fracs for target in ds.target_labels]
+    def grab_subchunk2(df_chunk, frac, n):
+        sl = snapped_slice(len(df_chunk), frac, n)
+        print('sl = %r' % (sl,))
+        idx = df_chunk.index[sl]
+        df_chunk = df_chunk.loc[idx]
+        min_frac = sl.start / len(df_chunk)
+        max_frac = sl.stop / len(df_chunk)
+        min_frac = sl.start
+        max_frac = sl.stop
+        place_name = 'hardness=%.2f (%d-%d)' % (frac, min_frac, max_frac)
+        if target is not None:
+            df_chunk.nice = place_name + ' ' + ds.target_names[target]
+        else:
+            df_chunk.nice = place_name
+        return df_chunk
+
+    # Look at hardest train cases
+
+    # Look at hardest test cases
+    if True:
+        #n = 4
+        fracs = [0.0, .7, .8, .9, 1.0]
+        view_targets = ds.target_labels
+        n = 8 // len(view_targets)
+    else:
+        view_targets = [ut.listfind(ds.target_names.tolist(), 'healthy')]
+        #fracs = [0.0, .7, .8, .9, 1.0]
+        fracs = [0.45, .5, .55, .6, .62]
+        fracs = [0.72, .82, .84, .88]
+        fracs = [0.73, .83, .835, .89]
+        fracs = [0.73, .83, .835, .89]
+        fracs = [0.735, .833, .837, .934]
+        fracs = [0.2, .65, .75, .85, .95]
+        fracs = [0.3, .4, .67, .77, .87, .92]
+        n = 8 // len(view_targets)
+
+    if False:
+        view_targets = [ut.listfind(ds.target_names.tolist(), 'healthy')]
+        target_dfs = [target_partition(target) for target in view_targets]
+        critical_points = [np.where(_df['failed'])[0][0] for _df in target_dfs]
+        critical_fracs = [_pt / len(_df) for _pt, _df in zip(critical_points, target_dfs)]
+        n = 8 * 5
+        frac = critical_fracs[0]
+        frac += .1
+        _df = target_dfs[0]
+        df_part = grab_subchunk2(_df, frac, n)
+        df_chunks = [df_part.iloc[x] for x in ut.ichunks(range(len(df_part)), 8)]
+    else:
+        df_chunks = [grab_subchunk(frac, n, target)
+                     for frac in fracs for target in view_targets]
 
     ibs = ds.ibs
     config = ds.config
     from ibeis_cnn import draw_results
     inter = draw_results.make_InteractClasses(ibs, config, df_chunks,
-                                              nCols=len(ds.target_labels))
+                                              nCols=len(view_targets))
     inter.start()
 
 if __name__ == '__main__':
