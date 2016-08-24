@@ -2487,10 +2487,30 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
 
 def filterflags_valid_images(gpath_list, valid_formats=None,
                              invalid_formats=None, verbose=True):
+    r"""
+    Args:
+        gpath_list (list):
+        valid_formats (None): (default = None)
+        invalid_formats (None): (default = None)
+        verbose (bool):  verbosity flag(default = True)
+
+    Returns:
+        list: isvalid_flags
+
+    CommandLine:
+        python -m vtool.image filterflags_valid_images --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> gpath_list = [ut.grab_test_imgpath('carl.jpg'),
+        >>>               ut.grab_test_imgpath('lena.png')]
+        >>> flags = filterflags_valid_images(gpath_list)
+    """
     from PIL import Image
     from os.path import splitext
     import operator
-    import itertools
+    import itertools as it
     img_format_alias_dict = {
         'JPG': 'JPEG',
         'TIF': 'TIFF',
@@ -2512,33 +2532,43 @@ def filterflags_valid_images(gpath_list, valid_formats=None,
         ext_format = get_image_format_from_extension(gpath)
         if verbose:
             if ext_format != pil_foramt:
-                msg = ('gpath has %r extension but is encoded as %r' % (ext_format, pil_foramt))
+                msg = ('gpath has %r extension but is encoded as %r' %
+                       (ext_format, pil_foramt))
                 print(msg)
         return ext_format != pil_foramt
 
-    pil_foramt_list = list(map(get_image_format_from_pil, gpath_list))
-    ext_format_list = list(map(get_image_format_from_extension, gpath_list))
-    isvalid_list = list(itertools.starmap(operator.eq,
-                                          zip(ext_format_list, pil_foramt_list)))
+    pil_foramt_list = [
+        get_image_format_from_pil(gpath)
+        for gpath in ut.ProgIter(gpath_list, lbl='check image pil-format',
+                                 enabled=verbose)
+    ]
+    ext_format_list = [
+        get_image_format_from_extension(gpath)
+        for gpath in ut.ProgIter(gpath_list, lbl='check image ext-format',
+                                 enabled=verbose)
+    ]
+    agree_flags = list(it.starmap(operator.eq, zip(ext_format_list,
+                                                    pil_foramt_list)))
+    isvalid_flags = agree_flags
     if valid_formats is not None:
-        isvalid_list = ut.and_lists(
-            isvalid_list,
+        isvalid_flags = ut.and_lists(
+            isvalid_flags,
             [format_ in valid_formats for format_ in ext_format_list],
             [format_ in valid_formats for format_ in pil_foramt_list],
         )
     if invalid_formats is not None:
-        isvalid_list = ut.and_lists(
-            isvalid_list,
+        isvalid_flags = ut.and_lists(
+            isvalid_flags,
             [format_ not in invalid_formats for format_ in ext_format_list],
             [format_ not in invalid_formats for format_ in pil_foramt_list],
         )
     if verbose:
         fmt_list  = list(zip(ext_format_list, pil_foramt_list))
-        invalid_format_list = ut.compress(fmt_list, ut.not_list(isvalid_list))
+        invalid_format_list = ut.compress(fmt_list, ut.not_list(isvalid_flags))
         invalid_format_hist = ut.dict_hist(invalid_format_list)
-        print('The following (ext,pil): count formats were marked as invalid')
+        print('The following {(ext,pil): count} formats were marked as invalid')
         print(ut.dict_str(invalid_format_hist))
-    return isvalid_list
+    return isvalid_flags
 
 
 if __name__ == '__main__':
