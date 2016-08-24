@@ -167,6 +167,25 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         model.output_layer = output_layer
         return output_layer
 
+    #def loss_function():
+    #    pass
+
+    def augment(self, Xb, yb=None):
+        from ibeis_cnn import augment
+        rng = np.random
+        affperterb_ranges = dict(
+            zoom_range=(1.0, 1.3),
+            max_tx=2,
+            max_ty=2,
+            max_shear=ut.TAU / 32,
+            max_theta=ut.TAU,
+            enable_stretch=True,
+            enable_flip=True,
+        )
+        Xb_, yb_ = augment.augment_affine(
+            Xb, yb, rng, affperterb_ranges=affperterb_ranges)
+        return Xb_, yb_
+
     #def fit_interactive(X_train, y_train, X_valid, y_valid):
     #    pass
 
