@@ -129,13 +129,14 @@ def get_bbox_centers(bbox_list):
     return bbox_centers
 
 
-def ensure_pylab_qt4():
+def qt4ensure():
     if ut.inIPython():
         import IPython
-        IPython.get_ipython().magic('pylab qt4')
+        #IPython.get_ipython().magic('pylab qt4')
+        IPython.get_ipython().magic('pylab qt4 --no-import-all')
 
 
-qt4ensure = ensure_pylab_qt4
+ensure_pylab_qt4 = qt4ensure
 
 #==========================#
 #  --- TESTING FUNCS ---   #

@@ -967,6 +967,11 @@ class AnnotationInteraction(abstract_interaction.AbstractInteraction):
                     if poly.is_near_handle(mouse_xy, self.max_dist):
                         self._current_rotate_poly = poly
                         break
+                if event.dblclick:
+                    # Reset rotation
+                    if self._current_rotate_poly is not None:
+                        self._current_rotate_poly.theta = 0
+                        self._current_rotate_poly.update_display_coords()
 
         polyind, self._ind = self.get_poly_under_cursor(event.x, event.y)
 
