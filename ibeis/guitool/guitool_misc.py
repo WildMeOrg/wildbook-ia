@@ -18,11 +18,32 @@ ut.noinject(__name__, '[guitool.misc]', DEBUG=False)
 ALT_KEY = 16777251
 
 
-def make_option_dict(options):
+def make_option_dict(options, shortcuts=True):
     """ helper for popup menu callbacks """
-    option_dict = {key[key.find('&') + 1]: val for key, val in options
-                   if '&' in key}
-    return option_dict
+    keys = ut.take_column(options, 0)
+    values = ut.take_column(options, 1)
+    if shortcuts:
+        shortcut_keys = [
+            key[key.find('&') + 1] if '&' in key else None
+            for key in keys
+        ]
+        ut.assert_unique(shortcut_keys, name='shortcut_keys', ignore=[None])
+        shortcut_dict = {
+            sc_key: (make_option_dict(val, shortcuts=True)
+                     if isinstance(val, list) else val)
+            for (sc_key, val) in zip(shortcut_keys, values)
+            if sc_key is not None
+        }
+        return shortcut_dict
+    else:
+        ut.assert_unique(keys, name='option_keys')
+        fulltext_dict = {
+            key: (make_option_dict(val, shortcuts=False)
+                  if isinstance(val, list) else val)
+            for (key, val) in zip(keys, values)
+            if key is not None
+        }
+        return fulltext_dict
 
 
 def find_used_chars(name_list):
