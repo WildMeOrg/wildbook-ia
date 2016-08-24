@@ -2,12 +2,9 @@
 # LICENCE: Apache2
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, range  # NOQA
-#import cv2
 import numpy as np
 import utool as ut
-#from vtool.dummy import dummy_img  # NOQA
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[blend]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[blend]')
 
 
 def testdata_blend(scale=128):
@@ -199,13 +196,16 @@ def blend_images_multiply(img1, img2, alpha=0.5):
     #assert img1_.min() >= 0 and img1_.max() <= 1
     #assert img2_.min() >= 0 and img2_.max() <= 1
     # apply transform
-    if False and alpha == .5:
-        imgB = img1_ * img2_
-    else:
-        data = [img1_, img2_]
-        weights = [1.0 - alpha + .5, alpha + .5]
-        #imgB = vt.weighted_geometic_mean(data, weights)
-        imgB = vt.weighted_geometic_mean_unnormalized(data, weights)
+    #if False and alpha == .5:
+    #imgB = img1_ * img2_
+    #else:
+    #data = [img1_, img2_]
+    w1 = 1.0 - alpha + .5
+    w2 = alpha + .5
+    #weights = [w1, w2]
+    #imgB = vt.weighted_geometic_mean(data, weights)
+    imgB = ((img1_ ** w1) * (img2_ ** w2)) ** (1 / (w1 + w2))
+    #imgB = vt.weighted_geometic_mean_unnormalized(data, weights)
     # unrectify
     #assert imgB.min() >= 0 and imgB.max() <= 1
     return imgB

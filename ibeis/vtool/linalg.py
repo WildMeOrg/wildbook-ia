@@ -221,7 +221,27 @@ def shear_mat3x3(shear_x, shear_y, dtype=TRANSFORM_DTYPE):
     return shear
 
 
-def affine_mat3x3(sx=1, sy=1, theta=0, shear=0, tx=0, ty=0):
+#def affine_mat3x3_orig(sx=1, sy=1, theta=0, shear=0, tx=0, ty=0):
+#    """
+#    Args:
+#        shear is angle in counterclockwise direction
+
+#    References:
+#        https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/_geometric.py
+#    """
+#    sin1_ = np.sin(theta)
+#    cos1_ = np.cos(theta)
+#    sin2_ = np.sin(theta + shear)
+#    cos2_ = np.cos(theta + shear)
+#    Aff = np.array([
+#        [sx * cos1_, -sy * sin2_, tx],
+#        [sx * sin1_,  sy * cos2_, ty],
+#        [        0,            0,  1]
+#    ])
+#    return Aff
+
+
+def affine_mat3x3(sx=1, sy=1, theta=0, shear=0, tx=0, ty=0, trig=np):
     """
     Args:
         shear is angle in counterclockwise direction
@@ -229,10 +249,10 @@ def affine_mat3x3(sx=1, sy=1, theta=0, shear=0, tx=0, ty=0):
     References:
         https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/_geometric.py
     """
-    sin1_ = np.sin(theta)
-    cos1_ = np.cos(theta)
-    sin2_ = np.sin(theta + shear)
-    cos2_ = np.cos(theta + shear)
+    sin1_ = trig.sin(theta)
+    cos1_ = trig.cos(theta)
+    sin2_ = trig.sin(theta + shear)
+    cos2_ = trig.cos(theta + shear)
     Aff = np.array([
         [sx * cos1_, -sy * sin2_, tx],
         [sx * sin1_,  sy * cos2_, ty],
@@ -241,15 +261,73 @@ def affine_mat3x3(sx=1, sy=1, theta=0, shear=0, tx=0, ty=0):
     return Aff
 
 
-def affine_around_mat3x3(x, y, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0):
+def affine_around_mat3x3_old(x, y, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
+                             x2=None, y2=None, trig=np, dtype=TRANSFORM_DTYPE):
+    """
+    Executes an affine transform around point (x, y) in the input coordinate
+    system.
+
+    Specify x2 and y2 if change of coordinates (but not scale)?
+
+    >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
+    >>> from vtool.linalg import *  # NOQA
+    >>> import vtool as vt
+    >>> import sympy
+    >>> from sympy.abc import theta
+    >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = sympy.symbols(
+    >>>     'x, y, sx, sy, theta, shear, tx, ty, x2, y2')
+    >>> trig = sympy
+    >>> Aff = vt.sympy_mat(vt.affine_around_mat3x3_old(
+    >>>     x, y, sx, sy, theta, shear, tx, ty, x2, y2, trig=trig, dtype=None))
+    >>> print('-------')
+    >>> Aff = sympy.simplify(Aff)
+    >>> vt.evalprint('Aff')
+    >>> print('-------')
+    >>> print('Numpy')
+    >>> vt.sympy_numpy_repr(Aff)
+    """
+    x2 = x if x2 is None else x2
+    y2 = y if y2 is None else y2
     # move to center location
-    tr1_ = translation_mat3x3(-x, -y)
+    tr1_ = translation_mat3x3(-x, -y, dtype=dtype)
     # apply affine transform
-    Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty)
+    Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty, trig=trig)
     # move to original location
-    tr2_ = translation_mat3x3(x, y)
+    tr2_ = translation_mat3x3(x2, y2, dtype=dtype)
     # combine transformations
     Aff = tr2_.dot(Aff_).dot(tr1_)
+    return Aff
+
+
+def affine_around_mat3x3(x, y, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
+                         x2=None, y2=None):
+    """
+    Combines a translate with affine3x3 with untranslate
+
+    Example:
+        >>> from vtool.linalg import *  # NOQA
+        >>> tup = (256.0, 256.0, 1.5, 1.0, 0.7853981633974483, 0.2, 0, 100, 500.0, 500.0)
+        >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = tup
+        >>> Aff1 = affine_around_mat3x3(x, y, sx, sy, theta, shear, tx, ty, x2, y2)
+        >>> Aff2 = affine_around_mat3x3_old(x, y, sx, sy, theta, shear, tx, ty, x2, y2)
+        >>> assert np.all(Aff2 == Aff1)
+
+    %timeit affine_around_mat3x3_old(x, y, sx, sy, theta, shear, tx, ty, x2, y2)
+    %timeit affine_around_mat3x3(x, y, sx, sy, theta, shear, tx, ty, x2, y2)
+    """
+    x2 = x if x2 is None else x2
+    y2 = y if y2 is None else y2
+    # Make auxially varables to reduce the number of sin/cosine calls
+    cos_theta = np.cos(theta)
+    sin_theta = np.sin(theta)
+    cos_shear_p_theta = np.cos(shear + theta)
+    sin_shear_p_theta = np.sin(shear + theta)
+    tx_ = -sx * x * cos_theta + sy * y * sin_shear_p_theta + tx + x2
+    ty_ = -sx * x * sin_theta - sy * y * cos_shear_p_theta + ty + y2
+    # Sympy compiled expression
+    Aff = np.array([[sx * cos_theta, -sy * sin_shear_p_theta, tx_],
+                    [sx * sin_theta,  sy * cos_shear_p_theta, ty_],
+                    [             0,                       0, 1]])
     return Aff
 
 

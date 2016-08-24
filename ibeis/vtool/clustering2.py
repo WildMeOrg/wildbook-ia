@@ -700,7 +700,7 @@ def find_duplicate_items(item_arr):
     return duplicate_items
 
 
-def apply_grouping(items, groupxs):
+def apply_grouping(items, groupxs, axis=0):
     """
     applies grouping from group_indicies
     apply_grouping
@@ -736,7 +736,7 @@ def apply_grouping(items, groupxs):
     """
     # SHOULD DO A CONTIGUOUS CHECK HERE
     #items_ = np.ascontiguousarray(items)
-    return [items.take(xs, axis=0) for xs in groupxs]
+    return [items.take(xs, axis=axis) for xs in groupxs]
     #return [items[idxs] for idxs in groupxs]
 
 

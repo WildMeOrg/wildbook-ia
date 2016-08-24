@@ -3,11 +3,6 @@
 Sympy helpers
 """
 from __future__ import absolute_import, division, print_function
-try:
-    import sympy
-except ImportError:
-    pass
-#import numpy as np
 import numpy as np
 import six
 import utool as ut
@@ -15,6 +10,7 @@ import utool as ut
 
 
 def custom_sympy_attrs(mat):
+    import sympy
     def matmul(other, hold=True):
         if hold:
             new = sympy.MatMul(mat, other)
@@ -32,12 +28,14 @@ def custom_sympy_attrs(mat):
 
 
 def sympy_mat(arr):
+    import sympy
     mat = sympy.Matrix(arr)
     mat = custom_sympy_attrs(mat)
     return mat
 
 
 def evalprint(str_, globals_=None, locals_=None, simplify=False):
+    import sympy
     if globals_ is None:
         globals_ = ut.get_parent_globals()
     if locals_ is None:
@@ -75,6 +73,7 @@ def check_expr_eq(expr1, expr2, verbose=True):
         >>> result = check_expr_eq(expr1, expr2)
         >>> print(result)
     """
+    import sympy
     if isinstance(expr1, six.string_types):
         expr1 = sympy.simplify(expr1)
     if isinstance(expr2, six.string_types):
@@ -131,6 +130,7 @@ def symbolic_randcheck(expr1, expr2, domain={}, n=10):
 
 
 def sympy_latex_repr(expr1):
+    import sympy
     expr1_repr = sympy.latex(expr1)
     expr1_repr = expr1_repr.replace('\\\\', '\\\\\n')
     expr1_repr = expr1_repr.replace(r'\left[\begin{smallmatrix}{}', '\\MAT{\n')
@@ -145,6 +145,19 @@ def sympy_latex_repr(expr1):
     expr1_repr = ut.align(expr1_repr, '&', pos=None)
     return expr1_repr
     #print(expr1_repr)
+
+
+def sympy_numpy_repr(expr1):
+    import re
+    expr1_repr = repr(expr1)
+    expr1_repr = expr1_repr.replace('Matrix', 'np.array')
+    expr1_repr = re.sub('\\bsin\\b', 'np.sin', expr1_repr)
+    expr1_repr = re.sub('\\bcos\\b', 'np.cos', expr1_repr)
+    expr1_repr = ut.autoformat_pep8(expr1_repr)
+    print(expr1_repr)
+    #import autopep8
+    #autopep8.fix_code(expr1_repr)
+
 
 if __name__ == '__main__':
     """

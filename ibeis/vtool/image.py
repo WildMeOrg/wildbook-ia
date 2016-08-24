@@ -1078,9 +1078,10 @@ def shear(img, x_shear, y_shear, dsize=None, **kwargs):
     return imgSh
 
 
+@profile
 def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
                               dsize=None, borderMode=cv2.BORDER_CONSTANT,
-                              flags=cv2.INTER_LANCZOS4, **kwargs):
+                              flags=cv2.INTER_LANCZOS4, out=None, **kwargs):
     r"""
 
     CommandLine:
@@ -1112,22 +1113,16 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
     """
     from vtool import linalg as ltool
     if dsize is None:
-        dsize = get_size(img)
+        dsize = (img.shape[1], img.shape[0])
+    else:
+        dsize = tuple(dsize)
     w2, h2 = dsize
     h1, w1 = img.shape[0:2]
     y1, x1 = h1 / 2.0, w1 / 2.0
     y2, x2 = h2 / 2.0, w2 / 2.0
     # MOVE AFFINE AROUND w.r.t new dsize
-    #Aff = ltool.affine_around(x, y, sx, sy, theta, shear, tx, ty)
-    # move to center location
-    tr1_ = ltool.translation_mat3x3(-x1, -y1)
-    # apply affine transform
-    Aff_ = ltool.affine_mat3x3(sx, sy, theta, shear, tx, ty)
-    # move to original location
-    tr2_ = ltool.translation_mat3x3(x2, y2)
-    # combine transformations
-    Aff = tr2_.dot(Aff_).dot(tr1_)
-    img_warped = cv2.warpAffine(img, Aff[0:2], tuple(dsize),
+    Aff = ltool.affine_around_mat3x3_old(x1, y1, sx, sy, theta, shear, tx, ty, x2, y2)
+    img_warped = cv2.warpAffine(img, Aff[0:2], dsize, dst=out,
                                 borderMode=borderMode, flags=flags, **kwargs)
     # Fix grayscale channel issues
     if len(img.shape) == 3 and len(img_warped.shape) == 2:
