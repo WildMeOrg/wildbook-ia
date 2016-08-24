@@ -43,7 +43,7 @@ def draw():
 #    return fpath_clean
 
 
-def get_square_row_cols(nSubplots, max_cols=None, fix=False):
+def get_square_row_cols(nSubplots, max_cols=None, fix=False, inclusive=True):
     r"""
     Args:
         nSubplots (?):
@@ -72,11 +72,15 @@ def get_square_row_cols(nSubplots, max_cols=None, fix=False):
     """
     if nSubplots == 0:
         return 0, 0
+    if inclusive:
+        rounder = np.ceil
+    else:
+        rounder = np.floor
     if fix:
         # This function is very broken, but it might have dependencies
         # this is the correct version
-        nCols = int(np.ceil(np.sqrt(nSubplots)))
-        nRows = int(np.ceil(nSubplots / nCols))
+        nCols = int(rounder(np.sqrt(nSubplots)))
+        nRows = int(rounder(nSubplots / nCols))
         return nRows, nCols
     else:
         # This is the clamped num cols version
@@ -90,8 +94,8 @@ def get_square_row_cols(nSubplots, max_cols=None, fix=False):
             if nSubplots in [8]:
                 max_cols = 4
         nCols = int(min(nSubplots, max_cols))
-        #nCols = int(min(np.ceil(np.sqrt(nrids)), 5))
-        nRows = int(np.ceil(nSubplots / nCols))
+        #nCols = int(min(rounder(np.sqrt(nrids)), 5))
+        nRows = int(rounder(nSubplots / nCols))
     return nRows, nCols
 
 
