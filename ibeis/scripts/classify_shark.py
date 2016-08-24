@@ -68,7 +68,7 @@ def shark_net(dry=False):
         return model, dataset
 
     model.learn_state.weight_decay = .01
-    model.learn_state.learning_rate = .00001
+    model.learn_state.learning_rate = .00005
     model.hyperparams.update(**dict(
         era_size=5,
         max_epochs=1200,
