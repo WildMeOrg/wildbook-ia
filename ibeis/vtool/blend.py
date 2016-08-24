@@ -204,7 +204,8 @@ def blend_images_multiply(img1, img2, alpha=0.5):
     w2 = alpha + .5
     #weights = [w1, w2]
     #imgB = vt.weighted_geometic_mean(data, weights)
-    imgB = ((img1_ ** w1) * (img2_ ** w2)) ** (1 / (w1 + w2))
+    #imgB = ((img1_ ** w1) * (img2_ ** w2)) ** (1 / (w1 + w2))
+    imgB = ((img1_ ** w1) * (img2_ ** w2))
     #imgB = vt.weighted_geometic_mean_unnormalized(data, weights)
     # unrectify
     #assert imgB.min() >= 0 and imgB.max() <= 1
