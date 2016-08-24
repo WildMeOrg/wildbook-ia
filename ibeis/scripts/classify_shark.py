@@ -156,8 +156,8 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             ConvBundle(num_filters=256),
 
             # Fully connected layers
-            DenseBundle(num_units=128, dropout=True),
-            DenseBundle(num_units=128, dropout=True),
+            DenseBundle(num_units=128, dropout=.5),
+            DenseBundle(num_units=128, dropout=.5),
             SoftmaxBundle(num_units=model.output_dims)
         ]
         network_layers = abstract_models.evaluate_layer_list(
