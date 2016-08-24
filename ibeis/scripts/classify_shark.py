@@ -67,12 +67,13 @@ def shark_net(dry=False):
     if dry or ut.get_argflag('--dry'):
         return model, dataset
 
-    model.learn_state.weight_decay = .01
-    model.learn_state.learning_rate = .00005
+    model.learn_state.weight_decay = .001
+    model.learn_state.learning_rate = .0001
     model.hyperparams.update(**dict(
         era_size=5,
         max_epochs=1200,
         rate_decay=.9,
+        augment_on=True,
     ))
     model.monitor_config['monitor'] = True
 
@@ -188,6 +189,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         >>> augment.show_augmented_patches(Xb, Xb_, yb, yb_, data_per_label=1)
         >>> ut.show_if_requested()
         """
+        print("AUGMENT")
         from ibeis_cnn import augment
         rng = np.random
         affperterb_ranges = dict(
