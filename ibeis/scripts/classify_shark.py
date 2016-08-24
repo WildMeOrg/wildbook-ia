@@ -171,10 +171,27 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
     #    pass
 
     def augment(self, Xb, yb=None):
+        """
+        X_valid, y_valid = dataset.subset('valid')
+        num = 10
+        Xb = X_valid[:num]
+        Xb = Xb / 255.0 if ut.is_int(Xb) else Xb
+        Xb = Xb.astype(np.float32, copy=True)
+        yb = None if yb is None else yb.astype(np.int32, copy=True)
+        # Rescale the batch data to the range 0 to 1
+        Xb_, yb_ = model.augment(Xb)
+        yb_ = None
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> from ibeis_cnn import augment
+        >>> augment.show_augmented_patches(Xb, Xb_, yb, yb_, data_per_label=1)
+        >>> ut.show_if_requested()
+        """
         from ibeis_cnn import augment
         rng = np.random
         affperterb_ranges = dict(
-            zoom_range=(1.0, 1.3),
+            zoom_range=(1.3, 1.2),
             max_tx=2,
             max_ty=2,
             max_shear=ut.TAU / 32,
@@ -183,7 +200,10 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             enable_flip=True,
         )
         Xb_, yb_ = augment.augment_affine(
-            Xb, yb, rng, affperterb_ranges=affperterb_ranges)
+            Xb, yb, rng=rng, inplace=False, data_per_label=1,
+            affperterb_ranges=affperterb_ranges,
+            aug_prop=.5,
+        )
         return Xb_, yb_
 
     #def fit_interactive(X_train, y_train, X_valid, y_valid):
