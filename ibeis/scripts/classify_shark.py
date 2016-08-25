@@ -47,7 +47,7 @@ def shark_net(dry=False):
         #
         output_dims=2,
         data_shape=config['dim_size'] + (3,),
-        batch_size=32,
+        batch_size=128,
     )
     model.init_arch()
     model.print_layer_info()
