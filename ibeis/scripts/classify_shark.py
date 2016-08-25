@@ -40,6 +40,10 @@ def shark_net(dry=False):
     # ------------
     # Define model
     # ------------
+    if ut.get_computer_name() == 'Leviathan':
+        batch_size = 128
+    else:
+        batch_size = 32
     model = classify_shark.WhaleSharkInjuryModel(
         name='injur-shark',
         dataset_dpath=dataset.dataset_dpath,
@@ -47,7 +51,7 @@ def shark_net(dry=False):
         #
         output_dims=2,
         data_shape=config['dim_size'] + (3,),
-        batch_size=128,
+        batch_size=batch_size,
     )
     model.init_arch()
     model.print_layer_info()
