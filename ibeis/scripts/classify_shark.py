@@ -47,9 +47,9 @@ def shark_net(dry=False):
         #
         output_dims=2,
         data_shape=config['dim_size'] + (3,),
-        batch_size=64,
+        batch_size=16,
     )
-    model.initialize_architecture()
+    model.init_arch()
     model.print_layer_info()
 
     if False:
@@ -64,17 +64,16 @@ def shark_net(dry=False):
         )
         print(report)
 
-    if dry or ut.get_argflag('--dry'):
-        return model, dataset
-
-    model.learn_state.weight_decay = .001
-    model.learn_state.learning_rate = .0001
-    model.hyperparams.update(**dict(
+    hyperparams = dict(
         era_size=5,
         max_epochs=1200,
-        rate_decay=.9,
+        rate_schedule=.9,
         augment_on=True,
-    ))
+        class_weight='balanced'
+    )
+    model.learn_state.weight_decay = .001
+    model.learn_state.learning_rate = .0003
+    ut.update_existing(model.hyperparams, hyperparams, assert_exists=True)
     model.monitor_config['monitor'] = True
 
     #model.build_backprop_func()
@@ -87,6 +86,12 @@ def shark_net(dry=False):
     X_learn, y_learn = dataset.subset('learn')
     X_valid, y_valid = dataset.subset('valid')
     #model.ensure_data_params(X_learn, y_learn)
+    X_train = X_learn  # NOQA
+    y_train = y_learn  # NOQA
+    valid_idx = None  # NOQA
+
+    if dry or ut.get_argflag('--dry'):
+        return model, dataset
     model.fit(X_learn, y_learn, X_valid=X_valid, y_valid=y_valid)
 
 
@@ -102,12 +107,12 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         >>> ibs = ds.ibs
     """
 
-    def initialize_architecture(model, verbose=ut.VERBOSE, **kwargs):
+    def init_arch(model, verbose=ut.VERBOSE, **kwargs):
         r"""
 
         CommandLine:
-            python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.initialize_architecture
-            python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.initialize_architecture --show
+            python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.init_arch
+            python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.init_arch --show
 
             python -m ibeis.scripts.classify_shark shark_net --dry --show
             python -m ibeis.scripts.classify_shark shark_net --vd
@@ -120,7 +125,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             >>>                                  default=(224, 224, 3)))
             >>> model = WhaleSharkInjuryModel(batch_size=64, output_dims=2,
             >>>                               data_shape=data_shape)
-            >>> model.initialize_architecture()
+            >>> model.init_arch()
             >>> model.print_model_info_str()
             >>> ut.quit_if_noshow()
             >>> model.show_arch()
@@ -128,7 +133,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         """
         import ibeis_cnn.__LASAGNE__ as lasange
         from ibeis_cnn import custom_layers
-        print('[model] initialize_architecture')
+        print('[model] init_arch')
         lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 10.))
         bundles = custom_layers.make_bundles(
             nonlinearity=lrelu, batch_norm=True,
