@@ -8,6 +8,7 @@ import sklearn.svm
 import sklearn.metrics
 from sklearn import preprocessing
 from ibeis_cnn.models import abstract_models
+from os.path import join
 (print, rrr, profile) = ut.inject2(__name__, '[classify_shark]')
 
 
@@ -58,8 +59,12 @@ def shark_net(dry=False):
 
     if False:
         state_fpath = model.get_model_state_fpath(dpath=model.trained_arch_dpath)
+        state_fpath = model.get_model_state_fpath()
         model.load_model_state(fpath=state_fpath)
+
         X_test, y_test = dataset.subset('test')
+        X_test, y_test = dataset.subset('valid')
+        X_test, y_test = dataset.subset('learn')
         y_pred = model.predict(X_test)
         test_outptuts = model._predict(X_test)
         y_pred = test_outptuts['predictions']
@@ -67,6 +72,55 @@ def shark_net(dry=False):
             y_true=y_test, y_pred=y_pred,
         )
         print(report)
+
+        # 5-fold SVM+Hog
+        #     Precision / Recall: (note recall is accuracy in this case)
+        #             precision    recall  f1-score   support
+        #    healthy       0.80      0.77      0.79      6298
+        #    injured       0.63      0.68      0.66      3693
+        #avg / total       0.74      0.74      0.74      9991
+
+        # 10-fold SVM+Hog Multiclass
+        #             precision    recall  f1-score   support
+        #    healthy       0.87      0.75      0.80       620
+        # injur-scar       0.20      0.36      0.26       107
+        #injur-trunc       0.57      0.57      0.57       246
+        #avg / total       0.72      0.66      0.68       973
+        #             precision    recall  f1-score   support
+        #    healthy       0.87      0.75      0.80       620
+        # injur-scar       0.20      0.36      0.26       107
+        #injur-trunc       0.57      0.57      0.57       246
+        #avg / total       0.72      0.66      0.68       973
+        #Confusion Matrix:
+        #                healthy  injur-scar  injur-trunc
+        #gt healthy          464          94           62
+        #gt injur-scar        26          39           42
+        #gt injur-trunc       45          61          140
+
+        # SVM+hog C=1.0 (all train)
+        #             precision    recall  f1-score   support
+        #    healthy       0.86      0.72      0.79      1168
+        # injur-scar       0.22      0.38      0.28       216
+        #injur-trunc       0.55      0.59      0.57       489
+        #avg / total       0.71      0.65      0.67      1873
+
+        # Neural Network (test)
+        #             precision    recall  f1-score   support
+        #          0       0.87      0.83      0.85      1130
+        #          1       0.76      0.81      0.79       745
+        #avg / total       0.83      0.82      0.82      1875
+        # Neural Network (valid)
+        #             precision    recall  f1-score   support
+        #          0       0.87      0.83      0.85      1210
+        #          1       0.72      0.79      0.75       677
+        #avg / total       0.82      0.81      0.82      1887
+        # Neural Network (valid)
+        #             precision    recall  f1-score   support
+        #          0       0.89      0.87      0.88      3860
+        #          1       0.80      0.83      0.81      2434
+        #avg / total       0.86      0.85      0.85      6294
+
+        model.dump_cases(X_test, y_test, 'test')
 
     hyperparams = dict(
         era_size=5,
@@ -296,7 +350,7 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
         # Partition training into learning and validation
         learn_idx, valid_idx = stratified_label_shuffle_split(
             y_train, nids_train,
-            [.8, .2], idx=train_idx, rng=90120)
+            [.8, .2], y_idx=train_idx, rng=90120)
         assert len(np.intersect1d(learn_idx, test_idx)) == 0
         assert len(np.intersect1d(valid_idx, test_idx)) == 0
         assert len(np.intersect1d(learn_idx, valid_idx)) == 0
@@ -318,7 +372,7 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
         # Partition training into learning and validation
         learn_idx, valid_idx = stratified_label_shuffle_split(
             y_train, nids_train,
-            [.8, .2], idx=train_idx, rng=90120)
+            [.8, .2], y_idx=train_idx, rng=90120)
         dataset._split_idxs = {}
         dataset._split_idxs['learn'] = learn_idx
         dataset._split_idxs['valid'] = valid_idx
@@ -604,6 +658,7 @@ class ClfProblem(object):
             clf = sklearn.grid_search.GridSearchCV(_clf, param_grid, n_jobs=6,
                                                    iid=False, cv=5, verbose=3)
             clf.fit(x_train, y_train)
+            #(NOTE grid.predict only uses the best estimator)
             print('clf.best_params_ = %r' % (clf.best_params_,))
             print("Best parameters set found on development set:")
             print(clf.best_params_)
@@ -625,6 +680,20 @@ class ClfProblem(object):
             ax = pt.gca()
             ax.fill_between(xdata, y_data_min, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
             pt.draw_hist_subbin_maxima(ydata, xdata)
+
+            #y_data_std = np.array([t[2].std() for t in grid.grid_scores_])
+            #ydata_mean = c_ydata
+            #y_data_max = ydata_mean + y_data_std
+            #y_data_min = ydata_mean - y_data_std
+            #import plottool as pt
+            #pt.figure(fnum=pt.ensure_fnum(None))
+            #ax = pt.gca()
+            #ax.fill_between(c_xdata, c_ydata, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
+            #ax.fill_between(c_xdata, c_ydata, y_data_min, alpha=.2, color=pt.LIGHT_BLUE)
+            ##pt.figure(fnum=pt.ensure_fnum(None))
+            #hist = c_ydata
+            #centers = c_xdata
+            #pt.draw_hist_subbin_maxima(c_ydata, c_xdata, maxima_thresh=None, remove_endpoints=False)
 
             #clf.best_params_ = {u'C': 0.07143785714285722}
             #Best parameters set found on development set:
@@ -657,14 +726,14 @@ class ClfProblem(object):
         print('[problem] test classifier on %d data points' % (len(test_idx),))
         data = problem.ds.data
         target = problem.ds.target
-        x_test = data.take(test_idx, axis=0)
+        X_test = data.take(test_idx, axis=0)
         y_true = target.take(test_idx, axis=0)
 
         if len(clf.classes_) == 2:
             # Adapt _ovr_decision_function for 2-class case
             # This is simply a linear scaling into a probability based on the
             # other members of this query.
-            X = clf._validate_for_predict(x_test)
+            X = clf._validate_for_predict(X_test)
             X = clf._compute_kernel(X)
             _dec2 = clf._dense_decision_function(X)
             dec2 = -_dec2
@@ -680,7 +749,7 @@ class ClfProblem(object):
             y_conf = final
         else:
             # Get notion of confidence / probability of decision
-            y_conf = clf.decision_function(x_test)
+            y_conf = clf.decision_function(X_test)
 
         y_pred = y_conf.argmax(axis=1)
 
@@ -820,10 +889,9 @@ def shark_svm():
         >>> ut.show_if_requested()
     """
     from ibeis.scripts import classify_shark
-    import sklearn.metrics
 
-    #target_type = 'binary'
-    target_type = 'multiclass3'
+    target_type = 'binary'
+    #target_type = 'multiclass3'
     #dataset = classify_shark.get_shark_dataset(target_type)
 
     ds = classify_shark.get_shark_dataset(target_type, 'hog')
@@ -832,6 +900,7 @@ def shark_svm():
     #annots = ds.getprop('annots')
     ds.enc = ds.getprop('enc')
     ds.aids = ds.getprop('annots').aids
+    ds.nids = ds.getprop('annots').nids
     ds.target = ds.labels
     ds.target_names = ds.getprop('target_names')
     ds.target_labels = ds.enc.transform(ds.target_names)
@@ -841,60 +910,217 @@ def shark_svm():
     problem = classify_shark.ClfProblem(ds)
     problem.print_support_info()
 
-    #train_idx, test_idx = problem.stratified_2sample_idxs()
+    model_dpath = ut.ensuredir((ds.dataset_dpath, 'svms'))
+    #n_folds = 10
+    n_folds = 5
+    #ensemble_dpath = ut.ensuredir((model_dpath, 'svms_%d_fold' % (n_folds,)))
+
     train_idx = ds._split_idxs['train']
     test_idx = ds._split_idxs['test']
 
-    from os.path import join
-    model_dpath = join(ds.dataset_dpath, 'svms')
-    model_fpath = join(model_dpath, target_type + '_svc.cPkl')
-    if ut.checkpath(model_fpath):
-        clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
-                              decision_function_shape='ovr')
-        clf.__dict__.update(**ut.load_data(model_fpath))
+    y_train = ds.target.take(train_idx)
+    nids_train = ut.take(ds.nids, train_idx)
+
+    # Ensure that an individual does not appear in both train and test
+    #_iter = stratified_kfold_label_split(y_train, nids_train, y_idx=train_idx,
+    #                                     n_folds=n_folds, rng=rng)
+
+    class MyLabelCV(object):
+
+        def __init__(self, y_train, nids_train, n_folds):
+            self.nids_train = nids_train
+            self.y_train = y_train
+            self.n_folds = n_folds
+
+        def __len__(self):
+            return self.n_folds
+
+        def __iter__(self):
+            from ibeis_cnn.dataset import stratified_kfold_label_split
+            rng = 1809629827
+            for _ in stratified_kfold_label_split(self.y_train, self.nids_train,
+                                                  n_folds=self.n_folds, rng=rng):
+                yield _
+
+    clf_fpath = join(model_dpath, '%s_svc_folds_%s.cPkl' % (target_type, n_folds))
+    if not ut.checkpath(clf_fpath):
+        """
+        Curate strategy:
+            Use gridsearch to select a reasonable C=.17
+            Then train 10 classifiers with 10 split cross validation.
+            This lets us make an "unbias" prediction for each training example.
+            Look at predictions for all training examples (predict using only
+                classifiers not trained with that point).
+            Look at worst worst performing examples.
+            Fix any errors that occur.
+            Now that the database is better, we learn the actual model.
+
+        Learning strategy:
+            * Set aside a set test.
+            * The remaining data is the training set.
+            * Run Gridsearch with N-fold cross validation on training set to
+              look at performance given different hyperparameters of the SVM.
+            * Use quadratic interpolation to select a "best" parameter.
+
+            (NOTE grid.predict only uses the best estimator (however it is a refit estimator))
+
+            Train a single SVM using these parameters on all training data.
+
+            Evaluate this SVM on the test set.
+        """
+        C = None
+        if C is None:
+            import sklearn
+            import sklearn.grid_search
+            import sklearn.svm
+            # C controls the margin of the hyperplane.
+            # Smaller C = Larger Hyperplane
+            # So, the larger the C the less willing the SVM will be to get
+            # examples wrong.
+
+            param_grid = {
+                #'C': np.linspace(.1, .2, 10),
+                'C': [.001, .01, .1, .12, .15, .17, .2, .5, 1.0, 100, 1000]
+                #'C': np.linspace(.1, .2, 3),
+            }
+            clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
+                                  decision_function_shape='ovr')
+            cv = MyLabelCV(y_train, nids_train, n_folds=n_folds)
+            grid = sklearn.grid_search.GridSearchCV(clf, param_grid=param_grid, cv=cv,
+                                                    refit=False, n_jobs=min(n_folds, 6),
+                                                    verbose=10)
+            x_train = ds.data.take(train_idx, axis=0)
+            y_train = ds.target.take(train_idx, axis=0)
+            grid.fit(x_train, y_train)
+
+            for params, mean_score, scores in grid.grid_scores_:
+                print("%0.3f (+/-%0.03f) for %r"
+                      % (mean_score, scores.std() * 2, params))
+
+            c_xdata = np.array([t[0]['C'] for t in grid.grid_scores_])
+            c_ydata = np.array([t[1] for t in grid.grid_scores_])
+            import vtool as vt
+            maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(c_ydata, c_xdata, maxima_thresh=None)
+            C = maxima_x
+            print('C = %r' % (C,))
+        else:
+            print('C = %r' % (C,))
+
+        clf_all = sklearn.svm.SVC(kernel=str('linear'), C=C, class_weight='balanced',
+                                  decision_function_shape='ovr', verbose=10)
+        X_train = ds.data.take(train_idx, axis=0)
+        clf_all.fit(X_train, y_train)
+        ut.save_data(clf_fpath, clf_all.__dict__)
+        clf = clf_all
     else:
-        clf = problem.fit_new_classifier(train_idx)
-        ut.ensuredir(model_dpath)
-        ut.save_data(model_fpath, clf.__dict__)
+        clf = sklearn.svm.SVC()
+        clf.__dict__.update(**ut.load_data(clf_fpath))
 
-    #n_folds = 10
-    #for train_idx, test_idx in problem.gen_crossval_idxs(n_folds):
-    #    clf = problem.fit_new_classifier(train_idx)
-    #    result = problem.test_classifier(clf, test_idx)
-    #    result_list.append(result)
+    def test_classifier(clf, X_test, y_test):
+        print('[problem] test classifier on %d data points' % (len(test_idx),))
+        if len(clf.classes_) == 2:
+            # Adapt _ovr_decision_function for 2-class case
+            # This is simply a linear scaling into a probability based on the
+            # other members of this query.
+            X = clf._validate_for_predict(X_test)
+            X = clf._compute_kernel(X)
+            _dec2 = clf._dense_decision_function(X)
+            dec2 = -_dec2
 
-    if True:
-        result_list = []
-        result = problem.test_classifier(clf, test_idx)
-        result_list.append(result)
+            n_samples = dec2.shape[0]
+            n_classes = len(clf.classes_)
+            final = np.zeros((n_samples, n_classes))
+            confidence_max = max(np.abs(dec2.max()), np.abs(dec2.min()))
+            norm_conf = ((dec2.T[0] / confidence_max) + 1) / 2
+            final.T[0] = 1 - norm_conf
+            final.T[1] = norm_conf
+            # output comparable to multiclass version
+            y_conf = final
+        else:
+            # Get notion of confidence / probability of decision
+            y_conf = clf.decision_function(X_test)
+        y_pred = y_conf.argmax(axis=1)
+        result = ClfSingleResult(problem.ds, test_idx, y_test, y_pred, y_conf)
+        return result
 
-        for result in result_list:
-            result.compile_results()
+    test_idx = ds._split_idxs['test']
+    X_test = ds.data.take(test_idx, axis=0)
+    y_test = ds.target.take(test_idx, axis=0)
+    result = test_classifier(clf, X_test, y_test)
+    result.compile_results()
+    result.print_report()
 
-        for result in result_list:
-            result.print_report()
+    result_list = [result]
 
-        inspect_results(ds, result_list)
-    else:
-        result_list = []
-        result = problem.test_classifier(clf, train_idx)
-        result_list.append(result)
-        for result in result_list:
-            result.compile_results()
-        for result in result_list:
-            result.print_report()
-        inspect_results(ds, result_list)
+    import pandas as pd
+    import plottool as pt
+    # Combine information from results
+    df = pd.concat([result.df for result in result_list])
+    df['hardness'] = 1 / df['easiness']
+    df['aid'] = ut.take(ds.aids, df.index)
+    df['target'] = ut.take(ds.target, df.index)
+    df['failed'] = df['pred'] != df['target']
+
+    report = sklearn.metrics.classification_report(
+        y_true=df['target'], y_pred=df['pred'],
+        target_names=result.ds.target_names)
+    print(report)
+
+    confusion = sklearn.metrics.confusion_matrix(df['target'], df['pred'])
+    print('Confusion Matrix:')
+    print(pd.DataFrame(confusion, columns=[m for m in result.ds.target_names],
+                       index=['gt ' + m for m in result.ds.target_names]))
+
+    inspect_results(ds, result_list)
+
     if False:
-        result_list = []
-        # View support vectors
-        support_idxs = clf.support_
-        result = problem.test_classifier(clf, support_idxs)
-        result_list.append(result)
-        for result in result_list:
-            result.compile_results()
-        for result in result_list:
-            result.print_report()
-        inspect_results(ds, result_list)
+        if False:
+            #train_idx, test_idx = problem.stratified_2sample_idxs()
+            train_idx = ds._split_idxs['train']
+            test_idx = ds._split_idxs['test']
+
+            #import sklearn.metrics
+            #model_dpath = join(ds.dataset_dpath, 'svms')
+            #model_fpath = join(model_dpath, target_type + '_svc.cPkl')
+            #if ut.checkpath(model_fpath):
+            #    clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
+            #                          decision_function_shape='ovr')
+            #    clf.__dict__.update(**ut.load_data(model_fpath))
+            #else:
+            #    clf = problem.fit_new_classifier(train_idx)
+            #    ut.ensuredir(model_dpath)
+            #    ut.save_data(model_fpath, clf.__dict__)
+            result_list = []
+            result = problem.test_classifier(clf, test_idx)
+            result_list.append(result)
+
+            for result in result_list:
+                result.compile_results()
+
+            for result in result_list:
+                result.print_report()
+
+            inspect_results(ds, result_list)
+        if False:
+            result_list = []
+            result = problem.test_classifier(clf, train_idx)
+            result_list.append(result)
+            for result in result_list:
+                result.compile_results()
+            for result in result_list:
+                result.print_report()
+            inspect_results(ds, result_list)
+        if False:
+            result_list = []
+            # View support vectors
+            support_idxs = clf.support_
+            result = problem.test_classifier(clf, support_idxs)
+            result_list.append(result)
+            for result in result_list:
+                result.compile_results()
+            for result in result_list:
+                result.print_report()
+            inspect_results(ds, result_list)
 
 
 def inspect_results(ds, result_list):
@@ -939,10 +1165,7 @@ def inspect_results(ds, result_list):
         return sl
 
     def target_partition(target):
-        if target is None:
-            df_chunk = df
-        else:
-            df_chunk = df[df['target'] == target]
+        df_chunk = df if target is None else df[df['target'] == target]
         df_chunk = df_chunk.take(df_chunk['hardness'].argsort())
         return df_chunk
 
