@@ -286,7 +286,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             >>> model.show_arch(fullinfo=False)
             >>> ut.show_if_requested()
         """
-        if 1 or ut.get_computer_name() == 'Leviathan':
+        if ut.get_computer_name() == 'Leviathan':
             network_layers_def = model.def_inception()
         else:
             network_layers_def = model.def_lenet()
