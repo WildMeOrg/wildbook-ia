@@ -125,8 +125,8 @@ def shark_net(dry=False):
 
     hyperparams = dict(
         era_size=5,
-        max_epochs=1200,
-        rate_schedule=.9,
+        max_epochs=1000,
+        rate_schedule=.99,
         augment_on=True,
         class_weight='balanced',
         stopping_patience=100,
@@ -167,6 +167,96 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         >>> ibs = ds.ibs
     """
 
+    def def_lenet(model):
+        import ibeis_cnn.__LASAGNE__ as lasange
+        from ibeis_cnn import custom_layers
+        print('[model] init_arch')
+        lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 10.))
+        bundles = custom_layers.make_bundles(
+            nonlinearity=lrelu, batch_norm=True,
+            filter_size=(3, 3), stride=(1, 1),
+            pool_size=(2, 2), pool_stride=(2, 2)
+        )
+        b = ut.DynStruct(copy_dict=bundles)
+
+        network_layers_def = [
+            b.InputBundle(shape=model.input_shape, noise=False),
+            # Convolutional layers
+            b.ConvBundle(num_filters=16, pool=True),
+
+            b.ConvBundle(num_filters=16),
+            b.ConvBundle(num_filters=16, pool=True),
+
+            b.ConvBundle(num_filters=16),
+            b.ConvBundle(num_filters=32, pool=True),
+
+            b.ConvBundle(num_filters=32),
+            b.ConvBundle(num_filters=32, pool=True),
+
+            b.ConvBundle(num_filters=32),
+
+            # Fully connected layers
+            b.DenseBundle(num_units=64, dropout=.5),
+            b.DenseBundle(num_units=64, dropout=.5),
+            b.SoftmaxBundle(num_units=model.output_dims)
+        ]
+        return network_layers_def
+
+    def def_inception(model):
+        import ibeis_cnn.__LASAGNE__ as lasange
+        from ibeis_cnn import custom_layers
+        print('[model] init_arch')
+
+        N = 8
+        dropout = .5
+
+        lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 10.))
+        # Define default incption branch types
+        incep_branches = [
+            dict(t='c', s=(1, 1), r=0, n=N),
+            dict(t='c', s=(3, 3), r=N // 2, n=N),
+            dict(t='c', s=(3, 3), r=N // 4, n=N // 2, d=2),
+            dict(t='p', s=(3, 3), n=N // 2)
+        ]
+
+        bundles = custom_layers.make_bundles(
+            nonlinearity=lrelu, batch_norm=True,
+            filter_size=(3, 3), stride=(1, 1),
+            pool_size=(2, 2), pool_stride=(2, 2),
+            branches=incep_branches,
+        )
+        b = ut.DynStruct(copy_dict=bundles)
+
+        network_layers_def = [
+            # Convolutional layers
+            b.InputBundle(shape=model.input_shape, noise=False),
+            b.ConvBundle(num_filters=N, filter_size=(3, 3), pool=True),
+
+            b.ConvBundle(num_filters=N, filter_size=(3, 3), pool=False),
+            b.ConvBundle(num_filters=N, filter_size=(3, 3), pool=True),
+
+            b.InceptionBundle(branches=incep_branches, dropout=dropout, pool=True),
+            b.InceptionBundle(dropout=dropout, pool=True),
+
+            b.InceptionBundle(dropout=dropout, pool=True),
+            b.InceptionBundle(dropout=dropout, pool=True),
+
+            b.InceptionBundle(dropout=dropout, pool=True),
+            b.InceptionBundle(dropout=dropout,
+                              branches=[
+                                  dict(t='c', s=(1, 1), r=0, n=model.output_dims),
+                                  dict(t='c', s=(3, 3), r=N // 2, n=model.output_dims),
+                                  dict(t='c', s=(3, 3), r=N // 4, n=model.output_dims, d=2),
+                                  dict(t='p', s=(3, 3), n=model.output_dims)
+                              ]),
+            b.GlobalPool(),
+            b.SoftmaxBundle(num_units=model.output_dims)
+            # Fully connected layers
+            #b.DenseBundle(num_units=64, dropout=.5),
+            #b.DenseBundle(num_units=64, dropout=.5),
+        ]
+        return network_layers_def
+
     def init_arch(model, verbose=ut.VERBOSE, **kwargs):
         r"""
 
@@ -191,41 +281,8 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             >>> model.show_arch()
             >>> ut.show_if_requested()
         """
-        import ibeis_cnn.__LASAGNE__ as lasange
-        from ibeis_cnn import custom_layers
-        print('[model] init_arch')
-        lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 10.))
-        bundles = custom_layers.make_bundles(
-            nonlinearity=lrelu, batch_norm=True,
-            filter_size=(3, 3), stride=(1, 1),
-            pool_size=(2, 2), pool_stride=(2, 2)
-        )
-        InputBundle   = bundles['InputBundle']
-        ConvBundle    = bundles['ConvBundle']
-        DenseBundle   = bundles['DenseBundle']
-        SoftmaxBundle = bundles['SoftmaxBundle']
-
-        network_layers_def = [
-            InputBundle(shape=model.input_shape, noise=False),
-            # Convolutional layers
-            ConvBundle(num_filters=16, pool=True),
-
-            ConvBundle(num_filters=16),
-            ConvBundle(num_filters=16, pool=True),
-
-            ConvBundle(num_filters=16),
-            ConvBundle(num_filters=32, pool=True),
-
-            ConvBundle(num_filters=32),
-            ConvBundle(num_filters=32, pool=True),
-
-            ConvBundle(num_filters=32),
-
-            # Fully connected layers
-            DenseBundle(num_units=64, dropout=.5),
-            DenseBundle(num_units=64, dropout=.5),
-            SoftmaxBundle(num_units=model.output_dims)
-        ]
+        #network_layers_def = model.def_lenet()
+        network_layers_def = model.def_inception()
         network_layers = abstract_models.evaluate_layer_list(
             network_layers_def, verbose=verbose)
         #model.network_layers = network_layers
