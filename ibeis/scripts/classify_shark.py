@@ -127,9 +127,10 @@ def shark_net(dry=False):
         max_epochs=1200,
         rate_schedule=.9,
         augment_on=True,
-        class_weight='balanced'
+        class_weight='balanced',
+        stopping_patience=100,
     )
-    model.learn_state.weight_decay = .001
+    model.learn_state.weight_decay = .01
     model.learn_state.learning_rate = .0003
     ut.update_existing(model.hyperparams, hyperparams, assert_exists=True)
     model.monitor_config['monitor'] = True
