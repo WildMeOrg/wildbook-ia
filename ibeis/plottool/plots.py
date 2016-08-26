@@ -511,7 +511,7 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
 
 
 def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
-                            maxima_thresh=None, **kwargs):
+                            maxima_thresh=None, remove_endpoints=True, **kwargs):
     r"""
     Args:
         hist (ndarray):
@@ -541,14 +541,15 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
     argmaxima = np.array(ut.ensure_iterable(argmaxima))
     maxima_y = np.array(ut.ensure_iterable(maxima_y))
     maxima_x = np.array(ut.ensure_iterable(maxima_x))
-    if len(argmaxima) > 0 and argmaxima[-1] == len(hist) - 1:
-        argmaxima = argmaxima[:-1]
-        maxima_x = maxima_x[:-1]
-        maxima_y = maxima_y[:-1]
-    if len(argmaxima) > 0 and argmaxima[0] == 0:
-        maxima_x = maxima_x[1:]
-        maxima_y = maxima_y[1:]
-        argmaxima = argmaxima[1:]
+    if remove_endpoints:
+        if len(argmaxima) > 0 and argmaxima[-1] == len(hist) - 1:
+            argmaxima = argmaxima[:-1]
+            maxima_x = maxima_x[:-1]
+            maxima_y = maxima_y[:-1]
+        if len(argmaxima) > 0 and argmaxima[0] == 0:
+            maxima_x = maxima_x[1:]
+            maxima_y = maxima_y[1:]
+            argmaxima = argmaxima[1:]
     # Expand parabola points around submaxima
     x123, y123 = vt.maxima_neighbors(argmaxima, hist, centers)
     # Find submaxima
