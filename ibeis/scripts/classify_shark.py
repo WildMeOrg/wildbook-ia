@@ -45,7 +45,7 @@ def shark_net(dry=False):
     if ut.get_computer_name() == 'Leviathan':
         batch_size = 128
     else:
-        batch_size = 32
+        batch_size = 64
     model = classify_shark.WhaleSharkInjuryModel(
         name='injur-shark',
         dataset_dpath=dataset.dataset_dpath,
@@ -131,7 +131,7 @@ def shark_net(dry=False):
         class_weight='balanced',
         stopping_patience=100,
     )
-    model.learn_state.weight_decay = .00001
+    model.learn_state.weight_decay = .000001
     model.learn_state.learning_rate = .01
     ut.update_existing(model.hyperparams, hyperparams, assert_exists=True)
     model.monitor_config['monitor'] = True
@@ -207,7 +207,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         from ibeis_cnn import custom_layers
         print('[model] init_arch')
 
-        N = 8
+        N = 16
         dropout = .5
 
         lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 10.))
@@ -230,16 +230,16 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         network_layers_def = [
             # Convolutional layers
             b.InputBundle(shape=model.input_shape, noise=False),
-            b.ConvBundle(num_filters=N, filter_size=(3, 3), pool=True),
+            b.ConvBundle(num_filters=16, filter_size=(3, 3), pool=True),
 
-            b.ConvBundle(num_filters=N, filter_size=(3, 3), pool=False),
-            b.ConvBundle(num_filters=N, filter_size=(3, 3), pool=True),
+            b.ConvBundle(num_filters=32, filter_size=(3, 3), pool=False),
+            b.ConvBundle(num_filters=32, filter_size=(3, 3), pool=True),
 
             b.InceptionBundle(branches=incep_branches, dropout=dropout, pool=True),
             b.InceptionBundle(dropout=dropout, pool=True),
 
-            b.InceptionBundle(dropout=dropout, pool=True),
-            b.InceptionBundle(dropout=dropout, pool=True),
+            #b.InceptionBundle(dropout=dropout, pool=True),
+            #b.InceptionBundle(dropout=dropout, pool=True),
 
             b.InceptionBundle(dropout=dropout, pool=True),
             b.InceptionBundle(dropout=dropout,
@@ -281,8 +281,10 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             >>> model.show_arch()
             >>> ut.show_if_requested()
         """
-        #network_layers_def = model.def_lenet()
-        network_layers_def = model.def_inception()
+        if 1 or ut.get_computer_name() == 'Leviathan':
+            network_layers_def = model.def_inception()
+        else:
+            network_layers_def = model.def_lenet()
         network_layers = abstract_models.evaluate_layer_list(
             network_layers_def, verbose=verbose)
         #model.network_layers = network_layers
