@@ -40,6 +40,10 @@ def shark_net(dry=False):
     # ------------
     # Define model
     # ------------
+    if ut.get_computer_name() == 'Leviathan':
+        batch_size = 128
+    else:
+        batch_size = 32
     model = classify_shark.WhaleSharkInjuryModel(
         name='injur-shark',
         dataset_dpath=dataset.dataset_dpath,
@@ -47,9 +51,9 @@ def shark_net(dry=False):
         #
         output_dims=2,
         data_shape=config['dim_size'] + (3,),
-        batch_size=64,
+        batch_size=batch_size,
     )
-    model.initialize_architecture()
+    model.init_arch()
     model.print_layer_info()
 
     if False:
@@ -64,16 +68,16 @@ def shark_net(dry=False):
         )
         print(report)
 
-    if dry or ut.get_argflag('--dry'):
-        return model, dataset
-
-    model.learn_state.weight_decay = .01
-    model.learn_state.learning_rate = .00005
-    model.hyperparams.update(**dict(
+    hyperparams = dict(
         era_size=5,
         max_epochs=1200,
-        rate_decay=.9,
-    ))
+        rate_schedule=.9,
+        augment_on=True,
+        class_weight='balanced'
+    )
+    model.learn_state.weight_decay = .001
+    model.learn_state.learning_rate = .0003
+    ut.update_existing(model.hyperparams, hyperparams, assert_exists=True)
     model.monitor_config['monitor'] = True
 
     #model.build_backprop_func()
@@ -86,6 +90,12 @@ def shark_net(dry=False):
     X_learn, y_learn = dataset.subset('learn')
     X_valid, y_valid = dataset.subset('valid')
     #model.ensure_data_params(X_learn, y_learn)
+    X_train = X_learn  # NOQA
+    y_train = y_learn  # NOQA
+    valid_idx = None  # NOQA
+
+    if dry or ut.get_argflag('--dry'):
+        return model, dataset
     model.fit(X_learn, y_learn, X_valid=X_valid, y_valid=y_valid)
 
 
@@ -101,12 +111,12 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         >>> ibs = ds.ibs
     """
 
-    def initialize_architecture(model, verbose=ut.VERBOSE, **kwargs):
+    def init_arch(model, verbose=ut.VERBOSE, **kwargs):
         r"""
 
         CommandLine:
-            python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.initialize_architecture
-            python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.initialize_architecture --show
+            python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.init_arch
+            python -m ibeis.scripts.classify_shark WhaleSharkInjuryModel.init_arch --show
 
             python -m ibeis.scripts.classify_shark shark_net --dry --show
             python -m ibeis.scripts.classify_shark shark_net --vd
@@ -119,7 +129,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             >>>                                  default=(224, 224, 3)))
             >>> model = WhaleSharkInjuryModel(batch_size=64, output_dims=2,
             >>>                               data_shape=data_shape)
-            >>> model.initialize_architecture()
+            >>> model.init_arch()
             >>> model.print_model_info_str()
             >>> ut.quit_if_noshow()
             >>> model.show_arch()
@@ -127,7 +137,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         """
         import ibeis_cnn.__LASAGNE__ as lasange
         from ibeis_cnn import custom_layers
-        print('[model] initialize_architecture')
+        print('[model] init_arch')
         lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 10.))
         bundles = custom_layers.make_bundles(
             nonlinearity=lrelu, batch_norm=True,
@@ -166,6 +176,45 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         output_layer = network_layers[-1]
         model.output_layer = output_layer
         return output_layer
+
+    #def loss_function():
+    #    pass
+
+    def augment(self, Xb, yb=None):
+        """
+        X_valid, y_valid = dataset.subset('valid')
+        num = 10
+        Xb = X_valid[:num]
+        Xb = Xb / 255.0 if ut.is_int(Xb) else Xb
+        Xb = Xb.astype(np.float32, copy=True)
+        yb = None if yb is None else yb.astype(np.int32, copy=True)
+        # Rescale the batch data to the range 0 to 1
+        Xb_, yb_ = model.augment(Xb)
+        yb_ = None
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> from ibeis_cnn import augment
+        >>> augment.show_augmented_patches(Xb, Xb_, yb, yb_, data_per_label=1)
+        >>> ut.show_if_requested()
+        """
+        from ibeis_cnn import augment
+        rng = np.random
+        affperterb_ranges = dict(
+            zoom_range=(1.3, 1.2),
+            max_tx=2,
+            max_ty=2,
+            max_shear=ut.TAU / 32,
+            max_theta=ut.TAU,
+            enable_stretch=True,
+            enable_flip=True,
+        )
+        Xb_, yb_ = augment.augment_affine(
+            Xb, yb, rng=rng, inplace=True, data_per_label=1,
+            affperterb_ranges=affperterb_ranges,
+            aug_prop=.5,
+        )
+        return Xb_, yb_
 
     #def fit_interactive(X_train, y_train, X_valid, y_valid):
     #    pass
