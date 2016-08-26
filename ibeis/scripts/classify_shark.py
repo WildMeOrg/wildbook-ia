@@ -34,7 +34,8 @@ def shark_net(dry=False):
     # ------------
     # Define dataset
     # ------------
-    target_type = 'binary'
+    #target_type = 'binary'
+    target_type = 'multiclass3'
     # ut.delete(ibs.get_neuralnet_dir())  # to reset
     dataset = classify_shark.get_shark_dataset(target_type, 'chip')
 
@@ -50,7 +51,7 @@ def shark_net(dry=False):
         dataset_dpath=dataset.dataset_dpath,
         training_dpath=ibs.get_neuralnet_dir(),
         #
-        output_dims=2,
+        output_dims=len(dataset.getprop('target_names')),
         data_shape=config['dim_size'] + (3,),
         batch_size=batch_size,
     )
@@ -130,8 +131,8 @@ def shark_net(dry=False):
         class_weight='balanced',
         stopping_patience=100,
     )
-    model.learn_state.weight_decay = .01
-    model.learn_state.learning_rate = .0003
+    model.learn_state.weight_decay = .00001
+    model.learn_state.learning_rate = .01
     ut.update_existing(model.hyperparams, hyperparams, assert_exists=True)
     model.monitor_config['monitor'] = True
 
@@ -207,22 +208,22 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         network_layers_def = [
             InputBundle(shape=model.input_shape, noise=False),
             # Convolutional layers
+            ConvBundle(num_filters=16, pool=True),
+
+            ConvBundle(num_filters=16),
+            ConvBundle(num_filters=16, pool=True),
+
+            ConvBundle(num_filters=16),
             ConvBundle(num_filters=32, pool=True),
 
             ConvBundle(num_filters=32),
             ConvBundle(num_filters=32, pool=True),
 
-            ConvBundle(num_filters=64),
-            ConvBundle(num_filters=128, pool=True),
-
-            ConvBundle(num_filters=256),
-            ConvBundle(num_filters=256, pool=True),
-
-            ConvBundle(num_filters=256),
+            ConvBundle(num_filters=32),
 
             # Fully connected layers
-            DenseBundle(num_units=128, dropout=.5),
-            DenseBundle(num_units=128, dropout=.5),
+            DenseBundle(num_units=64, dropout=.5),
+            DenseBundle(num_units=64, dropout=.5),
             SoftmaxBundle(num_units=model.output_dims)
         ]
         network_layers = abstract_models.evaluate_layer_list(
@@ -232,8 +233,16 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         model.output_layer = output_layer
         return output_layer
 
-    #def loss_function():
-    #    pass
+    def special_output():
+        pass
+
+    #def special_loss_function(output_activations):
+    #    output_injur1 = output_activations[:, 0]
+    #    output_injur2 = output_activations[:, 1]
+    #    output_healthy = (1 - ((1 - output_injur1) * (1 - output_injur2))
+    #    import ibeis_cnn.__LASAGNE__ as lasange
+    #    lasange.objectives.binary_crossentropy(output_injur1)
+    #    lasange.objectives.binary_crossentropy(output_injur2)
 
     def augment(self, Xb, yb=None):
         """
@@ -1054,9 +1063,9 @@ def shark_svm():
     result_list = [result]
 
     import pandas as pd
-    import plottool as pt
+    #import plottool as pt
     # Combine information from results
-    df = pd.concat([result.df for result in result_list])
+    df = pd.concat([r.df for r in result_list])
     df['hardness'] = 1 / df['easiness']
     df['aid'] = ut.take(ds.aids, df.index)
     df['target'] = ut.take(ds.target, df.index)
