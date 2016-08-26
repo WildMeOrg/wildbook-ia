@@ -74,6 +74,18 @@ def shark_net(dry=False):
         )
         print(report)
 
+        # BINARY 5-fold SVM+hog (C=.9), all train ***** LASTET ****
+        #             precision    recall  f1-score   support
+        #    healthy       0.84      0.78      0.81      1130
+        #    injured       0.70      0.78      0.74       745
+        #avg / total       0.79      0.78      0.78      1875
+        #Confusion Matrix:
+        #            healthy  injured
+        #gt healthy      884      246
+        #gt injured      164      581
+
+
+
         # 5-fold SVM+Hog
         #     Precision / Recall: (note recall is accuracy in this case)
         #             precision    recall  f1-score   support
@@ -129,12 +141,14 @@ def shark_net(dry=False):
         rate_schedule=.99,
         augment_on=True,
         class_weight='balanced',
-        stopping_patience=100,
+        stopping_patience=200,
     )
     model.learn_state.weight_decay = .000001
     model.learn_state.learning_rate = .01
     ut.update_existing(model.hyperparams, hyperparams, assert_exists=True)
     model.monitor_config['monitor'] = True
+    model.monitor_config['weight_dump_freq'] = 5
+    model.monitor_config['case_dump_freq'] = 100
 
     #model.build_backprop_func()
     #model.build_forward_func()
@@ -278,10 +292,10 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             >>> model.init_arch()
             >>> model.print_model_info_str()
             >>> ut.quit_if_noshow()
-            >>> model.show_arch()
+            >>> model.show_arch(fullinfo=False)
             >>> ut.show_if_requested()
         """
-        if 1 or ut.get_computer_name() == 'Leviathan':
+        if ut.get_computer_name() == 'Leviathan':
             network_layers_def = model.def_inception()
         else:
             network_layers_def = model.def_lenet()
@@ -754,8 +768,8 @@ class ClfProblem(object):
             #ydata_mean = c_ydata
             #y_data_max = ydata_mean + y_data_std
             #y_data_min = ydata_mean - y_data_std
-            #import plottool as pt
-            #pt.figure(fnum=pt.ensure_fnum(None))
+            ##import plottool as pt
+            ##pt.figure(fnum=pt.ensure_fnum(None))
             #ax = pt.gca()
             #ax.fill_between(c_xdata, c_ydata, y_data_max, alpha=.2, color=pt.LIGHT_BLUE)
             #ax.fill_between(c_xdata, c_ydata, y_data_min, alpha=.2, color=pt.LIGHT_BLUE)
@@ -790,6 +804,19 @@ class ClfProblem(object):
             #0.777 (+/-0.038) for {u'C': 0.02807216203941177}
             #0.775 (+/-0.036) for {u'C': 0.032903445623126679}
             #0.773 (+/-0.033) for {u'C': 0.038566204211634723}
+
+            #0.722 (+/-0.060) for {u'C': 0.001}
+            #0.770 (+/-0.047) for {u'C': 0.01}
+            #0.775 (+/-0.047) for {u'C': 0.1}
+            #0.774 (+/-0.047) for {u'C': 0.12}
+            #0.773 (+/-0.045) for {u'C': 0.15}
+            #0.773 (+/-0.046) for {u'C': 0.17}
+            #0.772 (+/-0.047) for {u'C': 0.2}
+            #0.760 (+/-0.043) for {u'C': 0.5}
+            #0.748 (+/-0.043) for {u'C': 1.0}
+            #0.707 (+/-0.043) for {u'C': 100}
+            #0.702 (+/-0.047) for {u'C': 1000}
+
 
     def test_classifier(problem, clf, test_idx):
         print('[problem] test classifier on %d data points' % (len(test_idx),))
@@ -951,6 +978,7 @@ def shark_svm():
 
     CommandLine:
         python -m ibeis.scripts.classify_shark shark_svm --show
+        python -m ibeis.scripts.classify_shark shark_svm
 
     Example:
         >>> from ibeis.scripts.classify_shark import *  # NOQA
@@ -981,7 +1009,7 @@ def shark_svm():
 
     model_dpath = ut.ensuredir((ds.dataset_dpath, 'svms'))
     #n_folds = 10
-    n_folds = 5
+    n_folds = 10
     #ensemble_dpath = ut.ensuredir((model_dpath, 'svms_%d_fold' % (n_folds,)))
 
     train_idx = ds._split_idxs['train']
@@ -1049,7 +1077,7 @@ def shark_svm():
 
             param_grid = {
                 #'C': np.linspace(.1, .2, 10),
-                'C': [.001, .01, .1, .12, .15, .17, .2, .5, 1.0, 100, 1000]
+                'C': [.0001, .001, .005, .01, .08, .1, .12, .15, .17, .2, .22, .5, 1.0, 100, 1000, 10000]
                 #'C': np.linspace(.1, .2, 3),
             }
             clf = sklearn.svm.SVC(kernel=str('linear'), C=.17, class_weight='balanced',
@@ -1069,8 +1097,10 @@ def shark_svm():
             c_xdata = np.array([t[0]['C'] for t in grid.grid_scores_])
             c_ydata = np.array([t[1] for t in grid.grid_scores_])
             import vtool as vt
-            maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(c_ydata, c_xdata, maxima_thresh=None)
-            C = maxima_x
+            #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(c_ydata, c_xdata, maxima_thresh=None)
+            submaxima_x, submaxima_y = vt.argsubmaxima(c_ydata, c_xdata)
+            #pt.draw_hist_subbin_maxima(c_ydata, c_xdata, maxima_thresh=None, remove_endpoints=False)
+            C = submaxima_x[0]
             print('C = %r' % (C,))
         else:
             print('C = %r' % (C,))
@@ -1140,7 +1170,7 @@ def shark_svm():
     print(pd.DataFrame(confusion, columns=[m for m in result.ds.target_names],
                        index=['gt ' + m for m in result.ds.target_names]))
 
-    inspect_results(ds, result_list)
+    #inspect_results(ds, result_list)
 
     if False:
         if False:
