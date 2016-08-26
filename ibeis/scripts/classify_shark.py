@@ -84,8 +84,6 @@ def shark_net(dry=False):
         #gt healthy      884      246
         #gt injured      164      581
 
-
-
         # 5-fold SVM+Hog
         #     Precision / Recall: (note recall is accuracy in this case)
         #             precision    recall  f1-score   support
@@ -222,21 +220,19 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         print('[model] init_arch')
 
         N = 16
-        dropout = .5
-
         lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 10.))
         # Define default incption branch types
         incep_branches = [
             dict(t='c', s=(1, 1), r=0, n=N),
-            dict(t='c', s=(3, 3), r=N // 2, n=N),
-            dict(t='c', s=(3, 3), r=N // 4, n=N // 2, d=2),
+            dict(t='c', s=(3, 3), r=N // 2, n=N // 2),
+            dict(t='c', s=(3, 3), r=N // 4, n=N // 4, d=2),
             dict(t='p', s=(3, 3), n=N // 2)
         ]
 
         bundles = custom_layers.make_bundles(
             nonlinearity=lrelu, batch_norm=True,
             filter_size=(3, 3), stride=(1, 1),
-            pool_size=(2, 2), pool_stride=(2, 2),
+            pool_size=(3, 3), pool_stride=(2, 2),
             branches=incep_branches,
         )
         b = ut.DynStruct(copy_dict=bundles)
@@ -244,19 +240,14 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         network_layers_def = [
             # Convolutional layers
             b.InputBundle(shape=model.input_shape, noise=False),
-            b.ConvBundle(num_filters=16, filter_size=(3, 3), pool=True),
+            b.ConvBundle(num_filters=16, filter_size=(3, 3), pool=False),
+            b.ConvBundle(num_filters=12, filter_size=(3, 3), pool=True),
 
-            b.ConvBundle(num_filters=32, filter_size=(3, 3), pool=False),
-            b.ConvBundle(num_filters=32, filter_size=(3, 3), pool=True),
+            b.InceptionBundle(dropout=.3, pool=True),
+            b.InceptionBundle(dropout=.3, pool=True),
 
-            b.InceptionBundle(branches=incep_branches, dropout=dropout, pool=True),
-            b.InceptionBundle(dropout=dropout, pool=True),
-
-            #b.InceptionBundle(dropout=dropout, pool=True),
-            #b.InceptionBundle(dropout=dropout, pool=True),
-
-            b.InceptionBundle(dropout=dropout, pool=True),
-            b.InceptionBundle(dropout=dropout,
+            b.InceptionBundle(dropout=.4, pool=True),
+            b.InceptionBundle(dropout=.5,
                               branches=[
                                   dict(t='c', s=(1, 1), r=0, n=model.output_dims),
                                   dict(t='c', s=(3, 3), r=N // 2, n=model.output_dims),
@@ -295,7 +286,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             >>> model.show_arch(fullinfo=False)
             >>> ut.show_if_requested()
         """
-        if ut.get_computer_name() == 'Leviathan':
+        if 1 or ut.get_computer_name() == 'Leviathan':
             network_layers_def = model.def_inception()
         else:
             network_layers_def = model.def_lenet()
@@ -816,7 +807,6 @@ class ClfProblem(object):
             #0.748 (+/-0.043) for {u'C': 1.0}
             #0.707 (+/-0.043) for {u'C': 100}
             #0.702 (+/-0.047) for {u'C': 1000}
-
 
     def test_classifier(problem, clf, test_idx):
         print('[problem] test classifier on %d data points' % (len(test_idx),))
