@@ -34,8 +34,8 @@ def shark_net(dry=False):
     # ------------
     # Define dataset
     # ------------
-    #target_type = 'binary'
-    target_type = 'multiclass3'
+    target_type = 'binary'
+    #target_type = 'multiclass3'
     # ut.delete(ibs.get_neuralnet_dir())  # to reset
     dataset = classify_shark.get_shark_dataset(target_type, 'chip')
 
