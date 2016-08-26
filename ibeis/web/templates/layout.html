@@ -28,7 +28,7 @@
 
   <body>
     <div class="container">
-      {% if __wrapper__ %}
+      {% if __wrapper__ and __wrapper_header__ %}
         <div class="header">
           <ul class="nav nav-pills pull-right">
             {% for active, link, nice in NAVBAR %}
@@ -45,9 +45,9 @@
   	    {% block content %}{% endblock %}
   	  </div>
 
-      {% if __wrapper__ %}
+      {% if __wrapper__ and __wrapper_footer__ %}
         <div class="footer">
-          <p>&copy; IBEIS {{ YEAR }}</p>
+          <p>&copy; WildMe / IBEIS {{ YEAR }}</p>
         </div>
       {% endif %}
     </div> <!-- /container -->

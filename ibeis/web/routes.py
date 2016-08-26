@@ -13,6 +13,7 @@ from ibeis.web import appfuncs as appf
 from ibeis.web import routes_ajax
 import utool as ut
 import vtool as vt
+import numpy as np
 
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
@@ -36,6 +37,61 @@ def view():
         date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
         return date_list
 
+    def filter_annots_imageset(aid_list):
+        try:
+            imgsetid = request.args.get('imgsetid', '')
+            imgsetid = int(imgsetid)
+            imgsetid_list = ibs.get_valid_imgsetids()
+            assert imgsetid in imgsetid_list
+        except:
+            print('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
+            return aid_list
+        imgsetids_list = ibs.get_annot_imgsetids(aid_list)
+        aid_list = [
+            aid
+            for aid, imgsetid_list_ in zip(aid_list, imgsetids_list)
+            if imgsetid in imgsetid_list_
+        ]
+        return aid_list
+
+    def filter_images_imageset(gid_list):
+        try:
+            imgsetid = request.args.get('imgsetid', '')
+            imgsetid = int(imgsetid)
+            imgsetid_list = ibs.get_valid_imgsetids()
+            assert imgsetid in imgsetid_list
+        except:
+            print('ERROR PARSING IMAGESET ID FOR IMAGE FILTERING')
+            return gid_list
+        imgsetids_list = ibs.get_image_imgsetids(gid_list)
+        gid_list = [
+            gid
+            for gid, imgsetid_list_ in zip(gid_list, imgsetids_list)
+            if imgsetid in imgsetid_list_
+        ]
+        return gid_list
+
+    def filter_names_imageset(nid_list):
+        try:
+            imgsetid = request.args.get('imgsetid', '')
+            imgsetid = int(imgsetid)
+            imgsetid_list = ibs.get_valid_imgsetids()
+            assert imgsetid in imgsetid_list
+        except:
+            print('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
+            return nid_list
+        aids_list = ibs.get_name_aids(nid_list)
+        imgsetids_list = [
+            set(ut.flatten(ibs.get_annot_imgsetids(aid_list)))
+            for aid_list in aids_list
+        ]
+        nid_list = [
+            nid
+            for nid, imgsetid_list_ in zip(nid_list, imgsetids_list)
+            if imgsetid in imgsetid_list_
+        ]
+        return nid_list
+
     ibs = current_app.ibs
 
     filter_kw = {
@@ -48,21 +104,30 @@ def view():
 
     aid_list = ibs.get_valid_aids()
     aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+    aid_list = filter_annots_imageset(aid_list)
     gid_list = ibs.get_annot_gids(aid_list)
+    unixtime_list = ibs.get_image_unixtime(gid_list)
     nid_list = ibs.get_annot_name_rowids(aid_list)
     date_list = _date_list(gid_list)
+
+    flagged_date_list = ['2016/01/29', '2016/01/30', '2016/01/31', '2016/02/01']
 
     gid_list_unique = list(set(gid_list))
     date_list_unique = _date_list(gid_list_unique)
     date_taken_dict = {}
     for gid, date in zip(gid_list_unique, date_list_unique):
+        if date not in flagged_date_list:
+            continue
         if date not in date_taken_dict:
             date_taken_dict[date] = [0, 0]
         date_taken_dict[date][1] += 1
 
     gid_list_all = ibs.get_valid_gids()
+    gid_list_all = filter_images_imageset(gid_list_all)
     date_list_all = _date_list(gid_list_all)
     for gid, date in zip(gid_list_all, date_list_all):
+        if date not in flagged_date_list:
+            continue
         if date in date_taken_dict:
             date_taken_dict[date][0] += 1
 
@@ -75,9 +140,13 @@ def view():
     previous_seen_set = set()
     last_date = None
     date_seen_dict = {}
-    for index, (aid, nid, date) in enumerate(zip(aid_list, nid_list, date_list)):
+    for index, (unixtime, aid, nid, date) in enumerate(sorted(zip(unixtime_list, aid_list, nid_list, date_list))):
+        if date not in flagged_date_list:
+            continue
+
         index_list.append(index + 1)
         # Add to counters
+
         if date not in date_seen_dict:
             date_seen_dict[date] = [0, 0, 0, 0]
 
@@ -159,11 +228,21 @@ def view():
     # Counts
     imgsetid_list = ibs.get_valid_imgsetids()
     gid_list = ibs.get_valid_gids()
+    gid_list = filter_images_imageset(gid_list)
     aid_list = ibs.get_valid_aids()
+    aid_list = filter_annots_imageset(aid_list)
     nid_list = ibs.get_valid_nids()
-    contrib_list = ibs.get_valid_contrib_rowids()
+    nid_list = filter_names_imageset(nid_list)
+    # contrib_list = ibs.get_valid_contrib_rowids()
+    note_list = ibs.get_image_notes(gid_list)
+    note_list = [
+        ','.join(note.split(',')[:-1])
+        for note in note_list
+    ]
+    contrib_list = set(note_list)
     # nid_list = ibs.get_valid_nids()
     aid_list_count = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+    aid_list_count = filter_annots_imageset(aid_list_count)
     gid_list_count = list(set(ibs.get_annot_gids(aid_list_count)))
     nid_list_count_dup = ibs.get_annot_name_rowids(aid_list_count)
     nid_list_count = list(set(nid_list_count_dup))
@@ -172,15 +251,18 @@ def view():
     from ibeis.other import dbinfo as dbinfo_
     try:
         try:
+            raise KeyError()
             vals = dbinfo_.estimate_ggr_count(ibs)
             nsight1, nsight2, resight, pl_index, pl_error = vals
             # pl_index = 'Undefined - Zero recaptured (k = 0)'
         except KeyError:
-            c1 = bar_value_list4[-2]
-            c2 = bar_value_list4[-1]
-            c3 = bar_value_list6[-1]
+            index1 = bar_label_list.index('2016/01/30')
+            index2 = bar_label_list.index('2016/01/31')
+            c1 = bar_value_list4[index1]
+            c2 = bar_value_list4[index2]
+            c3 = bar_value_list6[index2]
             pl_index, pl_error = dbinfo_.sight_resight_count(c1, c2, c3)
-    except IndexError:
+    except (IndexError, ValueError):
         pl_index = 0
         pl_error = 0
 
@@ -210,8 +292,15 @@ def view():
     ]
 
     valid_aids = ibs.get_valid_aids()
+    valid_aids = filter_annots_imageset(valid_aids)
     used_gids = list(set( ibs.get_annot_gids(valid_aids) ))
-    used_contrib_tags = list(set( ibs.get_image_contributor_tag(used_gids) ))
+    # used_contrib_tags = list(set( ibs.get_image_contributor_tag(used_gids) ))
+    note_list = ibs.get_image_notes(used_gids)
+    note_list = [
+        ','.join(note.split(',')[:-1])
+        for note in note_list
+    ]
+    used_contrib_tags = set(note_list)
 
     # Get Age and sex (By Annot)
     # annot_sex_list = ibs.get_annot_sex(valid_aids_)
@@ -233,7 +322,7 @@ def view():
     name_sex_list = ibs.get_name_sex(nid_list_count)
     name_age_months_est_mins_list = ibs.get_name_age_months_est_min(nid_list_count)
     name_age_months_est_maxs_list = ibs.get_name_age_months_est_max(nid_list_count)
-    age_list = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    age_list = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     age_unreviewed = 0
     age_ambiguous = 0
     for nid, sex, min_ages, max_ages in zip(nid_list_count, name_sex_list, name_age_months_est_mins_list, name_age_months_est_maxs_list):
@@ -257,12 +346,34 @@ def view():
             # continue
         if (min_age is None or min_age < 12) and max_age < 12:
             age_list[sex][0] += 1
-        elif 12 <= min_age and min_age < 36 and 12 <= max_age and max_age < 36:
+        elif 12 <= min_age and min_age < 24 and 12 <= max_age and max_age < 24:
             age_list[sex][1] += 1
-        elif 36 <= min_age and (36 <= max_age or max_age is None):
+        elif 24 <= min_age and min_age < 36 and 24 <= max_age and max_age < 36:
             age_list[sex][2] += 1
+        elif 36 <= min_age and (36 <= max_age or max_age is None):
+            age_list[sex][3] += 1
 
-    dbinfo_str = dbinfo()
+    age_total = sum(map(sum, age_list)) + age_unreviewed + age_ambiguous
+    age_total = np.nan if age_total == 0 else age_total
+    age_fmt_str = (lambda x: '% 4d (% 2.02f%%)' % (x, 100 * x / age_total, ))
+    age_str_list = [
+        [
+            age_fmt_str(age)
+            for age in age_list_
+        ]
+        for age_list_ in age_list
+    ]
+    age_str_list.append(age_fmt_str(age_unreviewed))
+    age_str_list.append(age_fmt_str(age_ambiguous))
+
+    # dbinfo_str = dbinfo()
+    dbinfo_str = 'SKIPPED DBINFO'
+
+    path_dict = ibs.compute_ggr_path_dict()
+    if 'North' in path_dict:
+        path_dict.pop('North')
+    if 'Core' in path_dict:
+        path_dict.pop('Core')
 
     return appf.template('view',
                          line_index_list=index_list,
@@ -274,6 +385,7 @@ def view():
                          gps_list_markers=gps_list_markers,
                          gps_list_markers_all=gps_list_markers_all,
                          gps_list_tracks=gps_list_tracks,
+                         path_dict=path_dict,
                          bar_label_list=bar_label_list,
                          bar_value_list1=bar_value_list1,
                          bar_value_list2=bar_value_list2,
@@ -282,8 +394,10 @@ def view():
                          bar_value_list5=bar_value_list5,
                          bar_value_list6=bar_value_list6,
                          age_list=age_list,
+                         age_str_list=age_str_list,
                          age_ambiguous=age_ambiguous,
                          age_unreviewed=age_unreviewed,
+                         age_total=age_total,
                          dbinfo_str=dbinfo_str,
                          imgsetid_list=imgsetid_list,
                          imgsetid_list_str=','.join(map(str, imgsetid_list)),
@@ -312,7 +426,8 @@ def view():
                          used_gids=used_gids,
                          num_used_gids=len(used_gids),
                          used_contribs=used_contrib_tags,
-                         num_used_contribs=len(used_contrib_tags))
+                         num_used_contribs=len(used_contrib_tags),
+                         __wrapper_header__=False)
 
 
 @register_route('/view/imagesets/', methods=['GET'])

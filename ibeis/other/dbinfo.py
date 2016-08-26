@@ -169,6 +169,9 @@ def sight_resight_count(nvisit1, nvisit2, resight):
     """
     import math
     try:
+        nvisit1 = float(nvisit1)
+        nvisit2 = float(nvisit2)
+        resight = float(resight)
         pl_index = int(math.ceil( (nvisit1 * nvisit2) / resight ))
         pl_error_num = float((nvisit1 ** 2) * nvisit2 * (nvisit2 - resight))
         pl_error_dom = float(resight ** 3)

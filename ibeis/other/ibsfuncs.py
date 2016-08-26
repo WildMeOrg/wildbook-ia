@@ -5928,8 +5928,9 @@ def compute_occurrences(ibs, config=None):
 
 
 @register_ibs_method
-def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
+def compute_ggr_path_dict(ibs):
     from matplotlib.path import Path
+    import shapefile
 
     point_dict = {
         1  : [-0.829843, 35.732721],
@@ -5949,16 +5950,15 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
     }
 
     zone_dict = {
-        1 : [1, 2, 4, 7, 6],
-        2 : [2, 3, 5, 4],
-        3 : [4, 5, 10, 7],
-        4 : [6, 8, 12, 11],
-        5 : [8, 9, 13, 12],
-        6 : [9, 10, 14, 13],
+        '1' : [1, 2, 4, 7, 6],
+        '2' : [2, 3, 5, 4],
+        '3' : [4, 5, 10, 7],
+        '4' : [6, 8, 12, 11],
+        '5' : [8, 9, 13, 12],
+        '6' : [9, 10, 14, 13],
+        'North' : [6, 10, 14, 11],
+        'Core' : [1, 3, 14, 11],
     }
-
-    zone_list = sorted(zone_dict.keys()) + [7]
-    imageset_dict = { zone : [] for zone in zone_list }
 
     path_dict = {
         zone : Path(np.array(
@@ -5966,6 +5966,38 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
         ))
         for zone in zone_dict
     }
+
+    # ADD COUNTIES
+    name_list = [
+        'Laikipia',
+        'Samburu',
+        'Isiolo',
+        'Marsabit',
+        'Meru',
+    ]
+    county_file_url = 'https://lev.cs.rpi.edu/public/data/kenyan_counties_boundary_gps_coordinates.zip'
+    unzipped_path = ut.grab_zipped_url(county_file_url)
+    county_path = join(unzipped_path, 'County')
+    counties = shapefile.Reader(county_path)
+    for record, shape in zip(counties.records(), counties.shapes()):
+        name = record[5]
+        if name not in name_list:
+            continue
+        point_list = shape.points
+        point_list = [ list(point)[::-1] for point in point_list ]
+        path_dict[name] = Path(np.array(
+            point_list
+        ))
+
+    return path_dict
+
+
+@register_ibs_method
+def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False):
+    # GET DATA
+    path_dict = ibs.compute_ggr_path_dict()
+    zone_list = sorted(path_dict.keys()) + ['7']
+    imageset_dict = { zone : [] for zone in zone_list }
 
     if gid_list is None:
         gid_list = ibs.get_valid_gids()
@@ -5983,32 +6015,32 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
     ]
 
     special_zone_map = {
-        'GGR,3,A' : 1,
-        'GGR,8,A' : 3,
-        'GGR,10,A' : 1,
-        'GGR,13,A' : 1,
-        'GGR,14,A' : 1,
-        'GGR,15,A' : 1,
-        'GGR,19,A' : 2,
-        'GGR,23,A' : 1,
-        'GGR,24,A' : 1,
-        'GGR,25,A' : 1,
-        'GGR,27,A' : 1,
-        'GGR,29,A' : 1,
-        'GGR,37,A' : 1,
-        'GGR,37,B' : 1,
-        'GGR,38,C' : 1,
-        'GGR,40,A' : 1,
-        'GGR,41,B' : 1,
+        'GGR,3,A' : '1,Laikipia,Core',
+        'GGR,8,A' : '3,Isiolo,Core',
+        'GGR,10,A' : '1,Laikipia,Core',
+        'GGR,13,A' : '1,Laikipia,Core',
+        'GGR,14,A' : '1,Laikipia,Core',
+        'GGR,15,A' : '1,Laikipia,Core',
+        'GGR,19,A' : '2,Samburu,Core',
+        'GGR,23,A' : '1,Laikipia,Core',
+        'GGR,24,A' : '1,Laikipia,Core',
+        'GGR,25,A' : '1,Laikipia,Core',
+        'GGR,27,A' : '1,Laikipia,Core',
+        'GGR,29,A' : '1,Laikipia,Core',
+        'GGR,37,A' : '1,Laikipia,Core',
+        'GGR,37,B' : '1,Laikipia,Core',
+        'GGR,38,C' : '1,Laikipia,Core',
+        'GGR,40,A' : '1,Laikipia,Core',
+        'GGR,41,B' : '1,Laikipia,Core',
         'GGR,44,A' : None,
-        'GGR,45,A' : 2,
-        'GGR,46,A' : 1,
-        'GGR,62,B' : 1,
-        'GGR,86,A' : 3,
-        'GGR,96,A' : 1,
-        'GGR,97,B' : 2,
-        'GGR,108,A' : 1,
-        'GGR,118,C' : 6,
+        'GGR,45,A' : '2,Isiolo,Core',
+        'GGR,46,A' : '1,Laikipia,Core',
+        'GGR,62,B' : '1,Laikipia,Core',
+        'GGR,86,A' : '3,Isiolo,Core',
+        'GGR,96,A' : '1,Laikipia,Core',
+        'GGR,97,B' : '2,Samburu,Core',
+        'GGR,108,A' : '1,Laikipia,Core',
+        'GGR,118,C' : '6,North,Marsabit,Core',
     }
 
     skipped_gid_list = []
@@ -6050,9 +6082,11 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
         if point == (-1, -1):
             note = note_list[index]
             if note in special_zone_map:
-                zone = special_zone_map[note]
-                if zone is not None:
-                    imageset_dict[zone].append(gid)
+                zone_str = special_zone_map[note]
+                if zone_str is not None:
+                    zone_list = zone_str.strip().split(',')
+                    for zone in zone_list:
+                        imageset_dict[zone].append(gid)
                     continue
 
         if point == (-1, -1):
@@ -6067,11 +6101,10 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=True):
             if path.contains_point(point):
                 found = True
                 imageset_dict[zone].append(gid)
-                break
         if not found:
-            imageset_dict[7].append(gid)
+            imageset_dict['7'].append(gid)
 
-    for zone, gid_list in imageset_dict.iteritems():
+    for zone, gid_list in sorted(imageset_dict.iteritems()):
         imageset_str = 'GGR Special Zone %s' % (zone, )
         imageset_id = ibs.add_imagesets(imageset_str)
         args = (imageset_str, imageset_id, len(gid_list), )
