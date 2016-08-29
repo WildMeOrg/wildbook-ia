@@ -49,7 +49,7 @@ def shark_net(dry=False):
         batch_size = 128
         suffix = 'resnet'
     else:
-        suffix = 'resnet'
+        suffix = 'lenet'
         batch_size = 64
     model = classify_shark.WhaleSharkInjuryModel(
         name='injur-shark-' + suffix,
@@ -188,13 +188,15 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         import ibeis_cnn.__LASAGNE__ as lasange
         from ibeis_cnn import custom_layers
         print('[model] init_arch')
-        lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 10.))
+
+        lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 3.))
+        W = lasange.init.Orthogonal('relu')
+
         bundles = custom_layers.make_bundles(
             nonlinearity=lrelu, batch_norm=True,
             filter_size=(3, 3), stride=(1, 1),
             pool_size=(2, 2), pool_stride=(2, 2),
-            W=None,
-            residual=True,
+            W=W,
         )
         b = ut.DynStruct(copy_dict=bundles)
 
@@ -216,7 +218,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
 
             # Fully connected layers
             b.DenseBundle(num_units=64, dropout=.5),
-            b.DenseBundle(num_units=64, dropout=.5),
+            #b.DenseBundle(num_units=64, dropout=.5),
             b.SoftmaxBundle(num_units=model.output_dims)
         ]
         return network_layers_def
@@ -273,7 +275,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         print('[model] init_arch')
 
         N = 16
-        lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 10.))
+
         # Define default incption branch types
         incep_branches = [
             dict(t='c', s=(1, 1), r=0, n=N),
@@ -282,11 +284,15 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             dict(t='p', s=(3, 3), n=N // 2)
         ]
 
+        lrelu = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 3.))
+        W = lasange.init.Orthogonal('relu')
+
         bundles = custom_layers.make_bundles(
             nonlinearity=lrelu, batch_norm=True,
             filter_size=(3, 3), stride=(1, 1),
             pool_size=(3, 3), pool_stride=(2, 2),
             branches=incep_branches,
+            W=W,
         )
         b = ut.DynStruct(copy_dict=bundles)
 
