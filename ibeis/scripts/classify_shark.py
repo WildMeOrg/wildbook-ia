@@ -146,7 +146,7 @@ def shark_net(dry=False):
         class_weight='balanced',
         stopping_patience=200,
     )
-    model.learn_state.weight_decay = .000001
+    model.learn_state.weight_decay = .000002
     model.learn_state.learning_rate = .01
     ut.update_existing(model.hyperparams, hyperparams, assert_exists=True)
     model.monitor_config['monitor'] = True
@@ -252,18 +252,13 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             b.ResidualBundle(num_filters=16, stride=(2, 2)),
             b.ResidualBundle(num_filters=16),
 
-            b.ResidualBundle(num_filters=16, stride=(2, 2), dropout=.2),
-            b.ResidualBundle(num_filters=16, dropout=.2),
+            b.ResidualBundle(num_filters=16, stride=(2, 2)),
+            b.ResidualBundle(num_filters=16, dropout=None),
 
             b.ResidualBundle(num_filters=16, stride=(2, 2), dropout=.5),
             b.ResidualBundle(num_filters=16, postactivate=True, dropout=.5),
 
-            #b.ResidualBundle(num_filters=16),
-            #b.ResidualBundle(num_filters=16, stride=(2, 2)),
-
             # Fully connected layers
-            #b.DenseBundle(num_units=32, dropout=.5),
-            #b.DenseBundle(num_units=32, dropout=.5),
             b.GlobalPool(),
             b.SoftmaxBundle(num_units=model.output_dims)
         ]
