@@ -21,7 +21,10 @@ def shark_net(dry=False):
 
     Example:
         >>> from ibeis.scripts.classify_shark import *  # NOQA
-        >>> shark_net()
+        >>> model, dataset = shark_net()
+        >>> ut.quit_if_noshow()
+        >>> model.show_arch()
+        >>> ut.show_if_requested()
     """
     from ibeis.scripts import classify_shark
     import ibeis
@@ -187,7 +190,9 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         bundles = custom_layers.make_bundles(
             nonlinearity=lrelu, batch_norm=True,
             filter_size=(3, 3), stride=(1, 1),
-            pool_size=(2, 2), pool_stride=(2, 2)
+            pool_size=(2, 2), pool_stride=(2, 2),
+            W=None,
+            residual=True,
         )
         b = ut.DynStruct(copy_dict=bundles)
 
@@ -210,6 +215,52 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             # Fully connected layers
             b.DenseBundle(num_units=64, dropout=.5),
             b.DenseBundle(num_units=64, dropout=.5),
+            b.SoftmaxBundle(num_units=model.output_dims)
+        ]
+        return network_layers_def
+
+    def def_resnet(model):
+        import ibeis_cnn.__LASAGNE__ as lasange
+        from ibeis_cnn import custom_layers
+        print('[model] init_arch')
+        nonlinearity = lasange.nonlinearities.LeakyRectify(leakiness=(1. / 3.))
+        W = lasange.init.HeNormal(gain='relu')
+        #W = lasange.init.GlorotUniform()
+
+        bundles = custom_layers.make_bundles(
+            nonlinearity=nonlinearity,
+            filter_size=(3, 3), stride=(1, 1),
+            W=W, pool_size=(2, 2), pool_stride=(2, 2)
+        )
+        b = ut.DynStruct(copy_dict=bundles)
+
+        network_layers_def = [
+            b.InputBundle(shape=model.input_shape, noise=False),
+            # Convolutional layers
+            b.ConvBundle(num_filters=16, pool=False),
+
+            b.ResidualBundle(num_filters=16, stride=(2, 2), preactivate=False),
+            b.ResidualBundle(num_filters=16),
+
+            b.ResidualBundle(num_filters=16, stride=(2, 2)),
+            b.ResidualBundle(num_filters=16),
+
+            b.ResidualBundle(num_filters=16, stride=(2, 2)),
+            b.ResidualBundle(num_filters=16),
+
+            b.ResidualBundle(num_filters=16, stride=(2, 2), dropout=.2),
+            b.ResidualBundle(num_filters=16, dropout=.2),
+
+            b.ResidualBundle(num_filters=16, stride=(2, 2), dropout=.5),
+            b.ResidualBundle(num_filters=16, postactivate=True, dropout=.5),
+
+            #b.ResidualBundle(num_filters=16),
+            #b.ResidualBundle(num_filters=16, stride=(2, 2)),
+
+            # Fully connected layers
+            #b.DenseBundle(num_units=32, dropout=.5),
+            #b.DenseBundle(num_units=32, dropout=.5),
+            b.GlobalPool(),
             b.SoftmaxBundle(num_units=model.output_dims)
         ]
         return network_layers_def
@@ -289,9 +340,10 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
         if ut.get_computer_name() == 'Leviathan':
             network_layers_def = model.def_inception()
         else:
-            network_layers_def = model.def_lenet()
+            #network_layers_def = model.def_lenet()
+            network_layers_def = model.def_resnet()
         network_layers = abstract_models.evaluate_layer_list(
-            network_layers_def, verbose=verbose)
+            network_layers_def)
         #model.network_layers = network_layers
         output_layer = network_layers[-1]
         model.output_layer = output_layer
