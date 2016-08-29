@@ -17,7 +17,7 @@ def shark_net(dry=False):
     CommandLine:
         python -m ibeis.scripts.classify_shark shark_net
         python -m ibeis.scripts.classify_shark shark_net --dry
-        python -m ibeis.scripts.classify_shark shark_net --vd
+        python -m ibeis.scripts.classify_shark shark_net --vd --monitor
 
     Example:
         >>> from ibeis.scripts.classify_shark import *  # NOQA
