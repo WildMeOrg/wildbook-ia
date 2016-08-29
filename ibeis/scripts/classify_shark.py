@@ -47,10 +47,12 @@ def shark_net(dry=False):
     # ------------
     if ut.get_computer_name() == 'Leviathan':
         batch_size = 128
+        suffix = 'resnet'
     else:
+        suffix = 'resnet'
         batch_size = 64
     model = classify_shark.WhaleSharkInjuryModel(
-        name='injur-shark',
+        name='injur-shark-' + suffix,
         dataset_dpath=dataset.dataset_dpath,
         training_dpath=ibs.get_neuralnet_dir(),
         #
@@ -337,10 +339,12 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             >>> model.show_arch(fullinfo=False)
             >>> ut.show_if_requested()
         """
-        if ut.get_computer_name() == 'Leviathan':
+        #if ut.get_computer_name() == 'Leviathan':
+        if model.name.endswith('incep'):
             network_layers_def = model.def_inception()
-        else:
-            #network_layers_def = model.def_lenet()
+        elif model.name.endswith('lenet'):
+            network_layers_def = model.def_lenet()
+        elif model.name.endswith('resnet'):
             network_layers_def = model.def_resnet()
         network_layers = abstract_models.evaluate_layer_list(
             network_layers_def)
