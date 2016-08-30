@@ -451,10 +451,11 @@ def render_figure_to_image(fig, **savekw):
 
 
 class RenderingContext(object):
-    def __init__(self):
+    def __init__(self, **savekw):
         self.image = None
         self.fig = None
         self.was_interactive = None
+        self.savekw = savekw
 
     def __enter__(self):
         import plottool as pt
@@ -472,7 +473,7 @@ class RenderingContext(object):
             return False  # return a falsey value on error
         # Ensure that this figure will not pop up
         import plottool as pt
-        self.image = pt.render_figure_to_image(self.fig)
+        self.image = pt.render_figure_to_image(self.fig, **self.savekw)
         pt.plt.close(self.fig)
         if self.was_interactive:
             mpl.interactive(self.was_interactive)
