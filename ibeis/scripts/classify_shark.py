@@ -47,10 +47,13 @@ def shark_net(dry=False):
     # ------------
     if ut.get_computer_name() == 'Leviathan':
         batch_size = 128
-        suffix = 'resnet'
+        #suffix = 'resnet'
+        suffix = 'lenet'
     else:
         suffix = 'lenet'
         batch_size = 64
+        #suffix = 'resnet'
+        #batch_size = 32
     model = classify_shark.WhaleSharkInjuryModel(
         name='injur-shark-' + suffix,
         dataset_dpath=dataset.dataset_dpath,
@@ -64,79 +67,29 @@ def shark_net(dry=False):
     model.print_layer_info()
 
     if False:
+
+        model.arch_dpath = '/home/joncrall/Desktop/manually_saved/arch_injur-shark-resnet_o2_d27_c2942_jzuddodd/'
+
         state_fpath = model.get_model_state_fpath(dpath=model.trained_arch_dpath)
         state_fpath = model.get_model_state_fpath()
         model.load_model_state(fpath=state_fpath)
 
+        #X_test, y_test = dataset.subset('test')
+        #X_test, y_test = dataset.subset('valid')
+        #X_test, y_test = dataset.subset('learn')
         X_test, y_test = dataset.subset('test')
-        X_test, y_test = dataset.subset('valid')
-        X_test, y_test = dataset.subset('learn')
-        y_pred = model.predict(X_test)
+        #y_pred = model.predict(X_test)
         test_outptuts = model._predict(X_test)
         y_pred = test_outptuts['predictions']
+        print(model.name)
         report = sklearn.metrics.classification_report(
             y_true=y_test, y_pred=y_pred,
         )
         print(report)
 
-        # BINARY 5-fold SVM+hog (C=.9), all train ***** LASTET ****
-        #             precision    recall  f1-score   support
-        #    healthy       0.84      0.78      0.81      1130
-        #    injured       0.70      0.78      0.74       745
-        #avg / total       0.79      0.78      0.78      1875
-        #Confusion Matrix:
-        #            healthy  injured
-        #gt healthy      884      246
-        #gt injured      164      581
-
-        # 5-fold SVM+Hog
-        #     Precision / Recall: (note recall is accuracy in this case)
-        #             precision    recall  f1-score   support
-        #    healthy       0.80      0.77      0.79      6298
-        #    injured       0.63      0.68      0.66      3693
-        #avg / total       0.74      0.74      0.74      9991
-
-        # 10-fold SVM+Hog Multiclass
-        #             precision    recall  f1-score   support
-        #    healthy       0.87      0.75      0.80       620
-        # injur-scar       0.20      0.36      0.26       107
-        #injur-trunc       0.57      0.57      0.57       246
-        #avg / total       0.72      0.66      0.68       973
-        #             precision    recall  f1-score   support
-        #    healthy       0.87      0.75      0.80       620
-        # injur-scar       0.20      0.36      0.26       107
-        #injur-trunc       0.57      0.57      0.57       246
-        #avg / total       0.72      0.66      0.68       973
-        #Confusion Matrix:
-        #                healthy  injur-scar  injur-trunc
-        #gt healthy          464          94           62
-        #gt injur-scar        26          39           42
-        #gt injur-trunc       45          61          140
-
-        # SVM+hog C=1.0 (all train)
-        #             precision    recall  f1-score   support
-        #    healthy       0.86      0.72      0.79      1168
-        # injur-scar       0.22      0.38      0.28       216
-        #injur-trunc       0.55      0.59      0.57       489
-        #avg / total       0.71      0.65      0.67      1873
-
-        # Neural Network (test)
-        #             precision    recall  f1-score   support
-        #          0       0.87      0.83      0.85      1130
-        #          1       0.76      0.81      0.79       745
-        #avg / total       0.83      0.82      0.82      1875
-        # Neural Network (valid)
-        #             precision    recall  f1-score   support
-        #          0       0.87      0.83      0.85      1210
-        #          1       0.72      0.79      0.75       677
-        #avg / total       0.82      0.81      0.82      1887
-        # Neural Network (valid)
-        #             precision    recall  f1-score   support
-        #          0       0.89      0.87      0.88      3860
-        #          1       0.80      0.83      0.81      2434
-        #avg / total       0.86      0.85      0.85      6294
-
-        model.dump_cases(X_test, y_test, 'test')
+        state_fpath = '/home/joncrall/Desktop/manually_saved/arch_injur-shark-resnet_o2_d27_c2942_jzuddodd/model_state_arch_jzuddodd.pkl'
+        dpath = '/home/joncrall/Desktop/manually_saved/arch_injur-shark-lenet_o2_d11_c688_acioqbst'
+        model.dump_cases(X_test, y_test, 'test', dpath=dpath)
 
     hyperparams = dict(
         era_size=5,
@@ -340,6 +293,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             >>> model.show_arch(fullinfo=False)
             >>> ut.show_if_requested()
         """
+        from ibeis_cnn import custom_layers
         #if ut.get_computer_name() == 'Leviathan':
         if model.name.endswith('incep'):
             network_layers_def = model.def_inception()
@@ -347,7 +301,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
             network_layers_def = model.def_lenet()
         elif model.name.endswith('resnet'):
             network_layers_def = model.def_resnet()
-        network_layers = abstract_models.evaluate_layer_list(
+        network_layers = custom_layers.evaluate_layer_list(
             network_layers_def)
         #model.network_layers = network_layers
         output_layer = network_layers[-1]
