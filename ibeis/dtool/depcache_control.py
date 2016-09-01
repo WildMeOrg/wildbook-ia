@@ -347,18 +347,41 @@ class _CoreDependencyCache(object):
     # -----------------------------
     # STATE GETTERS
 
-    def get_parent_rowids(depc, tablename, input_tuple, **kwargs):
+    def get_parent_rowids(depc, target_tablename, input_tuple, config=None, **kwargs):
         """
         Returns the parent rowids needed to get / compute a property of
         tablename
-        """
-        target_tablename = tablename
-        _debug = kwargs.get('_debug', False)
-        _debug = depc._debug if _debug is None else _debug
-        _kwargs = kwargs.copy()
-        config = _kwargs.pop('config', {})
 
+        Args:
+            input_tuple :
+                to be explicit send in as a tuple of lists.  Each list
+                corresponds to parent information needed by expanded rmis (root
+                most input).
+
+                Each item in the tuple correponds a root most node, and should
+                be specified as a list of inputs. For single items this is a
+                scalar, for multi-items it is a list.
+
+                For example if you have a property like a chip that depends on
+                only one parent, then to get the chips for the first N
+                annotations your list input tuple is:
+                    input_tuple = ([1, 2, 3, ..., N],)
+
+                For a single multi inputs:
+                If you want to get two vocabs for even and odd annots then you have:
+                    ([[0, 2, 4, ...], [1, 3, 5, ...]],)
+
+                For a single comparasion version multi inputs:
+                If you want to query the first N annotats against two vocabs then you have:
+                    ([1, 2, 3, ..., N], [[0, 2, 4, ...], [1, 3, 5, ...]],)
+                (Note this only works if broadcasting is on)
+        """
+        _kwargs = kwargs.copy()
         _recompute = _kwargs.pop('recompute_all', False)
+        _debug = _kwargs.get('_debug', False)
+        _debug = depc._debug if _debug is None else _debug
+        if config is None:
+            config = {}
 
         with ut.Indenter('[GetParentID-%s]' % (target_tablename,),
                          enabled=_debug):
@@ -452,18 +475,18 @@ class _CoreDependencyCache(object):
                 _parent_rowids = list(zip(*parent_rowids2_))
                 #_parent_rowids = list(ut.product(*parent_rowids_))
 
-                if output_edge.tablename == target_tablename:
+                if output_edge.tablename != target_tablename:
+                    # Get table configuration
+                    config_ = depc._ensure_config(tablekey, config, _debug)
+
+                    output_rowids = table.get_rowid(_parent_rowids, config=config_,
+                                                    recompute=_recompute,  **_kwargs)
+                    rowid_dict[output_edge] = output_rowids
+                    #table.get_model_inputs(table.get_model_uuid(output_rowids)[0])
+                else:
                     # We are only computing up to the parents of the table here.
                     parent_rowids = _parent_rowids
                     break
-
-                # Get table configuration
-                config_ = depc._ensure_config(tablekey, config, _debug)
-
-                output_rowids = table.get_rowid(_parent_rowids, config=config_,
-                                                recompute=_recompute,  **_kwargs)
-                rowid_dict[output_edge] = output_rowids
-                #table.get_model_inputs(table.get_model_uuid(output_rowids)[0])
             #rowids = rowid_dict[output_edge]
             return parent_rowids
 

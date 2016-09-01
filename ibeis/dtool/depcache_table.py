@@ -89,6 +89,8 @@ def make_extern_io_funcs(table, cls):
     """ Hack in read/write defaults for pickleable classes """
     def _read_func(fpath, verbose=ut.VERBOSE):
         state_dict = ut.load_data(fpath, verbose=verbose)
+        # FIXME: The constructor should not be called by default to conform to
+        # pickle standards
         self = cls()
         self.__setstate__(state_dict)
         if hasattr(self, 'on_load'):
@@ -1376,7 +1378,11 @@ class _TableComputeHelper(object):
                 yield None
                 continue
             normal_data = ut.take(data, idxs2)
-            extern_data = ut.take(data, idxs1)
+            try:
+                extern_data = ut.take(data, idxs1)
+            except Exception as ex:
+                ut.printex(ex, 'Did you forget to return/yeild your data as a tuple?')
+                raise
             # Write external data to disk
             try:
                 _iter = zip(extern_data, extern_fpaths, extern_writers)
@@ -1482,9 +1488,9 @@ class _TableComputeHelper(object):
         # HACK extract config if given a request
         config_ = config.config if hasattr(config, 'config') else config
         # call registered worker function
-        if table.func_is_single:
-            # Function is written in a way that only accepts a single
-            # row of input at a time
+        if not table.vectorized:
+            # Function is written in a way that only accepts a single row of
+            # input at a time
             proptup_gen = (
                 table.preproc_func(table.depc, *argrow, config=config_)
                 for argrow in zip(*argsT))
@@ -1560,6 +1566,7 @@ class _TableComputeHelper(object):
         #    pass
         # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
         try:
+            prog_iter = list(prog_iter)
             for dirty_chunk in prog_iter:
                 nChunkInput = len(dirty_chunk)
                 if nChunkInput == 0:
@@ -1576,7 +1583,7 @@ class _TableComputeHelper(object):
                 ## HACK extract config if given a request
                 #config_ = config.config if hasattr(config, 'config') else config
                 ## call registered worker function
-                #if table.func_is_single:
+                #if table.vectorized:
                 #    # Function is written in a way that only accepts a single
                 #    # row of input at a time
                 #    proptup_gen = (
@@ -1630,6 +1637,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         data_colnames (List[str]): columns produced by preproc_func
         data_coltypes (List[str]): column SQL types produced by preproc_func
         preproc_func (func): worker function
+        vectorized (bool): by defaults it is assumed registered functions can
+            process multiple inputs at once.
 
     CommandLine:
         python -m dtool.depcache_table --exec-DependencyCacheTable
@@ -1650,7 +1659,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
                  docstr='no docstr', fname=None, asobject=False,
                  chunksize=None, isinteractive=False, default_to_unpack=False,
                  default_onthefly=False, rm_extern_on_delete=False,
-                 func_is_single=False):
+                 vectorized=True):
         """
         recieves kwargs from depc._register_prop
         """
@@ -1676,7 +1685,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         # Behavior
         table.on_delete = None
         table.default_to_unpack = default_to_unpack
-        table.func_is_single = func_is_single
+        table.vectorized = vectorized
 
         #table.store_modification_time = True
         # Use the filesystem to accomplish this
@@ -1985,6 +1994,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
                 print('[deptbl.get_rowid] ensure = %r' % (ensure,))
 
         # Ensure inputs are in the correct format / remove Nones
+        # Collapse multi-inputs into a UUID hash
         rectify_tup = table._rectify_ids(parent_rowids)
         (parent_ids_, preproc_args, idxs1, idxs2) = rectify_tup
         # Do the getting / adding work
@@ -2362,6 +2372,9 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
                     except ExternalStorageException:
                         if tries_left == 0:
                             raise
+                    else:
+                        # Things worked, dont need to try again
+                        break
                 ####
                 # Unflatten data into any given nested structure
                 if len(prop_listT) > 0:

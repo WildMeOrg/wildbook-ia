@@ -28,7 +28,7 @@ def depc_34_helper(depc):
             return retstr,
             #return (data + tablename + repr(row_arg) + repr(param_val)),
 
-        if kwargs.get('func_is_single'):
+        if kwargs.get('vectorized'):
             dummy_func = dummy_single_func
         else:
             def dummy_gen_func(depc, *argsT, **kw):
@@ -97,7 +97,7 @@ def testdata_depc3(in_memory=True):
     register_dummy_config(tablename='indexer', parents=['annot*'])
     register_dummy_config(tablename='neighbs', parents=['annot', 'indexer'])
     register_dummy_config(tablename='vocab', parents=['annot*'])
-    register_dummy_config(tablename='smk_vec', parents=['annot', 'vocab'], func_is_single=True)
+    register_dummy_config(tablename='smk_vec', parents=['annot', 'vocab'], vectorized=True)
     #register_dummy_config(tablename='inv_index', parents=['smk_vec*'])
     register_dummy_config(tablename='inv_index', parents=['smk_vec*', 'vocab'])
     register_dummy_config(tablename='smk_match', parents=['smk_vec', 'inv_index'])
@@ -165,7 +165,7 @@ def testdata_depc4(in_memory=True):
     register_dummy_config(tablename='indexer', parents=['feat*'])
     register_dummy_config(tablename='neighbs', parents=['feat', 'indexer'])
     register_dummy_config(tablename='vocab', parents=['feat*'])
-    register_dummy_config(tablename='smk_vec', parents=['feat', 'vocab'], func_is_single=True)
+    register_dummy_config(tablename='smk_vec', parents=['feat', 'vocab'], vectorized=False)
     #register_dummy_config(tablename='inv_index', parents=['smk_vec*'])
     register_dummy_config(tablename='inv_index', parents=['smk_vec*', 'vocab'])
     register_dummy_config(tablename='smk_match', parents=['smk_vec', 'inv_index'])
