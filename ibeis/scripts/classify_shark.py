@@ -54,20 +54,32 @@ def shark_net(dry=False):
         batch_size = 64
         #suffix = 'resnet'
         #batch_size = 32
-    model = classify_shark.WhaleSharkInjuryModel(
-        name='injur-shark-' + suffix,
-        dataset_dpath=dataset.dataset_dpath,
-        training_dpath=ibs.get_neuralnet_dir(),
-        #
-        output_dims=len(dataset.getprop('target_names')),
-        data_shape=config['dim_size'] + (3,),
-        batch_size=batch_size,
-    )
-    model.init_arch()
-    model.print_layer_info()
+
+    model_name = 'injur-shark-' + suffix
 
     if False:
+        model = classify_shark.WhaleSharkInjuryModel(
+            name=model_name,
+            output_dims=len(dataset.getprop('target_names')),
+            data_shape=config['dim_size'] + (3,),
+            batch_size=batch_size,
+            arch_dpath='.')
+        model.init_arch()
+        model.load_model_state()
+    else:
+        model = classify_shark.WhaleSharkInjuryModel(
+            name=model_name,
+            dataset_dpath=dataset.dataset_dpath,
+            training_dpath=ibs.get_neuralnet_dir(),
+            #
+            output_dims=len(dataset.getprop('target_names')),
+            data_shape=config['dim_size'] + (3,),
+            batch_size=batch_size,
+        )
+        model.init_arch()
+        model.print_layer_info()
 
+    if False:
         model.arch_dpath = '/home/joncrall/Desktop/manually_saved/arch_injur-shark-resnet_o2_d27_c2942_jzuddodd/'
 
         state_fpath = model.get_model_state_fpath(dpath=model.trained_arch_dpath)
@@ -115,10 +127,14 @@ def shark_net(dry=False):
 
     X_learn, y_learn = dataset.subset('learn')
     X_valid, y_valid = dataset.subset('valid')
+    X_test, y_test = dataset.subset('test')
     #model.ensure_data_params(X_learn, y_learn)
-    X_train = X_learn  # NOQA
-    y_train = y_learn  # NOQA
+    #X_train = X_learn  # NOQA
+    #y_train = y_learn  # NOQA
     valid_idx = None  # NOQA
+
+    import utool
+    utool.embed()
 
     if dry or ut.get_argflag('--dry'):
         return model, dataset
@@ -171,7 +187,7 @@ class WhaleSharkInjuryModel(abstract_models.AbstractCategoricalModel):
 
             # Fully connected layers
             b.DenseBundle(num_units=64, dropout=.5),
-            #b.DenseBundle(num_units=64, dropout=.5),
+            b.DenseBundle(num_units=64, dropout=.5),
             b.SoftmaxBundle(num_units=model.output_dims)
         ]
         return network_layers_def
@@ -531,6 +547,15 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
         }
     all_annots = ibs.annots(config=config)
 
+    isempty = ut.not_list(ut.lmap(len, ibs.images().aids))
+    #if False:
+    #    x = ibs.images().compress(isempty)
+    num_empty_images = sum(isempty)
+    print('Images without annotations: %r' % (num_empty_images,))
+
+    print('Building labels for %r annotations from %r images' % (
+        len(all_annots), len(ut.unique(all_annots.gids))))
+
     TARGET_TYPE = 'binary'
     #TARGET_TYPE = 'multiclass3'
     if target_type is None:
@@ -560,6 +585,10 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     category_tags = getshark.get_injur_categories(all_annots)
     print('Base Category Tags tags')
     print(ut.repr3(ut.dict_hist(ut.flatten(category_tags))))
+
+    print('Base Co-Occurrence Freq')
+    co_occur1 = ut.tag_coocurrence(category_tags)
+    print(ut.repr3(co_occur1))
 
     ntags_list = np.array(ut.lmap(len, category_tags))
     is_no_tag = ntags_list == 0

@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import splitext, join, exists, commonprefix
 import utool as ut
+import re
 (print, rrr, profile) = ut.inject2(__name__, '[getshark]')
 
 
@@ -53,8 +54,13 @@ def sync_whalesharks():
     # Check these images against what currently exists in WS_ALL
     import ibeis
     ibs = ibeis.opendb('WS_ALL')
+    all_images = ibs.images()
 
     DRY = True
+
+    num_ia_unique = len(set(all_images.uuids) - set(info['uuid']))
+
+    # TODO: Check that all the UUIDs in the IA database are indeed ok
 
     # Determine which items are in the database
     info_gid_list = ibs.get_image_gids_from_uuid(info['uuid'])
@@ -62,6 +68,9 @@ def sync_whalesharks():
     is_miss = ut.flag_None_items(info_gid_list)
     hit_info  = info.compress(is_hit)  # NOQA
     miss_info = info.compress(is_miss)  # NOQA
+    print('The IA database has %r images' % (len(all_images),))
+    print('The IA database has %r/%r images not from this downloaded set' % (num_ia_unique, len(all_images),))
+
     print('Have %d/%d parsed images' % (len(hit_info), len(info_gid_list)))
     print('Missing %d/%d parsed images' % (len(miss_info), len(info_gid_list)))
 
@@ -337,7 +346,7 @@ def sync_annot_info(ibs, single_annots, single_info, DRY):
 
     categories = get_injur_categories(single_annots.case_tags)
 
-    healthy_flags = ut.filterflags_general_tags(case_tags,
+    healthy_flags = ut.filterflags_general_tags(categories,
                                                 any_startswith=('injur-'))
     injured_flags = ut.filterflags_general_tags(single_annots.case_tags,
                                                 has_any=['healthy'])
@@ -484,14 +493,13 @@ def check_annot_disagree(single_info, single_annots, key1, prop2, repl2,
         print('dryrun')
 
 
-def get_injured_tags(tags_list, include_healthy=False):
+def get_injured_tags(tags_list, include_healthy=False, invert=False):
     """
     tags_list = single_info['tags']
     tags_list = single_annots.case_tags
     info_injur_tags = parse_injury_categories()
     annot_injur_tags = parse_injury_categories(single_annots.case_tags)
     """
-    import re
     injur_patterns = [
         'injur-.*', 'trunc', 'nicks', 'bite', 'scar', '.*damage.*', '.*scar',
         '.*bite', 'other_injury', 'injured', 'injur'
@@ -500,12 +508,9 @@ def get_injured_tags(tags_list, include_healthy=False):
         injur_patterns += ['healthy']
     flags_list = [[any([re.match(pat, t) for pat in injur_patterns])
                    for t in tags] for tags in tags_list]
+    if invert:
+        flags_list = ut.lmap(ut.not_list, flags_list)
     only_injur_tags = ut.zipcompress(tags_list, flags_list)
-    #other_tags = ut.zipcompress(tags_list, ut.lmap(ut.not_list, flags_list))
-    #hist = ut.tag_hist(only_injur_tags)
-    #print(ut.repr3(hist))
-    #hist = ut.tag_hist(other_tags)
-    #print(ut.repr3(hist))
     return only_injur_tags
 
 
@@ -514,8 +519,14 @@ def get_injur_categories(single_annots, verbose=False):
     #    print('Original tags')
     #    print(ut.repr3(ut.tag_hist(injur_tags)))
 
-    injur_tags = get_injured_tags(single_annots.case_tags, include_healthy=True)
-    import re
+    if isinstance(single_annots, list):
+        case_tags = single_annots
+        aids = list(range(len(single_annots)))
+    else:
+        case_tags = single_annots.case_tags
+        aids = single_annots.aids
+
+    injur_tags = get_injured_tags(case_tags, include_healthy=True)
 
     cleaned_tags, alias_map, unmapped = ut.modify_tags(
         injur_tags,
@@ -576,11 +587,20 @@ def get_injur_categories(single_annots, verbose=False):
         #    tags = ut.setdiff(tags, ['healthy'])
         return tags
     cleaned_tags = [fixinjur(aid, tags)
-                    for aid, tags in zip(single_annots.aids, cleaned_tags)]
+                    for aid, tags in zip(aids, cleaned_tags)]
     if verbose:
+
         print('mapping: ' + ut.repr3(ut.group_items(alias_map.keys(),
                                                     alias_map.values())))
         print('unmapped = %s' % (ut.repr3(unmapped),))
+
+        given_tags = set(ut.flatten(injur_tags))
+        alias_map_used = ut.odict()
+        for val, key in alias_map.items():
+            if val in given_tags:
+                alias_map_used[val] = key
+        print('used_mapping: ' + ut.repr3(ut.group_items(alias_map_used.keys(),
+                                                         alias_map_used.values())))
 
         print('Cleaned tags')
         hist = ut.tag_hist(cleaned_tags)
@@ -753,37 +773,45 @@ def parse_whaleshark_org():
                 if number is not None and len(parsed_info['orig_fname']) == number:
                     break
 
-    keywords, url_to_keys, parsed2 = getshark.parse_whaleshark_org_keywords()
-    print('Parsed %d keywords' % (len(keywords),))
-    print('Parsed %d urls from keywords' % (len(parsed2),))
-
     parsed_ = ut.ColumnLists(parsed_info)
-    print('Parsed %d urls' % (len(parsed_),))
+    print('Parsed %d urls from XML jsp' % (len(parsed_),))
 
+    # Fix trivial (all non-keyword entries are the same) duplicates
+    parsed_.cast_column('localid', lambda x: ut.oset(ut.ensure_iterable(x)))
+    parsed_.cast_column('new_fname', lambda x: ut.oset(ut.ensure_iterable(x)))
+    parsed1 = parsed_.merge_rows('img_url', merge_scalars=False)
+    parsed1.cast_column('localid', lambda x: list(x)[0])
+    parsed1.cast_column('new_fname', lambda x: list(x)[0])
     # Check and rectify for duplicate urls
-    unique_urls, idxs = parsed_.group_indicies('img_url')
-    toremove = []
-    for url, idxs in zip(unique_urls, idxs):
-        if len(idxs) == 1:
-            continue
-        dupinfo = parsed_.take(idxs)
-        del dupinfo[['localid', 'new_fname', 'img_url']]
-        can_fix = True
-        for key, vals in dupinfo.asdict().items():
-            if not ut.allsame(vals):
-                print(dupinfo.to_csv())
-                print(('Duplicate items have different values'))
-                # May need to fix a case when annoations happen in WB
-                assert False, 'cant have this happen'
-                can_fix = False
-        if can_fix:
-            toremove += idxs[1:]
-    print('Removing %d duplicate urls' % (len(toremove),))
-    flags = ut.not_list(ut.index_to_boolmask(toremove))
-    parsed1 = parsed_.compress(flags)
+    #unique_urls, idxs = parsed_.group_indicies('img_url')
+    #toremove = []
+    #for url, idxs in zip(unique_urls, idxs):
+    #    if len(idxs) == 1:
+    #        continue
+    #    dupinfo = parsed_.take(idxs)
+    #    del dupinfo[['localid', 'new_fname', 'img_url']]
+    #    can_fix = True
+    #    for key, vals in dupinfo.asdict().items():
+    #        if not ut.allsame(vals):
+    #            print(dupinfo.to_csv())
+    #            print(('Duplicate items have different values'))
+    #            # May need to fix a case when annoations happen in WB
+    #            assert False, 'cant have this happen'
+    #            can_fix = False
+    #    if can_fix:
+    #        toremove += idxs[1:]
+    #print('Removing %d duplicate urls' % (len(toremove),))
+    #flags = ut.not_list(ut.index_to_boolmask(toremove))
+    #parsed1 = parsed_.compress(flags)
 
     prefix = commonprefix(parsed1['img_url'])
     parsed1['suffix'] = [url_[len(prefix):] for url_ in parsed1['img_url']]
+
+    # Also parse using the keyword method
+    parsed2 = getshark.parse_whaleshark_org_keywords()
+
+    print('Parsed %d urls from XML jsp' % (len(parsed1),))
+    print('Parsed %d urls from keywords' % (len(parsed2),))
 
     # Apply keywords to existing images
     suffix_to_idx = ut.make_index_lookup(parsed1['suffix'])
@@ -791,6 +819,7 @@ def parse_whaleshark_org():
     match_idx1 = ut.filter_Nones(matching_idx)
     #matching1 = parsed1.take(match_idx1)
     matching2 = parsed2.take(ut.where(matching_idx))
+    print('Merging keyword and XML jsp results')
     print('There are %d items in common' % (len(matching2),))
     nonmatching2 = parsed2.take(ut.where(ut.not_list(matching_idx)))
 
@@ -809,6 +838,11 @@ def parse_whaleshark_org():
 
 
 def parse_whaleshark_org_keywords():
+    verbose = True
+
+    if verbose:
+        print('[keywords] Parsing whaleshark.org keywords')
+
     from ibeis.scripts import getshark
     url = 'http://www.whaleshark.org/getKeywordImages.jsp'
     cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo')
@@ -825,19 +859,20 @@ def parse_whaleshark_org_keywords():
             dict_ = ut.load_data(cache_fpath)
         return dict_
 
+    # Read all keyywords
     keywords = cached_json_request(url)['keywords']
     key_list = ut.take_column(keywords, 'indexName')
+    if verbose:
+        print('[keywords] Keyword indexName:')
+        print(ut.indent('\n'.join(sorted(key_list)), '* '))
 
+    # Request all images belonging to each keyword
     keyed_images = {}
     for key in ut.ProgIter(key_list, lbl='reading index', bs=True):
         key_url = url + '?indexName={indexName}'.format(indexName=key)
         keyed_images[key] = cached_json_request(key_url)['images']
 
-    url_to_keys = ut.ddict(list)
-    for key, images in keyed_images.items():
-        for imgdict in images:
-            url_to_keys[imgdict['url']].append(key)
-
+    # Flatten nested structure into ColumnList (note this will cause img_url duplicates)
     parsed_info2 = ut.ddict(list)
     for key, images in keyed_images.items():
         for imgdict in images:
@@ -846,34 +881,46 @@ def parse_whaleshark_org_keywords():
             parsed_info2['keywords'].append([key])
     parsed2_ = ut.ColumnLists(parsed_info2)
 
-    # Assert no unfixable duplicates exist
-    dups = ut.find_duplicate_items(parsed2_['img_url'])
-    for url, idxs in dups.items():
-        dupinfo = parsed2_.take(idxs)
-        del dupinfo[['img_url', 'keywords']]
-        for key, vals in dupinfo.asdict().items():
-            if not ut.allsame(vals):
-                print(dupinfo.to_csv())
-                print(('Duplicate items have different values'))
-                # May need to fix a case when annoations happen in WB
-                assert False, 'cant have this happen'
+    # Fix trivial (all non-keyword entries are the same) duplicates
+    parsed2_.cast_column('keywords', ut.oset)
+    parsed2 = parsed2_.merge_rows('img_url', merge_scalars=False)
+    parsed2.cast_column('keywords', list)
 
-    # Rectiry expected duplicate info
-    groups = parsed2_.group(parsed2_['img_url'])[1]
-    d = {}
-    d['keywords'] = [ut.unique(ut.flatten(g['keywords'])) for g in groups]
-    for key in parsed2_.keys():
-        if key == 'keywords':
-            continue
-        vals = [g[key] for g in groups]
-        assert all([ut.allsame(v) for v in vals])
-        d[key] = ut.take_column(vals, 0)
-    parsed2 = ut.ColumnLists(d)
+    if verbose:
+        injured_keywords = get_injured_tags(parsed2['keywords'])
+        other_keywords = get_injured_tags(parsed2['keywords'], invert=True)
+        injured_keyhist = ut.dict_hist(ut.flatten(injured_keywords), ordered=True)
+        other_keyhist = ut.dict_hist(ut.flatten(other_keywords), ordered=True)
+        print('Scraped %r images with keywords' % (len(parsed2)))
+        print('Of these, %r images had injured tags' % (sum(ut.lmap(bool, injured_keywords))))
+        print('Of these, %r images had other tags' % (sum(ut.lmap(bool, other_keywords))))
+        print('Of these, %r images had no injured tags' % (
+            len(parsed2) - sum(ut.lmap(bool, injured_keywords))))
+
+        print('')
+        print('Injured Keyword histogram:\n' + ', '.join(
+            ['*%s*: %s' % (k, v) for k, v in injured_keyhist.items()][::-1]))
+        print('')
+        print('Other Keyword histogram:\n' + ', '.join(
+            ['*%s*: %s' % (k, v) for k, v in other_keyhist.items()][::-1]))
+
+        # Get tag co-occurrence
+        print('Injur Keywords Co-Occurrence Freq')
+        co_occur = ut.tag_coocurrence(injured_keywords)
+        print(ut.repr3(co_occur))
+        print('Num co-occurrences: %r' % (sum(co_occur.values())))
+
+        print('Injur Keywords Co-Occurrence Percent')
+        co_occur_percent = ut.odict([(keys,  [100 * val / injured_keyhist[k] for k in keys]) for
+                                     keys, val in co_occur.items()])
+        print(ut.repr3(co_occur_percent, precision=2, nl=1))
+
+        _ = get_injur_categories(injured_keywords, verbose=True)  # NOQA
 
     prefix = commonprefix(parsed2['img_url'])
     parsed2['suffix'] = [url_[len(prefix):] for url_ in parsed2['img_url']]
     parsed2['new_fname'] = [suffix.replace('/', '--') for suffix in parsed2['suffix']]
-    return keywords, url_to_keys, parsed2
+    return parsed2
 
 
 def postprocess_filenames(parsed, download_dir):
@@ -888,6 +935,9 @@ def postprocess_filenames(parsed, download_dir):
 
     # Filter based on image type (keep only jpgs)
     ext_flags = [ext_ in ['.jpg', '.jpeg'] for ext_ in parsed['ext']]
+
+    invalid_exts = parsed.compress(ut.not_list(ext_flags))['ext']
+    print('Invalid Extensions: ' + ut.repr3(ut.dict_hist(invalid_exts)))
 
     parsed = parsed.compress(ext_flags)
     num_removed = sum(ut.not_list(ext_flags))
@@ -973,20 +1023,20 @@ def download_missing_images(parsed):
                 pass
 
 
-def postprocess_uuids(parsed):
+def postprocess_uuids(parsed_dl):
     import vtool as vt
     # Remove corrupted or ill-formatted images
     print('Checking for corrupted images')
-    isvalid = vt.filterflags_valid_images(parsed['new_fpath'])
-    parsed = parsed.compress(isvalid)
+    isvalid = vt.filterflags_valid_images(parsed_dl['new_fpath'], verbose=True)
+    parsed_dl = parsed_dl.compress(isvalid)
 
     # Assign uuids based on image content.
     # Stride of 1 is what IA uses internally
     _prog = ut.ProgPartial(bs=True, freq=1, adjust=True)
-    parsed['uuid'] = [ut.get_file_uuid(fpath_, stride=1)
-                         for fpath_ in _prog(parsed['new_fpath'],
+    parsed_dl['uuid'] = [ut.get_file_uuid(fpath_, stride=1)
+                         for fpath_ in _prog(parsed_dl['new_fpath'],
                                              lbl='uuid check')]
-    return parsed
+    return parsed_dl
 
 
 def postprocess_rectify_duplicates(unmerged):
@@ -998,6 +1048,7 @@ def postprocess_rectify_duplicates(unmerged):
 
     # Find rows with duplicate uuid entries
     multis = unmerged.get_multis('uuid')
+    print('There are %d images that appear more than once' % (len(multis)))
     # Map other attributes to ordered-sets to join them
     multi_keys = ut.setdiff(unmerged.keys(), ['uuid'])
     multis.cast_column(multi_keys, lambda v: ut.oset(ut.ensure_iterable(v)))
@@ -1036,6 +1087,7 @@ def postprocess_rectify_duplicates(unmerged):
 
     # Combine and return the rectifyied information
     info = singles + merged
+    print('Merged duplicates into %d truely unique images' % (len(info)))
     return info
 
 
