@@ -2563,6 +2563,7 @@ def filterflags_valid_images(gpath_list, valid_formats=None,
         invalid_format_hist = ut.dict_hist(invalid_format_list)
         print('The following {(ext,pil): count} formats were marked as invalid')
         print(ut.dict_str(invalid_format_hist))
+        print('Total Invalid Files %r' % (sum(invalid_format_hist.values()),))
     return isvalid_flags
 
 
