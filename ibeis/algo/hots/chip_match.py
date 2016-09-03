@@ -1009,23 +1009,8 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
         cm.initialize(**dict_subset)
         return cm
 
-    def _custom_str(cm):
-        r"""
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm()
-            >>> custom_str = cm._custom_str()
-            >>> result = ('custom_str = %s' % (ut.repr2(custom_str),))
-            >>> assert custom_str.startswith('qaid=1 nD=10')
-            >>> print(result)
-        """
-        infostr_ = 'qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
-        return infostr_
-
     def __nice__(cm):
-        return ' ' + cm._custom_str()
+        return 'qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
 
     @property
     def algo_annot_scores(cm):

@@ -29,27 +29,24 @@ def sync_whalesharks():
 
     # Read ALL data from whaleshark.org
     parsed = getshark.parse_whaleshark_org()
-    parsed = postprocess_filenames(parsed, download_dir)
-    parsed = postprocess_tags_build(parsed)
-    parsed = postprocess_tags_filter(parsed)
+    parsed = getshark.postprocess_filenames(parsed, download_dir)
+    parsed = getshark.postprocess_extfilter(parsed)
+    parsed = getshark.postprocess_tags_build(parsed)
+    parsed = getshark.postprocess_tags_filter(parsed)
 
     # Download images that we dont have yet
     download_missing_images(parsed)
 
     # Change variable name to info now that we downloaded
     parsed_dl = parsed.copy()
-    # Remove extranious columns
-    #del parsed_dl[['ext', 'localid', 'orig_fname', 'suffix', 'new_fname', 'keywords']]
-
-    parsed_dl = postprocess_uuids(parsed_dl)
+    parsed_dl = getshark.postprocess_corrupted(parsed_dl)
+    parsed_dl = getshark.postprocess_uuids(parsed_dl)
 
     # Name change again after time intensive step
     unmerged = parsed_dl.copy()
-    info = postprocess_rectify_duplicates(unmerged)
 
-    #ignore = ['img_url', 'keywords', 'orig_fname', 'suffix', 'new_fpath',
-    #          'new_fname']
-    #info.print(ignore=ignore)
+    # Squash duplicate images
+    info = getshark.postprocess_rectify_duplicates(unmerged)
 
     # Check these images against what currently exists in WS_ALL
     import ibeis
@@ -69,7 +66,8 @@ def sync_whalesharks():
     hit_info  = info.compress(is_hit)  # NOQA
     miss_info = info.compress(is_miss)  # NOQA
     print('The IA database has %r images' % (len(all_images),))
-    print('The IA database has %r/%r images not from this downloaded set' % (num_ia_unique, len(all_images),))
+    print('The IA database has %r/%r images not from this downloaded set' % (
+        num_ia_unique, len(all_images),))
 
     print('Have %d/%d parsed images' % (len(hit_info), len(info_gid_list)))
     print('Missing %d/%d parsed images' % (len(miss_info), len(info_gid_list)))
@@ -624,33 +622,63 @@ def get_injur_categories(single_annots, verbose=False):
 
 def add_new_images(ibs, miss_info):
     import numpy as np
-    # Determine which items are not in the database yet
-    #info_gid_list = ibs.get_image_gids_from_uuid(info['uuid'])
-    #is_miss = ut.flag_None_items(info_gid_list)
-    #miss_info = info.compress(is_miss)  # NOQA
 
-    # ADD IMAGES
+    isambiguous = miss_info.map_column('new_fpath', ut.isiterable)
+    assert not any(isambiguous), 'Cannot add ambiguous filenames'
+
+    # Add images to IA to get a gid
     gid_list = ibs.add_images(miss_info['new_fpath'])
     miss_info['gid'] = gid_list
 
+    # Check to see if adding any images failed
     failed_flags = ut.flag_None_items(miss_info['gid'])
-    print('# failed %s' % (sum(failed_flags)),)
+    print('# failed to add %s images' % (sum(failed_flags)),)
+
     passed_flags = ut.not_list(failed_flags)
     miss_info = miss_info.compress(passed_flags)
+
     ut.assert_all_not_None(miss_info['gid'])
     #ibs.get_image_uris_original(clist['gid'])
 
-    assert len(ut.find_duplicate_items(miss_info['gid'])) == 0
-    ibs.set_image_uris_original(miss_info['gid'], miss_info['img_url'], overwrite=True)
+    assert len(ut.find_duplicate_items(miss_info['gid'])) == 0, (
+        'duplicates should have already been sorted out')
 
+    # Just choose one of the urls if any are ambiguous
+    orig_urls = miss_info.map_column('img_url', lambda v: ut.ensure_iterable(v)[0])
+    ibs.set_image_uris_original(miss_info['gid'], orig_urls, overwrite=True)
+
+    print('Add new images to temporary imagesets')
     images_new = ibs.images(miss_info['gid'])
+    new_imgsettext = 'New Images ' + ut.get_timestamp()
+    images_new.append_to_imageset(new_imgsettext)
+    injured_keywords = get_injured_tags(miss_info['tags'])
+    hasinjur_kw = ut.lmap(bool, injured_keywords)
+    images_new.compress(hasinjur_kw).append_to_imageset(new_imgsettext + ' Injur')
+    images_new.compress(ut.not_list(hasinjur_kw)).append_to_imageset(new_imgsettext + ' Healthy')
+
+    verbose = True
+    if verbose:
+        other_keywords = get_injured_tags(miss_info['tags'], invert=True)
+        print('Added %r new images' % (len(miss_info)))
+        print('Of these, %r images had injured tags' % (sum(hasinjur_kw)))
+        print('Of these, %r images had other tags' % (sum(ut.lmap(bool, other_keywords))))
+        print('Of these, %r images had no injured tags' % (
+            len(miss_info) - sum(ut.lmap(bool, injured_keywords))))
+        #injured_keyhist = ut.dict_hist(ut.flatten(injured_keywords), ordered=True)
+        #other_keyhist = ut.dict_hist(ut.flatten(other_keywords), ordered=True)
+        #print('')
+        #print('Injured Keyword histogram:\n' + ', '.join(
+        #    ['*%s*: %s' % (k, v) for k, v in injured_keyhist.items()][::-1]))
+        #print('')
+        #print('Other Keyword histogram:\n' + ', '.join(
+        #    ['*%s*: %s' % (k, v) for k, v in other_keyhist.items()][::-1]))
+
     is_empty_annots = np.array(images_new.num_annotations) == 0
 
-    # TODO: multis
+    # Add anotations to images
     empty_new_info = miss_info.compress(is_empty_annots)
     empty_new_images = images_new.compress(is_empty_annots)
     gids = empty_new_images.gids
-    #empty_cur_annots = ibs.annots(ut.flatten(empty_cur_images.aids))
 
     # DETECT ANNOTATIONS ON NEW IMAGES
     config = {
@@ -680,6 +708,7 @@ def add_new_images(ibs, miss_info):
         elif len(bbox_list) == 1:
             results_list2.append((gid, bbox_list, theta_list))
         elif len(bbox_list) > 1:
+            # Take only a single annotation per bounding box.
             multi_gids.append(gid)
             idx = conf_list.argmax()
             res2 = (gid, bbox_list[idx:idx + 1], theta_list[idx:idx + 1])
@@ -925,22 +954,28 @@ def parse_whaleshark_org_keywords():
 
 def postprocess_filenames(parsed, download_dir):
     from os.path import commonprefix, basename  # NOQA
-    # Postprocess
+    # Create a new filename
     parsed['new_fpath'] = [join(download_dir, _fname)
-                                for _fname in parsed['new_fname']]
+                           for _fname in parsed['new_fname']]
+    # Remember the original filename
     prefix = commonprefix(parsed['img_url'])
     parsed['orig_fname'] = [url_[len(prefix):] for url_ in parsed['img_url']]
-
+    # Parse out the extension
     parsed['ext'] = [splitext(_fname)[-1] for _fname in parsed['new_fname']]
+    return parsed
 
+
+def postprocess_extfilter(parsed):
     # Filter based on image type (keep only jpgs)
-    ext_flags = [ext_ in ['.jpg', '.jpeg'] for ext_ in parsed['ext']]
+    valid_exts = ['.jpg', '.jpeg', '.png']
+    #, '.bmp', '.gif']
+    ext_flags = [ext_.lower() in valid_exts for ext_ in parsed['ext']]
 
     invalid_exts = parsed.compress(ut.not_list(ext_flags))['ext']
-    print('Invalid Extensions: ' + ut.repr3(ut.dict_hist(invalid_exts)))
-
     parsed = parsed.compress(ext_flags)
     num_removed = sum(ut.not_list(ext_flags))
+    print('Invalid Extensions: ' + ut.repr3(ut.dict_hist(invalid_exts)))
+    print('Valid Extensions: ' + ut.repr3(ut.dict_hist(parsed['ext'])))
     print('Removed %d images based on extensions' % (num_removed,))
     return parsed
 
@@ -1023,16 +1058,21 @@ def download_missing_images(parsed):
                 pass
 
 
-def postprocess_uuids(parsed_dl):
-    import vtool as vt
+def postprocess_corrupted(parsed_dl):
     # Remove corrupted or ill-formatted images
+    import vtool as vt
     print('Checking for corrupted images')
-    isvalid = vt.filterflags_valid_images(parsed_dl['new_fpath'], verbose=True)
-    parsed_dl = parsed_dl.compress(isvalid)
+    valid_flags = vt.filterflags_valid_images(
+        parsed_dl['new_fpath'], verbose=2)
+    parsed_dl = parsed_dl.compress(valid_flags)
+    return parsed_dl
 
+
+def postprocess_uuids(parsed_dl):
     # Assign uuids based on image content.
     # Stride of 1 is what IA uses internally
-    _prog = ut.ProgPartial(bs=True, freq=1, adjust=True)
+    print('Assigning file based UUID')
+    _prog = ut.ProgPartial(bs=True, freq=10, adjust=True)
     parsed_dl['uuid'] = [ut.get_file_uuid(fpath_, stride=1)
                          for fpath_ in _prog(parsed_dl['new_fpath'],
                                              lbl='uuid check')]
@@ -1067,6 +1107,24 @@ def postprocess_rectify_duplicates(unmerged):
     for key in takeone_keys:
         merged.cast_column(key, lambda v: v if len(v) <= 1 else ut.filter_Nones(v))
         merged.cast_column(key, lambda v: v[0] if len(v) == 1 else v)
+
+    # We need to at least rectify some of the ambiguous information.
+    # (ie, like where are we going to store the new image?)
+    # For this just take the first item in the ambiguous list
+    mustfix_keys = ['new_fpath', 'new_fname']
+    isambiguous = ut.or_lists(*merged.map_column(mustfix_keys, ut.isiterable))
+    for key in mustfix_keys:
+        merged.cast_column(key, lambda v: ut.ensure_iterable(v)[0])
+
+    print('Checking for ambiguous columns')
+    for key in takeone_keys:
+        isambiguous = merged.map_column(key, ut.isiterable)
+        num = sum(isambiguous)
+        if num > 0:
+            ut.colorprint('X: key=%s has %r ambiguities!' % (key, num), 'red')
+            #merged.compress(isambiguous).print(keys=[key, 'suffix'])
+        else:
+            ut.colorprint('o: key=%s is unambiguous' % (key,), 'green')
 
     # Take the first item from the columns that should only have one value
     #merged.cast_column(takeone_keys, lambda v: v[0])

@@ -186,6 +186,7 @@ def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, sco
     for cm in cm_list:
         assert cm.score_list is not None, 'score list must be computed'
         assert cm.annot_score_list is not None, 'annot_score_list must be computed'
+        # FIXME: this should just always be name
         if score_method == 'nsum':
             top_aids = cm.get_name_shortlist_aids(nNameShortList, nAnnotPerName)
         elif score_method == 'csum':

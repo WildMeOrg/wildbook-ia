@@ -3,18 +3,15 @@
 smk core
 """
 from __future__ import absolute_import, division, print_function
-#import six
 from six.moves import zip
 from itertools import product
 import utool
-#import pandas as pd
 import numpy as np
 import scipy.sparse as spsparse
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots.smk import smk_scoring
-from vtool import clustering2 as clustertool
-
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[smk_core]')
+import vtool as vt
+(print, rrr, profile) = utool.inject2(__name__, '[smk_core]')
 
 DEBUG_SMK = utool.DEBUG2 or utool.get_argflag('--debug-smk')
 
@@ -388,9 +385,9 @@ def flatten_correspondences(fm_nestlist, fs_nestlist, daid_nestlist, query_sccw)
 
 @profile
 def group_correspondences(all_matches, all_scores, all_daids, daid2_sccw):
-    daid_keys, groupxs = clustertool.group_indices(all_daids)
-    fs_list = clustertool.apply_grouping(all_scores, groupxs)
-    fm_list = clustertool.apply_grouping(all_matches, groupxs)
+    daid_keys, groupxs = vt.group_indices(all_daids)
+    fs_list = vt.apply_grouping(all_scores, groupxs)
+    fm_list = vt.apply_grouping(all_matches, groupxs)
     daid2_fm = {daid: fm for daid, fm in zip(daid_keys, fm_list)}
     daid2_fs = {daid: fs * daid2_sccw[daid] for daid, fs in zip(daid_keys, fs_list)}
     # FIXME: generalize to when nAssign > 1
@@ -515,9 +512,9 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     all_fms = all_fms.take(keep_xs, axis=0)
     all_daids_ = all_daids_.take(keep_xs)
 
-    daid_keys, groupxs = clustertool.group_indices(all_daids_)
-    fs_list = clustertool.apply_grouping(all_fss, groupxs)
-    fm_list = clustertool.apply_grouping(all_fms, groupxs)
+    daid_keys, groupxs = vt.group_indices(all_daids_)
+    fs_list = vt.apply_grouping(all_fss, groupxs)
+    fm_list = vt.apply_grouping(all_fms, groupxs)
     daid2_fm = {daid: fm for daid, fm in zip(daid_keys, fm_list)}
     daid2_fs = {daid: fs * daid2_sccw[daid] for daid, fs in zip(daid_keys, fs_list)}
     # FIXME: generalize to when nAssign > 1
