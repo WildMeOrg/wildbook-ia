@@ -76,6 +76,19 @@ def sync_whalesharks():
     if not DRY:
         add_new_images(ibs, miss_info)
 
+    # REFIND Existing
+    print('Redoing exist check')
+    info_gid_list = ibs.get_image_gids_from_uuid(info['uuid'])
+    is_hit  = ut.flag_not_None_items(info_gid_list)
+    is_miss = ut.flag_None_items(info_gid_list)
+    hit_info  = info.compress(is_hit)  # NOQA
+    miss_info = info.compress(is_miss)  # NOQA
+    print('The IA database has %r images' % (len(all_images),))
+    print('The IA database has %r/%r images not from this downloaded set' % (
+        num_ia_unique, len(all_images),))
+    print('Have %d/%d parsed images' % (len(hit_info), len(info_gid_list)))
+    print('Missing %d/%d parsed images' % (len(miss_info), len(info_gid_list)))
+
     # Sync existing info
     if True:
         sync_existing_images(ibs, info, DRY)
@@ -105,12 +118,16 @@ def sync_existing_images(ibs, hit_info, DRY):
     if not any(dirty_flags):
         print('...All %d original uris do not need fixing' % len(hit_images))
     else:
+        print('...There are %d/%d original uris that need fixing' % (sum(dirty_flags), len(dirty_flags)))
         dirty_info = hit_info.compress(dirty_flags)
         dirty_gids = dirty_info['gid']
         dirty_wb_props = dirty_info.map_column('img_url', lambda v: ut.ensure_iterable(v)[0])
         if not DRY:
             print('...Fixing %d original uris' % (sum(dirty_flags),))
             ibs.set_image_uris_original(dirty_gids, dirty_wb_props, overwrite=True)
+        else:
+            print('\n'.join(hit_images.compress(dirty_flags).uris_original))
+            dirty_info.print(keys='img_url')
 
     # Sync info in annotations
     num_annots = np.array(hit_images.num_annotations)
@@ -265,7 +282,7 @@ def sync_annot_info(ibs, single_annots, single_info, DRY):
     single_info['new_injurtags'] = new_injurtags
     dirty_info = single_info.compress(isdirty)
     print('new injur tags' + ut.repr4(ut.dict_hist(ut.flatten(new_injurtags))))
-    print('unioning new injur tags into %r annots' % (len(dirty_info),))
+    print('unioning new injur tags into %r/%r annots' % (sum(isdirty), len(isdirty)))
     if not DRY:
         ibs.append_annot_case_tags(dirty_info['aid'], dirty_info['new_injurtags'])
 
@@ -278,7 +295,7 @@ def sync_annot_info(ibs, single_annots, single_info, DRY):
     isdirty = [len(t) > 0 for t in single_info['new_keywords']]
     dirty_info = single_info.compress(isdirty)
     print('new_keywords' + ut.repr4(ut.dict_hist(ut.flatten(single_info['new_keywords']))))
-    print('unioning new_keywords into %r annots' % (len(dirty_info),))
+    print('unioning new_keywords into %r/%r annots' % (len(dirty_info), len(isdirty)))
     if not DRY:
         ibs.append_annot_case_tags(dirty_info['aid'], dirty_info['new_keywords'])
 
@@ -326,7 +343,7 @@ def sync_annot_info(ibs, single_annots, single_info, DRY):
     # Fix Species
     bad_flags = [s == '____' for s in single_annots.species]
     _annots = single_annots.compress(bad_flags)
-    print('%d/%d annots need fixed species' % (len(_annots), len(single_annots)))
+    print('%d/%d annots need fixed species' % (sum(bad_flags), len(single_annots)))
     if not DRY:
         _annots.species = ['whale_shark'] * len(_annots)
 
@@ -339,11 +356,15 @@ def sync_annot_info(ibs, single_annots, single_info, DRY):
     print('Tags from WB imgnames:' +
           ut.repr3(ut.dict_hist(ut.flatten(untagged_info['tags']))))
     untagged_images = ibs.images(untagged_annots.gids)
+    # Add healthy tag to anything without an injured tag
+    if not DRY:
+        print('Adding healthy tag to sharked not taged as injured')
+        ibs.append_annot_case_tags(untagged_annots.aids, ['healthy'] * len(untagged_annots.aids))
+
     if not DRY:
         untagged_images.append_to_imageset('Untagged')
 
     categories = get_injur_categories(single_annots.case_tags)
-
     healthy_flags = ut.filterflags_general_tags(categories,
                                                 any_startswith=('injur-'))
     injured_flags = ut.filterflags_general_tags(single_annots.case_tags,
@@ -696,6 +717,7 @@ def add_new_images(ibs, miss_info):
 
     # result is a tuple: (score, bbox_list, theta_list, conf_list, class_list)
     results_list = depc.get_property('localizations', gid_list, None, config=config)  # NOQA
+    print('Finished running localizations')
 
     results_list2 = []
     multi_gids = []
@@ -714,24 +736,33 @@ def add_new_images(ibs, miss_info):
             res2 = (gid, bbox_list[idx:idx + 1], theta_list[idx:idx + 1])
             results_list2.append(res2)
 
-    if False:
-        ibs.set_image_imagesettext(failed_gids, ['Fixme'] * len(failed_gids))
-        ibs.set_image_imagesettext(multi_gids, ['Fixme2'] * len(multi_gids))
+    print('%d/%d have localizations' % (len(results_list2), len(results_list)))
+    print('%d/%d are missing localizations' % (len(failed_gids), len(results_list)))
+    print('%d/%d had multiple localizations' % (len(multi_gids), len(results_list)))
+
+    # Add these to an imageset for fixing
+    ibs.images(failed_gids).append_to_imageset('NoLocs' + new_imgsettext)
+    ibs.images(multi_gids).append_to_imageset('MultiLocs' + new_imgsettext)
 
     # Reorder empty_info to be aligned with results
     localized_imgs = ibs.images(ut.take_column(results_list2, 0))
     empty_new_info_ = empty_new_info.loc_by_key('gid', localized_imgs.gids)
-    assert all([len(a) == 0 for a in localized_imgs.aids])
+    assert all([len(a) == 0 for a in localized_imgs.aids]), 'no annots should be made yet'
 
     # Override old bboxes
     bboxes = np.array(ut.take_column(results_list2, 1))[:, 0, :]
     thetas = np.array(ut.take_column(results_list2, 2))[:, 0]
-    names = empty_new_info_['nameid']
+    # Fix any ambiguities for name
+    names = empty_new_info_.map_column('nameid', lambda v: ut.ensure_iterable(v)[0])
+    names = ut.replace_nones(names, ibs.const.UNKNOWN)
+    #names = empty_new_info_['nameid']
+
     species = ['whale_shark'] * len(localized_imgs)
     aid_list = ibs.add_annots(localized_imgs.gids, bbox_list=bboxes,
                               theta_list=thetas, name_list=names,
                               species_list=species)
     aid_list
+    print('Finished adding new info')
 
 
 def _needs_redownload(fpath, seconds_thresh):
