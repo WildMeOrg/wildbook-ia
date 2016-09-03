@@ -41,21 +41,12 @@ try:
     import cv2
 except ImportError as ex:
     print('WARNING: import cv2 is failing!')
-#import six
-#import functools
 import numpy as np
 import numpy.linalg as npl
 import utool as ut
 import warnings  # NOQA
-
-#profile = ut.profile
 (print, rrr, profile) = ut.inject2(__name__, '[linalg]')
 
-'''
-#if CYTH
-cdef np.float64_t TAU = 2 * np.pi
-#endif
-'''
 TAU = 2 * np.pi  # References: tauday.com
 
 TRANSFORM_DTYPE = np.float64
@@ -427,17 +418,6 @@ def whiten_xy_points(xy_m):
         >>> result = (ut.hashstr(tup))
         >>> print(result)
         wg%mpai0hxvil4p2
-
-    #CYTH_INLINE
-    #if CYTH
-    cdef:
-        np.ndarray[np.float64_t, ndim=2] xy_m
-        np.ndarray[np.float64_t, ndim=1] mu_xy
-        np.ndarray[np.float64_t, ndim=1] std_xy
-        np.ndarray[np.float64_t, ndim=2] T
-        np.float64_t tx, ty, sx, sy
-        np.ndarray[np.float64_t, ndim=2] xy_norm
-    #endif
     """
     mu_xy  = xy_m.mean(1)  # center of mass
     std_xy = xy_m.std(1)
@@ -540,9 +520,9 @@ def transform_points_with_homography(H, _xys):
     return xy_t
 
 
-def normalize_rows(arr1, out=None):  # , out=None):
+def normalize_rows(arr1, out=None):
     """
-    from vtool.linalg import *
+    Returns all row vectors normalized by their 2-norm magnitude
 
     Args:
         arr1 (ndarray): row vectors to normalize
@@ -554,7 +534,7 @@ def normalize_rows(arr1, out=None):  # , out=None):
         python -m vtool.linalg --test-normalize_rows
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.linalg import *  # NOQA
         >>> arr1 = np.array([[1, 2, 3, 4, 5], [2, 2, 2, 2, 2]])
         >>> arr1_normed = normalize_rows(arr1)
@@ -566,25 +546,8 @@ def normalize_rows(arr1, out=None):  # , out=None):
     """
     assert len(arr1.shape) == 2
     norm_ = npl.norm(arr1, axis=1)
-    if out is None:
-        # Hack this shouldn't need to happen
-        arr1_normed = np.divide(arr1, norm_[:, None])
-    else:
-        arr1_normed = np.divide(arr1, norm_[:, None], out=out)
+    arr1_normed = np.divide(arr1, norm_[:, None], out=out)
     return arr1_normed
-
-
-#try:
-#    import cyth
-#    if cyth.DYNAMIC:
-#        exec(cyth.import_cyth_execstr(__name__))
-#    else:
-#        # <AUTOGEN_CYTH>
-#        # Regen command: python -c "import vtool.linalg" --cyth-write
-#        pass
-#        # </AUTOGEN_CYTH>
-#except Exception as ex:
-#    pass
 
 
 def random_affine_args(zoom_pdf=None,

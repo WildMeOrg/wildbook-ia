@@ -2402,17 +2402,32 @@ def fromiter_nd(iter_, shape, dtype):
         shape (tuple): the expected output shape
         dtype (dtype): the numpy datatype of the generated ndarrays
 
+    Note:
+        The iterable must yeild a numpy array. It cannot yeild a Python list.
+
     CommandLine:
         python -m vtool.other fromiter_nd --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.other import *  # NOQA
         >>> dtype = np.float
         >>> total = 11
         >>> rng = np.random.RandomState(0)
         >>> iter_ = (rng.rand(5, 7, 3) for _ in range(total))
-        >>> shape = (11, 5, 7, 3)
+        >>> shape = (total, 5, 7, 3)
+        >>> result = fromiter_nd(iter_, shape, dtype)
+        >>> assert result.shape == shape
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> dtype = np.int
+        >>> qfxs = np.array([1, 2, 3])
+        >>> dfxs = np.array([4, 5, 6])
+        >>> iter_ = (np.array(x) for x in ut.product(qfxs, dfxs))
+        >>> total = len(qfxs) * len(dfxs)
+        >>> shape = (total, 2)
         >>> result = fromiter_nd(iter_, shape, dtype)
         >>> assert result.shape == shape
     """

@@ -2483,6 +2483,8 @@ def stack_image_recurse(img_list1, img_list2=None, vert=True, modifysize=False,
 def filterflags_valid_images(gpath_list, valid_formats=None,
                              invalid_formats=None, verbose=True):
     r"""
+    Flags images with a format that disagrees with its extension
+
     Args:
         gpath_list (list):
         valid_formats (None): (default = None)
@@ -2495,6 +2497,11 @@ def filterflags_valid_images(gpath_list, valid_formats=None,
     CommandLine:
         python -m vtool.image filterflags_valid_images --show
 
+    Notes:
+        An MPO (Multi Picture Object) file is a stereoscopic image and contains
+        two JPG images side-by-side, and allows them to be viewed as a single
+        3D image.
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.image import *  # NOQA
@@ -2504,12 +2511,17 @@ def filterflags_valid_images(gpath_list, valid_formats=None,
     """
     from PIL import Image
     from os.path import splitext
-    import operator
-    import itertools as it
+    #import operator
+    #import itertools as it
+    # These are exact aliases
     img_format_alias_dict = {
         'JPG': 'JPEG',
         'TIF': 'TIFF',
     }
+    # These aliases are not exact but generally fine
+    #acceptable_alias = {
+    #    'MPO': 'JPEG'
+    #}
     def get_image_format_from_extension(gpath):
         gname, ext = splitext(gpath)
         ext_format = ext[1:].upper()
@@ -2518,19 +2530,41 @@ def filterflags_valid_images(gpath_list, valid_formats=None,
 
     def get_image_format_from_pil(gpath):
         try:
-            return Image.open(gpath).format
+            pil_image = Image.open(gpath)
+            pil_format = pil_image.format
         except IOError:
-            return None
+            pil_format = None
+        #if pil_format == 'MPO':
+        #    print(pil_image.n_frames)
+        return pil_format
 
-    def check_image_format(gpath, verbose=True):
-        pil_foramt = get_image_format_from_pil(gpath)
-        ext_format = get_image_format_from_extension(gpath)
-        if verbose:
-            if ext_format != pil_foramt:
-                msg = ('gpath has %r extension but is encoded as %r' %
-                       (ext_format, pil_foramt))
-                print(msg)
-        return ext_format != pil_foramt
+    #def read_frames(gpath):
+    #    from PIL import Image, ImageSequence
+    #    import vtool as vt
+    #    import cv2
+    #    #pil_image.n_frames
+    #    pil_image = Image.open(gpath)
+    #    sequence = []
+    #    for frame in ImageSequence.Iterator(pil_image):
+    #        print('frame = %r' % (frame,))
+    #        #img = np.asarray(frame)
+    #        rgb_pil = frame.convert('RGB')
+    #        img = np.array(rgb_pil)
+    #        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    #        sequence.append(img)
+    #    stack = vt.stack_square_images(sequence)
+    #    import plottool as pt
+    #    pt.qt4ensure()
+    #    pt.imshow(stack)
+    #    ## btyedata = np.asarray(bytearray(contents), dtype=np.uint8)
+    #    #print('frame = %r' % (frame,))
+    #    #frame.save("frame%d.png" % index)
+    #    #index = index + 1
+    #    pass
+
+    def check_agrees(ext_format, pil_format):
+        #pil_format_ = acceptable_alias.get(pil_format, pil_format)
+        return pil_format == ext_format
 
     pil_foramt_list = [
         get_image_format_from_pil(gpath)
@@ -2542,29 +2576,65 @@ def filterflags_valid_images(gpath_list, valid_formats=None,
         for gpath in ut.ProgIter(gpath_list, lbl='check image ext-format',
                                  enabled=verbose)
     ]
-    agree_flags = list(it.starmap(operator.eq, zip(ext_format_list,
-                                                    pil_foramt_list)))
-    isvalid_flags = agree_flags
+    #agree_flags = list(it.starmap(operator.eq, zip(ext_format_list,
+    #                                                pil_foramt_list)))
+    agree_flags = [check_agrees(e, p) for e, p, in zip(ext_format_list,
+                                                       pil_foramt_list)]
+    valid_flags = agree_flags
     if valid_formats is not None:
-        isvalid_flags = ut.and_lists(
-            isvalid_flags,
+        # explicitly mark valids
+        valid_flags = ut.and_lists(
+            valid_flags,
             [format_ in valid_formats for format_ in ext_format_list],
             [format_ in valid_formats for format_ in pil_foramt_list],
         )
     if invalid_formats is not None:
-        isvalid_flags = ut.and_lists(
-            isvalid_flags,
-            [format_ not in invalid_formats for format_ in ext_format_list],
-            [format_ not in invalid_formats for format_ in pil_foramt_list],
+        invalid_fmt_flags = ut.or_lists(
+            [format_ in invalid_formats for format_ in ext_format_list],
+            [format_ in invalid_formats for format_ in pil_foramt_list],
         )
-    if verbose:
-        fmt_list  = list(zip(ext_format_list, pil_foramt_list))
-        invalid_format_list = ut.compress(fmt_list, ut.not_list(isvalid_flags))
-        invalid_format_hist = ut.dict_hist(invalid_format_list)
-        print('The following {(ext,pil): count} formats were marked as invalid')
-        print(ut.dict_str(invalid_format_hist))
-        print('Total Invalid Files %r' % (sum(invalid_format_hist.values()),))
-    return isvalid_flags
+        valid_flags = ut.and_lists(
+            valid_flags,
+            ut.not_list(invalid_fmt_flags))
+    if verbose > 0:
+        # Inspect invalid items
+        invalid_flags = ut.not_list(valid_flags)
+
+        fmt_list = list(zip(ext_format_list, pil_foramt_list))
+        invalid_fmt_list = ut.compress(fmt_list, invalid_flags)
+        invalid_fmt_hist = ut.dict_hist(invalid_fmt_list)
+        print('The following {(ext,pil): count} formats are invalid')
+        print(ut.repr3(invalid_fmt_hist))
+        print('Total Invalid Files %r' % (sum(invalid_fmt_hist.values()),))
+
+        # Inspect valid items
+
+        valid_fmt_list = ut.compress(fmt_list, valid_flags)
+        valid_fmt_hist = ut.dict_hist(valid_fmt_list)
+        print('The following {(ext,pil): count} formats are valid')
+        print(ut.repr3(valid_fmt_hist))
+        print('Total Valid Files %r' % (sum(valid_fmt_hist.values()),))
+
+        if invalid_formats is not None:
+            invalid_fmt_flags
+
+        if verbose > 1:
+            num_examples = 3
+            print('Examples of invalid files:')
+            invalid_gpaths = ut.compress(gpath_list, invalid_flags)
+            grouped_invalids = ut.group_items(invalid_gpaths, invalid_fmt_list)
+            for key in invalid_fmt_hist.keys():
+                val = grouped_invalids[key]
+                print(key)
+                print(ut.indentjoin(join(val[0:num_examples]))[1:])
+            print('\nExamples of valid files:')
+            valid_gpaths = ut.compress(gpath_list, valid_flags)
+            grouped_valids = ut.group_items(valid_gpaths, valid_fmt_list)
+            for key in valid_fmt_hist.keys():
+                val = grouped_valids[key]
+                print(key)
+                print(ut.indentjoin(join(val[0:num_examples]))[1:])
+    return valid_flags
 
 
 if __name__ == '__main__':
