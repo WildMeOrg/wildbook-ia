@@ -608,6 +608,7 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
             ('injur-bite', 'injur-scar'),
             ('injur-gill', 'injur-scar'),
             ('injur-other', None),
+            ('injur-dead', None),
             ('healthy', 'healthy'),
         ]
     elif target_type == 'multiclassX':

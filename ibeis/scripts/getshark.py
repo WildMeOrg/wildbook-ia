@@ -562,6 +562,7 @@ def get_injur_categories(single_annots, verbose=False):
 
             # Other
             ('injur-unknown', 'injur-other'),
+            ('injur-dead', 'injur-other'),
             ('other_injury', 'injur-other'),
             ('injur-damage', 'injur-other'),
             ('injured', 'injur-other'),
