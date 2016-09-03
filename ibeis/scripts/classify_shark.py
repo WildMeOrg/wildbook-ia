@@ -47,8 +47,8 @@ def shark_net(dry=False):
     # ------------
     if ut.get_computer_name() == 'Leviathan':
         batch_size = 128
-        #suffix = 'resnet'
-        suffix = 'lenet'
+        suffix = 'resnet'
+        #suffix = 'lenet'
     else:
         suffix = 'lenet'
         batch_size = 64
