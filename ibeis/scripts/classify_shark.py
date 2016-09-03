@@ -104,9 +104,9 @@ def shark_net(dry=False):
         model.dump_cases(X_test, y_test, 'test', dpath=dpath)
 
     hyperparams = dict(
-        era_size=5,
+        era_size=10,
         max_epochs=1000,
-        rate_schedule=.99,
+        rate_schedule=.9,
         augment_on=True,
         class_weight='balanced',
         stopping_patience=200,
@@ -132,9 +132,6 @@ def shark_net(dry=False):
     #X_train = X_learn  # NOQA
     #y_train = y_learn  # NOQA
     valid_idx = None  # NOQA
-
-    import utool
-    utool.embed()
 
     if dry or ut.get_argflag('--dry'):
         return model, dataset
