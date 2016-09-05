@@ -1183,8 +1183,8 @@ def rectify_to_float01(img, dtype=np.float32):
 def rectify_to_uint8(img):
     """ Ensure that an image is encoded in uint8 properly """
     if ut.is_float(img):
-        assert img.max() <= 1.0
-        assert img.min() >= 0.0
+        assert img.max() <= 1.0, ut.repr2(ut.get_stats(img.ravel()), precision=2)
+        assert img.min() >= 0.0, ut.repr2(ut.get_stats(img.ravel()), precision=2)
         img_ = (img * 255.0).astype(np.uint8)
     else:
         img_ = img
@@ -1218,11 +1218,11 @@ def make_channels_comparable(img1, img2):
         >>>         print('--------')
     """
     import vtool as vt
-    w1, h1 = get_size(img1)
-    w2, h2 = get_size(img2)
-    if not (w1 == w2 and h1 == h2):
-        raise AssertionError(
-            'Images must have same size, %r, %r' % ((w1, h1), (w2, h2)))
+    # w1, h1 = get_size(img1)
+    # w2, h2 = get_size(img2)
+    # if not (w1 == w2 and h1 == h2):
+    #     raise AssertionError(
+    #         'Images must have same size, %r, %r' % ((w1, h1), (w2, h2)))
     if img1.shape != img2.shape:
         c1 = vt.get_num_channels(img1)
         c2 = vt.get_num_channels(img2)

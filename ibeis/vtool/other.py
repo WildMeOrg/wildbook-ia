@@ -2443,22 +2443,26 @@ def fromiter_nd(iter_, shape, dtype):
     return arr
 
 
-def ensure_column_shape(arr, num_cols):
-    arr_ = np.asanyarray(arr)
-    if len(arr_.shape) == 0:
-        pass
-    elif len(arr_.shape) == 1:
-        arr_.shape = (arr_.size, num_cols)
+def ensure_shape(arr, dimshape):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> ensure_shape(np.array([[1, 2]]), (None, 2))
+        >>> ensure_shape(np.array([]), (None, 2))
+    """
+    if isinstance(dimshape, tuple):
+        n = len(dimshape)
     else:
-        assert arr_.shape[1] == num_cols, 'bad number of cols'
+        n = dimshape
+        dimshape = None
+    arr_ = atleast_nd(arr, n)
+    if dimshape is not None:
+        newshape = tuple([
+            d1 if d2 is None else d2
+            for d1, d2 in zip(arr_.shape, dimshape)])
+        arr_.shape = newshape
     return arr_
-
-
-#def asarray2(arr, dtype=None, default_shape=None):
-#    if len(arr) == 0:
-#        arr = np.empty(default_shape, dtype=dtype)
-#    else:
-#        arr_ = np.asarray(arr, dtype=dtype)
 
 
 def make_video2(images, outdir):

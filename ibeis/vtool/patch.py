@@ -288,12 +288,14 @@ def show_gaussian_patch(shape, sigma1, sigma2):
                       cmap=mpl.cm.coolwarm, title=title)
 
 
-def test_sift_viz(sift):
+def inverted_sift_patch(sift, dim=32):
     """
     Idea for inverted sift visualization
 
     CommandLine:
         python -m vtool.patch test_sift_viz --show --name=star
+        python -m vtool.patch test_sift_viz --show --name=star2
+        python -m vtool.patch test_sift_viz --show --name=cross
         python -m vtool.patch test_sift_viz --show --name=stripe
 
     Example:
@@ -316,15 +318,17 @@ def test_sift_viz(sift):
         >>> ut.show_if_requested()
     """
     import vtool as vt
-    dim = 32
-    pad = dim // 2
+    # dim = 21
+    pad = dim // 2 + (dim % 2)
     # pad = 0
     blocks = []
     for siftmags in ut.ichunks(sift, 8):
         thetas = np.linspace(0, TAU, 8, endpoint=False)
-        block_parts = [gradient_fill(dim, theta, flip=0) * mag
+        # style = 'step'
+        style = 'linear'
+        block_parts = [gradient_fill(dim, theta, flip=0, style=style) * mag
                        for theta, mag in zip(thetas, siftmags)]
-        block = np.add.reduce(block_parts) / sum(siftmags)
+        block = np.add.reduce(block_parts)  # / sum(siftmags)
         # block = block[pad:-pad, pad:-pad]
         # block = gaussian_weight_patch(block, sigma=9)
         blocks.append(block)
@@ -333,16 +337,30 @@ def test_sift_viz(sift):
     for row_blocks in ut.ichunks(blocks, 4):
         row = vt.stack_image_list(row_blocks, vert=False, overlap=pad)
         rows.append(row)
-
     siftimg = vt.stack_image_list(rows, vert=True, overlap=pad)
+    siftimg /= siftimg.max()
     return siftimg
 
 
-def gradient_fill(shape, theta=0, flip=False, vert=False):
+def gradient_fill(shape, theta=0, flip=False, vert=False, style='linear'):
     """
     FIXME: angle does not work properly
-    >>> dim = 9
-    >>> theta = np.pi / 8
+
+    CommandLine:
+        python -m vtool.patch gradient_fill --show
+
+    Example:
+        >>> from vtool.patch import *  # NOQA
+        >>> import vtool as vt
+        >>> shape = (9, 9)
+        >>> #style = 'linear'
+        >>> style = 'step'
+        >>> theta = np.pi / 4
+        >>> patch = vt.gradient_fill(shape, theta, style=style)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(vt.rectify_to_uint8(patch))
+        >>> ut.show_if_requested()
     """
     if not isinstance(shape, tuple):
         shape = (shape, shape)
@@ -352,14 +370,26 @@ def gradient_fill(shape, theta=0, flip=False, vert=False):
         vals = np.linspace(0, 1, shape[0])
     else:
         vals = np.linspace(0, 1, shape[1])
+
+    if style == 'linear':
+        vals = vals
+    elif style == 'step':
+        vals = vals > .5
+
     if flip:
         vals = vals[::-1]
+
     if vert:
         patch.T[:] = vals
     else:
         patch[:] = vals
+
     if theta != 0:
-        patch = vt.rotate_image(patch, theta, border_mode='replicate')
+        patch = vt.rotate_image(patch, theta, interpolation='linear',
+                                border_mode='replicate')
+
+    patch = np.clip(patch, 0, 1)
+
     return patch
 
 
