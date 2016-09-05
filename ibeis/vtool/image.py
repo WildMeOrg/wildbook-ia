@@ -2427,7 +2427,7 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
         >>> pt.draw_bbox((0, 0, wh1[0], wh1[1]), bbox_color=(1, 0, 0))
         >>> pt.draw_bbox((woff[1], hoff[1], wh2[0], wh2[0]), bbox_color=(0, 1, 0))
         >>> pt.show_if_requested()
-        ((762, 512, 3), (0.0, 0.0), (0, 250))
+        ((662, 512, 3), (0.0, 0.0), (0, 150))
     """
     import operator
     import vtool as vt

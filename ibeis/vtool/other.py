@@ -49,7 +49,8 @@ def safe_cat(tup, axis=0, default_shape=(0,), default_dtype=np.float):
     Also deals with numpy bug where cat fails if an element in sequence is empty
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
         >>> import vtool as vt
         >>> # test1
         >>> tup = []
