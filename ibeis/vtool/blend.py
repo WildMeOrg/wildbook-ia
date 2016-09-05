@@ -94,7 +94,14 @@ def blend_images_average(img1, img2, alpha=.5):
     #imgB = np.zeros(img2.shape, dtype=img2.dtype)
     #assert img1.min() >= 0 and img1.max() <= 1
     #assert img2.min() >= 0 and img2.max() <= 1
-    imgB = (img1 * (1.0 - alpha)) + (img2 * (alpha))
+    if isinstance(alpha, np.ndarray):
+        import vtool as vt
+        img1, img2 = vt.make_channels_comparable(img1, img2)
+        img1, alpha = vt.make_channels_comparable(img1, alpha)
+        img2, alpha = vt.make_channels_comparable(img2, alpha)
+        imgB = (img1 * (1.0 - alpha)) + (img2 * (alpha))
+    else:
+        imgB = (img1 * (1.0 - alpha)) + (img2 * (alpha))
     #assert imgB.min() >= 0 and imgB.max() <= 1
     return imgB
 

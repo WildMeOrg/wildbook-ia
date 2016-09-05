@@ -2,7 +2,18 @@
 from __future__ import absolute_import, print_function, division
 import utool as ut
 import six
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[feat]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__, '[feat]')
+
+
+def extract_feature_from_patch(patch):
+    import pyhesaff
+    import numpy as np
+    import vtool as vt
+    patch = vt.rectify_to_uint8(patch)
+    patch = vt.rectify_to_square(patch)
+    patch_list = np.ascontiguousarray(patch[None, :])
+    vec = pyhesaff.extract_desc_from_patches(patch_list)[0]
+    return vec
 
 
 def extract_features(img_or_fpath, feat_type='hesaff+sift', **kwargs):

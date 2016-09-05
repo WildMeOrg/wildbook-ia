@@ -29,6 +29,16 @@ if cv2 is not None:
         'lanczos': cv2.INTER_LANCZOS4
     }
 
+    CV2_BORDER_TYPES = {
+        'constant': cv2.BORDER_CONSTANT,
+        'replicate': cv2.BORDER_REPLICATE,
+        'reflect':    cv2.BORDER_REFLECT,
+        'wrap': cv2.BORDER_WRAP,
+        'reflect101': cv2.BORDER_REFLECT101,
+        'tranparent':   cv2.BORDER_TRANSPARENT,
+        'isolated':  cv2.BORDER_ISOLATED,
+    }
+
     CV2_WARP_KWARGS = {
         'flags': CV2_INTERPOLATION_TYPES['lanczos'],
         'borderMode': cv2.BORDER_CONSTANT
@@ -65,8 +75,18 @@ EXIF_TAG_DATETIME = 'DateTimeOriginal'
 #cv2.IMREAD_GRAYSCALE
 #cv2.IMREAD_UNCHANGED
 
+def _rectify_border_mode(border_mode, default=cv2.BORDER_CONSTANT):
+    """ Converts argument to cv2 style """
+    if border_mode is None:
+        return default
+    elif isinstance(border_mode, six.text_type):
+        return CV2_BORDER_TYPES[border_mode]
+    else:
+        return border_mode
+
 
 def _rectify_interpolation(interp, default=cv2.INTER_LANCZOS4):
+    """ Converts argument to cv2 style """
     if interp is None:
         return default
     elif isinstance(interp, six.text_type):
@@ -1008,8 +1028,10 @@ def rotate_image_ondisk(img_fpath, theta, out_fpath=None, **kwargs):
     return out_fpath_
 
 
-def rotate_image(img, theta, **kwargs):
+def rotate_image(img, theta, border_mode=None, interpolation=None):
     r"""
+    Rotates an image around its center
+
     Args:
         img (ndarray[uint8_t, ndim=2]):  image data
         theta (?):
@@ -1033,12 +1055,13 @@ def rotate_image(img, theta, **kwargs):
         >>>     pt.show_if_requested()
     """
     from vtool import linalg as ltool
+    border_mode = _rectify_border_mode(border_mode)
+    interpolation = _rectify_interpolation(interpolation)
     dsize = [img.shape[1], img.shape[0]]
     bbox = [0, 0, img.shape[1], img.shape[0]]
     R = ltool.rotation_around_bbox_mat3x3(theta, bbox)
-    warp_kwargs = CV2_WARP_KWARGS.copy()
-    warp_kwargs.update(kwargs)
-    imgR = cv2.warpAffine(img, R[0:2], tuple(dsize), **warp_kwargs)
+    imgR = cv2.warpAffine(img, R[0:2], tuple(dsize), borderMode=border_mode,
+                          flags=interpolation)
     return imgR
 
 
@@ -1137,6 +1160,16 @@ def get_round_scaled_dsize(dsize_old, scale):
     return dsize, tonew_sf
 
 
+def rectify_to_square(img, extreme='max'):
+    h, w = img.shape[0:2]
+    if w == h:
+        return img
+    else:
+        extreme_fn = {'max': max, 'min': min}[extreme]
+        d = extreme_fn(w, h)
+        return resize(img, (d, d))
+
+
 def rectify_to_float01(img, dtype=np.float32):
     """ Ensure that an image is encoded using a float properly """
     if ut.is_int(img):
@@ -1159,19 +1192,73 @@ def rectify_to_uint8(img):
 
 
 def make_channels_comparable(img1, img2):
+    """
+    Broadcasts image arrays so they can have elementwise operations applied
+
+    CommandLine:
+        python -m vtool.image make_channels_comparable
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> wh_basis = [(5, 5), (3, 5), (5, 3), (1, 1), (1, 3), (3, 1)]
+        >>> for w, h in wh_basis:
+        >>>     shape_basis = [(w, h), (w, h, 1), (w, h, 3)]
+        >>>     # Test all permutations of shap inputs
+        >>>     for shape1, shape2 in ut.product(shape_basis, shape_basis):
+        >>>         print('*    input shapes: %r, %r' % (shape1, shape2))
+        >>>         img1 = np.empty(shape1)
+        >>>         img2 = np.empty(shape2)
+        >>>         img1, img2 = make_channels_comparable(img1, img2)
+        >>>         print('... output shapes: %r, %r' % (img1.shape, img2.shape))
+        >>>         elem = (img1 + img2)
+        >>>         print('... elem(+) shape: %r' % (elem.shape,))
+        >>>         assert elem.size == img1.size, 'outputs should have same size'
+        >>>         assert img1.size == img2.size, 'new imgs should have same size'
+        >>>         print('--------')
+    """
     import vtool as vt
+    w1, h1 = get_size(img1)
+    w2, h2 = get_size(img2)
+    if not (w1 == w2 and h1 == h2):
+        raise AssertionError(
+            'Images must have same size, %r, %r' % ((w1, h1), (w2, h2)))
     if img1.shape != img2.shape:
-        channels1 = vt.get_num_channels(img1)
-        channels2 = vt.get_num_channels(img2)
-        if channels1 == 3 and channels2 == 1:
-            if len(img2.shape) == 2:
-                # convert (w, h) to (w, h, 1)
-                img2 = np.transpose(img2[None, :], (1, 2, 0))
-            if len(img2.shape) == 3:
-                # (w, h, 1) to (w, h, 3)
+        c1 = vt.get_num_channels(img1)
+        c2 = vt.get_num_channels(img2)
+        if len(img1.shape) == 2 and len(img2.shape) == 2:
+            raise AssertionError('UNREACHABLE: Both are 2-grayscale')
+        elif len(img1.shape) == 3 and len(img2.shape) == 2:
+            # Image 2 is grayscale
+            if c1 == 3:
+                img2 = np.tile(img2[..., None], 3)
+            else:
+                img2 = img2[..., None]
+        elif len(img1.shape) == 2 and len(img2.shape) == 3:
+            # Image 1 is grayscale
+            if c2 == 3:
+                img1 = np.tile(img1[..., None], 3)
+            else:
+                img1 = img1[..., None]
+        elif len(img1.shape) == 3 and len(img2.shape) == 3:
+            # Both images have 3 dims.
+            # Check if either have color, then check for alpha
+            if c1 == 1 and c2 == 1:
+                raise AssertionError('UNREACHABLE: Both are 3-grayscale')
+            elif c1 == 3 and c2 == 3:
+                raise AssertionError('UNREACHABLE: Both are 3-color')
+            elif c1 == 1 and c2 == 3:
+                img1 = np.tile(img1, 3)
+            elif c1 == 3 and c2 == 1:
                 img2 = np.tile(img2, 3)
-        elif channels1 == 1 and channels2 == 3:
-            return make_channels_comparable(img1, img2)
+            elif c1 == 3 and c2  == 4:
+                raise NotImplementedError('alpha not handled yet')
+            elif c1 == 4 and c2  == 3:
+                raise NotImplementedError('alpha not handled yet')
+            else:
+                raise AssertionError('Unknown shape case: %r, %r' % (img1.shape, img2.shape))
+        else:
+            raise AssertionError('Unknown shape case: %r, %r' % (img1.shape, img2.shape))
     return img1, img2
 
 
@@ -2302,7 +2389,7 @@ def infer_vert(img1, img2, vert):
 
 
 def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
-                 use_larger=True, interpolation=None):
+                 use_larger=True, interpolation=None, overlap=0):
     r"""
 
     Args:
@@ -2319,23 +2406,26 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
         >>> # build test data
         >>> img1 = vt.imread(ut.grab_test_imgpath('carl.jpg'))
         >>> img2 = vt.imread(ut.grab_test_imgpath('lena.png'))
-        >>> vert = None
+        >>> vert = True
         >>> modifysize = False
         >>> # execute function
         >>> return_sf = True
         >>> #(imgB, woff, hoff) = stack_images(img1, img2, vert, modifysize, return_sf=return_sf)
-        >>> imgB, offset2, sf_tup = stack_images(img1, img2, vert, modifysize, return_sf=return_sf)
+        >>> overlap = 100
+        >>> imgB, offset2, sf_tup = stack_images(img1, img2, vert, modifysize,
+        >>>                                      return_sf=return_sf,
+        >>>                                      overlap=overlap)
         >>> woff, hoff = offset2
         >>> # verify results
         >>> result = str((imgB.shape, woff, hoff))
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> imshow(imgB)
+        >>> pt.imshow(imgB)
         >>> wh1 = np.multiply(vt.get_size(img1), sf_tup[0])
         >>> wh2 = np.multiply(vt.get_size(img2), sf_tup[1])
         >>> pt.draw_bbox((0, 0, wh1[0], wh1[1]), bbox_color=(1, 0, 0))
-        >>> pt.draw_bbox((woff, hoff, wh2[0], wh2[0]), bbox_color=(0, 1, 0))
+        >>> pt.draw_bbox((woff[1], hoff[1], wh2[0], wh2[0]), bbox_color=(0, 1, 0))
         >>> pt.show_if_requested()
         ((762, 512, 3), (0.0, 0.0), (0, 250))
     """
@@ -2352,7 +2442,14 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
     nChannels1 = vt.get_num_channels(img1)
     nChannels2 = vt.get_num_channels(img2)
     assert nChannels1 == nChannels2
+    # TODO: allow for some overlap / blending of the images
     vert, h1, h2, w1, w2, wB, hB, woff, hoff = infer_vert(img1, img2, vert)
+    if overlap:
+        if vert:
+            hB -= overlap
+        else:
+            wB -= overlap
+    # Rectify both images to they are the same dimension
     if modifysize:
         side_index = 1 if vert else 0
         # Compre the lengths of the width and height
@@ -2375,17 +2472,56 @@ def stack_images(img1, img2, vert=None, modifysize=False, return_sf=False,
     else:
         tonew_sf1 = (1., 1.)
         tonew_sf2 = (1., 1.)
-    # concatentate images
+    # Do image concatentation
     dtype = img1.dtype
-    assert img1.dtype == img2.dtype, 'img1.dtype=%r, img2.dtype=%r' % (img1.dtype, img2.dtype)
+    assert img1.dtype == img2.dtype, (
+        'img1.dtype=%r, img2.dtype=%r' % (img1.dtype, img2.dtype))
+
+    # if False:
+    #     if nChannels1 == 3 or len(img1.shape) > 2:
+    #         # Allocate new image for both
+    #         imgB = np.zeros((hB, wB, nChannels1), dtype)
+    #         # Insert the images
+    #         imgB[0:h1, 0:w1, :] = img1
+    #         imgB[hoff:(hoff + h2), woff:(woff + w2), :] = img2
+    #     elif nChannels1 == 1:
+    #         # Allocate new image for both
+    #         imgB = np.zeros((hB, wB), dtype)
+    #         # Insert the images
+    #         imgB[0:h1, 0:w1] = img1
+    #         imgB[hoff:(hoff + h2), woff:(woff + w2)] = img2
+    # else:
     if nChannels1 == 3 or len(img1.shape) > 2:
-        imgB = np.zeros((hB, wB, nChannels1), dtype)
-        imgB[0:h1, 0:w1, :] = img1
-        imgB[hoff:(hoff + h2), woff:(woff + w2), :] = img2
-    elif nChannels1 == 1:
-        imgB = np.zeros((hB, wB), dtype)
+        newshape = (hB, wB, nChannels1)
+    else:
+        newshape = (hB, wB)
+    # Allocate new image for both
+    imgB = np.zeros(newshape, dtype=dtype)
+
+    if overlap:
+        if vert:
+            hoff -= overlap
+        else:
+            woff -= overlap
+        # Insert the images
         imgB[0:h1, 0:w1] = img1
         imgB[hoff:(hoff + h2), woff:(woff + w2)] = img2
+        # Blend the overlapping part
+        if vert:
+            part1 = img1[-overlap:, :]
+            part2 = imgB[hoff:(hoff + overlap), 0:w1]
+            alpha = vt.gradient_fill(part1.shape[0:2], vert=vert)
+            imgB[hoff:(hoff + overlap), 0:w1] = vt.blend_images_average(part1, part2, alpha=alpha)
+        else:
+            part1 = img1[:, -overlap:]
+            part2 = imgB[0:h1, woff:(woff + overlap)]
+            alpha = vt.gradient_fill(part1.shape[0:2], vert=vert)
+            imgB[0:h1, woff:(woff + overlap)] = vt.blend_images_average(part1, part2, alpha=alpha)
+    else:
+        # Insert the images
+        imgB[0:h1, 0:w1] = img1
+        imgB[hoff:(hoff + h2), woff:(woff + w2)] = img2
+
     # return
     if return_sf:
         offset1 = (0.0, 0.0)

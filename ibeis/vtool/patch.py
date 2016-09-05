@@ -288,6 +288,81 @@ def show_gaussian_patch(shape, sigma1, sigma2):
                       cmap=mpl.cm.coolwarm, title=title)
 
 
+def test_sift_viz(sift):
+    """
+    Idea for inverted sift visualization
+
+    CommandLine:
+        python -m vtool.patch test_sift_viz --show --name=star
+        python -m vtool.patch test_sift_viz --show --name=stripe
+
+    Example:
+        >>> from vtool.patch import *  # NOQA
+        >>> import vtool as vt
+        >>> patch = vt.get_test_patch(ut.get_argval('--name', default='star'))
+        >>> sift = vt.extract_feature_from_patch(patch)
+        >>> siftimg = test_sift_viz(sift)
+        >>> # Need to do some image blending
+        >>> import plottool as pt
+        >>> #pt.imshow(siftimg)
+        >>> import plottool as pt
+        >>> pt.figure(fnum=1, pnum=(1, 2, 1))
+        >>> pt.mpl_sift.draw_sift_on_patch(siftimg, sift)
+        >>> pt.figure(fnum=1, pnum=(1, 2, 2))
+        >>> patch2 = patch
+        >>> patch2 = vt.rectify_to_uint8(patch2)
+        >>> patch2 = vt.rectify_to_square(patch2)
+        >>> pt.mpl_sift.draw_sift_on_patch(patch2, sift)
+        >>> ut.show_if_requested()
+    """
+    import vtool as vt
+    dim = 32
+    pad = dim // 2
+    # pad = 0
+    blocks = []
+    for siftmags in ut.ichunks(sift, 8):
+        thetas = np.linspace(0, TAU, 8, endpoint=False)
+        block_parts = [gradient_fill(dim, theta, flip=0) * mag
+                       for theta, mag in zip(thetas, siftmags)]
+        block = np.add.reduce(block_parts) / sum(siftmags)
+        # block = block[pad:-pad, pad:-pad]
+        # block = gaussian_weight_patch(block, sigma=9)
+        blocks.append(block)
+
+    rows = []
+    for row_blocks in ut.ichunks(blocks, 4):
+        row = vt.stack_image_list(row_blocks, vert=False, overlap=pad)
+        rows.append(row)
+
+    siftimg = vt.stack_image_list(rows, vert=True, overlap=pad)
+    return siftimg
+
+
+def gradient_fill(shape, theta=0, flip=False, vert=False):
+    """
+    FIXME: angle does not work properly
+    >>> dim = 9
+    >>> theta = np.pi / 8
+    """
+    if not isinstance(shape, tuple):
+        shape = (shape, shape)
+    import vtool as vt
+    patch = np.zeros(shape)
+    if vert:
+        vals = np.linspace(0, 1, shape[0])
+    else:
+        vals = np.linspace(0, 1, shape[1])
+    if flip:
+        vals = vals[::-1]
+    if vert:
+        patch.T[:] = vals
+    else:
+        patch[:] = vals
+    if theta != 0:
+        patch = vt.rotate_image(patch, theta, border_mode='replicate')
+    return patch
+
+
 def test_show_gaussian_patches(shape=(19, 19)):
     r"""
     CommandLine:
@@ -295,6 +370,7 @@ def test_show_gaussian_patches(shape=(19, 19)):
         python -m vtool.patch --test-test_show_gaussian_patches --show --shape=7,7
         python -m vtool.patch --test-test_show_gaussian_patches --show --shape=17,17
         python -m vtool.patch --test-test_show_gaussian_patches --show --shape=41,41
+        python -m vtool.patch --test-test_show_gaussian_patches --show --shape=29,29
         python -m vtool.patch --test-test_show_gaussian_patches --show --shape=41,7
 
     References:
@@ -758,10 +834,20 @@ def gaussian_average_patch(patch, sigma=None, copy=True):
     return average
 
 
-def gaussian_weight_patch(patch):
+def gaussian_weight_patch(patch, sigma=None):
+    """
+    Applies two one dimensional gaussian operations to a patch which
+    effectively weights it by a 2-dimensional gaussian. This is efficient
+    because the actually 2-d gaussian never needs to be allocated.
+
+    test_show_gaussian_patches
+    """
     #patch = np.ones(patch.shape)
-    sigma0 = (patch.shape[0] / 2) * .95
-    sigma1 = (patch.shape[1] / 2) * .95
+    if sigma is None:
+        sigma0 = (patch.shape[0] / 2) * .95
+        sigma1 = (patch.shape[1] / 2) * .95
+    else:
+        sigma0 = sigma1 = sigma
     #sigma0 = (patch.shape[0] / 2) * .5
     #sigma1 = (patch.shape[1] / 2) * .5
     gauss_kernel_d0 = (cv2.getGaussianKernel(patch.shape[0], sigma0))
@@ -1000,19 +1086,25 @@ def draw_kp_ori_steps():
     converge_lists = []
 
     def exec_internals_find_patch_dominant_orientations(patch, bins, maxima_thresh, old_ori):
+        # TODO: can use ut.exec_func_src instead
         # <HACKISH>
         # exec source code from find_patch_dominant_orientations to steal its
         # local variables
         # ARGS: patch, bins=36, maxima_thresh=.8, DEBUG_ROTINVAR
+
         DEBUG_ROTINVAR = False
         globals_ = globals()
         locals_ = locals()
-        sourcecode = ut.get_func_sourcecode(find_patch_dominant_orientations, stripdef=True, stripret=True)
-        six.exec_(sourcecode, globals_, locals_)
+        keys = 'patch, gradx, grady, gmag, gori, hist, centers, gori_weights'.split(', ')
+        internal_tup = ut.exec_func_src(find_patch_dominant_orientations, globals_, locals_, key_list=keys)
         submax_ori_offsets = locals_['submax_ori_offsets']
         new_oris = (old_ori + (submax_ori_offsets - ktool.GRAVITY_THETA)) % TAU
-        keys = 'patch, gradx, grady, gmag, gori, hist, centers, gori_weights'.split(', ')
-        internal_tup = ut.dict_take(locals_, keys)
+        # sourcecode = ut.get_func_sourcecode(find_patch_dominant_orientations, stripdef=True, stripret=True)
+        # six.exec_(sourcecode, globals_, locals_)
+        # submax_ori_offsets = locals_['submax_ori_offsets']
+        # new_oris = (old_ori + (submax_ori_offsets - ktool.GRAVITY_THETA)) % TAU
+        # keys = 'patch, gradx, grady, gmag, gori, hist, centers, gori_weights'.split(', ')
+        # internal_tup = ut.dict_take(locals_, keys)
         return new_oris, internal_tup
         # </HACKISH>
 
@@ -1164,12 +1256,10 @@ def find_patch_dominant_orientations(patch, bins=36, maxima_thresh=.8,
     # FIXME: Not taking account to gmag
     #bins = 3
     #bins = 8
-    hist, centers = get_orientation_histogram(gori, gori_weights, bins=bins,
-                                              DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+    hist, centers = get_orientation_histogram(gori, gori_weights, bins=bins)
     # Find submaxima
     submaxima_x, submaxima_y = htool.argsubmaxima(hist, centers,
-                                                  maxima_thresh=maxima_thresh,
-                                                  DEBUG_ROTINVAR=DEBUG_ROTINVAR)
+                                                  maxima_thresh=maxima_thresh)
     if DEBUG_ROTINVAR:
         htool.show_ori_image(gori, gori_weights / 255.0, patch, gradx, grady)
         pt.set_figtitle('python orimg')
