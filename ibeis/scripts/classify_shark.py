@@ -102,7 +102,7 @@ def shark_net(dry=False):
         model.dump_cases(X_test, y_test, 'test', dpath=dpath)
 
     hyperparams = dict(
-        era_size=10,
+        era_size=20,
         max_epochs=1000,
         rate_schedule=.9,
         augment_on=True,
