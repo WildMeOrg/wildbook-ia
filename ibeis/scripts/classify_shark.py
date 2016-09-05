@@ -21,10 +21,7 @@ def shark_net(dry=False):
 
     Example:
         >>> from ibeis.scripts.classify_shark import *  # NOQA
-        >>> model, dataset = shark_net()
-        >>> ut.quit_if_noshow()
-        >>> model.show_arch()
-        >>> ut.show_if_requested()
+        >>> shark_net()
     """
     from ibeis.scripts import classify_shark
     import ibeis
@@ -47,8 +44,9 @@ def shark_net(dry=False):
     # ------------
     if ut.get_computer_name() == 'Leviathan':
         batch_size = 128
-        suffix = 'resnet'
-        #suffix = 'lenet'
+        # suffix = 'resnet'
+        # suffix = 'lenet'
+        suffix = 'incep'
     else:
         suffix = 'lenet'
         batch_size = 64
