@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+python -m utool.util_inspect check_module_usage --pat="chip_match.py"
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import copy
 import numpy as np
@@ -59,6 +62,27 @@ def extend_pylist(x_list, num, val):
     return safeop(extend_pylist_, x_list, num, val)
 
 
+def convert_numpy_lists(arr_list, dtype, dims=None):
+    new_arrs = [np.array(arr, dtype=dtype) for arr in arr_list]
+    if dims is not None:
+        new_arrs = [vt.atleast_nd(arr, dims) for arr in new_arrs]
+    return new_arrs
+
+
+def safecast_numpy_lists(arr_list, dtype=None, dims=None):
+    if arr_list is None:
+        new_arrs = None
+    else:
+        new_arrs = [np.array(arr, dtype=dtype) for arr in arr_list]
+        if dims is not None:
+            new_arrs = [vt.ensure_shape(arr, dims) for arr in new_arrs]
+    return new_arrs
+
+
+def convert_numpy(arr, dtype):
+    return np.array(ut.replace_nones(arr, np.nan), dtype=dtype)
+
+
 def check_arrs_eq(arr1, arr2):
     if arr1 is None and arr2 is None:
         return True
@@ -102,6 +126,11 @@ def safe_check_nested_lens_eq(arr1, arr2):
             assert len(x) == len(y), (
                 'inner lengths at position=%r do not correspond (%r != %r)' %
                 (count, len(x), len(y)))
+
+
+def _assert_eq_len(list1_, list2_):
+    if list1_ is not None:
+        ut.assert_eq_len(list1_, list2_)
 
 
 def prepare_dict_uuids(class_dict, ibs):
@@ -872,145 +901,94 @@ class MatchBaseIO(object):
         return out
 
 
-class AnnotMatch(MatchBaseIO, ut.NiceRepr):
-    """
-    This implements part the match between whole annotations and the other
-    annotaions / names. This does not include algorithm specific feature
-    matches.
-    """
+class _BaseVisualization(object):
 
-    _attr_names = [
-        'qaid',
-        'qnid',
-        'daid_list',
-        'dnid_list',
-        'H_list',
-        'score_list',
-        'annot_score_list',
-        'unique_nids',
-        'name_score_list',
-    ]
+    def show_analysis(cm, qreq_, **kwargs):
+        # HACK FOR ANNOT MATCH (HUMPBACKS)
+        from ibeis.viz import viz_qres
+        kwshow = {
+            'show_query': False,
+            'show_timedelta': True,
+        }
+        kwshow.update(kwargs)
+        #print('\n')
+        #print("???? HACK SHOW QRES ANALYSIS")
+        return viz_qres.show_qres_analysis(qreq_.ibs, cm, qreq_=qreq_, **kwshow)
 
-    def __init__(cm, *args, **kwargs):
-        cm.qaid = None
-        cm.qnid = None
-        cm.daid_list  = None
-        # This is aligned with daid list, do not confuse with unique_nids
-        cm.dnid_list  = None
-        cm.H_list     = None
-        cm.score_list = None
-        # standard groupings
-        # TODO: rename unique_nids to indicate it is aligned with name_groupxs
-        # Annot scores
-        cm.annot_score_list = None
-        # Name scores
-        cm.unique_nids = None  # belongs to name_groupxs
-        cm.name_score_list = None
-        # TODO: have subclass or dict for special scores
-        # Special annot scores
-        cm.special_annot_scores = [
-            'csum',
-            'acov',
-        ]
-        for score_method in cm.special_annot_scores:
-            setattr(cm, score_method + '_score_list', None)
-        #cm.csum_score_list = None
-        #cm.acov_score_list = None
-        # Special name scores
-        cm.special_name_scores = [
-            'nsum',
-            'maxcsum',
-            'ncov',
-        ]
-        # TODO: use a dictionary instaed of attrs
-        for score_method in cm.special_name_scores:
-            setattr(cm, score_method + '_score_list', None)
-        #cm.nsum_score_list = None
-        #cm.maxcsum_score_list = None
-        #cm.ncov_score_list = None
-        # Re-evaluatables (for convinience only)
-        cm.daid2_idx = None  # maps onto cm.daid_list
-        cm.nid2_nidx = None  # maps onto cm.unique_nids
-        cm.name_groupxs = None
+    def ishow_analysis(cm, qreq_, **kwargs):
+        # HACK FOR ANNOT MATCH (HUMPBACKS)
+        from ibeis.viz.interact import interact_qres
+        kwshow = {
+            'show_query': False,
+            'show_timedelta': True,
+        }
+        kwshow.update(kwargs)
+        return interact_qres.ishow_analysis(qreq_.ibs, cm, qreq_=qreq_, **kwshow)
 
-    def initialize(cm, qaid=None, daid_list=None, score_list=None,
-                   dnid_list=None, qnid=None,
-                   unique_nids=None, name_score_list=None,
-                   annot_score_list=None, autoinit=True):
+    def show_single_namematch(cm, qreq_, dnid, fnum=None, pnum=None,
+                              homog=ut.get_argflag('--homog'), **kwargs):
         """
-        qaid and daid_list are not optional. fm_list and fsv_list are strongly
-        encouraged and will probalby break things if they are not there.
+        HACK FOR ANNOT MATCH
         """
-        cm.qaid         = qaid
-        cm.daid_list    = safeop(np.array, daid_list, dtype=hstypes.INDEX_TYPE)
-        cm.score_list   = safeop(np.array, score_list, dtype=hstypes.FLOAT_TYPE)
-        # name info
-        cm.qnid = qnid
-        cm.dnid_list = safeop(np.array, dnid_list, dtype=hstypes.INDEX_TYPE)
-        cm.unique_nids = safeop(np.array, unique_nids, dtype=hstypes.INDEX_TYPE)
-        cm.name_score_list = safeop(np.array, name_score_list, dtype=hstypes.FLOAT_TYPE)
-        cm.annot_score_list = safeop(np.array, annot_score_list, dtype=hstypes.FLOAT_TYPE)
+        # HACK FOR ANNOT MATCH (HUMPBACKS)
+        #print('\n')
+        #print("???? HACK SHOW SINGLE NAME MATCH")
+        from ibeis.viz import viz_matches
+        qaid = cm.qaid
+        if cm.nid2_nidx is None:
+            raise AssertionError('cm.nid2_nidx has not been evaluated yet')
+            #cm.score_nsum(qreq_)
+        # <GET NAME GROUPXS>
+        try:
+            nidx = cm.nid2_nidx[dnid]
+        except KeyError:
+            #cm.print_inspect_str(qreq_)
+            cm_orig = cm  # NOQA
+            cm_orig.assert_self(qreq_)
+            # Hack to get rid of key error
+            cm.assert_self(verbose=False)
+            cm2 = cm.extend_results(qreq_)
+            cm2.assert_self(verbose=False)
+            cm = cm2
+            nidx = cm.nid2_nidx[dnid]
+            #raise
+        # </GET NAME GROUPXS>
+        groupxs = cm.name_groupxs[nidx]
+        daids = vt.take2(cm.daid_list, groupxs)
+        dnids = vt.take2(cm.dnid_list, groupxs)
+        assert np.all(dnid == dnids), (
+            'inconsistent naming, dnid=%r, dnids=%r' % (dnid, dnids,))
+        groupxs = groupxs.compress(daids != cm.qaid)
+        # </GET NAME GROUPXS>
+        # sort annots in this name by the chip score
+        # HACK USE cm.annot_score_list
+        #group_sortx = cm.csum_score_list.take(groupxs).argsort()[::-1]
+        group_sortx = cm.annot_score_list.take(groupxs).argsort()[::-1]
+        sorted_groupxs = groupxs.take(group_sortx)
+        # get the info for this name
+        name_daid_list = ut.take(cm.daid_list, sorted_groupxs)
+        # find features marked as invalid by name scoring
+        # Get the scores for names and chips
+        name_score = cm.name_score_list[nidx]
+        name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)
+        #name_annot_scores = cm.csum_score_list.take(sorted_groupxs)
+        name_annot_scores = cm.annot_score_list.take(sorted_groupxs)
 
-        # TODO: have subclass or dict for special scores
-        if autoinit:
-            cm._update_daid_index()
-            if cm.dnid_list is not None:
-                cm._update_unique_nid_index()
-            if DEBUG_CHIPMATCH:
-                cm.assert_self(verbose=True)
+        kwargs = kwargs.copy()
+        #print('kwargs.copy = %r' % (kwargs,))
+        #draw_fmatches = kwargs.get('draw_fmatches', True)
+        # MEGAHACK TO DEAL WITH OLD EXPLICIT ELLIPSE FEATURES
+        kwargs['draw_fmatches'] = kwargs.get('draw_ell', True)
+        kwargs['show_matches'] = False
 
-    def as_simple_dict(cm, keys=[]):
-        state_dict = cm.__getstate__()
-        keys = ['qaid', 'daid_list', 'score_list'] + keys
-        simple_dict = ut.dict_subset(state_dict, keys)
-        return simple_dict
+        _ = viz_matches.show_name_matches(
+            qreq_.ibs, qaid, name_daid_list, None, None, None, None, name_score=name_score, name_rank=name_rank,
+            name_annot_scores=name_annot_scores, qreq_=qreq_, fnum=fnum,
+            pnum=pnum, **kwargs)
+        return _
 
-    def as_dict(cm, *args, **kwargs):
-        return cm.to_dict(*args, **kwargs)
 
-    def to_dict(cm, ibs=None):
-        class_dict = cm.__getstate__()
-        if ibs is not None:
-            assert ibs is not None, 'need ibs to convert uuids'
-            class_dict['dannot_uuid_list'] = ibs.get_annot_uuids(cm.daid_list)
-            class_dict['dname_list'] = ibs.get_name_texts(cm.dnid_list)
-            class_dict['qannot_uuid'] = ibs.get_annot_uuids(cm.qaid)
-            class_dict['qname'] = ibs.get_name_texts(cm.qnid)
-        return class_dict
-
-    @classmethod
-    def from_dict(cls, class_dict, ibs=None):
-        r"""
-        Convert dict of arguments back to ChipMatch object
-        """
-
-        def convert_numpy_lists(arr_list, dtype):
-            return [np.array(arr, dtype=dtype) for arr in arr_list]
-
-        def convert_numpy(arr, dtype):
-            return np.array(ut.replace_nones(arr, np.nan), dtype=dtype)
-
-        key_list = ut.get_kwargs(cls.initialize)[0]  # HACKY
-        key_list.remove('autoinit')
-        if ut.VERBOSE:
-            other_keys = list(set(class_dict.keys()) - set(key_list))
-            if len(other_keys) > 0:
-                print('Not unserializing extra attributes: %s' % (
-                    ut.list_str(other_keys)))
-
-        if ibs is not None:
-            class_dict = prepare_dict_uuids(class_dict, ibs)
-
-        dict_subset = ut.dict_subset(class_dict, key_list)
-        dict_subset['score_list'] = convert_numpy(dict_subset['score_list'],
-                                                  hstypes.FS_DTYPE)
-
-        cm = cls()
-        cm.initialize(**dict_subset)
-        return cm
-
-    def __nice__(cm):
-        return 'qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
+class _AnnotMatchConvenienceGetter(object):
 
     @property
     def algo_annot_scores(cm):
@@ -1024,42 +1002,6 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
         algo_name_scores = ut.ClassAttrDictProxy(cm, cm.special_name_scores, attrs)
         return algo_name_scores
 
-    def _update_daid_index(cm):
-        """
-        Rebuilds inverted index from aid to internal index
-        """
-        cm.daid2_idx = safeop(ut.make_index_lookup, cm.daid_list)
-
-    def _update_unique_nid_index(cm):
-        """
-        Rebuilds inverted index from nid to internal (name) index
-        """
-        #assert cm.unique_nids is not None
-        unique_nids_, name_groupxs_ = vt.group_indices(cm.dnid_list)
-        #assert unique_nids_.dtype == hstypes.INTEGER_TYPE
-        if cm.unique_nids is None:
-            assert cm.name_score_list is None, 'name score is misaligned'
-            cm.unique_nids = unique_nids_
-        cm.nid2_nidx = ut.make_index_lookup(cm.unique_nids)
-        nidx_list = np.array(ut.dict_take(cm.nid2_nidx, unique_nids_))
-        inverse_idx_list = nidx_list.argsort()
-        cm.name_groupxs = ut.take(name_groupxs_, inverse_idx_list)
-
-    def evaluate_dnids(cm, qreq_=None, ibs=None):
-        if qreq_ is not None:
-            #cm.qnid = qreq_.qannots.loc([cm.qaid]).nids[0]
-            #dnid_list = qreq_.dannots.loc(cm.daid_list).nids
-            cm.qnid = qreq_.get_qreq_annot_nids(cm.qaid)
-            dnid_list = qreq_.get_qreq_annot_nids(cm.daid_list)
-            #ibs = qreq_.ibs
-        elif ibs is not None:
-            cm.qnid = ibs.get_annot_name_rowids(cm.qaid)
-            dnid_list = ibs.get_annot_name_rowids(cm.daid_list)
-        else:
-            assert False, 'no source of dnids'
-        cm.dnid_list = np.array(dnid_list, dtype=hstypes.INDEX_TYPE)
-        cm._update_unique_nid_index()
-
     #------------------
     # Score-Based Result Functions
     #------------------
@@ -1071,9 +1013,9 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
         return top_scores
 
     def get_top_nids(cm, ntop=None):
-        sortx = cm.score_list.argsort()[::-1]
-        _top_nids = vt.list_take_(cm.dnid_list, sortx)
-        top_nids = ut.listclip(_top_nids, ntop)
+        sortx_ = cm.score_list.argsort()[::-1]
+        sortx = sortx_[slice(0, ntop)]
+        top_nids = vt.list_take_(cm.dnid_list, sortx)
         return top_nids
 
     def get_top_aids(cm, ntop=None):
@@ -1229,6 +1171,168 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
         assert cm.name_score_list is not None, 'no name scores computed'
         return np.argsort(cm.name_score_list)[::-1]
 
+
+class AnnotMatch(MatchBaseIO, ut.NiceRepr, _BaseVisualization, _AnnotMatchConvenienceGetter):
+    """
+    This implements part the match between whole annotations and the other
+    annotaions / names. This does not include algorithm specific feature
+    matches.
+    """
+
+    _attr_names = [
+        'qaid',
+        'qnid',
+        'daid_list',
+        'dnid_list',
+        'H_list',
+        'score_list',
+        'annot_score_list',
+        'unique_nids',
+        'name_score_list',
+    ]
+
+    def __init__(cm, *args, **kwargs):
+        cm.qaid = None
+        cm.qnid = None
+        cm.daid_list  = None
+        # This is aligned with daid list, do not confuse with unique_nids
+        cm.dnid_list  = None
+        cm.H_list     = None
+        cm.score_list = None
+        # standard groupings
+        # TODO: rename unique_nids to indicate it is aligned with name_groupxs
+        # Annot scores
+        cm.annot_score_list = None
+        # Name scores
+        cm.unique_nids = None  # belongs to name_groupxs
+        cm.name_score_list = None
+        # TODO: have subclass or dict for special scores
+        # Special annot scores
+        cm.special_annot_scores = [
+            'csum',
+            'acov',
+        ]
+        for score_method in cm.special_annot_scores:
+            setattr(cm, score_method + '_score_list', None)
+        #cm.csum_score_list = None
+        #cm.acov_score_list = None
+        # Special name scores
+        cm.special_name_scores = [
+            'nsum',
+            'maxcsum',
+            'ncov',
+        ]
+        # TODO: use a dictionary instaed of attrs
+        for score_method in cm.special_name_scores:
+            setattr(cm, score_method + '_score_list', None)
+        #cm.nsum_score_list = None
+        #cm.maxcsum_score_list = None
+        #cm.ncov_score_list = None
+        # Re-evaluatables (for convinience only)
+        cm.daid2_idx = None  # maps onto cm.daid_list
+        cm.nid2_nidx = None  # maps onto cm.unique_nids
+        cm.name_groupxs = None
+
+    def __nice__(cm):
+        return 'qaid=%s nD=%s' % (cm.qaid, cm.num_daids)
+
+    def initialize(cm, qaid=None, daid_list=None, score_list=None,
+                   dnid_list=None, qnid=None,
+                   unique_nids=None, name_score_list=None,
+                   annot_score_list=None, autoinit=True):
+        """
+        qaid and daid_list are not optional. fm_list and fsv_list are strongly
+        encouraged and will probalby break things if they are not there.
+        """
+        cm.qaid         = qaid
+        cm.daid_list    = safeop(np.array, daid_list, dtype=hstypes.INDEX_TYPE)
+        cm.score_list   = safeop(np.array, score_list, dtype=hstypes.FLOAT_TYPE)
+        # name info
+        cm.qnid = qnid
+        cm.dnid_list = safeop(np.array, dnid_list, dtype=hstypes.INDEX_TYPE)
+        cm.unique_nids = safeop(np.array, unique_nids, dtype=hstypes.INDEX_TYPE)
+        cm.name_score_list = safeop(np.array, name_score_list, dtype=hstypes.FLOAT_TYPE)
+        cm.annot_score_list = safeop(np.array, annot_score_list, dtype=hstypes.FLOAT_TYPE)
+
+        # TODO: have subclass or dict for special scores
+        if autoinit:
+            cm._update_daid_index()
+            if cm.dnid_list is not None:
+                cm._update_unique_nid_index()
+            if DEBUG_CHIPMATCH:
+                cm.assert_self(verbose=True)
+
+    def to_dict(cm, ibs=None):
+        class_dict = cm.__getstate__()
+        if ibs is not None:
+            assert ibs is not None, 'need ibs to convert uuids'
+            class_dict['dannot_uuid_list'] = ibs.get_annot_uuids(cm.daid_list)
+            class_dict['dname_list'] = ibs.get_name_texts(cm.dnid_list)
+            class_dict['qannot_uuid'] = ibs.get_annot_uuids(cm.qaid)
+            class_dict['qname'] = ibs.get_name_texts(cm.qnid)
+        return class_dict
+
+    @classmethod
+    def from_dict(cls, class_dict, ibs=None):
+        r"""
+        Convert dict of arguments back to ChipMatch object
+        """
+
+        key_list = ut.get_kwargs(cls.initialize)[0]  # HACKY
+        key_list.remove('autoinit')
+        if ut.VERBOSE:
+            other_keys = list(set(class_dict.keys()) - set(key_list))
+            if len(other_keys) > 0:
+                print('Not unserializing extra attributes: %s' % (
+                    ut.list_str(other_keys)))
+
+        if ibs is not None:
+            class_dict = prepare_dict_uuids(class_dict, ibs)
+
+        dict_subset = ut.dict_subset(class_dict, key_list)
+        dict_subset['score_list'] = convert_numpy(dict_subset['score_list'],
+                                                  hstypes.FS_DTYPE)
+
+        cm = cls()
+        cm.initialize(**dict_subset)
+        return cm
+
+    def _update_daid_index(cm):
+        """
+        Rebuilds inverted index from aid to internal index
+        """
+        cm.daid2_idx = safeop(ut.make_index_lookup, cm.daid_list)
+
+    def _update_unique_nid_index(cm):
+        """
+        Rebuilds inverted index from nid to internal (name) index
+        """
+        #assert cm.unique_nids is not None
+        unique_nids_, name_groupxs_ = vt.group_indices(cm.dnid_list)
+        #assert unique_nids_.dtype == hstypes.INTEGER_TYPE
+        if cm.unique_nids is None:
+            assert cm.name_score_list is None, 'name score is misaligned'
+            cm.unique_nids = unique_nids_
+        cm.nid2_nidx = ut.make_index_lookup(cm.unique_nids)
+        nidx_list = np.array(ut.dict_take(cm.nid2_nidx, unique_nids_))
+        inverse_idx_list = nidx_list.argsort()
+        cm.name_groupxs = ut.take(name_groupxs_, inverse_idx_list)
+
+    def evaluate_dnids(cm, qreq_=None, ibs=None):
+        if qreq_ is not None:
+            #cm.qnid = qreq_.qannots.loc([cm.qaid]).nids[0]
+            #dnid_list = qreq_.dannots.loc(cm.daid_list).nids
+            cm.qnid = qreq_.get_qreq_annot_nids(cm.qaid)
+            dnid_list = qreq_.get_qreq_annot_nids(cm.daid_list)
+            #ibs = qreq_.ibs
+        elif ibs is not None:
+            cm.qnid = ibs.get_annot_name_rowids(cm.qaid)
+            dnid_list = ibs.get_annot_name_rowids(cm.daid_list)
+        else:
+            assert False, 'no source of dnids'
+        cm.dnid_list = np.array(dnid_list, dtype=hstypes.INDEX_TYPE)
+        cm._update_unique_nid_index()
+
     #------------------
     # State Modification Functions
     #------------------
@@ -1250,96 +1354,566 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr):
             cm.annot_score_list, cm.daid_list, cm.daid2_idx, cm.name_groupxs,
             cm.name_score_list)
 
-    def show_analysis(cm, qreq_, **kwargs):
-        # HACK FOR ANNOT MATCH (HUMPBACKS)
-        from ibeis.viz import viz_qres
-        kwshow = {
-            'show_query': False,
-            'show_timedelta': True,
-        }
-        kwshow.update(kwargs)
-        #print('\n')
-        #print("???? HACK SHOW QRES ANALYSIS")
-        return viz_qres.show_qres_analysis(qreq_.ibs, cm, qreq_=qreq_, **kwshow)
 
-    def ishow_analysis(cm, qreq_, **kwargs):
-        # HACK FOR ANNOT MATCH (HUMPBACKS)
-        from ibeis.viz.interact import interact_qres
-        kwshow = {
-            'show_query': False,
-            'show_timedelta': True,
-        }
-        kwshow.update(kwargs)
-        return interact_qres.ishow_analysis(qreq_.ibs, cm, qreq_=qreq_, **kwshow)
+class _ChipMatchConvenienceGetter(object):
 
-    def show_single_namematch(cm, qreq_, dnid, fnum=None, pnum=None,
-                              homog=ut.get_argflag('--homog'), **kwargs):
+    #------------------
+    # Getter Functions
+    #------------------
+
+    def get_flat_fm_info(cm, flags=None):
+        r"""
+        Returns:
+            dict: info_
+
+        CommandLine:
+            python -m ibeis.algo.hots.chip_match --exec-get_flat_fm_info --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver(
+            >>>     defaultdb='PZ_MTEST', qaid_list=[18])
+            >>> cm = cm_list[0]
+            >>> info_ = cm.get_flat_fm_info()
+            >>> ut.assert_all_eq(ut.lmap(len, info_.values()))
+            >>> result = ('info_ = %s' % (ut.repr3(info_, precision=2),))
+            >>> print(result)
         """
-        HACK FOR ANNOT MATCH
+        import vtool as vt
+        if flags is None:
+            flags = [True] * len(cm.daid_list)
+            # flags = cm.score_list > 0
+        # Compress to desired info
+        fsv_list  = ut.compress(cm.fsv_list, flags)
+        fm_list   = ut.compress(cm.fm_list, flags)
+        daid_list = ut.compress(cm.daid_list, flags)
+        # Flatten on a feature level
+        len_list = [fm.shape[0] for fm in fm_list]
+        info_ = {}
+        nfilt = len(cm.fsv_col_lbls)
+        info_['fsv'] = vt.safe_cat(fsv_list, axis=0, default_shape=(0, nfilt))
+        info_['fm'] = vt.safe_cat(fm_list, axis=0, default_shape=(0, 2),
+                                  default_dtype=hstypes.FM_DTYPE)
+        info_['aid1'] = np.full(sum(len_list), cm.qaid,
+                                dtype=hstypes.INDEX_TYPE)
+        info_['aid2'] = vt.safe_cat(
+            [np.array([daid] * n, dtype=hstypes.INDEX_TYPE)
+             for daid, n in zip(daid_list, len_list)],
+            default_shape=(0,), default_dtype=hstypes.INDEX_TYPE)
+        return info_
+
+    def get_num_feat_score_cols(cm):
+        return len(cm.fsv_col_lbls)
+
+    def get_fsv_prod_list(cm):
+        return [fsv.prod(axis=1) for fsv in cm.fsv_list]
+
+    def get_annot_fm(cm, daid):
+        idx = ut.dict_take(cm.daid2_idx, daid)
+        fm  = ut.take(cm.fm_list, idx)
+        return fm
+
+    def get_fs_list(cm, colx=None, col=None):
+        assert xor(colx is None, col is None)
+        if col is not None:
+            colx = cm.fsv_col_lbls.index(col)
+        fs_list = [fsv.T[colx].T for fsv in cm.fsv_list]
+        return fs_list
+
+    @property
+    def qfxs_list(cm):
+        return [fm.T[0] for fm in cm.fm_list]
+
+    @property
+    def dfxs_list(cm):
+        return [fm.T[1] for fm in cm.fm_list]
+
+    @property
+    def nfxs_list(cm):
+        nfxs_list = cm.filtnorm_fxs[0]
+        return nfxs_list
+
+    @property
+    def naids_list(cm):
+        naids_list = cm.filtnorm_aids[0]
+        return naids_list
+
+
+class _ChipMatchDebugger(object):
+    #------------------
+    # String Functions
+    #------------------
+
+    def print_inspect_str(cm, qreq_):
+        print(cm.get_inspect_str(qreq_))
+
+    def print_rawinfostr(cm):
+        print(cm.get_rawinfostr())
+
+    def print_csv(cm, *args, **kwargs):
+        print(cm.get_cvs_str(*args, **kwargs))
+
+    def inspect_difference(cm, other):
+        print('Checking difference')
+        raw_infostr1 = cm.get_rawinfostr(colored=False)
+        raw_infostr2 = other.get_rawinfostr(colored=False)
+        difftext = ut.get_textdiff(raw_infostr1, raw_infostr2, num_context_lines=4)
+        if len(difftext) == 0:
+            print('no difference')
+            return True
+        else:
+            ut.print_difftext(difftext)
+            return False
+
+    def get_inspect_str(cm, qreq_):
+        r"""
+        Args:
+            qreq_ (QueryRequest):  query request object with hyper-parameters
+
+        Returns:
+            str: varinfo
+
+        CommandLine:
+            python -m ibeis.algo.hots.chip_match --exec-get_inspect_str
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> import ibeis
+            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
+            >>> varinfo = cm.get_inspect_str(qreq_)
+            >>> result = ('varinfo = %s' % (str(varinfo),))
+            >>> print(result)
         """
-        # HACK FOR ANNOT MATCH (HUMPBACKS)
-        #print('\n')
-        #print("???? HACK SHOW SINGLE NAME MATCH")
-        from ibeis.viz import viz_matches
-        qaid = cm.qaid
-        if cm.nid2_nidx is None:
-            raise AssertionError('cm.nid2_nidx has not been evaluated yet')
-            #cm.score_nsum(qreq_)
-        # <GET NAME GROUPXS>
+        #cm.assert_self(qreq_)
+
+        top_lbls = [' top aids', ' scores', ' ranks']
+
+        ibs = qreq_.ibs
+
+        top_aids   = np.array(cm.get_top_aids(6), dtype=np.int32)
+        top_scores = np.array(cm.get_annot_scores(top_aids), dtype=np.float64)
+        #top_rawscores = np.array(cm.get_aid_scores(top_aids, rawscore=True), dtype=np.float64)
+        top_ranks  = np.arange(len(top_aids))
+        top_list   = [top_aids, top_scores, top_ranks]
+
+        top_lbls += [' isgt']
+        istrue = ibs.get_aidpair_truths([cm.qaid] * len(top_aids), top_aids)
+        top_list.append(np.array(istrue, dtype=np.int32))
+
+        top_lbls = ['top nid'] + top_lbls
+        top_list = [ibs.get_annot_name_rowids(top_aids)] + top_list
+
+        top_stack = np.vstack(top_list)
+        #top_stack = np.array(top_stack, dtype=object)
+        top_stack = np.array(top_stack, dtype=np.float)
+        #np.int32)
+        top_str = np.array_str(top_stack, precision=3, suppress_small=True, max_line_width=200)
+
+        top_lbl = '\n'.join(top_lbls)
+        inspect_list = ['QueryResult', qreq_.get_cfgstr(), ]
+        if ibs is not None:
+            gt_aids = cm.get_top_gt_aids(qreq_.ibs)
+            gt_ranks  = cm.get_annot_ranks(gt_aids)
+            gt_scores = cm.get_annot_scores(gt_aids)
+            inspect_list.append('len(cm.daid_list) = %r' % len(cm.daid_list))
+            inspect_list.append('len(cm.unique_nids) = %r' % len(cm.unique_nids))
+            inspect_list.append('gt_ranks = %r' % gt_ranks)
+            inspect_list.append('gt_aids = %r' % gt_aids)
+            inspect_list.append('gt_scores = %r' % gt_scores)
+
+        inspect_list.extend([
+            'qaid=%r ' % cm.qaid,
+            'qnid=%r ' % cm.qnid,
+            ut.hz_str(top_lbl, ' ', top_str),
+            #'num feat matches per annotation stats:',
+            #ut.indent(ut.dict_str(nFeatMatch_stats)),
+            #ut.indent(nFeatMatch_stats_str),
+        ])
+
+        inspect_str = '\n'.join(inspect_list)
+
+        #inspect_str = ut.indent(inspect_str, '[INSPECT] ')
+        return inspect_str
+
+    def get_rawinfostr(cm, colored=None):
+        r"""
+        Returns:
+            str: varinfo
+
+        CommandLine:
+            python -m ibeis.algo.hots.chip_match --exec-get_rawinfostr --show --cex
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> import ibeis
+            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
+            >>> varinfo = cm.get_rawinfostr()
+            >>> result = ('varinfo = %s' % (varinfo,))
+            >>> print(result)
+        """
+        def varinfo(varname, onlyrepr=False, canshowrepr=True, cm=cm, varcolor='yellow'):
+            varval = getattr(cm, varname.replace('cm.', ''))
+            varinfo_list = []
+            print_summary = not onlyrepr and ut.isiterable(varval)
+            show_repr = True
+            show_repr = show_repr or (onlyrepr or not print_summary)
+            symbol = '*'
+            if colored is not False and ut.util_dbg.COLORED_EXCEPTIONS:
+                varname = ut.color_text(varname, varcolor)
+            if show_repr:
+                varval_str = ut.repr2(varval, precision=2)
+                if len(varval_str) > 100:
+                    varval_str = '<omitted>'
+                varval_str = ut.truncate_str(varval_str, maxlen=50)
+                varinfo_list += ['    * %s = %s' % (varname, varval_str)]
+                symbol = '+'
+            if print_summary:
+                depth = ut.depth_profile(varval)
+                if not show_repr:
+                    varinfo_list += [
+                        # '    %s varinfo(%s):' % (symbol, varname,),
+                        '    %s %s = <not shown!>' % (symbol, varname,),
+                    ]
+                varinfo_list += [
+                    '          len = %r' % (len(varval),)]
+                if depth != len(varval):
+                    depth_str = ut.truncate_str(str(depth), maxlen=70)
+                    varinfo_list += [
+                        '          depth = %s' % (depth_str,)]
+                varinfo_list += [
+                    '          types = %s' % (ut.list_type_profile(varval),)]
+                #varinfo = '\n'.join(ut.align_lines(varinfo_list, '='))
+            aligned_varinfo_list = ut.align_lines(varinfo_list, '=')
+            varinfo = '\n'.join(aligned_varinfo_list)
+            return varinfo
+        str_list = []
+        append = str_list.append
+        attr_order = [
+            'cm.qaid',
+            'cm.qnid',
+            'cm.unique_nids',
+            'cm.daid_list',
+            'cm.dnid_list',
+            'cm.fs_list',
+            'cm.fm_list',
+            'cm.fk_list',
+            'cm.fsv_list',
+            'cm.fsv_col_lbls',
+            'cm.filtnorm_aids',
+            'cm.filtnorm_fxs',
+            'cm.H_list',
+            'cm.score_list',
+            'cm.annot_score_list',
+            'cm.csum_score_list',
+            'cm.acov_score_list',
+            'cm.name_score_list',
+            'cm.nsum_score_list',
+            'cm.ncov_score_list',
+            'cm.nid2_nidx',
+            'cm.daid2_idx',
+        ]
+        attrs_ = [attr.replace('cm.', '') for attr in attr_order]
+        unspecified_attrs = ut.setdiff(cm.__dict__.keys(), attrs_)
+
+        append('ChipMatch:')
+        for attr in attr_order:
+            append(varinfo(attr))
+        for attr in unspecified_attrs:
+            append(varinfo(attr, varcolor='red'))
+        infostr = '\n'.join(str_list)
+        return infostr
+
+    def get_cvs_str(cm,  numtop=6, ibs=None, sort=True):
+        r"""
+        Args:
+            numtop (int): (default = 6)
+            ibs (IBEISController):  ibeis controller object(default = None)
+            sort (bool): (default = True)
+
+        Returns:
+            str: csv_str
+
+        Notes:
+            Very weird that it got a score
+            qaid 6 vs 41 has
+                [72, 79, 0, 17, 6, 60, 15, 36, 63]
+                [72, 79, 0, 17, 6, 60, 15, 36, 63]
+                [72, 79, 0, 17, 6, 60, 15, 36, 63]
+                [0.060, 0.053, 0.0497, 0.040, 0.016, 0, 0, 0, 0]
+                [7, 40, 41, 86, 103, 88, 8, 101, 35]
+            makes very little sense
+
+        CommandLine:
+            python -m ibeis.algo.hots.chip_match --test-get_cvs_str --force-serial
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
+            >>> cm = cm_list[0]
+            >>> numtop = 6
+            >>> ibs = None
+            >>> sort = True
+            >>> csv_str = cm.get_cvs_str(numtop, ibs, sort)
+            >>> result = ('csv_str = \n%s' % (str(csv_str),))
+            >>> print(result)
+        """
+        if not sort or cm.score_list is None:
+            if sort:
+                print('Warning: cm.score_list is None and sort is True')
+            sortx = list(range(len(cm.daid_list)))
+        else:
+            sortx = ut.list_argsort(cm.score_list, reverse=True)
+        if ibs is not None:
+            qnid = ibs.get_annot_nids(cm.qaid)
+            dnid_list = ibs.get_annot_nids(cm.daid_list)
+        else:
+            qnid = cm.qnid
+            dnid_list = cm.dnid_list
+        # Build columns for the csv, filtering out unavailable information
+        column_lbls_ = ['daid', 'dnid', 'score', 'num_matches', 'annot_scores',
+                        'fm_depth', 'fsv_depth']
+        column_list_ = [
+            vt.list_take_(cm.daid_list,  sortx),
+            None if dnid_list is None else vt.list_take_(dnid_list, sortx),
+            None if cm.score_list is None else vt.list_take_(cm.score_list, sortx),
+            vt.list_take_(cm.get_num_matches_list(), sortx),
+            None if cm.annot_score_list is None else vt.list_take_(cm.annot_score_list, sortx),
+            #None if cm.name_score_list is None else vt.list_take_(cm.name_score_list, sortx),
+            ut.lmap(str, ut.depth_profile(vt.list_take_(cm.fm_list,  sortx))),
+            ut.lmap(str, ut.depth_profile(vt.list_take_(cm.fsv_list, sortx))),
+        ]
+        isnone_list = ut.flag_None_items(column_list_)
+        column_lbls = ut.filterfalse_items(column_lbls_, isnone_list)
+        column_list = ut.filterfalse_items(column_list_, isnone_list)
+        # Clip to the top results
+        if numtop is not None:
+            column_list = [ut.listclip(col, numtop) for col in column_list]
+        # hard case for python text parsing
+        # better know about quoted hash symbols
+        header = ut.codeblock(
+            '''
+            # qaid = {qaid}
+            # qnid = {qnid}
+            # fsv_col_lbls = {fsv_col_lbls}
+            '''
+        ).format(qaid=cm.qaid, qnid=qnid, fsv_col_lbls=cm.fsv_col_lbls)
+
+        csv_str = ut.make_csv_table(column_list, column_lbls, header, comma_repl=';')
+        return csv_str
+
+    #------------------
+    # Testing Functions
+    #------------------
+
+    def assert_self(cm, qreq_=None, ibs=None, strict=False, assert_feats=True,
+                    verbose=ut.NOT_QUIET):
+        # return list1_ is None or len(list1_) == len(list2_)
         try:
-            nidx = cm.nid2_nidx[dnid]
-        except KeyError:
-            #cm.print_inspect_str(qreq_)
-            cm_orig = cm  # NOQA
-            cm_orig.assert_self(qreq_)
-            # Hack to get rid of key error
-            cm.assert_self(verbose=False)
-            cm2 = cm.extend_results(qreq_)
-            cm2.assert_self(verbose=False)
-            cm = cm2
-            nidx = cm.nid2_nidx[dnid]
-            #raise
-        # </GET NAME GROUPXS>
-        groupxs = cm.name_groupxs[nidx]
-        daids = vt.take2(cm.daid_list, groupxs)
-        dnids = vt.take2(cm.dnid_list, groupxs)
-        assert np.all(dnid == dnids), (
-            'inconsistent naming, dnid=%r, dnids=%r' % (dnid, dnids,))
-        groupxs = groupxs.compress(daids != cm.qaid)
-        # </GET NAME GROUPXS>
-        # sort annots in this name by the chip score
-        # HACK USE cm.annot_score_list
-        #group_sortx = cm.csum_score_list.take(groupxs).argsort()[::-1]
-        group_sortx = cm.annot_score_list.take(groupxs).argsort()[::-1]
-        sorted_groupxs = groupxs.take(group_sortx)
-        # get the info for this name
-        name_daid_list = ut.take(cm.daid_list, sorted_groupxs)
-        # find features marked as invalid by name scoring
-        # Get the scores for names and chips
-        name_score = cm.name_score_list[nidx]
-        name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)
-        #name_annot_scores = cm.csum_score_list.take(sorted_groupxs)
-        name_annot_scores = cm.annot_score_list.take(sorted_groupxs)
+            assert cm.qaid is not None, 'must have qaid'
+            assert cm.daid_list is not None, 'must give daids'
+            _assert_eq_len(cm.fm_list, cm.daid_list)
+            _assert_eq_len(cm.fsv_list, cm.daid_list)
+            _assert_eq_len(cm.fk_list, cm.daid_list)
+            _assert_eq_len(cm.H_list, cm.daid_list)
+            _assert_eq_len(cm.score_list, cm.daid_list)
+            _assert_eq_len(cm.dnid_list, cm.daid_list)
+        except AssertionError as ex:
+            cm.print_rawinfostr()
+            raise
 
-        kwargs = kwargs.copy()
-        #print('kwargs.copy = %r' % (kwargs,))
-        #draw_fmatches = kwargs.get('draw_fmatches', True)
-        # MEGAHACK TO DEAL WITH OLD EXPLICIT ELLIPSE FEATURES
-        kwargs['draw_fmatches'] = kwargs.get('draw_ell', True)
-        kwargs['show_matches'] = False
+        if ibs is None and qreq_ is not None:
+            ibs = qreq_.ibs
 
-        _ = viz_matches.show_name_matches(
-            qreq_.ibs, qaid, name_daid_list, None, None, None, None, name_score=name_score, name_rank=name_rank,
-            name_annot_scores=name_annot_scores, qreq_=qreq_, fnum=fnum,
-            pnum=pnum, **kwargs)
-        return _
+        testlog = TestLogger(verbose=verbose)
+
+        with testlog.context('lookup score by daid'):
+            if cm.score_list is None:
+                testlog.skip_test()
+            else:
+                daids = cm.get_top_aids()
+                scores = cm.get_top_scores()
+                scores_ = cm.get_annot_scores(daids)
+                if not np.all(scores == scores_):
+                    testlog.log_failed('score mappings are NOT ok')
+
+        with testlog.context('dnid_list = name(daid_list)'):
+            if strict or ibs is not None and cm.dnid_list is not None:
+                nid_list = ibs.get_annot_name_rowids(cm.daid_list)
+                if not np.all(cm.dnid_list == nid_list):
+                    testlog.log_failed('annot aligned nids are NOT ok')
+            else:
+                testlog.skip_test()
+
+        if strict or cm.unique_nids is not None:
+            with testlog.context('unique nid mapping'):
+                assert cm.nid2_nidx is not None, 'name mappings are not built'
+                nidx_list = ut.dict_take(cm.nid2_nidx, cm.unique_nids)
+                assert nidx_list == list(range(len(nidx_list)))
+                assert np.all(cm.unique_nids[nidx_list] == cm.unique_nids)
+
+            with testlog.context('allsame(grouped(dnid_list))'):
+                grouped_nids = vt.apply_grouping(cm.dnid_list, cm.name_groupxs)
+                for nids in grouped_nids:
+                    if not ut.allsame(nids):
+                        testlog.log_failed('internal dnid name grouping is NOT consistent')
+
+            with testlog.context('allsame(name(grouped(daid_list)))'):
+                if ibs is None:
+                    testlog.skip_test()
+                else:
+                    # this might fail if this result is old and the names have changed
+                    grouped_aids = vt.apply_grouping(cm.daid_list, cm.name_groupxs)
+                    grouped_mapped_nids = ibs.unflat_map(
+                        ibs.get_annot_name_rowids, grouped_aids)
+                    for nids in grouped_mapped_nids:
+                        if not ut.allsame(nids):
+                            testlog.log_failed(
+                                'internal daid name grouping is NOT consistent')
+
+            with testlog.context('dnid_list - unique_nid alignment'):
+                grouped_nids = vt.apply_grouping(cm.dnid_list, cm.name_groupxs)
+                for nids, nid in zip(grouped_nids, cm.unique_nids):
+                    if not np.all(nids == nid):
+                        testlog.log_failed(
+                            'cm.unique_nids is NOT aligned with '
+                            'vt.apply_grouping(cm.dnid_list, cm.name_groupxs). '
+                            ' nids=%r, nid=%r' % (nids, nid)
+                        )
+                        break
+
+            if ibs is not None:
+                testlog.start_test('daid_list - unique_nid alignment')
+                for nids, nid in zip(grouped_mapped_nids, cm.unique_nids):
+                    if not np.all(nids == nid):
+                        testlog.log_failed(
+                            'cm.unique_nids is NOT aligned with '
+                            'vt.apply_grouping(name(cm.daid_list), cm.name_groupxs). '
+                            ' name(aids)=%r, nid=%r' % (nids, nid)
+                        )
+                        break
+                testlog.end_test()
+
+        assert len(testlog.failed_list) == 0, '\n'.join(testlog.failed_list)
+        testlog.log_passed('lengths are ok')
+
+        try:
+            with testlog.context('check fm_shape'):
+                if cm.fm_list is None:
+                    testlog.skip_test()
+                else:
+                    assert ut.list_all_eq_to([fm.shape[1] for fm in cm.fm_list], 2), (
+                        'fm arrs must be Nx2 dimensions')
+
+            with testlog.context('fsv_col_lbls agree with fsv shape'):
+                if cm.fsv_list is None:
+                    testlog.skip_test()
+                else:
+                    if cm.fsv_col_lbls is not None or strict:
+                        assert cm.fsv_col_lbls is not None, (
+                            'need to specify the names of the columns')
+                        num_col_lbls = len(cm.fsv_col_lbls)
+                    else:
+                        if len(cm.fsv_list) == 0:
+                            num_col_lbls = 0
+                        else:
+                            num_col_lbls = cm.fsv_list[0].shape[1]
+                    assert ut.list_all_eq_to(
+                        [fsv.shape[1] for fsv in cm.fsv_list], num_col_lbls), (
+                            'num_col_lbls=%r' % (num_col_lbls,))
+
+            with testlog.context('filtnorm checks'):
+                if cm.filtnorm_aids is None and cm.filtnorm_fxs is None:
+                    testlog.skip_test()
+                else:
+                    with testlog.context('num_col_lbls agree with filtnorm_arrs'):
+                        assert len(cm.filtnorm_aids) == num_col_lbls, (
+                            'bad len %r != %r' % (len(cm.filtnorm_aids), num_col_lbls))
+                        assert len(cm.filtnorm_fxs) == num_col_lbls
+                    with testlog.context('len(fsvs) agree with filtnorm_arrs'):
+                        assert all([
+                            aids_list is None or
+                            all([len(fsv) == len(aids)
+                                 for aids, fsv in zip(aids_list, cm.fsv_list)])
+                            for aids_list in cm.filtnorm_aids
+                        ]), 'norm aid indicies do not agree with featscores'
+                        assert all([
+                            fxs_list is None or
+                            all([len(fsv) == len(fxs)
+                                 for fxs, fsv in zip(fxs_list, cm.fsv_list)])
+                            for fxs_list in cm.filtnorm_fxs
+                        ]), 'norm fx indicies do not agree with featscores'
+        except Exception as ex:
+            cm.print_rawinfostr()
+            raise
+
+        # testlog.log_passed('filtkey and fsv shapes are ok')
+
+        if assert_feats and (strict or qreq_ is not None):
+            external_qaids = qreq_.qaids.tolist()
+            external_daids = qreq_.daids.tolist()
+            proot = getattr(qreq_.qparams, 'pipeline_root', None)
+            if proot == 'vsone':
+                assert len(external_qaids) == 1, 'only one external qaid for vsone'
+                if strict or qreq_.indexer is not None:
+                    nExternalQVecs = qreq_.ibs.get_annot_vecs(
+                        external_qaids[0],
+                        config2_=qreq_.extern_query_config2).shape[0]
+                    assert qreq_.indexer.idx2_vec.shape[0] == nExternalQVecs, (
+                        'did not index query descriptors properly')
+                testlog.log_passed('vsone daids are ok are ok')
+
+            nFeats1 = qreq_.ibs.get_annot_num_feats(
+                cm.qaid, config2_=qreq_.extern_query_config2)
+            nFeats2_list = np.array(
+                qreq_.ibs.get_annot_num_feats(
+                    cm.daid_list, config2_=qreq_.extern_data_config2))
+            if False:
+                # This does not need to be the case especially if the daid_list
+                # was exteneded
+                try:
+                    assert ut.list_issubset(cm.daid_list, external_daids), (
+                        'cmtup_old must be subset of daids')
+                except AssertionError as ex:
+                    ut.printex(ex, keys=['daid_list', 'external_daids'])
+                    raise
+            try:
+                fm_list = cm.fm_list
+                fx2s_list = [fm_.T[1] for fm_ in fm_list]
+                fx1s_list = [fm_.T[0] for fm_ in fm_list]
+                max_fx1_list = np.array([
+                    -1 if len(fx1s) == 0 else fx1s.max()
+                    for fx1s in fx1s_list])
+                max_fx2_list = np.array([
+                    -1 if len(fx2s) == 0 else fx2s.max()
+                    for fx2s in fx2s_list])
+                ut.assert_lessthan(max_fx2_list, nFeats2_list,
+                                   'max feat index must be less than num feats')
+                ut.assert_lessthan(max_fx1_list, nFeats1,
+                                   'max feat index must be less than num feats')
+            except AssertionError as ex:
+                ut.printex(ex, keys=['qaid', 'daid_list', 'nFeats1',
+                                     'nFeats2_list', 'max_fx1_list',
+                                     'max_fx2_list', ])
+                raise
+            testlog.log_passed('nFeats are ok in fm')
+        else:
+            testlog.log_skipped('nFeat check')
+
+        if qreq_ is not None:
+            pass
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class ChipMatch(_ChipMatchVisualization,
                 AnnotMatch,
                 _ChipMatchScorers,
-                old_chip_match._OldStyleChipMatchSimulator):
+                old_chip_match._OldStyleChipMatchSimulator,
+                _ChipMatchConvenienceGetter,
+                _ChipMatchDebugger):
     """
     behaves as as the ChipMatchOldTup named tuple until we
     completely replace the old structure
@@ -1407,11 +1981,11 @@ class ChipMatch(_ChipMatchVisualization,
         cm.name_score_list = safeop(np.array, name_score_list, dtype=hstypes.FLOAT_TYPE)
         cm.annot_score_list = safeop(np.array, annot_score_list, dtype=hstypes.FLOAT_TYPE)
 
-        cm.fm_list      = fm_list
-        cm.fsv_list     = fsv_list
-        cm.fk_list      = (fk_list if fk_list is not None else
-                           [np.zeros(fm.shape[0]) for fm in cm.fm_list]
-                           if cm.fm_list is not None else None)
+        cm.fm_list  = fm_list
+        cm.fsv_list = fsv_list
+        cm.fk_list  = (fk_list if fk_list is not None else
+                       [np.zeros(fm.shape[0]) for fm in cm.fm_list]
+                       if cm.fm_list is not None else None)
         cm.fsv_col_lbls = fsv_col_lbls
         # HACKY normalizer info
         cm.filtnorm_aids = filtnorm_aids
@@ -1423,6 +1997,27 @@ class ChipMatch(_ChipMatchVisualization,
                 cm._update_unique_nid_index()
             if DEBUG_CHIPMATCH:
                 cm.assert_self(verbose=True)
+
+    def arraycast_self(cm):
+        """
+        Ensures internal structure is in numpy array formats
+        TODO: come up with better name
+        Remove old initialize method and rename to initialize?
+        """
+        cm.daid_list    = safeop(np.array, cm.daid_list,  dtype=hstypes.INDEX_TYPE)
+        cm.score_list   = safeop(np.array, cm.score_list, dtype=hstypes.FLOAT_TYPE)
+        # name info
+        cm.dnid_list        = safeop(np.array, cm.dnid_list,        dtype=hstypes.INDEX_TYPE)
+        cm.unique_nids      = safeop(np.array, cm.unique_nids,      dtype=hstypes.INDEX_TYPE)
+        cm.name_score_list  = safeop(np.array, cm.name_score_list,  dtype=hstypes.FLOAT_TYPE)
+        cm.annot_score_list = safeop(np.array, cm.annot_score_list, dtype=hstypes.FLOAT_TYPE)
+
+        ncols = None if cm.fsv_col_lbls is None else len(cm.fsv_col_lbls)
+
+        cm.H_list   = safecast_numpy_lists(cm.H_list,   dtype=hstypes.FLOAT_TYPE)
+        cm.fm_list  = safecast_numpy_lists(cm.fm_list,  dtype=hstypes.INDEX_TYPE, dims=(None, 2))
+        cm.fsv_list = safecast_numpy_lists(cm.fsv_list, dtype=hstypes.FLOAT_TYPE, dims=(None, ncols))
+        cm.fk_list  = safecast_numpy_lists(cm.fk_list,  dtype=hstypes.INDEX_TYPE)
 
     def _empty_hack(cm):
         if cm.daid_list is None:
@@ -1459,18 +2054,6 @@ class ChipMatch(_ChipMatchVisualization,
             return False
         # else:
         #     return False
-
-    def inspect_difference(cm, other):
-        print('Checking difference')
-        raw_infostr1 = cm.get_rawinfostr(colored=False)
-        raw_infostr2 = other.get_rawinfostr(colored=False)
-        difftext = ut.get_textdiff(raw_infostr1, raw_infostr2, num_context_lines=4)
-        if len(difftext) == 0:
-            print('no difference')
-            return True
-        else:
-            ut.print_difftext(difftext)
-            return False
 
     #------------------
     # Modification / Evaluation Functions
@@ -1936,15 +2519,6 @@ class ChipMatch(_ChipMatchVisualization,
         Convert dict of arguments back to ChipMatch object
         """
 
-        def convert_numpy_lists(arr_list, dtype, dims=None):
-            new_arrs = [np.array(arr, dtype=dtype) for arr in arr_list]
-            if dims is not None:
-                new_arrs = [vt.atleast_nd(arr, dims) for arr in new_arrs]
-            return new_arrs
-
-        def convert_numpy(arr, dtype):
-            return np.array(ut.replace_nones(arr, np.nan), dtype=dtype)
-
         key_list = ut.get_kwargs(cls.initialize)[0]  # HACKY
         key_list.remove('autoinit')
         if ut.VERBOSE:
@@ -2054,573 +2628,6 @@ class ChipMatch(_ChipMatchVisualization,
         cm = cls()
         cm.__setstate__(state_dict)
         return cm
-
-    #------------------
-    # Getter Functions
-    #------------------
-
-    def get_flat_fm_info(cm, flags=None):
-        r"""
-        Returns:
-            dict: info_
-
-        CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-get_flat_fm_info --show
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver(
-            >>>     defaultdb='PZ_MTEST', qaid_list=[18])
-            >>> cm = cm_list[0]
-            >>> info_ = cm.get_flat_fm_info()
-            >>> ut.assert_all_eq(ut.lmap(len, info_.values()))
-            >>> result = ('info_ = %s' % (ut.repr3(info_, precision=2),))
-            >>> print(result)
-        """
-        import vtool as vt
-        if flags is None:
-            flags = [True] * len(cm.daid_list)
-            # flags = cm.score_list > 0
-        # Compress to desired info
-        fsv_list  = ut.compress(cm.fsv_list, flags)
-        fm_list   = ut.compress(cm.fm_list, flags)
-        daid_list = ut.compress(cm.daid_list, flags)
-        # Flatten on a feature level
-        len_list = [fm.shape[0] for fm in fm_list]
-        info_ = {}
-        nfilt = len(cm.fsv_col_lbls)
-        info_['fsv'] = vt.safe_cat(fsv_list, axis=0, default_shape=(0, nfilt))
-        info_['fm'] = vt.safe_cat(fm_list, axis=0, default_shape=(0, 2),
-                                  default_dtype=hstypes.FM_DTYPE)
-        info_['aid1'] = np.full(sum(len_list), cm.qaid,
-                                dtype=hstypes.INDEX_TYPE)
-        info_['aid2'] = vt.safe_cat(
-            [np.array([daid] * n, dtype=hstypes.INDEX_TYPE)
-             for daid, n in zip(daid_list, len_list)],
-            default_shape=(0,), default_dtype=hstypes.INDEX_TYPE)
-        return info_
-
-    def get_num_feat_score_cols(cm):
-        return len(cm.fsv_col_lbls)
-
-    def get_fs(cm, idx=None, colx=None, daid=None, col=None):
-        assert xor(idx is None, daid is None)
-        assert xor(colx is None or col is None)
-        if daid is not None:
-            idx = cm.daid2_idx[daid]
-        if col is not None:
-            colx = cm.fsv_col_lbls.index(col)
-        fs = cm.fsv_list[idx][colx]
-        return fs
-
-    def get_fsv_prod_list(cm):
-        return [fsv.prod(axis=1) for fsv in cm.fsv_list]
-
-    def get_annot_fm(cm, daid):
-        idx = ut.dict_take(cm.daid2_idx, daid)
-        fm  = ut.take(cm.fm_list, idx)
-        return fm
-
-    def get_fs_list(cm, colx=None, col=None):
-        assert xor(colx is None, col is None)
-        if col is not None:
-            colx = cm.fsv_col_lbls.index(col)
-        fs_list = [fsv.T[colx].T for fsv in cm.fsv_list]
-        return fs_list
-
-    @property
-    def qfxs_list(cm):
-        return [fm.T[0] for fm in cm.fm_list]
-
-    @property
-    def dfxs_list(cm):
-        return [fm.T[1] for fm in cm.fm_list]
-
-    @property
-    def nfxs_list(cm):
-        nfxs_list = cm.filtnorm_fxs[0]
-        # naids_list = ut.take(cm.filtnorm_aids[0], idxs)
-        return nfxs_list
-
-    @property
-    def naids_list(cm):
-        naids_list = cm.filtnorm_aids[0]
-        # naids_list = ut.take(cm.filtnorm_aids[0], idxs)
-        # assert any(x is not None for x in  cm.filtnorm_aids)
-        # naids_list = ut.take(cm.filtnorm_aids[0], idxs)
-        # nfxs_list  = ut.take(cm.filtnorm_fxs[0], idxs)
-        return naids_list
-
-    #------------------
-    # String Functions
-    #------------------
-
-    def print_inspect_str(cm, qreq_):
-        print(cm.get_inspect_str(qreq_))
-
-    def print_rawinfostr(cm):
-        print(cm.get_rawinfostr())
-
-    def print_csv(cm, *args, **kwargs):
-        print(cm.get_cvs_str(*args, **kwargs))
-
-    def get_inspect_str(cm, qreq_):
-        r"""
-        Args:
-            qreq_ (QueryRequest):  query request object with hyper-parameters
-
-        Returns:
-            str: varinfo
-
-        CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-get_inspect_str
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
-            >>> varinfo = cm.get_inspect_str(qreq_)
-            >>> result = ('varinfo = %s' % (str(varinfo),))
-            >>> print(result)
-        """
-        #cm.assert_self(qreq_)
-
-        top_lbls = [' top aids', ' scores', ' ranks']
-
-        ibs = qreq_.ibs
-
-        top_aids   = np.array(cm.get_top_aids(6), dtype=np.int32)
-        top_scores = np.array(cm.get_annot_scores(top_aids), dtype=np.float64)
-        #top_rawscores = np.array(cm.get_aid_scores(top_aids, rawscore=True), dtype=np.float64)
-        top_ranks  = np.arange(len(top_aids))
-        top_list   = [top_aids, top_scores, top_ranks]
-
-        top_lbls += [' isgt']
-        istrue = ibs.get_aidpair_truths([cm.qaid] * len(top_aids), top_aids)
-        top_list.append(np.array(istrue, dtype=np.int32))
-
-        top_lbls = ['top nid'] + top_lbls
-        top_list = [ibs.get_annot_name_rowids(top_aids)] + top_list
-
-        top_stack = np.vstack(top_list)
-        #top_stack = np.array(top_stack, dtype=object)
-        top_stack = np.array(top_stack, dtype=np.float)
-        #np.int32)
-        top_str = np.array_str(top_stack, precision=3, suppress_small=True, max_line_width=200)
-
-        top_lbl = '\n'.join(top_lbls)
-        inspect_list = ['QueryResult', qreq_.get_cfgstr(), ]
-        if ibs is not None:
-            gt_aids = cm.get_top_gt_aids(qreq_.ibs)
-            gt_ranks  = cm.get_annot_ranks(gt_aids)
-            gt_scores = cm.get_annot_scores(gt_aids)
-            inspect_list.append('len(cm.daid_list) = %r' % len(cm.daid_list))
-            inspect_list.append('len(cm.unique_nids) = %r' % len(cm.unique_nids))
-            inspect_list.append('gt_ranks = %r' % gt_ranks)
-            inspect_list.append('gt_aids = %r' % gt_aids)
-            inspect_list.append('gt_scores = %r' % gt_scores)
-
-        inspect_list.extend([
-            'qaid=%r ' % cm.qaid,
-            'qnid=%r ' % cm.qnid,
-            ut.hz_str(top_lbl, ' ', top_str),
-            #'num feat matches per annotation stats:',
-            #ut.indent(ut.dict_str(nFeatMatch_stats)),
-            #ut.indent(nFeatMatch_stats_str),
-        ])
-
-        inspect_str = '\n'.join(inspect_list)
-
-        #inspect_str = ut.indent(inspect_str, '[INSPECT] ')
-        return inspect_str
-
-    def get_rawinfostr(cm, colored=None):
-        r"""
-        Returns:
-            str: varinfo
-
-        CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-get_rawinfostr --show --cex
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> import ibeis
-            >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1', t='best:SV=False')
-            >>> varinfo = cm.get_rawinfostr()
-            >>> result = ('varinfo = %s' % (varinfo,))
-            >>> print(result)
-
-        Ignore:
-            varname = 'fm_list'
-            varname = 'unique_nids'
-            onlyrepr = False
-            canshowrepr = True
-        """
-        def varinfo(varname, onlyrepr=False, canshowrepr=True, cm=cm, varcolor='yellow'):
-            varval = getattr(cm, varname.replace('cm.', ''))
-            # show_if_smaller_than = 7
-            # if canshowrepr:
-            #     if hasattr(varval, 'size'):
-            #         show_repr = ut.isiterable(varval)  # and getattr(varval, 'size', 100) < show_if_smaller_than
-            #     else:
-            #         show_repr = ut.isiterable(varval)  # and len(varval) < show_if_smaller_than
-            # else:
-            #     show_repr = False
-            varinfo_list = []
-            print_summary = not onlyrepr and ut.isiterable(varval)
-            show_repr = True
-            show_repr = show_repr or (onlyrepr or not print_summary)
-            symbol = '*'
-            if colored is not False and ut.util_dbg.COLORED_EXCEPTIONS:
-                varname = ut.color_text(varname, varcolor)
-            if show_repr:
-                varval_str = ut.repr2(varval, precision=2)
-                if len(varval_str) > 100:
-                    varval_str = '<omitted>'
-                varval_str = ut.truncate_str(varval_str, maxlen=50)
-                varinfo_list += ['    * %s = %s' % (varname, varval_str)]
-                symbol = '+'
-            if print_summary:
-                depth = ut.depth_profile(varval)
-                if not show_repr:
-                    varinfo_list += [
-                        # '    %s varinfo(%s):' % (symbol, varname,),
-                        '    %s %s = <not shown!>' % (symbol, varname,),
-                    ]
-                varinfo_list += [
-                    '          len = %r' % (len(varval),)]
-                if depth != len(varval):
-                    depth_str = ut.truncate_str(str(depth), maxlen=70)
-                    varinfo_list += [
-                        '          depth = %s' % (depth_str,)]
-                varinfo_list += [
-                    '          types = %s' % (ut.list_type_profile(varval),)]
-                #varinfo = '\n'.join(ut.align_lines(varinfo_list, '='))
-            aligned_varinfo_list = ut.align_lines(varinfo_list, '=')
-            varinfo = '\n'.join(aligned_varinfo_list)
-            return varinfo
-        str_list = []
-        append = str_list.append
-        attr_order = [
-            'cm.qaid',
-            'cm.qnid',
-            'cm.unique_nids',
-            'cm.daid_list',
-            'cm.dnid_list',
-            'cm.fs_list',
-            'cm.fm_list',
-            'cm.fk_list',
-            'cm.fsv_list',
-            'cm.fsv_col_lbls',
-            'cm.filtnorm_aids',
-            'cm.filtnorm_fxs',
-            'cm.H_list',
-            'cm.score_list',
-            'cm.annot_score_list',
-            'cm.csum_score_list',
-            'cm.acov_score_list',
-            'cm.name_score_list',
-            'cm.nsum_score_list',
-            'cm.ncov_score_list',
-            'cm.nid2_nidx',
-            'cm.daid2_idx',
-        ]
-        attrs_ = [attr.replace('cm.', '') for attr in attr_order]
-        unspecified_attrs = ut.setdiff(cm.__dict__.keys(), attrs_)
-
-        append('ChipMatch:')
-        for attr in attr_order:
-            append(varinfo(attr))
-        for attr in unspecified_attrs:
-            append(varinfo(attr, varcolor='red'))
-        infostr = '\n'.join(str_list)
-        return infostr
-
-    def get_cvs_str(cm,  numtop=6, ibs=None, sort=True):
-        r"""
-        Args:
-            numtop (int): (default = 6)
-            ibs (IBEISController):  ibeis controller object(default = None)
-            sort (bool): (default = True)
-
-        Returns:
-            str: csv_str
-
-        Notes:
-            Very weird that it got a score
-            qaid 6 vs 41 has
-                [72, 79, 0, 17, 6, 60, 15, 36, 63]
-                [72, 79, 0, 17, 6, 60, 15, 36, 63]
-                [72, 79, 0, 17, 6, 60, 15, 36, 63]
-                [0.060, 0.053, 0.0497, 0.040, 0.016, 0, 0, 0, 0]
-                [7, 40, 41, 86, 103, 88, 8, 101, 35]
-            makes very little sense
-
-        CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-get_cvs_str --force-serial
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
-            >>> cm = cm_list[0]
-            >>> numtop = 6
-            >>> ibs = None
-            >>> sort = True
-            >>> csv_str = cm.get_cvs_str(numtop, ibs, sort)
-            >>> result = ('csv_str = \n%s' % (str(csv_str),))
-            >>> print(result)
-        """
-        if not sort or cm.score_list is None:
-            if sort:
-                print('Warning: cm.score_list is None and sort is True')
-            sortx = list(range(len(cm.daid_list)))
-        else:
-            sortx = ut.list_argsort(cm.score_list, reverse=True)
-        if ibs is not None:
-            qnid = ibs.get_annot_nids(cm.qaid)
-            dnid_list = ibs.get_annot_nids(cm.daid_list)
-        else:
-            qnid = cm.qnid
-            dnid_list = cm.dnid_list
-        # Build columns for the csv, filtering out unavailable information
-        column_lbls_ = ['daid', 'dnid', 'score', 'num_matches', 'annot_scores',
-                        'fm_depth', 'fsv_depth']
-        column_list_ = [
-            vt.list_take_(cm.daid_list,  sortx),
-            None if dnid_list is None else vt.list_take_(dnid_list, sortx),
-            None if cm.score_list is None else vt.list_take_(cm.score_list, sortx),
-            vt.list_take_(cm.get_num_matches_list(), sortx),
-            None if cm.annot_score_list is None else vt.list_take_(cm.annot_score_list, sortx),
-            #None if cm.name_score_list is None else vt.list_take_(cm.name_score_list, sortx),
-            ut.lmap(str, ut.depth_profile(vt.list_take_(cm.fm_list,  sortx))),
-            ut.lmap(str, ut.depth_profile(vt.list_take_(cm.fsv_list, sortx))),
-        ]
-        isnone_list = ut.flag_None_items(column_list_)
-        column_lbls = ut.filterfalse_items(column_lbls_, isnone_list)
-        column_list = ut.filterfalse_items(column_list_, isnone_list)
-        # Clip to the top results
-        if numtop is not None:
-            column_list = [ut.listclip(col, numtop) for col in column_list]
-        # hard case for python text parsing
-        # better know about quoted hash symbols
-        header = ut.codeblock(
-            '''
-            # qaid = {qaid}
-            # qnid = {qnid}
-            # fsv_col_lbls = {fsv_col_lbls}
-            '''
-        ).format(qaid=cm.qaid, qnid=qnid, fsv_col_lbls=cm.fsv_col_lbls)
-
-        csv_str = ut.make_csv_table(column_list, column_lbls, header, comma_repl=';')
-        return csv_str
-
-    #------------------
-    # Testing Functions
-    #------------------
-
-    def assert_self(cm, qreq_=None, ibs=None, strict=False, assert_feats=True,
-                    verbose=ut.NOT_QUIET):
-        def _assert_eq_len(list1_, list2_):
-            if list1_ is not None:
-                ut.assert_eq_len(list1_, list2_)
-            # return list1_ is None or len(list1_) == len(list2_)
-        try:
-            assert cm.qaid is not None, 'must have qaid'
-            assert cm.daid_list is not None, 'must give daids'
-            _assert_eq_len(cm.fm_list, cm.daid_list)
-            _assert_eq_len(cm.fsv_list, cm.daid_list)
-            _assert_eq_len(cm.fk_list, cm.daid_list)
-            _assert_eq_len(cm.H_list, cm.daid_list)
-            _assert_eq_len(cm.score_list, cm.daid_list)
-            _assert_eq_len(cm.dnid_list, cm.daid_list)
-        except AssertionError as ex:
-            cm.print_rawinfostr()
-            raise
-
-        if ibs is None and qreq_ is not None:
-            ibs = qreq_.ibs
-
-        testlog = TestLogger(verbose=verbose)
-
-        with testlog.context('lookup score by daid'):
-            if cm.score_list is None:
-                testlog.skip_test()
-            else:
-                daids = cm.get_top_aids()
-                scores = cm.get_top_scores()
-                scores_ = cm.get_annot_scores(daids)
-                if not np.all(scores == scores_):
-                    testlog.log_failed('score mappings are NOT ok')
-
-        with testlog.context('dnid_list = name(daid_list)'):
-            if strict or ibs is not None and cm.dnid_list is not None:
-                nid_list = ibs.get_annot_name_rowids(cm.daid_list)
-                if not np.all(cm.dnid_list == nid_list):
-                    testlog.log_failed('annot aligned nids are NOT ok')
-            else:
-                testlog.skip_test()
-
-        if strict or cm.unique_nids is not None:
-            with testlog.context('unique nid mapping'):
-                assert cm.nid2_nidx is not None, 'name mappings are not built'
-                nidx_list = ut.dict_take(cm.nid2_nidx, cm.unique_nids)
-                assert nidx_list == list(range(len(nidx_list)))
-                assert np.all(cm.unique_nids[nidx_list] == cm.unique_nids)
-
-            with testlog.context('allsame(grouped(dnid_list))'):
-                grouped_nids = vt.apply_grouping(cm.dnid_list, cm.name_groupxs)
-                for nids in grouped_nids:
-                    if not ut.allsame(nids):
-                        testlog.log_failed('internal dnid name grouping is NOT consistent')
-
-            with testlog.context('allsame(name(grouped(daid_list)))'):
-                if ibs is None:
-                    testlog.skip_test()
-                else:
-                    # this might fail if this result is old and the names have changed
-                    grouped_aids = vt.apply_grouping(cm.daid_list, cm.name_groupxs)
-                    grouped_mapped_nids = ibs.unflat_map(
-                        ibs.get_annot_name_rowids, grouped_aids)
-                    for nids in grouped_mapped_nids:
-                        if not ut.allsame(nids):
-                            testlog.log_failed(
-                                'internal daid name grouping is NOT consistent')
-
-            with testlog.context('dnid_list - unique_nid alignment'):
-                grouped_nids = vt.apply_grouping(cm.dnid_list, cm.name_groupxs)
-                for nids, nid in zip(grouped_nids, cm.unique_nids):
-                    if not np.all(nids == nid):
-                        testlog.log_failed(
-                            'cm.unique_nids is NOT aligned with '
-                            'vt.apply_grouping(cm.dnid_list, cm.name_groupxs). '
-                            ' nids=%r, nid=%r' % (nids, nid)
-                        )
-                        break
-
-            if ibs is not None:
-                testlog.start_test('daid_list - unique_nid alignment')
-                for nids, nid in zip(grouped_mapped_nids, cm.unique_nids):
-                    if not np.all(nids == nid):
-                        testlog.log_failed(
-                            'cm.unique_nids is NOT aligned with '
-                            'vt.apply_grouping(name(cm.daid_list), cm.name_groupxs). '
-                            ' name(aids)=%r, nid=%r' % (nids, nid)
-                        )
-                        break
-                testlog.end_test()
-
-        assert len(testlog.failed_list) == 0, '\n'.join(testlog.failed_list)
-        testlog.log_passed('lengths are ok')
-
-        try:
-            with testlog.context('check fm_shape'):
-                if cm.fm_list is None:
-                    testlog.skip_test()
-                else:
-                    assert ut.list_all_eq_to([fm.shape[1] for fm in cm.fm_list], 2), (
-                        'fm arrs must be Nx2 dimensions')
-
-            with testlog.context('fsv_col_lbls agree with fsv shape'):
-                if cm.fsv_list is None:
-                    testlog.skip_test()
-                else:
-                    if cm.fsv_col_lbls is not None or strict:
-                        assert cm.fsv_col_lbls is not None, (
-                            'need to specify the names of the columns')
-                        num_col_lbls = len(cm.fsv_col_lbls)
-                    else:
-                        if len(cm.fsv_list) == 0:
-                            num_col_lbls = 0
-                        else:
-                            num_col_lbls = cm.fsv_list[0].shape[1]
-                    assert ut.list_all_eq_to(
-                        [fsv.shape[1] for fsv in cm.fsv_list], num_col_lbls), (
-                            'num_col_lbls=%r' % (num_col_lbls,))
-
-            with testlog.context('filtnorm checks'):
-                if cm.filtnorm_aids is None and cm.filtnorm_fxs is None:
-                    testlog.skip_test()
-                else:
-                    with testlog.context('num_col_lbls agree with filtnorm_arrs'):
-                        assert len(cm.filtnorm_aids) == num_col_lbls, (
-                            'bad len %r != %r' % (len(cm.filtnorm_aids), num_col_lbls))
-                        assert len(cm.filtnorm_fxs) == num_col_lbls
-                    with testlog.context('len(fsvs) agree with filtnorm_arrs'):
-                        assert all([
-                            aids_list is None or
-                            all([len(fsv) == len(aids)
-                                 for aids, fsv in zip(aids_list, cm.fsv_list)])
-                            for aids_list in cm.filtnorm_aids
-                        ]), 'norm aid indicies do not agree with featscores'
-                        assert all([
-                            fxs_list is None or
-                            all([len(fsv) == len(fxs)
-                                 for fxs, fsv in zip(fxs_list, cm.fsv_list)])
-                            for fxs_list in cm.filtnorm_fxs
-                        ]), 'norm fx indicies do not agree with featscores'
-        except Exception as ex:
-            cm.print_rawinfostr()
-            raise
-
-        # testlog.log_passed('filtkey and fsv shapes are ok')
-
-        if assert_feats and (strict or qreq_ is not None):
-            external_qaids = qreq_.qaids.tolist()
-            external_daids = qreq_.daids.tolist()
-            proot = getattr(qreq_.qparams, 'pipeline_root', None)
-            if proot == 'vsone':
-                assert len(external_qaids) == 1, 'only one external qaid for vsone'
-                if strict or qreq_.indexer is not None:
-                    nExternalQVecs = qreq_.ibs.get_annot_vecs(
-                        external_qaids[0],
-                        config2_=qreq_.extern_query_config2).shape[0]
-                    assert qreq_.indexer.idx2_vec.shape[0] == nExternalQVecs, (
-                        'did not index query descriptors properly')
-                testlog.log_passed('vsone daids are ok are ok')
-
-            nFeats1 = qreq_.ibs.get_annot_num_feats(
-                cm.qaid, config2_=qreq_.extern_query_config2)
-            nFeats2_list = np.array(
-                qreq_.ibs.get_annot_num_feats(
-                    cm.daid_list, config2_=qreq_.extern_data_config2))
-            if False:
-                # This does not need to be the case especially if the daid_list
-                # was exteneded
-                try:
-                    assert ut.list_issubset(cm.daid_list, external_daids), (
-                        'cmtup_old must be subset of daids')
-                except AssertionError as ex:
-                    ut.printex(ex, keys=['daid_list', 'external_daids'])
-                    raise
-            try:
-                fm_list = cm.fm_list
-                fx2s_list = [fm_.T[1] for fm_ in fm_list]
-                fx1s_list = [fm_.T[0] for fm_ in fm_list]
-                max_fx1_list = np.array([
-                    -1 if len(fx1s) == 0 else fx1s.max()
-                    for fx1s in fx1s_list])
-                max_fx2_list = np.array([
-                    -1 if len(fx2s) == 0 else fx2s.max()
-                    for fx2s in fx2s_list])
-                ut.assert_lessthan(max_fx2_list, nFeats2_list,
-                                   'max feat index must be less than num feats')
-                ut.assert_lessthan(max_fx1_list, nFeats1,
-                                   'max feat index must be less than num feats')
-            except AssertionError as ex:
-                ut.printex(ex, keys=['qaid', 'daid_list', 'nFeats1',
-                                     'nFeats2_list', 'max_fx1_list',
-                                     'max_fx2_list', ])
-                raise
-            testlog.log_passed('nFeats are ok in fm')
-        else:
-            testlog.log_skipped('nFeat check')
-
-        if qreq_ is not None:
-            pass
 
 
 # -----

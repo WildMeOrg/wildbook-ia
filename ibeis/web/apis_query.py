@@ -699,10 +699,10 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
             for cm in cm_list:
                 cm.qauuid = ibs.get_annot_uuids(cm.qaid)
                 cm.dauuid_list = ibs.get_annot_uuids(cm.daid_list)
-            keys = ['qauuid', 'dauuid_list']
-            cm_list = [cm.as_simple_dict(keys) for cm in cm_list]
+            keys = ['qaid', 'daid_list', 'score_list', 'qauuid', 'dauuid_list']
+            cm_list = [ut.dict_subset(cm.to_dict(), keys) for cm in cm_list]
         elif return_cm_dict:
-            cm_list = [cm.as_dict() for cm in cm_list]
+            cm_list = [cm.to_dict() for cm in cm_list]
 
     if was_scalar:
         # hack for scalar input

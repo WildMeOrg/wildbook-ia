@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, map
+import six
 import dtool
 import utool as ut
 import vtool as vt
@@ -44,13 +46,16 @@ def testdata_smk(*args, **kwargs):
     """
     import ibeis
     import sklearn
-    import sklearn.model_selection
+    # import sklearn.model_selection
+    import sklearn.cross_validation
     ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
     nid_list = np.array(ibs.annots(aid_list).nids)
     rng = ut.ensure_rng(0)
     xvalkw = dict(n_folds=4, shuffle=False, random_state=rng)
-    skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-    train_idx, test_idx = list(skf.split(nid_list, nid_list))[0]
+    # skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
+    # train_idx, test_idx = list(skf.split(nid_list, nid_list))[0]
+    skf = sklearn.cross_validation.StratifiedKFold(nid_list, **xvalkw)
+    train_idx, test_idx = six.next(iter(skf))
     daids = ut.take(aid_list, train_idx)
     qaids = ut.take(aid_list, test_idx)
 
@@ -544,7 +549,7 @@ class InvertedIndex(ut.NiceRepr):
             average_patch = np.mean(assigned_patches, axis=0)
             average_patch = average_patch.astype(np.float)
             inva._word_patches[wx] = average_patch
-        return inva._word_patches
+        return inva._word_patches[wx]
 
     def compute_idf(inva):
         """
@@ -769,8 +774,9 @@ class SMK(ut.NiceRepr):
         smk.qinva = qinva
         smk.dinva = dinva
         smk.config = {
-            'smk_alpha': 3,
-            'smk_thresh': .25,
+            'alpha': 3,
+            'thresh': 0,
+            # 'thresh': .5,
         }
         # Choose which version to use
         if True:
@@ -824,8 +830,8 @@ class SMK(ut.NiceRepr):
         return u
 
     def selectivity(smk, u):
-        score = np.sign(u) * np.power(np.abs(u), smk.config['smk_alpha'])
-        score *= np.greater(u, smk.config['smk_thresh'])
+        score = np.sign(u) * np.power(np.abs(u), smk.config['alpha'])
+        score *= np.greater(u, smk.config['thresh'])
         return score
 
     def gamma(smk, X):
@@ -867,14 +873,20 @@ class SMK(ut.NiceRepr):
 
     def smk_chipmatch(smk, X, Y_list, qreq_):
         """
-        >>> from ibeis.new_annots import *  # NOQA
-        >>> ibs, smk, qreq_ = testdata_smk()
-        >>> X = smk.qinva.group_annots()[0]
-        >>> Y_list = smk.dinva.group_annots()
-        >>> Y = Y_list[0]
-        >>> cm = smk.smk_chipmatch(X, Y_list, qreq_)
-        >>> ut.qt4ensure()
-        >>> cm.show_single_annotmatch(qreq_)
+        CommandLine:
+            python -m ibeis.new_annots smk_chipmatch --show
+
+        Example:
+            >>> # FUTURE_ENABLE
+            >>> from ibeis.new_annots import *  # NOQA
+            >>> ibs, smk, qreq_ = testdata_smk()
+            >>> X = smk.qinva.group_annots()[0]
+            >>> Y_list = smk.dinva.group_annots()
+            >>> Y = Y_list[0]
+            >>> cm = smk.smk_chipmatch(X, Y_list, qreq_)
+            >>> ut.qt4ensure()
+            >>> cm.ishow_analysis(qreq_)
+            >>> ut.show_if_requested()
 
         """
         from ibeis.algo.hots import chip_match
@@ -909,7 +921,6 @@ class SMK(ut.NiceRepr):
             fm_list.append(fm)
             fsv_list.append(fsv)
 
-        import six
         progiter = iter(ut.ProgIter([0], lbl='smk sver qaid=%r' % (qaid,)))
         six.next(progiter)
 
@@ -917,6 +928,7 @@ class SMK(ut.NiceRepr):
         cm = chip_match.ChipMatch(qaid=qaid, daid_list=daid_list,
                                   fm_list=fm_list, fsv_list=fsv_list,
                                   fsv_col_lbls=fsv_col_lbls)
+        cm.arraycast_self()
         # Score matches and take a shortlist
         cm.score_maxcsum(qreq_)
         nNameShortList  = qreq_.qparams.nNameShortlistSVER
@@ -981,7 +993,14 @@ def render_vocab_word(ibs, inva, wx, fnum=None):
         solidbar[:, :, :] = (np.array(border_color) / 255)[None, None]
     else:
         solidbar[:, :, :] = np.array(border_color)[None, None]
-    word_img = vt.stack_image_list([patch_img, solidbar, stacked_patches], vert=False, modifysize=True)
+    # word_img = vt.stack_image_list([patch_img, solidbar, stacked_patches], vert=False, modifysize=True)
+    patch_img2 = vt.inverted_sift_patch(word)
+    patch_img = vt.rectify_to_uint8(patch_img)
+    patch_img2 = vt.rectify_to_uint8(patch_img2)
+    solidbar = vt.rectify_to_uint8(solidbar)
+    stacked_patches = vt.rectify_to_uint8(stacked_patches)
+    patch_img2, patch_img = vt.make_channels_comparable(patch_img2, patch_img)
+    word_img = vt.stack_image_list([patch_img, solidbar, patch_img2, solidbar, stacked_patches], vert=False, modifysize=True)
     return word_img
 
 
@@ -990,20 +1009,31 @@ def render_vocab(inva):
     Renders the average patch of each word.
     This is a quick visualization of the entire vocabulary.
 
+    CommandLine:
+        python -m ibeis.new_annots render_vocab --show
+
+    Example:
         >>> from ibeis.new_annots import *  # NOQA
         >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=256)
+        >>> render_vocab(inva)
+        >>> ut.show_if_requested()
     """
     sortx = ut.argsort(inva.num_list)[::-1]
     # Get words with the most assignments
     wx_list = ut.take(inva.wx_list, sortx)
 
+    wx_list = ut.strided_sample(wx_list, 16)
+
     word_patch_list = []
     for wx in ut.ProgIter(wx_list, bs=True, lbl='building patches'):
-        average_patch = inva.get_word_patch(wx)
-        #assigned_patches = inva.get_patches(wx, verbose=False)
-        ##print('assigned_patches = %r' % (len(assigned_patches),))
-        #average_patch = np.mean(assigned_patches, axis=0)
-        word_patch_list.append(average_patch)
+        word = inva.vocab.wx2_word[wx]
+        if False:
+            word_patch = inva.get_word_patch(wx)
+        else:
+            word_patch = vt.inverted_sift_patch(word, 64)
+        import plottool as pt
+        word_patch = pt.render_sift_on_patch(word_patch, word)
+        word_patch_list.append(word_patch)
 
     #for wx, p in zip(wx_list, word_patch_list):
     #    inva._word_patches[wx] = p
