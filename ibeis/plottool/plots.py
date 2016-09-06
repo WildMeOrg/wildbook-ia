@@ -65,6 +65,14 @@ def multi_plot(xdata, ydata_list, **kwargs):
     import matplotlib as mpl
     import plottool as pt
 
+    if isinstance(ydata_list, dict) and isinstance(xdata, six.string_types):
+        # special input with dicts
+        xkey = xdata
+        ykeys = ut.setdiff(ydata_list.keys(), [xkey])
+        xdata = ydata_list[xkey]
+        ydata_list = ut.take(ydata_list, ykeys)
+        kwargs['label_list'] = kwargs.get('label_list', ykeys)
+
     xdata = np.array(xdata).copy()
     num_lines = len(ydata_list)
 
