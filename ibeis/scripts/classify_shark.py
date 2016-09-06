@@ -44,9 +44,9 @@ def shark_net(dry=False):
     # ------------
     if ut.get_computer_name() == 'Leviathan':
         batch_size = 128
-        # suffix = 'resnet'
+        suffix = 'resnet'
         # suffix = 'lenet'
-        suffix = 'incep'
+        #suffix = 'incep'
     else:
         suffix = 'lenet'
         batch_size = 64
@@ -102,18 +102,18 @@ def shark_net(dry=False):
         model.dump_cases(X_test, y_test, 'test', dpath=dpath)
 
     hyperparams = dict(
-        era_size=20,
+        era_size=30,
         max_epochs=1000,
-        rate_schedule=.9,
+        rate_schedule=.1,
         augment_on=True,
         class_weight='balanced',
         stopping_patience=200,
     )
     model.learn_state.weight_decay = .000002
-    model.learn_state.learning_rate = .01
+    model.learn_state.learning_rate = .005
     ut.update_existing(model.hyperparams, hyperparams, assert_exists=True)
     model.monitor_config['monitor'] = True
-    model.monitor_config['weight_dump_freq'] = 5
+    model.monitor_config['weight_dump_freq'] = 100
     model.monitor_config['case_dump_freq'] = 100
 
     #model.build_backprop_func()
