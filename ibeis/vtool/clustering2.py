@@ -14,10 +14,6 @@ import sys
 import numpy as np
 import scipy.sparse as spsparse
 import vtool.nearest_neighbors as nntool
-try:
-    import pyflann
-except ImportError:
-    pass
 
 (print, rrr, profile) = utool.inject2(__name__, '[clustering2]')
 
@@ -149,6 +145,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
 
 
 def tune_flann2(data):
+    import pyflann
     flann = pyflann.FLANN()
     flann_atkwargs = dict(algorithm='autotuned',
                           target_precision=.6,
@@ -201,6 +198,7 @@ def akmeans_plusplus_init(data, K, samples_per_iter=None, flann_params=None):
         utprof.sh ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
         python ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
     """
+    import pyflann
     if samples_per_iter is None:
         #sample_fraction = 32.0 / K
         sample_fraction = 64.0 / K
@@ -261,19 +259,23 @@ def akmeans_plusplus_init(data, K, samples_per_iter=None, flann_params=None):
 
 
 def akmeans(data, nCentroids, max_iters=5, initmethod='akmeans++',
-            flann_params={}, ave_unchanged_thresh=0, ave_unchanged_iterwin=10):
+            flann_params={}, ave_unchanged_thresh=0, ave_unchanged_iterwin=10, monitor=False):
     """
     Approximiate K-Means (using FLANN)
-    Input: data - np.array with rows of data.
-    Description: Quickly partitions data into K=nCentroids centroids.  Cluster
-    centers are randomly assigned to datapoints.  Each datapoint is assigned to
-    its approximate nearest centroid center.  The centroid centers are recomputed.
-    Repeat until approximate convergence."""
+
+    Quickly partitions data into K=nCentroids centroids.  Cluster centers are
+    randomly assigned to datapoints.  Each datapoint is assigned to its
+    approximate nearest centroid center.  The centroid centers are recomputed.
+    Repeat until approximate convergence.
+
+    Args:
+        data - np.array with rows of data.
+    """
     # Setup iterations
     centroids = initialize_centroids(nCentroids, data, initmethod)
-    centroids = akmeans_iterations(data, centroids, max_iters, flann_params,
-                                    ave_unchanged_thresh, ave_unchanged_iterwin)
-    return centroids
+    return akmeans_iterations(data, centroids, max_iters, flann_params,
+                              ave_unchanged_thresh, ave_unchanged_iterwin,
+                              monitor=monitor)
 
 
 def initialize_centroids(nCentroids, data, initmethod='akmeans++'):
@@ -330,9 +332,16 @@ def refine_akmeans(data, centroids, max_iters=5,
 
 
 def akmeans_iterations(data, centroids, max_iters, flann_params,
-                       ave_unchanged_thresh, ave_unchanged_iterwin):
+                       ave_unchanged_thresh=0, ave_unchanged_iterwin=10,
+                       monitor=False):
     """
     Helper function which continues the iterations of akmeans
+
+    Objective:
+        argmin_{S} sum(sum(L2(x, u[i]) for x in S_i) for i in range(k))
+
+    CommandLine:
+        python -m vtool.clustering2 akmeans_iterations --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -342,12 +351,17 @@ def akmeans_iterations(data, centroids, max_iters, flann_params,
         >>> data = rng.randn(100, 2)
         >>> nCentroids = 5
         >>> flann_params = {}
-        >>> max_iters = 100
-        >>> ave_unchanged_thresh = 100
+        >>> max_iters = 1000
+        >>> ave_unchanged_thresh = 1
         >>> ave_unchanged_iterwin = 100
         >>> centroids = initialize_centroids(nCentroids, data)
-        >>> centroids = akmeans_iterations(data, centroids, max_iters, flann_params, ave_unchanged_thresh, ave_unchanged_iterwin)
+        >>> centroids, hist = akmeans_iterations(data, centroids, max_iters,
+        >>>                                      flann_params, ave_unchanged_thresh,
+        >>>                                      ave_unchanged_iterwin, monitor=True)
         >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.qt4ensure()
+        >>> pt.multi_plot('epoch_num', hist, fnum=2)
         >>> plot_centroids(data, centroids)
         >>> ut.show_if_requested()
     """
@@ -357,6 +371,15 @@ def akmeans_iterations(data, centroids, max_iters, flann_params,
     datax2_centroidx_old = -np.ones(nData, dtype=np.int32)
     # Keep track of how many points have changed over an iteration window
     win2_unchanged = np.zeros(ave_unchanged_iterwin, dtype=centroids.dtype) + len(data)
+
+    if monitor:
+        history = ut.ddict(list)
+        # loss =
+        # loss = np.sqrt(dists).mean()
+        # history['epoch_num'].append(count + 1)
+        # history['loss'].append(loss)
+        # history['ave_unchanged'].append(ave_unchanged)
+
     print((
         '[akmeans] akmeans: data.shape=%r ; nCentroids=%r\n'
         '[akmeans] * max_iters=%r\n'
@@ -366,28 +389,82 @@ def akmeans_iterations(data, centroids, max_iters, flann_params,
     sys.stdout.flush()
     for count in ut.ProgIter(range(0, max_iters), nTotal=max_iters, lbl='Akmeans: '):
         # 1) Assign each datapoint to the nearest centroid
-        datax2_centroidx = approximate_assignments(centroids, data, 1, flann_params)
-        # 2) Compute new centroids based on assignments
+        datax2_centroidx, dists = approximate_assignments(centroids, data, 1, flann_params)
+        # 2) Compute new centroids (inplace) based on assignments
         centroids = compute_centroids(data, centroids, datax2_centroidx)
         # 3) Convergence Check: which datapoints changed membership?
         num_changed = (datax2_centroidx_old != datax2_centroidx).sum()
         win2_unchanged[count % ave_unchanged_iterwin] = num_changed
         ave_unchanged = win2_unchanged.mean()
+        if monitor:
+            loss = np.sqrt(dists).mean()
+            history['epoch_num'].append(count + 1)
+            history['loss'].append(loss)
+            history['ave_unchanged'].append(ave_unchanged)
+            # import plottool as pt
+            # pt.multi_plot('epoch_num', history, fnum=1)
+            # pt.update()
         if ave_unchanged < ave_unchanged_thresh:
             break
         else:
             datax2_centroidx_old = datax2_centroidx
-    return centroids
+    print('Finished akmeans')
+    if monitor:
+        return centroids, history
+    else:
+        return centroids
+
+
+class AnnoyWraper(object):
+    """
+    flann-like interface to annnoy
+    """
+
+    def __init__(self):
+        pass
+
+    def build_annoy(self, centroids, trees=3):
+        import annoy
+        self.a = annoy.AnnoyIndex(centroids.shape[1], metric='euclidean')
+        for i, v in enumerate(centroids):
+            self.a.add_item(i, v)
+        self.a.build(trees)
+
+    def query_annoy(self, query_vecs, num, checks=-1):
+        a = self.a
+        index_list = []
+        dist_list = []
+        for v in query_vecs:
+            idx, dist = a.get_nns_by_vector(v, num, search_k=checks, include_distances=True)
+            index_list.append(idx)
+            dist_list.append(dist)
+        return np.array(index_list), np.array(dist_list) ** 2
+
+    def nn(self, data_vecs, query_vecs, num, trees=3, checks=-1):
+        self.build_annoy(data_vecs, trees)
+        return self.query_annoy(query_vecs, num, checks)
+
+
+ANNOY = 0
 
 
 def approximate_distances(centroids, data, K, flann_params):
-    (_, qdist2_sdist) = pyflann.FLANN().nn(centroids, data, K, **flann_params)
+    if ANNOY:
+        (_, qdist2_sdist) = AnnoyWraper().nn(centroids, data, K, **flann_params)
+    else:
+        import pyflann
+        (_, qdist2_sdist) = pyflann.FLANN().nn(centroids, data, K, **flann_params)
     return qdist2_sdist
 
 
 def approximate_assignments(seachedvecs, queryvecs, K, flann_params):
-    (qx2_sx, _) = pyflann.FLANN().nn(seachedvecs, queryvecs, K, **flann_params)
-    return qx2_sx
+    if ANNOY:
+        (qx2_sx, qdist2_sdist) = AnnoyWraper().nn(seachedvecs, queryvecs, K, **flann_params)
+        qx2_sx = qx2_sx.ravel()
+    else:
+        import pyflann
+        (qx2_sx, qdist2_sdist) = pyflann.FLANN().nn(seachedvecs, queryvecs, K, **flann_params)
+    return qx2_sx, qdist2_sdist
 
 
 def compute_centroids(data, centroids, datax2_centroidx):
@@ -403,82 +480,37 @@ def compute_centroids(data, centroids, datax2_centroidx):
     >>> flann_params = {}
     >>> centroids = initialize_centroids(nCentroids, data)
     >>> centroids_ = centroids.copy()
-    >>> (datax2_centroidx, _) = p yflann.FLANN().nn(centroids, data, 1, **flann_params)
+    >>> (datax2_centroidx, _) = approximate_assignments(centroids, data, 1, flann_params)
     >>> out = compute_centroids(data, centroids, datax2_centroidx)
     """
-    nData = data.shape[0]
-    nCentroids = centroids.shape[0]
-    # sort data by centroid
-    datax_sortx = datax2_centroidx.argsort()
-    datax_sort  = datax2_centroidx[datax_sortx]
-    # group datapoints by centroid using a sliding grouping algorithm
-    centroidx2_dataLRx = [None] * nCentroids
-    _L = 0
-    for _R in range(nData + 1):  # Slide R
-        if _R == nData or datax_sort[_L] != datax_sort[_R]:
-            centroidx2_dataLRx[datax_sort[_L]] = (_L, _R)
-            _L = _R
-    # Compute the centers of each group (centroid) of datapoints
-    for centroidx, dataLRx in enumerate(centroidx2_dataLRx):
-        if dataLRx is None:
-            continue  # ON EMPTY CLUSTER
-        (_L, _R) = dataLRx
-        # The centroid center is the mean of its datapoints
-        centroids[centroidx] = np.mean(data[datax_sortx[_L:_R]], axis=0)
-        #centroids[centroidx] = np.array(np.round(centroids[centroidx]), dtype=np.uint8)
+    # if True:
+    unique_groups, groupxs = group_indices(datax2_centroidx)
+    for centroidx, xs in zip(unique_groups, groupxs):
+        # Inplace modification of centroid
+        centroids[centroidx] = data.take(xs, axis=0).mean()
+    # else:
+    #     nData = data.shape[0]
+    #     nCentroids = centroids.shape[0]
+    #     # sort data by centroid
+    #     datax_sortx = datax2_centroidx.argsort()
+    #     datax_sort  = datax2_centroidx[datax_sortx]
+    #     # group datapoints by centroid using a sliding grouping algorithm
+    #     centroidx2_dataLRx = [None] * nCentroids
+    #     _L = 0
+    #     for _R in range(nData + 1):  # Slide R
+    #         if _R == nData or datax_sort[_L] != datax_sort[_R]:
+    #             centroidx2_dataLRx[datax_sort[_L]] = (_L, _R)
+    #             _L = _R
+    #     # Compute the centers of each group (centroid) of datapoints
+    #     for centroidx, dataLRx in enumerate(centroidx2_dataLRx):
+    #         if dataLRx is None:
+    #             continue  # ON EMPTY CLUSTER
+    #         (_L, _R) = dataLRx
+    #         # The centroid center is the mean of its datapoints
+    #         centroids[centroidx] = np.mean(data[datax_sortx[_L:_R]], axis=0)
+    #         #centroids[centroidx] = np.array(np.round(centroids[centroidx]), dtype=np.uint8)
     return centroids
 
-
-#def group_indices2(idx2_groupid):
-#    """
-#    >>> idx2_groupid = np.array(np.random.randint(0, 4, size=100))
-#    #http://stackoverflow.com/questions/4651683/numpy-grouping-using-itertools-groupby-performance
-#    """
-#    # Sort items and idx2_groupid by groupid
-#    sortx = idx2_groupid.argsort()
-#    groupids_sorted = idx2_groupid[sortx]
-#    num_items = idx2_groupid.size
-#    # Find the boundaries between groups
-#    diff = np.ones(num_items + 1, idx2_groupid.dtype)
-#    diff[1:(num_items)] = np.diff(groupids_sorted)
-#    idxs = np.where(diff > 0)[0]
-#    num_groups = idxs.size - 1
-#    # Groups are between bounding indexes
-#    lrx_pairs = np.vstack((idxs[0:num_groups], idxs[1:num_groups + 1])).T
-#    groupxs = [sortx[lx:rx] for lx, rx in lrx_pairs]
-#    return groupxs
-
-
-#def group_indices_pandas(idx2_groupid):
-#    """
-#    DEPRICATED
-#    >>> from vtool.clustering2 import *
-#    >>> idx2_groupid = np.array(np.random.randint(0, 8000, size=1000000))
-
-#    keys1, groupxs2 = group_indices_pandas(idx2_groupid)
-#    keys2, groupxs2 = group_indices(idx2_groupid)
-
-#    %timeit group_indices_pandas(idx2_groupid)
-#    %timeit group_indices(idx2_groupid)
-#    """
-#    import pandas as pd
-#    # Pandas is actually unreasonably fast here
-#    #%timeit dataframe = pd.DataFrame(idx2_groupid, columns=['groupid'])  # 135 us
-#    #%timeit dfgroup = dataframe.groupby('groupid')  # 33.9 us
-#    #%timeit groupid2_idxs = dfgroup.indices  # 197 ns
-#    series = pd.Series(idx2_groupid)  # 66 us
-#    group = series.groupby(series)    # 32.9 us
-#    groupid2_idxs = group.indices     # 194 ns
-#    # Compute inverted index
-#    groupxs = list(groupid2_idxs.values())  # 412 ns
-#    keys    = list(groupid2_idxs.keys())    # 488 ns
-#    return keys, groupxs
-##    # Consistency check
-##    #for wx in _wx2_idxs.keys():
-##    #    assert set(_wx2_idxs[wx]) == set(_wx2_idxs2[wx])
-
-
-#@profile
 
 def jagged_group(groupids_list):
     """ flattens and returns group indexes into the flattened list """
@@ -964,7 +996,7 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     clus_y = pca_centroids[:, 1]
     nCentroids = K = len(centroids)
     if labels == 'centroids':
-        datax2_label = approximate_assignments(centroids, data, 1, {})
+        datax2_label, dists = approximate_assignments(centroids, data, 1, {})
     else:
         datax2_label = labels
     datax2_label = np.array(datax2_label, dtype=np.int32)
