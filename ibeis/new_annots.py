@@ -59,7 +59,7 @@ def testdata_smk(*args, **kwargs):
     daids = ut.take(aid_list, train_idx)
     qaids = ut.take(aid_list, test_idx)
 
-    kwargs['num_words'] = kwargs.get('num_words', 512)
+    kwargs['num_words'] = kwargs.get('num_words', 10000)
     config = VocabConfig(**kwargs)
     vocab = ibs.depc_annot.get('vocab', [daids], 'words', config=config)[0]
 
@@ -86,6 +86,9 @@ class VisualVocab(ut.NiceRepr):
         self.wx2_word = words
         self.wordflann = None
         self.flann_params = vt.get_flann_params(random_seed=42)
+
+    def __len__(self):
+        return len(self.wx2_word)
 
     def __getstate__(self):
         # TODO: Figure out how to make these play nice with the depcache
@@ -147,9 +150,12 @@ class VisualVocab(ut.NiceRepr):
         # Assign each vector to the nearest visual words
         assert nAssign > 0, 'cannot assign to 0 neighbors'
         try:
+            idx2_vec = idx2_vec.astype(self.wordflann._FLANN__curindex_data.dtype)
             _idx2_wx, _idx2_wdist = self.wordflann.nn_index(idx2_vec, nAssign)
         except pyflann.FLANNException as ex:
-            ut.printex(ex, 'probably misread the cached flann_fpath=%r' % (self.wordflann.flann_fpath,))
+            ut.printex(ex, 'probably misread the cached flann_fpath=%r' % (getattr(self.wordflann, 'flann_fpath', None),))
+            import utool
+            utool.embed()
             raise
         else:
             _idx2_wx = vt.atleast_nd(_idx2_wx, 2)
@@ -335,7 +341,7 @@ class VocabConfig(dtool.Config):
         >>> print(result)
     """
     _param_info_list = [
-        ut.ParamInfo('algorithm', 'kdtree', 'alg'),
+        ut.ParamInfo('algorithm', 'minibatch', 'alg'),
         ut.ParamInfo('random_seed', 42, 'seed'),
         ut.ParamInfo('num_words', 1000, 'seed'),
         ut.ParamInfo('version', 1),
@@ -424,7 +430,34 @@ def compute_vocab(depc, fid_list, config):
         max_iters=max_iters,
         flann_params=flann_params
     )
-    words = vt.akmeans(train_vecs, num_words, **kwds)
+
+    if config['algorithm'] == 'kdtree':
+        words = vt.akmeans(train_vecs, num_words, **kwds)
+    elif config['algorithm'] == 'minibatch':
+        print('Using minibatch kmeans')
+        import sklearn.cluster
+        rng = np.random.RandomState(config['random_seed'])
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            clusterer = sklearn.cluster.MiniBatchKMeans(
+                num_words, random_state=rng, verbose=5)
+            clusterer.fit(train_vecs)
+        words = clusterer.cluster_centers_
+    if False:
+        flann_params['checks'] = 64
+        flann_params['trees'] = 4
+        num_words = 128
+        centroids = vt.initialize_centroids(num_words, train_vecs, 'akmeans++')
+        words, hist = vt.akmeans_iterations(train_vecs, centroids, max_iters=1000, monitor=True,
+                                            flann_params=flann_params)
+        # words, hist = vt.akmeans_iterations(train_vecs, centroids, max_iters=max_iters, monitor=True,
+        #                                     flann_params=flann_params)
+        import plottool as pt
+        ut.qt4ensure()
+        pt.multi_plot(hist['epoch_num'], [hist['loss']], fnum=2, pnum=(1, 2, 1), label_list=['loss'])
+        pt.multi_plot(hist['epoch_num'], [hist['ave_unchanged']], fnum=2, pnum=(1, 2, 2), label_list=['unchanged'])
+
     vocab = VisualVocab(words)
     vocab.reindex()
     return (vocab,)
@@ -954,7 +987,7 @@ def render_vocab_word(ibs, inva, wx, fnum=None):
 
     Example:
         >>> from ibeis.new_annots import *  # NOQA
-        >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=256)
+        >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=10000)
         >>> sortx = ut.argsort(inva.num_list)[::-1]
         >>> wx_list = ut.take(inva.wx_list, sortx)
         >>> wx = wx_list[0]
@@ -966,7 +999,7 @@ def render_vocab_word(ibs, inva, wx, fnum=None):
         >>> # Interactive visualization of many words
         >>> for wx in ut.InteractiveIter(wx_list):
         >>>     word_img = render_vocab_word(ibs, inva, wx, fnum)
-        >>>     pt.imshow(word_img, fnum=fnum, title='Word %r' % (wx,))
+        >>>     pt.imshow(word_img, fnum=fnum, title='Word %r/%r' % (wx, len(inva.vocab)))
         >>>     pt.update()
         >>> ut.show_if_requested()
     """
@@ -1014,7 +1047,7 @@ def render_vocab(inva):
 
     Example:
         >>> from ibeis.new_annots import *  # NOQA
-        >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=256)
+        >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=10000)
         >>> render_vocab(inva)
         >>> ut.show_if_requested()
     """
@@ -1022,7 +1055,7 @@ def render_vocab(inva):
     # Get words with the most assignments
     wx_list = ut.take(inva.wx_list, sortx)
 
-    wx_list = ut.strided_sample(wx_list, 16)
+    wx_list = ut.strided_sample(wx_list, 64)
 
     word_patch_list = []
     for wx in ut.ProgIter(wx_list, bs=True, lbl='building patches'):

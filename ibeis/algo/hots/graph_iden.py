@@ -122,7 +122,7 @@ class InfrModel(ut.NiceRepr):
         model._update_weights()
 
     def __nice__(self):
-        return '(n_nodes=%r, n_labels=%r)' % (self.n_nodes, self.n_labels)
+        return 'n_nodes=%r, n_labels=%r' % (self.n_nodes, self.n_labels)
         #return '(n_nodes=%r, n_labels=%r, nrg=%r)' % (self.n_nodes,
         #self.n_labels, self.total_energy)
 
@@ -633,9 +633,9 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
 
     def __nice__(infr):
         if infr.graph is None:
-            return '(nAids=%r, G=None)' % (len(infr.aids))
+            return 'nAids=%r, G=None' % (len(infr.aids))
         else:
-            return '(nAids=%r, nEdges=%r)' % (len(infr.aids),
+            return 'nAids=%r, nEdges=%r' % (len(infr.aids),
                                               infr.graph.number_of_edges())
 
     def reset_feedback(infr):
