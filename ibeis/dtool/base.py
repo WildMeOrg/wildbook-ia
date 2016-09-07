@@ -729,6 +729,9 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
         if parent_rowids is None:
             parent_rowids = request.parent_rowids
         else:
+            # previously defined in execute subset
+            #subparent_rowids = request.make_parent_rowids(
+            #qaids, request.daids)
             print('given %d specific parent_rowids' % (len(parent_rowids),))
 
         # vsone hack (i,j) same as (j,i)
@@ -756,11 +759,6 @@ class VsOneSimilarityRequest(BaseRequest, AnnotSimiliarity):
             result_list = request.postprocess_execute(parent_rowids, result_list)
             pass
         return result_list
-
-    def execute_subset(request, qaids, use_cache=None):
-        subparent_rowids = request.make_parent_rowids(qaids, request.daids)
-        results = request.execute(subparent_rowids, use_cache)
-        return results
 
     def get_input_hashid(request):
         return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
@@ -811,10 +809,6 @@ class VsManySimilarityRequest(BaseRequest, AnnotSimiliarity):
         # HACK
         request.config.daids = request.daids
         return request
-
-    def execute_subset(request, qaids, use_cache=None):
-        subparent_rowids = qaids
-        return request.execute(subparent_rowids, use_cache)
 
     def get_input_hashid(request):
         #return '_'.join([request.get_query_hashid(), request.get_data_hashid()])
