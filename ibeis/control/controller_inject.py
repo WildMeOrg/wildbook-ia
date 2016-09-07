@@ -521,7 +521,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                     'autogen',
                     'chip',
                     'config',
-                    'contributor',
+                    #'contributor',
                     'gar',
                     'metadata',
                 ]
