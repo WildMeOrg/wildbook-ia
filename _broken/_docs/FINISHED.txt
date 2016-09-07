@@ -1,9 +1,0 @@
-Write hotspotter format 
-
-Keypoint viewpoint exporter
-
-Add notes column for names and images
-
-Fix the analysis qres view
-~~~* Circular hesaff keypoints
-
