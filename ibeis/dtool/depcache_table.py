@@ -146,10 +146,35 @@ class _TableConfigHelper(object):
 
         Returns:
             parent_rowids (list of tuples): tuples of parent rowids
+
+        Example:
+            >>> # TODO: Need a test that creates a table
+            >>> # with two multi-dependencies and a two single dependencies
+            >>> # Then add two items to this table, and for each item
+            >>> # Find their parent inputs
         """
         parent_rowids = table.get_internal_columns(
             rowid_list, table.parent_id_colnames, unpack_scalars=True,
             keepwrap=True)
+        parent_ismulti = table.get_parent_col_attr('ismulti')
+        if any(parent_ismulti):
+            # If any of the parent columns are multi-indexes, then lookup the
+            # mapping from the aggregated uuid to the expanded rowid set.
+            fixed_parent_rowids = []
+            model_uuids = table.get_model_uuid(rowid_list)
+            for rowid, uuid, p_id_list in zip(rowid_list, model_uuids, parent_rowids):
+                input_info = table.get_model_inputs(uuid)
+                fixed_parent_ids = []
+                for p_name, p_id, flag in zip(table.parent_id_colnames, p_id_list, parent_ismulti):
+                    if flag:
+                        new_p_id = input_info[p_name + '_model_input']
+                        col_uuid = input_info[p_name + '_multi_id']
+                        assert col_uuid == p_id, 'the model input has unexpectedly changed'
+                        fixed_parent_ids.append(new_p_id)
+                    else:
+                        fixed_parent_ids.append(p_id)
+                fixed_parent_rowids.append(fixed_parent_ids)
+            parent_rowids = fixed_parent_rowids
         return parent_rowids
 
     def get_row_parent_rowid_map(table, rowid_list):
