@@ -317,30 +317,6 @@ def testdata_qreq_(p=None, a=None, t=None, default_qaids=None,
         ibeis.QueryRequest: qreq_ -  query request object with hyper-parameters
 
     CommandLine:
-        python -m ibeis.init.main_helpers testdata_qreq_ --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.init.main_helpers import *  # NOQA
-        >>> p = None
-        >>> a = None
-        >>> t = None
-        >>> default_qaids = None
-        >>> default_daids = None
-        >>> qreq_ = testdata_qreq_(p, a, t, default_qaids, default_daids)
-        >>> result = ('qreq_ = %s' % (ut.repr2(qreq_),))
-        >>> print(result)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.show_if_requested()
-
-    Kwargs:
-        default_qaids, a, defaultdb, ibs, verbose, return_annot_info
-
-    Returns:
-        ibeis.QueryRequest: qreq_ -  query request object with hyper-parameters
-
-    CommandLine:
         python -m ibeis testdata_qreq_ --show --qaid 3
 
     Example:

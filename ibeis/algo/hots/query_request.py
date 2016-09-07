@@ -16,7 +16,6 @@ from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 from os.path import join
 import vtool as vt
-import six
 import dtool
 import utool as ut
 import numpy as np
@@ -36,19 +35,6 @@ def testdata_newqreq(defaultdb):
     qaid_list = [1]
     daid_list = [1, 2, 3, 4, 5]
     return ibs, qaid_list, daid_list
-
-
-def testdata_qreq():
-    """
-    Returns:
-        (ibeis.QueryRequest, ibeis.IBEISController)
-    """
-    import ibeis
-    qaid_list = [1, 2]
-    daid_list = [1, 2, 3, 4, 5]
-    ibs = ibeis.opendb(db='testdb1')
-    qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list)
-    return qreq_, ibs
 
 
 def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
@@ -210,10 +196,10 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
             print('[qreq] * unique_species = %s' % (qreq_.unique_species,))
     if verbose:
         print('[qreq] * pipe_cfg = %s' % (qreq_.get_pipe_cfgstr()))
-        print('[qreq] * len(qaid_list) = %s' % (len(qaid_list),))
-        print('[qreq] * len(daid_list) = %s' % (len(daid_list),))
-        print('[qreq] * data_hashid   = %s' % (qreq_.get_data_hashid(),))
-        print('[qreq] * query_hashid  = %s' % (qreq_.get_query_hashid(),))
+        #print('[qreq] * len(qaid_list) = %s' % (len(qaid_list),))
+        #print('[qreq] * len(daid_list) = %s' % (len(daid_list),))
+        print('[qreq] * data_hashid  = %s' % (qreq_.get_data_hashid(),))
+        print('[qreq] * query_hashid = %s' % (qreq_.get_query_hashid(),))
         print('[qreq] L___ New IBEIS QRequest ___ ')
     return qreq_
 
@@ -251,10 +237,10 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
     return unique_species
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
+@ut.reloadable_class
 class QueryRequest(object):
     """
-    Request object for pipline paramter run
+    Request object for pipline parameter run
     """
     _isnewreq = False
 
@@ -345,31 +331,36 @@ class QueryRequest(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.query_request import *  # NOQA
+            >>> import ibeis
             >>> from six.moves import cPickle as pickle
-            >>> qreq_, ibs = testdata_qreq()
+            >>> qreq_ = ibeis.testdata_qreq_()
             >>> qreq_dump = pickle.dumps(qreq_)
             >>> qreq2_ = pickle.loads(qreq_dump)
         """
-        state_dict = qreq_.__dict__.copy()
-        state_dict['dbdir'] = qreq_.ibs.get_dbdir()
-        state_dict['ibs'] = None
-        state_dict['prog_hook'] = None
-        state_dict['indexer'] = None
-        state_dict['normalizer'] = None
-        state_dict['dstcnvs_normer'] = None
-        state_dict['hasloaded'] = False
-        state_dict['lnbnn_normer'] = False
-        state_dict['_internal_dannots'] = None
-        state_dict['_internal_qannots'] = None
-        return state_dict
+        state = qreq_.__dict__.copy()
+        # Unload attributes that should not be saved
+        #state['ibs'] = None
+        state['prog_hook'] = None
+        state['indexer'] = None
+        state['normalizer'] = None
+        state['dstcnvs_normer'] = None
+        state['hasloaded'] = False
+        state['lnbnn_normer'] = False
+        state['_internal_dannots'] = None
+        state['_internal_qannots'] = None
+        # Hack for the actual ibeis object
+        # (The ibs object itself should now do this hack)
+        #state['dbdir'] = qreq_.ibs.get_dbdir()
+        return state
 
-    def __setstate__(qreq_, state_dict):
-        #print('[!!!!!!!!!!!!!!!!!!!!] Calling set state.')
-        import ibeis
-        dbdir = state_dict['dbdir']
-        del state_dict['dbdir']
-        state_dict['ibs'] = ibeis.opendb(dbdir=dbdir, web=False)
-        qreq_.__dict__.update(state_dict)
+    def __setstate__(qreq_, state):
+        # Hack for the actual ibeis object
+        # (The ibs object itself should now do this hack)
+        #import ibeis
+        #dbdir = state['dbdir']
+        #del state['dbdir']
+        #state['ibs'] = ibeis.opendb(dbdir=dbdir, web=False)
+        qreq_.__dict__.update(state)
 
     def _custom_str(qreq_):
         r"""
@@ -454,16 +445,16 @@ class QueryRequest(object):
         qx and dx objects.  used to generate chunks of vsone and vsmany queries
 
         CommandLine:
-            python -m ibeis.algo.hots.query_request --exec-shallowcopy
+            python -m ibeis.algo.hots.query_request QueryRequest.shallowcopy
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import ibeis
-            >>> qreq_, ibs = testdata_qreq()
+            >>> qreq_ = ibeis.testdata_qreq_(default_qaids=[1, 2])
             >>> qreq2_ = qreq_.shallowcopy(qaids=1)
-            >>> assert qreq_.daids is qreq2_.daids
-            >>> assert len(qreq_.qaids) != len(qreq2_.qaids)
+            >>> assert qreq_.daids is qreq2_.daids, 'should be the same'
+            >>> assert len(qreq_.qaids) != len(qreq2_.qaids), 'should be diff'
             >>> #assert qreq_.metadata is not qreq2_.metadata
         """
         #qreq2_ = copy.copy(qreq_)  # copy calls setstate and getstate
@@ -684,7 +675,6 @@ class QueryRequest(object):
 
     @property
     def daids(qreq_):
-        #return qreq_.get_external_daids()
         """ These are the users daids in vsone mode """
         if qreq_.qparams.vsmany:
             return qreq_.get_internal_daids()
@@ -693,7 +683,6 @@ class QueryRequest(object):
 
     @property
     def qaids(qreq_):
-        #return qreq_.get_external_qaids()
         """ These are the users qaids in vsone mode """
         if qreq_.qparams.vsmany:
             return qreq_.get_internal_qaids()
@@ -746,7 +735,6 @@ class QueryRequest(object):
 
     # External id-hashes
 
-    #@ut.memoize
     def get_data_hashid(qreq_):
         daids = qreq_.daids
         #try:
@@ -758,7 +746,6 @@ class QueryRequest(object):
             daids, prefix='D')
         return data_hashid
 
-    #@ut.memoize
     def get_query_hashid(qreq_):
         r"""
         CommandLine:
@@ -1166,8 +1153,9 @@ class QueryRequest(object):
         assert_uuids(_daids, _dauuids)
 
     def make_empty_chip_matches(qreq_):
-        """
+        r"""
         returns empty query results for each external qaid
+
         Returns:
             list: cm_list
 
@@ -1178,7 +1166,7 @@ class QueryRequest(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import ibeis
-            >>> qreq_ = ibeis.main_helpers.testdata_qreq_()
+            >>> qreq_ = ibeis.testdata_qreq_()
             >>> cm_list = qreq_.make_empty_chip_matches()
             >>> cm = cm_list[0]
             >>> cm.print_rawinfostr()
@@ -1199,7 +1187,7 @@ class QueryRequest(object):
         return cm_list
 
     def get_chipmatch_fpaths(qreq_, qaid_list):
-        """
+        r"""
         Efficient function to get a list of chipmatch paths
         """
         cfgstr = qreq_.get_cfgstr(with_input=False, with_data=True, with_pipe=True)
@@ -1214,7 +1202,8 @@ class QueryRequest(object):
         return fpath_list
 
     def execute(qreq_, qaids=None, prog_hook=None):
-        """
+        r"""
+        Runs the hotspotter pipeline and returns chip match objects.
 
         CommandLine:
             python -m ibeis.algo.hots.query_request execute --show
@@ -1223,12 +1212,8 @@ class QueryRequest(object):
             >>> # SLOW_DOCTEST
             >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import ibeis
-            >>> ibs = ibeis.test_main(db='testdb1')
-            >>> qaids = [1]
-            >>> daids = [1, 2, 3, 4, 5]
-            >>> qreq_ = ibs.new_query_request(qaids, daids)
+            >>> qreq_ = ibeis.testdata_qreq_()
             >>> cm_list = qreq_.execute()
-            >>> # Show results
             >>> ut.quit_if_noshow()
             >>> cm = cm_list[0]
             >>> cm.ishow_analysis(qreq_)
@@ -1275,9 +1260,7 @@ def test_cfg_deepcopy():
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ibeis.algo.hots.query_request --test-QueryParams
         utprof.sh -m ibeis.algo.hots.query_request --test-QueryParams
-
         python -m ibeis.algo.hots.query_request
         python -m ibeis.algo.hots.query_request --allexamples
         python -m ibeis.algo.hots.query_request --allexamples --noface --nosrc

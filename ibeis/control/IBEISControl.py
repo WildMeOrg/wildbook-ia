@@ -1054,6 +1054,39 @@ class IBEISController(BASE_CLASS):
     def __repr__(ibs):
         return ibs._custom_ibsstr()
 
+    def __getstate__(ibs):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> import ibeis
+            >>> from six.moves import cPickle as pickle
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> ibs_dump = pickle.dumps(ibs)
+            >>> ibs2 = pickle.loads(ibs_dump)
+        """
+        # Hack to allow for ibeis objects to be pickled
+        state = {
+            'dbdir': ibs.get_dbdir(),
+            'machine_name': ut.get_computer_name(),
+        }
+        return state
+
+    def __setstate__(ibs, state):
+        # Hack to allow for ibeis objects to be pickled
+        import ibeis
+        dbdir = state['dbdir']
+        state.pop('machine_name')
+        try:
+            assert state['machine_name'] == ut.get_computer_name(), (
+                'ibeis objects can only be picked and unpickled on the same machine')
+        except Exception as ex:
+            iswarning = ut.checkpath(dbdir)
+            ut.printex(ex, iswarning=iswarning)
+            if not iswarning:
+                raise
+        ibs2 = ibeis.opendb(dbdir=dbdir, web=False)
+        ibs.__dict__.update(**ibs2.__dict__)
+
 
 if __name__ == '__main__':
     """

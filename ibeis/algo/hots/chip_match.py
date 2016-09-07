@@ -1454,16 +1454,18 @@ class _ChipMatchDebugger(object):
     def print_csv(cm, *args, **kwargs):
         print(cm.get_cvs_str(*args, **kwargs))
 
-    def inspect_difference(cm, other):
+    def inspect_difference(cm, other, verbose=True):
         print('Checking difference')
         raw_infostr1 = cm.get_rawinfostr(colored=False)
         raw_infostr2 = other.get_rawinfostr(colored=False)
         difftext = ut.get_textdiff(raw_infostr1, raw_infostr2, num_context_lines=4)
         if len(difftext) == 0:
-            print('no difference')
+            if verbose:
+                print('no difference')
             return True
         else:
-            ut.print_difftext(difftext)
+            if verbose:
+                ut.print_difftext(difftext)
             return False
 
     def get_inspect_str(cm, qreq_):
@@ -2289,7 +2291,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> inplace = False
             >>> keepscores = True
             >>> out = cm.take_feature_matches(indicies_list, inplace, keepscores)
-            >>> assert not cm.inspect_difference(out), 'should be different'
+            >>> assert not cm.inspect_difference(out, verbose=False), 'should be different'
             >>> result = ('out = %s' % (ut.repr2(out),))
             >>> print(result)
         """
