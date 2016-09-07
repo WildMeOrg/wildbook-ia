@@ -299,10 +299,40 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
         return ibs, qaid_list, daid_list
 
 
-def testdata_qreq_(p=None, a=None, t=None, **kwargs):
+def testdata_qreq_(p=None, a=None, t=None, default_qaids=None,
+                   default_daids=None, **kwargs):
     r"""
     Args:
+        p (None): (default = None)
+        a (None): (default = None)
         t (None): (default = None)
+        default_qaids (None): (default = None)
+        default_daids (None): (default = None)
+
+    Kwargs:
+        defaultdb, ibs, qaid_override, daid_override, return_annot_info,
+        verbose, use_cache
+
+    Returns:
+        ibeis.QueryRequest: qreq_ -  query request object with hyper-parameters
+
+    CommandLine:
+        python -m ibeis.init.main_helpers testdata_qreq_ --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.init.main_helpers import *  # NOQA
+        >>> p = None
+        >>> a = None
+        >>> t = None
+        >>> default_qaids = None
+        >>> default_daids = None
+        >>> qreq_ = testdata_qreq_(p, a, t, default_qaids, default_daids)
+        >>> result = ('qreq_ = %s' % (ut.repr2(qreq_),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
 
     Kwargs:
         default_qaids, a, defaultdb, ibs, verbose, return_annot_info
@@ -327,7 +357,10 @@ def testdata_qreq_(p=None, a=None, t=None, **kwargs):
         p = t
     if p is None:
         p = ['default']
-    ibs, qaids, daids, acfg = testdata_expanded_aids(a=a, return_annot_info=True, **kwargs)
+    ibs, qaids, daids, acfg = testdata_expanded_aids(a=a, return_annot_info=True,
+                                                     default_qaids=default_qaids,
+                                                     default_daids=default_daids,
+                                                     **kwargs)
     pcfgdict = testdata_pipecfg(t=p, ibs=ibs)
     qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
     # Maintain regen command info: TODO: generalize and integrate
@@ -339,18 +372,20 @@ def testdata_qreq_(p=None, a=None, t=None, **kwargs):
     return qreq_
 
 
-def testdata_cmlist(defaultdb=None, default_qaids=None, t=None, p=None, a=None):
+def testdata_cmlist(defaultdb=None, default_qaids=None, default_daids=None,
+                    t=None, p=None, a=None):
     """
     Returns:
         list, ibeis.QueryRequest: cm_list, qreq_
     """
     print('[main_helpers] testdata_cmlist')
-    qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids, t=t, p=p, a=a)
+    qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids,
+                           default_daids=default_daids, t=t, p=p, a=a)
     cm_list = qreq_.execute()
     return cm_list, qreq_
 
 
-def testdata_cm(defaultdb=None, default_qaids=None, t=None, p=None, a=None):
+def testdata_cm(defaultdb=None, default_qaids=None, default_daids=None, t=None, p=None, a=None):
     r"""
     CommandLine:
         python -m ibeis.init.main_helpers --test-testdata_cm
@@ -367,6 +402,7 @@ def testdata_cm(defaultdb=None, default_qaids=None, t=None, p=None, a=None):
     """
     print('[main_helpers] testdata_cm')
     cm_list, qreq_ = testdata_cmlist(defaultdb=defaultdb,
+                                     default_daids=default_daids,
                                      default_qaids=default_qaids, t=t, p=p,
                                      a=a)
     qaids = qreq_.qaids

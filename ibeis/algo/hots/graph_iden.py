@@ -849,8 +849,8 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             >>> result =('user_feedback = %s' % (ut.repr2(user_feedback, nl=1),))
             >>> print(result)
             user_feedback = {
-                (2, 3): [{'p_match': 1.0, 'p_nomatch': 0.0, 'p_notcomp': 0.0}],
-                (5, 6): [{'p_match': 1.0, 'p_nomatch': 0.0, 'p_notcomp': 0.0}],
+                (2, 3): [{'p_match': 0.0, 'p_nomatch': 1.0, 'p_notcomp': 0.0}],
+                (5, 6): [{'p_match': 0.0, 'p_nomatch': 1.0, 'p_notcomp': 0.0}],
             }
         """
         if infr.verbose:
