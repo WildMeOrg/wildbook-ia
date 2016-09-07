@@ -91,8 +91,6 @@ class QueryVerificationInteraction(AbstractInteraction):
 
         self.aid_list = [self.query_aid] + self.comp_aids
 
-        # cm = ibs.query_chips(query_aid,)
-
         #HACK: make sure that comp_aids is of length NUM_TOP
         if len(self.comp_aids) != NUM_TOP:
             self.comp_aids += [None for i in range(NUM_TOP - len(self.comp_aids))]

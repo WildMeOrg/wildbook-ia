@@ -160,7 +160,8 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         >>> query_config_dict = {
         >>>     #'pipeline_root' : 'BC_DTW'
         >>> }
-        >>> cm_list = ibs.query_chips(qaids, daids, cfgdict=query_config_dict)
+        >>> qreq_ = ibs.new_query_request(qaids, daids, cfgdict=query_config_dict)
+        >>> cm_list = qreq_.execute()
 
     Example:
         >>> # WEB_DOCTEST

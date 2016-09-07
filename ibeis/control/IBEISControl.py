@@ -85,6 +85,9 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.web.apis_engine',
     'ibeis.web.apis_query',
     'ibeis.web.apis',
+    'ibeis.core_annots',
+    'ibeis.new_annots',
+    'ibeis.core_images',
     (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
     (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
     #(('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
@@ -751,10 +754,7 @@ class IBEISController(BASE_CLASS):
         return ut.get_logging_dir(appname='ibeis')
 
     def get_dbdir(ibs):
-        """
-        Returns:
-            list_ (list): database dir with ibs internal directory """
-        #return join(ibs.workdir, ibs.dbname)
+        """ database dir with ibs internal directory """
         return ibs.dbdir
 
     def get_db_core_path(ibs):
@@ -776,9 +776,7 @@ class IBEISController(BASE_CLASS):
         return ibs.trashdir
 
     def get_ibsdir(ibs):
-        """
-        Returns:
-            list_ (list): ibs internal directory """
+        """ ibs internal directory """
         return ibs._ibsdb
 
     def get_chipdir(ibs):
@@ -788,39 +786,27 @@ class IBEISController(BASE_CLASS):
         return join(ibs.get_cachedir(), 'prob_chips')
 
     def get_fig_dir(ibs):
-        """
-        Returns:
-            list_ (list): ibs internal directory """
+        """ ibs internal directory """
         return join(ibs._ibsdb, 'figures')
 
     def get_imgdir(ibs):
-        """
-        Returns:
-            list_ (list): ibs internal directory """
+        """ ibs internal directory """
         return ibs.imgdir
 
     def get_uploadsdir(ibs):
-        """
-        Returns:
-            list_ (list): ibs internal directory """
+        """ ibs internal directory """
         return ibs.uploadsdir
 
     def get_thumbdir(ibs):
-        """
-        Returns:
-            list_ (list): database directory where thumbnails are cached """
+        """ database directory where thumbnails are cached """
         return ibs.thumb_dpath
 
     def get_workdir(ibs):
-        """
-        Returns:
-            list_ (list): directory where databases are saved to """
+        """ directory where databases are saved to """
         return ibs.workdir
 
     def get_cachedir(ibs):
-        """
-        Returns:
-            list_ (list): database directory of all cached files """
+        """ database directory of all cached files """
         return ibs.cachedir
 
     def get_match_thumbdir(ibs):

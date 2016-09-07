@@ -92,7 +92,7 @@ def combine_testres_list(ibs, testres_list):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class TestResult(object):
+class TestResult(ut.NiceRepr):
     def __init__(testres, cfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_):
         assert len(cfg_list) == len(cfgx2_lbl), (
             'bad lengths1: %r != %r' % (len(cfg_list), len(cfgx2_lbl)))
@@ -115,11 +115,10 @@ class TestResult(object):
     def __str__(testres):
         return testres.reconstruct_test_flags()
 
-    def __repr__(testres):
-        return testres._custom_str()
+    #def __repr__(testres):
+    #    return testres._custom_str()
 
-    def _custom_str(testres):
-        typestr = testres.__class__.__name__
+    def __nice__(testres):
         dbname = None if testres.ibs is None else testres.ibs.get_dbname()
         # hashkw = dict(_new=True, pathsafe=False)
         infostr_ = 'nCfg=%s'  % testres.nConfig
@@ -127,8 +126,8 @@ class TestResult(object):
             qreq_ = testres.cfgx2_qreq_[0]
             infostr_ += ' nQ=%s, nD=%s %s' % (len(qreq_.qaids), len(qreq_.daids), qreq_.get_pipe_hashid())
         # nD=%s %s' % (, len(testres.daids), testres.get_pipe_hashid())
-        custom_str = '<%s(%s) %s at %s>' % (typestr, dbname, infostr_, hex(id(testres)))
-        return custom_str
+        nice = '%s %s' % (dbname, infostr_)
+        return nice
 
     @property
     def ibs(testres):
@@ -1035,10 +1034,10 @@ class TestResult(object):
     def print_unique_annot_config_stats(testres, ibs=None):
         r"""
         Args:
-            ibs (IBEISController):  ibeis controller object(default = None)
+            ibs (IBEISController): ibeis controller object(default = None)
 
         CommandLine:
-            python -m ibeis --tf TestResult.print_unique_annot_config_stats
+            python -m ibeis TestResult.print_unique_annot_config_stats
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1071,6 +1070,9 @@ class TestResult(object):
                 else:
                     ibs.print_annot_stats(daids, prefix='d')
                 print('L___')
+
+    def report(testres):
+        testres.print_results()
 
     def print_results(testres):
         r"""

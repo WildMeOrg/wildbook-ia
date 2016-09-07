@@ -134,6 +134,10 @@ def make_config_metaclass():
         return parse_config_items(cfg)
 
     @_register
+    def keys(cfg, **kwargs):
+        return ut.take_column(cfg.parse_items(), 0)
+
+    @_register
     def get_config_name(cfg, **kwargs):
         """ the user might want to overwrite this function """
         class_str = str(cfg.__class__)

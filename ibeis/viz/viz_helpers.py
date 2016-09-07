@@ -319,10 +319,9 @@ def get_query_text(ibs, cm, aid2, truth, **kwargs):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_helpers import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> cm = ibs.query_chips([1], [2, 3, 4, 5], cfgdict=dict())[0]
-        >>> aid2 = '?'
-        >>> truth = '?'
+        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> aid2 = cm.get_top_aids()[0]
+        >>> truth = 1
         >>> query_text = get_query_text(ibs, cm, aid2, truth)
         >>> result = ('query_text = %s' % (str(query_text),))
         >>> print(result)
@@ -330,9 +329,9 @@ def get_query_text(ibs, cm, aid2, truth, **kwargs):
     text_list = []
     if cm is not None:
         qaid = cm.qaid
-        score = cm.get_aid_scores([aid2])[0]
-        rawscore = cm.get_aid_scores([aid2], rawscore=True)[0]
-        aid2_raw_rank = cm.get_aid_ranks([aid2])[0]
+        score = cm.get_annot_scores([aid2])[0]
+        rawscore = cm.get_annot_scores([aid2])[0]
+        aid2_raw_rank = cm.get_annot_ranks([aid2])[0]
     else:
         qaid          = kwargs.get('qaid', None)
         score         = kwargs.get('score', None)
@@ -343,7 +342,7 @@ def get_query_text(ibs, cm, aid2, truth, **kwargs):
         text_list.append(truth_str)
     if kwargs.get('show_rank', aid2_raw_rank is not None or cm is not None):
         try:
-            #aid2_raw_rank = cm.get_aid_ranks([aid2])[0]
+            #aid2_raw_rank = cm.get_annot_ranks([aid2])[0]
             aid2_rank = aid2_raw_rank + 1 if aid2_raw_rank is not None else None
             rank_str = 'rank=%s' % str(aid2_rank)
         except Exception as ex:
@@ -352,13 +351,11 @@ def get_query_text(ibs, cm, aid2, truth, **kwargs):
             raise
         text_list.append(rank_str)
     if kwargs.get('show_rawscore', rawscore is not None or cm is not None):
-        #rawscore = cm.get_aid_scores([aid2], rawscore=True)[0]
         rawscore_str = ('rawscore=' + ut.num_fmt(rawscore))
         if len(text_list) > 0:
             rawscore_str = '\n' + rawscore_str
         text_list.append(rawscore_str)
     if kwargs.get('show_score', score is not None or cm is not None):
-        #score = cm.get_aid_scores([aid2])[0]
         score_str = ('score=' + ut.num_fmt(score))
         if len(text_list) > 0:
             score_str = '\n' + score_str

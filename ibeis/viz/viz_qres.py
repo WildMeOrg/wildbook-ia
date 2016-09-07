@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import plottool as pt
-import utool as ut  # NOQA
+import utool as ut
 import numpy as np
 from ibeis.other import ibsfuncs
-#from ibeis.algo.hots import chip_match
 from ibeis.viz import viz_helpers as vh
 from ibeis.viz import viz_chip
 from ibeis.viz import viz_matches  # NOQA
@@ -14,8 +13,6 @@ from ibeis.viz import viz_matches  # NOQA
 DEFAULT_NTOP = 3
 
 
-#@ut.indent_func
-@profile
 def show_qres_top(ibs, cm, qreq_=None, **kwargs):
     """
     Wrapper around show_qres.
@@ -39,8 +36,6 @@ def show_qres_top(ibs, cm, qreq_=None, **kwargs):
                      **kwargs)
 
 
-#@ut.indent_func
-@profile
 def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
     """
     Wrapper around show_qres.
@@ -63,16 +58,12 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.viz.viz_qres import *  # NOQA
         >>> import ibeis
-        >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> daids = ibs.get_valid_aids(species=species)
-        >>> qaids = ibs.get_valid_aids(species=species)
-        >>> qres_list, qreq_ = ibs.query_chips(
-        >>>     [1], [2, 3, 4, 5, 6, 7, 8, 9],
-        >>>     cfgdict=dict(), return_request=True)
-        >>> cm = qres_list[0]
+        >>> cm, qreq_ = ibeis.testdata_cm(
+        >>>     defaultdb='PZ_MTEST', default_qaids=[1],
+        >>>     default_daids=[2, 3, 4, 5, 6, 7, 8, 9])
         >>> kwargs = dict(show_query=False, viz_name_score=True,
         >>>               show_timedelta=True, N=3, show_gf=True)
+        >>> ibs = qreq_.ibs
         >>> show_qres_analysis(ibs, cm, qreq_, **kwargs)
         >>> ut.show_if_requested()
     """
@@ -85,19 +76,11 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
     show_query = kwargs.pop('show_query', True)
     aid_list   = kwargs.pop('aid_list', None)
     figtitle   = kwargs.pop('figtitle', None)
-    #viz_name_score  = kwargs.get('viz_name_score', qreq_ is not None)
-    #viz_name_score  = kwargs.get('viz_name_score', False)
     viz_name_score  = kwargs.get('viz_name_score', True)
     failed_to_match = False
 
-    # Debug printing
-    #print('[analysis] noshow_gt  = %r' % noshow_gt)
-    #print('[analysis] show_query = %r' % show_query)
-    #print('[analysis] aid_list    = %r' % aid_list)
-
     if aid_list is None:
         # Compare to aid_list instead of using top ranks
-        #print('[analysis] showing top aids')
         top_aids = cm.get_top_aids(N)
         if len(top_aids) == 0:
             failed_to_match = True
@@ -118,14 +101,8 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
     showgt_aids = []
     if show_gt:
         # Get the missed groundtruth annotations
-        #if isinstance(cm, chip_match.ChipMatch):
         assert qreq_ is not None
         matchable_aids = qreq_.daids
-        #matchable_aids = cm.daid_list
-        #else:
-        #    matchable_aids = cm.daids
-        #matchable_aids = ibs.get_recognition_database_aids()
-        #matchable_aids = list(cm.aid2_fm.keys())
         _gtaids = ibs.get_annot_groundtruth(cm.qaid, daid_list=matchable_aids)
 
         if viz_name_score:
@@ -182,31 +159,20 @@ def show_qres_analysis(ibs, cm, qreq_=None, **kwargs):
                      **kwargs)
 
 
-def testdata_show_qres():
-    import ibeis
-    cm, qreq_ = ibeis.testdata_cm()
-    kwargs = dict(
-        top_aids=ut.get_argval('--top-aids', type_=int, default=3),
-        sidebyside=not ut.get_argflag('--no-sidebyside'),
-        annot_mode=ut.get_argval('--annot_mode', type_=int, default=1),
-        viz_name_score=not ut.get_argflag('--no-viz_name_score'),
-        max_nCols=ut.get_argval('--max_nCols', type_=int, default=None)
-    )
-    return qreq_.ibs, cm, qreq_, kwargs
-
-
-#@ut.indent_func
-#@ut.tracefunc_xml
 def show_qres(ibs, cm, qreq_=None, **kwargs):
-    """
+    r"""
     Display Query Result Logic
     Defaults to: query chip, groundtruth matches, and top matches
 
     Args:
-        ibs (ibeis.IBEISController):  ibeis controller object
-        cm (ibeis.ChipMatch):  object of feature correspondences and scores
+        ibs (ibeis.IBEISController): ibeis controller object
+        cm (ibeis.ChipMatch): object of feature correspondences and scores
+        qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters(default = None)
 
     Kwargs:
+        annot_mode, figtitle, make_figtitle, aug, top_aids, all_kpts,
+        show_query, in_image, sidebyside, name_scoring, max_nCols,
+        failed_to_match, fnum
         in_image (bool) show result  in image view if True else chip view
         annot_mode (int):
             if annot_mode == 0, then draw lines and ellipse
@@ -218,29 +184,30 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         mpl.Figure: fig
 
     CommandLine:
-        ./main.py --query 1 -y --db PZ_MTEST --noshow-qtres
-
-        python -m ibeis.viz.viz_qres --test-show_qres --show
-
-        python -m ibeis.viz.viz_qres --test-show_qres --show --top-aids=10 --db=PZ_MTEST --sidebyside --annot_mode=0 --notitle --no-viz_name_score --qaids=5 --max_nCols=2 --adjust=.01,.01,.01
-
-        python -m ibeis.viz.viz_qres --test-show_qres --show --top-aids=10 --db=PZ_MTEST --sidebyside --annot_mode=0 --notitle --no-viz_name_score --qaids=5 --max_nCols=2 --adjust=.01,.01,.01
+        ./main.py --query 1 -y --db PZ_MTEST --noshow-qres
+        python -m ibeis.viz.viz_qres show_qres --show
+        python -m ibeis.viz.viz_qres show_qres --show --top-aids=10 --db=PZ_MTEST \
+                --sidebyside --annot_mode=0 --notitle --no-viz_name_score \
+                --qaids=5 --max_nCols=2 --adjust=.01,.01,.01
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_qres import *  # NOQA
-        >>> import plottool as pt
-        >>> ibs, cm, qreq_, kwargs = testdata_show_qres()
-        >>> # execute function
+        >>> import ibeis
+        >>> cm, qreq_ = ibeis.testdata_cm()
+        >>> kwargs = dict(
+        >>>     top_aids=ut.get_argval('--top-aids', type_=int, default=3),
+        >>>     sidebyside=not ut.get_argflag('--no-sidebyside'),
+        >>>     annot_mode=ut.get_argval('--annot_mode', type_=int, default=1),
+        >>>     viz_name_score=not ut.get_argflag('--no-viz_name_score'),
+        >>>     max_nCols=ut.get_argval('--max_nCols', type_=int, default=None)
+        >>> )
         >>> fig = show_qres(ibs, cm, show_query=False, qreq_=qreq_, **kwargs)
-        >>> # verify results
-        >>> #fig.show()
-        >>> pt.show_if_requested()
+        >>> ut.show_if_requested()
     """
     #ut.print_dict(kwargs)
     annot_mode     = kwargs.get('annot_mode', 1) % 3  # this is toggled
     figtitle       = kwargs.get('figtitle', '')
-    make_figtitle  = kwargs.get('make_figtitle', False)
     aug            = kwargs.get('aug', '')
     top_aids       = kwargs.get('top_aids', DEFAULT_NTOP)
     gt_aids        = kwargs.get('gt_aids',   [])
@@ -263,18 +230,10 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
             ibs.get_annot_info(top_aids, default=True, gname=False, name=False, notes=False,
                                exemplar=False, reference_aid=cm.qaid), nl=4))
 
-    if make_figtitle is True:
-        pass
-        #figtitle = cm.make_title(pack=True)
-        #figtitle
-
     fig = pt.figure(fnum=fnum, docla=True, doclf=True)
 
     if isinstance(top_aids, int):
-        #if isinstance(cm, chip_match.ChipMatch):
         top_aids = cm.get_top_aids(top_aids)
-        #else:
-        #    top_aids = cm.get_top_aids(num=top_aids, name_scoring=name_scoring, ibs=ibs)
 
     if failed_to_match:
         # HACK to visually indicate failure to match in analysis

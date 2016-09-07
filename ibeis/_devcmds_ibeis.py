@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 # This is supposed to be pristine, it turns out to be mostly clutter
+"""
+DEPRICATE MOST OF THIS FILE IN FAVOR OF DOCTEST SCRIPTS
+"""
 from __future__ import absolute_import, division, print_function
 import six  # NOQA
 from ibeis._devscript import devcmd, devprecmd
@@ -108,10 +111,10 @@ def query_aids(ibs, qaid_list, daid_list=None):
     import ibeis
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
-    qres_list = ibs.query_chips(qaid_list, daid_list)
-    for qres in qres_list:
-        assert isinstance(qres, ibeis.algo.hots.hots_query_result.QueryResult)
-        qres.ishow_top(ibs, fnum=df2.next_fnum(), annot_mode=1, make_figtitle=True)
+    cm_list = ibs.query_chips(qaid_list, daid_list)
+    for cm in cm_list:
+        assert isinstance(cm, ibeis.algo.hots.hots_query_result.QueryResult)
+        cm.ishow_top(ibs, fnum=df2.next_fnum(), annot_mode=1, make_figtitle=True)
 
 
 @devcmd('sver')
@@ -124,10 +127,10 @@ def sver_aids(ibs, qaid_list, daid_list=None):
     """
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
-    qres_list = ibs.query_chips(qaid_list, daid_list)
-    for qres in qres_list:
-        aid2 = qres.get_top_aids()[0]
-        interact.ishow_sver(ibs, qres.qaid, aid2, fnum=df2.next_fnum(), annot_mode=1)
+    cm_list = ibs.query_chips(qaid_list, daid_list)
+    for cm in cm_list:
+        aid2 = cm.get_top_aids()[0]
+        interact.ishow_sver(ibs, cm.qaid, aid2, fnum=df2.next_fnum(), annot_mode=1)
 
 
 @devcmd('cfg')
@@ -228,17 +231,17 @@ def export(ibs, aid_pairs=None):
     #utool.view_directory(export_path)
     # MOTHERS EG:
     for aid_pair in aid_pair_list:
-        qres_list = ibs.query_chips(aid_pair, aid_pair)
+        cm_list = ibs.query_chips(aid_pair, aid_pair)
         #ibeis.viz.show_qres(ibs, qaid2_qres.values()[1]); df2.iup()
         mrids_list = []
         mkpts_list = []
-        for qres in qres_list:
-            qaid = qres.qaid
+        for cm in cm_list:
+            qaid = cm.qaid
             print('Getting kpts from %r' % qaid)
-            #qres.show_top(ibs)
-            posrid_list = utool.ensure_iterable(qres.get_classified_pos())
+            #cm.show_top(ibs)
+            posrid_list = utool.ensure_iterable(cm.get_classified_pos())
             mrids_list.extend([(qaid, posrid) for posrid in posrid_list])
-            mkpts_list.extend(qres.get_matching_keypoints(ibs, posrid_list))
+            mkpts_list.extend(cm.get_matching_keypoints(ibs, posrid_list))
 
         mkey2_kpts = {}
         for mrids_tup, mkpts_tup in zip(mrids_list, mkpts_list):

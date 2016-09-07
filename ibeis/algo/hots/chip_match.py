@@ -2559,9 +2559,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> # Simple doctest demonstrating the json format
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
-            >>> ibs = ibeis.opendb(defaultdb='testdb1')
-            >>> cm, qreq_ = ibs.query_chips(1, [2, 3, 4, 5],
-            >>>                             return_request=True)
+            >>> cm, qreq_ = ibeis.testdata_cm()
             >>> cm.compress_top_feature_matches(num=4, rng=np.random.RandomState(0))
             >>> # Serialize
             >>> print('\n\nRaw ChipMatch JSON:\n')
@@ -2571,8 +2569,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> # Pretty String Formatting
             >>> dictrep = ut.from_json(json_str)
             >>> dictrep = ut.delete_dict_keys(dictrep, [key for key, val in dictrep.items() if val is None])
-            >>> result  = ut.dict_str(dictrep, nl=2, precision=2, hack_liststr=True, key_order_metric='strlen')
-            >>> result = result.replace('u\'', '"').replace('\'', '"')
+            >>> result  = ut.repr2_json(dictrep, nl=2, precision=2, key_order_metric='strlen')
             >>> print(result)
 
         Example:

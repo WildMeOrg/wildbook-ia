@@ -1299,7 +1299,7 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
 
 
 @profile
-def sver_single_chipmatch(qreq_, cm):
+def sver_single_chipmatch(qreq_, cm, verbose=False):
     r"""
     Spatially verifies a shortlist of a single chipmatch
 
@@ -1409,9 +1409,9 @@ def sver_single_chipmatch(qreq_, cm):
     refine_method         = qreq_.qparams.refine_method
     sver_output_weighting = qreq_.qparams.sver_output_weighting
     # Precompute sver cmtup_old
-    kpts1 = qreq_.ibs.get_annot_kpts(qaid, config2_=qreq_.extern_query_config2)
-    kpts2_list = qreq_.ibs.get_annot_kpts(cm.daid_list,
-                                          config2_=qreq_.extern_data_config2)
+    kpts1 = qreq_.get_qreq_qannot_kpts(qaid)
+    kpts2_list = qreq_.get_qreq_dannot_kpts(cm.daid_list)
+
     if use_chip_extent:
         top_dlen_sqrd_list = qreq_.ibs.get_annot_chip_dlensqrd(
             cm.daid_list, config2_=qreq_.extern_data_config2)
@@ -1429,6 +1429,8 @@ def sver_single_chipmatch(qreq_, cm):
     # Make an svtup for every daid in the shortlist
     _iter1 = zip(cm.daid_list, cm.fm_list, cm.fsv_list, cm.fk_list, kpts2_list,
                  top_dlen_sqrd_list, match_weight_list)
+    if verbose:
+        _iter1 = ut.ProgIter(_iter1, nTotal=len(cm.daid_list), lbl='sver shortlist', freq=1)
     svtup_list = []
     for daid, fm, fsv, fk, kpts2, dlen_sqrd2, match_weights in _iter1:
         if len(fm) == 0:
@@ -1546,7 +1548,7 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
         >>> cm.set_cannonical_annot_score(cm.get_num_matches_list())
         >>> cm.sortself()
         >>> fm_list = cm.fm_list
-        >>> kpts_list = qreq_.ibs.get_annot_kpts(cm.daid_list.tolist(), config2_=qreq_.extern_data_config2)
+        >>> kpts_list = qreq_.get_qreq_dannot_kpts(cm.daid_list.tolist())
         >>> topx2_dlen_sqrd = compute_matching_dlen_extent(qreq_, fm_list, kpts_list)
         >>> ut.assert_inbounds(np.sqrt(topx2_dlen_sqrd)[0:5], 600, 1500)
 

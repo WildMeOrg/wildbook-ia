@@ -710,6 +710,12 @@ class QueryRequest(object):
         nids = ut.take(qreq_.unique_nids, idxs)
         return nids
 
+    def get_qreq_qannot_kpts(qreq_, qaids):
+        return qreq_.ibs.get_annot_kpts(qaids, config2_=qreq_.extern_query_config2)
+
+    def get_qreq_dannot_kpts(qreq_, qaids):
+        return qreq_.ibs.get_annot_kpts(qaids, config2_=qreq_.extern_data_config2)
+
     @property
     def dnids(qreq_):
         """ TODO: save dnids in qreq_ state """
@@ -1196,15 +1202,6 @@ class QueryRequest(object):
         """
         Efficient function to get a list of chipmatch paths
         """
-        fname_list = qreq_.get_result_fnames(qaid_list)
-        dpath = qreq_.get_qresdir()
-        fpath_list = [join(dpath, fname) for fname in fname_list]
-        return fpath_list
-
-    def get_result_fnames(qreq_, qaid_list):
-        """
-        Efficient function to get a list of chipmatch paths
-        """
         cfgstr = qreq_.get_cfgstr(with_input=False, with_data=True, with_pipe=True)
         qauuid_list = qreq_.ibs.get_annot_semantic_uuids(qaid_list)
         fname_list = [
@@ -1212,7 +1209,9 @@ class QueryRequest(object):
                                            cfgstr=cfgstr)
             for qaid, qauuid in zip(qaid_list, qauuid_list)
         ]
-        return fname_list
+        dpath = qreq_.get_qresdir()
+        fpath_list = [join(dpath, fname) for fname in fname_list]
+        return fpath_list
 
     def execute(qreq_, qaids=None, prog_hook=None):
         """

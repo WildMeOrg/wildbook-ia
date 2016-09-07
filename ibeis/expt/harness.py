@@ -358,6 +358,23 @@ def get_qres_name_result_info(ibs, cm, qreq_):
     return qresinfo_dict
 
 
+def build_testres_from_cm_list(qreq_, cm_list):
+    """
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.expt.harness import *  # NOQA
+    """
+    cfgx2_qreq_ = [qreq_]
+    cfgx2_lbl = ['custom']
+    pipecfg_list = [qreq_.qparams]
+    #testres.testnameid = testnameid
+    cfgres_info = _build_qresinfo(qreq_.ibs, qreq_, cm_list)
+    cfgx2_cfgresinfo = [cfgres_info]
+    testres = test_result.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cfgresinfo,
+                                     cfgx2_qreq_)
+    return testres
+
+
 @profile
 def get_query_result_info(qreq_):
     """
@@ -417,21 +434,20 @@ def get_query_result_info(qreq_):
         ibs = qreq_.ibs
     except AttributeError:
         ibs = qreq_.depc.controller
-    import vtool as vt
     cm_list = qreq_.execute()
-    #qreq_.ibs.query_chips(qreq_=qreq_, use_bigcache=False)
+    return _build_qresinfo(ibs, qreq_, cm_list)
+
+
+def _build_qresinfo(ibs, qreq_, cm_list):
     qx2_cm = cm_list
     qaids = qreq_.qaids
     #qaids2 = [cm.qaid for cm in cm_list]
     qnids = ibs.get_annot_name_rowids(qaids)
 
-    import utool
-    with utool.embed_on_exception_context:
-        unique_dnids = np.unique(ibs.get_annot_name_rowids(qreq_.daids))
-
-        unique_qnids, groupxs = vt.group_indices(qnids)
-        cm_group_list = ut.apply_grouping(cm_list, groupxs)
-        qnid2_aggnamescores = {}
+    unique_dnids = np.unique(ibs.get_annot_name_rowids(qreq_.daids))
+    unique_qnids, groupxs = ut.group_indices(qnids)
+    cm_group_list = ut.apply_grouping(cm_list, groupxs)
+    qnid2_aggnamescores = {}
 
     qnx2_nameres_info = []
 
