@@ -7,6 +7,32 @@ import six
 (print, rrr, profile) = ut.inject2(__name__, '[depbase]')
 
 
+class StackedConfig(ut.DictLike):
+    """
+    Manages a list of configurations
+    """
+
+    def __init__(self, config_list):
+        self.config_list = config_list
+        self._items = ut.flatten([
+            list(cfg.parse_items()) if hasattr(cfg, 'parse_items') else
+            list(cfg.items())
+            for cfg in self.config_list
+        ])
+        for key, val in self._items:
+            setattr(self, key, val)
+        #self.keys = ut.flatten(list(cfg.keys()) for cfg in self.config_list)
+
+    def keys(self):
+        return ut.take_column(self._items, 0)
+
+    def getitem(self, key):
+        try:
+            return getattr(self, key)
+        except AttributeError as ex:
+            raise KeyError(ex)
+
+
 class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
     r"""
     Base class for heirarchical config

@@ -1360,6 +1360,16 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     get_native_property = _CoreDependencyCache.get_native
     get_property = _CoreDependencyCache.get
 
+    def chained_cfgstr(depc, source, dest, config):
+        requires_tables = ut.setdiff(ut.nx_all_nodes_between(depc.graph, source, dest), [source])
+        #requires_tables = ut.setdiff(ut.nx_all_nodes_between(depc.graph, 'annotations', 'featweight'), ['annotations'])
+        requires_tables = ut.nx_topsort_nodes(depc.graph, requires_tables)
+        requires_configs = [depc.configclass_dict[tblname](**config)
+                            for tblname in requires_tables]
+        cfgstr_list = [cfg.get_cfgstr() for cfg in requires_configs]
+        cfgstr = '_'.join(cfgstr_list)
+        return cfgstr
+
 
 if __name__ == '__main__':
     r"""
