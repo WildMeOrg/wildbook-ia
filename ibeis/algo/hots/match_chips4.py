@@ -4,14 +4,9 @@ Runs functions in pipeline to get query reuslts and does some caching.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
-import six  # NOQA
 from os.path import exists
-#from ibeis.algo.hots import query_request
-#from ibeis.algo.hots import hots_query_result
-#from ibeis.algo.hots import exceptions as hsexcept
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import pipeline
-from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[mc4]')
 
 
@@ -30,81 +25,14 @@ HOTS_BATCH_SIZE = ut.get_argval('--hots-batch-size', type_=int, default=None)
 # Main Query Logic
 #----------------------
 
-
-def empty_query(ibs, qaids):
-    r"""
-    Hack to give an empty query a query result object
-
-    Args:
-        ibs (ibeis.IBEISController):  ibeis controller object
-        qaids (list):
-
-    Returns:
-        tuple: (qaid2_cm, qreq_)
-
-    CommandLine:
-        python -m ibeis.algo.hots.match_chips4 --test-empty_query
-        python -m ibeis.algo.hots.match_chips4 --test-empty_query --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.match_chips4 import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qaids = ibs.get_valid_aids(species=ibeis.const.TEST_SPECIES.ZEB_PLAIN)
-        >>> # execute function
-        >>> (qaid2_cm, qreq_) = empty_query(ibs, qaids)
-        >>> # verify results
-        >>> result = str((qaid2_cm, qreq_))
-        >>> print(result)
-        >>> cm = qaid2_cm[qaids[0]]
-        >>> ut.assert_eq(len(cm.get_top_aids()), 0)
-        >>> ut.quit_if_noshow()
-        >>> cm.ishow_top(ibs, update=True, make_figtitle=True, show_query=True, sidebyside=False)
-        >>> from matplotlib import pyplot as plt
-        >>> plt.show()
-    """
-    daids = []
-    qreq_ = ibs.new_query_request(qaids, daids)
-    cm = qreq_.make_empty_chip_matches()
-    qaid2_cm = dict(zip(qaids, cm))
-    return qaid2_cm, qreq_
-
-
-def submit_query_request_nocache(ibs, qreq_, verbose=pipeline.VERB_PIPELINE):
-    """ depricate """
-    assert len(qreq_.qaids) > 0, ' no current query aids'
-    if len(qreq_.daids) == 0:
-        print('[mc4] WARNING no daids... returning empty query')
-        qaid2_cm, qreq_ = empty_query(ibs, qreq_.qaids)
-        return qaid2_cm
-    save_qcache = False
-    qaid2_cm = execute_query2(ibs, qreq_, verbose, save_qcache)
-    return qaid2_cm
-
-
 @profile
-def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
-                         use_bigcache=None, cfgdict=None, qreq_=None,
-                         verbose=None, save_qcache=None,
-                         prog_hook=None):
+def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
+                         verbose=None, save_qcache=None):
     """
-    The standard query interface.
-
-    TODO: rename use_cache to use_qcache
+    Called from qreq_.execute
 
     Checks a big cache for qaid2_cm.  If cache miss, tries to load each cm
     individually.  On an individual cache miss, it preforms the query.
-
-    Args:
-        ibs (ibeis.IBEISController) : ibeis control object
-        qaid_list (list): query annotation ids
-        daid_list (list): database annotation ids
-        use_cache (bool):
-        use_bigcache (bool):
-
-    Returns:
-        qaid2_cm (dict): dict of QueryResult objects
 
     CommandLine:
         python -m ibeis.algo.hots.match_chips4 --test-submit_query_request
@@ -118,8 +46,8 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         >>> use_bigcache = True
         >>> use_cache = True
         >>> ibs = ibeis.opendb(db='testdb1')
-        >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict={}, verbose=True)
-        >>> qaid2_cm = submit_query_request(ibs, qaid_list, daid_list, use_cache, use_bigcache, qreq_=qreq_)
+        >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, verbose=True)
+        >>> cm_list = submit_query_request(qreq_=qreq_)
     """
     # Get flag defaults if necessary
     if verbose is None:
@@ -136,30 +64,41 @@ def submit_query_request(ibs, qaid_list, daid_list, use_cache=None,
         ut.colorprint('[mc4] --- Submit QueryRequest_ --- ', 'darkyellow')
     assert qreq_ is not None, 'query request must be prebuilt'
 
-    qreq_.prog_hook = prog_hook
-    # --- BIG CACHE ---
-    # Do not use bigcache single queries
-    use_bigcache_ = (use_bigcache and use_cache and
-                     len(qaid_list) > MIN_BIGCACHE_BUNDLE)
-    if (use_bigcache_ or save_qcache) and len(qaid_list) > MIN_BIGCACHE_BUNDLE:
-        bc_dpath, bc_fname, bc_cfgstr = qreq_.get_bigcache_info()
-        if use_bigcache_:
-            # Try and load directly from a big cache
-            try:
-                qaid2_cm = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
-                cm_list = [qaid2_cm[qaid] for qaid in qaid_list]
-            except (IOError, AttributeError):
-                pass
-            else:
-                return cm_list
-    # ------------
-    # Execute query request
-    qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=verbose)
-    # ------------
-    if save_qcache and len(qaid_list) > MIN_BIGCACHE_BUNDLE:
-        ut.save_cache(bc_dpath, bc_fname, bc_cfgstr, qaid2_cm)
+    # Check fo empty queries
+    try:
+        assert len(qreq_.daids) > 0, 'there are no database chips'
+        assert len(qreq_.qaids) > 0, 'there are no query chips'
+    except AssertionError as ex:
+        ut.printex(ex, 'Impossible query request', iswarning=True,
+                   keys=['qreq_.qaids', 'qreq_.daids'])
+        if ut.SUPER_STRICT:
+            raise
+        cm_list = [None for qaid in qreq_.qaids]
+    else:
+        # --- BIG CACHE ---
+        # Do not use bigcache single queries
+        use_bigcache_ = (use_bigcache and use_cache and
+                         len(qreq_.qaids) > MIN_BIGCACHE_BUNDLE)
+        if (use_bigcache_ or save_qcache) and len(qreq_.qaids) > MIN_BIGCACHE_BUNDLE:
+            bc_dpath, bc_fname, bc_cfgstr = qreq_.get_bigcache_info()
+            if use_bigcache_:
+                # Try and load directly from a big cache
+                try:
+                    qaid2_cm = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
+                    cm_list = [qaid2_cm[qaid] for qaid in qreq_.qaids]
+                except (IOError, AttributeError):
+                    pass
+                else:
+                    return cm_list
+        # ------------
+        # Execute query request
+        qaid2_cm = execute_query_and_save_L1(qreq_.ibs, qreq_, use_cache,
+                                             save_qcache, verbose=verbose)
+        # ------------
+        if save_qcache and len(qreq_.qaids) > MIN_BIGCACHE_BUNDLE:
+            ut.save_cache(bc_dpath, bc_fname, bc_cfgstr, qaid2_cm)
 
-    cm_list = [qaid2_cm[qaid] for qaid in qaid_list]
+        cm_list = [qaid2_cm[qaid] for qaid in qreq_.qaids]
     return cm_list
 
 
@@ -175,10 +114,10 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         qaid2_cm
 
     CommandLine:
-        python -m ibeis.algo.hots.match_chips4 --test-execute_query_and_save_L1:0
-        python -m ibeis.algo.hots.match_chips4 --test-execute_query_and_save_L1:1
-        python -m ibeis.algo.hots.match_chips4 --test-execute_query_and_save_L1:2
-        python -m ibeis.algo.hots.match_chips4 --test-execute_query_and_save_L1:3
+        python -m ibeis.algo.hots.match_chips4 execute_query_and_save_L1:0
+        python -m ibeis.algo.hots.match_chips4 execute_query_and_save_L1:1
+        python -m ibeis.algo.hots.match_chips4 execute_query_and_save_L1:2
+        python -m ibeis.algo.hots.match_chips4 execute_query_and_save_L1:3
 
 
     Example0:

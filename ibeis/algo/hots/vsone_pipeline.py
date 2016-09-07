@@ -547,7 +547,7 @@ def vsone_name_independant_hack(ibs, nids, qreq_=None):
         cfgdict = dict(codename='vsone', fg_on=False)
         cfgdict.update(**qreq_.extern_data_config2.hesaff_params)
         vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
-        cm_vsone = ibs.query_chips(qreq_=vsone_qreq_)[0]
+        cm_vsone = vsone_qreq_.execute()[0]
         cm_vsone = cm_vsone.extend_results(vsone_qreq_)
         #cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))
         #cm_vsone.show_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))
@@ -605,7 +605,7 @@ def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
     if qreq_ is not None:
         cfgdict.update(**qreq_.extern_data_config2.hesaff_params)
     vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
-    cm_vsone = ibs.query_chips(qreq_=vsone_qreq_)[0]
+    cm_vsone = vsone_qreq_.execute()[0]
     cm_vsone = cm_vsone.extend_results(vsone_qreq_)
     #cm_vsone = chip_match.ChipMatch.from_qres(vsone_qres)
     #cm_vsone.ishow_analysis(vsone_qreq_)

@@ -26,35 +26,6 @@ VERB_MAIN_HELPERS = VERB_TESTDATA
 #or ut.VERBOSE or VERB_TESTDATA
 
 
-def testdata_pipecfg(p=None, t=None, ibs=None):
-    r"""
-    Returns:
-        dict: pcfgdict
-
-    CommandLine:
-        python -m ibeis.init.main_helpers --exec-testdata_pipecfg
-        python -m ibeis.init.main_helpers --exec-testdata_pipecfg -t default:AI=False
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.main_helpers import *  # NOQA
-        >>> pcfgdict = testdata_pipecfg()
-        >>> result = ('pcfgdict = %s' % (ut.dict_str(pcfgdict),))
-        >>> print(result)
-    """
-    print('[main_helpers] testdata_pipecfg')
-    if t is not None and p is None:
-        p = t
-    if p is None:
-        p = ['default']
-    from ibeis.expt import experiment_helpers
-    test_cfg_name_list = ut.get_argval(('-t', '-p'), type_=list, default=p)
-    pcfgdict_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)[0]
-    assert len(pcfgdict_list) == 1, 'can only specify one pipeline config here'
-    pcfgdict = pcfgdict_list[0]
-    return pcfgdict
-
-
 def testdata_filtcfg(default=None):
     from ibeis.expt import cfghelpers
     print('[main_helpers] testdata_filtcfg')
@@ -62,83 +33,6 @@ def testdata_filtcfg(default=None):
         default = ['']
     filt_cfg = cfghelpers.parse_argv_cfg(('--filt', '-f'), default=default)[0]
     return filt_cfg
-
-
-def testdata_qreq_(p=None, a=None, t=None, **kwargs):
-    r"""
-    Args:
-        t (None): (default = None)
-
-    Kwargs:
-        default_qaids, a, defaultdb, ibs, verbose, return_annot_info
-
-    Returns:
-        ibeis.QueryRequest: qreq_ -  query request object with hyper-parameters
-
-    CommandLine:
-        python -m ibeis.init.main_helpers --exec-testdata_qreq_ --show --qaid 3
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.main_helpers import *  # NOQA
-        >>> kwargs = {}
-        >>> p = None
-        >>> a = None
-        >>> qreq_ = testdata_qreq_(p)
-        >>> result = ('qreq_ = %s' % (str(qreq_),))
-    """
-    print('[main_helpers] testdata_qreq_')
-    if t is not None and p is None:
-        p = t
-    if p is None:
-        p = ['default']
-    ibs, qaids, daids, acfg = testdata_expanded_aids(a=a, return_annot_info=True, **kwargs)
-    pcfgdict = testdata_pipecfg(t=p, ibs=ibs)
-    qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
-    # Maintain regen command info: TODO: generalize and integrate
-    qreq_._regen_info = {
-        '_acfgstr': acfg['qcfg']['_cfgstr'],
-        '_pcfgstr': pcfgdict['_cfgstr'],
-        'dbname': ibs.get_dbname()
-    }
-    return qreq_
-
-
-def testdata_cm(defaultdb=None, default_qaids=None, t=None, p=None, a=None):
-    r"""
-    CommandLine:
-        python -m ibeis.init.main_helpers --test-testdata_cm
-        python -m ibeis.init.main_helpers --test-testdata_cm --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.main_helpers import *  # NOQA
-        >>> cm, qreq_ = testdata_cm()
-        >>> cm.print_csv(ibs=qreq_.ibs)
-        >>> ut.quit_if_noshow()
-        >>> cm.show_single_annotmatch(qreq_, 2)
-        >>> ut.show_if_requested()
-    """
-    print('[main_helpers] testdata_cm')
-    cm_list, qreq_ = testdata_cmlist(defaultdb=defaultdb,
-                                     default_qaids=default_qaids, t=t, p=p,
-                                     a=a)
-    qaids = qreq_.qaids
-    print('qaids = %r' % (qaids,))
-    assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)
-    cm = cm_list[0]
-    return cm, qreq_
-
-
-def testdata_cmlist(defaultdb=None, default_qaids=None, t=None, p=None, a=None):
-    """
-    Returns:
-        list, ibeis.QueryRequest: cm_list, qreq_
-    """
-    print('[main_helpers] testdata_cmlist')
-    qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids, t=t, p=p, a=a)
-    cm_list = qreq_.execute()
-    return cm_list, qreq_
 
 
 def testdata_expts(defaultdb='testdb1',
@@ -217,6 +111,188 @@ def testdata_expts(defaultdb='testdb1',
         print(testres)
     return ibs, testres
     #return ibs, testres_list
+
+
+@profile
+def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
+                  return_acfg=False, verbose=None, default_aids=None):
+    r"""
+    Grabs default testdata for functions, but is command line overrideable
+
+    CommandLine:
+        python -m ibeis --tf testdata_aids --verbtd --db PZ_ViewPoints
+        python -m ibeis --tf testdata_aids --verbtd --db NNP_Master3 -a is_known=True,view_pername='#primary>0&#primary1>=1'
+        python -m ibeis --tf testdata_aids --verbtd --db PZ_Master1 -a default:is_known=True,view_pername='#primary>0&#primary1>=1'
+        python -m ibeis --tf testdata_aids --verbtd --db PZ_Master1 -a default:species=primary,minqual=ok --verbtd
+    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist
+
+        python -m ibeis.init.main_helpers --exec-testdata_aids --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.main_helpers import *  # NOQA
+        >>> from ibeis.expt import annotation_configs
+        >>> import ibeis
+        >>> #ibs = ibeis.opendb(defaultdb='PZ_ViewPoints')
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> a = None
+        >>> adefault = 'default:is_known=True'
+        >>> aids, aidcfg = testdata_aids(ibs=ibs, a=a, adefault=adefault, return_acfg=True)
+        >>> print('\n RESULT:')
+        >>> annotation_configs.print_acfg(aidcfg, aids, ibs, per_name_vpedge=None)
+    """
+    from ibeis.init import filter_annots
+    from ibeis.expt import annotation_configs
+    from ibeis.expt import cfghelpers
+    import ibeis
+
+    print('[main_helpers] testdata_aids')
+    if a is None:
+        a = adefault
+    a, _specified_a = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str, default=a, return_was_specified=True)
+    return_ibs = False
+    if ibs is None:
+        return_ibs = True
+        if defaultdb is None:
+            defaultdb = 'testdb1'
+        ibs = ibeis.opendb(defaultdb=defaultdb)
+    named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
+                                       annotation_configs.TEST_NAMES)
+    named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
+                                   ut.get_list_column(named_defaults_dict, 'qcfg')))
+    # Allow command line override
+    aids, _specified_aids = ut.get_argval(('--aid', '--aids'), type_=list,
+                                          default=default_aids,
+                                          return_was_specified=True)
+
+    aidcfg = None
+    have_aids = aids is not None
+    need_expand = (not have_aids) or (_specified_a and not _specified_aids)
+    #(not aid) or (sa and (not said))
+    if need_expand:
+        #base_cfg = annotation_configs.single_default
+        aidcfg_combo_list = cfghelpers.parse_cfgstr_list2(
+            [a], named_qcfg_defaults, 'acfg', annotation_configs.ALIAS_KEYS,
+            expand_nested=False, is_nestedcfgtype=False)
+        aidcfg_combo = aidcfg_combo_list[0]
+        if len(aidcfg_combo_list) != 1:
+            raise AssertionError('Error: combinations not handled for single cfg setting')
+        if len(aidcfg_combo) != 1:
+            raise AssertionError('Error: combinations not handled for single cfg setting')
+        aidcfg = aidcfg_combo[0]
+        aids = filter_annots.expand_single_acfg(ibs, aidcfg, verbose=verbose)
+    if return_ibs:
+        return ibs, aids
+    if return_acfg:
+        return aids, aidcfg
+    else:
+        return aids
+
+
+def testdata_pipecfg(p=None, t=None, ibs=None):
+    r"""
+    Returns:
+        dict: pcfgdict
+
+    CommandLine:
+        python -m ibeis.init.main_helpers --exec-testdata_pipecfg
+        python -m ibeis.init.main_helpers --exec-testdata_pipecfg -t default:AI=False
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.main_helpers import *  # NOQA
+        >>> pcfgdict = testdata_pipecfg()
+        >>> result = ('pcfgdict = %s' % (ut.dict_str(pcfgdict),))
+        >>> print(result)
+    """
+    print('[main_helpers] testdata_pipecfg')
+    if t is not None and p is None:
+        p = t
+    if p is None:
+        p = ['default']
+    from ibeis.expt import experiment_helpers
+    test_cfg_name_list = ut.get_argval(('-t', '-p'), type_=list, default=p)
+    pcfgdict_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)[0]
+    assert len(pcfgdict_list) == 1, 'can only specify one pipeline config here'
+    pcfgdict = pcfgdict_list[0]
+    return pcfgdict
+
+
+def testdata_qreq_(p=None, a=None, t=None, **kwargs):
+    r"""
+    Args:
+        t (None): (default = None)
+
+    Kwargs:
+        default_qaids, a, defaultdb, ibs, verbose, return_annot_info
+
+    Returns:
+        ibeis.QueryRequest: qreq_ -  query request object with hyper-parameters
+
+    CommandLine:
+        python -m ibeis.init.main_helpers --exec-testdata_qreq_ --show --qaid 3
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.main_helpers import *  # NOQA
+        >>> kwargs = {}
+        >>> p = None
+        >>> a = None
+        >>> qreq_ = testdata_qreq_(p)
+        >>> result = ('qreq_ = %s' % (str(qreq_),))
+    """
+    print('[main_helpers] testdata_qreq_')
+    if t is not None and p is None:
+        p = t
+    if p is None:
+        p = ['default']
+    ibs, qaids, daids, acfg = testdata_expanded_aids(a=a, return_annot_info=True, **kwargs)
+    pcfgdict = testdata_pipecfg(t=p, ibs=ibs)
+    qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
+    # Maintain regen command info: TODO: generalize and integrate
+    qreq_._regen_info = {
+        '_acfgstr': acfg['qcfg']['_cfgstr'],
+        '_pcfgstr': pcfgdict['_cfgstr'],
+        'dbname': ibs.get_dbname()
+    }
+    return qreq_
+
+
+def testdata_cm(defaultdb=None, default_qaids=None, t=None, p=None, a=None):
+    r"""
+    CommandLine:
+        python -m ibeis.init.main_helpers --test-testdata_cm
+        python -m ibeis.init.main_helpers --test-testdata_cm --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.main_helpers import *  # NOQA
+        >>> cm, qreq_ = testdata_cm()
+        >>> cm.print_csv(ibs=qreq_.ibs)
+        >>> ut.quit_if_noshow()
+        >>> cm.show_single_annotmatch(qreq_, 2)
+        >>> ut.show_if_requested()
+    """
+    print('[main_helpers] testdata_cm')
+    cm_list, qreq_ = testdata_cmlist(defaultdb=defaultdb,
+                                     default_qaids=default_qaids, t=t, p=p,
+                                     a=a)
+    qaids = qreq_.qaids
+    print('qaids = %r' % (qaids,))
+    assert len(qaids) == 1, 'only one qaid for this tests, qaids=%r' % (qaids,)
+    cm = cm_list[0]
+    return cm, qreq_
+
+
+def testdata_cmlist(defaultdb=None, default_qaids=None, t=None, p=None, a=None):
+    """
+    Returns:
+        list, ibeis.QueryRequest: cm_list, qreq_
+    """
+    print('[main_helpers] testdata_cmlist')
+    qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids, t=t, p=p, a=a)
+    cm_list = qreq_.execute()
+    return cm_list, qreq_
 
 
 def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
@@ -308,83 +384,6 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
         return ibs, qaid_list, daid_list, aidcfg
     else:
         return ibs, qaid_list, daid_list
-
-
-@profile
-def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
-                  return_acfg=False, verbose=None, default_aids=None):
-    r"""
-    Grabs default testdata for functions, but is command line overrideable
-
-    CommandLine:
-        python -m ibeis --tf testdata_aids --verbtd --db PZ_ViewPoints
-        python -m ibeis --tf testdata_aids --verbtd --db NNP_Master3 -a is_known=True,view_pername='#primary>0&#primary1>=1'
-        python -m ibeis --tf testdata_aids --verbtd --db PZ_Master1 -a default:is_known=True,view_pername='#primary>0&#primary1>=1'
-        python -m ibeis --tf testdata_aids --verbtd --db PZ_Master1 -a default:species=primary,minqual=ok --verbtd
-    python -m ibeis.other.dbinfo --test-latex_dbstats --dblist
-
-    CommandLine:
-        python -m ibeis.init.main_helpers --exec-testdata_aids --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.main_helpers import *  # NOQA
-        >>> from ibeis.expt import annotation_configs
-        >>> import ibeis
-        >>> #ibs = ibeis.opendb(defaultdb='PZ_ViewPoints')
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> a = None
-        >>> adefault = 'default:is_known=True'
-        >>> aids, aidcfg = testdata_aids(ibs=ibs, a=a, adefault=adefault, return_acfg=True)
-        >>> print('\n RESULT:')
-        >>> annotation_configs.print_acfg(aidcfg, aids, ibs, per_name_vpedge=None)
-    """
-    from ibeis.init import filter_annots
-    from ibeis.expt import annotation_configs
-    from ibeis.expt import cfghelpers
-    import ibeis
-
-    print('[main_helpers] testdata_aids')
-    if a is None:
-        a = adefault
-    a, _specified_a = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str, default=a, return_was_specified=True)
-    return_ibs = False
-    if ibs is None:
-        return_ibs = True
-        if defaultdb is None:
-            defaultdb = 'testdb1'
-        ibs = ibeis.opendb(defaultdb=defaultdb)
-    named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
-                                       annotation_configs.TEST_NAMES)
-    named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
-                                   ut.get_list_column(named_defaults_dict, 'qcfg')))
-    # Allow command line override
-    aids, _specified_aids = ut.get_argval(('--aid', '--aids'), type_=list,
-                                          default=default_aids,
-                                          return_was_specified=True)
-
-    aidcfg = None
-    have_aids = aids is not None
-    need_expand = (not have_aids) or (_specified_a and not _specified_aids)
-    #(not aid) or (sa and (not said))
-    if need_expand:
-        #base_cfg = annotation_configs.single_default
-        aidcfg_combo_list = cfghelpers.parse_cfgstr_list2(
-            [a], named_qcfg_defaults, 'acfg', annotation_configs.ALIAS_KEYS,
-            expand_nested=False, is_nestedcfgtype=False)
-        aidcfg_combo = aidcfg_combo_list[0]
-        if len(aidcfg_combo_list) != 1:
-            raise AssertionError('Error: combinations not handled for single cfg setting')
-        if len(aidcfg_combo) != 1:
-            raise AssertionError('Error: combinations not handled for single cfg setting')
-        aidcfg = aidcfg_combo[0]
-        aids = filter_annots.expand_single_acfg(ibs, aidcfg, verbose=verbose)
-    if return_ibs:
-        return ibs, aids
-    if return_acfg:
-        return aids, aidcfg
-    else:
-        return aids
 
 
 if __name__ == '__main__':

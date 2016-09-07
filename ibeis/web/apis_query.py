@@ -9,9 +9,6 @@ from flask import url_for, request, current_app  # NOQA
 from os.path import join, dirname, abspath
 import numpy as np   # NOQA
 import utool as ut
-#import vtool as vt
-#import cv2  # NOQA
-import dtool
 from ibeis.web import appfuncs as appf
 ut.noinject('[apis_query]')
 
@@ -640,69 +637,38 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
         >>> ibs = ibeis.test_main(db='testdb1')
         >>> cfgdict = {'pipeline_root':'BC_DTW'}
         >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict, verbose=True)
-        >>> cm = ibs.query_chips(qaid_list, daid_list, use_cache=False, qreq_=qreq_)[0]
+        >>> cm = ibs.query_chips(qreq_=qreq_)[0]
         >>> ut.quit_if_noshow()
         >>> cm.ishow_analysis(qreq_)
         >>> ut.show_if_requested()
     """
-    from ibeis.algo.hots import match_chips4 as mc4
     # The qaid and daid objects are allowed to be None if qreq_ is
     # specified
-
-    if qaid_list is None:
-        qaid_list = qreq_.qaids
-    if daid_list is None:
-        if qreq_ is not None:
-            daid_list = qreq_.daids
-        else:
+    if qreq_ is None:
+        assert qaid_list is not None, 'do not specify qaids and qreq'
+        assert daid_list is not None, 'do not specify daids and qreq'
+        qaid_list, was_scalar = ut.wrap_iterable(qaid_list)
+        if daid_list is None:
             daid_list = ibs.get_valid_aids()
-
-    qaid_list, was_scalar = ut.wrap_iterable(qaid_list)
-
-    # Check fo empty queries
-    try:
-        assert len(daid_list) > 0, 'there are no database chips'
-        assert len(qaid_list) > 0, 'there are no query chips'
-    except AssertionError as ex:
-        ut.printex(ex, 'Impossible query request', iswarning=True,
-                   keys=['qaid_list', 'daid_list'])
-        if ut.SUPER_STRICT:
-            raise
-        cm_list = [None for qaid in qaid_list]
+        qreq_ = ibs.new_query_request(qaid_list, daid_list,
+                                      cfgdict=cfgdict, verbose=verbose)
     else:
-        # Check for consistency
-        if qreq_ is not None:
-            ut.assert_lists_eq(qreq_.qaids, qaid_list,
-                               'qaids do not agree with qreq_', verbose=True)
-            ut.assert_lists_eq(qreq_.daids, daid_list,
-                               'daids do not agree with qreq_', verbose=True)
-        if qreq_ is None:
-            qreq_ = ibs.new_query_request(qaid_list, daid_list,
-                                          cfgdict=cfgdict, verbose=verbose)
+        assert qaid_list is None, 'do not specify qreq and qaids'
+        assert daid_list is None, 'do not specify qreq and daids'
+        was_scalar = False
+    cm_list = qreq_.execute()
+    assert isinstance(cm_list, list), (
+        'Chip matches were not returned as a list')
 
-        if isinstance(qreq_, dtool.BaseRequest):
-            # Dtool has a new-ish way of doing requests.  Eventually requests
-            # will be depricated and all of this will go away though.
-            cm_list = qreq_.execute()
-        else:
-            # Send query to hotspotter (runs the query)
-            cm_list = mc4.submit_query_request(
-                ibs,  qaid_list, daid_list, use_cache, use_bigcache,
-                cfgdict=cfgdict, qreq_=qreq_,
-                verbose=verbose, save_qcache=save_qcache, prog_hook=prog_hook)
-
-        assert isinstance(cm_list, list), 'Chip matches were not returned as a list'
-
-    if return_cm_dict or return_cm_simple_dict:
-        # Convert to cm_list
-        if return_cm_simple_dict:
-            for cm in cm_list:
-                cm.qauuid = ibs.get_annot_uuids(cm.qaid)
-                cm.dauuid_list = ibs.get_annot_uuids(cm.daid_list)
-            keys = ['qaid', 'daid_list', 'score_list', 'qauuid', 'dauuid_list']
-            cm_list = [ut.dict_subset(cm.to_dict(), keys) for cm in cm_list]
-        elif return_cm_dict:
-            cm_list = [cm.to_dict() for cm in cm_list]
+    # Convert to cm_list
+    if return_cm_simple_dict:
+        for cm in cm_list:
+            cm.qauuid = ibs.get_annot_uuids(cm.qaid)
+            cm.dauuid_list = ibs.get_annot_uuids(cm.daid_list)
+        keys = ['qaid', 'daid_list', 'score_list', 'qauuid', 'dauuid_list']
+        cm_list = [ut.dict_subset(cm.to_dict(), keys) for cm in cm_list]
+    elif return_cm_dict:
+        cm_list = [cm.to_dict() for cm in cm_list]
 
     if was_scalar:
         # hack for scalar input

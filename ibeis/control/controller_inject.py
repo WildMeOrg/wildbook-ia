@@ -42,7 +42,8 @@ except Exception as ex:
         raise
 
 try:
-    from flask.ext.cors import CORS
+    #from flask.ext.cors import CORS
+    from flask_cors import CORS
     HAS_FLASK_CORS = True
 except Exception as ex:
     HAS_FLASK_CORS = False
@@ -52,8 +53,10 @@ except Exception as ex:
 
 
 try:
-    from flask.ext.cas import CAS
-    from flask.ext.cas import login_required
+    from flask_cas import CAS
+    from flask_cas import login_required
+    #from flask.ext.cas import CAS
+    #from flask.ext.cas import login_required
     HAS_FLASK_CAS = True
 except Exception as ex:
     HAS_FLASK_CAS = False
@@ -523,9 +526,13 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                     'metadata',
                 ]
                 for check in check_list:
-                    assert '/api/%s/' % (check, ) not in rule
+                    assert '/api/%s/' % (check, ) not in rule, 'failed check=%r' % (check,)
             except:
-                print('CONSIDER RENAMING API RULE: %r' % (rule, ))
+                iswarning = not ut.SUPER_STRICT
+                ut.printex('CONSIDER RENAMING API RULE: %r' % (rule, ),
+                           iswarning=iswarning, tb=True)
+                if not iswarning:
+                    raise
 
             # accpet args to flask.route
             def regsiter_closure(func):

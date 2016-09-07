@@ -2268,7 +2268,7 @@ class TestResult(ut.NiceRepr):
                             use_cache=True)
             def get_cfgx_feat_scores(qreq_, qaids):
                 from ibeis.algo.hots import scorenorm
-                cm_list = qreq_.execute_subset(qaids)
+                cm_list = qreq_.execute(qaids)
                 # print('Done loading cached chipmatches')
                 tup = scorenorm.get_training_featscores(qreq_, cm_list, disttype,
                                                         namemode, fsvx, threshx,

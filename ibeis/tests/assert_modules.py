@@ -297,8 +297,9 @@ def flask_version():
 
 @checkinfo('2.0.1')
 def flask_cors_version():
-    import flask.ext.cors
-    return module_stdinfo_dict(flask.ext.cors)
+    #import flask.ext.cors as flask_cors
+    import flask_cors
+    return module_stdinfo_dict(flask_cors)
 
 
 @checkinfo('4.0.2')

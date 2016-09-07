@@ -172,8 +172,6 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
     from ibeis.expt import cfghelpers
     if ut.VERBOSE:
         print('[dev] draw_annot_scoresep')
-    #from ibeis.init import main_helpers
-    #filt_cfg = main_helpers.testdata_filtcfg(default=f)
     if f is None:
         f = ['']
     filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
@@ -442,7 +440,6 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
     if f is None:
         f = ['']
     filt_cfg = ut.flatten(cfghelpers.parse_cfgstr_list2(f, strict=False))[0]
-    #filt_cfg = main_helpers.testdata_filtcfg(f, allow_cmdline=False)
     case_pos_list = testres.case_sample2(filt_cfg)
     case_qx_list = ut.unique_ordered(case_pos_list.T[0])
     selected_tags = ut.take(all_tags, case_qx_list)
@@ -1193,7 +1190,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         # It actually doesnt take that long. the drawing is what hurts
         # TODO: be able to load old results even if they are currently invalid
         qaid = qaids[qx]
-        cm_list = [qreq_.execute_subset(qaids=[qaid])[0] for qreq_ in qreq_list]
+        cm_list = [qreq_.execute(qaids=[qaid])[0] for qreq_ in qreq_list]
         fpaths_list.append([])
 
         truth2_prop, prop2_mat = testres.get_truth2_prop()

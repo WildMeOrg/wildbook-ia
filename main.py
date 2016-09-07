@@ -42,8 +42,6 @@ def dependencies_for_myprogram():
     import statsmodels
     import statsmodels.nonparametric.kde
     import flask
-    #import flask.ext.cors
-    #from flask.ext.cors import CORS
     importlib.import_module('mpl_toolkits').__path__
 
 if __name__ == '__main__':

@@ -20,14 +20,112 @@ def ensure_testing_data():
         ibeis.ensure_wilddogs()
 
 
+def dynamic_doctest_modnames():
+    r"""
+    CommandLine:
+        python -m ibeis.tests.run_tests dynamic_doctest_modnames --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.tests.run_tests import *  # NOQA
+        >>> doctest_modname_list_ = dynamic_doctest_modnames()
+        >>> result = ('doctest_modname_list_ = %s' % (ut.repr3(doctest_modname_list_),))
+        >>> print(result)
+    """
+    exclude_doctests_fnames = set([
+        '_autogen_explicit_controller',
+        'template_definitions.py',
+        'autogen_test_script.py',
+    ])
+    exclude_dirs = ['_broken', 'old', 'tests', 'timeits', '_scripts',
+                    '_timeits', '_doc', 'notebook', ]
+    dpath_list = ['ibeis']
+    doctest_modname_list_ = ut.find_doctestable_modnames(dpath_list, exclude_doctests_fnames, exclude_dirs)
+    return doctest_modname_list_
+
+
+def static_doctest_modnames():
+    doctest_modname_list_ = [
+        'ibeis',
+        'ibeis.annots', 'ibeis.core_annots', 'ibeis.main_module',
+        'ibeis.new_annots', 'ibeis.tag_funcs', 'ibeis.core_images',
+        'ibeis.annotmatch_funcs', 'ibeis.images',
+        'ibeis.viz.viz_graph', 'ibeis.viz.viz_helpers', 'ibeis.viz.viz_hough',
+        'ibeis.viz.viz_chip', 'ibeis.viz.viz_image', 'ibeis.viz.viz_name',
+        'ibeis.viz.viz_matches', 'ibeis.viz.viz_graph2', 'ibeis.viz.viz_sver',
+        'ibeis.viz.viz_other', 'ibeis.viz.viz_nearest_descriptors',
+        'ibeis.viz.viz_qres', 'ibeis.viz.interact.interact_matches',
+        'ibeis.viz.interact.interact_annotations2',
+        'ibeis.viz.interact.interact_name',
+        'ibeis.viz.interact.interact_query_decision',
+        'ibeis.viz.interact.interact_chip', 'ibeis.viz.interact.interact_qres',
+        'ibeis.templates.generate_notebook',
+        'ibeis.scripts.classify_shark',
+        'ibeis.scripts.specialdraw',
+        'ibeis.scripts.gen_cand_expts',
+        'ibeis.control.manual_annot_funcs', 'ibeis.control.manual_chip_funcs',
+        'ibeis.control.manual_species_funcs',
+        'ibeis.control.manual_ibeiscontrol_funcs',
+        'ibeis.control._autogen_party_funcs',
+        'ibeis.control.manual_garelate_funcs',
+        'ibeis.control.manual_name_funcs', 'ibeis.control.accessor_decors',
+        'ibeis.control._sql_helpers', 'ibeis.control.manual_wildbook_funcs',
+        'ibeis.control.controller_inject',
+        'ibeis.control.manual_lblimage_funcs', 'ibeis.control.IBEISControl',
+        'ibeis.control.manual_feat_funcs', 'ibeis.control.wildbook_manager',
+        'ibeis.control._autogen_annotmatch_funcs',
+        'ibeis.control.manual_gsgrelate_funcs',
+        'ibeis.control.manual_meta_funcs',
+        'ibeis.control.manual_lblannot_funcs',
+        'ibeis.control.manual_featweight_funcs', 'ibeis.control.DB_SCHEMA',
+        'ibeis.control.manual_lbltype_funcs',
+        'ibeis.control.manual_image_funcs',
+        'ibeis.control.manual_imageset_funcs',
+        'ibeis.control.manual_annotgroup_funcs',
+        'ibeis.algo.Config',
+        'ibeis.algo.hots.demobayes', 'ibeis.algo.hots._pipeline_helpers',
+        'ibeis.algo.hots.name_scoring', 'ibeis.algo.hots.devcases',
+        'ibeis.algo.hots.neighbor_index', 'ibeis.algo.hots.pgm_viz',
+        'ibeis.algo.hots.pgm_ext', 'ibeis.algo.hots.bayes',
+        'ibeis.algo.hots.scorenorm', 'ibeis.algo.hots.nn_weights',
+        'ibeis.algo.hots.pipeline', 'ibeis.algo.hots.vsone_pipeline',
+        'ibeis.algo.hots.orig_graph_iden', 'ibeis.algo.hots.query_request',
+        'ibeis.algo.hots.chip_match', 'ibeis.algo.hots.multi_index',
+        'ibeis.algo.hots.testem', 'ibeis.algo.hots.query_params',
+        'ibeis.algo.hots.precision_recall', 'ibeis.algo.hots.hstypes',
+        'ibeis.algo.hots.match_chips4', 'ibeis.algo.hots.neighbor_index_cache',
+        'ibeis.algo.hots.graph_iden', 'ibeis.algo.hots._neighbor_experiment',
+        'ibeis.algo.hots.distinctiveness_normalizer',
+        'ibeis.algo.hots.scoring',
+        'ibeis.algo.preproc.preproc_annot',
+        'ibeis.algo.preproc.preproc_occurrence',
+        'ibeis.algo.preproc.preproc_image',
+        'ibeis.algo.preproc.preproc_residual', 'ibeis.algo.detect.grabmodels',
+        'ibeis.other.dbinfo', 'ibeis.other.ibsfuncs',
+        'ibeis.other.detectfuncs',
+        'ibeis.init.main_helpers', 'ibeis.init.filter_annots',
+        'ibeis.init.sysres',
+        'ibeis.gui.guimenus', 'ibeis.gui.guiback', 'ibeis.gui.inspect_gui',
+        'ibeis.gui.newgui', 'ibeis.gui.dbfix_widget',
+        'ibeis.gui.clock_offset_gui',
+        'ibeis.dbio.export_subset', 'ibeis.dbio.ingest_hsdb',
+        'ibeis.dbio.export_hsdb', 'ibeis.dbio.ingest_database',
+        'ibeis.expt.harness', 'ibeis.expt.old_storage',
+        'ibeis.expt.experiment_helpers', 'ibeis.expt.annotation_configs',
+        'ibeis.expt.experiment_drawing', 'ibeis.expt.experiment_printres',
+        'ibeis.expt.test_result', 'ibeis.expt.cfghelpers',
+        'ibeis.web.routes_ajax', 'ibeis.web.routes', 'ibeis.web.apis_query',
+        'ibeis.web.app', 'ibeis.web.job_engine', 'ibeis.web.apis_json',
+        'ibeis.web.apis_detect', 'ibeis.web.apis_engine', 'ibeis.web.test_api',
+        'ibeis.web.apis', 'ibeis.web.routes_csv', 'ibeis.web.routes_submit',
+    ]
+    return doctest_modname_list_
+
+
 def run_tests():
     """
         >>> from ibeis.tests.run_tests import *  # NOQA
-
     """
-
-    # DONT USE THESE FLAGS
-    #print('--testall and --testslow give you more tests')
     # starts logging for tests
     import ibeis
 
@@ -35,101 +133,12 @@ def run_tests():
     # Build module list and run tests
     import sys
     ensure_testing_data()
-    if False:
-        ut.change_term_title('RUN IBEIS TESTS')
-    exclude_doctests_fnames = set([
-        '_autogen_explicit_controller',
-        'template_definitions.py',
-        'autogen_test_script.py',
-    ])
-    exclude_dirs = [
-        '_broken',
-        'old',
-        'tests',
-        'timeits',
-        '_scripts',
-        '_timeits',
-        '_doc',
-        'notebook',
-    ]
+
     if ut.in_pyinstaller_package():
-        from os.path import dirname
-        dpath_list = [dirname(ibeis.__file__)]
         # Run tests for installer
-        doctest_modname_list_ = [
-            'ibeis.ibsfuncs',
-            'ibeis.viz.interact.interact_matches',
-            'ibeis.viz.interact.interact_annotations2',
-            'ibeis.viz.interact.interact_name',
-            'ibeis.viz.interact.interact_query_decision',
-            'ibeis.viz.interact.interact_chip',
-            'ibeis.viz.interact.interact_qres',
-            'ibeis.algo.Config',
-            'ibeis.algo.hots._pipeline_helpers',
-            'ibeis.algo.hots.name_scoring',
-            'ibeis.algo.hots.devcases',
-            'ibeis.algo.hots.neighbor_index',
-            'ibeis.algo.hots.automated_helpers',
-            'ibeis.algo.hots.hots_query_result',
-            'ibeis.algo.hots.automated_oracle',
-            'ibeis.algo.hots.nn_weights',
-            'ibeis.algo.hots.pipeline',
-            'ibeis.algo.hots.automated_params',
-            'ibeis.algo.hots.vsone_pipeline',
-            'ibeis.algo.hots.automatch_suggestor',
-            'ibeis.algo.hots.score_normalization',
-            'ibeis.algo.hots.query_request',
-            'ibeis.algo.hots.chip_match',
-            'ibeis.algo.hots.multi_index',
-            'ibeis.algo.hots.qt_inc_automatch',
-            'ibeis.algo.hots.query_params',
-            'ibeis.algo.hots.precision_recall',
-            'ibeis.algo.hots.hstypes',
-            'ibeis.algo.hots.match_chips4',
-            'ibeis.algo.hots.distinctiveness_normalizer',
-            'ibeis.algo.hots.automated_matcher',
-            'ibeis.algo.hots.special_query',
-            'ibeis.algo.hots.scoring',
-            'ibeis.algo.preproc.preproc_annot',
-            'ibeis.algo.preproc.preproc_imageset',
-            'ibeis.algo.preproc.preproc_image',
-            'ibeis.algo.preproc.preproc_residual',
-            'ibeis.algo.detect.grabmodels',
-            'ibeis.control.manual_annot_funcs',
-            'ibeis.control.manual_chip_funcs',
-            'ibeis.control.manual_species_funcs',
-            'ibeis.control.manual_ibeiscontrol_funcs',
-            'ibeis.control._autogen_party_funcs',
-            'ibeis.control.manual_garelate_funcs',
-            'ibeis.control.manual_name_funcs',
-            'ibeis.control._sql_helpers',
-            'ibeis.control.manual_wildbook_funcs',
-            'ibeis.control.controller_inject',
-            'ibeis.control.manual_lblimage_funcs',
-            'ibeis.control.IBEISControl',
-            'ibeis.control._autogen_featweight_funcs',
-            'ibeis.control.manual_imageset_funcs',
-            'ibeis.control.manual_feat_funcs',
-            'ibeis.control.manual_gsgrelate_funcs',
-            'ibeis.control._autogen_annotmatch_funcs',
-            'ibeis.control.manual_meta_funcs',
-            'ibeis.control.manual_lblannot_funcs',
-            'ibeis.control.DB_SCHEMA',
-            'ibeis.control.manual_lbltype_funcs',
-            'ibeis.control.SQLDatabaseControl',
-            'ibeis.control.manual_image_funcs',
-            'ibeis.control.manual_annotgroup_funcs',
-            'ibeis.control.DBCACHE_SCHEMA',
-            'ibeis.init.main_helpers',
-            'ibeis.init.sysres',
-            'ibeis.gui.clock_offset_gui',
-            'ibeis.dbio.export_subset',
-            'ibeis.dbio.export_hsdb',
-            'ibeis.dbio.ingest_database',
-        ]
+        doctest_modname_list_ = static_doctest_modnames()
     else:
-        dpath_list = ['ibeis']
-        doctest_modname_list_ = ut.find_doctestable_modnames(dpath_list, exclude_doctests_fnames, exclude_dirs)
+        doctest_modname_list_ = dynamic_doctest_modnames()
 
     exclude_doctest_pattern = ut.get_argval(('--exclude-doctest-patterns', '--x'), type_=list, default=[])
     if exclude_doctest_pattern is not None:
@@ -191,10 +200,22 @@ def run_tests():
     else:
         return 0
 
+#if __name__ == '__main__':
+#    """
+#    python -m ibeis --run-tests
+#    """
+#    import multiprocessing
+#    multiprocessing.freeze_support()
+#    run_tests()
+
+
 if __name__ == '__main__':
-    """
-    python -m ibeis --run-tests
+    r"""
+    CommandLine:
+        python -m ibeis.tests.run_tests
+        python -m ibeis.tests.run_tests --allexamples
     """
     import multiprocessing
-    multiprocessing.freeze_support()
-    run_tests()
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

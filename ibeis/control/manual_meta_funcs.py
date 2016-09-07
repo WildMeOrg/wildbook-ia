@@ -766,7 +766,8 @@ def get_contributor_imgsetids(ibs, config_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/contributor/image/rowid/', methods=['GET'])
+#@register_api('/api/contributor/image/rowid/', methods=['GET'])
+#@register_api('/api/contributor/image/', methods=['GET'])
 def get_contributor_gids(ibs, contrib_rowid_list):
     r"""
     TODO: Template 1_M reverse getter

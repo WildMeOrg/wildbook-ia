@@ -929,7 +929,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         logger.info('user_feedback = ' + ut.repr2(self.infr.user_feedback, nl=1))
 
         # keep track of residual data
-        new_df, old_df = infr.match_residuals()
+        new_df, old_df = infr.match_state_delta()
         num_added = len(old_df) - len(new_df)
         num_changed = len(old_df)
 

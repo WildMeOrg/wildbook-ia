@@ -939,18 +939,19 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         nx.set_node_attrs(graph, 'orig_name_label', node_to_nid)
         infr.aid_to_node = ut.invert_dict(infr.node_to_aid)
 
-    def match_residuals(infr):
+    def match_state_delta(infr):
         """ Returns information about state change of annotmatches """
         old_feedback = infr._pandas_feedback_format(infr.read_user_feedback())
         new_feedback = infr._pandas_feedback_format(infr.user_feedback)
-        new_df, old_df = infr._make_residuals(old_feedback, new_feedback)
+        new_df, old_df = infr._make_state_delta(old_feedback, new_feedback)
         return new_df, old_df
 
     @staticmethod
-    def _make_residuals(old_feedback, new_feedback):
+    def _make_state_delta(old_feedback, new_feedback):
         """
         Example:
             >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> import pandas as pd
             >>> old_data = [
             >>>     [1, 0, 0, 100, 101, 1000],
@@ -971,7 +972,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             >>> new_feedback = pd.DataFrame(new_data, columns=columns)
             >>> old_feedback.set_index('am_rowid', inplace=True, drop=False)
             >>> new_feedback.set_index('am_rowid', inplace=True, drop=False)
-            >>> new_df, old_df = AnnotInference._make_residuals(old_feedback, new_feedback)
+            >>> new_df, old_df = AnnotInference._make_state_delta(old_feedback, new_feedback)
             >>> # post
             >>> is_add = np.isnan(new_df['am_rowid'].values)
             >>> add_df = new_df.loc[is_add]

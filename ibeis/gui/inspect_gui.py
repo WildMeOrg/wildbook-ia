@@ -797,7 +797,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
                 # qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})
             else:
                 qreq2_ = qreq_
-            cm = qreq2_.execute_subset([aid1])[0]
+            cm = qreq2_.execute([aid1])[0]
             cm.ishow_single_annotmatch(qreq_, aid2, mode=0)
         options += [
             ('Load Vsmany', vsmany_load_and_show),
