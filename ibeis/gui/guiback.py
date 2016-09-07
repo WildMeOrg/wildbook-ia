@@ -593,7 +593,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
             self.log_query(qreq_, test=False)
 
         with gt.GuiProgContext('Querying', self.prog_bar) as ctx:  # NOQA
-            cm_list = ibs.query_chips(qreq_=qreq_, prog_hook=ctx.prog_hook)
+            cm_list = qreq_.execute(prog_hook=ctx.prog_hook)
 
         qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list, qreq_=qreq_,
                                                   review_cfg=review_cfg)
@@ -2046,16 +2046,13 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> from ibeis.gui.guiback import *  # NOQA
             >>> import ibeis
             >>> main_locals = ibeis.main(db='testdb2')
-            >>> # build test data
             >>> back = main_locals['back']
             >>> ibs = back.ibs
             >>> query_is_known = None
-            >>> # execute function
             >>> refresh = True
             >>> daids_mode = None
             >>> imgsetid = None
             >>> kwargs = {}
-            >>> # verify results
             >>> print(result)
         """
         imgsetid = back._eidfromkw(kwargs)
@@ -2140,7 +2137,7 @@ class MainWindowBackend(GUIBACK_BASE):
                                                cfgdict=cfgdict)
             prog_hook.initialize_subhooks(1)
             subhook = prog_hook.next_subhook()
-            cm_list = back.ibs.query_chips(qreq_=qreq_, prog_hook=subhook)
+            cm_list = qreq_.execute(prog_hook=subhook)
             query_results[key] = (cm_list, qreq_)
 
             # HACK IN IMAGESET INFO
@@ -3325,11 +3322,8 @@ class MainWindowBackend(GUIBACK_BASE):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.gui.guiback import *  # NOQA
-            >>> # build test data
             >>> back = testdata_guiback()
-            >>> # execute function
             >>> result = back.display_dbinfo()
-            >>> # verify results
             >>> print(result)
         """
         dbinfo = back.ibs.get_dbinfo_str()

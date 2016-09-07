@@ -522,33 +522,6 @@ def build_daid2_chipmatch2(invindex, common_wxs, wx2_qaids, wx2_qfxs,
     daid2_chipmatch = (daid2_fm, daid2_fs, daid2_fk)
 
     return daid2_chipmatch
-    #if False:
-    #    np.all(all_fms == all_matches)
-    #    np.all(all_fss == all_scores)
-    #    np.all(np.abs(all_scores - all_fss) < .00001)
-
-    #assert len(all_daids_) == len(all_fss)
-    #assert len(all_fms) == len(all_fss)
-    #with utool.EmbedOnException():
-    #    try:
-    #    except Exception as ex:
-    #        utool.printex(ex)
-    #        #utool.list_depth(dfxs_list, max)
-    #        #utool.list_depth(dfxs_list, min)
-    #        raise
-
-    # This code is incomprehensable. I feel ashamed.
-
-    # Number of times to duplicate scores
-    #nested_nmatch_list = [
-    #    [
-    #        qfxs_.size * dfxs_.size
-    #        for qfxs_, dfxs_ in zip(dfxs, qfxs)
-    #    ]
-    #    for dfxs, qfxs in zip(out_dfxs, out_qfxs)
-    #]
-    #test = [[(qfxs_, dfxs_) for (qfxs_, dfxs_) in zip(qfxs, dfxs)] for qfxs, dfxs in zip(out_qfxs, out_dfxs)]
-    #flatqfxs = utool.flatten([[(qfxs_, dfxs_) for (qfxs_, dfxs_) in zip(qfxs, dfxs)] for qfxs, dfxs in zip(out_qfxs, out_dfxs)])
 
 
 @profile

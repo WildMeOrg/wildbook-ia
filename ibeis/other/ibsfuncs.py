@@ -5456,64 +5456,6 @@ def get_annot_lazy_dict2(ibs, aid, config=None):
     return metadata
 
 
-#@register_ibs_method
-#def execute_pipeline_test(ibs, qaids, daids, pipecfg_name_list=['default']):
-#    from ibeis.expt import harness, experiment_helpers
-#    experiment_helpers
-#    testnameid = ibs.get_dbname() + ' ' + str(pipecfg_name_list)
-#    lbl = '[harn] TEST_CFG ' + str(pipecfg_name_list)
-
-#    # Generate list of query pipeline param configs
-#    cfgdict_list, pipecfg_list = experiment_helpers.get_pipecfg_list(
-#        pipecfg_name_list, ibs=ibs)
-
-#    cfgx2_lbl = experiment_helpers.get_varied_pipecfg_lbls(cfgdict_list)
-#    testres = harness.run_test_configurations(
-#        ibs, qaids, daids, pipecfg_list, cfgx2_lbl, cfgdict_list, lbl,
-#        testnameid, use_cache=False)
-#    return testres
-
-
-#@register_ibs_method
-#def get_imageset_expanded_aids(ibs, aid_list=None):
-#    """
-#    Example:
-#        >>> import ibeis
-#        >>> from ibeis.other.ibsfuncs import *  # NOQA
-#        >>> ibs = ibeis.opendb(defaultdb='lynx')
-#        >>> a = ['default:hack_imageset=True', ]
-#        >>> from ibeis.expt import experiment_helpers
-#        >>> acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, [a[0]], use_cache=False)
-#        >>> aid_list = ibs.get_valid_aids()
-#        >>> filter_kw = dict(been_adjusted=True)
-#        >>> aid_list = ibs.filter_annots_general(aid_list, filter_kw)
-#        >>> qaid_list, daid_list = ibs.get_imageset_expanded_aids()
-#        >>> #ibs.query_chips(qaid_list, daid_list)
-#        >>> testres = ibs.execute_pipeline_test(qaid_list, daid_list)
-#        >>> testres.print_perent_identification_success()
-#    """
-#    if aid_list is None:
-#        filter_kw = dict(been_adjusted=True)
-#        aid_list = ibs.filter_annots_general(ibs.get_valid_aids(), filter_kw)
-#    imgsetid_list = ibs.get_annot_primary_imageset(aid_list)
-#    nid_list = ibs.get_annot_nids(aid_list)
-#    multiprop2_aids = ut.hierarchical_group_items(aid_list, [nid_list, imgsetid_list])
-#    daid_list = []
-#    qaid_list = []
-#    for imgsetid, nid2_aids in multiprop2_aids.iteritems():
-#        if len(nid2_aids) == 1:
-#            daid_list.extend(ut.flatten(list(nid2_aids.values())))
-#        else:
-#            aids_list = list(nid2_aids.values())
-#            idx = ut.list_argmax(list(map(len, aids_list)))
-#            qaids = aids_list[idx]
-#            del aids_list[idx]
-#            daids = ut.flatten(aids_list)
-#            daid_list.extend(daids)
-#            qaid_list.extend(qaids)
-#    return qaid_list, daid_list
-
-
 @register_ibs_method
 def get_annot_primary_imageset(ibs, aid_list=None):
     # TODO: make it better

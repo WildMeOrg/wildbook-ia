@@ -65,10 +65,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> # UNSTABLE_DOCTEST
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qaid_list = ibs.get_valid_aids()[0:5]
-        >>> daid_list = ibs.get_valid_aids()[0:20]
-        >>> cm_list = ibs.query_chips(qaid_list, daid_list)
+        >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', a='default:qsize=5,dsize=20')
         >>> review_cfg = dict(ranks_top=5, directed=True, name_scoring=False,
         >>>                   filter_reviewed=False, filter_true_matches=True)
         >>> review_edges = get_review_edges(cm_list, review_cfg=review_cfg, ibs=ibs)
@@ -78,10 +75,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> # UNSTABLE_DOCTEST
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qaid_list = ibs.get_valid_aids()[0:1]
-        >>> daid_list = ibs.get_valid_aids()[10:100]
-        >>> qaid2_cm = ibs.query_chips(qaid_list, daid_list)
+        >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', a='default:qsize=1,dsize=100')
         >>> review_cfg = dict(ranks_top=1, directed=False, name_scoring=False,
         >>>                   filter_reviewed=False, filter_true_matches=True)
         >>> review_edges = get_review_edges(cm_list, review_cfg=review_cfg, ibs=ibs)
@@ -91,10 +85,7 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
         >>> # UNSTABLE_DOCTEST
         >>> from ibeis.gui.id_review_api import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> qaid_list = ibs.get_valid_aids()[0:10]
-        >>> daid_list = ibs.get_valid_aids()[0:10]
-        >>> qres_list = ibs.query_chips(qaid_list, daid_list)
+        >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', a='default:qsize=10,dsize=10')
         >>> ranks_top = 3
         >>> review_cfg = dict(ranks_top=3, directed=False, name_scoring=False,
         >>>                   filter_reviewed=False, filter_true_matches=True)
