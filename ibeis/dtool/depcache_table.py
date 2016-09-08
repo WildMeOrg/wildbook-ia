@@ -5,7 +5,20 @@ Module contining DependencyCacheTable
 python -m dtool.depcache_control --exec-make_graph --show
 python -m dtool.depcache_control --exec-make_graph --show --reduce
 
-TODO: change ismulti to ismulti
+FIXME:
+    RECTIFY: ismulti / ismodel need to be rectified. This indicate that this
+        table recieves multiple inputs from at least one parent table.
+
+    RECTIFY: Need to standardize parent rowids -vs- parent args.
+        in one-to-one cases they are the same. In multi cases the rowids indicate
+        a uuid and the args are the saved set of rowids that exist in the manifest.
+
+    RECTIFY: is rowid_list row-major or column-major?
+        I think currently rowid_list is row-major and rowid_listT is column-major
+        but this may not be consistent.
+
+
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -156,26 +169,44 @@ class _TableConfigHelper(object):
         parent_rowids = table.get_internal_columns(
             rowid_list, table.parent_id_colnames, unpack_scalars=True,
             keepwrap=True)
+        return parent_rowids
+
+    def get_parent_rowargs(table, rowid_list):
+        """
+        Args:
+            rowid_list (list): native table rowids
+
+        Returns:
+            parent_rowids (list of tuples): tuples of parent rowids
+
+        Example:
+            >>> # TODO: Need a test that creates a table
+            >>> # with two multi-dependencies and a two single dependencies
+            >>> # Then add two items to this table, and for each item
+            >>> # Find their parent inputs
+        """
+        parent_rowids = table.get_parent_rowids(rowid_list)
         parent_ismulti = table.get_parent_col_attr('ismulti')
         if any(parent_ismulti):
             # If any of the parent columns are multi-indexes, then lookup the
             # mapping from the aggregated uuid to the expanded rowid set.
-            fixed_parent_rowids = []
+            parent_args = []
             model_uuids = table.get_model_uuid(rowid_list)
             for rowid, uuid, p_id_list in zip(rowid_list, model_uuids, parent_rowids):
                 input_info = table.get_model_inputs(uuid)
-                fixed_parent_ids = []
+                fixed_args = []
                 for p_name, p_id, flag in zip(table.parent_id_colnames, p_id_list, parent_ismulti):
                     if flag:
                         new_p_id = input_info[p_name + '_model_input']
                         col_uuid = input_info[p_name + '_multi_id']
                         assert col_uuid == p_id, 'the model input has unexpectedly changed'
-                        fixed_parent_ids.append(new_p_id)
+                        fixed_args.append(new_p_id)
                     else:
-                        fixed_parent_ids.append(p_id)
-                fixed_parent_rowids.append(fixed_parent_ids)
-            parent_rowids = fixed_parent_rowids
-        return parent_rowids
+                        fixed_args.append(p_id)
+                parent_args.append(fixed_args)
+        else:
+            parent_args = parent_rowids
+        return parent_args
 
     def get_row_parent_rowid_map(table, rowid_list):
         """
@@ -2480,10 +2511,17 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         return prop_listT
 
     def _recompute_external_storage(table, tbl_rowids):
+        """
+        Recomputes the external file stored for this row.
+        This DOES NOT modify the depcache internals.
+        """
         assert STORE_CFGDICT
         print('Recomputing external data')
         # TODO: need to rectify parent ids?
+
         parent_rowids = table.get_parent_rowids(tbl_rowids)
+        parent_rowargs = table.get_parent_rowargs(tbl_rowids)
+
         #configs = table.get_row_configs(tbl_rowids)
         #assert ut.allsame(list(map(id, configs))), 'more than one config not yet supported'
         # TODO; groupby config
@@ -2492,18 +2530,24 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
 
         for xs, cfgid in zip(groupxs, unique_cfgids):
             parent_ids = ut.take(parent_rowids, xs)
+            parent_args = ut.take(parent_rowargs, xs)
             config = table.get_config_from_rowid([cfgid])[0]
             dirty_params_iter = table._compute_dirty_rows(
-                parent_ids, parent_ids, config_rowid=cfgid, config=config)
+                parent_ids, parent_args, config_rowid=cfgid, config=config)
             # Evaulate just to ensure storage
             ut.evaluate_generator(dirty_params_iter)
 
     def _recompute_and_store(table, tbl_rowids, config=None):
+        """
+        Recomputes all data stored for this row.
+        This DOES modify the depcache internals.
+        """
         assert STORE_CFGDICT
         print('Recomputing external data')
         if len(tbl_rowids) == 0:
             return
         parent_rowids = table.get_parent_rowids(tbl_rowids)
+        parent_rowargs = table.get_parent_rowargs(tbl_rowids)
         #configs = table.get_row_configs(tbl_rowids)
         #assert ut.allsame(list(map(id, configs))), 'more than one config not yet supported'
         # TODO; groupby config
@@ -2519,10 +2563,11 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
 
         for xs, cfgid in zip(groupxs, unique_cfgids):
             parent_ids = ut.take(parent_rowids, xs)
+            parent_args = ut.take(parent_rowargs, xs)
             rowids = ut.take(tbl_rowids, xs)
             config = table.get_config_from_rowid([cfgid])[0]
             dirty_params_iter = table._compute_dirty_rows(
-                parent_ids, parent_ids, config_rowid=cfgid, config=config)
+                parent_ids, parent_args, config_rowid=cfgid, config=config)
             # Evaulate to external and internal storage
             table.db.set(table.tablename, colnames, dirty_params_iter, rowids)
 
