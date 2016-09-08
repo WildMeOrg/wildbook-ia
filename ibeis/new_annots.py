@@ -87,6 +87,10 @@ class VisualVocab(ut.NiceRepr):
     def __len__(self):
         return len(self.wx_to_word)
 
+    @property
+    def shape(self):
+        return self.wx_to_word.shape
+
     def __getstate__(self):
         # TODO: Figure out how to make these play nice with the depcache
         state = self.__dict__.copy()
@@ -107,7 +111,6 @@ class VisualVocab(ut.NiceRepr):
             raise
         finally:
             temp.close()
-
         return state
 
     def __setstate__(self, state):
@@ -126,7 +129,7 @@ class VisualVocab(ut.NiceRepr):
         finally:
             temp.close()
 
-    def reindex(self, verbose=True):
+    def build(self, verbose=True):
         num_vecs = len(self.wx_to_word)
         if self.wordflann is None:
             self.wordflann = pyflann.FLANN()
@@ -134,7 +137,8 @@ class VisualVocab(ut.NiceRepr):
             print('[nnindex] ...building kdtree over %d points (this may take a sec).' % num_vecs)
             tt = ut.tic(msg='Building vocab index')
         if num_vecs == 0:
-            print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE')
+            print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS.')
+            print('THIS MAY BE A SIGN OF A DEEPER ISSUE')
         else:
             self.wordflann.build_index(self.wx_to_word, **self.flann_params)
         if verbose:
@@ -152,9 +156,8 @@ class VisualVocab(ut.NiceRepr):
             idx_to_vec = idx_to_vec.astype(self.wordflann._FLANN__curindex_data.dtype)
             _idx_to_wx, _idx_to_wdist = self.wordflann.nn_index(idx_to_vec, nAssign)
         except pyflann.FLANNException as ex:
-            ut.printex(ex, 'probably misread the cached flann_fpath=%r' % (getattr(self.wordflann, 'flann_fpath', None),))
-            import utool
-            utool.embed()
+            ut.printex(ex, 'probably misread the cached flann_fpath=%r' % (
+                getattr(self.wordflann, 'flann_fpath', None),))
             raise
         else:
             _idx_to_wx = vt.atleast_nd(_idx_to_wx, 2)
@@ -324,7 +327,8 @@ class VisualVocab(ut.NiceRepr):
                         print(massign_thresh[x])
                         print(_idx_to_wdist[x])
                     #all([ut.almost_eq(x, 1) for x in checksum])
-                    assert all([ut.almost_eq(val, 1) for val in checksum]), 'weights did not break evenly'
+                    assert all([ut.almost_eq(val, 1) for val in checksum]), (
+                        'weights did not break evenly')
         return idx_to_wxs, idx_to_maws
 
     def __nice__(self):
@@ -694,6 +698,15 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
 
 @ut.reloadable_class
 class IndexedAnnot(ut.NiceRepr):
+    """
+    Example:
+        >>> from ibeis.new_annots import *  # NOQA
+        >>> ibs, smk, qreq_ = testdata_smk()
+        >>> inva = smk.qinva
+        >>> X_list = inva.group_annots()
+        >>> X = X_list[0]
+        >>> X.assert_self()
+    """
     def __init__(X, ax, inva):
         X.ax = ax
         X.inva = inva
@@ -719,6 +732,17 @@ class IndexedAnnot(ut.NiceRepr):
         fxs = X.inva.fstack.idx_to_fx.take(X.idxs(wx), axis=0)
         return fxs
 
+    def VLAD(X):
+        import scipy.sparse
+        num_words, word_dim = X.inva.vocab.shape
+        vlad_dim = num_words * word_dim
+        vlad_vec = scipy.sparse.lil_matrix((vlad_dim, 1))
+        for wx, aggvec in X.wx_to_aggvec.items():
+            start = wx * word_dim
+            vlad_vec[start:start + word_dim] = aggvec.T
+        vlad_vec = vlad_vec.tocsc()
+        return vlad_vec
+
     def Phi(X, wx):
         return X.wx_to_aggvec[wx]
 
@@ -739,8 +763,7 @@ class IndexedAnnot(ut.NiceRepr):
         for wx in X.wx_to_idxs_.keys():
             axs = X.inva.fstack.idx_to_ax.take(X.idxs(wx), axis=0)
             assert np.all(axs == X.ax)
-
-            agg_rvec = aggregate_rvecs(X.phis(wx), X.maws(wx))
+            agg_rvec = aggregate_rvecs(X.phis(wx), X.maws(wx), None)
             assert np.all(agg_rvec == X.Phi(wx))
 
 
@@ -1072,29 +1095,36 @@ def render_vocab_word(ibs, inva, wx, fnum=None):
         solidbar[:, :, :] = (np.array(border_color) / 255)[None, None]
     else:
         solidbar[:, :, :] = np.array(border_color)[None, None]
-    # word_img = vt.stack_image_list([patch_img, solidbar, stacked_patches], vert=False, modifysize=True)
     patch_img2 = vt.inverted_sift_patch(word)
     patch_img = vt.rectify_to_uint8(patch_img)
     patch_img2 = vt.rectify_to_uint8(patch_img2)
     solidbar = vt.rectify_to_uint8(solidbar)
     stacked_patches = vt.rectify_to_uint8(stacked_patches)
     patch_img2, patch_img = vt.make_channels_comparable(patch_img2, patch_img)
-    word_img = vt.stack_image_list([patch_img, solidbar, patch_img2, solidbar, stacked_patches], vert=False, modifysize=True)
+    img_list = [patch_img, solidbar, patch_img2, solidbar, stacked_patches]
+    word_img = vt.stack_image_list(img_list, vert=False, modifysize=True)
     return word_img
 
 
-def render_vocab(inva):
+def render_vocab(inva, use_data=False):
     """
     Renders the average patch of each word.
     This is a quick visualization of the entire vocabulary.
 
     CommandLine:
+        python -m ibeis.new_annots render_vocab --show
+        python -m ibeis.new_annots render_vocab --show --use-data
         python -m ibeis.new_annots render_vocab --show --debug-depc
 
     Example:
         >>> from ibeis.new_annots import *  # NOQA
         >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=10000)
-        >>> render_vocab(inva)
+        >>> use_data = ut.get_argflag('--use-data')
+        >>> all_words = render_vocab(inva, use_data=use_data)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> pt.imshow(all_words)
         >>> ut.show_if_requested()
     """
     sortx = ut.argsort(inva.num_list)[::-1]
@@ -1106,7 +1136,7 @@ def render_vocab(inva):
     word_patch_list = []
     for wx in ut.ProgIter(wx_list, bs=True, lbl='building patches'):
         word = inva.vocab.wx_to_word[wx]
-        if False:
+        if use_data:
             word_patch = inva.get_word_patch(wx)
         else:
             word_patch = vt.inverted_sift_patch(word, 64)
@@ -1118,9 +1148,7 @@ def render_vocab(inva):
     #    inva._word_patches[wx] = p
 
     all_words = vt.stack_square_images(word_patch_list)
-    import plottool as pt
-    pt.qt4ensure()
-    pt.imshow(all_words)
+    return all_words
 
 
 def compute_rvec(vecs, word, asint=False):
@@ -1185,6 +1213,7 @@ def compute_vocab(depc, fid_list, config):
         python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index
 
         python -m ibeis.new_annots --exec-compute_vocab:0
+        python -m ibeis.new_annots --exec-compute_vocab:1
 
         # FIXME make util_tests register
         python -m ibeis.new_annots compute_vocab:0
@@ -1260,8 +1289,7 @@ def compute_vocab(depc, fid_list, config):
         num_words = 128
         centroids = vt.initialize_centroids(num_words, train_vecs, 'akmeans++')
         words, hist = vt.akmeans_iterations(train_vecs, centroids, max_iters=1000, monitor=True,
-                                            flann_params=flann_params,
-                                            n_jobs=-1)
+                                            flann_params=flann_params)
         # words, hist = vt.akmeans_iterations(train_vecs, centroids, max_iters=max_iters, monitor=True,
         #                                     flann_params=flann_params)
         import plottool as pt
@@ -1270,7 +1298,7 @@ def compute_vocab(depc, fid_list, config):
         pt.multi_plot(hist['epoch_num'], [hist['ave_unchanged']], fnum=2, pnum=(1, 2, 2), label_list=['unchanged'])
 
     vocab = VisualVocab(words)
-    vocab.reindex()
+    vocab.build()
     return (vocab,)
 
 

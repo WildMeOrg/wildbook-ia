@@ -1203,12 +1203,12 @@ class TestResult(ut.NiceRepr):
             list: case_pos_list (list of (qx, cfgx)) or isvalid mask
 
         CommandLine:
-            python -m ibeis --tf TestResult.case_sample2
-            python -m ibeis --tf TestResult.case_sample2:0
-            python -m ibeis --tf TestResult.case_sample2:1 --db GZ_ALL --filt :min_tags=1
-            python -m ibeis --tf TestResult.case_sample2:1 --db PZ_Master1 --filt :min_gf_tags=1
+            python -m ibeis TestResult.case_sample2
+            python -m ibeis TestResult.case_sample2:0
+            python -m ibeis TestResult.case_sample2:1 --db GZ_ALL --filt :min_tags=1
+            python -m ibeis TestResult.case_sample2:1 --db PZ_Master1 --filt :min_gf_tags=1
 
-            python -m ibeis --tf TestResult.case_sample2:2 --db PZ_Master1
+            python -m ibeis TestResult.case_sample2:2 --db PZ_Master1
 
         Example0:
             >>> # ENABLE_DOCTEST
