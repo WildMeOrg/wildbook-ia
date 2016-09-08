@@ -231,7 +231,7 @@ def export(ibs, aid_pairs=None):
     #utool.view_directory(export_path)
     # MOTHERS EG:
     for aid_pair in aid_pair_list:
-        cm_list = ibs.query_chips(aid_pair, aid_pair)
+        cm_list, qreq_ = ibs.query_chips(aid_pair, aid_pair)
         #ibeis.viz.show_qres(ibs, qaid2_qres.values()[1]); df2.iup()
         mrids_list = []
         mkpts_list = []

@@ -22,6 +22,7 @@ class VocabConfig(dtool.Config):
         ut.ParamInfo('random_seed', 42, 'seed'),
         ut.ParamInfo('num_words', 1000, 'seed'),
         ut.ParamInfo('version', 1),
+        #ut.ParamInfo('n_jobs', -1, hide=True),
     ]
 
 
@@ -1088,7 +1089,7 @@ def render_vocab(inva):
     This is a quick visualization of the entire vocabulary.
 
     CommandLine:
-        python -m ibeis.new_annots render_vocab --show
+        python -m ibeis.new_annots render_vocab --show --debug-depc
 
     Example:
         >>> from ibeis.new_annots import *  # NOQA
@@ -1191,7 +1192,6 @@ def compute_vocab(depc, fid_list, config):
     Ignore:
         ibs.depc['vocab'].print_table()
 
-
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.new_annots import *  # NOQA
@@ -1260,7 +1260,8 @@ def compute_vocab(depc, fid_list, config):
         num_words = 128
         centroids = vt.initialize_centroids(num_words, train_vecs, 'akmeans++')
         words, hist = vt.akmeans_iterations(train_vecs, centroids, max_iters=1000, monitor=True,
-                                            flann_params=flann_params)
+                                            flann_params=flann_params,
+                                            n_jobs=-1)
         # words, hist = vt.akmeans_iterations(train_vecs, centroids, max_iters=max_iters, monitor=True,
         #                                     flann_params=flann_params)
         import plottool as pt
@@ -1277,6 +1278,8 @@ def compute_vocab(depc, fid_list, config):
 def testdata_vocab(defaultdb='testdb1', **kwargs):
     """
     >>> from ibeis.new_annots import *  # NOQA
+    >>> defaultdb = 'testdb1'
+    >>> kwargs = {}
     """
     import ibeis
     ibs, aid_list = ibeis.testdata_aids(defaultdb=defaultdb)
@@ -1286,9 +1289,15 @@ def testdata_vocab(defaultdb='testdb1', **kwargs):
 
 
 def testdata_inva(*args, **kwargs):
+    """
+    >>> from ibeis.new_annots import *  # NOQA
+    >>> args, kwargs = tuple(), dict()
+    """
     ibs, aid_list, vocab = testdata_vocab(*args, **kwargs)
     fstack = ForwardIndex(ibs, aid_list)
-    inva = InvertedIndex(fstack, vocab, nAssign=3)
+    inva = InvertedIndex(fstack, vocab, config={'nAssign': 3})
+    fstack.build()
+    inva.build()
     return ibs, aid_list, inva
 
 
