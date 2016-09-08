@@ -814,6 +814,34 @@ class SMKRequest(ut.NiceRepr):
     def get_pipe_hashid(qreq_):
         return ut.hashstr27(str(qreq_.qparams))
 
+    def get_cfgstr(qreq_, with_input=False, with_data=True, with_pipe=True,
+                   hash_pipe=False):
+        cfgstr_list = []
+        if with_input:
+            query_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(qreq_.qaids, prefix='Q')
+            cfgstr_list.append(query_hashid)
+        if with_data:
+            data_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(qreq_.daids, prefix='D')
+            cfgstr_list.append(data_hashid)
+        if with_pipe:
+            if hash_pipe:
+                cfgstr_list.append(qreq_.get_pipe_hashid())
+            else:
+                cfgstr_list.append(qreq_.get_pipe_cfgstr())
+        cfgstr = ''.join(cfgstr_list)
+        return cfgstr
+
+    def __nice__(qreq_):
+        return ' '.join(qreq_.get_nice_parts())
+
+    def get_nice_parts(qreq_):
+        parts = []
+        parts.append(qreq_.ibs.get_dbname())
+        parts.append('nQ=%d' % len(qreq_.qaids))
+        parts.append('nD=%d' % len(qreq_.daids))
+        parts.append(qreq_.get_pipe_hashid())
+        return parts
+
     def ensure_data(qreq_):
         ibs = qreq_.ibs
         config = qreq_.config
@@ -844,6 +872,12 @@ class SMKRequest(ut.NiceRepr):
         ])
 
     def execute(qreq_, qaids=None, prog_hook=None):
+        assert qaids is None
+        smk = qreq_.smk
+        cm_list = smk.execute(qreq_)
+        return cm_list
+
+    def execute_pipeline(qreq_, qaids=None, prog_hook=None):
         assert qaids is None
         smk = qreq_.smk
         cm_list = smk.execute(qreq_)

@@ -382,6 +382,7 @@ class QueryRequest(object):
         return custom_str
 
     def get_shortinfo_parts(qreq_):
+        """ Rename to get_nice_parts """
         parts = []
         parts.append(qreq_.ibs.get_dbname())
         parts.append('nQ=%d' % len(qreq_.qaids))
@@ -402,15 +403,15 @@ class QueryRequest(object):
         bc_info = bc_dpath, bc_fname, bc_cfgstr
         return bc_info
 
-    #def __nice__(qreq_):
-    #    parts = qreq_.get_shortinfo_parts()
-    #    return '(%s) %s %s %s' % (tuple(parts))
+    def __nice__(qreq_):
+        parts = qreq_.get_shortinfo_parts()
+        return ' '.join(parts)
 
-    def __repr__(qreq_):
-        return '<' + qreq_._custom_str() + ' at %s>' % (hex(id(qreq_)),)
+    # def __repr__(qreq_):
+    #     return '<' + qreq_._custom_str() + ' at %s>' % (hex(id(qreq_)),)
 
-    def __str__(qreq_):
-        return '<' + qreq_._custom_str() + '>'
+    # def __str__(qreq_):
+    #     return '<' + qreq_._custom_str() + '>'
 
     def set_external_daids(qreq_, daid_list):
         if qreq_.qparams.vsmany:
