@@ -45,19 +45,25 @@ class SMKCacheable(object):
     def get_fpath(self, cachedir, cfgstr=None):
         _args2_fpath = ut.util_cache._args2_fpath
         #prefix = self.get_prefix()
-        prefix = self.__class__.__name__
+        prefix = self.__class__.__name__ + '_'
         cfgstr = self.get_hashid()
         #ext    = self.ext
         ext    = '.cPkl'
         fpath  = _args2_fpath(cachedir, prefix, cfgstr, ext)
         return fpath
 
-    def ensure(self, cachedir):
+    def get_hashid(self):
+        cfgstr = self.get_cfgstr()
+        version = six.text_type(getattr(self, '__version__', 0))
+        hashstr = ut.hashstr27(cfgstr + version)
+        return hashstr
+
+    def ensure(self, cachedir, **kwargs):
         fpath = self.get_fpath(cachedir)
         if ut.checkpath(fpath):
             self.load(fpath)
         else:
-            self.build()
+            self.build(**kwargs)
             self.save(fpath)
 
     def save(self, fpath):
@@ -345,6 +351,7 @@ class ForwardIndex(ut.NiceRepr, SMKCacheable):
     """
     __columns__ = ['ax_to_aid', 'ax_to_nFeat', 'idx_to_fx', 'idx_to_ax',
                    'idx_to_vec']
+    __version__ = 1
 
     def __init__(fstack, ibs=None, aid_list=None, config=None, name=None):
         # Basic Info
@@ -389,9 +396,6 @@ class ForwardIndex(ut.NiceRepr, SMKCacheable):
         cfgstr = '_'.join([annot_cfgstr, config_cfgstr])
         return cfgstr
 
-    def get_hashid(self):
-        return ut.hashstr27(self.get_cfgstr())
-
     @property
     def aid_list(fstack):
         return fstack.ax_to_aid
@@ -424,7 +428,8 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         >>> print(inva)
     """
     __columns__ = ['wx_to_idxs', 'wx_to_maws', 'wx_to_num', 'wx_list',
-                   'num_list', 'perword_stats']
+                   'num_list', 'perword_stats', 'wx_to_idf', 'grouped_annots']
+    __version__ = 1
 
     def __init__(inva, fstack=None, vocab=None, config={}):
         inva.fstack = fstack
@@ -440,8 +445,11 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         inva.num_list = None
         inva.perword_stats = None
         inva._word_patches = {}
+        # Optional measures
+        inva.wx_to_idf = None
+        inva.grouped_annots = None
 
-    def build(inva):
+    def build(inva, idf=False, groups=False):
         nAssign = inva.config.get('nAssign', 1)
         fstack = inva.fstack
         vocab = inva.vocab
@@ -457,6 +465,11 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         inva.num_list = ut.take(inva.wx_to_num, inva.wx_list)
         inva.perword_stats = ut.get_stats(inva.num_list)
         inva._word_patches = {}
+        # Optional measures
+        if idf:
+            inva.wx_to_idf = inva.compute_idf()
+        if groups:
+            inva.grouped_annots = inva.compute_annot_groups()
 
     @classmethod
     def invert(cls, fstack, vocab, nAssign=1):
@@ -464,10 +477,9 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         inva.build()
         return inva
 
-    def get_hashid(inva):
+    def get_cfgstr(inva):
         cfgstr = inva.config.get_cfgstr() + '_' + inva.fstack.get_cfgstr()
-        hashid = ut.hashstr27(cfgstr)
-        return hashid
+        return cfgstr
 
     def wx_to_fxs(inva, wx):
         return inva.fstack.idx_to_fx.take(inva.wx_to_idxs[wx], axis=0)
@@ -540,9 +552,8 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
             >>> from ibeis.new_annots import *  # NOQA
             >>> ibs, aid_list, inva = testdata_inva(num_words=256)
             >>> wx_to_idf = inva.compute_word_idf()
-            >>> idf_list = np.array(wx_to_idf.values())
-            >>> assert np.all(idf_list >= 0)
-            >>> prob_list = (1 / np.exp(idf_list))
+            >>> assert np.all(wx_to_idf >= 0)
+            >>> prob_list = (1 / np.exp(wx_to_idf))
             >>> assert np.all(prob_list >= 0)
             >>> assert np.all(prob_list <= 1)
         """
@@ -557,8 +568,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         ])
         # Typically for IDF, 1 is added to the denom to prevent divide by 0
         # We add epsilon to numer and denom to ensure recep is a probability
-        idf_list = np.log(np.divide(num_docs_total + 1, wx_to_num_docs + 1))
-        wx_to_idf = dict(zip(inva.wx_list, idf_list))
+        wx_to_idf = np.log(np.divide(num_docs_total + 1, wx_to_num_docs + 1))
         return wx_to_idf
 
     def get_vecs(inva, wx):
@@ -658,7 +668,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         }
         return ax_to_aggvec
 
-    def group_annots(inva):
+    def compute_annot_groups(inva):
         """
         Group by annotations first and then by words
 
@@ -690,6 +700,11 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         X_list = ax_to_X
         return X_list
 
+    # def group_annots(inva):
+    #     if inva.X_list is None:
+    #         inva.X_list = inva.compute_annot_groups()
+    #     return inva.X_list
+
     def assert_self(inva):
         assert sorted(inva.wx_to_idxs.keys()) == sorted(inva.wx_to_maws.keys())
         assert sorted(inva.wx_list) == sorted(inva.wx_to_maws.keys())
@@ -703,7 +718,7 @@ class IndexedAnnot(ut.NiceRepr):
         >>> from ibeis.new_annots import *  # NOQA
         >>> ibs, smk, qreq_ = testdata_smk()
         >>> inva = smk.qinva
-        >>> X_list = inva.group_annots()
+        >>> X_list = inva.grouped_annots
         >>> X = X_list[0]
         >>> X.assert_self()
     """
@@ -771,20 +786,20 @@ class IndexedAnnot(ut.NiceRepr):
 class SMKRequest(ut.NiceRepr):
     """
     qreq_-like object
+
+    Example:
+        >>> from ibeis.new_annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
+        >>> qaids = aid_list[0:2]
+        >>> daids = aid_list[2:]
+        >>> config = {'nAssign': 2}
+        >>> qreq_ = SMKRequest(ibs, qaids, daids, config)
+        >>> qreq_.ensure_data()
+        >>> cm_list = qreq_.execute()
     """
 
     def __init__(qreq_, ibs=None, qaids=None, daids=None, config=None):
-        """
-        Example:
-            >>> from ibeis.new_annots import *  # NOQA
-            >>> import ibeis
-            >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
-            >>> qaids = aid_list[0:2]
-            >>> daids = aid_list[2:]
-            >>> config = {'nAssign': 2}
-            >>> qreq_ = SMKRequest(ibs, qaids, daids, config)
-            >>> cm_list = qreq_.execute()
-        """
         qreq_.ibs = ibs
         qreq_.qaids = qaids
         qreq_.daids = daids
@@ -816,8 +831,8 @@ class SMKRequest(ut.NiceRepr):
 
         qfstack.ensure(cachedir)
         dfstack.ensure(cachedir)
-        qinva.ensure(cachedir)
-        dinva.ensure(cachedir)
+        qinva.ensure(cachedir, groups=True)
+        dinva.ensure(cachedir, groups=True, idf=True)
 
         qreq_.smk = SMK(qinva, dinva, qreq_.config)
 
@@ -884,10 +899,8 @@ class SMK(ut.NiceRepr):
             smk.match_score = smk.match_score_sep
 
     @property
-    @ut.memoize
     def wx_to_idf(smk):
-        wx_to_idf = smk.dinva.compute_idf()
-        return wx_to_idf
+        return smk.dinva.wx_to_idf
 
     def weighted_match_score(smk, X, Y, c):
         """
@@ -914,21 +927,25 @@ class SMK(ut.NiceRepr):
         else:
             # Scores were computed separately, so dont spread
             word_fs = score.ravel()
-
         isvalid = word_fs > 0
         word_fs = word_fs.compress(isvalid)
         word_fm = ut.compress(word_fm, isvalid)
         return word_fm, word_fs
 
     def match_score_agg(smk, X, Y, c):
+        """ matching score between aggregated residual vectors """
         u = X.Phi(c).dot(Y.Phi(c).T)
         return u
 
     def match_score_sep(smk, X, Y, c):
+        """ matching score between separated residual vectors """
         u = X.phis(c).dot(Y.phis(c).T)
         return u
 
     def selectivity(smk, u):
+        r"""
+        Rescales and thresholds scores. This is sigma from the SMK paper
+        """
         alpha = smk.config['smk_alpha']
         thresh = smk.config['smk_thresh']
         score = np.sign(u) * np.power(np.abs(u), alpha)
@@ -948,15 +965,21 @@ class SMK(ut.NiceRepr):
 
             >>> from ibeis.new_annots import *  # NOQA
             >>> ibs, smk, qreq_= testdata_smk()
-            >>> X = smk.qinva.group_annots()[0]
+            >>> X = smk.qinva.grouped_annots[0]
             >>> print('X.gamma = %r' % (smk.gamma(X),))
         """
         rawscores = [smk.weighted_match_score(X, X, c) for c in X.words]
-        idf_list = np.array(ut.take(smk.wx_to_idf, X.words))
+        idf_list = smk.wx_to_idf.take(X.words)
         scores = np.array(rawscores) * idf_list
         score = scores.sum()
         sccw = np.reciprocal(np.sqrt(score))
         return sccw
+
+    # def cached_execute(qreq_):
+    #     ibs = qreq_.ibs
+    #     big_cm_cachedir = ut.ensuredir((ibs.cachedir, 'smk', 'big_cm'))
+    #     cm_cachedir = ut.ensuredir((ibs.cachedir, 'smk', 'cm'))
+    #     pass
 
     def execute(smk, qreq_):
         """
@@ -965,8 +988,8 @@ class SMK(ut.NiceRepr):
         """
         assert smk.qinva.vocab is smk.dinva.vocab
 
-        X_list = smk.qinva.group_annots()
-        Y_list = smk.dinva.group_annots()
+        X_list = smk.qinva.grouped_annots
+        Y_list = smk.dinva.grouped_annots
 
         cm_list = [
             smk.smk_chipmatch(X, Y_list, qreq_)
@@ -983,8 +1006,8 @@ class SMK(ut.NiceRepr):
             >>> # FUTURE_ENABLE
             >>> from ibeis.new_annots import *  # NOQA
             >>> ibs, smk, qreq_ = testdata_smk()
-            >>> X = smk.qinva.group_annots()[0]
-            >>> Y_list = smk.dinva.group_annots()
+            >>> X = smk.qinva.grouped_annots[0]
+            >>> Y_list = smk.dinva.grouped_annots
             >>> Y = Y_list[0]
             >>> cm = smk.smk_chipmatch(X, Y_list, qreq_)
             >>> ut.qt4ensure()

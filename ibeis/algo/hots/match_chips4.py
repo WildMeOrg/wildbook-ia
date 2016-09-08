@@ -92,8 +92,8 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
                     return cm_list
         # ------------
         # Execute query request
-        qaid2_cm = execute_query_and_save_L1(qreq_.ibs, qreq_, use_cache,
-                                             save_qcache, verbose=verbose)
+        qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache,
+                                             verbose=verbose)
         # ------------
         if save_qcache and len(qreq_.qaids) > MIN_BIGCACHE_BUNDLE:
             ut.save_cache(bc_dpath, bc_fname, bc_cfgstr, qaid2_cm)
@@ -103,10 +103,9 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
 
 
 @profile
-def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, batch_size=None):
+def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True, batch_size=None):
     """
     Args:
-        ibs (ibeis.IBEISController):
         qreq_ (ibeis.QueryRequest):
         use_cache (bool):
 
@@ -126,9 +125,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
-        >>> ibs = qreq_.ibs
         >>> use_cache, save_qcache, verbose = False, False, True
-        >>> qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)
+        >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
 
     Example1:
@@ -137,9 +135,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> cfgdict1 = dict(codename='vsone', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
-        >>> ibs = qreq_.ibs
         >>> use_cache, save_qcache, verbose = False, False, True
-        >>> qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)
+        >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
 
     Example1:
@@ -150,9 +147,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
-        >>> ibs = qreq_.ibs
         >>> use_cache, save_qcache, verbose = False, True, True
-        >>> qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)
+        >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
 
     Example2:
@@ -163,9 +159,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> cfgdict1 = dict(codename='vsmany', sv_on=True)
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3, 4)
-        >>> ibs = qreq_.ibs
         >>> use_cache, save_qcache, verbose = True, True, True
-        >>> qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose)
+        >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose)
         >>> print(qaid2_cm)
 
     Example2:
@@ -178,9 +173,8 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_(p=p, qaid_override=[1, 2, 3,
         >>>                                                               4, 5, 6,
         >>>                                                               7, 8, 9])
-        >>> ibs = qreq_.ibs
         >>> use_cache, save_qcache, verbose = False, True, False
-        >>> qaid2_cm = execute_query_and_save_L1(ibs, qreq_, use_cache,
+        >>> qaid2_cm = execute_query_and_save_L1(qreq_, use_cache,
         >>>                                      save_qcache, verbose,
         >>>                                      batch_size=3)
         >>> cm = qaid2_cm[1]
@@ -192,7 +186,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         >>> cm = qaid2_cm[6]
         >>> ut.delete(cm.get_fpath(qreq_))
         >>> print('Re-execute')
-        >>> qaid2_cm_ = execute_query_and_save_L1(ibs, qreq_, use_cache,
+        >>> qaid2_cm_ = execute_query_and_save_L1(qreq_, use_cache,
         >>>                                       save_qcache, verbose,
         >>>                                       batch_size=3)
         >>> assert all([qaid2_cm_[qaid] == qaid2_cm[qaid] for qaid in qreq_.qaids])
@@ -207,7 +201,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
             print('[mc4] cache-query is on')
         if ut.DEBUG2:
             # sanity check
-            qreq_.assert_self(ibs)
+            qreq_.assert_self(qreq_.ibs)
         # Try loading as many cached results as possible
         qaid2_cm_hit = {}
         external_qaids = qreq_.qaids
@@ -255,10 +249,10 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
         if ut.VERBOSE:
             print('[mc4] cache-query is off')
         qaid2_cm_hit = {}
-    qaid2_cm = execute_query2(ibs, qreq_, verbose, save_qcache, batch_size)
+    qaid2_cm = execute_query2(qreq_, verbose, save_qcache, batch_size)
     if ut.DEBUG2:
         # sanity check
-        qreq_.assert_self(ibs)
+        qreq_.assert_self(qreq_.ibs)
     # Merge cache hits with computed misses
     if len(qaid2_cm_hit) > 0:
         qaid2_cm.update(qaid2_cm_hit)
@@ -267,7 +261,7 @@ def execute_query_and_save_L1(ibs, qreq_, use_cache, save_qcache, verbose=True, 
 
 
 @profile
-def execute_query2(ibs, qreq_, verbose, save_qcache, batch_size=None):
+def execute_query2(qreq_, verbose, save_qcache, batch_size=None):
     """
     Breaks up query request into several subrequests
     to process "more efficiently" and safer as well.
@@ -288,7 +282,7 @@ def execute_query2(ibs, qreq_, verbose, save_qcache, batch_size=None):
         # vsone must have a chunksize of 1
         if batch_size is None:
             if HOTS_BATCH_SIZE is None:
-                hots_batch_size = ibs.cfg.other_cfg.hots_batch_size
+                hots_batch_size = qreq_.ibs.cfg.other_cfg.hots_batch_size
             else:
                 hots_batch_size = HOTS_BATCH_SIZE
         else:
@@ -305,7 +299,7 @@ def execute_query2(ibs, qreq_, verbose, save_qcache, batch_size=None):
         for sub_qreq_ in sub_qreq_iter:
             if ut.VERBOSE:
                 print('Generating vsmany chunk')
-            sub_cm_list = pipeline.request_ibeis_query_L0(ibs, sub_qreq_,
+            sub_cm_list = pipeline.request_ibeis_query_L0(qreq_.ibs, sub_qreq_,
                                                           verbose=verbose)
             assert len(sub_qreq_.qaids) == len(sub_cm_list), 'not aligned'
             assert all([qaid == cm.qaid for qaid, cm in

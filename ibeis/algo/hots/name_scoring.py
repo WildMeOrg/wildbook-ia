@@ -161,8 +161,7 @@ def compute_nsum_score(cm, qreq_=None):
     try:
         hack_single_ori =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
     except AttributeError:
-        hack_single_ori =  qreq_ is not None and (qreq_.config.augment_queryside_hack or qreq_.config.feat_cfg.rotation_invariance)
-        pass
+        hack_single_ori =  True
     # The core for each feature match
     #
     # The query feature index for each feature match
@@ -274,7 +273,7 @@ def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     try:
         hack_single_ori =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
     except AttributeError:
-        hack_single_ori =  qreq_ is not None and (qreq_.config.augment_queryside_hack or qreq_.config.feat_cfg.rotation_invariance)
+        hack_single_ori =  True
         pass
     # The core for each feature match
     fs_list = cm.get_fsv_prod_list()

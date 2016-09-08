@@ -127,10 +127,11 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     qresdir = ibs.get_qres_cachedir()
     cfgdict = {} if cfgdict is None else cfgdict.copy()
 
-    try:
-        piperoot = cfgdict['pipeline_root']
-    except Exception:
-        piperoot = None
+    # try:
+    piperoot = cfgdict.get('pipeline_root', cfgdict.get('proot', None))
+    # except Exception:
+    #     piperoot = None
+
     if ut.VERBOSE:
         print('[qreq] piperoot = %r' % (piperoot,))
     # HACK FOR DEPC REQUESTS including flukes
@@ -1151,40 +1152,6 @@ class QueryRequest(object):
         assert_uuids(daids, dauuids)
         assert_uuids(_qaids, _qauuids)
         assert_uuids(_daids, _dauuids)
-
-    def make_empty_chip_matches(qreq_):
-        r"""
-        returns empty query results for each external qaid
-
-        Returns:
-            list: cm_list
-
-        CommandLine:
-            python -m ibeis.algo.hots.query_request --exec-make_empty_chip_matches
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_()
-            >>> cm_list = qreq_.make_empty_chip_matches()
-            >>> cm = cm_list[0]
-            >>> cm.print_rawinfostr()
-            >>> result = ('cm_list = %s' % (str(cm_list),))
-            >>> print(result)
-        """
-        external_qaids  = qreq_.qaids
-        #external_daids = qreq_.daids
-        #external_dnids = qreq_.ibs.get_annot_name_rowids(external_daids)
-        # FIXME: hacky
-        cm_list = [
-            chip_match.ChipMatch(qaid, [], qnid=qreq_.ibs.get_annot_name_rowids(qaid))
-            for qaid in (external_qaids)
-        ]
-        for cm in cm_list:
-            cm._empty_hack()
-
-        return cm_list
 
     def get_chipmatch_fpaths(qreq_, qaid_list):
         r"""

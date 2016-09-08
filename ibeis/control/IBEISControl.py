@@ -1075,11 +1075,11 @@ class IBEISController(BASE_CLASS):
         # Hack to allow for ibeis objects to be pickled
         import ibeis
         dbdir = state['dbdir']
-        state.pop('machine_name')
+        machine_name = state.pop('machine_name')
         try:
-            assert state['machine_name'] == ut.get_computer_name(), (
+            assert machine_name == ut.get_computer_name(), (
                 'ibeis objects can only be picked and unpickled on the same machine')
-        except Exception as ex:
+        except AssertionError as ex:
             iswarning = ut.checkpath(dbdir)
             ut.printex(ex, iswarning=iswarning)
             if not iswarning:
