@@ -53,6 +53,36 @@ def ensure_app_is_running():
     app, is_root = guitool.init_qtapp()
 
 
+def infer_monitor_specs(res_w, res_h, inches_diag):
+    """
+    inches_diag = 27
+    res_w = 1920
+    res_h = 1080
+    inches_w = inches_diag * res_w / np.sqrt(res_h**2 + res_w**2)
+    inches_h = inches_diag * res_h / np.sqrt(res_h**2 + res_w**2)
+    print('inches_w = %r' % (inches_w,))
+    print('inches_h = %r' % (inches_h,))
+
+    #inches_w = inches_diag * res_w/sqrt(res_h**2 + res_w**2)
+    """
+    import sympy
+    # Build a system of equations and solve it
+    inches_w, inches_h = sympy.symbols('inches_w inches_h'.split(), real=True, positive=True)
+    res_w, res_h = sympy.symbols('res_w res_h'.split(), real=True, positive=True)
+    inches_diag, = sympy.symbols('inches_diag'.split(), real=True, positive=True)
+    equations = [
+        sympy.Eq(inches_diag, (inches_w ** 2 + inches_h ** 2) ** .5),
+        sympy.Eq(res_w / res_h, inches_w / inches_h),
+    ]
+    print('Possible solutions:')
+    query_vars = [inches_w, inches_h]
+    for solution in sympy.solve(equations, query_vars):
+        print('Solution:')
+        reprstr = ut.repr3(ut.odict(zip(query_vars, solution)), explicit=True, nobr=1, with_comma=False)
+        print(ut.indent(ut.autopep8_format(reprstr)))
+    #(inches_diag*res_w/sqrt(res_h**2 + res_w**2), inches_diag*res_h/sqrt(res_h**2 + res_w**2))
+
+
 def get_resolution_info(monitor_num=0):
     r"""
     Args:
@@ -63,15 +93,16 @@ def get_resolution_info(monitor_num=0):
 
     CommandLine:
         python -m plottool.screeninfo get_resolution_info --show
+        xrandr | grep ' connected'
+        grep "NVIDIA" /var/log/Xorg.0.log
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.screeninfo import *  # NOQA
         >>> monitor_num = 0
-        >>> info = get_resolution_info(monitor_num)
-        >>> print('info = %s' % (ut.repr2(info, nl=True),))
-        >>> info = get_resolution_info(1)
-        >>> print('info = %s' % (ut.repr2(info, nl=True),))
+        >>> for monitor_num in range(get_number_of_monitors()):
+        >>>     info = get_resolution_info(monitor_num)
+        >>>     print('monitor(%d).info = %s' % (monitor_num, ut.repr3(info, precision=3)))
     """
     ensure_app_is_running()
     desktop = QtWidgets.QDesktopWidget()
@@ -83,22 +114,42 @@ def get_resolution_info(monitor_num=0):
     rect = desktop.availableGeometry(screen=monitor_num)
     pixels_w = rect.width()
     pixels_h = rect.height()
+
     inches_w = (pixels_w / dpi_x)
     inches_h = (pixels_h / dpi_y)
+    inches_diag = (inches_w ** 2 + inches_h ** 2) ** .5
+
+    mm_w = inches_w * ut.MM_PER_INCH
+    mm_h = inches_h * ut.MM_PER_INCH
+    mm_diag = inches_diag * ut.MM_PER_INCH
+
+    ratio = min(mm_w, mm_h) / max(mm_w, mm_h)
+
     #pixel_density = dpi_x / ppi_x
-    info = {
-        'monitor_num': monitor_num,
-        'ppi_x': ppi_x,
-        'ppi_y': ppi_y,
-        'dpi_x': dpi_x,
-        'dpi_y': dpi_y,
-        #'pixel_density': pixel_density,
-        'inches_w': inches_w,
-        'inches_h': inches_h,
-        'pixels_w': pixels_w,
-        'pixels_h': pixels_h,
-    }
+    info = ut.odict([
+        ('monitor_num', monitor_num),
+        ('ratio', ratio),
+        ('ppi_x', ppi_x),
+        ('ppi_y', ppi_y),
+        ('dpi_x', dpi_x),
+        ('dpi_y', dpi_y),
+        #'pixel_density', pixel_density),
+        ('inches_w', inches_w),
+        ('inches_h', inches_h),
+        ('inches_diag', inches_diag),
+        ('mm_w', mm_w),
+        ('mm_h', mm_h),
+        ('mm_diag', mm_diag),
+        ('pixels_w', pixels_w),
+        ('pixels_h', pixels_h),
+    ])
     return info
+
+
+def get_number_of_monitors():
+    ensure_app_is_running()
+    desktop = QtWidgets.QDesktopWidget()
+    return desktop.numScreens()
 
 
 def get_monitor_geom(monitor_num=0):
