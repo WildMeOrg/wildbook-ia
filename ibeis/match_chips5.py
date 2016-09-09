@@ -1,128 +1,222 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import exists
+from os.path import exists, join
 from ibeis.algo.hots import chip_match
-# from ibeis.algo.hots import pipeline
 import utool as ut
 
 
-class RequestCacher(object):
+class EstimatorRequest(ut.NiceRepr):
+    def __init__(qreq_):
+        qreq_.use_single_cache = True
+        qreq_.use_bulk_cache = True
+        qreq_.min_bulk_size = 64
+        qreq_.chunksize = 256
+        qreq_.prog_hook = None
 
-    def __init__(self):
-        self.use_cache = True
-        self.use_bulk = True
-        self.min_bulk_size = 64
-        self.use_cache_save = True
-        self.save_bulk = True
+    def __len__(qreq_):
+        return len(qreq_.qaids)
 
-    def execute_bulk(self, qreq_):
-        # Do not use bulk single queries
-        bulk_on = (self.use_bulk and self.use_cache and
-                       len(self.qreq_.qaids) > self.min_bulk_size)
-        if bulk_on:
-            # Try and load directly from a big cache
-            bc_dpath = ut.ensuredir((qreq_.cachedir, 'bc5'))
-            bc_fname = 'BC5_' + '_'.join(qreq_.get_nice_parts())
-            bc_cfgstr = qreq_.get_cfgstr(with_input=True)
-            try:
-                cm_list = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
-            except (IOError, AttributeError):
-                # Fallback to smallcache
-                cm_list = self.execute_singles()
-                ut.save_cache(bc_dpath, bc_fname, bc_cfgstr, cm_list)
-        else:
-            # Fallback to smallcache
-            cm_list = self.execute_singles()
+    def execute(qreq_, qaids=None, prog_hook=None):
+        assert qaids is None
+        if qaids is not None:
+            qaids = qreq_.shallowcopy(qaids)
+        cm_list = execute_bulk(qreq_)
+        #cm_list = qreq_.execute_pipeline()
         return cm_list
 
-    def _load_singles(self, qreq_):
-        # Find existing cached chip matches
-        # Try loading as many as possible
-        fpath_list = qreq_.get_chipmatch_fpaths(qreq_.qaids)
-        exists_flags = [exists(fpath) for fpath in fpath_list]
-        qaids_hit = ut.compress(qreq_.qaids, exists_flags)
-        fpaths_hit = ut.compress(fpath_list, exists_flags)
-        # First, try a fast reload assuming no errors
-        fpath_iter = ut.ProgIter(
-            fpaths_hit, nTotal=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
-            lbl='loading cache hits', adjust=True, freq=1)
+    def shallowcopy(qreq_, qaids=None):
+        """
+        Creates a copy of qreq with the same qparams object and a subset of
+        the qx and dx objects.  used to generate chunks of vsone and vsmany
+        queries
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.new_annots import *  # NOQA
+            >>> import ibeis
+            >>> ibeis, smk, qreq_ = testdata_smk()
+            >>> qreq2_ = qreq_.shallowcopy(qaids=1)
+            >>> assert qreq_.daids is qreq2_.daids, 'should be the same'
+            >>> assert len(qreq_.qaids) != len(qreq2_.qaids), 'should be diff'
+            >>> #assert qreq_.metadata is not qreq2_.metadata
+        """
+        qreq2_ = qreq_.__class__()
+        qreq2_.__dict__.update(qreq_.__dict__)
+        qaids = ut.ensure_iterable(qaids)
+        assert ut.issubset(qaids, qreq2_.qaids), 'not a subset'
+        return qreq2_
+
+    def get_pipe_hashid(qreq_):
+        return ut.hashstr27(str(qreq_.qparams))
+
+    def get_pipe_cfgstr(qreq_):
+        pipe_cfgstr = qreq_.qparams.get_cfgstr()
+        return pipe_cfgstr
+
+    def get_data_hashid(qreq_):
+        data_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(
+            qreq_.daids, prefix='D')
+        return data_hashid
+
+    def get_query_hashid(qreq_):
+        # TODO: SYSTEM : semantic should only be used if name scoring is on
+        query_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(
+            qreq_.qaids, prefix='Q')
+        return query_hashid
+
+    def get_cfgstr(qreq_, with_input=False, with_data=True, with_pipe=True,
+                   hash_pipe=False):
+        cfgstr_list = []
+        if with_input:
+            cfgstr_list.append(qreq_.get_query_hashid())
+        if with_data:
+            cfgstr_list.append(qreq_.get_data_hashid())
+        if with_pipe:
+            pipe_cfgstr = qreq_.get_pipe_cfgstr()
+            if hash_pipe:
+                pipe_cfgstr = ut.hashstr27(pipe_cfgstr)
+            cfgstr_list.append(pipe_cfgstr)
+        cfgstr = ''.join(cfgstr_list)
+        return cfgstr
+
+    def __nice__(qreq_):
+        return ' '.join(qreq_.get_nice_parts())
+
+    def get_chipmatch_fpaths(qreq_, qaid_list):
+        r"""
+        Efficient function to get a list of chipmatch paths
+        """
+        cfgstr = qreq_.get_cfgstr(with_input=False, with_data=True, with_pipe=True)
+        qauuid_list = qreq_.ibs.get_annot_semantic_uuids(qaid_list)
+        fname_list = [
+            chip_match.get_chipmatch_fname(qaid, qreq_, qauuid=qauuid,
+                                           cfgstr=cfgstr)
+            for qaid, qauuid in zip(qaid_list, qauuid_list)
+        ]
+        dpath = ut.ensuredir((qreq_.cachedir, 'cms'))
+        fpath_list = [join(dpath, fname) for fname in fname_list]
+        return fpath_list
+
+    def get_nice_parts(qreq_):
+        parts = []
+        parts.append(qreq_.ibs.get_dbname())
+        parts.append('nQ=%d' % len(qreq_.qaids))
+        parts.append('nD=%d' % len(qreq_.daids))
+        parts.append(qreq_.get_pipe_hashid())
+        return parts
+
+
+def execute_bulk(qreq_):
+    # Do not use bulk single queries
+    bulk_on = (qreq_.use_bulk_cache and
+               len(qreq_.qaids) > qreq_.min_bulk_size)
+    if bulk_on:
+        # Try and load directly from a big cache
+        bc_dpath = ut.ensuredir((qreq_.cachedir, 'bulk'))
+        bc_fname = 'bulk_' + '_'.join(qreq_.get_nice_parts())
+        bc_cfgstr = qreq_.get_cfgstr(with_input=True)
         try:
-            qaid2_cm_hit = {
-                qaid: chip_match.ChipMatch.load_from_fpath(fpath, verbose=False)
-                for qaid, fpath in zip(qaids_hit, fpath_iter)
-            }
-        except chip_match.NeedRecomputeError as ex:
-            # Fallback to a slow reload
-            ut.printex(ex, 'Some cached chips need to recompute',
-                       iswarning=True)
-            qaid2_cm_hit = self._load_singles_fallback(fpaths_hit)
-        return qaid2_cm_hit
+            cm_list = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
+            print('... bulk cache hit %r/%r' % (len(qreq_), len(qreq_)))
+        except (IOError, AttributeError):
+            # Fallback to smallcache
+            cm_list = execute_singles(qreq_)
+            ut.save_cache(bc_dpath, bc_fname, bc_cfgstr, cm_list)
+    else:
+        # Fallback to smallcache
+        cm_list = execute_singles(qreq_)
+    return cm_list
 
-    def _load_singles_fallback(self, fpaths_hit):
-        fpath_iter = ut.ProgIter(
-            fpaths_hit, enabled=len(fpaths_hit) > 1,
-            lbl='checking chipmatch cache', adjust=True, freq=1)
-        # Recompute those that fail loading
-        qaid2_cm_hit = {}
-        for fpath in fpath_iter:
-            try:
-                cm = chip_match.ChipMatch.load_from_fpath(fpath, verbose=False)
-            except chip_match.NeedRecomputeError:
-                pass
-            else:
-                qaid2_cm_hit[cm.qaid] = cm
-        print('%d / %d cached matches need to be recomputed' % (
-            len(fpaths_hit) - len(qaid2_cm_hit), len(fpaths_hit)))
-        return qaid2_cm_hit
 
-    def execute_singles(self, qreq_):
-        if self.use_cache:
-            qaid2_cm_hit = self._load_singles(qreq_)
+def _load_singles(qreq_):
+    # Find existing cached chip matches
+    # Try loading as many as possible
+    fpath_list = qreq_.get_chipmatch_fpaths(qreq_.qaids)
+    exists_flags = [exists(fpath) for fpath in fpath_list]
+    qaids_hit = ut.compress(qreq_.qaids, exists_flags)
+    fpaths_hit = ut.compress(fpath_list, exists_flags)
+    # First, try a fast reload assuming no errors
+    fpath_iter = ut.ProgIter(
+        fpaths_hit, nTotal=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
+        lbl='loading cache hits', adjust=True, freq=1)
+    try:
+        qaid_to_hit = {
+            qaid: chip_match.ChipMatch.load_from_fpath(fpath, verbose=False)
+            for qaid, fpath in zip(qaids_hit, fpath_iter)
+        }
+    except chip_match.NeedRecomputeError as ex:
+        # Fallback to a slow reload
+        ut.printex(ex, 'Some cached results need to recompute', iswarning=True)
+        qaid_to_hit = _load_singles_fallback(fpaths_hit)
+    return qaid_to_hit
+
+
+def _load_singles_fallback(fpaths_hit):
+    fpath_iter = ut.ProgIter(
+        fpaths_hit, enabled=len(fpaths_hit) > 1,
+        lbl='checking chipmatch cache', adjust=True, freq=1)
+    # Recompute those that fail loading
+    qaid_to_hit = {}
+    for fpath in fpath_iter:
+        try:
+            cm = chip_match.ChipMatch.load_from_fpath(fpath, verbose=False)
+        except chip_match.NeedRecomputeError:
+            pass
         else:
-            qaid2_cm_hit = {}
-        hit_all = len(qaid2_cm_hit) == len(qreq_.qaids)
-        hit_any = len(qaid2_cm_hit) > 0
+            qaid_to_hit[cm.qaid] = cm
+    print('%d / %d cached matches need to be recomputed' % (
+        len(fpaths_hit) - len(qaid_to_hit), len(fpaths_hit)))
+    return qaid_to_hit
 
-        if hit_all:
-            qaid_to_cm = qaid2_cm_hit
+
+def execute_singles(qreq_):
+    if qreq_.use_single_cache:
+        qaid_to_hit = _load_singles(qreq_)
+    else:
+        qaid_to_hit = {}
+    hit_all = len(qaid_to_hit) == len(qreq_.qaids)
+    hit_any = len(qaid_to_hit) > 0
+
+    if hit_all:
+        qaid_to_cm = qaid_to_hit
+    else:
+        if hit_any:
+            print('... partial cm cache hit %d/%d' % (
+                len(qaid_to_hit), len(qreq_)))
+            qreq_miss = qreq_.shallowcopy(list(qaid_to_hit.keys()))
         else:
-            if hit_any:
-                print('... partial cm cache hit %d/%d' % (
-                    len(qaid2_cm_hit), len(qreq_.qaids)))
-                qreq_miss = qreq_.shallowcopy(list(qaid2_cm_hit.keys()))
-            else:
-                qreq_miss = qreq_
+            qreq_miss = qreq_
+        # Compute misses
+        qaid_to_cm = execute_and_save(qreq_miss)
+        # Merge misses with hits
+        if hit_any:
+            qaid_to_cm.update(qaid_to_hit)
+    cm_list = ut.take(qaid_to_cm, qreq_.qaids)
+    return cm_list
 
-            qaid_to_cm = self.execute_and_save(qreq_miss)
 
-            # Merge cache hits with computed misses
-            if hit_any:
-                qaid_to_cm.update(qaid2_cm_hit)
-        cm_list = ut.take(qaid_to_cm, qreq_.qaids)
-        return cm_list
+def execute_and_save(qreq_miss):
+    # Iterate over vsone queries in chunks.
+    total_chunks = ut.get_nTotalChunks(len(qreq_miss.qaids), qreq_miss.chunksize)
+    qaid_chunk_iter = ut.ichunks(qreq_miss.qaids, qreq_miss.chunksize)
+    qaid_chunk_iter = ut.ProgIter(qaid_chunk_iter, nTotal=total_chunks,
+                                  freq=1, lbl='[mc5] query chunk: ',
+                                  prog_hook=qreq_miss.prog_hook)
 
-    def execute_and_save(self, qreq_miss):
-        # Iterate over vsone queries in chunks.
-        total_chunks = ut.get_nTotalChunks(len(qreq_miss.qaids), self.chunksize)
-        qaid_chunk_iter = ut.ichunks(qreq_miss.qaids, self.chunksize)
-        qaid_chunk_iter = ut.ProgIter(qaid_chunk_iter, nTotal=total_chunks,
-                                      freq=1, lbl='[mc5] query chunk: ',
-                                      prog_hook=qreq_miss.prog_hook)
+    qaid_to_cm = {}
+    for qaids in qaid_chunk_iter:
+        sub_qreq = qreq_miss.shallowcopy(qaids=qaids)
 
-        qaid_to_cm = {}
-        for qaids in qaid_chunk_iter:
-            sub_qreq = qreq_miss.shallowcopy(qaids=qaids)
+        cm_batch = sub_qreq.execute_pipeline()
+        assert all([qaid == cm.qaid for qaid, cm in zip(qaids, cm_batch)])
 
-            # FIXME;
-            cm_batch = sub_qreq.execute_pipeline()
-            assert all([qaid == cm.qaid for qaid, cm in zip(qaids, cm_batch)])
+        # TODO: we already computed the fpaths
+        # should be able to pass them in
+        fpath_list = sub_qreq.get_chipmatch_fpaths(qaids)
+        _prog = ut.ProgPartial(nTotal=len(cm_batch), adjust=True, freq=1,
+                               lbl='saving chip matches')
+        for cm, fpath in _prog(zip(cm_batch, fpath_list)):
+            cm.save_to_fpath(fpath, verbose=False)
+        qaid_to_cm.update({cm.qaid: cm for cm in cm_batch})
 
-            # TODO: we already computed the fpaths
-            # should be able to pass them in
-            fpath_list = sub_qreq.get_chipmatch_fpaths(qaids)
-            _iter = ut.ProgIter(zip(cm_batch, fpath_list), nTotal=len(cm_batch),
-                                lbl='saving chip matches', adjust=True, freq=1)
-            for cm, fpath in _iter:
-                cm.save_to_fpath(fpath, verbose=False)
-            qaid_to_cm.update({cm.qaid: cm for cm in cm_batch})
-
-        return qaid_to_cm
+    return qaid_to_cm

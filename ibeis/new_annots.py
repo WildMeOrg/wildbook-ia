@@ -7,6 +7,7 @@ import utool as ut
 import vtool as vt
 import pyflann
 import numpy as np
+from ibeis import match_chips5 as mc5
 from ibeis.control.controller_inject import register_preprocs, register_subprops
 (print, rrr, profile) = ut.inject2(__name__, '[new_annots]')
 
@@ -98,6 +99,19 @@ class VisualVocab(ut.NiceRepr):
         return self.wx_to_word.shape
 
     def __getstate__(self):
+        """
+        pip install fs
+
+        from fs.memoryfs import MemoryFS
+        tmp = MemoryFS()
+
+        http://www.linuxscrew.com/2010/03/24/fastest-way-to-create-ramdisk-in-ubuntulinux/
+
+        sudo mkdir /tmp/ramdisk; chmod 777 /tmp/ramdisk
+        sudo mount -t tmpfs -o size=256M tmpfs /tmp/ramdisk/
+
+        http://zeblog.co/?p=1588
+        """
         # TODO: Figure out how to make these play nice with the depcache
         state = self.__dict__.copy()
         if 'wx2_word' in state:
@@ -340,6 +354,112 @@ class VisualVocab(ut.NiceRepr):
     def __nice__(self):
         return 'nW=%r' % (ut.safelen(self.wx_to_word))
 
+    def render_vocab_word(vocab, inva, wx, fnum=None):
+        """
+        Creates a visualization of a visual word. This includes the average patch,
+        the SIFT-like representation of the centroid, and some of the patches that
+        were assigned to it.
+
+        CommandLine:
+            python -m ibeis.new_annots render_vocab_word --show
+
+        Example:
+            >>> from ibeis.new_annots import *  # NOQA
+            >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=10000)
+            >>> vocab = inva.vocab
+            >>> sortx = ut.argsort(inva.num_list)[::-1]
+            >>> wx_list = ut.take(inva.wx_list, sortx)
+            >>> wx = wx_list[0]
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> ut.qt4ensure()
+            >>> fnum = 2
+            >>> fnum = pt.ensure_fnum(fnum)
+            >>> # Interactive visualization of many words
+            >>> for wx in ut.InteractiveIter(wx_list):
+            >>>     word_img = vocab.render_vocab_word(inva, wx, fnum)
+            >>>     pt.imshow(word_img, fnum=fnum, title='Word %r/%r' % (wx, len(inva.vocab)))
+            >>>     pt.update()
+            >>> ut.show_if_requested()
+        """
+        import plottool as pt
+        # Create the contributing patch image
+        word_patches = inva.get_patches(wx)
+        stacked_patches = vt.stack_square_images(word_patches)
+
+        # Create the average word image
+        word = inva.vocab.wx_to_word[wx]
+        average_patch = np.mean(word_patches, axis=0)
+        #vecs = inva.get_vecs(wx)
+        #assert np.allclose(word, vecs.mean(axis=0))
+        with_sift = True
+        if with_sift:
+            patch_img = pt.render_sift_on_patch(average_patch, word)
+        else:
+            patch_img = average_patch
+
+        # Stack them together
+        solidbar = np.zeros((patch_img.shape[0], int(patch_img.shape[1] * .1), 3), dtype=patch_img.dtype)
+        border_color = (100, 10, 10)  # bgr, darkblue
+        if ut.is_float(solidbar):
+            solidbar[:, :, :] = (np.array(border_color) / 255)[None, None]
+        else:
+            solidbar[:, :, :] = np.array(border_color)[None, None]
+        patch_img2 = vt.inverted_sift_patch(word)
+        patch_img = vt.rectify_to_uint8(patch_img)
+        patch_img2 = vt.rectify_to_uint8(patch_img2)
+        solidbar = vt.rectify_to_uint8(solidbar)
+        stacked_patches = vt.rectify_to_uint8(stacked_patches)
+        patch_img2, patch_img = vt.make_channels_comparable(patch_img2, patch_img)
+        img_list = [patch_img, solidbar, patch_img2, solidbar, stacked_patches]
+        word_img = vt.stack_image_list(img_list, vert=False, modifysize=True)
+        return word_img
+
+    def render_vocab(vocab, inva, use_data=False):
+        """
+        Renders the average patch of each word.
+        This is a quick visualization of the entire vocabulary.
+
+        CommandLine:
+            python -m ibeis.new_annots render_vocab --show
+            python -m ibeis.new_annots render_vocab --show --use-data
+            python -m ibeis.new_annots render_vocab --show --debug-depc
+
+        Example:
+            >>> from ibeis.new_annots import *  # NOQA
+            >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=10000)
+            >>> use_data = ut.get_argflag('--use-data')
+            >>> vocab = inva.vocab
+            >>> all_words = vocab.render_vocab(inva, use_data=use_data)
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> pt.qt4ensure()
+            >>> pt.imshow(all_words)
+            >>> ut.show_if_requested()
+        """
+        sortx = ut.argsort(inva.num_list)[::-1]
+        # Get words with the most assignments
+        wx_list = ut.take(inva.wx_list, sortx)
+
+        wx_list = ut.strided_sample(wx_list, 64)
+
+        word_patch_list = []
+        for wx in ut.ProgIter(wx_list, bs=True, lbl='building patches'):
+            word = inva.vocab.wx_to_word[wx]
+            if use_data:
+                word_patch = inva.get_word_patch(wx)
+            else:
+                word_patch = vt.inverted_sift_patch(word, 64)
+            import plottool as pt
+            word_patch = pt.render_sift_on_patch(word_patch, word)
+            word_patch_list.append(word_patch)
+
+        #for wx, p in zip(wx_list, word_patch_list):
+        #    inva._word_patches[wx] = p
+
+        all_words = vt.stack_square_images(word_patch_list)
+        return all_words
+
 
 @ut.reloadable_class
 class ForwardIndex(ut.NiceRepr, SMKCacheable):
@@ -350,7 +470,7 @@ class ForwardIndex(ut.NiceRepr, SMKCacheable):
     Contains a method to create an inverted index given a vocabulary.
     """
     __columns__ = ['ax_to_aid', 'ax_to_nFeat', 'idx_to_fx', 'idx_to_ax',
-                   'idx_to_vec']
+                   'idx_to_vec', 'aid_to_ax']
     __version__ = 1
 
     def __init__(fstack, ibs=None, aid_list=None, config=None, name=None):
@@ -361,6 +481,7 @@ class ForwardIndex(ut.NiceRepr, SMKCacheable):
         #-- Stack 1 --
         fstack.ax_to_aid = aid_list
         fstack.ax_to_nFeat = None
+        fstack.aid_to_ax = None
         #-- Stack 2 --
         fstack.idx_to_fx = None
         fstack.idx_to_ax = None
@@ -375,11 +496,14 @@ class ForwardIndex(ut.NiceRepr, SMKCacheable):
         #-- Stack 1 --
         fstack.ax_to_nFeat = [len(vecs) for vecs in ax_to_vecs]
         #-- Stack 2 --
-        fstack.idx_to_fx = np.array(ut.flatten([list(range(num)) for num in fstack.ax_to_nFeat]))
-        fstack.idx_to_ax = np.array(ut.flatten([[ax] * num for ax, num in enumerate(fstack.ax_to_nFeat)]))
+        fstack.idx_to_fx = np.array(ut.flatten([
+            list(range(num)) for num in fstack.ax_to_nFeat]))
+        fstack.idx_to_ax = np.array(ut.flatten([
+            [ax] * num for ax, num in enumerate(fstack.ax_to_nFeat)]))
         fstack.idx_to_vec = np.vstack(ax_to_vecs)
         # --- Misc ---
         fstack.num_feat = sum(fstack.ax_to_nFeat)
+        fstack.aid_to_ax = ut.make_index_lookup(fstack.ax_to_aid)
 
     def __nice__(fstack):
         name = '' if fstack.name is None else fstack.name + ' '
@@ -391,8 +515,8 @@ class ForwardIndex(ut.NiceRepr, SMKCacheable):
     def get_cfgstr(self):
         depc = self.ibs.depc
         annot_cfgstr = self.ibs.get_annot_hashid_visual_uuid(self.aid_list, prefix='')
-        #cfgstr = depc.chained_cfgstr('annotations', 'featweight', self.config)
-        config_cfgstr = depc.chained_cfgstr('annotations', 'feat', self.config)
+        stacked_cfg = depc.stacked_config('annotations', 'feat', self.config)
+        config_cfgstr = stacked_cfg.get_cfgstr()
         cfgstr = '_'.join([annot_cfgstr, config_cfgstr])
         return cfgstr
 
@@ -470,6 +594,12 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
             inva.wx_to_idf = inva.compute_idf()
         if groups:
             inva.grouped_annots = inva.compute_annot_groups()
+
+    def inverted_annots(inva, aids):
+        if inva.grouped_annots is None:
+            raise ValueError('grouped annots not computed')
+        ax_list = ut.take(inva.fstack.aid_to_ax, aids)
+        return ut.take(inva.grouped_annots, ax_list)
 
     @classmethod
     def invert(cls, fstack, vocab, nAssign=1):
@@ -672,10 +802,9 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         """
         Group by annotations first and then by words
 
-        inva = smk.qinva
             >>> from ibeis.new_annots import *  # NOQA
             >>> ibs, smk, qreq_ = testdata_smk()
-            >>> inva = smk.qinva
+            >>> inva = qreq_.qinva
         """
         fstack = inva.fstack
         ax_to_X = [IndexedAnnot(ax, inva) for ax in range(len(fstack.ax_to_aid))]
@@ -717,7 +846,7 @@ class IndexedAnnot(ut.NiceRepr):
     Example:
         >>> from ibeis.new_annots import *  # NOQA
         >>> ibs, smk, qreq_ = testdata_smk()
-        >>> inva = smk.qinva
+        >>> inva = qreq_.qinva
         >>> X_list = inva.grouped_annots
         >>> X = X_list[0]
         >>> X.assert_self()
@@ -783,9 +912,12 @@ class IndexedAnnot(ut.NiceRepr):
 
 
 @ut.reloadable_class
-class SMKRequest(ut.NiceRepr):
+class SMKRequest(mc5.EstimatorRequest):
     """
-    qreq_-like object
+    qreq_-like object. Trying to work on becoming more scikit-ish
+
+    CommandLine:
+        python -m ibeis.new_annots SMKRequest --show
 
     Example:
         >>> from ibeis.new_annots import *  # NOQA
@@ -793,67 +925,44 @@ class SMKRequest(ut.NiceRepr):
         >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
         >>> qaids = aid_list[0:2]
         >>> daids = aid_list[2:]
-        >>> config = {'nAssign': 2}
+        >>> config = {'nAssign': 2, 'num_words': 100000}
         >>> qreq_ = SMKRequest(ibs, qaids, daids, config)
         >>> qreq_.ensure_data()
         >>> cm_list = qreq_.execute()
+        >>> ut.quit_if_noshow()
+        >>> ut.qt4ensure()
+        >>> cm_list[0].ishow_analysis(qreq_, fnum=1)
+        >>> cm_list[1].ishow_analysis(qreq_, fnum=2)
+        >>> ut.show_if_requested()
+
     """
 
     def __init__(qreq_, ibs=None, qaids=None, daids=None, config=None):
+        super(SMKRequest, qreq_).__init__()
         qreq_.ibs = ibs
         qreq_.qaids = qaids
         qreq_.daids = daids
         qreq_.config = config
 
-        qreq_.vocab = None
-        qreq_.dinva = None
-        qreq_.qinva = None
+        #qreq_.vocab = None
+        #qreq_.dinva = None
 
         qreq_.smk = None
-
-    def get_pipe_hashid(qreq_):
-        return ut.hashstr27(str(qreq_.qparams))
-
-    def get_cfgstr(qreq_, with_input=False, with_data=True, with_pipe=True,
-                   hash_pipe=False):
-        cfgstr_list = []
-        if with_input:
-            query_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(qreq_.qaids, prefix='Q')
-            cfgstr_list.append(query_hashid)
-        if with_data:
-            data_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(qreq_.daids, prefix='D')
-            cfgstr_list.append(data_hashid)
-        if with_pipe:
-            if hash_pipe:
-                cfgstr_list.append(qreq_.get_pipe_hashid())
-            else:
-                cfgstr_list.append(qreq_.get_pipe_cfgstr())
-        cfgstr = ''.join(cfgstr_list)
-        return cfgstr
-
-    def __nice__(qreq_):
-        return ' '.join(qreq_.get_nice_parts())
-
-    def get_nice_parts(qreq_):
-        parts = []
-        parts.append(qreq_.ibs.get_dbname())
-        parts.append('nQ=%d' % len(qreq_.qaids))
-        parts.append('nD=%d' % len(qreq_.daids))
-        parts.append(qreq_.get_pipe_hashid())
-        return parts
+        qreq_.qinva = None
+        qreq_.dinva = None
 
     def ensure_data(qreq_):
         ibs = qreq_.ibs
         config = qreq_.config
-        qreq_.vocab = ibs.depc.get('vocab', [qreq_.daids], 'words',
-                                   config=qreq_.config)[0]
 
+        vocab = ibs.depc.get('vocab', [qreq_.daids], 'words',
+                             config=qreq_.config)[0]
         cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
 
         qfstack = ForwardIndex(ibs, qreq_.qaids, config, name='query')
         dfstack = ForwardIndex(ibs, qreq_.daids, config, name='data')
-        qinva = InvertedIndex(qfstack, qreq_.vocab, config=config)
-        dinva = InvertedIndex(dfstack, qreq_.vocab, config=config)
+        qinva = InvertedIndex(qfstack, vocab, config=config)
+        dinva = InvertedIndex(dfstack, vocab, config=config)
 
         qreq_.ensure_nids()
 
@@ -862,7 +971,10 @@ class SMKRequest(ut.NiceRepr):
         qinva.ensure(cachedir, groups=True)
         dinva.ensure(cachedir, groups=True, idf=True)
 
-        qreq_.smk = SMK(qinva, dinva, qreq_.config)
+        qreq_.qinva = qinva
+        qreq_.dinva = dinva
+        qreq_.cachedir = cachedir
+        qreq_.smk = SMK(qreq_.config)
 
         # Hack to work with existing hs code
         from ibeis.algo import Config
@@ -871,16 +983,14 @@ class SMKRequest(ut.NiceRepr):
             qreq_.smk.config
         ])
 
-    def execute(qreq_, qaids=None, prog_hook=None):
-        assert qaids is None
+    def execute_pipeline(qreq_):
+        """
+        >>> from ibeis.new_annots import *  # NOQA
+        >>> ibs, smk, qreq_ = testdata_smk()
+        >>> cm_list = qreq_.execute()
+        """
         smk = qreq_.smk
-        cm_list = smk.execute(qreq_)
-        return cm_list
-
-    def execute_pipeline(qreq_, qaids=None, prog_hook=None):
-        assert qaids is None
-        smk = qreq_.smk
-        cm_list = smk.execute(qreq_)
+        cm_list = smk.predict_matches(qreq_)
         return cm_list
 
     # Hacked in functions
@@ -901,10 +1011,12 @@ class SMKRequest(ut.NiceRepr):
         return nids
 
     def get_qreq_qannot_kpts(qreq_, qaids):
-        return qreq_.ibs.get_annot_kpts(qaids, config2_=qreq_.smk.qinva.fstack.config)
+        return qreq_.ibs.get_annot_kpts(
+            qaids, config2_=qreq_.qinva.fstack.config)
 
     def get_qreq_dannot_kpts(qreq_, daids):
-        return qreq_.ibs.get_annot_kpts(daids, config2_=qreq_.smk.dinva.fstack.config)
+        return qreq_.ibs.get_annot_kpts(
+            daids, config2_=qreq_.dinva.fstack.config)
 
     @property
     def extern_query_config2(qreq_):
@@ -922,19 +1034,38 @@ class SMK(ut.NiceRepr):
 
     K(X, Y) = gamma(X) * gamma(Y) * sum([Mc(Xc, Yc) for c in words])
     """
-    def __init__(smk, qinva, dinva, config):
-        smk.qinva = qinva
-        smk.dinva = dinva
+    def __init__(smk, config):
         smk.config = SMKConfig(**config)
+        smk.qreq_ = None
         # Choose which version to use
         if True:
             smk.match_score = smk.match_score_agg
         else:
             smk.match_score = smk.match_score_sep
 
+    #def predict(smk, qreq_):
+    #    # TODO
+    #    pass
+    #def fit(smk, dinva):
+    #    qreq_.dinva = dinva
+
+    def predict_matches(smk, qreq_, verbose=True):
+        """
+        >>> from ibeis.new_annots import *  # NOQA
+        >>> ibs, smk, qreq_ = testdata_smk()
+        >>> verbose = True
+        """
+        assert qreq_.qinva.vocab is qreq_.dinva.vocab
+        smk.qreq_ = qreq_
+        X_list = qreq_.qinva.inverted_annots(qreq_.qaids)
+        Y_list = qreq_.dinva.inverted_annots(qreq_.daids)
+        _prog = ut.ProgPartial(lbl='smk query', bs=False, enabled=verbose)
+        cm_list = [smk.match_single(X, Y_list, qreq_) for X in _prog(X_list)]
+        return cm_list
+
     @property
     def wx_to_idf(smk):
-        return smk.dinva.wx_to_idf
+        return smk.qreq_.dinva.wx_to_idf
 
     def weighted_match_score(smk, X, Y, c):
         """
@@ -999,7 +1130,7 @@ class SMK(ut.NiceRepr):
 
             >>> from ibeis.new_annots import *  # NOQA
             >>> ibs, smk, qreq_= testdata_smk()
-            >>> X = smk.qinva.grouped_annots[0]
+            >>> X = qreq_.qinva.grouped_annots[0]
             >>> print('X.gamma = %r' % (smk.gamma(X),))
         """
         rawscores = [smk.weighted_match_score(X, X, c) for c in X.words]
@@ -1009,29 +1140,7 @@ class SMK(ut.NiceRepr):
         sccw = np.reciprocal(np.sqrt(score))
         return sccw
 
-    # def cached_execute(qreq_):
-    #     ibs = qreq_.ibs
-    #     big_cm_cachedir = ut.ensuredir((ibs.cachedir, 'smk', 'big_cm'))
-    #     cm_cachedir = ut.ensuredir((ibs.cachedir, 'smk', 'cm'))
-    #     pass
-
-    def execute(smk, qreq_):
-        """
-        >>> from ibeis.new_annots import *  # NOQA
-        >>> ibs, smk, qreq_ = testdata_smk()
-        """
-        assert smk.qinva.vocab is smk.dinva.vocab
-
-        X_list = smk.qinva.grouped_annots
-        Y_list = smk.dinva.grouped_annots
-
-        cm_list = [
-            smk.smk_chipmatch(X, Y_list, qreq_)
-            for X in ut.ProgIter(X_list, lbl='smk query', bs=False)
-        ]
-        return cm_list
-
-    def smk_chipmatch(smk, X, Y_list, qreq_):
+    def match_single(smk, X, Y_list, qreq_):
         """
         CommandLine:
             python -m ibeis.new_annots smk_chipmatch --show
@@ -1040,7 +1149,7 @@ class SMK(ut.NiceRepr):
             >>> # FUTURE_ENABLE
             >>> from ibeis.new_annots import *  # NOQA
             >>> ibs, smk, qreq_ = testdata_smk()
-            >>> X = smk.qinva.grouped_annots[0]
+            >>> X = qreq_.qinva.grouped_annots[0]
             >>> Y_list = smk.dinva.grouped_annots
             >>> Y = Y_list[0]
             >>> cm = smk.smk_chipmatch(X, Y_list, qreq_)
@@ -1100,112 +1209,6 @@ class SMK(ut.NiceRepr):
         cm.score_maxcsum(qreq_)
         #list(progiter)
         return cm
-
-
-def render_vocab_word(ibs, inva, wx, fnum=None):
-    """
-    Creates a visualization of a visual word. This includes the average patch,
-    the SIFT-like representation of the centroid, and some of the patches that
-    were assigned to it.
-
-    CommandLine:
-        python -m ibeis.new_annots render_vocab_word --show
-
-    Example:
-        >>> from ibeis.new_annots import *  # NOQA
-        >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=10000)
-        >>> sortx = ut.argsort(inva.num_list)[::-1]
-        >>> wx_list = ut.take(inva.wx_list, sortx)
-        >>> wx = wx_list[0]
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> ut.qt4ensure()
-        >>> fnum = 2
-        >>> fnum = pt.ensure_fnum(fnum)
-        >>> # Interactive visualization of many words
-        >>> for wx in ut.InteractiveIter(wx_list):
-        >>>     word_img = render_vocab_word(ibs, inva, wx, fnum)
-        >>>     pt.imshow(word_img, fnum=fnum, title='Word %r/%r' % (wx, len(inva.vocab)))
-        >>>     pt.update()
-        >>> ut.show_if_requested()
-    """
-    import plottool as pt
-    # Create the contributing patch image
-    word_patches = inva.get_patches(wx)
-    stacked_patches = vt.stack_square_images(word_patches)
-
-    # Create the average word image
-    word = inva.vocab.wx_to_word[wx]
-    average_patch = np.mean(word_patches, axis=0)
-    #vecs = inva.get_vecs(wx)
-    #assert np.allclose(word, vecs.mean(axis=0))
-    with_sift = True
-    if with_sift:
-        patch_img = pt.render_sift_on_patch(average_patch, word)
-    else:
-        patch_img = average_patch
-
-    # Stack them together
-    solidbar = np.zeros((patch_img.shape[0], int(patch_img.shape[1] * .1), 3), dtype=patch_img.dtype)
-    border_color = (100, 10, 10)  # bgr, darkblue
-    if ut.is_float(solidbar):
-        solidbar[:, :, :] = (np.array(border_color) / 255)[None, None]
-    else:
-        solidbar[:, :, :] = np.array(border_color)[None, None]
-    patch_img2 = vt.inverted_sift_patch(word)
-    patch_img = vt.rectify_to_uint8(patch_img)
-    patch_img2 = vt.rectify_to_uint8(patch_img2)
-    solidbar = vt.rectify_to_uint8(solidbar)
-    stacked_patches = vt.rectify_to_uint8(stacked_patches)
-    patch_img2, patch_img = vt.make_channels_comparable(patch_img2, patch_img)
-    img_list = [patch_img, solidbar, patch_img2, solidbar, stacked_patches]
-    word_img = vt.stack_image_list(img_list, vert=False, modifysize=True)
-    return word_img
-
-
-def render_vocab(inva, use_data=False):
-    """
-    Renders the average patch of each word.
-    This is a quick visualization of the entire vocabulary.
-
-    CommandLine:
-        python -m ibeis.new_annots render_vocab --show
-        python -m ibeis.new_annots render_vocab --show --use-data
-        python -m ibeis.new_annots render_vocab --show --debug-depc
-
-    Example:
-        >>> from ibeis.new_annots import *  # NOQA
-        >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=10000)
-        >>> use_data = ut.get_argflag('--use-data')
-        >>> all_words = render_vocab(inva, use_data=use_data)
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> pt.qt4ensure()
-        >>> pt.imshow(all_words)
-        >>> ut.show_if_requested()
-    """
-    sortx = ut.argsort(inva.num_list)[::-1]
-    # Get words with the most assignments
-    wx_list = ut.take(inva.wx_list, sortx)
-
-    wx_list = ut.strided_sample(wx_list, 64)
-
-    word_patch_list = []
-    for wx in ut.ProgIter(wx_list, bs=True, lbl='building patches'):
-        word = inva.vocab.wx_to_word[wx]
-        if use_data:
-            word_patch = inva.get_word_patch(wx)
-        else:
-            word_patch = vt.inverted_sift_patch(word, 64)
-        import plottool as pt
-        word_patch = pt.render_sift_on_patch(word_patch, word)
-        word_patch_list.append(word_patch)
-
-    #for wx, p in zip(wx_list, word_patch_list):
-    #    inva._word_patches[wx] = p
-
-    all_words = vt.stack_square_images(word_patch_list)
-    return all_words
 
 
 def compute_rvec(vecs, word, asint=False):

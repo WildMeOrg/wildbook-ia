@@ -143,6 +143,9 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         requestclass = ibs.depc_annot.requestclass_dict[tablename]
         qreq_ = request = requestclass.new(  # NOQA
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename)
+    elif piperoot is not None and piperoot in ['smk']:
+        from ibeis import new_annots
+        qreq_ = new_annots.SMKRequest(ibs, qaid_list, daid_list, cfgdict)
     elif piperoot is not None and piperoot not in ['vsone', 'vsmany']:
         # Hack to ensure that correct depcache style request gets called
         if ut.VERBOSE:
@@ -197,8 +200,6 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
             print('[qreq] * unique_species = %s' % (qreq_.unique_species,))
     if verbose:
         print('[qreq] * pipe_cfg = %s' % (qreq_.get_pipe_cfgstr()))
-        #print('[qreq] * len(qaid_list) = %s' % (len(qaid_list),))
-        #print('[qreq] * len(daid_list) = %s' % (len(daid_list),))
         print('[qreq] * data_hashid  = %s' % (qreq_.get_data_hashid(),))
         print('[qreq] * query_hashid = %s' % (qreq_.get_query_hashid(),))
         print('[qreq] L___ New IBEIS QRequest ___ ')
