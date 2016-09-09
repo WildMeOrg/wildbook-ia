@@ -13,15 +13,26 @@ class StackedConfig(ut.DictLike):
     """
 
     def __init__(self, config_list):
-        self.config_list = config_list
+        self._orig_config_list = config_list
+        # Cast all inputs to config classes
+        self._new_config_list = [
+            cfg if hasattr(cfg, 'get_cfgstr') else Config(**cfg)
+            for cfg in self._orig_config_list
+        ]
+        # Parse out items
         self._items = ut.flatten([
             list(cfg.parse_items()) if hasattr(cfg, 'parse_items') else
             list(cfg.items())
-            for cfg in self.config_list
+            for cfg in self._orig_config_list
         ])
         for key, val in self._items:
             setattr(self, key, val)
         #self.keys = ut.flatten(list(cfg.keys()) for cfg in self.config_list)
+
+    def get_cfgstr(self):
+        cfgstr_list = [cfg.get_cfgstr() for cfg in self._new_config_list]
+        cfgstr = '_'.join(cfgstr_list)
+        return cfgstr
 
     def keys(self):
         return ut.take_column(self._items, 0)

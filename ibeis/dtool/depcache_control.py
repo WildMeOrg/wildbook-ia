@@ -1360,15 +1360,38 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
     get_native_property = _CoreDependencyCache.get_native
     get_property = _CoreDependencyCache.get
 
-    def chained_cfgstr(depc, source, dest, config):
-        requires_tables = ut.setdiff(ut.nx_all_nodes_between(depc.graph, source, dest), [source])
+    def stacked_config(depc, source, dest, config):
+        r"""
+        CommandLine:
+            python -m dtool.depcache_control stacked_config --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_control import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> source = depc.root
+            >>> dest = 'fgweight'
+            >>> config = {}
+            >>> stacked_config = depc.stacked_config(source, dest, config)
+            >>> cfgstr = stacked_config.get_cfgstr()
+            >>> result = ('cfgstr = %s' % (ut.repr2(cfgstr),))
+            >>> print(result)
+        """
+        if config is None:
+            config = {}
+        graph = depc.make_graph(implicit=True)
+        requires_tables = ut.setdiff(ut.nx_all_nodes_between(graph, source, dest), [source])
         #requires_tables = ut.setdiff(ut.nx_all_nodes_between(depc.graph, 'annotations', 'featweight'), ['annotations'])
         requires_tables = ut.nx_topsort_nodes(depc.graph, requires_tables)
         requires_configs = [depc.configclass_dict[tblname](**config)
                             for tblname in requires_tables]
-        cfgstr_list = [cfg.get_cfgstr() for cfg in requires_configs]
-        cfgstr = '_'.join(cfgstr_list)
-        return cfgstr
+        #cfgstr_list = [cfg.get_cfgstr() for cfg in requires_configs]
+        stacked_config = base.StackedConfig(requires_configs)
+        return stacked_config
+        #cfgstr = stacked_config.get_cfgstr()
+        #cfgstr = '_'.join(cfgstr_list)
+        #return cfgstr
 
 
 if __name__ == '__main__':
