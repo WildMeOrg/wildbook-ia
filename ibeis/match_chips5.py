@@ -9,16 +9,16 @@ class RequestCacher(object):
 
     def __init__(self):
         self.use_cache = True
-        self.use_bigcache = True
-        self.min_bigcache_size = 64
+        self.use_bulk = True
+        self.min_bulk_size = 64
         self.use_cache_save = True
-        self.save_bigcache = True
+        self.save_bulk = True
 
-    def request_cached1(self, qreq_):
-        # Do not use bigcache single queries
-        bigcache_on = (self.use_bigcache and self.use_cache and
-                       len(self.qreq_.qaids) > self.min_bigcache_size)
-        if bigcache_on:
+    def execute_bulk(self, qreq_):
+        # Do not use bulk single queries
+        bulk_on = (self.use_bulk and self.use_cache and
+                       len(self.qreq_.qaids) > self.min_bulk_size)
+        if bulk_on:
             # Try and load directly from a big cache
             bc_dpath = ut.ensuredir((qreq_.cachedir, 'bc5'))
             bc_fname = 'BC5_' + '_'.join(qreq_.get_nice_parts())
@@ -27,11 +27,11 @@ class RequestCacher(object):
                 cm_list = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
             except (IOError, AttributeError):
                 # Fallback to smallcache
-                cm_list = self.request_cached2()
+                cm_list = self.execute_singles()
                 ut.save_cache(bc_dpath, bc_fname, bc_cfgstr, cm_list)
         else:
             # Fallback to smallcache
-            cm_list = self.request_cached2()
+            cm_list = self.execute_singles()
         return cm_list
 
     def _load_singles(self, qreq_):
@@ -74,7 +74,7 @@ class RequestCacher(object):
             len(fpaths_hit) - len(qaid2_cm_hit), len(fpaths_hit)))
         return qaid2_cm_hit
 
-    def request_cached2(self, qreq_):
+    def execute_singles(self, qreq_):
         if self.use_cache:
             qaid2_cm_hit = self._load_singles(qreq_)
         else:
