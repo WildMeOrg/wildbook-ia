@@ -16,7 +16,7 @@ class StackedConfig(ut.DictLike):
         self._orig_config_list = config_list
         # Cast all inputs to config classes
         self._new_config_list = [
-            cfg if hasattr(cfg, 'get_cfgstr') else Config(**cfg)
+            cfg if hasattr(cfg, 'get_cfgstr') else make_configclass(cfg, '')
             for cfg in self._orig_config_list
         ]
         # Parse out items
@@ -166,6 +166,16 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
                 child_cfg = val
                 child_params = child_cfg.parse_namespace_config_items()
                 param_list.extend(child_params)
+            elif hasattr(val, 'parse_items'):
+                # hack for ut.Pref configs
+                name = val.get_config_name()
+                for key, val in val.parse_items():
+                    if key in seen:
+                        print('[Config] WARNING: key=%r appears more than once' %
+                              (key,))
+                    seen.add(key)
+                    # Incorporate namespace
+                    param_list.append((name, key, val))
             elif key.startswith('_'):
                 pass
             else:
@@ -205,10 +215,10 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
             param_list[idx][0] = name + '_' + param_list[idx][0]
         duplicate_keys = ut.find_duplicate_items(ut.get_list_column(param_list, 0))
         # hack to let version through
-        import utool
-        with utool.embed_on_exception_context:
-            assert len(duplicate_keys) == 0, (
-                'Configs have duplicate names: %r' % duplicate_keys)
+        #import utool
+        #with utool.embed_on_exception_context:
+        assert len(duplicate_keys) == 0, (
+            'Configs have duplicate names: %r' % duplicate_keys)
         return param_list
 
     def get_cfgstr_list(cfg, ignore_keys=None, with_name=True, **kwargs):
@@ -269,7 +279,7 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
 
     def get(qparams, key, *d):
         """ get a paramater value by string """
-        ERROR_ON_DEFAULT = True
+        ERROR_ON_DEFAULT = False
         if ERROR_ON_DEFAULT:
             return getattr(qparams, key)
         else:
