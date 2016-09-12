@@ -179,6 +179,7 @@ def prepare_X_data(ibs, gid_list, use_gps=True):
     images = ibs.images(gid_list, caching=True)
     gps_list_ = images.gps2
     unixtime_list_ = images.unixtime2
+    gps_list_ = vt.ensure_shape(gps_list_, (None, 2))
     has_gps = np.all(np.logical_not(np.isnan(gps_list_)), axis=1)
     has_time = np.logical_not(np.isnan(unixtime_list_))
 

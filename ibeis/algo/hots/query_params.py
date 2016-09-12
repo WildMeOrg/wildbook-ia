@@ -8,7 +8,7 @@ from ibeis.algo import Config
 
 
 def testdata_queryparams():
-    cfgdict = {'pipeline_root': 'asmk', 'sv_on': False, 'fg_on': True}
+    cfgdict = {'pipeline_root': 'vsone', 'sv_on': False, 'fg_on': True}
     qparams = QueryParams(cfgdict=cfgdict)
     return qparams
 
@@ -35,21 +35,6 @@ class QueryParams(collections.Mapping):
             >>> import ibeis
             >>> ibs = ibeis.opendb('testdb1')
             >>> query_cfg = ibs.cfg.query_cfg
-            >>> #query_cfg.pipeline_root = 'asmk'
-            >>> cfgdict = {'pipeline_root': 'asmk', 'sv_on': False, 'fg_on': True}
-            >>> qparams = QueryParams(query_cfg, cfgdict)
-            >>> assert qparams.pipeline_root == 'smk'
-            >>> assert qparams.fg_on is True
-            >>> result = qparams.query_cfgstr
-            >>> print(')_\n'.join(result.split(')_')))
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_params import *  # NOQA
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> query_cfg = ibs.cfg.query_cfg
-            >>> #query_cfg.pipeline_root = 'asmk'
             >>> cfgdict = dict(rotation_invariance=True)
             >>> qparams = QueryParams(query_cfg, cfgdict)
             >>> ut.assert_eq(qparams.hesaff_params['rotation_invariance'], True)
@@ -97,7 +82,6 @@ class QueryParams(collections.Mapping):
         qparams.sv_cfgstr         = query_cfg.sv_cfg.get_cfgstr()
         qparams.flann_cfgstr      = query_cfg.flann_cfg.get_cfgstr()
         qparams.query_cfgstr      = query_cfg.get_cfgstr()
-        qparams.vocabtrain_cfgstr = query_cfg.smk_cfg.vocabtrain_cfg.get_cfgstr()
         qparams.rrvsone_cfgstr    = query_cfg.rrvsone_cfg.get_cfgstr()
 
     def get_postsver_filtkey_list(qparams):

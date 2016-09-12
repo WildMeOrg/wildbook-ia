@@ -83,23 +83,24 @@ def testdata_expts(defaultdb='testdb1',
     qaid_override = ut.get_argval(('--qaid', '--qaids-override', '--qaid-override'), type_=list, default=qaid_override)
 
     # Hack a cache here
-    use_bigtest_cache3 = not ut.get_argflag(('--nocache', '--nocache-hs'))
-    use_bigtest_cache3 &= ut.is_developer()
+    use_bulk_cache = not ut.get_argflag(('--nocache', '--nocache-hs'))
+    use_bulk_cache &= ut.is_developer()
     if use_cache is not None:
-        use_bigtest_cache3 &= use_cache
-    use_bigtest_cache3 &= False
-    #use_bigtest_cache3 = True
-    if use_bigtest_cache3:
-        from os.path import dirname, join
-        cache_dir = ut.ensuredir(join(dirname(ut.get_module_dir(ibeis)), 'BIG_TESTLIST_CACHE3'))
-        _load_testres = ut.cached_func('testreslist', cache_dir=cache_dir)(harness.run_test_configurations2)
+        use_bulk_cache &= use_cache
+    use_bulk_cache &= False
+    #use_bulk_cache = True
+    if use_bulk_cache:
+        from os.path import dirname
+        cache_dir = ut.ensuredir((dirname(ut.get_module_dir(ibeis)), 'BULK_TESTRES'))
+        _cache_wrp = ut.cached_func('testreslist', cache_dir=cache_dir)
+        _load_testres = _cache_wrp(harness.run_expt)
     else:
-        _load_testres = harness.run_test_configurations2
-    testres_list = _load_testres(
+        _load_testres = harness.run_expt
+    testres = _load_testres(
         ibs, acfg_name_list, test_cfg_name_list, qaid_override=qaid_override,
         daid_override=daid_override, initial_aids=initial_aids,
         use_cache=use_cache)
-    testres = test_result.combine_testres_list(ibs, testres_list)
+    #testres = test_result.combine_testres_list(ibs, testres_list)
 
     if ut.VERBOSE:
         print(testres)

@@ -145,6 +145,8 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
         configclass_list = [Config.QueryConfig] * len(_pcfgdict_list)
     else:
         root_to_config = ibs.depc_annot.configclass_dict
+        from ibeis import new_annots
+        root_to_config['smk'] = new_annots.SMKRequestConfig
         configclass_list = [
             root_to_config.get(_cfgdict.get('pipeline_root', _cfgdict.get('proot', 'vsmany')),
                                Config.QueryConfig)

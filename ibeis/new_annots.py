@@ -8,7 +8,9 @@ import vtool as vt
 import pyflann
 import numpy as np
 from ibeis import match_chips5 as mc5
+from ibeis import core_annots
 from ibeis.control.controller_inject import register_preprocs, register_subprops
+from ibeis.algo import Config
 (print, rrr, profile) = ut.inject2(__name__, '[new_annots]')
 
 
@@ -22,6 +24,7 @@ class VocabConfig(dtool.Config):
         ut.ParamInfo('algorithm', 'minibatch', 'alg'),
         ut.ParamInfo('random_seed', 42, 'seed'),
         ut.ParamInfo('num_words', 1000, 'seed'),
+        #ut.ParamInfo('num_words', 64000),
         ut.ParamInfo('version', 1),
         #ut.ParamInfo('n_jobs', -1, hide=True),
     ]
@@ -35,8 +38,27 @@ class InvertedIndexConfig(dtool.Config):
 
 class SMKConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('smk_alpha', 3),
-        ut.ParamInfo('smk_thresh', 0),
+        ut.ParamInfo('smk_alpha', 3.0),
+        #ut.ParamInfo('smk_thresh', 0.0),
+        ut.ParamInfo('smk_thresh', 0.25),
+        ut.ParamInfo('agg', True),
+        #ut.ParamInfo('agg', True),
+    ]
+
+
+class SMKRequestConfig(dtool.Config):
+    """ Figure out how to do this """
+    _param_info_list = [
+        ut.ParamInfo('proot', 'smk')
+    ]
+    _sub_config_list = [
+        #Config.FeatureConfig(**config),
+        core_annots.ChipConfig,
+        core_annots.FeatConfig,
+        Config.SpatialVerifyConfig,
+        VocabConfig,
+        InvertedIndexConfig,
+        SMKConfig,
     ]
 
 
@@ -367,8 +389,8 @@ class VisualVocab(ut.NiceRepr):
             >>> from ibeis.new_annots import *  # NOQA
             >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=10000)
             >>> vocab = inva.vocab
-            >>> sortx = ut.argsort(inva.num_list)[::-1]
-            >>> wx_list = ut.take(inva.wx_list, sortx)
+            >>> sortx = ut.argsort(list(inva.wx_to_num.values()))[::-1]
+            >>> wx_list = ut.take(list(inva.wx_to_num.keys()), sortx)
             >>> wx = wx_list[0]
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
@@ -437,9 +459,9 @@ class VisualVocab(ut.NiceRepr):
             >>> pt.imshow(all_words)
             >>> ut.show_if_requested()
         """
-        sortx = ut.argsort(inva.num_list)[::-1]
         # Get words with the most assignments
-        wx_list = ut.take(inva.wx_list, sortx)
+        sortx = ut.argsort(list(inva.wx_to_num.values()))[::-1]
+        wx_list = ut.take(list(inva.wx_to_num.keys()), sortx)
 
         wx_list = ut.strided_sample(wx_list, 64)
 
@@ -490,6 +512,7 @@ class ForwardIndex(ut.NiceRepr, SMKCacheable):
         fstack.num_feat = None
 
     def build(fstack):
+        print('building forward index')
         ibs = fstack.ibs
         config = fstack.config
         ax_to_vecs = ibs.depc.d.get_feat_vecs(fstack.ax_to_aid, config=config)
@@ -552,7 +575,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         >>> print(inva)
     """
     __columns__ = ['wx_to_idxs', 'wx_to_maws', 'wx_to_num', 'wx_list',
-                   'num_list', 'perword_stats', 'wx_to_idf', 'grouped_annots']
+                   'perword_stats', 'wx_to_idf', 'grouped_annots']
     __version__ = 1
 
     def __init__(inva, fstack=None, vocab=None, config={}):
@@ -566,7 +589,6 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         #
         inva.wx_list = None
         # Extra stuff
-        inva.num_list = None
         inva.perword_stats = None
         inva._word_patches = {}
         # Optional measures
@@ -574,6 +596,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         inva.grouped_annots = None
 
     def build(inva, idf=False, groups=False):
+        print('building inverted index')
         nAssign = inva.config.get('nAssign', 1)
         fstack = inva.fstack
         vocab = inva.vocab
@@ -586,8 +609,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         #
         inva.wx_list = sorted(inva.wx_to_num.keys())
         # Extra stuff
-        inva.num_list = ut.take(inva.wx_to_num, inva.wx_list)
-        inva.perword_stats = ut.get_stats(inva.num_list)
+        inva.perword_stats = ut.get_stats(list(inva.wx_to_num.values()))
         inva._word_patches = {}
         # Optional measures
         if idf:
@@ -690,15 +712,17 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         num_docs_total = len(inva.fstack.ax_to_aid)
         # idf denominator (the num of docs containing a word for each word)
         # The max(maws) to denote the probab that this word indexes an annot
-        wx_to_num_docs = np.array([
+        num_docs_list = np.array([
             sum([maws.max() for maws in vt.apply_grouping(
                 inva.wx_to_maws[wx],
                 vt.group_indices(inva.wx_to_axs(wx))[1])])
-            for wx in inva.wx_list
+            for wx in ut.ProgIter(inva.wx_list, lbl='Compute IDF', bs=True)
         ])
         # Typically for IDF, 1 is added to the denom to prevent divide by 0
         # We add epsilon to numer and denom to ensure recep is a probability
-        wx_to_idf = np.log(np.divide(num_docs_total + 1, wx_to_num_docs + 1))
+        idf_list = np.log(np.divide(num_docs_total + 1, num_docs_list + 1))
+        wx_to_idf = dict(zip(inva.wx_list, idf_list))
+        wx_to_idf = ut.DefaultValueDict(0, wx_to_idf)
         return wx_to_idf
 
     def get_vecs(inva, wx):
@@ -749,7 +773,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         grouped_rvecs = vt.apply_grouping(rvecs_list, groupxs)
         grouped_errors = vt.apply_grouping(error_flags, groupxs)
 
-        # Remove vectors with errors
+        # ~~Remove vectors with errors~~
         #inner_flags = vt.apply_grouping(~error_flags, groupxs)
         #grouped_rvecs2_ = vt.zipcompress(grouped_rvecs, inner_flags, axis=0)
         #grouped_maws2_  = vt.zipcompress(grouped_maws, inner_flags)
@@ -764,14 +788,14 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         unique_ax3_ = ut.compress(unique_ax, outer_flags)
         return unique_ax3_, grouped_rvecs3_, grouped_maws3_, grouped_errors3_
 
-    def compute_agg_rvecs(inva, wx):
+    def compute_rvecs_agg(inva, wx):
         """
         Sums and normalizes all rvecs that belong to the same word and the same
         annotation id
 
         Returns:
-            ax_to_aggvec: A mapping from an annotation to its aggregated vector
-                for this word.
+            ax_to_aggs: A mapping from an annotation to its aggregated vector
+                for this word and an error flag.
 
         Notes:
             aggvec = Phi
@@ -786,17 +810,16 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
             >>> ibs, aid_list, inva = testdata_inva(num_words=256)
             >>> wx = 1
             >>> asint = False
-            >>> ax_to_aggvec = inva.compute_agg_rvecs(1)
+            >>> ax_to_aggs = inva.compute_rvecs_agg(1)
         """
         tup = inva.get_grouped_rvecs(wx)
         unique_ax3_, grouped_rvecs3_, grouped_maws3_, grouped_errors3_ = tup
-        # FIXME: decide how to handle errors
-        ax_to_aggvec = {
+        ax_to_aggs = {
             ax: aggregate_rvecs(rvecs, maws, errors)
             for ax, rvecs, maws, errors in
             zip(unique_ax3_, grouped_rvecs3_, grouped_maws3_, grouped_errors3_)
         }
-        return ax_to_aggvec
+        return ax_to_aggs
 
     def compute_annot_groups(inva):
         """
@@ -806,10 +829,11 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
             >>> ibs, smk, qreq_ = testdata_smk()
             >>> inva = qreq_.qinva
         """
+        print('Computing annot groups')
         fstack = inva.fstack
         ax_to_X = [IndexedAnnot(ax, inva) for ax in range(len(fstack.ax_to_aid))]
 
-        for wx in inva.wx_list:
+        for wx in ut.ProgIter(inva.wx_list, lbl='Group Annots', bs=True):
             idxs = inva.wx_to_idxs[wx]
             maws = inva.wx_to_maws[wx]
             axs = fstack.idx_to_ax.take(idxs, axis=0)
@@ -819,13 +843,13 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
             grouped_idxs = vt.apply_grouping(idxs, groupxs)
 
             # precompute here
-            ax_to_aggvec = inva.compute_agg_rvecs(wx)
+            ax_to_aggs = inva.compute_rvecs_agg(wx)
             for ax, idxs_, maws_ in zip(unique_axs, grouped_idxs,
                                         grouped_maws):
                 X = ax_to_X[ax]
                 X.wx_to_idxs_[wx] = idxs_
                 X.wx_to_maws_[wx] = maws_
-                X.wx_to_aggvec[wx] = ax_to_aggvec[ax]
+                X.wx_to_aggs[wx] = ax_to_aggs[ax]
         X_list = ax_to_X
         return X_list
 
@@ -857,7 +881,7 @@ class IndexedAnnot(ut.NiceRepr):
         # only idxs that belong to ax
         X.wx_to_idxs_ = {}
         X.wx_to_maws_ = {}
-        X.wx_to_aggvec = {}
+        X.wx_to_aggs = {}
 
     def __nice__(X):
         return 'aid=%r, nW=%r' % (X.aid, len(X.wx_to_idxs_),)
@@ -881,34 +905,46 @@ class IndexedAnnot(ut.NiceRepr):
         num_words, word_dim = X.inva.vocab.shape
         vlad_dim = num_words * word_dim
         vlad_vec = scipy.sparse.lil_matrix((vlad_dim, 1))
-        for wx, aggvec in X.wx_to_aggvec.items():
+        for wx, aggvec in X.wx_to_aggs.items():
             start = wx * word_dim
             vlad_vec[start:start + word_dim] = aggvec.T
         vlad_vec = vlad_vec.tocsc()
         return vlad_vec
 
     def Phi(X, wx):
-        return X.wx_to_aggvec[wx]
+        return X.wx_to_aggs[wx][0]
+
+    def Phi_flags(X, wx):
+        return X.wx_to_aggs[wx]
+
+    def Phlags(X, wx):
+        return X.wx_to_aggs[wx][1]
 
     def phis(X, wx):
+        rvecs, _ =  X.phis_flags(wx)[0]
+        return rvecs
+
+    def phis_flags(X, wx):
         vocab = X.inva.vocab
         idxs = X.idxs(wx)
         vecs = X.inva.fstack.idx_to_vec.take(idxs, axis=0)
         word = vocab.wx_to_word[wx]
         rvecs, flags = compute_rvec(vecs, word)
-        return rvecs
+        return rvecs, flags
 
     @property
     def words(X):
-        return list(X.wx_to_aggvec)
+        return list(X.wx_to_aggs.keys())
 
     def assert_self(X):
-        assert len(X.wx_to_idxs_) == len(X.wx_to_aggvec)
+        assert len(X.wx_to_idxs_) == len(X.wx_to_aggs)
         for wx in X.wx_to_idxs_.keys():
             axs = X.inva.fstack.idx_to_ax.take(X.idxs(wx), axis=0)
             assert np.all(axs == X.ax)
-            agg_rvec = aggregate_rvecs(X.phis(wx), X.maws(wx), None)
-            assert np.all(agg_rvec == X.Phi(wx))
+            rvecs, flags = X.phis_flags(wx)
+            maws = X.maws(wx)
+            rvec_agg, flag_agg = aggregate_rvecs(rvecs, maws, flags)
+            assert np.all(rvec_agg == X.Phi(wx))
 
 
 @ut.reloadable_class
@@ -929,19 +965,23 @@ class SMKRequest(mc5.EstimatorRequest):
         >>> qreq_ = SMKRequest(ibs, qaids, daids, config)
         >>> qreq_.ensure_data()
         >>> cm_list = qreq_.execute()
+        >>> #cm_list = qreq_.execute_pipeline()
         >>> ut.quit_if_noshow()
         >>> ut.qt4ensure()
-        >>> cm_list[0].ishow_analysis(qreq_, fnum=1)
-        >>> cm_list[1].ishow_analysis(qreq_, fnum=2)
+        >>> cm_list[0].ishow_analysis(qreq_, fnum=1, viz_name_score=False)
+        >>> cm_list[1].ishow_analysis(qreq_, fnum=2, viz_name_score=False)
         >>> ut.show_if_requested()
 
     """
-
     def __init__(qreq_, ibs=None, qaids=None, daids=None, config=None):
         super(SMKRequest, qreq_).__init__()
+        if config is None:
+            config = {}
+
         qreq_.ibs = ibs
         qreq_.qaids = qaids
         qreq_.daids = daids
+
         qreq_.config = config
 
         #qreq_.vocab = None
@@ -951,37 +991,46 @@ class SMKRequest(mc5.EstimatorRequest):
         qreq_.qinva = None
         qreq_.dinva = None
 
+        qreq_.smk = SMK(config)
+
+        # Hack to work with existing hs code
+        qreq_.stack_config = SMKRequestConfig(**config)
+        # Flat config
+        qreq_.qparams = dtool.base.StackedConfig([
+            dict(qreq_.stack_config.parse_items())
+        ])
+        #    Config.SpatialVerifyConfig(**config),
+        #    qreq_.smk.config
+        #    # TODO: add vocab, inva, features
+        #])
+        qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
+
     def ensure_data(qreq_):
+        print('Ensure data for %s' % (qreq_,))
         ibs = qreq_.ibs
         config = qreq_.config
 
         vocab = ibs.depc.get('vocab', [qreq_.daids], 'words',
                              config=qreq_.config)[0]
-        cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
 
         qfstack = ForwardIndex(ibs, qreq_.qaids, config, name='query')
         dfstack = ForwardIndex(ibs, qreq_.daids, config, name='data')
         qinva = InvertedIndex(qfstack, vocab, config=config)
         dinva = InvertedIndex(dfstack, vocab, config=config)
 
+        #qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
         qreq_.ensure_nids()
 
-        qfstack.ensure(cachedir)
-        dfstack.ensure(cachedir)
-        qinva.ensure(cachedir, groups=True)
-        dinva.ensure(cachedir, groups=True, idf=True)
+        qfstack.ensure(qreq_.cachedir)
+        dfstack.ensure(qreq_.cachedir)
+        #qinva.build(groups=True)
+        #dinva.build(groups=True, idf=True)
+
+        qinva.ensure(qreq_.cachedir, groups=True)
+        dinva.ensure(qreq_.cachedir, groups=True, idf=True)
 
         qreq_.qinva = qinva
         qreq_.dinva = dinva
-        qreq_.cachedir = cachedir
-        qreq_.smk = SMK(qreq_.config)
-
-        # Hack to work with existing hs code
-        from ibeis.algo import Config
-        qreq_.qparams = dtool.base.StackedConfig([
-            Config.SpatialVerifyConfig(),
-            qreq_.smk.config
-        ])
 
     def execute_pipeline(qreq_):
         """
@@ -1038,7 +1087,7 @@ class SMK(ut.NiceRepr):
         smk.config = SMKConfig(**config)
         smk.qreq_ = None
         # Choose which version to use
-        if True:
+        if smk.config['agg']:
             smk.match_score = smk.match_score_agg
         else:
             smk.match_score = smk.match_score_sep
@@ -1055,6 +1104,7 @@ class SMK(ut.NiceRepr):
         >>> ibs, smk, qreq_ = testdata_smk()
         >>> verbose = True
         """
+        print('Predicting matches')
         assert qreq_.qinva.vocab is qreq_.dinva.vocab
         smk.qreq_ = qreq_
         X_list = qreq_.qinva.inverted_annots(qreq_.qaids)
@@ -1098,21 +1148,53 @@ class SMK(ut.NiceRepr):
         return word_fm, word_fs
 
     def match_score_agg(smk, X, Y, c):
-        """ matching score between aggregated residual vectors """
-        u = X.Phi(c).dot(Y.Phi(c).T)
+        """ matching score between aggregated residual vectors
+        """
+        PhiX, flagsX = X.Phi_flags(c)
+        PhiY, flagsY = Y.Phi_flags(c)
+        # Give error flags full scores. These are typically distinctive and
+        # important cases without enough info to get residual data.
+        u = PhiX.dot(PhiY.T)
+        flags = np.logical_or(flagsX[:, None], flagsY)
+        u[flags] = 1
         return u
 
     def match_score_sep(smk, X, Y, c):
-        """ matching score between separated residual vectors """
-        u = X.phis(c).dot(Y.phis(c).T)
+        """ matching score between separated residual vectors
+
+        flagsX = np.array([1, 0, 0], dtype=np.bool)
+        flagsY = np.array([1, 1, 0], dtype=np.bool)
+        phisX = vt.tests.dummy.testdata_dummy_sift(3, asint=False)
+        phisY = vt.tests.dummy.testdata_dummy_sift(3, asint=False)
+        """
+        phisX, flagsX = X.phis_flags(c)
+        phisY, flagsY = Y.phis_flags(c)
+        # Give error flags full scores. These are typically distinctive and
+        # important cases without enough info to get residual data.
+        u = phisX.dot(phisY.T)
+        flags = np.logical_or(flagsX[:, None], flagsY)
+        u[flags] = 1
+        #u = X.phis(c).dot(Y.phis(c).T)
         return u
 
     def selectivity(smk, u):
         r"""
         Rescales and thresholds scores. This is sigma from the SMK paper
+
+        In the paper they use:
+            sigma_alpha(u) = bincase{
+                sign(u) * (u**alpha) if u > thresh,
+                0 otherwise,
+            }
+        but this make little sense because a negative threshold of -1
+        will let -1 descriptors (completely oppositely aligned) have
+        the same score as perfectly aligned descriptors. Instead I suggest
+        (to achieve the same effect), a thresh = .5 and  a preprocessing step of
+            u'  = (u + 1) / 2
         """
         alpha = smk.config['smk_alpha']
         thresh = smk.config['smk_thresh']
+        u = (u + 1.0) / 2.0
         score = np.sign(u) * np.power(np.abs(u), alpha)
         score *= np.greater(u, thresh)
         return score
@@ -1133,9 +1215,9 @@ class SMK(ut.NiceRepr):
             >>> X = qreq_.qinva.grouped_annots[0]
             >>> print('X.gamma = %r' % (smk.gamma(X),))
         """
-        rawscores = [smk.weighted_match_score(X, X, c) for c in X.words]
-        idf_list = smk.wx_to_idf.take(X.words)
-        scores = np.array(rawscores) * idf_list
+        scores = np.array([smk.weighted_match_score(X, X, c) for c in X.words])
+        idf_list = np.array(ut.take(smk.wx_to_idf, X.words))
+        scores *= idf_list
         score = scores.sum()
         sccw = np.reciprocal(np.sqrt(score))
         return sccw
@@ -1150,8 +1232,9 @@ class SMK(ut.NiceRepr):
             >>> from ibeis.new_annots import *  # NOQA
             >>> ibs, smk, qreq_ = testdata_smk()
             >>> X = qreq_.qinva.grouped_annots[0]
-            >>> Y_list = smk.dinva.grouped_annots
+            >>> Y_list = qreq_.dinva.grouped_annots
             >>> Y = Y_list[0]
+            >>> c = ut.isect(X.words, Y.words)[0]
             >>> cm = smk.smk_chipmatch(X, Y_list, qreq_)
             >>> ut.qt4ensure()
             >>> cm.ishow_analysis(qreq_)
@@ -1167,27 +1250,30 @@ class SMK(ut.NiceRepr):
         fsv_col_lbls = ['smk']
 
         gammaX = smk.gamma(X)
-        for Y in ut.ProgIter(Y_list, lbl='smk match qaid=%r' % (qaid,)):
-            gammaY = smk.gamma(Y)
-            gammaXY = gammaX * gammaY
+        import utool
+        with utool.embed_on_exception_context:
+            for Y in ut.ProgIter(Y_list, lbl='smk match qaid=%r' % (qaid,)):
+                gammaY = smk.gamma(Y)
+                gammaXY = gammaX * gammaY
 
-            fm = []
-            fs = []
-            # Words in common define matches
-            common_words = ut.isect(X.words, Y.words)
-            for c in common_words:
-                word_fm, word_fs = smk.weighted_matches(X, Y, c)
-                word_fs *= gammaXY
-                fm.extend(word_fm)
-                fs.extend(word_fs)
+                fm = []
+                fs = []
+                # Words in common define matches
+                common_words = ut.isect(X.words, Y.words)
+                for c in common_words:
+                    word_fm, word_fs = smk.weighted_matches(X, Y, c)
+                    assert not np.any(np.isnan(word_fs))
+                    word_fs *= gammaXY
+                    fm.extend(word_fm)
+                    fs.extend(word_fs)
 
-            #if len(fm) > 0:
-            daid = Y.aid
-            fsv = np.array(fs)[:, None]
-            daid_list.append(daid)
-            fm = np.array(fm)
-            fm_list.append(fm)
-            fsv_list.append(fsv)
+                #if len(fm) > 0:
+                daid = Y.aid
+                fsv = np.array(fs)[:, None]
+                daid_list.append(daid)
+                fm = np.array(fm)
+                fm_list.append(fm)
+                fsv_list.append(fsv)
 
         #progiter = iter(ut.ProgIter([0], lbl='smk sver qaid=%r' % (qaid,)))
         #six.next(progiter)
@@ -1234,28 +1320,35 @@ def compute_rvec(vecs, word, asint=False):
     return rvecs, error_flags
 
 
-def aggregate_rvecs(rvecs, maws, errors, asint=False):
+def aggregate_rvecs(rvecs, maws, error_flags, asint=False):
     r"""
     Compute aggregated residual vectors Phi(X_c)
     """
+    # Propogate errors from previous step
+    flags_agg = np.any(error_flags, axis=0, keepdims=True)
     if rvecs.shape[0] == 0:
         rvecs_agg = np.empty((0, rvecs.shape[1]), dtype=np.float)
     if rvecs.shape[0] == 1:
         rvecs_agg = rvecs
     else:
         # Prealloc sum output (do not assign the result of sum)
-        arr_float = np.empty((1, rvecs.shape[1]), dtype=np.float)
-        out = arr_float[0]
+        rvecs_agg = np.empty((1, rvecs.shape[1]), dtype=np.float)
+        out = rvecs_agg[0]
         # Take weighted average of multi-assigned vectors
+        weighted_sum = (maws[:, None] * rvecs).sum(axis=0, out=out)
         total_weight = maws.sum()
-        weighted_sum = (maws[:, np.newaxis] * rvecs.astype(np.float)).sum(axis=0, out=out)
-        np.divide(weighted_sum, total_weight, out=out)
-        vt.normalize_rows(arr_float, out=arr_float)
+        is_zero = np.all(rvecs_agg == 0, axis=1)
+        rvecs_agg = np.divide(weighted_sum, total_weight, out=rvecs_agg)
+        vt.normalize_rows(rvecs_agg, out=rvecs_agg)
+        if np.any(is_zero):
+            # Add in arrors from this step
+            rvecs_agg[is_zero, :] = 0
+            flags_agg[is_zero] = True
         if asint:
-            rvecs_agg = np.clip(np.round(arr_float * 255.0), -127, 127).astype(np.int8)
+            rvecs_agg = np.clip(np.round(rvecs_agg * 255.0), -127, 127).astype(np.int8)
         else:
-            rvecs_agg = arr_float
-    return rvecs_agg
+            rvecs_agg = rvecs_agg
+    return rvecs_agg, flags_agg
 
 
 @derived_attribute(

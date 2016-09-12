@@ -11,9 +11,9 @@ CommandLine:
     python -m ibeis --db PZ_Master0 --dbinfo --postload-exit
 
     # Info about configs for a test
-    python -m ibeis --tf run_test_configurations2 -t default -a ctrl --db PZ_MTEST --acfginfo
-    python -m ibeis --tf run_test_configurations2 -t default:sample_size=None -a ctrl --db PZ_Master0 --acfginfo  # NOQA
-    python -m ibeis --tf run_test_configurations2 -t default -a ctrl --db NNP_Master3 --acfginfo
+    python -m ibeis --tf run_expt -t default -a ctrl --db PZ_MTEST --acfginfo
+    python -m ibeis --tf run_expt -t default:sample_size=None -a ctrl --db PZ_Master0 --acfginfo  # NOQA
+    python -m ibeis --tf run_expt -t default -a ctrl --db NNP_Master3 --acfginfo
 
     # Regen Figures
     python -m ibeis.scripts.gen_cand_expts --exec-parse_latex_comments_for_commmands

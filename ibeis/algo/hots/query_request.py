@@ -129,23 +129,30 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
 
     # try:
     piperoot = cfgdict.get('pipeline_root', cfgdict.get('proot', None))
+    if piperoot is None and query_cfg is not None:
+        try:
+            piperoot = query_cfg.get('pipeline_root', query_cfg.get('proot', None))
+        except AttributeError:
+            pass
     # except Exception:
     #     piperoot = None
 
     if ut.VERBOSE:
         print('[qreq] piperoot = %r' % (piperoot,))
+    if piperoot is not None and piperoot in ['smk']:
+        from ibeis import new_annots
+        qreq_ = new_annots.SMKRequest(ibs, qaid_list, daid_list, cfgdict)
     # HACK FOR DEPC REQUESTS including flukes
-    if isinstance(cfg, dtool.Config):
+    elif isinstance(cfg, dtool.Config):
         if ut.VERBOSE:
             print('[qreq] dtool.Config HACK')
+        import utool
+        utool.embed()
         tablename = cfg.get_config_name()
         cfgdict = dict(cfg.parse_items())
         requestclass = ibs.depc_annot.requestclass_dict[tablename]
         qreq_ = request = requestclass.new(  # NOQA
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename)
-    elif piperoot is not None and piperoot in ['smk']:
-        from ibeis import new_annots
-        qreq_ = new_annots.SMKRequest(ibs, qaid_list, daid_list, cfgdict)
     elif piperoot is not None and piperoot not in ['vsone', 'vsmany']:
         # Hack to ensure that correct depcache style request gets called
         if ut.VERBOSE:

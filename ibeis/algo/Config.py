@@ -418,148 +418,6 @@ class FlannConfig(ConfigBase):
 
 
 @six.add_metaclass(ConfigMetaclass)
-class SMKConfig(ConfigBase):
-    """
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> smk_cfg = SMKConfig()
-        >>> result1 = smk_cfg.get_cfgstr()
-        >>> print(result1)
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> smk_cfg = ibs.cfg.query_cfg.smk_cfg
-        >>> smk_cfg.printme3()
-    """
-    def __init__(smk_cfg, **kwargs):
-        super(SMKConfig, smk_cfg).__init__(name='smk_cfg')
-        smk_cfg.smk_thresh = 0.0  # tau in the paper
-        smk_cfg.smk_alpha  = 3.0
-        smk_cfg.smk_aggregate  = False
-        # TODO Separate into vocab config
-        smk_cfg._valid_vocab_weighting = ['idf', 'negentropy']
-        smk_cfg.vocab_weighting = 'idf'
-        smk_cfg.allow_self_match = False
-        smk_cfg.vocabtrain_cfg = VocabTrainConfig(**kwargs)
-        smk_cfg.vocabassign_cfg = VocabAssignConfig(**kwargs)
-        smk_cfg.update(**kwargs)
-
-    def make_feasible(smk_cfg):
-
-        hasvalid_weighting = any([
-            smk_cfg.vocab_weighting == x
-            for x in smk_cfg._valid_vocab_weighting])
-        assert hasvalid_weighting, (
-            'invalid vocab weighting %r' % smk_cfg.vocab_weighting)
-
-    def get_cfgstr_list(smk_cfg, **kwargs):
-        smk_cfgstr_list = [
-            '_SMK(',
-            'agg=', str(smk_cfg.smk_aggregate),
-            ',t=', str(smk_cfg.smk_thresh),
-            ',a=', str(smk_cfg.smk_alpha),
-            ',SelfOk' if smk_cfg.allow_self_match else '',
-            ',%s' % smk_cfg.vocab_weighting,
-            ')',
-        ]
-        smk_cfgstr_list.extend(smk_cfg.vocabassign_cfg.get_cfgstr_list())
-        smk_cfgstr_list.extend(smk_cfg.vocabtrain_cfg.get_cfgstr_list())
-        return smk_cfgstr_list
-
-
-@six.add_metaclass(ConfigMetaclass)
-class VocabTrainConfig(ConfigBase):
-    """
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> vocabtrain_cfg = VocabTrainConfig()
-        >>> result = vocabtrain_cfg.get_cfgstr()
-        >>> print(result)
-
-    """
-    def __init__(vocabtrain_cfg, **kwargs):
-        super(VocabTrainConfig, vocabtrain_cfg).__init__(
-            name='vocabtrain_cfg')
-        vocabtrain_cfg.override_vocab = 'default'  # Vocab
-        vocabtrain_cfg.vocab_taids = 'all'  # Vocab
-        vocabtrain_cfg.nWords = int(8E3)  #
-        vocabtrain_cfg.vocab_init_method = 'akmeans++'
-        vocabtrain_cfg.vocab_nIters = 128
-        # TODO: easy flann params cfgstr
-        vocabtrain_cfg.vocab_flann_params = dict(cores=0)
-        vocabtrain_cfg.update(**kwargs)
-
-    def get_cfgstr_list(vocabtrain_cfg, **kwargs):
-        if vocabtrain_cfg.override_vocab == 'default':
-            if isinstance(vocabtrain_cfg.vocab_taids, six.string_types):
-                taids_cfgstr = 'taids=%s' % vocabtrain_cfg.vocab_taids
-            else:
-                taids_cfgstr = ut.hashstr_arr(vocabtrain_cfg.vocab_taids,
-                                              'taids', hashlen=8)
-            vocabtrain_cfg_list = [
-                '_VocabTrain(',
-                'nWords=%d' % (vocabtrain_cfg.nWords,),
-                ',init=', str(vocabtrain_cfg.vocab_init_method),
-                ',nIters=%d,' % int(vocabtrain_cfg.vocab_nIters),
-                taids_cfgstr,
-                ')',
-            ]
-        else:
-            vocabtrain_cfg_list = ['_VocabTrain(override=%s)' %
-                                   (vocabtrain_cfg.override_vocab,)]
-        return vocabtrain_cfg_list
-
-
-@six.add_metaclass(ConfigMetaclass)
-class VocabAssignConfig(ConfigBase):
-    """
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> vocabassign_cfg = VocabAssignConfig()
-        >>> result = vocabassign_cfg.get_cfgstr()
-        >>> print(result)
-    """
-    def __init__(vocabassign_cfg, **kwargs):
-        super(VocabAssignConfig, vocabassign_cfg).__init__(
-            name='vocabassign_cfg')
-        vocabassign_cfg.nAssign = 10  # MultiAssignment
-        vocabassign_cfg.massign_equal_weights = True
-        vocabassign_cfg.massign_alpha = 1.2
-        vocabassign_cfg.massign_sigma = 80.0
-        vocabassign_cfg.update(**kwargs)
-
-    def make_feasible(vocabassign_cfg):
-        assert vocabassign_cfg.nAssign > 0, 'cannot assign to nothing'
-        if vocabassign_cfg.nAssign == 1:
-            # No point to multiassign weights if nAssign is 1
-            vocabassign_cfg.massign_equal_weights = True
-
-        if vocabassign_cfg.massign_equal_weights:
-            # massign sigma makes no difference if there are equal weights
-            vocabassign_cfg.massign_sigma = None
-
-    def get_cfgstr_list(vocabassign_cfg, **kwargs):
-        vocabassign_cfg_list = [
-            '_VocabAssign(',
-            'nAssign=', str(vocabassign_cfg.nAssign),
-            ',a=', str(vocabassign_cfg.massign_alpha),
-            ',s=', (str(vocabassign_cfg.massign_sigma)
-                    if vocabassign_cfg.massign_equal_weights else ''),
-            ',eqw=T' if vocabassign_cfg.massign_equal_weights else ',eqw=F',
-            ')',
-        ]
-        return vocabassign_cfg_list
-
-
-@six.add_metaclass(ConfigMetaclass)
 class NNWeightConfig(ConfigBase):
     r"""
     CommandLine:
@@ -717,13 +575,13 @@ class QueryConfig(ConfigBase):
         query_cfg.sv_cfg         = SpatialVerifyConfig(**kwargs)
         query_cfg.agg_cfg        = AggregateConfig(**kwargs)
         query_cfg.flann_cfg      = FlannConfig(**kwargs)
-        query_cfg.smk_cfg        = SMKConfig(**kwargs)
+        #query_cfg.smk_cfg        = SMKConfig(**kwargs)
         query_cfg.rrvsone_cfg    = RerankVsOneConfig(**kwargs)
         # causes some bug in Preference widget if these don't have underscore
         query_cfg._featweight_cfg = FeatureWeightConfig(**kwargs)
         query_cfg.use_cache = False
         # Start of pipeline
-        query_cfg._valid_pipeline_roots = ['vsmany', 'vsone', 'smk', 'BC_DTW']
+        query_cfg._valid_pipeline_roots = ['vsmany', 'vsone']
         query_cfg.pipeline_root = 'vsmany'
         # <Hack Paramaters>
         query_cfg.with_metadata = False
@@ -734,9 +592,6 @@ class QueryConfig(ConfigBase):
         query_cfg.use_external_distinctiveness = False
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this
-        # </Hack Paramaters>
-        #if ut.is_developer():
-        #    query_cfg.pipeline_root = 'smk'
         # Depends on feature config
         query_cfg.update_query_cfg(**kwargs)
         if ut.VERYVERBOSE:
@@ -748,13 +603,13 @@ class QueryConfig(ConfigBase):
 
         # Build cfgstr
         cfgstr_list = ['_' + query_cfg.pipeline_root ]
-        if str(query_cfg.pipeline_root) == 'smk':
-            # SMK Parameters
-            if kwargs.get('use_smk', True):
-                cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
-            if kwargs.get('use_sv', True):
-                cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
-        elif str(query_cfg.pipeline_root) == 'vsmany' or str(query_cfg.pipeline_root) == 'vsone':
+        #if str(query_cfg.pipeline_root) == 'smk':
+        #    # SMK Parameters
+        #    if kwargs.get('use_smk', True):
+        #        cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
+        #    if kwargs.get('use_sv', True):
+        #        cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
+        if str(query_cfg.pipeline_root) == 'vsmany' or str(query_cfg.pipeline_root) == 'vsone':
             # Naive Bayes Parameters
             if kwargs.get('use_nn', True):
                 cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
@@ -796,9 +651,9 @@ class QueryConfig(ConfigBase):
         query_cfg.sv_cfg.update(**cfgdict)
         query_cfg.agg_cfg.update(**cfgdict)
         query_cfg.flann_cfg.update(**cfgdict)
-        query_cfg.smk_cfg.update(**cfgdict)
-        query_cfg.smk_cfg.vocabassign_cfg.update(**cfgdict)
-        query_cfg.smk_cfg.vocabtrain_cfg.update(**cfgdict)
+        #query_cfg.smk_cfg.update(**cfgdict)
+        #query_cfg.smk_cfg.vocabassign_cfg.update(**cfgdict)
+        #query_cfg.smk_cfg.vocabtrain_cfg.update(**cfgdict)
         query_cfg.rrvsone_cfg.update(**cfgdict)
         query_cfg._featweight_cfg.update(**cfgdict)
         query_cfg._featweight_cfg._feat_cfg.update(**cfgdict)
@@ -851,10 +706,6 @@ class QueryConfig(ConfigBase):
                 agg_cfg.score_normalization = None
             elif codename.startswith('vsone_norm'):
                 agg_cfg.score_normalization = 'vsone_default'
-        elif codename.startswith('asmk'):
-            query_cfg.pipeline_root = 'asmk'
-        elif codename.startswith('smk'):
-            query_cfg.pipeline_root = 'smk'
         elif codename == 'None':
             pass
 
@@ -875,8 +726,8 @@ class QueryConfig(ConfigBase):
         nn_cfg   = query_cfg.nn_cfg
         featweight_cfg = query_cfg._featweight_cfg
         #feat_cfg = query_cfg._featweight_cfg._feat_cfg
-        smk_cfg = query_cfg.smk_cfg
-        vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
+        #smk_cfg = query_cfg.smk_cfg
+        #vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
         agg_cfg = query_cfg.agg_cfg
         #sv_cfg = query_cfg.sv_cfg
 
@@ -886,16 +737,12 @@ class QueryConfig(ConfigBase):
         if agg_cfg.score_normalization and query_cfg.pipeline_root == 'vsmany':
             assert agg_cfg.score_method == 'nsum'
 
-        if query_cfg.pipeline_root == 'asmk':
-            query_cfg.pipeline_root = 'smk'
-            smk_cfg.smk_aggregate = True
-
         hasvalid_root = any([
             query_cfg.pipeline_root.lower() == root.lower()
             for root in query_cfg._valid_pipeline_roots])
         try:
             assert hasvalid_root, (
-                'invalid pipeline root %r valid roots are %r' % query_cfg.pipeline_root, query_cfg._valid_pipeline_roots)
+                'invalid pipeline root %r valid roots are %r' % (query_cfg.pipeline_root, query_cfg._valid_pipeline_roots))
         except AssertionError as ex:
             ut.printex(ex)
             raise
@@ -911,8 +758,8 @@ class QueryConfig(ConfigBase):
         if featweight_cfg.featweight_enabled is not True:
             nnweight_cfg.fg_on = False
 
-        vocabassign_cfg.make_feasible()
-        smk_cfg.make_feasible()
+        #vocabassign_cfg.make_feasible()
+        #smk_cfg.make_feasible()
         #nnweight_cfg.make_feasible()
         nn_cfg.make_feasible()
 

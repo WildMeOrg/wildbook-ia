@@ -353,10 +353,10 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
                 if viz_name_score:
                     cm.show_single_namematch(qreq_, ibs.get_annot_nids(aid), **_kwshow)
                 else:
-                    _kwshow['draw_border'] = False
-                    _kwshow['draw_lbl'] = False
-                    _kwshow['notitle'] = True
-                    _kwshow['vert'] = False
+                    #_kwshow['draw_border'] = False
+                    #_kwshow['draw_lbl'] = False
+                    #_kwshow['notitle'] = True
+                    #_kwshow['vert'] = False
                     cm.show_single_annotmatch(qreq_, aid, **_kwshow)
                     #viz_matches.show_matches(ibs, cm, aid, qreq_=qreq_, **_kwshow)
             else:

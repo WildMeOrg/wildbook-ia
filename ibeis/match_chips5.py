@@ -16,11 +16,14 @@ class EstimatorRequest(ut.NiceRepr):
     def __len__(qreq_):
         return len(qreq_.qaids)
 
-    def execute(qreq_, qaids=None, prog_hook=None):
+    def execute(qreq_, qaids=None, prog_hook=None, use_cache=True):
         assert qaids is None
         if qaids is not None:
             qaids = qreq_.shallowcopy(qaids)
-        cm_list = execute_bulk(qreq_)
+        if use_cache:
+            cm_list = execute_bulk(qreq_)
+        else:
+            cm_list = qreq_.execute_pipeline()
         #cm_list = qreq_.execute_pipeline()
         return cm_list
 
@@ -40,17 +43,19 @@ class EstimatorRequest(ut.NiceRepr):
             >>> assert len(qreq_.qaids) != len(qreq2_.qaids), 'should be diff'
             >>> #assert qreq_.metadata is not qreq2_.metadata
         """
-        qreq2_ = qreq_.__class__()
+        #qreq2_ = qreq_.__class__()
+        cls = qreq_.__class__
+        qreq2_ = cls.__new__(cls)
         qreq2_.__dict__.update(qreq_.__dict__)
         qaids = ut.ensure_iterable(qaids)
         assert ut.issubset(qaids, qreq2_.qaids), 'not a subset'
         return qreq2_
 
     def get_pipe_hashid(qreq_):
-        return ut.hashstr27(str(qreq_.qparams))
+        return ut.hashstr27(str(qreq_.stack_config))
 
     def get_pipe_cfgstr(qreq_):
-        pipe_cfgstr = qreq_.qparams.get_cfgstr()
+        pipe_cfgstr = qreq_.stack_config.get_cfgstr()
         return pipe_cfgstr
 
     def get_data_hashid(qreq_):
@@ -187,6 +192,7 @@ def execute_singles(qreq_):
         else:
             qreq_miss = qreq_
         # Compute misses
+        qreq_miss.ensure_data()
         qaid_to_cm = execute_and_save(qreq_miss)
         # Merge misses with hits
         if hit_any:

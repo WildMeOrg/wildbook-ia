@@ -9,7 +9,7 @@ import numpy as np
 from functools import partial
 from six.moves import zip, range, map, reduce
 from ibeis.expt import cfghelpers
-from ibeis.expt import experiment_helpers  # NOQA
+from ibeis.expt import experiment_helpers
 print, rrr, profile = ut.inject2(__name__, '[testres]')
 
 
@@ -28,8 +28,7 @@ def combine_testres_list(ibs, testres_list):
     >>> # DISABLE_DOCTEST
     >>> from ibeis.expt.test_result import *  # NOQA
     >>> from ibeis.expt import harness
-    >>> ibs, testres_list = harness.testdata_expts('PZ_MTEST', ['varysize'])
-    >>> combine_testres_list(ibs, testres_list)
+    >>> ibs, testres = harness.testdata_expts('PZ_MTEST', ['varysize'])
     """
     import copy
     from ibeis.expt import annotation_configs
@@ -1795,8 +1794,8 @@ class TestResult(ut.NiceRepr):
         qaids = testres.get_test_qaids()
         qaids = ibs.get_annot_tag_filterflags(qaids, {'has_none': 'timedeltaerror'})
 
-        gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score')
-        gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score')
+        gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score', qaids=qaids)
+        gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score', qaids=qaids)
 
         gt_valid_flags_list = np.isfinite(gt_rawscore).T
         gf_valid_flags_list = np.isfinite(gf_rawscore).T
@@ -1805,8 +1804,8 @@ class TestResult(ut.NiceRepr):
         cfgx2_gf_scores = vt.zipcompress(gf_rawscore.T, gf_valid_flags_list)
 
         # partition by rank
-        gt_rank     = testres.get_infoprop_mat('qx2_gt_rank')
-        gf_ranks    = testres.get_infoprop_mat('qx2_gf_rank')
+        gt_rank     = testres.get_infoprop_mat('qx2_gt_rank', qaids=qaids)
+        gf_ranks    = testres.get_infoprop_mat('qx2_gf_rank', qaids=qaids)
         cfgx2_gt_ranks  = vt.zipcompress(gt_rank.T,     gt_valid_flags_list)
         cfgx2_rank0_gt_scores = vt.zipcompress(cfgx2_gt_scores, [ranks == 0 for ranks in cfgx2_gt_ranks])
         cfgx2_rankX_gt_scores = vt.zipcompress(cfgx2_gt_scores, [ranks > 0 for ranks in cfgx2_gt_ranks])
@@ -1948,8 +1947,8 @@ class TestResult(ut.NiceRepr):
         cfgx = 0
         #qreq_ = testres.cfgx2_qreq_[cfgx]
         test_qaids = testres.get_test_qaids()
-        gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score').T[cfgx]
-        gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score').T[cfgx]
+        gt_rawscore = testres.get_infoprop_mat('qx2_gt_raw_score', qaids=test_qaids).T[cfgx]
+        gf_rawscore = testres.get_infoprop_mat('qx2_gf_raw_score', qaids=test_qaids).T[cfgx]
 
         # FIXME: may need to specify which cfg is used in the future
         #isvalid = testres.case_sample2(filt_cfg, return_mask=True).T[cfgx]
@@ -1993,10 +1992,10 @@ class TestResult(ut.NiceRepr):
         """
         ibs = testres.ibs
         qaids = testres.get_test_qaids()
-        unique_nids, groupxs = vt.group_indices(ibs.get_annot_nids(qaids))
+        unique_nids, groupxs = ut.group_indices(ibs.get_annot_nids(qaids))
 
-        qx2_gt_raw_score = testres.get_infoprop_mat('qx2_gt_raw_score')
-        qx2_gf_raw_score = testres.get_infoprop_mat('qx2_gf_raw_score')
+        qx2_gt_raw_score = testres.get_infoprop_mat('qx2_gt_raw_score', qaids=qaids)
+        qx2_gf_raw_score = testres.get_infoprop_mat('qx2_gf_raw_score', qaids=qaids)
 
         nx2_gt_raw_score = np.array([
             np.nanmax(scores, axis=0)
