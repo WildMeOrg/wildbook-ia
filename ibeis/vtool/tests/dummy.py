@@ -11,7 +11,7 @@ DEFAULT_DTYPE = ktool.KPTS_DTYPE
 TAU = np.pi * 2  # References: tauday.com
 
 
-def testdata_dummy_sift(nPts=10, rng=np.random):
+def testdata_dummy_sift(nPts=10, asint=True, rng=None):
     r"""
     Makes a dummy sift descriptor that has the uint8 * 512 hack
     like hesaff returns
@@ -33,6 +33,8 @@ def testdata_dummy_sift(nPts=10, rng=np.random):
         >>> #assert np.allclose(((sift / 512) ** 2).sum(axis=1), 1, rtol=.01), 'bad SIFT property'
         >>> #assert np.all(sift / 512 < .2), 'bad SIFT property'
     """
+    if rng is None:
+        rng = np.random
     import vtool as vt
     sift_ = rng.rand(nPts, 128)
     # normalize
@@ -43,7 +45,10 @@ def testdata_dummy_sift(nPts=10, rng=np.random):
     sift_ = vt.normalize_rows(rng.rand(nPts, 128))
     # compress into uint8
     #sift = (sift_ * 512).round().astype(np.uint8)
-    sift = (sift_ * 512).astype(np.uint8)
+    if asint:
+        sift = (sift_ * 512).astype(np.uint8)
+    else:
+        sift = sift_
     return sift
 
 
