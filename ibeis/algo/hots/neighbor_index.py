@@ -34,15 +34,16 @@ def get_support_data(qreq_, daid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
         >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', p='default:fgw_thresh=.9,maxscale_thresh=10', a='default:size=2')
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', p=':fgw_thresh=.9,maxscale_thresh=10', a=':size=2')
         >>> daid_list = qreq_.daids
         >>> tup  = get_support_data(qreq_, daid_list)
         >>> vecs_list, fgws_list, fxs_list = tup
         >>> assert all([np.all(fgws > .9) for fgws in fgws_list])
         >>> result = ('depth_profile = %r' % (ut.depth_profile(tup),))
         >>> print(result)
-        depth_profile = [[(83, 128), (129, 128)], [83, 129], [83, 129]]
+        depth_profile = [[(35, 128), (24, 128)], [35, 24], [35, 24]]
 
+        depth_profile = [[(83, 128), (129, 128)], [83, 129], [83, 129]]
         depth_profile = [[(13, 128), (104, 128)], [13, 104], [13, 104]]
     """
     config2_ = qreq_.get_internal_data_config2()

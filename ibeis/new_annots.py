@@ -23,7 +23,7 @@ class VocabConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('algorithm', 'minibatch', 'alg'),
         ut.ParamInfo('random_seed', 42, 'seed'),
-        ut.ParamInfo('num_words', 1000, 'seed'),
+        ut.ParamInfo('num_words', 1000, 'n'),
         #ut.ParamInfo('num_words', 64000),
         ut.ParamInfo('version', 1),
         #ut.ParamInfo('n_jobs', -1, hide=True),
@@ -953,6 +953,7 @@ class SMKRequest(mc5.EstimatorRequest):
     qreq_-like object. Trying to work on becoming more scikit-ish
 
     CommandLine:
+        python -m ibeis.new_annots SMKRequest
         python -m ibeis.new_annots SMKRequest --show
 
     Example:
@@ -961,7 +962,24 @@ class SMKRequest(mc5.EstimatorRequest):
         >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
         >>> qaids = aid_list[0:2]
         >>> daids = aid_list[2:]
-        >>> config = {'nAssign': 2, 'num_words': 100000}
+        >>> config = {'nAssign': 2, 'num_words': 64000}
+        >>> qreq_ = SMKRequest(ibs, qaids, daids, config)
+        >>> qreq_.ensure_data()
+        >>> cm_list = qreq_.execute()
+        >>> #cm_list = qreq_.execute_pipeline()
+        >>> ut.quit_if_noshow()
+        >>> ut.qt4ensure()
+        >>> cm_list[0].ishow_analysis(qreq_, fnum=1, viz_name_score=False)
+        >>> cm_list[1].ishow_analysis(qreq_, fnum=2, viz_name_score=False)
+        >>> ut.show_if_requested()
+
+    Example:
+        >>> from ibeis.new_annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
+        >>> qaids = aid_list[0:2]
+        >>> daids = aid_list[:]
+        >>> config = {'nAssign': 2, 'num_words': 64000}
         >>> qreq_ = SMKRequest(ibs, qaids, daids, config)
         >>> qreq_.ensure_data()
         >>> cm_list = qreq_.execute()
