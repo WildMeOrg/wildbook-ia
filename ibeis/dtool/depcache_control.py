@@ -168,7 +168,7 @@ class _CoreDependencyCache(object):
         for fname, db in depc.fname_to_db.items():
             db.close()
 
-    @profile
+    #@profile
     def initialize(depc, _debug=None):
         """
         Creates all registered tables

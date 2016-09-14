@@ -332,7 +332,7 @@ class _TableConfigHelper(object):
             id_colname=CONFIG_ROWID)
         return [None if dict_ is None else table.configclass(**dict_) for dict_ in cfgdict_list]
 
-    @profile
+    #@profile
     def add_config(table, config, _debug=None):
         try:
             # assume config is AlgoRequest or TableConfig
@@ -1224,7 +1224,7 @@ class _TableGeneralHelper(ut.NiceRepr):
 class _TableComputeHelper(object):
     """ helper for computing functions """
 
-    @profile
+    #@profile
     def prepare_storage(table, dirty_parent_ids, proptup_gen,
                         dirty_preproc_args, config_rowid, config):
         """
@@ -1377,7 +1377,7 @@ class _TableComputeHelper(object):
                                          eager=True, nInput=len(model_uuid_list))
         return rowid_list
 
-    @profile
+    @ profile
     def _prepare_storage_nested(table, proptup_gen):
         """
         Hack for when a sql schema has tuples defined in it.
@@ -1401,7 +1401,7 @@ class _TableComputeHelper(object):
             data_new = tuple(ut.flatten(unflat))
             yield data_new
 
-    @profile
+    #@profile
     def _prepare_storage_extern(table, dirty_parent_ids, config_rowid,
                                 config, proptup_gen):
         """
@@ -1493,7 +1493,7 @@ class _TableComputeHelper(object):
 
         return fname_list
 
-    @profile
+    #@profile
     def _get_extern_fnames(table, parent_rowids, config_rowid, config, extern_colattr=None):
         """
         TODO:
@@ -1531,7 +1531,7 @@ class _TableComputeHelper(object):
 
     #def _raw_call():
     #    pass
-    @profile
+    #@profile
     def _compute_dirty_rows(table, dirty_parent_ids, dirty_preproc_args,
                             config_rowid, config, verbose=True):
         nInput = len(dirty_parent_ids)
@@ -1574,7 +1574,7 @@ class _TableComputeHelper(object):
         # None data means that there was an error for a specific row
         return dirty_params_iter
 
-    @profile
+    #@profile
     def _chunk_compute_dirty_rows(table, dirty_parent_ids, dirty_preproc_args,
                                   config_rowid, config, verbose=True):
         """
@@ -1765,7 +1765,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         # Check for errors
         table._assert_self()
 
-    @profile
+    #@profile
     def initialize(table, _debug=None):
         """
         Ensures the SQL schema for this cache table
@@ -1840,7 +1840,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
     def _get_all_rowids(table):
         return table.db.get_all_rowids(table.tablename)
 
-    @profile
+    #@profile
     def ensure_rows(table, parent_ids_, preproc_args, config=None,
                     verbose=True, _debug=None):
         """
@@ -1904,7 +1904,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             print('[deptbl.add] rowid_list = %s' % ut.trunc_repr(rowid_list))
         return rowid_list
 
-    @profile
+    #@profile
     def _rectify_ids(table, parent_rowids):
         r"""
         Removes Nones, and turns many-to-one sets of rowids into hashable
@@ -2002,7 +2002,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             rowid_list = rowid_list_
         return rowid_list
 
-    @profile
+    #@profile
     def get_rowid(table, parent_rowids, config=None, ensure=True,
                   eager=True, nInput=None, recompute=False, _debug=None,
                   num_retries=1):
@@ -2083,7 +2083,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
                                           idxs2)
         return rowid_list
 
-    @profile
+    #@profile
     def _get_rowid(table, parent_ids_, config=None, eager=True, nInput=None,
                    _debug=None):
         """
@@ -2122,7 +2122,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         table.db.drop_table(table.tablename)
         table.db.add_table(**table._get_addtable_kw())
 
-    @profile
+    #@profile
     def delete_rows(table, rowid_list, delete_extern=None, verbose=None):
         """
         CommandLine:
@@ -2260,7 +2260,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         flat_intern_colnames = tuple(ut.flatten(intern_colnames))
         return nesting_xs, extern_resolve_tups, flat_intern_colnames
 
-    @profile
+    #@profile
     def get_row_data(table, tbl_rowids, colnames=None, _debug=None,
                      read_extern=True, num_retries=1, eager=True,
                      nInput=None, ensure=True, delete_on_fail=True):
@@ -2599,7 +2599,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         #raw_prop_list = grouped_map(groupmap_func, groupxs, togroup_args,
         #                            unique_args_list)
 
-    @profile
+    #@profile
     def get_internal_columns(table, tbl_rowids, colnames=None, eager=True,
                              nInput=None, unpack_scalars=True, keepwrap=False):
         """ Access data in this table using the table PRIMARY KEY rowids (not

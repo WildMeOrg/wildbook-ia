@@ -74,12 +74,9 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
 
     def get_config_name(cfg, **kwargs):
         """ the user might want to overwrite this function """
-        #class_str = str(cfg.__class__)
-        #full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
-        #config_name = splitext(full_class_str)[1][1:].replace('Config', '')
-        config_name = cfg.__class__.__name__.replace('Config', '')
         # VERY HACKY
         import re
+        config_name = cfg.__class__.__name__.replace('Config', '')
         config_name = re.sub('_$', '', config_name)
         return config_name
 

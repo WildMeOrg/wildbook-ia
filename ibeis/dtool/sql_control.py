@@ -95,7 +95,7 @@ class SQLExecutionContext(object):
 
     # --- with SQLExecutionContext: statment code happens here ---
 
-    @profile
+    #@profile
     def execute_and_generate_results(context, params):
         """ helper for context statment """
         try:
@@ -120,7 +120,7 @@ class SQLExecutionContext(object):
             raise
         return context._results_gen()
 
-    @profile
+    #@profile
     def _results_gen(context):
         """ HELPER - Returns as many results as there are.
         Careful. Overwrites the results once you call it.
@@ -949,7 +949,7 @@ class SQLDatabaseController(object):
         return result_list
 
     #@ut.memprof
-    @profile
+    #@profile
     def executemany(db, operation, params_iter,
                     verbose=VERBOSE_SQL, unpack_scalars=True, nInput=None,
                     eager=True, keepwrap=False):
