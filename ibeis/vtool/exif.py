@@ -3,6 +3,9 @@
 """
 References:
     http://www.exiv2.org/tags.html
+
+TODO:
+    https://github.com/recurser/exif-orientation-examples
 """
 from __future__ import absolute_import, division, print_function
 from six.moves import zip, range
@@ -10,8 +13,8 @@ import six
 from PIL.ExifTags import TAGS, GPSTAGS
 import PIL.ExifTags  # NOQA
 from PIL import Image
-#from utool import util_progress
 import utool as ut
+import warnings
 from utool import util_time
 from vtool import image_shared
 (print, print_, printDBG, rrr, profile) = ut.inject(
@@ -264,7 +267,7 @@ def get_lat_lon(exif_dict, default=(-1, -1)):
     return default
 
 
-def get_orientation(exif_dict, default=0):
+def get_orientation(exif_dict, default=0, on_error='fail'):
     r"""
     Returns the image orientation, if available, from the provided
     exif_data2 (obtained through exif_data2 above)
@@ -301,7 +304,11 @@ def get_orientation(exif_dict, default=0):
                 raise NotImplementedError('Orientation not defined')
             default = orient
         else:
-            raise AssertionError('Unrecognized orientation in Exif')
+            msg = 'Unrecognized orientation=%r in Exif' % (orient,)
+            if on_error == 'warn':
+                warnings.warn(msg, RuntimeWarning)
+            else:
+                raise AssertionError(msg)
     return default
 
 
