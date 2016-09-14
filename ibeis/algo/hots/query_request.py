@@ -142,12 +142,12 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     if VERBOSE_QREQ:
         print('[qreq] piperoot = %r' % (piperoot,))
     if piperoot is not None and piperoot in ['smk']:
-        from ibeis import new_annots
+        from ibeis.algo.smk import smk_pipeline
         if query_cfg is not None:
             # Another config hack
             config = dict(query_cfg.parse_items())
             config.update(**cfgdict)
-        qreq_ = new_annots.SMKRequest(ibs, qaid_list, daid_list, config)
+        qreq_ = smk_pipeline.SMKRequest(ibs, qaid_list, daid_list, config)
     # HACK FOR DEPC REQUESTS including flukes
     elif query_cfg is not None and isinstance(query_cfg, dtool.Config):
         if VERBOSE_QREQ:

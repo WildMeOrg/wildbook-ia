@@ -7,16 +7,12 @@ import utool as ut
 import vtool as vt
 import pyflann
 import numpy as np
-from ibeis import match_chips5 as mc5
-from ibeis import core_annots
-from ibeis.control.controller_inject import register_preprocs, register_subprops
-from ibeis.algo import Config
-(print, rrr, profile) = ut.inject2(__name__, '[new_annots]')
+#from ibeis import core_annots
+from ibeis.control.controller_inject import register_preprocs
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 derived_attribute = register_preprocs['annot']
-register_subprop = register_subprops['annot']
-# dtool.Config.register_func = derived_attribute
 
 
 class VocabConfig(dtool.Config):
@@ -33,48 +29,18 @@ class VocabConfig(dtool.Config):
 class InvertedIndexConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('nAssign', 2),
-    ]
-
-
-class SMKConfig(dtool.Config):
-    _param_info_list = [
-        ut.ParamInfo('smk_alpha', 3.0),
-        #ut.ParamInfo('smk_thresh', 0.0),
-        ut.ParamInfo('smk_thresh', 0.25),
-        #ut.ParamInfo('smk_thresh', 0.0),
-        ut.ParamInfo('agg', True),
-        #ut.ParamInfo('agg', True),
-    ]
-
-
-class MatchHeuristicsConfig(dtool.Config):
-    _param_info_list = [
-        ut.ParamInfo('can_match_self', False),
-        ut.ParamInfo('can_match_samename', True),
-        ut.ParamInfo('can_match_sameimg', False),
-    ]
-
-
-class SMKRequestConfig(dtool.Config):
-    """ Figure out how to do this """
-    _param_info_list = [
-        ut.ParamInfo('proot', 'smk')
-    ]
-    _sub_config_list = [
-        #Config.FeatureConfig(**config),
-        core_annots.ChipConfig,
-        core_annots.FeatConfig,
-        Config.SpatialVerifyConfig,
-        VocabConfig,
-        InvertedIndexConfig,
-        MatchHeuristicsConfig,
-        SMKConfig,
+        #massign_alpha=1.2,
+        #massign_sigma=80.0,
+        #massign_equal_weights=False
     ]
 
 
 @ut.reloadable_class
 class SMKCacheable(object):
-    """ helper for depcache-less cachine """
+    """
+    helper for depcache-less caching
+    FIXME: Just use the depcache. Much less headache.
+    """
     def get_fpath(self, cachedir, cfgstr=None, cfgaug=''):
         _args2_fpath = ut.util_cache._args2_fpath
         #prefix = self.get_prefix()
@@ -97,9 +63,14 @@ class SMKCacheable(object):
         else:
             cfgaug = ''
         fpath = self.get_fpath(cachedir, cfgaug=cfgaug)
+        needs_build = True
         if ut.checkpath(fpath):
-            self.load(fpath)
-        else:
+            try:
+                self.load(fpath)
+                needs_build = False
+            except ImportError:
+                print('Need to recompute')
+        if needs_build:
             self.build(**kwargs)
             self.save(fpath)
         return fpath
@@ -121,36 +92,32 @@ class VisualVocab(ut.NiceRepr):
     This class is build using the depcache
     """
 
-    def __init__(self, words=None):
-        self.wx_to_word = words
-        self.wordflann = None
-        self.flann_params = vt.get_flann_params(random_seed=42)
+    def __init__(vocab, words=None):
+        vocab.wx_to_word = words
+        vocab.wordflann = None
+        vocab.flann_params = vt.get_flann_params(random_seed=42)
+        # TODO: grab the depcache rowid and maybe config?
+        # make a dtool.Computable
 
-        # TODO: grab the depcache rowid
+    def __nice__(vocab):
+        return 'nW=%r' % (ut.safelen(vocab.wx_to_word))
 
-    def __len__(self):
-        return len(self.wx_to_word)
+    def __len__(vocab):
+        return len(vocab.wx_to_word)
 
     @property
-    def shape(self):
-        return self.wx_to_word.shape
+    def shape(vocab):
+        return vocab.wx_to_word.shape
 
-    def __getstate__(self):
+    def __getstate__(vocab):
         """
-        pip install fs
-
-        from fs.memoryfs import MemoryFS
-        tmp = MemoryFS()
-
         http://www.linuxscrew.com/2010/03/24/fastest-way-to-create-ramdisk-in-ubuntulinux/
-
         sudo mkdir /tmp/ramdisk; chmod 777 /tmp/ramdisk
         sudo mount -t tmpfs -o size=256M tmpfs /tmp/ramdisk/
-
         http://zeblog.co/?p=1588
         """
         # TODO: Figure out how to make these play nice with the depcache
-        state = self.__dict__.copy()
+        state = vocab.__dict__.copy()
         if 'wx2_word' in state:
             state['wx_to_word'] = state.pop('wx2_word')
         del state['wordflann']
@@ -160,7 +127,7 @@ class VisualVocab(ut.NiceRepr):
         assert not ut.WIN32, 'Need to fix this on WIN32. Cannot write to temp file'
         temp = tempfile.NamedTemporaryFile(delete=True)
         try:
-            self.wordflann.save_index(temp.name)
+            vocab.wordflann.save_index(temp.name)
             wordindex_bytes = temp.read()
             #print('wordindex_bytes = %r' % (len(wordindex_bytes),))
             state['wordindex_bytes'] = wordindex_bytes
@@ -170,26 +137,26 @@ class VisualVocab(ut.NiceRepr):
             temp.close()
         return state
 
-    def __setstate__(self, state):
+    def __setstate__(vocab, state):
         wordindex_bytes = state.pop('wordindex_bytes')
-        self.__dict__.update(state)
-        self.wordflann = pyflann.FLANN()
+        vocab.__dict__.update(state)
+        vocab.wordflann = pyflann.FLANN()
         import tempfile
         assert not ut.WIN32, 'Need to fix this on WIN32. Cannot write to temp file'
         temp = tempfile.NamedTemporaryFile(delete=True)
         try:
             temp.write(wordindex_bytes)
             temp.file.flush()
-            self.wordflann.load_index(temp.name, self.wx_to_word)
+            vocab.wordflann.load_index(temp.name, vocab.wx_to_word)
         except Exception:
             raise
         finally:
             temp.close()
 
-    def build(self, verbose=True):
-        num_vecs = len(self.wx_to_word)
-        if self.wordflann is None:
-            self.wordflann = pyflann.FLANN()
+    def build(vocab, verbose=True):
+        num_vecs = len(vocab.wx_to_word)
+        if vocab.wordflann is None:
+            vocab.wordflann = pyflann.FLANN()
         if verbose:
             print('[nnindex] ...building kdtree over %d points (this may take a sec).' % num_vecs)
             tt = ut.tic(msg='Building vocab index')
@@ -197,32 +164,32 @@ class VisualVocab(ut.NiceRepr):
             print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS.')
             print('THIS MAY BE A SIGN OF A DEEPER ISSUE')
         else:
-            self.wordflann.build_index(self.wx_to_word, **self.flann_params)
+            vocab.wordflann.build_index(vocab.wx_to_word, **vocab.flann_params)
         if verbose:
             ut.toc(tt)
 
-    def nn_index(self, idx_to_vec, nAssign):
+    def nn_index(vocab, idx_to_vec, nAssign):
         """
             >>> idx_to_vec = depc.d.get_feat_vecs(aid_list)[0]
-            >>> self = vocab
+            >>> vocab = vocab
             >>> nAssign = 1
         """
         # Assign each vector to the nearest visual words
         assert nAssign > 0, 'cannot assign to 0 neighbors'
         try:
-            idx_to_vec = idx_to_vec.astype(self.wordflann._FLANN__curindex_data.dtype)
-            _idx_to_wx, _idx_to_wdist = self.wordflann.nn_index(idx_to_vec, nAssign)
+            idx_to_vec = idx_to_vec.astype(vocab.wordflann._FLANN__curindex_data.dtype)
+            _idx_to_wx, _idx_to_wdist = vocab.wordflann.nn_index(idx_to_vec, nAssign)
         except pyflann.FLANNException as ex:
             ut.printex(ex, 'probably misread the cached flann_fpath=%r' % (
-                getattr(self.wordflann, 'flann_fpath', None),))
+                getattr(vocab.wordflann, 'flann_fpath', None),))
             raise
         else:
             _idx_to_wx = vt.atleast_nd(_idx_to_wx, 2)
             _idx_to_wdist = vt.atleast_nd(_idx_to_wdist, 2)
             return _idx_to_wx, _idx_to_wdist
 
-    def assign_to_words(self, idx_to_vec, nAssign, massign_alpha=1.2,
-                        massign_sigma=80.0, massign_equal_weights=False):
+    def assign_to_words(vocab, idx_to_vec, nAssign, massign_alpha=1.2,
+                        massign_sigma=80.0, massign_equal_weights=False, verbose=None):
         """
         Assigns descriptor-vectors to nearest word.
 
@@ -246,38 +213,40 @@ class VisualVocab(ut.NiceRepr):
         Example:
             >>> # SLOW_DOCTEST
             >>> idx_to_vec = depc.d.get_feat_vecs(aid_list)[0][0::300]
-            >>> idx_to_vec = np.vstack((idx_to_vec, self.wx_to_word[0]))
+            >>> idx_to_vec = np.vstack((idx_to_vec, vocab.wx_to_word[0]))
             >>> nAssign = 2
             >>> massign_equal_weights = False
             >>> massign_alpha = 1.2
             >>> massign_sigma = 80.0
             >>> nAssign = 2
-            >>> idx_to_wxs, idx_to_maws = self.assign_to_words(idx_to_vec, nAssign)
+            >>> idx_to_wxs, idx_to_maws = vocab.assign_to_words(idx_to_vec, nAssign)
             >>> print('idx_to_maws = %s' % (ut.repr2(idx_to_wxs, precision=2),))
             >>> print('idx_to_wxs = %s' % (ut.repr2(idx_to_maws, precision=2),))
         """
-        if ut.VERBOSE:
-            print('[smk_index.assign] +--- Start Assign vecs to words.')
-            print('[smk_index.assign] * nAssign=%r' % nAssign)
-        if not ut.QUIET:
-            print('[smk_index.assign] assign_to_words_. len(idx_to_vec) = %r' % len(idx_to_vec))
-        _idx_to_wx, _idx_to_wdist = self.nn_index(idx_to_vec, nAssign)
+        if verbose is None:
+            verbose = ut.VERBOSE
+        if verbose:
+            print('[vocab.assign] +--- Start Assign vecs to words.')
+            print('[vocab.assign] * nAssign=%r' % nAssign)
+            print('[vocab.assign] assign_to_words_. len(idx_to_vec) = %r' % len(idx_to_vec))
+        _idx_to_wx, _idx_to_wdist = vocab.nn_index(idx_to_vec, nAssign)
         if nAssign > 1:
-            idx_to_wxs, idx_to_maws = self._compute_multiassign_weights(
-                _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma, massign_equal_weights)
+            idx_to_wxs, idx_to_maws = weight_multi_assigns(
+                _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,
+                massign_equal_weights)
         else:
             idx_to_wxs = _idx_to_wx.tolist()
             idx_to_maws = [[1.0]] * len(idx_to_wxs)
         return idx_to_wxs, idx_to_maws
 
-    def invert_assignment(self, idx_to_wxs, idx_to_maws):
+    def invert_assignment(vocab, idx_to_wxs, idx_to_maws):
         """
         Inverts assignment of vectors to words into words to vectors.
 
         Example:
             >>> idx_to_idx = np.arange(len(idx_to_wxs))
             >>> other_idx_to_prop = (idx_to_idx,)
-            >>> wx_to_idxs, wx_to_maws = self.invert_assignment(idx_to_wxs, idx_to_maws)
+            >>> wx_to_idxs, wx_to_maws = vocab.invert_assignment(idx_to_wxs, idx_to_maws)
         """
         # Invert mapping -- Group by word indexes
         idx_to_nAssign = [len(wxs) for wxs in idx_to_wxs]
@@ -291,105 +260,6 @@ class VisualVocab(ut.NiceRepr):
             print('[smk_index.assign] L___ End Assign vecs to words.')
         return (wx_to_idxs, wx_to_maws)
 
-    @staticmethod
-    def _compute_multiassign_weights(_idx_to_wx, _idx_to_wdist,
-                                     massign_alpha=1.2, massign_sigma=80.0,
-                                     massign_equal_weights=False):
-        """
-        Multi Assignment Weight Filtering from Improving Bag of Features
-
-        Args:
-            massign_equal_weights (): Turns off soft weighting. Gives all assigned
-                vectors weight 1
-
-        Returns:
-            tuple : (idx_to_wxs, idx_to_maws)
-
-        References:
-            (Improving Bag of Features)
-            http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf
-            (Lost in Quantization)
-            http://www.robots.ox.ac.uk/~vgg/publications/papers/philbin08.ps.gz
-            (A Context Dissimilarity Measure for Accurate and Efficient Image Search)
-            https://lear.inrialpes.fr/pubs/2007/JHS07/jegou_cdm.pdf
-
-        Example:
-            >>> massign_alpha = 1.2
-            >>> massign_sigma = 80.0
-            >>> massign_equal_weights = False
-
-        Notes:
-            sigma values from \cite{philbin_lost08}
-            (70 ** 2) ~= 5000, (80 ** 2) ~= 6250, (86 ** 2) ~= 7500,
-        """
-        if not ut.QUIET:
-            print('[smk_index.assign] compute_multiassign_weights_')
-        if _idx_to_wx.shape[1] <= 1:
-            idx_to_wxs = _idx_to_wx.tolist()
-            idx_to_maws = [[1.0]] * len(idx_to_wxs)
-        else:
-            # Valid word assignments are beyond fraction of distance to the nearest word
-            massign_thresh = _idx_to_wdist.T[0:1].T.copy()
-            # HACK: If the nearest word has distance 0 then this threshold is too hard
-            # so we should use the distance to the second nearest word.
-            EXACT_MATCH_HACK = True
-            if EXACT_MATCH_HACK:
-                flag_too_close = (massign_thresh == 0)
-                massign_thresh[flag_too_close] = _idx_to_wdist.T[1:2].T[flag_too_close]
-            # Compute the threshold fraction
-            epsilon = .001
-            np.add(epsilon, massign_thresh, out=massign_thresh)
-            np.multiply(massign_alpha, massign_thresh, out=massign_thresh)
-            # Mark assignments as invalid if they are too far away from the nearest assignment
-            invalid = np.greater_equal(_idx_to_wdist, massign_thresh)
-            if ut.VERBOSE:
-                nInvalid = (invalid.size - invalid.sum(), invalid.size)
-                print('[maw] + massign_alpha = %r' % (massign_alpha,))
-                print('[maw] + massign_sigma = %r' % (massign_sigma,))
-                print('[maw] + massign_equal_weights = %r' % (massign_equal_weights,))
-                print('[maw] * Marked %d/%d assignments as invalid' % nInvalid)
-
-            if massign_equal_weights:
-                # Performance hack from jegou paper: just give everyone equal weight
-                masked_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid)
-                idx_to_wxs  = list(map(ut.filter_Nones, masked_wxs.tolist()))
-                if ut.DEBUG2:
-                    assert all([isinstance(wxs, list) for wxs in idx_to_wxs])
-                idx_to_maws = [np.ones(len(wxs), dtype=np.float32) for wxs in idx_to_wxs]
-            else:
-                # More natural weighting scheme
-                # Weighting as in Lost in Quantization
-                gauss_numer = np.negative(_idx_to_wdist.astype(np.float64))
-                gauss_denom = 2 * (massign_sigma ** 2)
-                gauss_exp   = np.divide(gauss_numer, gauss_denom)
-                unnorm_maw = np.exp(gauss_exp)
-                # Mask invalid multiassignment weights
-                masked_unorm_maw = np.ma.masked_array(unnorm_maw, mask=invalid)
-                # Normalize multiassignment weights from 0 to 1
-                masked_norm = masked_unorm_maw.sum(axis=1)[:, np.newaxis]
-                masked_maw = np.divide(masked_unorm_maw, masked_norm)
-                masked_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid)
-                # Remove masked weights and word indexes
-                idx_to_wxs  = list(map(ut.filter_Nones, masked_wxs.tolist()))
-                idx_to_maws = list(map(ut.filter_Nones, masked_maw.tolist()))
-                #with ut.EmbedOnException():
-                if ut.DEBUG2:
-                    checksum = [sum(maws) for maws in idx_to_maws]
-                    for x in np.where([not ut.almost_eq(val, 1) for val in checksum])[0]:
-                        print(checksum[x])
-                        print(_idx_to_wx[x])
-                        print(masked_wxs[x])
-                        print(masked_maw[x])
-                        print(massign_thresh[x])
-                        print(_idx_to_wdist[x])
-                    #all([ut.almost_eq(x, 1) for x in checksum])
-                    assert all([ut.almost_eq(val, 1) for val in checksum]), (
-                        'weights did not break evenly')
-        return idx_to_wxs, idx_to_maws
-
-    def __nice__(self):
-        return 'nW=%r' % (ut.safelen(self.wx_to_word))
-
     def render_vocab_word(vocab, inva, wx, fnum=None):
         """
         Creates a visualization of a visual word. This includes the average patch,
@@ -397,10 +267,10 @@ class VisualVocab(ut.NiceRepr):
         were assigned to it.
 
         CommandLine:
-            python -m ibeis.new_annots render_vocab_word --show
+            python -m ibeis.algo.smk.vocab_indexer render_vocab_word --show
 
         Example:
-            >>> from ibeis.new_annots import *  # NOQA
+            >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
             >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=10000)
             >>> vocab = inva.vocab
             >>> sortx = ut.argsort(list(inva.wx_to_num.values()))[::-1]
@@ -457,12 +327,12 @@ class VisualVocab(ut.NiceRepr):
         This is a quick visualization of the entire vocabulary.
 
         CommandLine:
-            python -m ibeis.new_annots render_vocab --show
-            python -m ibeis.new_annots render_vocab --show --use-data
-            python -m ibeis.new_annots render_vocab --show --debug-depc
+            python -m ibeis.algo.smk.vocab_indexer render_vocab --show
+            python -m ibeis.algo.smk.vocab_indexer render_vocab --show --use-data
+            python -m ibeis.algo.smk.vocab_indexer render_vocab --show --debug-depc
 
         Example:
-            >>> from ibeis.new_annots import *  # NOQA
+            >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
             >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=10000)
             >>> use_data = ut.get_argflag('--use-data')
             >>> vocab = inva.vocab
@@ -492,7 +362,6 @@ class VisualVocab(ut.NiceRepr):
 
         #for wx, p in zip(wx_list, word_patch_list):
         #    inva._word_patches[wx] = p
-
         all_words = vt.stack_square_images(word_patch_list)
         return all_words
 
@@ -584,7 +453,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
 
     Example:
         >>> # ENABLE_LATER
-        >>> from ibeis.new_annots import *  # NOQA
+        >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
         >>> ibs, aid_list, inva = testdata_inva('testdb1', num_words=1000)
         >>> print(inva)
     """
@@ -720,7 +589,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
 
         Example:
             >>> # ENABLE_LATER
-            >>> from ibeis.new_annots import *  # NOQA
+            >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
             >>> ibs, aid_list, inva = testdata_inva(num_words=256)
             >>> wx_to_idf = inva.compute_word_idf()
             >>> assert np.all(wx_to_idf >= 0)
@@ -782,7 +651,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
 
         Example:
             >>> # ENABLE_LATER
-            >>> from ibeis.new_annots import *  # NOQA
+            >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
             >>> ibs, aid_list, inva = testdata_inva(num_words=256)
             >>> wx = 1
             >>> asint = False
@@ -840,7 +709,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
 
         Example:
             >>> # ENABLE_LATER
-            >>> from ibeis.new_annots import *  # NOQA
+            >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
             >>> ibs, aid_list, inva = testdata_inva(num_words=256)
             >>> wx = 1
             >>> asint = False
@@ -859,7 +728,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         """
         Group by annotations first and then by words
 
-            >>> from ibeis.new_annots import *  # NOQA
+            >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
             >>> ibs, smk, qreq_ = testdata_smk()
             >>> inva = qreq_.qinva
         """
@@ -902,7 +771,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
 class IndexedAnnot(ut.NiceRepr):
     """
     Example:
-        >>> from ibeis.new_annots import *  # NOQA
+        >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
         >>> ibs, smk, qreq_ = testdata_smk()
         >>> inva = qreq_.qinva
         >>> X_list = inva.grouped_annots
@@ -958,9 +827,6 @@ class IndexedAnnot(ut.NiceRepr):
     def Phi_flags(X, wx):
         return X.wx_to_aggs[wx]
 
-    def Phlags(X, wx):
-        return X.wx_to_aggs[wx][1]
-
     def phis(X, wx):
         rvecs =  X.phis_flags(wx)[0]
         return rvecs
@@ -989,420 +855,6 @@ class IndexedAnnot(ut.NiceRepr):
             maws = X.maws(wx)
             rvec_agg, flag_agg = aggregate_rvecs(rvecs, maws, flags)
             assert np.all(rvec_agg == X.Phi(wx))
-
-
-@ut.reloadable_class
-class SMKRequest(mc5.EstimatorRequest):
-    """
-    qreq_-like object. Trying to work on becoming more scikit-ish
-
-    CommandLine:
-        python -m ibeis.new_annots SMKRequest
-        python -m ibeis.new_annots SMKRequest --show
-
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=64000 -a default
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=64000 default:proot=vsmany -a default
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=64000,nAssign=[2,4] default:proot=vsmany -a default
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=64000,nAssign=[2,4] default:proot=vsmany -a default:qmingt=2
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=64000,nAssign=[1,2,4] default:proot=vsmany -a default:qmingt=2
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=64000 -a default --pcfginfo
-
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=[32000,64000,8000,4000],nAssign=[1,2,4] default:proot=vsmany -a default:qmingt=2
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=[64000,32000],nAssign=[1,2,4] default:proot=vsmany -a default:qmingt=2
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=[64000,1000,400,50],nAssign=[1] default:proot=vsmany -a default:qmingt=2
-
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show \
-            -p :proot=smk,num_words=[64000,32000,8000,4000],nAssign=[1,2,4],sv_on=[True,False] \
-                default:proot=vsmany,sv_on=[True,False] \
-            -a default:qmingt=2
-
-    Example:
-        >>> from ibeis.new_annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
-        >>> qaids = aid_list[0:2]
-        >>> daids = aid_list[2:]
-        >>> config = {'nAssign': 2, 'num_words': 64000}
-        >>> qreq_ = SMKRequest(ibs, qaids, daids, config)
-        >>> qreq_.ensure_data()
-        >>> cm_list = qreq_.execute()
-        >>> #cm_list = qreq_.execute_pipeline()
-        >>> ut.quit_if_noshow()
-        >>> ut.qt4ensure()
-        >>> cm_list[0].ishow_analysis(qreq_, fnum=1, viz_name_score=False)
-        >>> cm_list[1].ishow_analysis(qreq_, fnum=2, viz_name_score=False)
-        >>> ut.show_if_requested()
-
-    Example:
-        >>> from ibeis.new_annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
-        >>> qaids = aid_list[0:2]
-        >>> daids = aid_list[:]
-        >>> config = {'nAssign': 2, 'num_words': 64000}
-        >>> qreq_ = SMKRequest(ibs, qaids, daids, config)
-        >>> qreq_.ensure_data()
-        >>> cm_list = qreq_.execute()
-        >>> #cm_list = qreq_.execute_pipeline()
-        >>> ut.quit_if_noshow()
-        >>> ut.qt4ensure()
-        >>> cm_list[0].ishow_analysis(qreq_, fnum=1, viz_name_score=False)
-        >>> cm_list[1].ishow_analysis(qreq_, fnum=2, viz_name_score=False)
-        >>> ut.show_if_requested()
-
-    """
-    def __init__(qreq_, ibs=None, qaids=None, daids=None, config=None):
-        super(SMKRequest, qreq_).__init__()
-        if config is None:
-            config = {}
-
-        qreq_.ibs = ibs
-        qreq_.qaids = qaids
-        qreq_.daids = daids
-
-        qreq_.config = config
-
-        #qreq_.vocab = None
-        #qreq_.dinva = None
-
-        qreq_.qinva = None
-        qreq_.dinva = None
-        qreq_.smk = SMK()
-
-        # Hack to work with existing hs code
-        qreq_.stack_config = SMKRequestConfig(**config)
-        # Flat config
-        qreq_.qparams = dtool.base.StackedConfig([
-            dict(qreq_.stack_config.parse_items())
-        ])
-        #    # TODO: add vocab, inva, features
-        qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
-
-    def ensure_data(qreq_):
-        print('Ensure data for %s' % (qreq_,))
-        ibs = qreq_.ibs
-        config = qreq_.config
-
-        vocab = ibs.depc.get('vocab', [qreq_.daids], 'words',
-                             config=qreq_.config)[0]
-        # Hack in config to vocab class
-        # (maybe this becomes part of the depcache)
-        vocab.config = ibs.depc.configclass_dict['vocab'](**qreq_.config)
-
-        qfstack = ForwardIndex(ibs, qreq_.qaids, config, name='query')
-        dfstack = ForwardIndex(ibs, qreq_.daids, config, name='data')
-        qinva = InvertedIndex(qfstack, vocab, config=config)
-        dinva = InvertedIndex(dfstack, vocab, config=config)
-
-        #qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
-        qreq_.ensure_nids()
-
-        qfstack.ensure(qreq_.cachedir)
-        dfstack.ensure(qreq_.cachedir)
-        #qinva.build(groups=True)
-        #dinva.build(groups=True, idf=True)
-
-        qinva.ensure(qreq_.cachedir)
-        dinva.ensure(qreq_.cachedir)
-
-        _cacher = ut.cached_func('idf_' +  dinva.get_hashid(), cache_dir=qreq_.cachedir)
-        _ensureidf = _cacher(dinva.compute_idf)
-        dinva.wx_to_idf = _ensureidf()
-
-        thresh = qreq_.qparams['smk_thresh']
-        alpha = qreq_.qparams['smk_alpha']
-        agg = qreq_.qparams['agg']
-
-        smk = qreq_.smk
-        wx_to_idf = dinva.wx_to_idf
-        for inva in [qinva, dinva]:
-            _cacher = ut.cached_func('gamma_sccw_' +  inva.get_hashid(), cache_dir=qreq_.cachedir,
-                                     key_argx=[1, 2, 3, 4])
-            X_list = inva.grouped_annots
-            _ensuregamma = _cacher(smk.precompute_gammas)
-            gamma_list = _ensuregamma(X_list, wx_to_idf, agg, alpha, thresh)
-            for X, gamma in zip(X_list, gamma_list):
-                X.gamma = gamma
-
-        qreq_.qinva = qinva
-        qreq_.dinva = dinva
-
-    def execute_pipeline(qreq_):
-        """
-        >>> from ibeis.new_annots import *  # NOQA
-        >>> ibs, smk, qreq_ = testdata_smk()
-        >>> cm_list = qreq_.execute()
-        """
-        smk = qreq_.smk
-        cm_list = smk.predict_matches(qreq_)
-        return cm_list
-
-
-@ut.reloadable_class
-class SMK(ut.NiceRepr):
-    """
-    Harness class that controls the execution of the SMK algorithm
-
-    K(X, Y) = gamma(X) * gamma(Y) * sum([Mc(Xc, Yc) for c in words])
-    """
-    def __init__(smk):
-        pass
-
-    #def predict(smk, qreq_):
-    #    # TODO
-    #    pass
-    #def fit(smk, dinva):
-    #    qreq_.dinva = dinva
-
-    def predict_matches(smk, qreq_, verbose=True):
-        """
-        >>> from ibeis.new_annots import *  # NOQA
-        >>> ibs, smk, qreq_ = testdata_smk()
-        >>> verbose = True
-        """
-        print('Predicting matches')
-        assert qreq_.qinva.vocab is qreq_.dinva.vocab
-        X_list = qreq_.qinva.inverted_annots(qreq_.qaids)
-        Y_list = qreq_.dinva.inverted_annots(qreq_.daids)
-        _prog = ut.ProgPartial(lbl='smk query', bs=verbose <= 1, enabled=verbose)
-        cm_list = [smk.match_single(X, Y_list, qreq_, verbose=verbose > 1)
-                   for X in _prog(X_list)]
-        return cm_list
-
-    def check_can_match(smk, X, Y, qreq_):
-        can_match_samename = qreq_.qparams.can_match_samename
-        can_match_sameimg = qreq_.qparams.can_match_sameimg
-        can_match_self = False
-        flag = True
-        # Check that the two annots meet the conditions
-        if not can_match_self:
-            aid1, aid2 = X.aid, Y.aid
-            if aid1 == aid2:
-                flag = False
-        if not can_match_samename:
-            nid1, nid2 = qreq_.get_qreq_annot_nids([X.aid, Y.aid])
-            if nid1 == nid2:
-                flag = False
-        if not can_match_sameimg:
-            gid1, gid2 = qreq_.get_qreq_annot_gids([X.aid, Y.aid])
-            if gid1 == gid2:
-                flag = False
-        return flag
-
-    @profile
-    def match_single(smk, X, Y_list, qreq_, verbose=True):
-        """
-        CommandLine:
-            python -m ibeis.new_annots SMK.match_single --profile
-            python -m ibeis.new_annots SMK.match_single --show
-
-        Example:
-            >>> # FUTURE_ENABLE
-            >>> from ibeis.new_annots import *  # NOQA
-            >>> import ibeis
-            >>> ibs, daids = ibeis.testdata_aids(defaultdb='PZ_MTEST')
-            >>> qreq_ = SMKRequest(ibs, daids[0:1], daids, {'agg': True, 'num_words': 64000, 'sv_on': True})
-            >>> qreq_.ensure_data()
-            >>> #ibs, smk, qreq_ = testdata_smk()
-            >>> X = qreq_.qinva.grouped_annots[0]
-            >>> Y_list = qreq_.dinva.grouped_annots
-            >>> Y = Y_list[1]
-            >>> c = ut.isect(X.words, Y.words)[0]
-            >>> cm = qreq_.smk.match_single(X, Y_list, qreq_)
-            >>> ut.quit_if_noshow()
-            >>> ut.qt4ensure()
-            >>> cm.ishow_analysis(qreq_)
-            >>> ut.show_if_requested()
-        """
-        from ibeis.algo.hots import chip_match
-        from ibeis.algo.hots import pipeline
-
-        qaid = X.aid
-        daid_list = []
-        fm_list = []
-        fsv_list = []
-        fsv_col_lbls = ['smk']
-
-        wx_to_idf = qreq_.dinva.wx_to_idf
-
-        alpha  = qreq_.qparams['smk_alpha']
-        thresh = qreq_.qparams['smk_thresh']
-        agg    = qreq_.qparams['agg']
-        nNameShortList  = qreq_.qparams.nNameShortlistSVER
-        nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
-        sv_on   = qreq_.qparams.sv_on
-
-        #gammaX = smk.gamma(X, wx_to_idf, agg, alpha, thresh)
-        gammaX = X.gamma
-
-        for Y in ut.ProgIter(Y_list, lbl='smk match qaid=%r' % (qaid,), enabled=verbose):
-            if smk.check_can_match(X, Y, qreq_):
-                #gammaY = smk.gamma(Y, wx_to_idf, agg, alpha, thresh)
-                gammaY = Y.gamma
-                gammaXY = gammaX * gammaY
-
-                fm = []
-                fs = []
-                # Words in common define matches
-                common_words = ut.isect(X.words, Y.words)
-                for c in common_words:
-                    #Explicitly computes the feature matches that will be scored
-                    score = smk.selective_match_score(X, Y, c, agg, alpha, thresh)
-                    score *= wx_to_idf[c]
-                    word_fm, word_fs = smk.build_matches(X, Y, c, score)
-                    assert not np.any(np.isnan(word_fs))
-                    word_fs *= gammaXY
-                    fm.extend(word_fm)
-                    fs.extend(word_fs)
-
-                #if len(fm) > 0:
-                daid = Y.aid
-                fsv = np.array(fs)[:, None]
-                daid_list.append(daid)
-                fm = np.array(fm)
-                fm_list.append(fm)
-                fsv_list.append(fsv)
-
-        # Build initial matches
-        cm = chip_match.ChipMatch(qaid=qaid, daid_list=daid_list,
-                                  fm_list=fm_list, fsv_list=fsv_list,
-                                  fsv_col_lbls=fsv_col_lbls)
-        cm.arraycast_self()
-        # Score matches and take a shortlist
-        cm.score_maxcsum(qreq_)
-
-        if sv_on:
-            top_aids = cm.get_name_shortlist_aids(nNameShortList, nAnnotPerName)
-            cm = cm.shortlist_subset(top_aids)
-            # Spatially verify chip matches
-            cm = pipeline.sver_single_chipmatch(qreq_, cm, verbose=verbose)
-            # Rescore
-            cm.score_maxcsum(qreq_)
-
-        return cm
-
-    def build_matches(smk, X, Y, c, score):
-        # Build matching index list as well
-        word_fm = list(ut.product(X.fxs(c), Y.fxs(c)))
-        if score.size != len(word_fm):
-            # Spread word score according to contriubtion (maw) weight
-            contribution = X.maws(c)[:, None].dot(Y.maws(c)[:, None].T)
-            contrib_weight = (contribution / contribution.sum())
-            word_fs = (contrib_weight * score).ravel()
-        else:
-            # Scores were computed separately, so dont spread
-            word_fs = score.ravel()
-        isvalid = word_fs > 0
-        word_fs = word_fs.compress(isvalid)
-        word_fm = ut.compress(word_fm, isvalid)
-        return word_fm, word_fs
-
-    def precompute_gammas(smk, X_list, wx_to_idf, agg, alpha, thresh):
-        gamma_list = []
-        for X in ut.ProgIter(X_list, lbl='precompute gamma'):
-            gamma = smk.gamma(X, wx_to_idf, agg, alpha, thresh)
-            gamma_list.append(gamma)
-        return gamma_list
-
-    @profile
-    def gamma(smk, X, wx_to_idf, agg, alpha, thresh):
-        r"""
-        Computes gamma (self consistency criterion)
-        It is a scalar which ensures K(X, X) = 1
-
-        Returns:
-            float: sccw self-consistency-criterion weight
-
-        Math:
-            gamma(X) = (sum_{c in C} w_c M(X_c, X_c))^{-.5}
-
-            >>> from ibeis.new_annots import *  # NOQA
-            >>> ibs, smk, qreq_= testdata_smk()
-            >>> X = qreq_.qinva.grouped_annots[0]
-            >>> wx_to_idf = qreq_.wx_to_idf
-            >>> print('X.gamma = %r' % (smk.gamma(X),))
-        """
-        scores = np.array([
-            smk.selective_match_score(X, X, c, agg, alpha, thresh).sum()
-            for c in X.words
-        ])
-        idf_list = np.array(ut.take(wx_to_idf, X.words))
-        scores *= idf_list
-        score = scores.sum()
-        sccw = np.reciprocal(np.sqrt(score))
-        return sccw
-
-    @profile
-    def selective_match_score(smk, X, Y, c, agg, alpha, thresh):
-        """
-        Just computes the total score of all feature matches
-        """
-        if agg:
-            u = smk.match_score_agg(X, Y, c)
-        else:
-            u = smk.match_score_sep(X, Y, c)
-        score = smk.selectivity(u, alpha, thresh, out=u)
-        return score
-
-    @profile
-    def match_score_agg(smk, X, Y, c):
-        """ matching score between aggregated residual vectors
-        """
-        PhiX, flagsX = X.Phi_flags(c)
-        PhiY, flagsY = Y.Phi_flags(c)
-        # Give error flags full scores. These are typically distinctive and
-        # important cases without enough info to get residual data.
-        u = PhiX.dot(PhiY.T)
-        flags = np.logical_or(flagsX[:, None], flagsY)
-        u[flags] = 1.0
-        return u
-
-    @profile
-    def match_score_sep(smk, X, Y, c):
-        """ matching score between separated residual vectors
-
-        flagsX = np.array([1, 0, 0], dtype=np.bool)
-        flagsY = np.array([1, 1, 0], dtype=np.bool)
-        phisX = vt.tests.dummy.testdata_dummy_sift(3, asint=False)
-        phisY = vt.tests.dummy.testdata_dummy_sift(3, asint=False)
-        """
-        phisX, flagsX = X.phis_flags(c)
-        phisY, flagsY = Y.phis_flags(c)
-        # Give error flags full scores. These are typically distinctive and
-        # important cases without enough info to get residual data.
-        u = phisX.dot(phisY.T)
-        flags = np.logical_or(flagsX[:, None], flagsY)
-        u[flags] = 1
-        #u = X.phis(c).dot(Y.phis(c).T)
-        return u
-
-    @profile
-    def selectivity(smk, u, alpha, thresh, out=None):
-        r"""
-        Rescales and thresholds scores. This is sigma from the SMK paper
-
-        In the paper they use:
-            sigma_alpha(u) = bincase{
-                sign(u) * (u**alpha) if u > thresh,
-                0 otherwise,
-            }
-        but this make little sense because a negative threshold of -1
-        will let -1 descriptors (completely oppositely aligned) have
-        the same score as perfectly aligned descriptors. Instead I suggest
-        (to achieve the same effect), a thresh = .5 and  a preprocessing step of
-            u'  = (u + 1) / 2
-        """
-        score = u
-        score = np.add(score, 1.0, out=out)
-        score = np.divide(score, 2.0, out=out)
-        flags = np.less_equal(score, thresh)
-        score = np.power(score, alpha, out=out)
-        score[flags] = 0
-        #u = (u + 1.0) / 2.0
-        #flags = np.greater(u, thresh)
-        #score = np.sign(u) * np.power(np.abs(u), alpha)
-        #score *= flags
-        return score
 
 
 def compute_rvec(vecs, word, asint=False):
@@ -1459,6 +911,101 @@ def aggregate_rvecs(rvecs, maws, error_flags, asint=False):
     return rvecs_agg, flags_agg
 
 
+def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
+                         massign_sigma=80.0, massign_equal_weights=False):
+    r"""
+    Multi Assignment Weight Filtering from Improving Bag of Features
+
+    Args:
+        massign_equal_weights (): Turns off soft weighting. Gives all assigned
+            vectors weight 1
+
+    Returns:
+        tuple : (idx_to_wxs, idx_to_maws)
+
+    References:
+        (Improving Bag of Features)
+        http://lear.inrialpes.fr/pubs/2010/JDS10a/jegou_improvingbof_preprint.pdf
+        (Lost in Quantization)
+        http://www.robots.ox.ac.uk/~vgg/publications/papers/philbin08.ps.gz
+        (A Context Dissimilarity Measure for Accurate and Efficient Image Search)
+        https://lear.inrialpes.fr/pubs/2007/JHS07/jegou_cdm.pdf
+
+    Example:
+        >>> massign_alpha = 1.2
+        >>> massign_sigma = 80.0
+        >>> massign_equal_weights = False
+
+    Notes:
+        sigma values from \cite{philbin_lost08}
+        (70 ** 2) ~= 5000, (80 ** 2) ~= 6250, (86 ** 2) ~= 7500,
+    """
+    if not ut.QUIET:
+        print('[smk_index.assign] compute_multiassign_weights_')
+    if _idx_to_wx.shape[1] <= 1:
+        idx_to_wxs = _idx_to_wx.tolist()
+        idx_to_maws = [[1.0]] * len(idx_to_wxs)
+    else:
+        # Valid word assignments are beyond fraction of distance to the nearest word
+        massign_thresh = _idx_to_wdist.T[0:1].T.copy()
+        # HACK: If the nearest word has distance 0 then this threshold is too hard
+        # so we should use the distance to the second nearest word.
+        EXACT_MATCH_HACK = True
+        if EXACT_MATCH_HACK:
+            flag_too_close = (massign_thresh == 0)
+            massign_thresh[flag_too_close] = _idx_to_wdist.T[1:2].T[flag_too_close]
+        # Compute the threshold fraction
+        epsilon = .001
+        np.add(epsilon, massign_thresh, out=massign_thresh)
+        np.multiply(massign_alpha, massign_thresh, out=massign_thresh)
+        # Mark assignments as invalid if they are too far away from the nearest assignment
+        invalid = np.greater_equal(_idx_to_wdist, massign_thresh)
+        if ut.VERBOSE:
+            nInvalid = (invalid.size - invalid.sum(), invalid.size)
+            print('[maw] + massign_alpha = %r' % (massign_alpha,))
+            print('[maw] + massign_sigma = %r' % (massign_sigma,))
+            print('[maw] + massign_equal_weights = %r' % (massign_equal_weights,))
+            print('[maw] * Marked %d/%d assignments as invalid' % nInvalid)
+
+        if massign_equal_weights:
+            # Performance hack from jegou paper: just give everyone equal weight
+            masked_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid)
+            idx_to_wxs  = list(map(ut.filter_Nones, masked_wxs.tolist()))
+            if ut.DEBUG2:
+                assert all([isinstance(wxs, list) for wxs in idx_to_wxs])
+            idx_to_maws = [np.ones(len(wxs), dtype=np.float32) for wxs in idx_to_wxs]
+        else:
+            # More natural weighting scheme
+            # Weighting as in Lost in Quantization
+            gauss_numer = np.negative(_idx_to_wdist.astype(np.float64))
+            gauss_denom = 2 * (massign_sigma ** 2)
+            gauss_exp   = np.divide(gauss_numer, gauss_denom)
+            unnorm_maw = np.exp(gauss_exp)
+            # Mask invalid multiassignment weights
+            masked_unorm_maw = np.ma.masked_array(unnorm_maw, mask=invalid)
+            # Normalize multiassignment weights from 0 to 1
+            masked_norm = masked_unorm_maw.sum(axis=1)[:, np.newaxis]
+            masked_maw = np.divide(masked_unorm_maw, masked_norm)
+            masked_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid)
+            # Remove masked weights and word indexes
+            idx_to_wxs  = list(map(ut.filter_Nones, masked_wxs.tolist()))
+            idx_to_maws = list(map(ut.filter_Nones, masked_maw.tolist()))
+            #with ut.EmbedOnException():
+            if ut.DEBUG2:
+                checksum = [sum(maws) for maws in idx_to_maws]
+                for x in np.where([not ut.almost_eq(val, 1) for val in checksum])[0]:
+                    print(checksum[x])
+                    print(_idx_to_wx[x])
+                    print(masked_wxs[x])
+                    print(masked_maw[x])
+                    print(massign_thresh[x])
+                    print(_idx_to_wdist[x])
+                #all([ut.almost_eq(x, 1) for x in checksum])
+                assert all([ut.almost_eq(val, 1) for val in checksum]), (
+                    'weights did not break evenly')
+    return idx_to_wxs, idx_to_maws
+
+
 @derived_attribute(
     tablename='vocab', parents=['feat*'],
     colnames=['words'], coltypes=[VisualVocab],
@@ -1473,18 +1020,18 @@ def compute_vocab(depc, fid_list, config):
         python -m ibeis.core_annots --exec-compute_neighbor_index --show
         python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index
 
-        python -m ibeis.new_annots --exec-compute_vocab:0
-        python -m ibeis.new_annots --exec-compute_vocab:1
+        python -m ibeis.algo.smk.vocab_indexer --exec-compute_vocab:0
+        python -m ibeis.algo.smk.vocab_indexer --exec-compute_vocab:1
 
         # FIXME make util_tests register
-        python -m ibeis.new_annots compute_vocab:0
+        python -m ibeis.algo.smk.vocab_indexer compute_vocab:0
 
     Ignore:
         ibs.depc['vocab'].print_table()
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.new_annots import *  # NOQA
+        >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
         >>> # Test depcache access
         >>> import ibeis
         >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
@@ -1500,7 +1047,7 @@ def compute_vocab(depc, fid_list, config):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.new_annots import *  # NOQA
+        >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
         >>> import ibeis
         >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
         >>> depc = ibs.depc_annot
@@ -1563,26 +1110,15 @@ def compute_vocab(depc, fid_list, config):
     return (vocab,)
 
 
-@ut.memoize
-def testdata_vocab(defaultdb='testdb1', **kwargs):
+def testdata_inva(defaultdb='testdb1', **kwargs):
     """
-    >>> from ibeis.new_annots import *  # NOQA
-    >>> defaultdb = 'testdb1'
-    >>> kwargs = {}
+    >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
+    >>> args, kwargs = tuple(), dict()
     """
     import ibeis
     ibs, aid_list = ibeis.testdata_aids(defaultdb=defaultdb)
     config = VocabConfig(**kwargs)
     vocab = ibs.depc_annot.get('vocab', [aid_list], 'words', config=config)[0]
-    return ibs, aid_list, vocab
-
-
-def testdata_inva(*args, **kwargs):
-    """
-    >>> from ibeis.new_annots import *  # NOQA
-    >>> args, kwargs = tuple(), dict()
-    """
-    ibs, aid_list, vocab = testdata_vocab(*args, **kwargs)
     fstack = ForwardIndex(ibs, aid_list)
     inva = InvertedIndex(fstack, vocab, config={'nAssign': 3})
     fstack.build()
@@ -1590,42 +1126,12 @@ def testdata_inva(*args, **kwargs):
     return ibs, aid_list, inva
 
 
-def testdata_smk(*args, **kwargs):
-    """
-    >>> from ibeis.new_annots import *  # NOQA
-    >>> kwargs = {}
-    """
-    import ibeis
-    import sklearn
-    import sklearn.cross_validation
-    # import sklearn.model_selection
-    ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST')
-    nid_list = np.array(ibs.annots(aid_list).nids)
-    rng = ut.ensure_rng(0)
-    xvalkw = dict(n_folds=4, shuffle=False, random_state=rng)
-
-    skf = sklearn.cross_validation.StratifiedKFold(nid_list, **xvalkw)
-    train_idx, test_idx = six.next(iter(skf))
-    daids = ut.take(aid_list, train_idx)
-    qaids = ut.take(aid_list, test_idx)
-
-    config = {
-        'num_words': 1000,
-    }
-    config.update(**kwargs)
-    qreq_ = SMKRequest(ibs, qaids, daids, config)
-    qreq_.ensure_data()
-    smk = qreq_.smk
-    #qreq_ = ibs.new_query_request(qaids, daids, cfgdict={'pipeline_root': 'smk', 'proot': 'smk'})
-    #qreq_ = ibs.new_query_request(qaids, daids, cfgdict={})
-    return ibs, smk, qreq_
-
-
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.new_annots
-        python -m ibeis.new_annots --allexamples
+        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/ibeis/ibeis/algo/smk
+        python ~/code/ibeis/ibeis/algo/smk/vocab_indexer.py
+        python ~/code/ibeis/ibeis/algo/smk/vocab_indexer.py --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
