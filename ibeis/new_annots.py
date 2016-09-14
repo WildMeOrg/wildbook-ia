@@ -1008,10 +1008,11 @@ class SMKRequest(mc5.EstimatorRequest):
         python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=64000 -a default --pcfginfo
 
         python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=[32000,64000,8000,4000],nAssign=[1,2,4] default:proot=vsmany -a default:qmingt=2
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=[64000,32000],nAssign=[1,2,4] default:proot=vsmany -a default:qmingt=2
         python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=[64000,1000,400,50],nAssign=[1] default:proot=vsmany -a default:qmingt=2
 
         python -m ibeis draw_rank_cdf --db PZ_MTEST --show \
-            -p :proot=smk,num_words=[64000,50],nAssign=[1,4],sv_on=[True,False] \
+            -p :proot=smk,num_words=[64000,32000],nAssign=[1],sv_on=[True,False] \
                 default:proot=vsmany,sv_on=[True,False] \
             -a default:qmingt=2
 
