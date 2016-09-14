@@ -17,6 +17,8 @@ def testdata_queryparams():
 class QueryParams(collections.Mapping):
     def __init__(qparams, query_cfg=None, cfgdict=None):
         """
+        DEPRICATE
+
         Rename to pipeline params
 
         Structure to store static query pipeline parameters

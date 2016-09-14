@@ -7,6 +7,11 @@ TODO:
     python -m utool.util_inspect check_module_usage --pat="query_request.py"
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from os.path import join
+import dtool
+import vtool as vt
+import utool as ut
+import numpy as np
 from ibeis.algo.hots import neighbor_index_cache
 #from ibeis.algo.hots import multi_index
 from ibeis.algo.hots import scorenorm
@@ -14,15 +19,10 @@ from ibeis.algo.hots import distinctiveness_normalizer
 from ibeis.algo.hots import query_params
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
-from os.path import join
-import vtool as vt
-import dtool
-import utool as ut
-import numpy as np
 #import warnings
 (print, rrr, profile) = ut.inject2(__name__, '[qreq]')
 
-VERBOSE = ut.VERBOSE or ut.get_argflag(('--verbose-qreq', '--verbqreq'))
+VERBOSE_QREQ = ut.get_module_verbosity_flags('qreq')
 
 
 def testdata_newqreq(defaultdb):
@@ -43,6 +43,16 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     """
     ibeis entry point to create a new query request object
 
+    Args:
+        ibs (ibeis.IBEISController):  image analysis api
+        qaid_list (list): query ids
+        daid_list (list): database ids
+        cfgdict (dict): pipeline dictionary config
+        query_cfg (dtool.Config): Pipeline Config Object
+        unique_species (None): (default = None)
+        use_memcache (bool): (default = True)
+        verbose (bool):  verbosity flag(default = True)
+
     Returns:
         ibeis.QueryRequest
 
@@ -57,9 +67,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> unique_species = None
         >>> verbose = ut.NOT_QUIET
         >>> cfgdict = {'sv_on': False, 'fg_on': True}  # 'fw_detector': 'rf'}
-        >>> # Execute test
-        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
-        >>> # Check Results
+        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict =cfgdict)
         >>> print(qreq_.get_cfgstr())
         >>> assert qreq_.qparams.sv_on is False, (
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
@@ -74,9 +82,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> unique_species = None
         >>> verbose = ut.NOT_QUIET
         >>> cfgdict = {'sv_on': True, 'fg_on': True}
-        >>> # Execute test
         >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
-        >>> # Check Results.
         >>> # Featweight should be off because there is no Naut detector
         >>> print(qreq_.qparams.query_cfgstr)
         >>> assert qreq_.qparams.sv_on is True, (
@@ -92,9 +98,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> unique_species = None
         >>> verbose = ut.NOT_QUIET
         >>> cfgdict = {'sv_on': False, 'augment_queryside_hack': True}
-        >>> # Execute test
         >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
-        >>> # Check Results.
         >>> # Featweight should be off because there is no Naut detector
         >>> print(qreq_.qparams.query_cfgstr)
         >>> assert qreq_.qparams.sv_on is False, (
@@ -110,7 +114,6 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         dcfg = qreq_.extern_data_config2
         qcfg = qreq_.extern_query_config2
         ut.dict_intersection(qcfg.__dict__, dcfg.__dict__)
-
         from ibeis.expt import cfghelpers
         cfg_list = [qcfg.__dict__, dcfg.__dict__]
         nonvaried_cfg, varied_cfg_list = ut.partition_varied_cfg_list(
@@ -123,7 +126,6 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     ibs.assert_valid_aids(qaid_list, msg='error in new qreq qaids')
     ibs.assert_valid_aids(daid_list, msg='error in new qreq daids')
 
-    cfg     = ibs.cfg.query_cfg if query_cfg is None else query_cfg
     qresdir = ibs.get_qres_cachedir()
     cfgdict = {} if cfgdict is None else cfgdict.copy()
 
@@ -137,51 +139,51 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     # except Exception:
     #     piperoot = None
 
-    if ut.VERBOSE:
+    if VERBOSE_QREQ:
         print('[qreq] piperoot = %r' % (piperoot,))
     if piperoot is not None and piperoot in ['smk']:
         from ibeis import new_annots
-        qreq_ = new_annots.SMKRequest(ibs, qaid_list, daid_list, cfgdict)
+        if query_cfg is not None:
+            # Another config hack
+            config = dict(query_cfg.parse_items())
+            config.update(**cfgdict)
+        qreq_ = new_annots.SMKRequest(ibs, qaid_list, daid_list, config)
     # HACK FOR DEPC REQUESTS including flukes
-    elif isinstance(cfg, dtool.Config):
-        if ut.VERBOSE:
+    elif query_cfg is not None and isinstance(query_cfg, dtool.Config):
+        if VERBOSE_QREQ:
             print('[qreq] dtool.Config HACK')
-        import utool
-        utool.embed()
-        tablename = cfg.get_config_name()
-        cfgdict = dict(cfg.parse_items())
+        tablename = query_cfg.get_config_name()
+        cfgdict = dict(query_cfg.parse_items())
         requestclass = ibs.depc_annot.requestclass_dict[tablename]
         qreq_ = request = requestclass.new(  # NOQA
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename)
     elif piperoot is not None and piperoot not in ['vsone', 'vsmany']:
         # Hack to ensure that correct depcache style request gets called
-        if ut.VERBOSE:
+        if VERBOSE_QREQ:
             print('[qreq] piperoot HACK')
         requestclass = ibs.depc_annot.requestclass_dict[piperoot]
         qreq_ = request = requestclass.new(  # NOQA
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=piperoot)
     else:
-        if ut.VERBOSE:
+        if VERBOSE_QREQ:
             print('[qreq] default hots config HACK')
-        #if cfgdict.get('pipeline_root', None)
-        DYNAMIC_K = False
-        if DYNAMIC_K and 'K' not in cfgdict:
-            model_params = [0.2,  0.5]
-            from ibeis.other.optimize_k import compute_K
-            nDaids = len(daid_list)
-            cfgdict['K'] = compute_K(nDaids, model_params)
 
         # <HACK>
         if not hasattr(ibs, 'generate_species_background_mask'):
             print('HACKING FG OFF')
             cfgdict['fg_on'] = False
-            #pass
+
         if unique_species is None:
             unique_species_ = apply_species_with_detector_hack(
                 ibs, cfgdict, qaid_list, daid_list)
         else:
             unique_species_ = unique_species
         # </HACK>
+        if query_cfg is None:
+            cfg = ibs.cfg.query_cfg
+        else:
+            cfg = query_cfg
+
         qparams = query_params.QueryParams(cfg, cfgdict)
         data_config2_ = qparams
         #
@@ -214,10 +216,12 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
 
 
 def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
-                                     verbose=VERBOSE):
+                                     verbose=None):
     """
     HACK turns of featweights if they cannot be applied
     """
+    if verbose is None:
+        verbose = VERBOSE_QREQ
     # Only apply the hack with repsect to the queried annotations
     aid_list = np.hstack((qaids, daids)).tolist()
     unique_species = ibs.get_database_species(aid_list)

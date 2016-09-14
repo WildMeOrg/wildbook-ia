@@ -32,7 +32,7 @@ class VocabConfig(dtool.Config):
 
 class InvertedIndexConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('nAssign', 1),
+        ut.ParamInfo('nAssign', 2),
     ]
 
 
@@ -41,8 +41,17 @@ class SMKConfig(dtool.Config):
         ut.ParamInfo('smk_alpha', 3.0),
         #ut.ParamInfo('smk_thresh', 0.0),
         ut.ParamInfo('smk_thresh', 0.25),
+        #ut.ParamInfo('smk_thresh', 0.0),
         ut.ParamInfo('agg', True),
         #ut.ParamInfo('agg', True),
+    ]
+
+
+class MatchHeuristicsConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('can_match_self', False),
+        ut.ParamInfo('can_match_samename', True),
+        ut.ParamInfo('can_match_sameimg', False),
     ]
 
 
@@ -58,6 +67,7 @@ class SMKRequestConfig(dtool.Config):
         Config.SpatialVerifyConfig,
         VocabConfig,
         InvertedIndexConfig,
+        MatchHeuristicsConfig,
         SMKConfig,
     ]
 
@@ -65,11 +75,11 @@ class SMKRequestConfig(dtool.Config):
 @ut.reloadable_class
 class SMKCacheable(object):
     """ helper for depcache-less cachine """
-    def get_fpath(self, cachedir, cfgstr=None):
+    def get_fpath(self, cachedir, cfgstr=None, cfgaug=''):
         _args2_fpath = ut.util_cache._args2_fpath
         #prefix = self.get_prefix()
         prefix = self.__class__.__name__ + '_'
-        cfgstr = self.get_hashid()
+        cfgstr = self.get_hashid() + cfgaug
         #ext    = self.ext
         ext    = '.cPkl'
         fpath  = _args2_fpath(cachedir, prefix, cfgstr, ext)
@@ -82,12 +92,17 @@ class SMKCacheable(object):
         return hashstr
 
     def ensure(self, cachedir, **kwargs):
-        fpath = self.get_fpath(cachedir)
+        if kwargs:
+            cfgaug = ut.hashstr27(ut.repr2(kwargs, sorted_=True), hashlen=4)
+        else:
+            cfgaug = ''
+        fpath = self.get_fpath(cachedir, cfgaug=cfgaug)
         if ut.checkpath(fpath):
             self.load(fpath)
         else:
             self.build(**kwargs)
             self.save(fpath)
+        return fpath
 
     def save(self, fpath):
         state = ut.dict_subset(self.__dict__, self.__columns__)
@@ -277,8 +292,8 @@ class VisualVocab(ut.NiceRepr):
         return (wx_to_idxs, wx_to_maws)
 
     @staticmethod
-    def _compute_multiassign_weights(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
-                                     massign_sigma=80.0,
+    def _compute_multiassign_weights(_idx_to_wx, _idx_to_wdist,
+                                     massign_alpha=1.2, massign_sigma=80.0,
                                      massign_equal_weights=False):
         """
         Multi Assignment Weight Filtering from Improving Bag of Features
@@ -338,7 +353,6 @@ class VisualVocab(ut.NiceRepr):
                 # Performance hack from jegou paper: just give everyone equal weight
                 masked_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid)
                 idx_to_wxs  = list(map(ut.filter_Nones, masked_wxs.tolist()))
-                #ut.embed()
                 if ut.DEBUG2:
                     assert all([isinstance(wxs, list) for wxs in idx_to_wxs])
                 idx_to_maws = [np.ones(len(wxs), dtype=np.float32) for wxs in idx_to_wxs]
@@ -595,7 +609,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         inva.wx_to_idf = None
         inva.grouped_annots = None
 
-    def build(inva, idf=False, groups=False):
+    def build(inva):
         print('building inverted index')
         nAssign = inva.config.get('nAssign', 1)
         fstack = inva.fstack
@@ -612,10 +626,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         inva.perword_stats = ut.get_stats(list(inva.wx_to_num.values()))
         inva._word_patches = {}
         # Optional measures
-        if idf:
-            inva.wx_to_idf = inva.compute_idf()
-        if groups:
-            inva.grouped_annots = inva.compute_annot_groups()
+        inva.grouped_annots = inva.compute_annot_groups()
 
     def inverted_annots(inva, aids):
         if inva.grouped_annots is None:
@@ -630,7 +641,9 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         return inva
 
     def get_cfgstr(inva):
-        cfgstr = inva.config.get_cfgstr() + '_' + inva.fstack.get_cfgstr()
+        cfgstr = '_'.join([inva.config.get_cfgstr(),
+                           inva.vocab.config.get_cfgstr(),
+                           inva.fstack.get_cfgstr()])
         return cfgstr
 
     def wx_to_fxs(inva, wx):
@@ -638,6 +651,12 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
 
     def wx_to_axs(inva, wx):
         return inva.fstack.idx_to_ax.take(inva.wx_to_idxs[wx], axis=0)
+
+    def load(inva, fpath):
+        super(InvertedIndex, inva).load(fpath)
+        if inva.grouped_annots is not None:
+            for X in inva.grouped_annots:
+                X.inva = inva
 
     def __nice__(inva):
         fstack = inva.fstack
@@ -709,6 +728,7 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
             >>> assert np.all(prob_list >= 0)
             >>> assert np.all(prob_list <= 1)
         """
+        print('Computing idf')
         num_docs_total = len(inva.fstack.ax_to_aid)
         # idf denominator (the num of docs containing a word for each word)
         # The max(maws) to denote the probab that this word indexes an annot
@@ -724,6 +744,20 @@ class InvertedIndex(ut.NiceRepr, SMKCacheable):
         wx_to_idf = dict(zip(inva.wx_list, idf_list))
         wx_to_idf = ut.DefaultValueDict(0, wx_to_idf)
         return wx_to_idf
+
+    def print_name_consistency(inva, ibs):
+        annots = ibs.annots(inva.fstack.ax_to_aid)
+        ax_to_nid = annots.nids
+
+        wx_to_consist = {}
+
+        for wx in inva.wx_list:
+            axs = inva.wx_to_axs(wx)
+            nids = ut.take(ax_to_nid, axs)
+            consist = len(ut.unique(nids)) / len(nids)
+            wx_to_consist[wx] = consist
+            #if len(nids) > 5:
+            #    break
 
     def get_vecs(inva, wx):
         """
@@ -882,6 +916,13 @@ class IndexedAnnot(ut.NiceRepr):
         X.wx_to_idxs_ = {}
         X.wx_to_maws_ = {}
         X.wx_to_aggs = {}
+        X.wx_to_phis = {}
+
+    def __getstate__(self):
+        return ut.delete_dict_keys(self.__dict__.copy(), 'inva')
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
 
     def __nice__(X):
         return 'aid=%r, nW=%r' % (X.aid, len(X.wx_to_idxs_),)
@@ -921,16 +962,19 @@ class IndexedAnnot(ut.NiceRepr):
         return X.wx_to_aggs[wx][1]
 
     def phis(X, wx):
-        rvecs, _ =  X.phis_flags(wx)[0]
+        rvecs =  X.phis_flags(wx)[0]
         return rvecs
 
     def phis_flags(X, wx):
-        vocab = X.inva.vocab
-        idxs = X.idxs(wx)
-        vecs = X.inva.fstack.idx_to_vec.take(idxs, axis=0)
-        word = vocab.wx_to_word[wx]
-        rvecs, flags = compute_rvec(vecs, word)
-        return rvecs, flags
+        if wx in X.wx_to_phis:
+            return X.wx_to_phis[wx]
+        else:
+            vocab = X.inva.vocab
+            idxs = X.idxs(wx)
+            vecs = X.inva.fstack.idx_to_vec.take(idxs, axis=0)
+            word = vocab.wx_to_word[wx]
+            rvecs, flags = compute_rvec(vecs, word)
+            return rvecs, flags
 
     @property
     def words(X):
@@ -955,6 +999,21 @@ class SMKRequest(mc5.EstimatorRequest):
     CommandLine:
         python -m ibeis.new_annots SMKRequest
         python -m ibeis.new_annots SMKRequest --show
+
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=64000 -a default
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=64000 default:proot=vsmany -a default
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=64000,nAssign=[2,4] default:proot=vsmany -a default
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=64000,nAssign=[2,4] default:proot=vsmany -a default:qmingt=2
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=64000,nAssign=[1,2,4] default:proot=vsmany -a default:qmingt=2
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=64000 -a default --pcfginfo
+
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=[32000,64000,8000,4000],nAssign=[1,2,4] default:proot=vsmany -a default:qmingt=2
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -p :proot=smk,num_words=[64000,1000,400,50],nAssign=[1] default:proot=vsmany -a default:qmingt=2
+
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show \
+            -p :proot=smk,num_words=[64000,50],nAssign=[1,4],sv_on=[True,False] \
+                default:proot=vsmany,sv_on=[True,False] \
+            -a default:qmingt=2
 
     Example:
         >>> from ibeis.new_annots import *  # NOQA
@@ -1005,11 +1064,9 @@ class SMKRequest(mc5.EstimatorRequest):
         #qreq_.vocab = None
         #qreq_.dinva = None
 
-        qreq_.smk = None
         qreq_.qinva = None
         qreq_.dinva = None
-
-        qreq_.smk = SMK(config)
+        qreq_.smk = SMK()
 
         # Hack to work with existing hs code
         qreq_.stack_config = SMKRequestConfig(**config)
@@ -1017,10 +1074,7 @@ class SMKRequest(mc5.EstimatorRequest):
         qreq_.qparams = dtool.base.StackedConfig([
             dict(qreq_.stack_config.parse_items())
         ])
-        #    Config.SpatialVerifyConfig(**config),
-        #    qreq_.smk.config
         #    # TODO: add vocab, inva, features
-        #])
         qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
 
     def ensure_data(qreq_):
@@ -1030,6 +1084,9 @@ class SMKRequest(mc5.EstimatorRequest):
 
         vocab = ibs.depc.get('vocab', [qreq_.daids], 'words',
                              config=qreq_.config)[0]
+        # Hack in config to vocab class
+        # (maybe this becomes part of the depcache)
+        vocab.config = ibs.depc.configclass_dict['vocab'](**qreq_.config)
 
         qfstack = ForwardIndex(ibs, qreq_.qaids, config, name='query')
         dfstack = ForwardIndex(ibs, qreq_.daids, config, name='data')
@@ -1044,8 +1101,27 @@ class SMKRequest(mc5.EstimatorRequest):
         #qinva.build(groups=True)
         #dinva.build(groups=True, idf=True)
 
-        qinva.ensure(qreq_.cachedir, groups=True)
-        dinva.ensure(qreq_.cachedir, groups=True, idf=True)
+        qinva.ensure(qreq_.cachedir)
+        dinva.ensure(qreq_.cachedir)
+
+        _cacher = ut.cached_func('idf_' +  dinva.get_hashid(), cache_dir=qreq_.cachedir)
+        _ensureidf = _cacher(dinva.compute_idf)
+        dinva.wx_to_idf = _ensureidf()
+
+        thresh = qreq_.qparams['smk_thresh']
+        alpha = qreq_.qparams['smk_alpha']
+        agg = qreq_.qparams['agg']
+
+        smk = qreq_.smk
+        wx_to_idf = dinva.wx_to_idf
+        for inva in [qinva, dinva]:
+            _cacher = ut.cached_func('gamma_sccw_' +  inva.get_hashid(), cache_dir=qreq_.cachedir,
+                                     key_argx=[1, 2, 3, 4])
+            X_list = inva.grouped_annots
+            _ensuregamma = _cacher(smk.precompute_gammas)
+            gamma_list = _ensuregamma(X_list, wx_to_idf, agg, alpha, thresh)
+            for X, gamma in zip(X_list, gamma_list):
+                X.gamma = gamma
 
         qreq_.qinva = qinva
         qreq_.dinva = dinva
@@ -1060,39 +1136,6 @@ class SMKRequest(mc5.EstimatorRequest):
         cm_list = smk.predict_matches(qreq_)
         return cm_list
 
-    # Hacked in functions
-
-    def ensure_nids(qreq_):
-        # Hacked over from hotspotter, seriously hacky
-        ibs = qreq_.ibs
-        qreq_.unique_aids = np.union1d(qreq_.qaids, qreq_.daids)
-        qreq_.unique_nids = ibs.get_annot_nids(qreq_.unique_aids)
-        qreq_.aid_to_idx = ut.make_index_lookup(qreq_.unique_aids)
-
-    @ut.accepts_numpy
-    def get_qreq_annot_nids(qreq_, aids):
-        # Hack uses own internal state to grab name rowids
-        # instead of using ibeis.
-        idxs = ut.take(qreq_.aid_to_idx, aids)
-        nids = ut.take(qreq_.unique_nids, idxs)
-        return nids
-
-    def get_qreq_qannot_kpts(qreq_, qaids):
-        return qreq_.ibs.get_annot_kpts(
-            qaids, config2_=qreq_.qinva.fstack.config)
-
-    def get_qreq_dannot_kpts(qreq_, daids):
-        return qreq_.ibs.get_annot_kpts(
-            daids, config2_=qreq_.dinva.fstack.config)
-
-    @property
-    def extern_query_config2(qreq_):
-        return qreq_.qparams
-
-    @property
-    def extern_data_config2(qreq_):
-        return qreq_.qparams
-
 
 @ut.reloadable_class
 class SMK(ut.NiceRepr):
@@ -1101,14 +1144,8 @@ class SMK(ut.NiceRepr):
 
     K(X, Y) = gamma(X) * gamma(Y) * sum([Mc(Xc, Yc) for c in words])
     """
-    def __init__(smk, config):
-        smk.config = SMKConfig(**config)
-        smk.qreq_ = None
-        # Choose which version to use
-        if smk.config['agg']:
-            smk.match_score = smk.match_score_agg
-        else:
-            smk.match_score = smk.match_score_sep
+    def __init__(smk):
+        pass
 
     #def predict(smk, qreq_):
     #    # TODO
@@ -1124,33 +1161,127 @@ class SMK(ut.NiceRepr):
         """
         print('Predicting matches')
         assert qreq_.qinva.vocab is qreq_.dinva.vocab
-        smk.qreq_ = qreq_
         X_list = qreq_.qinva.inverted_annots(qreq_.qaids)
         Y_list = qreq_.dinva.inverted_annots(qreq_.daids)
-        _prog = ut.ProgPartial(lbl='smk query', bs=False, enabled=verbose)
-        cm_list = [smk.match_single(X, Y_list, qreq_) for X in _prog(X_list)]
+        _prog = ut.ProgPartial(lbl='smk query', bs=verbose <= 1, enabled=verbose)
+        cm_list = [smk.match_single(X, Y_list, qreq_, verbose=verbose > 1)
+                   for X in _prog(X_list)]
         return cm_list
 
-    @property
-    def wx_to_idf(smk):
-        return smk.qreq_.dinva.wx_to_idf
+    def check_can_match(smk, X, Y, qreq_):
+        can_match_samename = qreq_.qparams.can_match_samename
+        can_match_sameimg = qreq_.qparams.can_match_sameimg
+        can_match_self = False
+        flag = True
+        # Check that the two annots meet the conditions
+        if not can_match_self:
+            aid1, aid2 = X.aid, Y.aid
+            if aid1 == aid2:
+                flag = False
+        if not can_match_samename:
+            nid1, nid2 = qreq_.get_qreq_annot_nids([X.aid, Y.aid])
+            if nid1 == nid2:
+                flag = False
+        if not can_match_sameimg:
+            gid1, gid2 = qreq_.get_qreq_annot_gids([X.aid, Y.aid])
+            if gid1 == gid2:
+                flag = False
+        return flag
 
-    def weighted_match_score(smk, X, Y, c):
+    @profile
+    def match_single(smk, X, Y_list, qreq_, verbose=True):
         """
-        Just computes the total score of all feature matches
-        """
-        u = smk.match_score(X, Y, c)
-        score = smk.selectivity(u).sum()
-        score *= smk.wx_to_idf[c]
-        return score
+        CommandLine:
+            python -m ibeis.new_annots SMK.match_single --profile
+            python -m ibeis.new_annots SMK.match_single --show
 
-    def weighted_matches(smk, X, Y, c):
+        Example:
+            >>> # FUTURE_ENABLE
+            >>> from ibeis.new_annots import *  # NOQA
+            >>> import ibeis
+            >>> ibs, daids = ibeis.testdata_aids(defaultdb='PZ_MTEST')
+            >>> qreq_ = SMKRequest(ibs, daids[0:1], daids, {'agg': True, 'num_words': 64000, 'sv_on': True})
+            >>> qreq_.ensure_data()
+            >>> #ibs, smk, qreq_ = testdata_smk()
+            >>> X = qreq_.qinva.grouped_annots[0]
+            >>> Y_list = qreq_.dinva.grouped_annots
+            >>> Y = Y_list[1]
+            >>> c = ut.isect(X.words, Y.words)[0]
+            >>> cm = qreq_.smk.match_single(X, Y_list, qreq_)
+            >>> ut.quit_if_noshow()
+            >>> ut.qt4ensure()
+            >>> cm.ishow_analysis(qreq_)
+            >>> ut.show_if_requested()
         """
-        Explicitly computes the feature matches that will be scored
-        """
-        u = smk.match_score(X, Y, c)
-        score = smk.selectivity(u).sum()
-        score *= smk.wx_to_idf[c]
+        from ibeis.algo.hots import chip_match
+        from ibeis.algo.hots import pipeline
+
+        qaid = X.aid
+        daid_list = []
+        fm_list = []
+        fsv_list = []
+        fsv_col_lbls = ['smk']
+
+        wx_to_idf = qreq_.dinva.wx_to_idf
+
+        alpha  = qreq_.qparams['smk_alpha']
+        thresh = qreq_.qparams['smk_thresh']
+        agg    = qreq_.qparams['agg']
+        nNameShortList  = qreq_.qparams.nNameShortlistSVER
+        nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
+        sv_on   = qreq_.qparams.sv_on
+
+        #gammaX = smk.gamma(X, wx_to_idf, agg, alpha, thresh)
+        gammaX = X.gamma
+
+        for Y in ut.ProgIter(Y_list, lbl='smk match qaid=%r' % (qaid,), enabled=verbose):
+            if smk.check_can_match(X, Y, qreq_):
+                #gammaY = smk.gamma(Y, wx_to_idf, agg, alpha, thresh)
+                gammaY = Y.gamma
+                gammaXY = gammaX * gammaY
+
+                fm = []
+                fs = []
+                # Words in common define matches
+                common_words = ut.isect(X.words, Y.words)
+                for c in common_words:
+                    #Explicitly computes the feature matches that will be scored
+                    score = smk.selective_match_score(X, Y, c, agg, alpha, thresh)
+                    score *= wx_to_idf[c]
+                    word_fm, word_fs = smk.build_matches(X, Y, c, score)
+                    assert not np.any(np.isnan(word_fs))
+                    word_fs *= gammaXY
+                    fm.extend(word_fm)
+                    fs.extend(word_fs)
+
+                #if len(fm) > 0:
+                daid = Y.aid
+                fsv = np.array(fs)[:, None]
+                daid_list.append(daid)
+                fm = np.array(fm)
+                fm_list.append(fm)
+                fsv_list.append(fsv)
+
+        # Build initial matches
+        cm = chip_match.ChipMatch(qaid=qaid, daid_list=daid_list,
+                                  fm_list=fm_list, fsv_list=fsv_list,
+                                  fsv_col_lbls=fsv_col_lbls)
+        cm.arraycast_self()
+        # Score matches and take a shortlist
+        cm.score_maxcsum(qreq_)
+
+        if sv_on:
+            top_aids = cm.get_name_shortlist_aids(nNameShortList, nAnnotPerName)
+            cm = cm.shortlist_subset(top_aids)
+            # Spatially verify chip matches
+            cm = pipeline.sver_single_chipmatch(qreq_, cm, verbose=verbose)
+            # Rescore
+            cm.score_maxcsum(qreq_)
+
+        return cm
+
+    def build_matches(smk, X, Y, c, score):
+        # Build matching index list as well
         word_fm = list(ut.product(X.fxs(c), Y.fxs(c)))
         if score.size != len(word_fm):
             # Spread word score according to contriubtion (maw) weight
@@ -1165,6 +1296,54 @@ class SMK(ut.NiceRepr):
         word_fm = ut.compress(word_fm, isvalid)
         return word_fm, word_fs
 
+    def precompute_gammas(smk, X_list, wx_to_idf, agg, alpha, thresh):
+        gamma_list = []
+        for X in ut.ProgIter(X_list, lbl='precompute gamma'):
+            gamma = smk.gamma(X, wx_to_idf, agg, alpha, thresh)
+            gamma_list.append(gamma)
+        return gamma_list
+
+    @profile
+    def gamma(smk, X, wx_to_idf, agg, alpha, thresh):
+        r"""
+        Computes gamma (self consistency criterion)
+        It is a scalar which ensures K(X, X) = 1
+
+        Returns:
+            float: sccw self-consistency-criterion weight
+
+        Math:
+            gamma(X) = (sum_{c in C} w_c M(X_c, X_c))^{-.5}
+
+            >>> from ibeis.new_annots import *  # NOQA
+            >>> ibs, smk, qreq_= testdata_smk()
+            >>> X = qreq_.qinva.grouped_annots[0]
+            >>> wx_to_idf = qreq_.wx_to_idf
+            >>> print('X.gamma = %r' % (smk.gamma(X),))
+        """
+        scores = np.array([
+            smk.selective_match_score(X, X, c, agg, alpha, thresh).sum()
+            for c in X.words
+        ])
+        idf_list = np.array(ut.take(wx_to_idf, X.words))
+        scores *= idf_list
+        score = scores.sum()
+        sccw = np.reciprocal(np.sqrt(score))
+        return sccw
+
+    @profile
+    def selective_match_score(smk, X, Y, c, agg, alpha, thresh):
+        """
+        Just computes the total score of all feature matches
+        """
+        if agg:
+            u = smk.match_score_agg(X, Y, c)
+        else:
+            u = smk.match_score_sep(X, Y, c)
+        score = smk.selectivity(u, alpha, thresh, out=u)
+        return score
+
+    @profile
     def match_score_agg(smk, X, Y, c):
         """ matching score between aggregated residual vectors
         """
@@ -1174,9 +1353,10 @@ class SMK(ut.NiceRepr):
         # important cases without enough info to get residual data.
         u = PhiX.dot(PhiY.T)
         flags = np.logical_or(flagsX[:, None], flagsY)
-        u[flags] = 1
+        u[flags] = 1.0
         return u
 
+    @profile
     def match_score_sep(smk, X, Y, c):
         """ matching score between separated residual vectors
 
@@ -1195,7 +1375,8 @@ class SMK(ut.NiceRepr):
         #u = X.phis(c).dot(Y.phis(c).T)
         return u
 
-    def selectivity(smk, u):
+    @profile
+    def selectivity(smk, u, alpha, thresh, out=None):
         r"""
         Rescales and thresholds scores. This is sigma from the SMK paper
 
@@ -1210,109 +1391,17 @@ class SMK(ut.NiceRepr):
         (to achieve the same effect), a thresh = .5 and  a preprocessing step of
             u'  = (u + 1) / 2
         """
-        alpha = smk.config['smk_alpha']
-        thresh = smk.config['smk_thresh']
-        u = (u + 1.0) / 2.0
-        score = np.sign(u) * np.power(np.abs(u), alpha)
-        score *= np.greater(u, thresh)
+        score = u
+        score = np.add(score, 1.0, out=out)
+        score = np.divide(score, 2.0, out=out)
+        flags = np.less_equal(score, thresh)
+        score = np.power(score, alpha, out=out)
+        score[flags] = 0
+        #u = (u + 1.0) / 2.0
+        #flags = np.greater(u, thresh)
+        #score = np.sign(u) * np.power(np.abs(u), alpha)
+        #score *= flags
         return score
-
-    def gamma(smk, X):
-        r"""
-        Computes gamma (self consistency criterion)
-        It is a scalar which ensures K(X, X) = 1
-
-        Returns:
-            float: sccw self-consistency-criterion weight
-
-        Math:
-            gamma(X) = (sum_{c in C} w_c M(X_c, X_c))^{-.5}
-
-            >>> from ibeis.new_annots import *  # NOQA
-            >>> ibs, smk, qreq_= testdata_smk()
-            >>> X = qreq_.qinva.grouped_annots[0]
-            >>> print('X.gamma = %r' % (smk.gamma(X),))
-        """
-        scores = np.array([smk.weighted_match_score(X, X, c) for c in X.words])
-        idf_list = np.array(ut.take(smk.wx_to_idf, X.words))
-        scores *= idf_list
-        score = scores.sum()
-        sccw = np.reciprocal(np.sqrt(score))
-        return sccw
-
-    def match_single(smk, X, Y_list, qreq_):
-        """
-        CommandLine:
-            python -m ibeis.new_annots smk_chipmatch --show
-
-        Example:
-            >>> # FUTURE_ENABLE
-            >>> from ibeis.new_annots import *  # NOQA
-            >>> ibs, smk, qreq_ = testdata_smk()
-            >>> X = qreq_.qinva.grouped_annots[0]
-            >>> Y_list = qreq_.dinva.grouped_annots
-            >>> Y = Y_list[0]
-            >>> c = ut.isect(X.words, Y.words)[0]
-            >>> cm = smk.smk_chipmatch(X, Y_list, qreq_)
-            >>> ut.qt4ensure()
-            >>> cm.ishow_analysis(qreq_)
-            >>> ut.show_if_requested()
-        """
-        from ibeis.algo.hots import chip_match
-        from ibeis.algo.hots import pipeline
-
-        qaid = X.aid
-        daid_list = []
-        fm_list = []
-        fsv_list = []
-        fsv_col_lbls = ['smk']
-
-        gammaX = smk.gamma(X)
-        import utool
-        with utool.embed_on_exception_context:
-            for Y in ut.ProgIter(Y_list, lbl='smk match qaid=%r' % (qaid,)):
-                gammaY = smk.gamma(Y)
-                gammaXY = gammaX * gammaY
-
-                fm = []
-                fs = []
-                # Words in common define matches
-                common_words = ut.isect(X.words, Y.words)
-                for c in common_words:
-                    word_fm, word_fs = smk.weighted_matches(X, Y, c)
-                    assert not np.any(np.isnan(word_fs))
-                    word_fs *= gammaXY
-                    fm.extend(word_fm)
-                    fs.extend(word_fs)
-
-                #if len(fm) > 0:
-                daid = Y.aid
-                fsv = np.array(fs)[:, None]
-                daid_list.append(daid)
-                fm = np.array(fm)
-                fm_list.append(fm)
-                fsv_list.append(fsv)
-
-        #progiter = iter(ut.ProgIter([0], lbl='smk sver qaid=%r' % (qaid,)))
-        #six.next(progiter)
-
-        # Build initial matches
-        cm = chip_match.ChipMatch(qaid=qaid, daid_list=daid_list,
-                                  fm_list=fm_list, fsv_list=fsv_list,
-                                  fsv_col_lbls=fsv_col_lbls)
-        cm.arraycast_self()
-        # Score matches and take a shortlist
-        cm.score_maxcsum(qreq_)
-        nNameShortList  = qreq_.qparams.nNameShortlistSVER
-        nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
-        top_aids = cm.get_name_shortlist_aids(nNameShortList, nAnnotPerName)
-        cm = cm.shortlist_subset(top_aids)
-        # Spatially verify chip matches
-        cm = pipeline.sver_single_chipmatch(qreq_, cm, verbose=True)
-        # Rescore
-        cm.score_maxcsum(qreq_)
-        #list(progiter)
-        return cm
 
 
 def compute_rvec(vecs, word, asint=False):

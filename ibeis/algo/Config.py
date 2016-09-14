@@ -2,7 +2,7 @@
 """
 DEPRICATE FOR CORE ANNOT AND CORE IMAGE DEFS
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
 import copy
@@ -109,9 +109,9 @@ def make_config_metaclass():
                 item_list = parse_config_items(cfg)
                 assert item_list is not None
                 if ignore_keys is None:
-                    itemstr_list = [key + '=' + str(val) for key, val in item_list]
+                    itemstr_list = [key + '=' + six.text_type(val) for key, val in item_list]
                 else:
-                    itemstr_list = [key + '=' + str(val) for key, val in item_list if key not in ignore_keys]
+                    itemstr_list = [key + '=' + six.text_type(val) for key, val in item_list if key not in ignore_keys]
             except Exception as ex:
                 print(ignore_keys is None)
                 print(ignore_keys)
@@ -140,7 +140,7 @@ def make_config_metaclass():
     @_register
     def get_config_name(cfg, **kwargs):
         """ the user might want to overwrite this function """
-        class_str = str(cfg.__class__)
+        class_str = six.text_type(cfg.__class__)
         full_class_str = class_str.replace('<class \'', '').replace('\'>', '')
         config_name = splitext(full_class_str)[1][1:].replace('Config', '')
         return config_name
@@ -284,7 +284,7 @@ class SpatialVerifyConfig(ConfigBase):
         if not sv_cfg.sv_on or sv_cfg.xy_thresh is None:
             return ['_SV(OFF)']
         thresh_tup = (sv_cfg.xy_thresh, sv_cfg.scale_thresh, sv_cfg.ori_thresh)
-        thresh_str = ut.remove_chars(str(thresh_tup), ' ()').replace(',', ';')
+        thresh_str = ut.remove_chars(six.text_type(thresh_tup), ' ()').replace(',', ';')
         sv_cfgstr = [
             '_SV(',
             thresh_str,
@@ -548,7 +548,7 @@ class RerankVsOneConfig(ConfigBase):
         else:
             rrvsone_cfg_list = [
                 '_RRVsOne(',
-                str(rrvsone_cfg.rrvsone_on),
+                six.text_type(rrvsone_cfg.rrvsone_on),
                 ')'
             ]
         return rrvsone_cfg_list
@@ -603,13 +603,13 @@ class QueryConfig(ConfigBase):
 
         # Build cfgstr
         cfgstr_list = ['_' + query_cfg.pipeline_root ]
-        #if str(query_cfg.pipeline_root) == 'smk':
+        #if six.text_type(query_cfg.pipeline_root) == 'smk':
         #    # SMK Parameters
         #    if kwargs.get('use_smk', True):
         #        cfgstr_list += query_cfg.smk_cfg.get_cfgstr_list(**kwargs)
         #    if kwargs.get('use_sv', True):
         #        cfgstr_list += query_cfg.sv_cfg.get_cfgstr_list(**kwargs)
-        if str(query_cfg.pipeline_root) == 'vsmany' or str(query_cfg.pipeline_root) == 'vsone':
+        if six.text_type(query_cfg.pipeline_root) == 'vsmany' or six.text_type(query_cfg.pipeline_root) == 'vsone':
             # Naive Bayes Parameters
             if kwargs.get('use_nn', True):
                 cfgstr_list += query_cfg.nn_cfg.get_cfgstr_list(**kwargs)
@@ -624,7 +624,7 @@ class QueryConfig(ConfigBase):
             if kwargs.get('use_rrvsone', True):
                 cfgstr_list += query_cfg.rrvsone_cfg.get_cfgstr_list(**kwargs)
         else:
-            raise AssertionError('bad pipeline root: ' + str(query_cfg.pipeline_root))
+            raise AssertionError('bad pipeline root: ' + six.text_type(query_cfg.pipeline_root))
         if kwargs.get('use_featweight', True):
             cfgstr_list += query_cfg._featweight_cfg.get_cfgstr_list(**kwargs)
             # HACK: featweight_cfg used to include chip and feat
@@ -1089,7 +1089,7 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
         >>> keys2 = ut.get_list_column(ibs.cfg.parse_items(), 0)
         >>> symdiff = set(keys1) ^ set(keys2)
         >>> # verify results
-        >>> result = str(cfg)
+        >>> result = six.text_type(cfg)
         >>> print(result)
     """
     if cfgname is None:

@@ -21,7 +21,6 @@ from six.moves import zip, range, map  # NOQA
 print, rrr, profile = ut.inject2(__name__, '[scoring]', DEBUG=False)
 
 
-@profile
 def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
     """
     CommandLine:
@@ -71,7 +70,6 @@ def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):
         raise NotImplementedError('[hs] unknown scoring method:' + score_method)
 
 
-@profile
 def compute_csum_score(cm, qreq_=None):
     """
     CommandLine:
@@ -141,7 +139,6 @@ def get_name_shortlist_aids(daid_list, dnid_list, annot_score_list,
     return top_daids
 
 
-@profile
 def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, score_method='nsum'):
     """
     Makes shortlists for reranking
@@ -220,7 +217,6 @@ def sift_selectivity_score(vecs1_m, vecs2_m, cos_power=3.0, dtype=np.float):
     return selectivity_score
 
 
-@profile
 def get_kpts_distinctiveness(ibs, aid_list, config2_=None, config={}):
     """
     per-species disinctivness wrapper around ibeis cached function

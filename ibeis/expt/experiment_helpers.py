@@ -4,7 +4,8 @@ Helper module that helps expand parameters for grid search
 TODO: move into custom pipe_cfg and annot_cfg modules
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import utool as ut  # NOQA
+import utool as ut
+import sys
 import six
 import itertools
 from ibeis.expt import experiment_configs
@@ -13,13 +14,10 @@ from ibeis.algo import Config
 from ibeis.init import filter_annots
 print, rrr, profile = ut.inject2(__name__, '[expt_helpers]')
 
-QUIET = ut.QUIET
-
 
 def get_varied_pipecfg_lbls(cfgdict_list, pipecfg_list=None):
     if pipecfg_list is None:
         from ibeis.algo import Config
-        #cls_list = [Config] * len(cfgdict_list)
         cfg_default_dict = dict(Config.QueryConfig().parse_items())
         cfgx2_lbl = ut.get_varied_cfg_lbls(cfgdict_list, cfg_default_dict)
     else:
@@ -40,7 +38,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
 
     Args:
         test_cfg_name_list (list): list of strs
-        ibs (IBEISController): ibeis controller object (optional)
+        ibs (ibeis.IBEISController): ibeis controller object (optional)
 
     Returns:
         tuple: (cfg_list, cfgx2_lbl) -
@@ -49,8 +47,8 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
                 If there is just one config then nothing is varied
 
     CommandLine:
-        python -m ibeis.expt.experiment_helpers --exec-get_pipecfg_list:0
-        python -m ibeis.expt.experiment_helpers --exec-get_pipecfg_list:1 --db humpbacks
+        python -m ibeis get_pipecfg_list:0
+        python -m ibeis get_pipecfg_list:1 --db humpbacks
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -170,7 +168,6 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
               (len(cfgdict_list), len(_pcfgdict_list), test_cfg_name_list))
 
     if ut.get_argflag(('--pcfginfo', '--pinfo', '--pipecfginfo')):
-        import sys
         ut.colorprint('Requested PcfgInfo for tests... ', 'red')
         print_pipe_configs(cfgdict_list, pipecfg_list)
         ut.colorprint('Finished Reporting PcfgInfo. Exiting', 'red')
@@ -207,8 +204,8 @@ def parse_acfg_combo_list(acfg_name_list):
         list: acfg_combo_list
 
     CommandLine:
-        python -m ibeis.expt.experiment_helpers --exec-parse_acfg_combo_list
-        python -m ibeis.expt.experiment_helpers --exec-parse_acfg_combo_list:1
+        python -m ibeis parse_acfg_combo_list
+        python -m ibeis parse_acfg_combo_list:1
 
     Example:
         >>> # ENABLE_DOCTET
@@ -261,9 +258,6 @@ def parse_acfg_combo_list(acfg_name_list):
         expand_nested=False,
         special_join_dict=special_join_dict,
         is_nestedcfgtype=True)
-    #print('acfg_name_list = %r' % (acfg_name_list,))
-    #print(len(acfg_name_list))
-    #print(ut.depth_profile(nested_qcfg_combo_list))
 
     # Parse Data Annot Config
     nested_dcfg_combo_list = cfghelpers.parse_cfgstr_list2(
@@ -275,30 +269,17 @@ def parse_acfg_combo_list(acfg_name_list):
         special_join_dict=special_join_dict,
         is_nestedcfgtype=True)
 
-    #print(ut.depth_profile(nested_dcfg_combo_list))
-
     acfg_combo_list = []
-    #print('--')
     for nested_qcfg_combo, nested_dcfg_combo in zip(nested_qcfg_combo_list, nested_dcfg_combo_list):
-        #print('\n\n++++')
-        #print(len(nested_dcfg_combo))
-        #print(len(nested_qcfg_combo))
         acfg_combo = []
         # Only the inner nested combos are combinatorial
         for qcfg_combo, dcfg_combo in zip(nested_qcfg_combo, nested_dcfg_combo):
-            #print('---++++')
-            #print('---- ' + str(len(qcfg_combo)))
-            #print('---- ' + str(len(dcfg_combo)))
             _combo = [
                 dict([('qcfg', qcfg), ('dcfg', dcfg)])
                 for qcfg, dcfg in list(itertools.product(qcfg_combo, dcfg_combo))
             ]
-            #print('----  len(_combo) = %r' % (len(_combo),))
-
             acfg_combo.extend(_combo)
         acfg_combo_list.append(acfg_combo)
-    #print('LLL--')
-    #print(ut.depth_profile(acfg_combo_list))
     return acfg_combo_list
 
 
@@ -308,7 +289,7 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbos
 
     CommandLine:
         # The following will trigger this function:
-        ibeis -e print_acfg -a timectrl timectrl:view=left --db PZ_MTEST
+        ibeis -m ibeis get_annotcfg_list:0 -a timectrl timectrl:view=left --db PZ_MTEST
 
     """
     from ibeis.expt import annotation_configs
@@ -358,17 +339,17 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         annot_cfg_name_list (list):
 
     CommandLine:
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:1
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:2
+        python -m ibeis get_annotcfg_list:0
+        python -m ibeis get_annotcfg_list:1
+        python -m ibeis get_annotcfg_list:2
 
-        ibeis -e print_acfg --ainfo
-        ibeis -e print_acfg --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
-        ibeis -e print_acfg --db PZ_ViewPoints -a viewpoint_compare --nocache-aid --verbtd
-        ibeis -e print_acfg --db PZ_MTEST -a unctrl ctrl::unctrl --ainfo --nocache-aid
-        ibeis -e print_acfg --db testdb1 -a default --ainfo --nocache-aid
-        ibeis -e print_acfg --db Oxford -a default:qhas_any=query --ainfo --nocache-aid
-        ibeis -e print_acfg --db Oxford -a default:qhas_any=query,dhas_any=distractor --ainfo --nocache-aid
+        ibeis get_annotcfg_list:0 --ainfo
+        ibeis get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+        ibeis get_annotcfg_list:0 --db PZ_ViewPoints -a viewpoint_compare --nocache-aid --verbtd
+        ibeis get_annotcfg_list:0 --db PZ_MTEST -a unctrl ctrl::unctrl --ainfo --nocache-aid
+        ibeis get_annotcfg_list:0 --db testdb1 -a : --ainfo --nocache-aid
+        ibeis get_annotcfg_list:0 --db Oxford -a :qhas_any=query --ainfo --nocache-aid
+        ibeis get_annotcfg_list:0 --db Oxford -a :qhas_any=query,dhas_any=distractor --ainfo --nocache-aid
 
     Example0:
         >>> # DISABLE_DOCTEST
@@ -438,7 +419,6 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
             expanded_aids_list, acfg_list, acfg_name_list)
 
     if ut.get_argflag(('--acfginfo', '--ainfo', '--aidcfginfo', '--print-acfg', '--printacfg')):
-        import sys
         ut.colorprint('[experiment_helpers] Requested AcfgInfo ... ', 'red')
         print('combo_slice = %r' % (combo_slice,))
         print('acfg_slice = %r' % (acfg_slice,))

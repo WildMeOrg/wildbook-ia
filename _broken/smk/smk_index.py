@@ -460,9 +460,9 @@ def compute_negentropy_names(aids_list, daid2_label):
     # add a little wiggle room
     eps = 1E-9
     # http://stackoverflow.com/questions/872544/precision-of-floating-point
-    #epsilon = 2^(E-52)    % For a 64-bit float (double precision)
-    #epsilon = 2^(E-23)    % For a 32-bit float (single precision)
-    #epsilon = 2^(E-10)    % For a 16-bit float (half precision)
+    #epsilon = 2^(E-52)    # For a 64-bit float (double precision)
+    #epsilon = 2^(E-23)    # For a 32-bit float (single precision)
+    #epsilon = 2^(E-10)    # For a 16-bit float (half precision)
     probNameGivenWord = eps + (1.0 - eps) * np.array([probLabelGivenWord_arr.take(xs, axis=0).sum(axis=0) for xs in groupxs_])
     logProbNameGivenWord = np.log(probNameGivenWord)
     wordNameEntropy = -(probNameGivenWord * logProbNameGivenWord).sum(0)

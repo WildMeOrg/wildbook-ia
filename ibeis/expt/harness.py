@@ -8,15 +8,16 @@ import textwrap
 import numpy as np
 import utool as ut
 from ibeis.expt import experiment_helpers
-from os.path import dirname, join
 from ibeis.expt import test_result
 print, rrr, profile = ut.inject2(__name__, '[expt_harn]')
 
 NOMEMORY = ut.get_argflag('--nomemory')
 TESTRES_VERBOSITY = 2 - (2 * ut.QUIET)
-NOCACHE_TESTRES =  ut.get_argflag(('--nocache-testres', '--nocache-big'), False)
+NOCACHE_TESTRES =  ut.get_argflag(('--nocache-testres', '--nocache-big'),
+                                  False)
 USE_BIG_TEST_CACHE = (not ut.get_argflag(('--no-use-testcache',
-                                          '--nocache-test')) and ut.USE_CACHE and
+                                          '--nocache-test')) and
+                      ut.USE_CACHE and
                       not NOCACHE_TESTRES)
 USE_BIG_TEST_CACHE = False
 TEST_INFO = True
@@ -27,7 +28,7 @@ DRY_RUN =  ut.get_argflag(('--dryrun', '--dry'))
 
 def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
              qaid_override=None, daid_override=None, initial_aids=None):
-    """
+    r"""
     Loops over annot configs.
 
     Try and use this function as a starting point to clean up this module.
@@ -43,7 +44,8 @@ def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
         >>> from ibeis.expt.harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> default_acfgstrs = ['ctrl:qsize=20,dpername=1,dsize=10', 'ctrl:qsize=20,dpername=10,dsize=20']
+        >>> default_acfgstrs = ['ctrl:qsize=20,dpername=1,dsize=10',
+        >>>                     'ctrl:qsize=20,dpername=10,dsize=20']
         >>> acfg_name_list = default_acfgstrs
         >>> test_cfg_name_list = ['default:proot=smk', 'default']
         >>> #test_cfg_name_list = ['custom', 'custom:fg_on=False']
@@ -73,8 +75,8 @@ def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
         [harn]================
         [harn] harness.test_configurations2()""").strip(), 'white')
         msg = '[harn] Running %s using %s and %s' % (
-            ut.quantstr('test', len(acfg_list) * len(pipecfg_list)),
-            ut.quantstr('pipeline config', len(pipecfg_list)),
+            ut.quantstr('test', len(acfg_list) * len(cfgdict_list)),
+            ut.quantstr('pipeline config', len(cfgdict_list)),
             ut.quantstr('annot config', len(acfg_list)),
         )
         ut.colorprint(msg, 'white')
@@ -83,7 +85,8 @@ def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
 
     nAcfg = len(acfg_list)
 
-    testnameid = ibs.get_dbname() + ' ' + str(test_cfg_name_list) + str(acfg_name_list)
+    testnameid = (ibs.get_dbname() + ' ' + str(test_cfg_name_list) +
+                  str(acfg_name_list))
     lbl = '[harn] TEST_CFG ' + str(test_cfg_name_list) + str(acfg_name_list)
     expanded_aids_iter = ut.ProgIter(expanded_aids_list, lbl='annot config',
                                      freq=1, autoadjust=False,
@@ -117,25 +120,11 @@ def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
     return testres
 
 
-def get_big_test_cache_info(ibs, cfgx2_qreq_):
-    """
-    Args:
-        ibs (ibeis.IBEISController):
-        cfgx2_qreq_ (dict):
-    """
-    if ut.is_developer():
-        import ibeis
-        repodir = dirname(ut.get_module_dir(ibeis))
-        bt_cachedir = join(repodir, 'BIG_TEST_CACHE2')
-    else:
-        bt_cachedir = join(ibs.get_cachedir(), 'BIG_TEST_CACHE2')
-        #bt_cachedir = './localdata/BIG_TEST_CACHE2'
-    ut.ensuredir(bt_cachedir)
-    bt_cachestr = ut.hashstr_arr27([
-        qreq_.get_cfgstr(with_input=True)
-        for qreq_ in cfgx2_qreq_],
-        ibs.get_dbname() + '_cfgs')
-    bt_cachename = 'BIGTESTCACHE2'
+def get_bulk_test_cache_info(ibs, cfgx2_qreq_):
+    bt_cachedir = ut.ensuredir((ibs.get_cachedir(), 'BULK_TEST_CACHE2'))
+    cfgstr_list = [qreq_.get_cfgstr(with_input=True) for qreq_ in cfgx2_qreq_]
+    bt_cachestr = ut.hashstr_arr27(cfgstr_list, ibs.get_dbname() + '_cfgs')
+    bt_cachename = 'BULKTESTCACHE2'
     return bt_cachedir, bt_cachename, bt_cachestr
 
 
@@ -145,7 +134,7 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                         subindexer_partial=ut.ProgIter):
     """
     CommandLine:
-        python -m ibeis.expt.harness --exec-run_expt
+        python -m ibeis run_expt
     """
     cfgslice = None
     if cfgslice is not None:
@@ -166,9 +155,9 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         use_cache = USE_BIG_TEST_CACHE
 
     if use_cache:
-        get_big_test_cache_info(ibs, cfgx2_qreq_)
+        get_bulk_test_cache_info(ibs, cfgx2_qreq_)
         try:
-            cachetup = get_big_test_cache_info(ibs, cfgx2_qreq_)
+            cachetup = get_bulk_test_cache_info(ibs, cfgx2_qreq_)
             testres = ut.load_cache(*cachetup)
             testres.cfgdict_list = cfgdict_list
             testres.cfgx2_lbl = cfgx2_lbl  # hack override
@@ -176,7 +165,8 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
             pass
         else:
             if ut.NOT_QUIET:
-                ut.colorprint('[harn] single testres cache hit... returning', 'turquoise')
+                ut.colorprint('[harn] single testres cache hit... returning',
+                              'turquoise')
             return testres
 
     if ibs.table_cache:
@@ -219,7 +209,8 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                 st_cachename = 'smalltest'
                 ut.ensuredir(st_cachedir)
                 try:
-                    cfgres_info = ut.load_cache(st_cachedir, st_cachename, st_cfgstr)
+                    cfgres_info = ut.load_cache(st_cachedir, st_cachename,
+                                                st_cfgstr)
                 except IOError:
                     _need_compute = True
                 else:
@@ -237,7 +228,8 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                 if ibs.table_cache:
                     prev_feat_cfgstr = qreq_.qparams.feat_cfgstr
                 if use_cache:
-                    ut.save_cache(st_cachedir, st_cachename, st_cfgstr, cfgres_info)
+                    ut.save_cache(st_cachedir, st_cachename, st_cfgstr,
+                                  cfgres_info)
         if not NOMEMORY:
             # Store the results
             cfgx2_cfgresinfo.append(cfgres_info)
@@ -252,7 +244,8 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         print('ran tests in memory savings mode. Cannot Print. exiting')
         return
     # Store all pipeline config results in a test result object
-    testres = test_result.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_)
+    testres = test_result.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cfgresinfo,
+                                     cfgx2_qreq_)
     testres.testnameid = testnameid
     testres.lbl = lbl
     testres.cfgdict_list = cfgdict_list
@@ -280,10 +273,10 @@ def get_qres_name_result_info(ibs, cm, qreq_):
     nscoretup = cm.get_ranked_nids_and_aids()
     sorted_nids, sorted_nscores, sorted_aids, sorted_scores = nscoretup
 
-    is_positive = sorted_nids == qnid
-    is_negative = np.logical_and(~is_positive, sorted_nids > 0)
-    gt_rank = None if not np.any(is_positive) else np.where(is_positive)[0][0]
-    gf_rank = None if not np.any(is_negative) else np.nonzero(is_negative)[0][0]
+    success = sorted_nids == qnid
+    failure = np.logical_and(~success, sorted_nids > 0)
+    gt_rank = None if not np.any(success) else np.where(success)[0][0]
+    gf_rank = None if not np.any(failure) else np.nonzero(failure)[0][0]
 
     if gt_rank is None or gf_rank is None:
         #if isinstance(qres, chip_match.ChipMatch):
@@ -306,18 +299,6 @@ def get_qres_name_result_info(ibs, cm, qreq_):
         # different comparison methods
         scorediff      = gt_raw_score - gf_raw_score
         scorefactor    = gt_raw_score / gf_raw_score
-        #scorelogfactor = np.log(gt_raw_score) / np.log(gf_raw_score)
-        #scoreexpdiff   = np.exp(gt_raw_score) - np.log(gf_raw_score)
-
-        # TEST SCORE COMPARISON METHODS
-        #truescore  = np.random.rand(4)
-        #falsescore = np.random.rand(4)
-        #score_diff      = truescore - falsescore
-        #scorefactor    = truescore / falsescore
-        #scorelogfactor = np.log(truescore) / np.log(falsescore)
-        #scoreexpdiff   = np.exp(truescore) - np.exp(falsescore)
-        #for x in [score_diff, scorefactor, scorelogfactor, scoreexpdiff]:
-        #    print(x.argsort())
 
     qresinfo_dict = dict(
         bestranks=gt_rank,
@@ -369,21 +350,19 @@ def get_query_result_info(qreq_):
         qx2_bestranks
 
     CommandLine:
-        python -m ibeis.expt.harness --test-get_query_result_info
-        python -m ibeis.expt.harness --test-get_query_result_info:0
-        python -m ibeis.expt.harness --test-get_query_result_info:1
-        python -m ibeis.expt.harness --test-get_query_result_info:0 --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1
-        python -m ibeis.expt.harness --test-get_query_result_info:0 --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --cmd
+        python -m ibeis get_query_result_info
+        python -m ibeis get_query_result_info:0
+        python -m ibeis get_query_result_info:1
+        python -m ibeis get_query_result_info:0 --db lynx \
+            -a :qsame_imageset=True,been_adjusted=True,excluderef=True -t :K=1
+        python -m ibeis get_query_result_info:0 --db lynx \
+            -a :qsame_imageset=True,been_adjusted=True,excluderef=True -t :K=1 --cmd
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.expt.harness import *  # NOQA
         >>> import ibeis
-        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(a=['default:qindex=0:3,dindex=0:5'])
-        >>> #ibs = ibeis.opendb('PZ_MTEST')
-        >>> #qaids = ibs.get_valid_aids()[0:3]
-        >>> #daids = ibs.get_valid_aids()[0:5]
-        >>> #qreq_ = ibs.new_query_request(qaids, daids, verbose=True, cfgdict={})
+        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(a=[':qindex=0:3,dindex=0:5'])
         >>> cfgres_info = get_query_result_info(qreq_)
         >>> print(ut.dict_str(cfgres_info))
 
@@ -392,8 +371,6 @@ def get_query_result_info(qreq_):
         >>> from ibeis.expt.harness import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> #cfgdict = dict(codename='vsone')
-        >>> # ibs.cfg.query_cfg.codename = 'vsone'
         >>> qaids = ibs.get_valid_aids()[0:3]
         >>> daids = ibs.get_valid_aids()[0:5]
         >>> qreq_ = ibs.new_query_request(qaids, daids, verbose=True, cfgdict={})
@@ -401,12 +378,17 @@ def get_query_result_info(qreq_):
         >>> print(ut.dict_str(cfgres_info))
 
     Ignore:
+        ibeis -e rank_cdf --db humpbacks -a :has_any=hasnotch,mingt=2 \
+                -t :proot=BC_DTW --show --nocache-big
 
-        ibeis -e rank_cdf --db humpbacks -a default:has_any=hasnotch,mingt=2 -t default:proot=BC_DTW --show --nocache-big
+        ibeis -e rank_cdf --db humpbacks -a :is_known=True,mingt=2 \
+                -t :pipeline_root=BC_DTW
 
-        ibeis -e rank_cdf --db humpbacks -a default:is_known=True,mingt=2 -t default:pipeline_root=BC_DTW
-        --show --debug-depc
-        ibeis -e rank_cdf --db humpbacks -a default:is_known=True -t default:pipeline_root=BC_DTW --qaid=1,9,15,16,18 --daid-override=1,9,15,16,18,21,22 --show --debug-depc
+        ibeis -e rank_cdf --db humpbacks -a :is_known=True \
+                -t :pipeline_root=BC_DTW \
+                --qaid=1,9,15,16,18 --daid-override=1,9,15,16,18,21,22 \
+                --show --debug-depc
+
         --clear-all-depcache
     """
     try:
@@ -430,14 +412,12 @@ def _build_qresinfo(ibs, qreq_, cm_list):
 
     qnx2_nameres_info = []
 
-    #import utool
-    #utool.embed()
-
     # Ranked list aggregation-ish
     nameres_info_list = []
     for qnid, cm_group in zip(unique_qnids, cm_group_list):
         nid2_name_score_group = [
-            dict([(nid, cm.name_score_list[nidx]) for nid, nidx in cm.nid2_nidx.items()])
+            dict([(nid, cm.name_score_list[nidx])
+                  for nid, nidx in cm.nid2_nidx.items()])
             for cm in cm_group
         ]
         aligned_name_scores = np.array([
@@ -452,10 +432,10 @@ def _build_qresinfo(ibs, qreq_, cm_list):
         sorted_dnids = unique_dnids[sortx]
 
         ## infer agg name results
-        is_positive = sorted_dnids == qnid
-        is_negative = np.logical_and(~is_positive, sorted_dnids > 0)
-        gt_name_rank = None if not np.any(is_positive) else np.where(is_positive)[0][0]
-        gf_name_rank = None if not np.any(is_negative) else np.nonzero(is_negative)[0][0]
+        success = sorted_dnids == qnid
+        failure = np.logical_and(~success, sorted_dnids > 0)
+        gt_name_rank = None if not np.any(success) else np.where(success)[0][0]
+        gf_name_rank = None if not np.any(failure) else np.nonzero(failure)[0][0]
         gt_nid = sorted_dnids[gt_name_rank]
         gf_nid = sorted_dnids[gf_name_rank]
         gt_name_score = sorted_namescores[gt_name_rank]
@@ -479,9 +459,6 @@ def _build_qresinfo(ibs, qreq_, cm_list):
     qx2_qresinfo = [get_qres_name_result_info(ibs, cm, qreq_) for cm in qx2_cm]
 
     cfgres_info = ut.dict_stack(qx2_qresinfo, 'qx2_')
-    #for key in qx2_qresinfo[0].keys():
-    #    'qx2_' + key
-    #    ut.get_list_column(qx2_qresinfo, key)
 
     if False:
         qx2_avepercision = np.array(

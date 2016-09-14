@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from os.path import exists, join
 from ibeis.algo.hots import chip_match
 import utool as ut
+import numpy as np
+(print, rrr, profile) = ut.inject2(__name__, '[mc5]')
 
 
 class EstimatorRequest(ut.NiceRepr):
@@ -109,6 +111,45 @@ class EstimatorRequest(ut.NiceRepr):
         parts.append('nD=%d' % len(qreq_.daids))
         parts.append(qreq_.get_pipe_hashid())
         return parts
+
+    # Hacked in functions
+
+    def ensure_nids(qreq_):
+        # Hacked over from hotspotter, seriously hacky
+        ibs = qreq_.ibs
+        qreq_.unique_aids = np.union1d(qreq_.qaids, qreq_.daids)
+        qreq_.unique_nids = ibs.get_annot_nids(qreq_.unique_aids)
+        qreq_.aid_to_idx = ut.make_index_lookup(qreq_.unique_aids)
+
+    @ut.accepts_numpy
+    def get_qreq_annot_nids(qreq_, aids):
+        # Hack uses own internal state to grab name rowids
+        # instead of using ibeis.
+        idxs = ut.take(qreq_.aid_to_idx, aids)
+        nids = ut.take(qreq_.unique_nids, idxs)
+        return nids
+
+    @ut.accepts_numpy
+    def get_qreq_annot_gids(qreq_, aids):
+        # Hack uses own internal state to grab name rowids
+        # instead of using ibeis.
+        return qreq_.ibs.get_annot_gids(aids)
+
+    def get_qreq_qannot_kpts(qreq_, qaids):
+        return qreq_.ibs.get_annot_kpts(
+            qaids, config2_=qreq_.qinva.fstack.config)
+
+    def get_qreq_dannot_kpts(qreq_, daids):
+        return qreq_.ibs.get_annot_kpts(
+            daids, config2_=qreq_.dinva.fstack.config)
+
+    @property
+    def extern_query_config2(qreq_):
+        return qreq_.qparams
+
+    @property
+    def extern_data_config2(qreq_):
+        return qreq_.qparams
 
 
 def execute_bulk(qreq_):
