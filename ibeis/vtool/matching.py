@@ -52,7 +52,10 @@ def make_match_interaction(matches, metadata, type_='RAT+SV', **kwargs):
     import plottool.interact_matches
     #import plottool as pt
     fm, fs = matches[type_][0:2]
-    H1 = metadata['H_' + type_.split('+')[0]]
+    try:
+        H1 = metadata['H_' + type_.split('+')[0]]
+    except Exception:
+        H1 = None
     #fm, fs = matches['RAT'][0:2]
     annot1 = metadata['annot1']
     annot2 = metadata['annot2']
