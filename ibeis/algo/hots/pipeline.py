@@ -302,7 +302,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         >>> import ibeis
         >>> qreq_ = ibeis.testdata_qreq_(
         >>>     defaultdb='testdb1',
-        >>>     a='default:species=zebra_plains',
+        >>>     a='default:species=zebra_plains,qhackerrors=True',
         >>>     p='default:use_k_padding=True,can_match_sameimg=False,can_match_samename=False')
         >>> impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
         >>> impossible_daids_list = [x.tolist() for x in impossible_daids_list]

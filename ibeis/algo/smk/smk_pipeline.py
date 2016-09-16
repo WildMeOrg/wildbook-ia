@@ -44,28 +44,42 @@ class InvertedAnnots2(object):
     def __init__(inva, aids, qreq_):
         print('Loading up inverted assigments')
         colnames = ('wx_list', 'fxs_list', 'maws_list', 'agg_rvecs', 'agg_flags')
-        input_tuple = (aids, [qreq_.daids])
         tablename = 'inverted_agg_assign'
+        input_tuple = (aids, [qreq_.daids])
         table = qreq_.ibs.depc[tablename]
         tbl_rowids = qreq_.ibs.depc.get_rowids(tablename, input_tuple, config=qreq_.config)
         print('Reading data')
-        if ut.is_developer():
-            hashid = ut.hashstr_arr27(tbl_rowids, 'group')
-            cacher = ut.Cacher(qreq_.ibs.get_dbname(),
-                               hashid, cache_dir=ut.truepath('~/Desktop'))
-            groups = cacher.tryload()
-            if groups is None:
-                groups = table.get_row_data(tbl_rowids, colnames)
-                cacher.save(groups)
-        else:
-            groups = table.get_row_data(tbl_rowids, colnames)
+        #if ut.is_developer():
+        #    cacher = ut.Cacher(
+        #        fname=qreq_.ibs.get_dbname(),
+        #        cfgstr=ut.hashstr_arr27(tbl_rowids, 'group'),
+        #        cache_dir=ut.truepath('~/Desktop')
+        #    )
+        #    groups = cacher.tryload()
+        #    if groups is None:
+        #        print('Developer cache miss')
+        #        groups = table.get_row_data(tbl_rowids, colnames)
+        #        cacher.save(groups)
+        #else:
+        groups = table.get_row_data(tbl_rowids, colnames, showprog=True)
         print('Formating inverted assigments')
+
         inva.aids = aids
+        # 431.61 vs 143.87 MB here
         inva.wx_lists = ut.take_column(groups, 0)
+        inva.wx_lists = [np.array(wx_list, dtype=np.int32) for wx_list in inva.wx_lists]
+        # Is this better to use?
+        # As nested lists: 471.35 MB
+        # As nested ndarrays: 157.12 MB
         inva.fxs_lists = ut.take_column(groups, 1)
-        inva.maws_lists = [ut.lmap(np.array, m) for m in ut.take_column(groups, 2)]
+        inva.fxs_lists = [[np.array(fxs, dtype=np.int32) for fxs in fxs_list] for fxs_list in inva.fxs_lists]
+        # [ut.lmap(np.array, fx_list) for fx_list in x.fxs_lists]
+        inva.maws_lists = ut.take_column(groups, 2)
+        inva.maws_lists = [[np.array(m, dtype=np.float32)
+                            for m in maws] for maws in inva.maws_lists]
         inva.agg_rvecs = ut.take_column(groups, 3)
         inva.agg_flags = ut.take_column(groups, 4)
+        # less memory hogs
         inva.aid_to_idx = ut.make_index_lookup(inva.aids)
         inva.int_rvec = qreq_.qparams.int_rvec
         inva.gamma_list = None
@@ -74,7 +88,7 @@ class InvertedAnnots2(object):
         inva.wx_to_aids = None
 
     @profile
-    def build_gammas(inva, wx_to_idf, alpha, thresh):
+    def compute_gammas(inva, wx_to_idf, alpha, thresh):
         gamma_list = []
         _iter = zip(inva.wx_lists, inva.agg_rvecs, inva.agg_flags)
         _prog = ut.ProgPartial(nTotal=len(inva.wx_lists), bs=True, lbl='gamma', adjust=True)
@@ -84,7 +98,7 @@ class InvertedAnnots2(object):
             gammaX = gamma(wx_list, phiX_list, flagsX_list, wx_to_idf, alpha,
                            thresh)
             gamma_list.append(gammaX)
-        inva.gamma_list = gamma_list
+        return gamma_list
 
     @profile
     def compute_idf(inva):
@@ -150,9 +164,11 @@ class SingleAnnot2(object):
         X.wx_to_idx = ut.make_index_lookup(X.wx_list)
         X.int_rvec = inva.int_rvec
 
+        X.wx_set = set(X.wx_list)
+
     @property
     def words(X):
-        return X.wx_list
+        return X.wx_set
 
     @profile
     def fxs(X, c):
@@ -191,13 +207,12 @@ class SMKRequest(mc5.EstimatorRequest):
             -a default:qmingt=2
 
         python -m ibeis draw_rank_cdf --db PZ_MTEST --show \
-            -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True],int_rvec=[True,False] \
+            -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True] \
                 default:proot=vsmany,sv_on=[True] \
-            -a default:qmingt=2,qsize=20
+            -a default:qmingt=2
 
         python -m ibeis draw_rank_cdf --db PZ_Master1 --show \
             -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True] \
-                default:proot=vsmany,sv_on=[True] \
             -a ctrl:qmingt=2
 
         python -m ibeis draw_rank_cdf --db PZ_Master1 \
@@ -258,24 +273,50 @@ class SMKRequest(mc5.EstimatorRequest):
         #qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
         qreq_.ensure_nids()
 
+        def make_cacher(name):
+            if ut.is_developer():
+                return ut.Cacher(
+                    fname=name + '_' + qreq_.ibs.get_dbname(),
+                    cfgstr=ut.hashstr27(qreq_.get_cfgstr()),
+                    cache_dir=ut.truepath('~/Desktop')
+                )
+            else:
+                wrp = ut.DynStruct()
+                def ensure(func):
+                    return func()
+                wrp.ensure = ensure
+                return wrp
+
         #vocab = vocab_indexer.new_load_vocab(ibs, qreq_.daids, config)
-        dinva = InvertedAnnots2(qreq_.daids, qreq_)
-        qinva = InvertedAnnots2(qreq_.qaids, qreq_)
+        cacher = make_cacher('dinva')
+        dinva = cacher.ensure(lambda: InvertedAnnots2(qreq_.daids, qreq_))
+
+        cacher = make_cacher('qinva')
+        qinva = cacher.ensure(lambda: InvertedAnnots2(qreq_.qaids, qreq_))
 
         dinva.build_inverted_list()
-        dinva.wx_to_idf = dinva.compute_idf()
-        wx_to_idf = dinva.wx_to_idf
+        cacher = make_cacher('didf')
+        wx_to_idf = cacher.ensure(lambda: dinva.compute_idf())
+        dinva.wx_to_idf = wx_to_idf
 
         thresh = qreq_.qparams['smk_thresh']
         alpha = qreq_.qparams['smk_alpha']
-        dinva.build_gammas(wx_to_idf, alpha, thresh)
-        qinva.build_gammas(wx_to_idf, alpha, thresh)
+
+        cacher = make_cacher('dgamma')
+        dinva.gamma_list = cacher.ensure(lambda: dinva.compute_gammas(wx_to_idf, alpha, thresh))
+
+        cacher = make_cacher('qgamma')
+        qinva.gamma_list = cacher.ensure(lambda: qinva.compute_gammas(wx_to_idf, alpha, thresh))
 
         qreq_.qinva = qinva
         qreq_.dinva = dinva
 
-        qreq_.data_kpts = qreq_.ibs.get_annot_kpts(
-            qreq_.daids, config2_=qreq_.extern_data_config2)
+        print('loading keypoints')
+        if qreq_.qparams.sv_on:
+            qreq_.data_kpts = qreq_.ibs.get_annot_kpts(
+                qreq_.daids, config2_=qreq_.extern_data_config2)
+
+        print('building aid index')
         qreq_.daid_to_didx = ut.make_index_lookup(qreq_.daids)
 
     def execute_pipeline(qreq_):
@@ -328,6 +369,12 @@ class Shortlist(ut.NiceRepr):
         self._keys = []
         self.maxsize = maxsize
 
+    def __iter__(self):
+        return iter(self._items)
+
+    def __len__(self):
+        return len(self._items)
+
     def __nice__(self):
         return str(self._items)
 
@@ -374,6 +421,7 @@ class SMK(ut.NiceRepr):
             python -m ibeis.algo.smk.smk_pipeline SMK.match_single --show
 
             python -m ibeis SMK.match_single -a ctrl:qmingt=2 --profile --db PZ_Master1
+            python -m ibeis SMK.match_single -a ctrl --profile --db GZ_ALL
 
         Example:
             >>> # FUTURE_ENABLE
@@ -404,11 +452,13 @@ class SMK(ut.NiceRepr):
         thresh = qreq_.qparams['smk_thresh']
         agg    = qreq_.qparams['agg']
         nNameShortList  = qreq_.qparams.nNameShortlistSVER
-        nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
+        #nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
+        #import utool
+        #utool.embed()
 
         sv_on   = qreq_.qparams.sv_on
         if sv_on:
-            shortsize = nAnnotPerName * nNameShortList
+            shortsize = nNameShortList
         else:
             shortsize = None
 
@@ -417,7 +467,10 @@ class SMK(ut.NiceRepr):
         X = qreq_.qinva.get_annot(qaid)
         gammaX = X.gamma
         wx_to_idf = qreq_.dinva.wx_to_idf
-        hit_daids = list(set(ut.flatten(ut.take(qreq_.dinva.wx_to_aids, X.words))))
+
+        # Determine which database annotations need to be checked
+        hit_daids = list(set(ut.flatten(ut.take(qreq_.dinva.wx_to_aids, X.wx_list))))
+
         #gammaX = smk.gamma(X, wx_to_idf, agg, alpha, thresh)
 
         for daid in ut.ProgIter(hit_daids, lbl='smk match qaid=%r' % (qaid,),
@@ -428,7 +481,7 @@ class SMK(ut.NiceRepr):
                 gammaXY = gammaX * gammaY
 
                 # Words in common define matches
-                common_words = ut.isect(X.wx_list, Y.wx_list)
+                common_words = sorted(X.words.intersection(Y.words))
                 if len(common_words) == 0:
                     continue
                 #%timeit ut.isect(X.words, Y.words)
@@ -464,10 +517,9 @@ class SMK(ut.NiceRepr):
         fm_list = []
         fsv_list = []
         fsv_col_lbls = ['smk']
-        for item in shortlist._items:
+        for item in shortlist:
             (score, score_list, X, Y, X_idx, Y_idx) = item
-            # Only build matches for those that will use it in spatial
-            # verification.
+            # Only build matches for those that sver will use
             fm, fs = agg_build_matches(X, Y, X_idx, Y_idx, score_list)
             if len(fm) > 0:
                 daid = Y.aid

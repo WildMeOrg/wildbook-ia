@@ -71,8 +71,8 @@ OTHER_DEFAULTS = {
     #'hack_extra' : None,  # hack param to make bigger db sizes
     #'hack_imageset': None,
     # Hack out errors in test data
-    'hackerrors'    : True,
-    #'hackerrors'    : False,
+    #'hackerrors'    : True,
+    'hackerrors'    : False,
     'joinme'    : None,
 }
 
