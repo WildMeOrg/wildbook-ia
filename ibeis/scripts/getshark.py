@@ -769,7 +769,7 @@ def add_new_images(ibs, miss_info):
 def _needs_redownload(fpath, seconds_thresh):
     if exists(fpath):
         file_info = ut.get_file_info(fpath)
-        dt = ut.parse_timestamp(file_info['last_modified'], utc=True)
+        dt = ut.parse_timestamp(file_info['last_modified'], zone='UTC')
         delta = dt - ut.utcnow_tz()
         redownload = delta.total_seconds() > seconds_thresh
     else:

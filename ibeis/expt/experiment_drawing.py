@@ -710,11 +710,12 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         testres (TestResult):
 
     CommandLine:
-        python -m ibeis.dev -e draw_rank_cdf
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc --cdfzoom
-        python -m ibeis.dev -e draw_rank_cdf --db PZ_MTEST --show -a varypername_td   -t CircQRH_ScoreMech:K=3
+        python -m ibeis draw_rank_cdf
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a :proot=smk,num_words=64000
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a timectrl
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc --cdfzoom
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a varypername_td   -t CircQRH_ScoreMech:K=3
         #ibeis -e rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
         python -m ibeis.dev -e draw_rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show

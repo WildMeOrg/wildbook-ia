@@ -26,7 +26,7 @@ def parse_exif(pil_img):
     # TODO: More tags
     # (mainly the orientation tag)
     lat, lon = vtexif.get_lat_lon(exif_dict)
-    orient = vtexif.get_orientation(exif_dict)
+    orient = vtexif.get_orientation(exif_dict, on_error='warn')
     time = vtexif.get_unixtime(exif_dict)
     return time, lat, lon, orient
 

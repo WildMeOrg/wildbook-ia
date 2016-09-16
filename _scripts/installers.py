@@ -421,7 +421,6 @@ def test_run_app():
     #ut.cmd(ut.unixpath('dist/ibeis/ibeis-win32-setup.exe'))
 
 
-
 def main():
     """
     CommandLine:

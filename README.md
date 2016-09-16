@@ -375,11 +375,11 @@ python -m ibeis.dbio.ingest_hsdb --test-convert_hsdb_to_ibeis:0 --db JAG_KELLY
 # Profiling Code
 #----------------
 
-utprof.py dev.py -t best --db testdb1 --allgt --nocache-query --prof-mod "spatial;linalg;keypoint"
-utprof.py dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
-utprof.py dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint"
-utprof.py dev.py -t custom --db PZ_MTEST --allgt --noqcache
-utprof.py dev.py -t custom:sv_on=False --db PZ_MTEST --allgt --noqcache
+dev.py -t best --db testdb1 --allgt --nocache-query --prof-mod "spatial;linalg;keypoint" --profile
+dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint" --profile
+dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint" --profile
+dev.py -t custom --db PZ_MTEST --allgt --noqcache --profile
+dev.py -t custom:sv_on=False --db PZ_MTEST --allgt --noqcache --profile
 
 
 #----------------

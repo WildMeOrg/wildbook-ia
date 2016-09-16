@@ -17,28 +17,30 @@ def autogen_ipynb(ibs, launch=None, run=None):
     Autogenerates standard IBEIS Image Analysis IPython notebooks.
 
     CommandLine:
-        python -m ibeis --tf autogen_ipynb --run --db lynx
+        python -m ibeis autogen_ipynb --run --db lynx
+        python -m ibeis autogen_ipynb --run --db lynx
 
-        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --asreport
-        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST --noexample --withtags
+        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST -p :proot=smk,num_words=64000 default
+        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST --asreport
+        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST --noexample --withtags
 
-        python -m ibeis --tf autogen_ipynb --db PZ_MTEST
+        python -m ibeis autogen_ipynb --db PZ_MTEST
         # TODO: Add support for dbdir to be specified
-        python -m ibeis --tf autogen_ipynb --db ~/work/PZ_MTEST
+        python -m ibeis autogen_ipynb --db ~/work/PZ_MTEST
 
-        python -m ibeis --tf autogen_ipynb --ipynb --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
-        python -m ibeis --tf autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
+        python -m ibeis autogen_ipynb --ipynb --db Oxford -a default:qhas_any=\(query,\),dpername=1,exclude_reference=True,dminqual=good
+        python -m ibeis autogen_ipynb --ipynb --db PZ_MTEST -a default -t best:lnbnn_normalizer=[None,normlnbnn-test]
 
         python -m ibeis.templates.generate_notebook --exec-autogen_ipynb --db wd_peter_blinston --ipynb
 
-        python -m ibeis --tf autogen_ipynb --db PZ_Master1 --ipynb
-        python -m ibeis --tf autogen_ipynb --db PZ_Master1 -a timectrl:qindex=0:100 -t best best:normsum=True --ipynb --noexample
-        python -m ibeis --tf autogen_ipynb --db PZ_Master1 -a timectrl --run
+        python -m ibeis autogen_ipynb --db PZ_Master1 --ipynb
+        python -m ibeis autogen_ipynb --db PZ_Master1 -a timectrl:qindex=0:100 -t best best:normsum=True --ipynb --noexample
+        python -m ibeis autogen_ipynb --db PZ_Master1 -a timectrl --run
         jupyter-notebook Experiments-lynx.ipynb
         killall python
 
-        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW -a default:has_any=hasnotch
-        python -m ibeis --tf autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW default:proot=vsmany -a default:has_any=hasnotch,mingt=2,qindex=0:50 --noexample
+        python -m ibeis autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW -a default:has_any=hasnotch
+        python -m ibeis autogen_ipynb --db humpbacks --ipynb -t default:proot=BC_DTW default:proot=vsmany -a default:has_any=hasnotch,mingt=2,qindex=0:50 --noexample
 
     Example:
         >>> # SCRIPT

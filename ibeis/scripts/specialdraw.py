@@ -594,7 +594,7 @@ def setcover_example():
         print(aids[-2])
     #aids = [78, 79, 80, 81, 88, 91]
     aids = [78, 79, 81, 88, 91]
-    qreq_ = ibs.depc.new_request('vsone', aids, aids, cfgdict={})
+    qreq_ = ibs.depc.new_request('vsone', aids, aids)
     cm_list = qreq_.execute()
     from ibeis.algo.hots import orig_graph_iden
     infr = orig_graph_iden.OrigAnnotInference(cm_list)

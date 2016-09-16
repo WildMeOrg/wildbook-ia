@@ -123,7 +123,7 @@ class Neighbors(ut.NiceRepr):
         return self.__dict__.update(**state)
 
 
-@profile
+#@profile
 def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     r""" Driver logic of query pipeline
 
@@ -319,13 +319,13 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
     can_match_sameimg  = qreq_.qparams.can_match_sameimg
     can_match_samename = qreq_.qparams.can_match_samename
     use_k_padding       = qreq_.qparams.use_k_padding
-    cant_match_self     = True
+    can_match_self     = False
     internal_qaids = qreq_.get_internal_qaids()
     internal_daids = qreq_.get_internal_daids()
     internal_data_nids  = qreq_.get_qreq_annot_nids(internal_daids)
 
     _impossible_daid_lists = []
-    if cant_match_self:
+    if not can_match_self:
         if can_match_sameimg and can_match_samename:
             # we can skip this if sameimg or samename is specified.
             # it will cover this case for us
@@ -933,7 +933,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
 #============================
 
 
-@profile
+#@profile
 def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
                       filtweights_list, filtvalids_list, filtnormks_list,
                       verbose=VERB_PIPELINE):
@@ -1061,7 +1061,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
     return cm_list
 
 
-@profile
+#@profile
 def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
                                 neighb_score_list, neighb_valid_list,
                                 neighb_normk_list, Knorm):
@@ -1262,7 +1262,7 @@ def spatial_verification(qreq_, cm_list_FILT, verbose=VERB_PIPELINE):
         return cm_list_SVER
 
 
-@profile
+#@profile
 def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     """
     make only spatially valid features survive
@@ -1298,7 +1298,7 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     return cm_list_SVER
 
 
-@profile
+#@profile
 def sver_single_chipmatch(qreq_, cm, verbose=False):
     r"""
     Spatially verifies a shortlist of a single chipmatch

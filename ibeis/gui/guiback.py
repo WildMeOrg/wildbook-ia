@@ -405,8 +405,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         # use defaults instead of back's ibs.cfg
         query_cfg = QueryConfig()
         self.qreq_ = self.ibs.new_query_request(self.qaids, self.daids,
-                                                cfgdict=self.pcfg,
-                                                query_cfg=query_cfg)
+                                                cfgdict=self.pcfg, query_cfg=query_cfg)
         qreq_ = self.qreq_
         stats_dict, _ = ibs.get_annotconfig_stats(
             qreq_.qaids, qreq_.daids, verbose=False, **self.info_cfg)
@@ -512,8 +511,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
             from ibeis.algo.Config import QueryConfig
             query_cfg = QueryConfig()
             qreq_ = self.ibs.new_query_request(self.qaids, self.daids,
-                                               cfgdict=self.pcfg,
-                                               query_cfg=query_cfg)
+                                               cfgdict=self.pcfg, query_cfg=query_cfg)
 
         ts = ut.get_timestamp(isutc=True, timezone=True)
 
