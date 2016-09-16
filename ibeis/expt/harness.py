@@ -120,14 +120,6 @@ def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
     return testres
 
 
-def get_bulk_test_cache_info(ibs, cfgx2_qreq_):
-    bt_cachedir = ut.ensuredir((ibs.get_cachedir(), 'BULK_TEST_CACHE2'))
-    cfgstr_list = [qreq_.get_cfgstr(with_input=True) for qreq_ in cfgx2_qreq_]
-    bt_cachestr = ut.hashstr_arr27(cfgstr_list, ibs.get_dbname() + '_cfgs')
-    bt_cachename = 'BULKTESTCACHE2'
-    return bt_cachedir, bt_cachename, bt_cachestr
-
-
 @profile
 def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                         cfgdict_list, lbl, testnameid, use_cache=None,
@@ -155,10 +147,12 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         use_cache = USE_BIG_TEST_CACHE
 
     if use_cache:
-        get_bulk_test_cache_info(ibs, cfgx2_qreq_)
         try:
-            cachetup = get_bulk_test_cache_info(ibs, cfgx2_qreq_)
-            testres = ut.load_cache(*cachetup)
+            bt_cachedir = ut.ensuredir((ibs.get_cachedir(), 'BULK_TEST_CACHE2'))
+            cfgstr_list = [qreq_.get_cfgstr(with_input=True) for qreq_ in cfgx2_qreq_]
+            bt_cachestr = ut.hashstr_arr27(cfgstr_list, ibs.get_dbname() + '_cfgs')
+            bt_cachename = 'BULKTESTCACHE2'
+            testres = ut.load_cache(bt_cachedir, bt_cachename, bt_cachestr)
             testres.cfgdict_list = cfgdict_list
             testres.cfgx2_lbl = cfgx2_lbl  # hack override
         except IOError:
@@ -179,15 +173,13 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
     # Run each pipeline configuration
     for cfgx in cfgiter:
         qreq_ = cfgx2_qreq_[cfgx]
-
-        ut.colorprint('testnameid=%r' % (
-            testnameid,), 'green')
-        ut.colorprint('annot_cfgstr = %s' % (
+        cprint = ut.colorprint
+        cprint('testnameid=%r' % (testnameid,), 'green')
+        cprint('annot_cfgstr = %s' % (
             qreq_.get_cfgstr(with_input=True, with_pipe=False),), 'yellow')
-        ut.colorprint('pipe_cfgstr= %s' % (
+        cprint('pipe_cfgstr= %s' % (
             qreq_.get_cfgstr(with_data=False),), 'turquoise')
-        ut.colorprint('pipe_hashstr = %s' % (
-            qreq_.get_pipe_hashid(),), 'teal')
+        cprint('pipe_hashstr = %s' % (qreq_.get_pipe_hashid(),), 'teal')
         if DRY_RUN:
             continue
 
@@ -204,7 +196,6 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
             if use_cache:
                 # smaller cache for individual configuration runs
                 st_cfgstr = qreq_.get_cfgstr(with_input=True)
-                bt_cachedir = cachetup[0]
                 st_cachedir = ut.unixjoin(bt_cachedir, 'small_tests')
                 st_cachename = 'smalltest'
                 ut.ensuredir(st_cachedir)
@@ -223,7 +214,8 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                         # Clear features to preserve memory
                         ibs.clear_table_cache()
                         #qreq_.ibs.print_cachestats_str()
-                cfgres_info = get_query_result_info(qreq_)
+                cm_list = qreq_.execute()
+                cfgres_info = build_qresinfo(qreq_, cm_list)
                 # record previous feature configuration
                 if ibs.table_cache:
                     prev_feat_cfgstr = qreq_.qparams.feat_cfgstr
@@ -252,7 +244,7 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
     testres.aidcfg = None
     if use_cache:
         try:
-            ut.save_cache(*tuple(list(cachetup) + [testres]))
+            ut.save_cache(bt_cachedir, bt_cachename, bt_cachestr, testres)
         except Exception as ex:
             ut.printex(ex, 'error saving testres cache', iswarning=True)
             if ut.SUPER_STRICT:
@@ -318,25 +310,7 @@ def get_qres_name_result_info(ibs, cm, qreq_):
     return qresinfo_dict
 
 
-def build_testres_from_cm_list(qreq_, cm_list):
-    """
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.expt.harness import *  # NOQA
-    """
-    cfgx2_qreq_ = [qreq_]
-    cfgx2_lbl = ['custom']
-    pipecfg_list = [qreq_.qparams]
-    #testres.testnameid = testnameid
-    cfgres_info = _build_qresinfo(qreq_.ibs, qreq_, cm_list)
-    cfgx2_cfgresinfo = [cfgres_info]
-    testres = test_result.TestResult(pipecfg_list, cfgx2_lbl, cfgx2_cfgresinfo,
-                                     cfgx2_qreq_)
-    return testres
-
-
-@profile
-def get_query_result_info(qreq_):
+def build_qresinfo(qreq_, cm_list):
     """
     Helper function.
 
@@ -363,7 +337,8 @@ def get_query_result_info(qreq_):
         >>> from ibeis.expt.harness import *  # NOQA
         >>> import ibeis
         >>> qreq_ = ibeis.main_helpers.testdata_qreq_(a=[':qindex=0:3,dindex=0:5'])
-        >>> cfgres_info = get_query_result_info(qreq_)
+        >>> cm_list = qreq_.execute()
+        >>> cfgres_info = build_qresinfo(qreq_, cm_list)
         >>> print(ut.dict_str(cfgres_info))
 
     Example:
@@ -374,7 +349,8 @@ def get_query_result_info(qreq_):
         >>> qaids = ibs.get_valid_aids()[0:3]
         >>> daids = ibs.get_valid_aids()[0:5]
         >>> qreq_ = ibs.new_query_request(qaids, daids, verbose=True, cfgdict={})
-        >>> cfgres_info = get_query_result_info(qreq_)
+        >>> cm_list = qreq_.execute()
+        >>> cfgres_info = build_qresinfo(qreq_, cm_list)
         >>> print(ut.dict_str(cfgres_info))
 
     Ignore:
@@ -391,15 +367,7 @@ def get_query_result_info(qreq_):
 
         --clear-all-depcache
     """
-    try:
-        ibs = qreq_.ibs
-    except AttributeError:
-        ibs = qreq_.depc.controller
-    cm_list = qreq_.execute()
-    return _build_qresinfo(ibs, qreq_, cm_list)
-
-
-def _build_qresinfo(ibs, qreq_, cm_list):
+    ibs = qreq_.ibs
     qx2_cm = cm_list
     qaids = qreq_.qaids
     #qaids2 = [cm.qaid for cm in cm_list]

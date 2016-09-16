@@ -100,7 +100,7 @@ class EstimatorRequest(ut.NiceRepr):
                                            cfgstr=cfgstr)
             for qaid, qauuid in zip(qaid_list, qauuid_list)
         ]
-        dpath = ut.ensuredir((qreq_.cachedir, 'cms'))
+        dpath = ut.ensuredir((qreq_.cachedir, 'mc5_cms'))
         fpath_list = [join(dpath, fname) for fname in fname_list]
         return fpath_list
 
@@ -135,14 +135,6 @@ class EstimatorRequest(ut.NiceRepr):
         # instead of using ibeis.
         return qreq_.ibs.get_annot_gids(aids)
 
-    def get_qreq_qannot_kpts(qreq_, qaids):
-        return qreq_.ibs.get_annot_kpts(
-            qaids, config2_=qreq_.qinva.fstack.config)
-
-    def get_qreq_dannot_kpts(qreq_, daids):
-        return qreq_.ibs.get_annot_kpts(
-            daids, config2_=qreq_.dinva.fstack.config)
-
     @property
     def extern_query_config2(qreq_):
         return qreq_.qparams
@@ -158,8 +150,8 @@ def execute_bulk(qreq_):
                len(qreq_.qaids) > qreq_.min_bulk_size)
     if bulk_on:
         # Try and load directly from a big cache
-        bc_dpath = ut.ensuredir((qreq_.cachedir, 'bulk'))
-        bc_fname = 'bulk_' + '_'.join(qreq_.get_nice_parts())
+        bc_dpath = ut.ensuredir((qreq_.cachedir, 'bulk_mc5'))
+        bc_fname = 'bulk_mc5_' + '_'.join(qreq_.get_nice_parts())
         bc_cfgstr = qreq_.get_cfgstr(with_input=True)
         try:
             cm_list = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)

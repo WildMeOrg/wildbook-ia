@@ -3,7 +3,6 @@
 TODO:
     * cross validation
     * encounter vs database (time filtering)
-
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
@@ -12,11 +11,10 @@ import utool as ut
 import numpy as np
 import six
 from ibeis.control import controller_inject
-(print, rrr, profile) = ut.inject2(__name__, '[main_helpers]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td', 'acfg')
 
-# TODO: Make these configurable
 SEED1 = 0
 SEED2 = 42
 
@@ -29,6 +27,20 @@ else:
 
 _tup = controller_inject.make_ibs_register_decorator(__name__)
 CLASS_INJECT_KEY, register_ibs_method = _tup
+
+
+@profile
+def time_filter_annots():
+    """
+    python -m ibeis.init.filter_annots time_filter_annots --db PZ_Master1 -a ctrl:qmingt=2 --profile
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> result = time_filter_annots()
+    """
+    import ibeis
+    ibeis.testdata_expanded_aids()
 
 
 @register_ibs_method
@@ -151,7 +163,6 @@ def get_default_annot_filter_form():
 
 
 @register_ibs_method
-@profile
 def get_annot_tag_filterflags(ibs, aid_list, filter_kw,
                               request_defaultkw=False):
     r"""
@@ -276,6 +287,7 @@ def get_acfg_cacheinfo(ibs, aidcfg):
     return acfg_cacheinfo
 
 
+@profile
 def expand_single_acfg(ibs, aidcfg, verbose=None):
     """
     for main_helpers """
@@ -365,6 +377,7 @@ def hack_extra(ibs, expanded_aids):
     return expanded_aids
 
 
+@profile
 def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
                               use_cache=None, verbose=None):
     """
@@ -972,7 +985,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                 ]
             unknown_ok = not aidcfg['require_viewpoint']
             yaw_flags = ibs.get_viewpoint_filterflags(
-                avail_aids, valid_yaw_txts, unknown_ok=unknown_ok)
+                avail_aids, valid_yaw_txts, unknown_ok=unknown_ok, assume_unique=True)
             yaw_flags = list(yaw_flags)
             with VerbosityContext('view', 'require_viewpoint', 'view_ext',
                                   'view_ext1', 'view_ext2', valid_yaws=valid_yaw_txts):
@@ -1204,7 +1217,7 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
                 #also_exclude_overlaps = ibs.get_dbname() == 'Oxford'
                 also_exclude_overlaps = True
                 if also_exclude_overlaps:
-                    contact_aids_list = ibs.get_annot_contact_aids(ref_aids, daid_list=avail_aids)
+                    contact_aids_list = ibs.get_annot_contact_aids(ref_aids, daid_list=avail_aids, assume_unique=True)
                     # Disallow the same name in the same image
                     x = ibs.unflat_map(ibs.get_annot_nids, contact_aids_list)
                     y = ibs.get_annot_nids(ref_aids)

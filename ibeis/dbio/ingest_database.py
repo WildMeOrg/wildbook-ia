@@ -41,6 +41,13 @@ import utool as ut
 import vtool as vt
 import parse
 
+"""
+New Lynx
+
+python -m ibeis --tf ingest_rawdata --db lynx2  --imgdir "/media/raid/raw/WildME-WWF-lynx-Sept-2016/CARPETAS CATALOGO INDIVIDUOS" --ingest-type=named_folders --species=lynx --dry
+
+"""
+
 
 class Ingestable(object):
     """
@@ -346,6 +353,13 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     # Add Images
 
     gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
+
+    if ut.get_argflag('--dry'):
+        print('Found %d names' % (len(set(name_list))))
+        print(set(name_list))
+        print('Dry Run')
+        return
+
     gid_list_ = ibs.add_images(gpath_list)
 
     # <DEBUG>
