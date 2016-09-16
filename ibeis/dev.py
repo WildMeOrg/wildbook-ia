@@ -587,7 +587,7 @@ def run_dev(ibs):
     # Get reference to controller
     if ibs is not None:
         # Get aids marked as test cases
-        if not ut.get_argflag('--no-expanded-aids'):
+        if ut.get_argflag('--expanded-aids'):
             ibs, qaid_list, daid_list = main_helpers.testdata_expanded_aids(ibs=ibs)
             print('[run_def] Test Annotations:')
             #print('[run_dev] * qaid_list = %s' % ut.packstr(qaid_list, 80, nlprefix='[run_dev]     '))
@@ -598,8 +598,9 @@ def run_dev(ibs):
             assert len(qaid_list) > 0, 'assert!'
             assert len(daid_list) > 0, 'daid_list!'
         except AssertionError as ex:
-            utool.printex(ex, 'len(qaid_list) = 0', iswarning=True)
-            utool.printex(ex, 'or len(daid_list) = 0', iswarning=True)
+            message = ' (try using command line argument --expanded-aids to enable)'
+            utool.printex(ex, 'len(qaid_list) = 0%s' % (message, ), iswarning=True)
+            utool.printex(ex, 'or len(daid_list) = 0%s' % (message, ), iswarning=True)
             #qaid_list = ibs.get_valid_aids()[0]
 
         if len(qaid_list) > 0 or True:
