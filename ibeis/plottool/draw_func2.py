@@ -3918,7 +3918,7 @@ def set_figsize(w, h, dpi):
     fig.set_dpi(dpi)
 
 
-def plot_func(funcs, start=0, stop=1, num=100, fnum=None, pnum=None):
+def plot_func(funcs, start=0, stop=1, num=100, setup=None, fnum=None, pnum=None):
     r"""
     plots a numerical function in a given range
 
@@ -3940,18 +3940,37 @@ def plot_func(funcs, start=0, stop=1, num=100, fnum=None, pnum=None):
         python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_loss
         python -m plottool.draw_func2 --exec-plot_func --show --range=-8,8 --func=vt.beaton_tukey_weight,vt.beaton_tukey_loss
 
+        python -m plottool plot_func --show --range=-1,1 \
+                --setup="from ibeis.algo.smk.smk_pipeline import SMK" \
+                --func=lambda u: SMK.selectivity(u, 3.0, 0)
+
+        python -m plottool plot_func --show --range=-1,1 \
+                --func \
+                "lambda u: sign(u) * abs(u)**3.0 * greater_equal(u, 0)" \
+                "lambda u: (sign((u+1)/2) * abs((u+1)/2)**3.0 * greater_equal(u, 0+.5))"
+
+        alpha=3
+        thresh=-1
+
+        python -m plottool plot_func --show --range=-1,1 \
+                --func \
+                "lambda u: sign(u) * abs(u)**$alpha * greater_equal(u, $thresh)" \
+                "lambda u: (sign(u) * abs(u)**$alpha * greater_equal(u, $thresh) + 1) / 2" \
+                "lambda u: sign((u+1)/2) * abs((u+1)/2)**$alpha * greater_equal(u, $thresh)"
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
         >>> import scipy
         >>> import scipy.special  # NOQA
         >>> func_list = ut.get_argval('--func', type_=list, default=['np.exp'])
+        >>> setup = ut.get_argval('--setup', type_=str, default=None)
         >>> #funcs = [eval(f) for f in func_list]
         >>> funcs = func_list
         >>> start, stop = ut.get_argval('--range', type_=list, default=[-1, 1])
         >>> start, stop = eval(str(start)), eval(str(stop))
         >>> num = 1000
-        >>> result = plot_func(funcs, start, stop, num)
+        >>> result = plot_func(funcs, start, stop, num, setup=setup)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> ylim = ut.get_argval('--ylim', type_=list, default=None)
@@ -3973,10 +3992,16 @@ def plot_func(funcs, start=0, stop=1, num=100, fnum=None, pnum=None):
                    else func for func in funcs]
         ydatas = [func(xdata) for func in funcs_]
     except NameError:
-        funcs_  = [eval(func, locals()) if isinstance(func, six.string_types)
+        locals_ = locals()
+        if setup is not None:
+            exec(setup, locals_, locals_)
+        locals_.update(**np.__dict__)
+        funcs_  = [eval(func, locals_) if isinstance(func, six.string_types)
                    else func for func in funcs]
         ydatas = [func(xdata) for func in funcs_]
-        pass
+    except Exception:
+        print(ut.repr3(funcs))
+        raise
     fnum = pt.ensure_fnum(fnum)
     pt.multi_plot(xdata, ydatas, label_list=labels, marker='', fnum=fnum,
                   pnum=pnum)  # yscale='log')
