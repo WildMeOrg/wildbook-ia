@@ -199,6 +199,10 @@ class _CoreDependencyCache(object):
                 fpath = fname
             else:
                 fname_ = ut.ensure_ext(fname, '.sqlite')
+                from os.path import dirname
+                prefix_dpath = dirname(fname_)
+                if prefix_dpath:
+                    ut.ensuredir(ut.unixjoin(depc.cache_dpath, prefix_dpath))
                 fpath = ut.unixjoin(depc.cache_dpath, fname_)
             if ut.get_argflag('--clear-all-depcache'):
                 ut.delete(fpath)

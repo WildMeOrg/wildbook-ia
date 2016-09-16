@@ -358,14 +358,29 @@ class TableInput(ut.NiceRepr):
             rootmost_nodes.add(valid_nodes[-1])
 
         if reorder:
-            rootmost_exi_nodes = list(rootmost_nodes)
-            rootmost_depc_nodes = [node[0] for node in rootmost_exi_nodes]
-            ranks = ut.nx_dag_node_rank(inputs.table.depc.graph, rootmost_depc_nodes)
-            # make tiebreaker attribute
-            ranks_breaker = ut.nx_dag_node_rank(inputs.exi_graph.reverse(), rootmost_exi_nodes)
-            sortx = ut.argsort(list(zip(ranks, [-x for x in ranks_breaker])))
-            #sortx = ut.argsort(ranks)
-            inputs.rmi_list = ut.take(rmi_list, sortx)
+            # FIXME: This should re-order based in the parent input specs
+            # from the table.parents()
+
+            if True:
+                import utool
+                with utool.embed_on_exception_context:
+                    # HACK: This only works with cases that exist so far.  Not
+                    # sure what the general solution is. Too hungry to think
+                    # about that.
+                    if len(inputs.rmi_list) > 1:
+                        parent_nodes = [rmi.compute_order()[-2].args[0] for rmi in inputs.rmi_list]
+                        order_lookup = ut.make_index_lookup(inputs.table.parents())
+                        sortx = ut.take(order_lookup, parent_nodes)
+                        inputs.rmi_list = ut.take(rmi_list, sortx)
+            else:
+                rootmost_exi_nodes = list(rootmost_nodes)
+                rootmost_depc_nodes = [node[0] for node in rootmost_exi_nodes]
+                ranks = ut.nx_dag_node_rank(inputs.table.depc.graph, rootmost_depc_nodes)
+                # make tiebreaker attribute
+                ranks_breaker = ut.nx_dag_node_rank(inputs.exi_graph.reverse(), rootmost_exi_nodes)
+                sortx = ut.argsort(list(zip(ranks, [-x for x in ranks_breaker])))
+                #sortx = ut.argsort(ranks)
+                inputs.rmi_list = ut.take(rmi_list, sortx)
         else:
             flags = [x in rootmost_nodes for x in inputs.rmi_list]
             inputs.rmi_list = ut.compress(inputs.rmi_list, flags)

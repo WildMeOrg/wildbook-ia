@@ -221,33 +221,42 @@ class _TableConfigHelper(object):
                                      ut.list_transpose(parent_rowids)))
         return parent_rowid_dict
 
-    def get_config_history(table, rowid_list):
+    def get_config_history(table, rowid_list, assume_unique=True):
         """
+        Returns the list of config objects for all properties in the dependency
+        history of this object. Multi-edges are handled. Set assume_unique to
+        be false if there might be parents with different configs for the same
+        table.
+
         >>> from dtool.depcache_table import *  # NOQA
 
         parent_rowid_dict = depc.['feat'].get_row_parent_rowid_map(rowid_list)
         key = parent_rowid_dict.keys()[0]
         val = parent_rowid_dict.values()[0]
         """
+        if assume_unique:
+            rowid_list = rowid_list[0:1]
         tbl_cfgids = table.get_row_cfgid(rowid_list)
         cfgid2_rowids = ut.group_items(rowid_list, tbl_cfgids)
         unique_cfgids = cfgid2_rowids.keys()
         unique_cfgids = ut.filter_Nones(unique_cfgids)
         if len(unique_cfgids) == 0:
             return None
-        # TODO: handle uuids of multi input
         unique_configs = table.get_config_from_rowid(unique_cfgids)
-        #print('unique_configs = %r' % (unique_configs,))
-        # TODO: need fix for many-to-one edges here
-        # When getting configs of parents, should we assume that all in the set
-        # have the same config? For now yes...
-        parent_rowids = table.get_parent_rowids(rowid_list)
+
+        #parent_rowids = table.get_parent_rowids(rowid_list)
+        parent_rowargs = table.get_parent_rowargs(rowid_list)
+
         ret_list = [unique_configs]
         depc = table.depc
-        for tblname, ids in zip(table.parent_id_tablenames,
-                                ut.list_transpose(parent_rowids)):
+        rowargsT = ut.listT(parent_rowargs)
+        parent_ismulti = table.get_parent_col_attr('ismulti')
+        for tblname, ismulti, ids in zip(table.parent_id_tablenames,
+                                         parent_ismulti, rowargsT):
             if tblname == depc.root:
                 continue
+            if ismulti:
+                ids = ids[0]
             parent_tbl = depc[tblname]
             ancestor_configs = parent_tbl.get_config_history(ids)
             if ancestor_configs is not None:
@@ -1543,6 +1552,7 @@ class _TableComputeHelper(object):
         argsT = list(argsT)  # TODO: remove
         # HACK extract config if given a request
         config_ = config.config if hasattr(config, 'config') else config
+
         # call registered worker function
         if not table.vectorized:
             # Function is written in a way that only accepts a single row of
@@ -1622,7 +1632,7 @@ class _TableComputeHelper(object):
         #    pass
         # CALL EXTERNAL PREPROCESSING / GENERATION FUNCTION
         try:
-            prog_iter = list(prog_iter)
+            #prog_iter = list(prog_iter)
             for dirty_chunk in prog_iter:
                 nChunkInput = len(dirty_chunk)
                 if nChunkInput == 0:
@@ -1765,6 +1775,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         # Check for errors
         table._assert_self()
 
+        table._hack_chunk_cache = None
+
     #@profile
     def initialize(table, _debug=None):
         """
@@ -1888,12 +1900,17 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
                         except KeyError:
                             print('[depcache_table] WARNING: config history is having troubles... says Jon')
 
+                # Gives the function a hacky cache to use between chunks
+                table._hack_chunk_cache = {}
                 gen = table._chunk_compute_dirty_rows(dirty_parent_ids,
                                                       dirty_preproc_args,
                                                       config_rowid, config)
                 for colnames, dirty_params_iter, nChunkInput in gen:
                     table.db._add(table.tablename, colnames, dirty_params_iter,
                                   nInput=nChunkInput)
+
+                # Remove cache when main add is done
+                table._hack_chunk_cache = None
                 if verbose or _debug:
                     print('[deptbl.add] finished add')
                 # Dverything is clean in the database, now get correct order.

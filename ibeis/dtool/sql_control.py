@@ -701,6 +701,7 @@ class SQLDatabaseController(object):
         assert isinstance(colnames, tuple), 'colnames must be a tuple'
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
+
         if where_clause is None:
             operation_fmt = '''
             SELECT {colnames}
@@ -752,7 +753,8 @@ class SQLDatabaseController(object):
         where_clause = ' AND '.join([colname + '=?' for colname in superkey_colnames])
         return db.get_where(tblname, ('rowid',), params_iter, where_clause, **kwargs)
 
-    def get(db, tblname, colnames, id_iter=None, id_colname='rowid', eager=True, **kwargs):
+    def get(db, tblname, colnames, id_iter=None, id_colname='rowid',
+            eager=True, assume_unique=False, **kwargs):
         """ getter
 
         Args:
@@ -762,9 +764,26 @@ class SQLDatabaseController(object):
             id_colname (str): column to be used as the search key (default: rowid)
             eager (bool): use eager evaluation
             unpack_scalars (bool): default True
+            id_colname (bool): default False. Experimental feature that could result in a 10x speedup
 
         CommandLine:
             python -m dtool.sql_control get --show
+
+        Ignore:
+            tblname = 'annotations'
+            colnames = ('name_rowid',)
+            id_iter = aid_list
+            #id_iter = id_iter[0:20]
+            id_colname = 'rowid'
+            eager = True
+            db = ibs.db
+
+            x1 = db.get(tblname, colnames, id_iter, assume_unique=True)
+            x2 = db.get(tblname, colnames, id_iter, assume_unique=False)
+            x1 == x2
+            %timeit  db.get(tblname, colnames, id_iter, assume_unique=True)
+            %timeit  db.get(tblname, colnames, id_iter, assume_unique=False)
+
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -786,14 +805,37 @@ class SQLDatabaseController(object):
         assert isinstance(colnames, tuple), 'must specify column names to get from'
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
-        if id_iter is None:
-            where_clause = None
-            params_iter = []
-        else:
-            where_clause = (id_colname + '=?')
-            params_iter = ((_rowid,) for _rowid in id_iter)
 
-        return db.get_where(tblname, colnames, params_iter, where_clause, eager=eager, **kwargs)
+        if assume_unique and id_iter is not None and id_colname == 'rowid' and len(colnames) == 1:
+            id_iter = list(id_iter)
+            operation_fmt = '''
+                SELECT {colnames}
+                FROM {tblname}
+                WHERE rowid in ({id_repr})
+                ORDER BY rowid ASC
+                '''
+            fmtdict = {
+                'tblname'  : tblname,
+                'colnames' : ', '.join(colnames),
+                'id_repr' : ','.join(map(str, id_iter)),
+            }
+            operation = operation_fmt.format(**fmtdict)
+            results = db.cur.execute(operation).fetchall()
+            import numpy as np
+            sortx = np.argsort(np.argsort(id_iter))
+            results = ut.take(results, sortx)
+            if kwargs.get('unpack_scalars', True):
+                results = ut.take_column(results, 0)
+            return results
+        else:
+            if id_iter is None:
+                where_clause = None
+                params_iter = []
+            else:
+                where_clause = (id_colname + '=?')
+                params_iter = [(_rowid,) for _rowid in id_iter]
+
+            return db.get_where(tblname, colnames, params_iter, where_clause, eager=eager, **kwargs)
 
     def set(db, tblname, colnames, val_iter, id_iter, id_colname='rowid',
             duplicate_behavior='error', **kwargs):
