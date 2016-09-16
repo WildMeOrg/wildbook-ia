@@ -994,7 +994,7 @@ class SQLDatabaseController(object):
     #@profile
     def executemany(db, operation, params_iter,
                     verbose=VERBOSE_SQL, unpack_scalars=True, nInput=None,
-                    eager=True, keepwrap=False):
+                    eager=True, keepwrap=False, showprog=False):
         # --- ARGS PREPROC ---
         # Aggresively compute iterator if the nInput is not given
         if nInput is None:
@@ -1024,6 +1024,9 @@ class SQLDatabaseController(object):
         }
         with SQLExecutionContext(db, operation, **contextkw) as context:
             if eager:
+                if showprog:
+                    prog = ut.ProgPartial(adjust=True, nTotal=nInput, freq=1, lbl='sqlread', bs=True)
+                    params_iter = prog(params_iter)
                 results_iter = [list(context.execute_and_generate_results(params))
                                 for params in params_iter]
                 if unpack_scalars:

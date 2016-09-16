@@ -2280,7 +2280,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
     #@profile
     def get_row_data(table, tbl_rowids, colnames=None, _debug=None,
                      read_extern=True, num_retries=1, eager=True,
-                     nInput=None, ensure=True, delete_on_fail=True):
+                     nInput=None, ensure=True, delete_on_fail=True,
+                     showprog=False):
         r"""
         FIXME: unpacking is confusing with sql controller
         TODO: Clean up and allow for eager=False
@@ -2388,7 +2389,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
 
         raw_prop_list = table.get_internal_columns(
             nonNone_tbl_rowids, flat_intern_colnames, eager=eager,
-            nInput=nInput, unpack_scalars=True, keepwrap=True)
+            nInput=nInput, unpack_scalars=True, keepwrap=True,
+            showprog=showprog)
 
         def tup_unflat_take(items_list, unflat_index_list):
             r"""
@@ -2618,13 +2620,15 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
 
     #@profile
     def get_internal_columns(table, tbl_rowids, colnames=None, eager=True,
-                             nInput=None, unpack_scalars=True, keepwrap=False):
+                             nInput=None, unpack_scalars=True, keepwrap=False,
+                             showprog=False):
         """ Access data in this table using the table PRIMARY KEY rowids (not
         depc PRIMARY ids) """
         prop_list = table.db.get(
             table.tablename, colnames, tbl_rowids,
             id_colname=table.rowid_colname, eager=eager, nInput=nInput,
-            unpack_scalars=unpack_scalars, keepwrap=keepwrap)
+            unpack_scalars=unpack_scalars, keepwrap=keepwrap,
+            showprog=showprog)
         return prop_list
 
 
