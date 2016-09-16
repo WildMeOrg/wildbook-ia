@@ -93,7 +93,7 @@ def signed_ori_distance(ori1, ori2):
     return ori_dist
 
 
-@profile
+#@profile
 def ori_distance(ori1, ori2, out=None):
     r"""
     Returns the unsigned distance between two angles
@@ -194,7 +194,7 @@ def ori_distance(ori1, ori2, out=None):
     return ori_dist
 
 
-@profile
+#@profile
 def det_distance(det1, det2):
     """ Returns how far off determinants are from one another
 
@@ -743,7 +743,7 @@ def closest_point(pt, pt_arr, distfunc=L2_sqrd):
     return index, dist
 
 
-@profile
+#@profile
 def haversine(latlon1, latlon2):
     r"""
     Calculate the great circle distance between two points

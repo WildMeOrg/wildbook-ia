@@ -158,7 +158,7 @@ def tune_flann2(data):
     return tuned_params
 
 
-@profile
+#@profile
 def akmeans_plusplus_init(data, K, samples_per_iter=None, flann_params=None):
     """
     Referencs:
@@ -572,7 +572,7 @@ def groupedzip(id_list, datas_list):
     return unique_ids, grouped_iter
 
 
-@profile
+#@profile
 def group_indices(idx2_groupid):
     r"""
     group_indices
