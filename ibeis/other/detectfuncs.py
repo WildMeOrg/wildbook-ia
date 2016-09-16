@@ -31,7 +31,8 @@ CLASS_INJECT_KEY, register_ibs_method = (
 
 
 @register_ibs_method
-def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=False):
+def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=False,
+                  use_maximum_linear_dimension=True):
     """
     Creates training XML for training models
     """
@@ -92,7 +93,8 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
             _image = ibs.get_image_imgdata(gid)
             height, width, channels = _image.shape
 
-            if width > height:
+            condition = width > height if use_maximum_linear_dimension else width < height
+            if condition:
                 ratio = height / width
                 decrease = target_size / width
                 width = target_size
@@ -1492,9 +1494,9 @@ def classifier_train(ibs):
 
 
 @register_ibs_method
-def localizer_train(ibs):
+def localizer_train(ibs, **kwargs):
     from pydarknet import Darknet_YOLO_Detector
-    data_path = ibs.export_to_xml()
+    data_path = ibs.export_to_xml(**kwargs)
     output_path = join(ibs.get_cachedir(), 'training', 'localizer')
     ut.ensuredir(output_path)
     dark = Darknet_YOLO_Detector()

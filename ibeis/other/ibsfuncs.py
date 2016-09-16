@@ -6215,6 +6215,50 @@ def commit_ggr_fix_gps(ibs, **kwargs):
         ibs.set_image_gps([assignment_gid], [assignment_gps])
 
 
+@register_ibs_method
+def alias_common_coco_species(ibs, **kwargs):
+    aid_list = ibs.get_valid_aids()
+    species_text_list = ibs.get_annot_species_texts(aid_list)
+    alias_dict = {
+        'cat'                 : 'cat_domestic',
+        'cow'                 : 'cow_domestic',
+        'dog'                 : 'dog_domestic',
+        'horse'               : 'horse_domestic',
+        'sheep'               : 'sheep_domestic',
+        'elephant'            : 'elephant_savannah',
+        'giraffe'             : 'giraffe_reticulated',
+        'turtles'             : 'turtle_sea',
+        'wild_dog'            : 'dog_wild',
+        'whale_sharkbodyhalf' : 'whale_shark',
+        'whale_sharkpart'     : 'whale_shark',
+    }
+    species_fixed_text_list = [
+        alias_dict.get(species_text, species_text)
+        for species_text in species_text_list
+    ]
+    ibs.set_annot_species(aid_list, species_fixed_text_list)
+
+
+@register_ibs_method
+def fix_coco_species(ibs, **kwargs):
+    ibs.alias_common_coco_species()
+    aid_list = ibs.get_valid_aids()
+    species_text_list = ibs.get_annot_species_texts(aid_list)
+    depc = ibs.depc_annot
+    species_text_list_ = depc.get_property('labeler', aid_list, 'species')
+    species_set = set(['zebra_grevys', 'zebra_plains'])
+    zipped = zip(species_text_list, species_text_list_)
+    species_fixed_text_list = [
+        species_text_ if species_text == 'zebra' and species_text_ in species_set else species_text
+        for species_text, species_text_ in zipped
+    ]
+    species_fixed_text_list = [
+        'zebra_plains' if species_fixed_text == 'zebra' else species_fixed_text
+        for species_fixed_text in species_fixed_text_list
+    ]
+    ibs.set_annot_species(aid_list, species_fixed_text_list)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
