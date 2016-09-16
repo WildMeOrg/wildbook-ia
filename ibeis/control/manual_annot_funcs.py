@@ -1025,7 +1025,9 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False, ass
         ...     assert len(gids) == 0 or gids[0] == gid, 'and same image as parent annot'
         ...     assert aid not in aids, 'should not include self'
     """
-    other_aids_list = ibs.get_annot_otherimage_aids(aid_list, daid_list=daid_list, assume_unique=assume_unique)
+    other_aids_list = ibs.get_annot_otherimage_aids(aid_list,
+                                                    daid_list=daid_list,
+                                                    assume_unique=assume_unique)
     if check_isect:
         import shapely.geometry
         # TODO: might not be accounting for rotated verticies
@@ -1505,6 +1507,7 @@ def get_annot_rotated_verts(ibs, aid_list):
 @accessor_decors.getter_1to1
 @accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_YAW)
 @register_api('/api/annot/yaw/', methods=['GET'])
+#@profile
 def get_annot_yaws(ibs, aid_list, assume_unique=False):
     r"""
     A yaw is the yaw of the annotation in radians
@@ -1713,7 +1716,7 @@ def get_annot_parent_aid(ibs, aid_list):
 @accessor_decors.getter_1to1
 @accessor_decors.cache_getter(const.ANNOTATION_TABLE, NAME_ROWID, cfgkeys=['distinguish_unknowns'])
 # @register_api('/api/annot/name/rowid/', methods=['GET'])
-def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
+def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True, assume_unique=False):
     r"""
     Returns:
         list_ (list): the name id of each annotation.
@@ -1737,7 +1740,7 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
     """
     id_iter = aid_list
     colnames = (NAME_ROWID,)
-    nid_list_ = ibs.db.get(const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
+    nid_list_ = ibs.db.get(const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', assume_unique=assume_unique)
     if distinguish_unknowns:
         nid_list = [(None if aid is None else -aid)
                     if nid == const.UNKNOWN_LBLANNOT_ROWID or nid is None else nid

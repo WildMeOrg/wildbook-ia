@@ -254,6 +254,7 @@ class IBEISController(BASE_CLASS):
     # --- CONSTRUCTOR / PRIVATES ---
     #-------------------------------
 
+    @profile
     def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True,
                  request_dbversion=None, force_serial=None):
         """ Creates a new IBEIS Controller associated with one database """

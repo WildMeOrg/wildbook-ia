@@ -1031,6 +1031,7 @@ def delete_configs(ibs, config_rowid_list):
 
 
 @register_ibs_method
+#@profile
 def _init_config(ibs):
     r"""
     Loads the database's algorithm configuration
@@ -1042,20 +1043,23 @@ def _init_config(ibs):
     config_fpath = ut.unixjoin(ibs.get_dbdir(), 'general_config.cPkl')
     try:
         general_config = ut.load_cPkl(config_fpath, verbose=ut.VERBOSE)
-    except IOError:
+    except IOError as ex:
+        ut.printex(ex, 'failed to genral load config', iswarning=True)
         general_config = {}
     current_species = general_config.get('current_species', None)
     if ut.VERBOSE and ut.NOT_QUIET:
         print('[_init_config] general_config.current_species = %r' % (current_species,))
     # </GENERAL CONFIG>
     #####
-    species_list = ibs.get_database_species()
+    #species_list = ibs.get_database_species()
     if current_species is None:
-        species_list = ibs.get_database_species()
-        current_species = species_list[0] if len(species_list) == 1 else None
+        #species_list = ibs.get_database_species()
+        #species_list[0] if len(species_list) == 1 else None
+        primary_species = ibs.get_primary_database_species()
+        current_species = primary_species
     cfgname = 'cfg' if current_species is None else current_species
     if ut.VERBOSE and ut.NOT_QUIET:
-        print('[_init_config] Loading database with species_list = %r ' % (species_list,))
+        #print('[_init_config] Loading database with species_list = %r ' % (species_list,))
         print('[_init_config] Using cfgname=%r' % (cfgname,))
     # try to be intelligent about the default speceis
     ibs._load_named_config(cfgname)
@@ -1093,6 +1097,7 @@ def _init_burned_in_species(ibs):
 
 
 @register_ibs_method
+#@profile
 def _load_named_config(ibs, cfgname=None):
     r"""
     """

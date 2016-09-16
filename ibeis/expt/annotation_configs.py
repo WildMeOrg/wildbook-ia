@@ -72,6 +72,7 @@ OTHER_DEFAULTS = {
     #'hack_imageset': None,
     # Hack out errors in test data
     'hackerrors'    : True,
+    #'hackerrors'    : False,
     'joinme'    : None,
 }
 

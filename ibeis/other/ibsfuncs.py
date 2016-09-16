@@ -2367,7 +2367,8 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
 
 
 @register_ibs_method
-def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True):
+@profile
+def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True, assume_unique=False):
     r"""
     This function is probably the fastest of its siblings
 
@@ -2397,18 +2398,19 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True):
         [-11, -9, -4, -1, 1, 2, 3, 4, 5, 6, 7]
     """
     import vtool as vt
-    nid_list = np.array(
-        ibs.get_annot_name_rowids(
-            aid_list, distinguish_unknowns=distinguish_unknowns))
+    nid_list = ibs.get_annot_name_rowids(
+        aid_list, distinguish_unknowns=distinguish_unknowns, assume_unique=assume_unique)
+    nid_list = np.array(nid_list)
     unique_nids, groupxs_list = vt.group_indices(nid_list)
-    grouped_aids_ = vt.apply_grouping(np.array(aid_list), groupxs_list)
+    aid_list = np.array(aid_list)
+    grouped_aids_ = vt.apply_grouping(aid_list, groupxs_list)
     return grouped_aids_, unique_nids
 
 
-def group_annots_by_known_names_nochecks(ibs, aid_list):
-    nid_list = ibs.get_annot_name_rowids(aid_list)
-    nid2_aids = ut.group_items(aid_list, nid_list)
-    return list(nid2_aids.values())
+#def group_annots_by_known_names_nochecks(ibs, aid_list):
+#    nid_list = ibs.get_annot_name_rowids(aid_list)
+#    nid2_aids = ut.group_items(aid_list, nid_list)
+#    return list(nid2_aids.values())
 
 
 @register_ibs_method
@@ -2739,12 +2741,30 @@ def get_yaw_viewtexts(yaw_list):
     #else:
     #with ut.Timer('fdsa'):
     stdyaw_list = np.array(ut.take_column(stdlblyaw_list, 1))
-    textdists_list = [None if yaw is None else
-                      vt.ori_distance(stdyaw_list, yaw)
-                      for yaw in yaw_list]
-    index_list = [None if dists is None else dists.argmin()
-                  for dists in textdists_list]
-    text_list = [None if index is None else stdlbl_list[index] for index in index_list]
+
+    yaw_list
+
+    is_not_none = ut.flag_not_None_items(yaw_list)
+    has_nones = not all(is_not_none)
+    if has_nones:
+        yaw_list_ = ut.compress(yaw_list, is_not_none)
+    else:
+        yaw_list_ = yaw_list
+    yaw_list_ = np.array(yaw_list_)
+    textdists = vt.ori_distance(stdyaw_list, yaw_list_[:, None])
+    index_list = textdists.argmin(axis=1)
+    text_list_ = ut.take(stdlbl_list, index_list)
+    if has_nones:
+        text_list = ut.ungroup([text_list_], [ut.where(is_not_none)], maxval=len(is_not_none) - 1)
+    else:
+        text_list = text_list_
+
+    #textdists_list = [None if yaw is None else
+    #                  vt.ori_distance(stdyaw_list, yaw)
+    #                  for yaw in yaw_list]
+    #index_list = [None if dists is None else dists.argmin()
+    #              for dists in textdists_list]
+    #text_list = [None if index is None else stdlbl_list[index] for index in index_list]
     #yaw_list_ / binsize
     #errors = ['%.2f' % dists[index] for dists, index in zip(textdists_list, index_list)]
     #return list(zip(yaw_list, errors, text_list))
@@ -2805,7 +2825,7 @@ def get_database_species(ibs, aid_list=None):
 
 
 @register_ibs_method
-def get_primary_database_species(ibs, aid_list=None):
+def get_primary_database_species(ibs, aid_list=None, speedhack=True):
     r"""
     Args:
         aid_list (list):  list of annotation ids (default = None)
@@ -2825,8 +2845,7 @@ def get_primary_database_species(ibs, aid_list=None):
         >>> print(result)
         zebra_plains
     """
-    SPEED_HACK = True
-    if SPEED_HACK:
+    if speedhack:
         # Use our conventions
         if ibs.get_dbname().startswith('PZ_'):
             return 'zebra_plains'
@@ -3575,6 +3594,7 @@ def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
 
 
 @register_ibs_method
+@profile
 def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True, assume_unique=False):
     r"""
     Args:
@@ -4188,19 +4208,25 @@ def remove_aids_of_viewpoint(ibs, aid_list, invalid_yaws):
 
 @register_ibs_method
 def filter_aids_without_name(ibs, aid_list, invert=False, speedhack=True):
-    """
+    r"""
     Remove aids without names
 
-    >>> import ibeis
-    >>> from ibeis.other.ibsfuncs import *  # NOQA
-    >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
-    >>> aid_list = ibs.get_valid_aids()
-    >>> %timeit filter_aids_without_name(ibs, aid_list, speedhack=True)
-    >>> %timeit filter_aids_without_name(ibs, aid_list, speedhack=False)
-    >>> aid_list = aid_list[0:10]
-    >>> %timeit filter_aids_without_name(ibs, aid_list, speedhack=True)
-    >>> %timeit filter_aids_without_name(ibs, aid_list, speedhack=False)
-
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> annots = ibs.annots(aid_list)
+        >>> aid_list1_ = ibs.filter_aids_without_name(aid_list)
+        >>> aid_list2_ = ibs.filter_aids_without_name(aid_list, invert=True)
+        >>> annots1_ = ibs.annots(aid_list1_)
+        >>> annots2_ = ibs.annots(aid_list2_)
+        >>> assert len(annots1_) + len(annots2_) == len(annots)
+        >>> assert np.all(np.array(annots1_.nids) > 0)
+        >>> assert len(annots1_) == 9
+        >>> assert np.all(np.array(annots2_.nids) < 0)
+        >>> assert len(annots2_) == 4
     """
     if speedhack:
         list_repr = ','.join(map(str, aid_list))

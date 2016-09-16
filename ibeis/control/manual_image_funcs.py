@@ -222,7 +222,9 @@ def get_num_images(ibs, **kwargs):
 @accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_imgs_reviewed_str'])
 @register_api('/api/image/', methods=['POST'])
 def add_images(ibs, gpath_list, params_list=None, as_annots=False,
-               auto_localize=None, sanitize=True, **kwargs):
+               auto_localize=None, sanitize=True,
+               location_for_names=None,
+               **kwargs):
     r"""
     Adds a list of image paths to the database.
 
@@ -279,6 +281,14 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
     from ibeis.other import ibsfuncs
     print('[ibs] add_images')
     print('[ibs] len(gpath_list) = %d' % len(gpath_list))
+    if auto_localize is None:
+        # grab value from config
+        auto_localize = ibs.cfg.other_cfg.auto_localize
+
+    location_for_names = None
+    if location_for_names is None:
+        location_for_names = ibs.cfg.other_cfg.location_for_names
+
     #print('[ibs] gpath_list = %r' % (gpath_list,))
     # Processing an image might fail, yeilding a None instead of a tup
     if sanitize:
@@ -311,7 +321,7 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
 
     if LooseVersion(ibs.db.get_db_version()) >= LooseVersion('1.3.4'):
         colnames = colnames + ('image_original_path', 'image_location_code')
-        params_list = [tuple(params) + (gpath, ibs.cfg.other_cfg.location_for_names)
+        params_list = [tuple(params) + (gpath, location_for_names)
                         if params is not None else None
                         for params, gpath in zip(params_list, gpath_list)]
 
@@ -337,10 +347,6 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         print('[postadd] uuid / gid = ' + ut.indentjoin(zip(uuid_list, gid_list)))
         print('[postadd] valid uuid / gid = ' + ut.indentjoin(zip(valid_uuids, valid_gids)))
 
-    #ibs.cfg.other_cfg.ensure_attr('auto_localize', True)
-    if auto_localize is None:
-        # grab value from config
-        auto_localize = ibs.cfg.other_cfg.auto_localize
     if auto_localize:
         # Move to ibeis database local cache
         ibs.localize_images(ut.filter_Nones(gid_list))

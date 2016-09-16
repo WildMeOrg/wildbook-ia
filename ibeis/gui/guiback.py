@@ -3025,7 +3025,9 @@ class MainWindowBackend(GUIBACK_BASE):
             raise ValueError('back.ibs is None! must open IBEIS database first')
         if gpath_list is None:
             gpath_list = gt.select_images('Select image files to import')
-        gid_list = back.ibs.add_images(gpath_list, as_annots=as_annots)
+
+        ibs = back.ibs
+        gid_list = back.ibs.add_images(gpath_list, as_annots=as_annots, location_for_names=ibs.cfg.other_cfg.location_for_names)
         back._process_new_images(refresh, gid_list, clock_offset=clock_offset)
         return gid_list
 
@@ -3061,7 +3063,8 @@ class MainWindowBackend(GUIBACK_BASE):
         gpath_list = ut.list_images(dir_, fullpath=True, recursive=True)
         if size_filter is not None:
             raise NotImplementedError('Can someone implement the size filter?')
-        gid_list = back.ibs.add_images(gpath_list)
+        ibs = back.ibs
+        gid_list = back.ibs.add_images(gpath_list, location_for_names=ibs.cfg.other_cfg.location_for_names)
         back._process_new_images(refresh, gid_list, clock_offset=clock_offset)
         if return_dir:
             return gid_list, dir_
