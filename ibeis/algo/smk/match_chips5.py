@@ -245,6 +245,8 @@ def execute_and_save(qreq_miss):
     qaid_to_cm = {}
     for qaids in qaid_chunk_iter:
         sub_qreq = qreq_miss.shallowcopy(qaids=qaids)
+        import utool
+        utool.embed()
 
         cm_batch = sub_qreq.execute_pipeline()
         import utool
