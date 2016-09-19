@@ -1818,14 +1818,12 @@ def update_ungrouped_special_imageset(ibs):
 @register_ibs_method
 #@ut.time_func
 @profile
-def update_special_imagesets(ibs):
+def update_special_imagesets(ibs, use_more_special_imagesets=False):
     if ut.get_argflag('--readonly-mode'):
         # SUPER HACK
         return
     # FIXME SLOW
-    USE_MORE_SPECIAL_IMAGESETS = ibs.cfg.other_cfg.ensure_attr(
-        'use_more_special_imagesets', False)
-    if USE_MORE_SPECIAL_IMAGESETS:
+    if use_more_special_imagesets:
         #ibs.update_reviewed_unreviewed_image_special_imageset()
         ibs.update_reviewed_unreviewed_image_special_imageset(reviewed=False)
         ibs.update_exemplar_special_imageset()
@@ -2149,9 +2147,10 @@ def make_imagesettext_list(imgsetid_list, occur_cfgstr):
 
 
 @register_ibs_method
-def batch_rename_consecutive_via_species(ibs, imgsetid=None):
+def batch_rename_consecutive_via_species(ibs, imgsetid=None, location_text=None):
     """ actually sets the new consectuive names"""
-    new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species(imgsetid=imgsetid)
+    new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species(
+        imgsetid=imgsetid, location_text=location_text)
 
     def get_conflict_names(ibs, new_nid_list, new_name_list):
         other_nid_list = list(set(ibs.get_valid_nids()) - set(new_nid_list))
@@ -2170,7 +2169,7 @@ def batch_rename_consecutive_via_species(ibs, imgsetid=None):
 
 
 @register_ibs_method
-def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
+def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=None):
     """
     Just creates the nams, but does not set them
 
@@ -2213,6 +2212,8 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
         )
     """
     print('[ibs] get_consecutive_newname_list_via_species')
+    if location_text is None:
+        location_text = 'IBEIS'
     ibs.delete_empty_nids()
     nid_list = ibs.get_valid_nids(imgsetid=imgsetid)
     #name_list = ibs.get_name_texts(nid_list)
@@ -2226,7 +2227,6 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
         _code2_count[code] += 1
         return _code2_count[code]
 
-    location_text = ibs.cfg.other_cfg.location_for_names
     if imgsetid is not None:
         imgset_text = ibs.get_imageset_text(imgsetid)
         imgset_text = imgset_text.replace(' ', '_').replace('\'', '').replace('"', '')
@@ -2261,7 +2261,7 @@ def set_annot_names_to_different_new_names(ibs, aid_list):
 
 
 @register_ibs_method
-def make_next_nids(ibs, *args, **kwargs):
+def make_next_nids(ibs, num=None, str_format=2, species_text=None, location_text=None):
     """
     makes name and adds it to the database returning the newly added name rowid(s)
 
@@ -2270,7 +2270,9 @@ def make_next_nids(ibs, *args, **kwargs):
     SeeAlso:
         make_next_name
     """
-    next_names = ibs.make_next_name(*args, **kwargs)
+    next_names = ibs.make_next_name(num=num, str_format=str_format,
+                                    species_text=species_text,
+                                    location_text=location_text)
     next_nids  = ibs.add_names(next_names)
     return next_nids
 
@@ -3087,37 +3089,6 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
     """
     Automatic exemplar selection algorithm based on viewpoint and quality
 
-    Ignore:
-        # We want to choose the minimum per-item weight w such that
-        # we can't pack more than N w's into the knapsack
-        w * (N + 1) > N
-        # and w < 1.0, so we can have wiggle room for preferences
-        # so
-        w * (N + 1) > N
-        w > N / (N + 1)
-        EPS = 1E-9
-        w = N / (N + 1) + EPS
-
-        # Preference denomiantor should not make any choice of
-        # feasible items infeasible, but give more weight to a few.
-        # delta_w is the wiggle room we have, but we need to choose a number
-        # much less than it.
-        prefdenom = N ** 2
-        maybe its just N + EPS?
-        N ** 2 should work though. Figure out correct value later
-        delta_w = (1 - w)
-        prefdenom = delta_w / N
-        N - (w * N)
-
-        N = 3
-        EPS = 1E-9
-        w = N / (N + 1) + EPS
-        pref_decimator = N ** 2
-        num_teir1_levels = 3
-        pref_teir1 = w / (num_teir1_levels * pref_decimator)
-        pref_teir2 = pref_teir1 / pref_decimator
-        pref_teir3 = pref_teir2 / pref_decimator
-
     References:
         # implement maximum diversity approximation instead
         http://www.csbio.unc.edu/mcmillan/pubs/ICDM07_Pan.pdf
@@ -3174,12 +3145,10 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         >>> # 2 of the 11 annots are unknown and should not be exemplars
         >>> #ut.assert_eq(len(new_aid_list), 9)
     """
-    if exemplars_per_view is None:
-        exemplars_per_view = ibs.cfg.other_cfg.exemplars_per_view
     if aid_list is None:
         aid_list = ibs.get_valid_aids(imgsetid=imgsetid)
-    HACK = ibs.cfg.other_cfg.enable_custom_filter
-    assert not HACK, 'enable_custom_filter is no longer supported'
+    if exemplars_per_view is None:
+        exemplars_per_view = 2
     new_flag_list = get_annot_quality_viewpoint_subset(
         ibs, aid_list=aid_list, annots_per_view=exemplars_per_view,
         verbose=verbose, prog_hook=prog_hook)

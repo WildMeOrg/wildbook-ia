@@ -247,7 +247,9 @@ def execute_and_save(qreq_miss):
         sub_qreq = qreq_miss.shallowcopy(qaids=qaids)
 
         cm_batch = sub_qreq.execute_pipeline()
-        assert all([qaid == cm.qaid for qaid, cm in zip(qaids, cm_batch)])
+        import utool
+        with utool.embed_on_exception_context:
+            assert all([qaid == cm.qaid for qaid, cm in zip(qaids, cm_batch)])
 
         # TODO: we already computed the fpaths
         # should be able to pass them in

@@ -1310,7 +1310,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('View image in Web',
                         lambda: ibswgt.back.select_gid(gid, imgsetid, show=True, web=True)),
                     ('View detection image (Hough) [dev]',
-                        lambda: ibswgt.back.show_hough_image(gid)),
+                        lambda: ibswgt.back.show_hough_image_(gid)),
                     annot_option_item,
                     #('View annotation in Matplotlib:',
                     #   view_aid_options1),

@@ -289,24 +289,29 @@ class SMKRequest(mc5.EstimatorRequest):
 
         #vocab = vocab_indexer.new_load_vocab(ibs, qreq_.daids, config)
         cacher = make_cacher('dinva')
-        dinva = cacher.ensure(lambda: InvertedAnnots2(qreq_.daids, qreq_))
+        dinva = cacher.ensure(
+            lambda: InvertedAnnots2(qreq_.daids, qreq_))
 
         cacher = make_cacher('qinva')
-        qinva = cacher.ensure(lambda: InvertedAnnots2(qreq_.qaids, qreq_))
+        qinva = cacher.ensure(
+            lambda: InvertedAnnots2(qreq_.qaids, qreq_))
 
         dinva.build_inverted_list()
         cacher = make_cacher('didf')
-        wx_to_idf = cacher.ensure(lambda: dinva.compute_idf())
+        wx_to_idf = cacher.ensure(
+            lambda: dinva.compute_idf())
         dinva.wx_to_idf = wx_to_idf
 
         thresh = qreq_.qparams['smk_thresh']
         alpha = qreq_.qparams['smk_alpha']
 
         cacher = make_cacher('dgamma')
-        dinva.gamma_list = cacher.ensure(lambda: dinva.compute_gammas(wx_to_idf, alpha, thresh))
+        dinva.gamma_list = cacher.ensure(
+            lambda: dinva.compute_gammas(wx_to_idf, alpha, thresh))
 
         cacher = make_cacher('qgamma')
-        qinva.gamma_list = cacher.ensure(lambda: qinva.compute_gammas(wx_to_idf, alpha, thresh))
+        qinva.gamma_list = cacher.ensure(
+            lambda: qinva.compute_gammas(wx_to_idf, alpha, thresh))
 
         qreq_.qinva = qinva
         qreq_.dinva = dinva
