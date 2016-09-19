@@ -50,7 +50,8 @@ class EstimatorRequest(ut.NiceRepr):
         qreq2_ = cls.__new__(cls)
         qreq2_.__dict__.update(qreq_.__dict__)
         qaids = ut.ensure_iterable(qaids)
-        assert ut.issubset(qaids, qreq2_.qaids), 'not a subset'
+        assert ut.issubset(qaids, qreq_.qaids), 'not a subset'
+        qreq2_.qaids = qaids
         return qreq2_
 
     def get_pipe_hashid(qreq_):
@@ -221,7 +222,9 @@ def execute_singles(qreq_):
         if hit_any:
             print('... partial cm cache hit %d/%d' % (
                 len(qaid_to_hit), len(qreq_)))
-            qreq_miss = qreq_.shallowcopy(list(qaid_to_hit.keys()))
+            hit_aids = list(qaid_to_hit.keys())
+            miss_aids = ut.setdiff(qreq_.qaids, hit_aids)
+            qreq_miss = qreq_.shallowcopy(miss_aids)
         else:
             qreq_miss = qreq_
         # Compute misses
@@ -238,26 +241,23 @@ def execute_and_save(qreq_miss):
     # Iterate over vsone queries in chunks.
     total_chunks = ut.get_nTotalChunks(len(qreq_miss.qaids), qreq_miss.chunksize)
     qaid_chunk_iter = ut.ichunks(qreq_miss.qaids, qreq_miss.chunksize)
-    qaid_chunk_iter = ut.ProgIter(qaid_chunk_iter, nTotal=total_chunks,
-                                  freq=1, lbl='[mc5] query chunk: ',
-                                  prog_hook=qreq_miss.prog_hook)
+    _prog = ut.ProgPartial(nTotal=total_chunks, freq=1,
+                           lbl='[mc5] query chunk: ',
+                           prog_hook=qreq_miss.prog_hook, bs=False)
+    qaid_chunk_iter = iter(_prog(qaid_chunk_iter))
 
     qaid_to_cm = {}
     for qaids in qaid_chunk_iter:
         sub_qreq = qreq_miss.shallowcopy(qaids=qaids)
-        import utool
-        utool.embed()
-
         cm_batch = sub_qreq.execute_pipeline()
-        import utool
-        with utool.embed_on_exception_context:
-            assert all([qaid == cm.qaid for qaid, cm in zip(qaids, cm_batch)])
+        assert len(cm_batch) == len(qaids), 'bad alignment'
+        assert all([qaid == cm.qaid for qaid, cm in zip(qaids, cm_batch)])
 
         # TODO: we already computed the fpaths
         # should be able to pass them in
         fpath_list = sub_qreq.get_chipmatch_fpaths(qaids)
         _prog = ut.ProgPartial(nTotal=len(cm_batch), adjust=True, freq=1,
-                               lbl='saving chip matches')
+                               lbl='saving chip matches', bs=True)
         for cm, fpath in _prog(zip(cm_batch, fpath_list)):
             cm.save_to_fpath(fpath, verbose=False)
         qaid_to_cm.update({cm.qaid: cm for cm in cm_batch})

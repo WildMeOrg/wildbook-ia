@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
-import six  # NOQA
+from __future__ import absolute_import, division, print_function, unicode_literals
+import vtool as vt
 import numpy as np
 import utool as ut
 import pyflann
@@ -9,9 +9,7 @@ from six.moves import range
 from ibeis.algo.hots import neighbor_index_cache
 #import mem_top
 
-#import vtool.nearest_neighbors as nntool
-#from ibeis.algo.hots import hstypes
-(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[neighbor_experiment]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def augment_nnindexer_experiment():
@@ -254,7 +252,7 @@ def flann_add_time_experiment():
     #max_ceiling = 32
     all_daids = ibs.get_valid_aids()
     max_num = min(max_ceiling, len(all_daids))
-    flann_params = ibs.cfg.query_cfg.flann_cfg.get_flann_params()
+    flann_params = vt.get_flann_params()
 
     # Output
     count_list,  time_list_reindex  = [], []
@@ -345,7 +343,7 @@ def subindexer_time_experiment():
     daid_list = ibs.get_valid_aids()
     count_list = []
     time_list = []
-    flann_params = ibs.cfg.query_cfg.flann_cfg.get_flann_params()
+    flann_params = vt.get_flann_params()
     for count in ut.ProgressIter(range(1, 301)):
         daids_ = daid_list[:]
         np.random.shuffle(daids_)

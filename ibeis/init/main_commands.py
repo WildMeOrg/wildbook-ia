@@ -90,7 +90,6 @@ def postload_commands(ibs, back):
         print('Custom cfgdict specified')
         print(ut.dict_str(cfgdict))
         ibs.update_query_cfg(**cfgdict)
-        #print(ibs.cfg.query_cfg.get_cfgstr())
     if params.args.edit_notes:
         ut.editfile(ibs.get_dbnotes_fpath(ensure=True))
     if params.args.delete_cache:

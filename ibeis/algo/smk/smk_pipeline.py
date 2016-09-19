@@ -477,8 +477,6 @@ class SMK(ut.NiceRepr):
         hit_daids = list(set(ut.flatten(ut.take(qreq_.dinva.wx_to_aids, X.wx_list))))
 
         #gammaX = smk.gamma(X, wx_to_idf, agg, alpha, thresh)
-        import utool
-        utool.embed()
 
         for daid in ut.ProgIter(hit_daids, lbl='smk match qaid=%r' % (qaid,),
                                 enabled=verbose):

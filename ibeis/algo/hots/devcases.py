@@ -8,14 +8,13 @@ TODO:
 
     Excplitict Negative Matches between chips
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.algo.hots import hstypes
 from uuid import UUID
 import utool as ut
 import copy
-import six  # NOQA
-import numpy as np  # NOQA
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[devcases]')
+import numpy as np
+print, rrr, profile = ut.inject2(__name__)
 
 
 def fix_pz_master():
@@ -71,8 +70,6 @@ def fix_pz_master():
     from ibeis.gui import inspect_gui
     import guitool
     ibs = ibeis.opendb('PZ_Master0')
-    #ibs._default_config()
-    #ibs.cfg.save()
     daids = ibs.get_valid_aids(minqual='poor')
     qaids = ibs.filter_junk_annotations(qaids_)
 

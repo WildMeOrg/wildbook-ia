@@ -341,7 +341,6 @@ def make_ibeis_headers_dict(ibs):
                     getters[tablename][colname] = getattr(ibs, 'get_' + colname)
     # +--------------------------
     # ImageSet Iders/Setters/Getters
-    #ibs.cfg.other_cfg.ensure_attr(show_shipped_imagesets, ut.is_developer())
     SHOW_SHIPPED_IMAGESETS = ibs.cfg.other_cfg.show_shipped_imagesets
     #SHOW_SHIPPED_IMAGESETS = True
     if SHOW_SHIPPED_IMAGESETS:

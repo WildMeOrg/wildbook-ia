@@ -283,6 +283,7 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None):
         if batch_size is None:
             if HOTS_BATCH_SIZE is None:
                 hots_batch_size = qreq_.ibs.cfg.other_cfg.hots_batch_size
+                #hots_batch_size = 256
             else:
                 hots_batch_size = HOTS_BATCH_SIZE
         else:

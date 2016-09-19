@@ -35,8 +35,9 @@ class QueryParams(collections.Mapping):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.query_params import *  # NOQA
             >>> import ibeis
+            >>> from ibeis.algo import Config
             >>> ibs = ibeis.opendb('testdb1')
-            >>> query_cfg = ibs.cfg.query_cfg
+            >>> query_cfg = Config.QueryConfig()
             >>> cfgdict = dict(rotation_invariance=True)
             >>> qparams = QueryParams(query_cfg, cfgdict)
             >>> ut.assert_eq(qparams.hesaff_params['rotation_invariance'], True)
