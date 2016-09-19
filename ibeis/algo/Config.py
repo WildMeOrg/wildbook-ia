@@ -1056,6 +1056,7 @@ def update_query_config(cfg, **kwargs):
     cfg.chip_cfg       = cfg.query_cfg._featweight_cfg._feat_cfg._chip_cfg
 
 
+@profile
 def load_named_config(cfgname, dpath, use_config_cache=False,
                       verbose=ut.VERBOSE and ut.NOT_QUIET):
     """ hack 12-30-2014
@@ -1085,8 +1086,8 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
         >>> # execute function
         >>> cfg = load_named_config(cfgname, dpath, use_config_cache)
         >>> #
-        >>> keys1 = ut.get_list_column(cfg.parse_items(), 0)
-        >>> keys2 = ut.get_list_column(ibs.cfg.parse_items(), 0)
+        >>> keys1 = ut.take_column(cfg.parse_items(), 0)
+        >>> keys2 = ut.take_column(ibs.cfg.parse_items(), 0)
         >>> symdiff = set(keys1) ^ set(keys2)
         >>> # verify results
         >>> result = six.text_type(cfg)
@@ -1107,11 +1108,11 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
         # Get current "schema"
         tmp = _default_config(cfg, cfgname, new=True)
         current_itemset = tmp.parse_items()
-        current_keyset = list(ut.get_list_column(current_itemset, 0))
+        current_keyset = list(ut.take_column(current_itemset, 0))
         # load saved preferences
         cfg.load()
         # Check if loaded schema has changed
-        loaded_keyset = list(ut.get_list_column(cfg.parse_items(), 0))
+        loaded_keyset = list(ut.take_column(cfg.parse_items(), 0))
         missing_keys = set(current_keyset) - set(loaded_keyset)
         if len(missing_keys) != 0:
             # Bring over new values into old structure
@@ -1138,10 +1139,11 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
         if verbose:
             print('[Config] successfully loaded config cfgname=%r' % (cfgname,))
     except Exception as ex:
-        if ut.VERBOSE:
-            ut.printex(ex, iswarning=True)
+        #if ut.VERBOSE:
+        ut.printex(ex, iswarning=True)
         # Totally new completely default preferences
         cfg = _default_config(cfg, cfgname)
+        cfg.save()
     # Hack in cfgname
     if verbose:
         print('[Config] hack in z_cfgname=%r' % (cfgname,))

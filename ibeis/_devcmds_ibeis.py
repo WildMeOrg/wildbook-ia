@@ -133,12 +133,6 @@ def sver_aids(ibs, qaid_list, daid_list=None):
         interact.ishow_sver(ibs, cm.qaid, aid2, fnum=df2.next_fnum(), annot_mode=1)
 
 
-@devcmd('cfg')
-def printcfg(ibs):
-    ibs.cfg.printme3()
-    print(ibs.cfg.query_cfg.get_cfgstr())
-
-
 @devcmd('listdbs', 'list_dbs')
 def list_dbs(*args):
     ibsdb_list = sorted(sysres.get_ibsdb_list())

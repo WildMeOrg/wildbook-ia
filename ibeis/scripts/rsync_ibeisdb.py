@@ -149,6 +149,8 @@ if __name__ == '__main__':
         ibeis rsync push --db WS_ALL --user joncrall --remote lev --dryrun
         ibeis rsync pull --db WS_ALL --user joncrall --remote hyrule --dryrun
 
+        ibeis rsync push --db lynx2 --user joncrall --remote lev --dryrun
+
 
         stty -echo; ssh jonc@pachy.cs.uic.edu sudo -v; stty echo
         rsync -avhzP -e "ssh -p 22" --rsync-path="sudo rsync" jonc@pachy.cs.uic.edu:/home/ibeis-repos/snow-leopards /raid/raw_rsync

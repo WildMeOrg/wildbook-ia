@@ -96,21 +96,22 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     for test_cfg_name in test_cfg_name_list:
         if test_cfg_name.startswith('custom:') or test_cfg_name == 'custom':
             print('[expthelpers] Parsing nonstandard custom config')
-            if test_cfg_name.startswith('custom:'):
-                # parse out modifications to custom
-                cfgstr_list = ':'.join(test_cfg_name.split(':')[1:]).split(',')
-                augcfgdict = ut.parse_cfgstr_list(cfgstr_list, smartcast=True)
-            else:
-                augcfgdict = {}
-            # Take the configuration from the ibeis object
-            pipe_cfg = ibs.cfg.query_cfg.deepcopy()
-            # Update with augmented params
-            pipe_cfg.update_query_cfg(**augcfgdict)
-            # Parse out a standard cfgdict
-            cfgdict = dict(pipe_cfg.parse_items())
-            cfgdict['_cfgname'] = 'custom'
-            cfgdict['_cfgstr'] = test_cfg_name
-            _pcfgdict_list.append(cfgdict)
+            assert False, 'custom is no longer supported'
+            #if test_cfg_name.startswith('custom:'):
+            #    # parse out modifications to custom
+            #    cfgstr_list = ':'.join(test_cfg_name.split(':')[1:]).split(',')
+            #    augcfgdict = ut.parse_cfgstr_list(cfgstr_list, smartcast=True)
+            #else:
+            #    augcfgdict = {}
+            ## Take the configuration from the ibeis object
+            #pipe_cfg = ibs.--cfg.query_cfg.deepcopy()
+            ## Update with augmented params
+            #pipe_cfg.update_query_cfg(**augcfgdict)
+            ## Parse out a standard cfgdict
+            #cfgdict = dict(pipe_cfg.parse_items())
+            #cfgdict['_cfgname'] = 'custom'
+            #cfgdict['_cfgstr'] = test_cfg_name
+            #_pcfgdict_list.append(cfgdict)
         else:
             _standard_cfg_names.append(test_cfg_name)
     # Handle stanndard configs next

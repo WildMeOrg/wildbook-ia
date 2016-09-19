@@ -300,16 +300,17 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> qreq_ = ibeis.testdata_qreq_(
         >>>     defaultdb='testdb1',
-        >>>     a='default:species=zebra_plains',
+        >>>     a='default:species=zebra_plains,qhackerrors=True',
         >>>     p='default:use_k_padding=True,can_match_sameimg=False,can_match_samename=False')
-        >>> # execute function
         >>> impossible_daids_list, Kpad_list = build_impossible_daids_list(qreq_)
         >>> impossible_daids_list = [x.tolist() for x in impossible_daids_list]
-        >>> result = ut.repr2(ut.dict_subset(locals(), ['impossible_daids_list', 'Kpad_list']), nl=1, explicit=True, nobr=True, strvals=True)
+        >>> vals = ut.dict_subset(locals(), ['impossible_daids_list', 'Kpad_list'])
+        >>> result = ut.repr2(vals, nl=1, explicit=True, nobr=True, strvals=True)
         >>> print(result)
+        >>> assert np.all(qreq_.qaids == [1, 4, 5, 6])
+        >>> assert np.all(qreq_.daids == [1, 2, 3, 4, 5, 6])
         impossible_daids_list=[[1], [4], [5, 6], [5, 6]],
         Kpad_list=[1, 1, 2, 2],
     """
@@ -318,7 +319,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
 
     can_match_sameimg  = qreq_.qparams.can_match_sameimg
     can_match_samename = qreq_.qparams.can_match_samename
-    use_k_padding       = qreq_.qparams.use_k_padding
+    use_k_padding      = qreq_.qparams.use_k_padding
     can_match_self     = False
     internal_qaids = qreq_.get_internal_qaids()
     internal_daids = qreq_.get_internal_daids()
@@ -585,7 +586,6 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
         >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', qaid_override=[1, 2, 3])
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
         >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
-        >>> # execute function
         >>> nns_list = nearest_neighbors(qreq_, Kpad_list, verbose=verbose)
         >>> qaid = qreq_.internal_qaids[0]
         >>> nn = nns_list[0]
@@ -706,7 +706,6 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>>                                p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
         >>> nns_list, nnvalid0_list = args
         >>> verbose = True
-        >>> # execute function
         >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose)
         >>> filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret
         >>> import plottool as pt
@@ -728,7 +727,6 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>>                                p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
         >>> nns_list, nnvalid0_list = args
         >>> verbose = True
-        >>> # execute function
         >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose)
         >>> filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret
         >>> nInternAids = len(qreq_.get_internal_qaids())
@@ -959,7 +957,6 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsmany'])
         >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = args
         >>> verbose = True
-        >>> # execute function
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
         >>> # verify results
         >>> [cm.assert_self(qreq_) for cm in cm_list]
@@ -979,7 +976,6 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> verbose = True
         >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsone,sqrd_dist_on=True'])
         >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = args
-        >>> # execute function
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
         >>> # verify results
         >>> [cm.assert_self(qreq_) for cm in cm_list]
@@ -1000,7 +996,6 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsmany,fgw_thresh=.9'])
         >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = args
         >>> verbose = True
-        >>> # execute function
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
         >>> # verify results
         >>> [cm.assert_self(qreq_) for cm in cm_list]
@@ -1086,7 +1081,6 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
         >>> nns, neighb_idx, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list, Knorm = args
         >>> qannot = qreq_.ibs.annots([qaid], config=qreq_.qparams)
         >>> dannot = qreq_.ibs.annots([daid], config=qreq_.qparams)
-        >>> # execute function
         >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)
         >>> # check results
         >>> assert ut.allsame(list(map(len, vmt[:-2]))), 'need same num rows'
@@ -1109,7 +1103,6 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
         >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(
         >>>     defaultdb='PZ_MTEST', p=['default:Knorm=3,normalizer_rule=name,const_on=True,ratio_thresh=.2,sqrd_dist_on=True'])
         >>> nns, neighb_idx, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list, Knorm = args
-        >>> # execute function
         >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)
         >>> qannot = qreq_.ibs.annots([qaid], config=qreq_.qparams)
         >>> dannot = qreq_.ibs.annots(vmt.daid, config=qreq_.qparams)

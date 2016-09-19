@@ -1,5 +1,7 @@
 # TODO
 
+* Remove ibs.cfg and add directly to the GUI instead.
+
 * Migrate vsmany / vsone algorithm to dependency cache
 * Incorporate image level algorithms into the dependency cache.
 * Encounter/occurrence annotation configuration

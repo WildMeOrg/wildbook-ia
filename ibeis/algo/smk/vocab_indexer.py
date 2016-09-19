@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, map
-import six
 import dtool
 import utool as ut
 import vtool as vt
 import pyflann
+from ibeis.algo.smk import pickle_flann
 import numpy as np
+import warnings
 #from ibeis import core_annots
 from ibeis.control.controller_inject import register_preprocs
 (print, rrr, profile) = ut.inject2(__name__)
@@ -29,59 +30,13 @@ class VocabConfig(dtool.Config):
 class InvertedIndexConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('nAssign', 2),
+        #ut.ParamInfo('int_rvec', False, hideif=False),
+        ut.ParamInfo('int_rvec', True, hideif=False),
+        ut.ParamInfo('inva_version', 2)
         #massign_alpha=1.2,
         #massign_sigma=80.0,
         #massign_equal_weights=False
     ]
-
-
-@ut.reloadable_class
-class SMKCacheable(object):
-    """
-    helper for depcache-less caching
-    FIXME: Just use the depcache. Much less headache.
-    """
-    def get_fpath(self, cachedir, cfgstr=None, cfgaug=''):
-        _args2_fpath = ut.util_cache._args2_fpath
-        #prefix = self.get_prefix()
-        prefix = self.__class__.__name__ + '_'
-        cfgstr = self.get_hashid() + cfgaug
-        #ext    = self.ext
-        ext    = '.cPkl'
-        fpath  = _args2_fpath(cachedir, prefix, cfgstr, ext)
-        return fpath
-
-    def get_hashid(self):
-        cfgstr = self.get_cfgstr()
-        version = six.text_type(getattr(self, '__version__', 0))
-        hashstr = ut.hashstr27(cfgstr + version)
-        return hashstr
-
-    def ensure(self, cachedir, **kwargs):
-        if kwargs:
-            cfgaug = ut.hashstr27(ut.repr2(kwargs, sorted_=True), hashlen=4)
-        else:
-            cfgaug = ''
-        fpath = self.get_fpath(cachedir, cfgaug=cfgaug)
-        needs_build = True
-        if ut.checkpath(fpath):
-            try:
-                self.load(fpath)
-                needs_build = False
-            except ImportError:
-                print('Need to recompute')
-        if needs_build:
-            self.build(**kwargs)
-            self.save(fpath)
-        return fpath
-
-    def save(self, fpath):
-        state = ut.dict_subset(self.__dict__, self.__columns__)
-        ut.save_data(fpath, state)
-
-    def load(self, fpath):
-        state = ut.load_data(fpath)
-        self.__dict__.update(**state)
 
 
 @ut.reloadable_class
@@ -116,49 +71,33 @@ class VisualVocab(ut.NiceRepr):
         sudo mount -t tmpfs -o size=256M tmpfs /tmp/ramdisk/
         http://zeblog.co/?p=1588
         """
-        # TODO: Figure out how to make these play nice with the depcache
         state = vocab.__dict__.copy()
         if 'wx2_word' in state:
             state['wx_to_word'] = state.pop('wx2_word')
+        state['wordindex_bytes'] = vocab.wordflann.dumps()
         del state['wordflann']
-        # Make a special wordflann pickle
-        # THIS WILL NOT WORK ON WINDOWS
-        import tempfile
-        assert not ut.WIN32, 'Need to fix this on WIN32. Cannot write to temp file'
-        temp = tempfile.NamedTemporaryFile(delete=True)
-        try:
-            vocab.wordflann.save_index(temp.name)
-            wordindex_bytes = temp.read()
-            #print('wordindex_bytes = %r' % (len(wordindex_bytes),))
-            state['wordindex_bytes'] = wordindex_bytes
-        except Exception:
-            raise
-        finally:
-            temp.close()
         return state
 
     def __setstate__(vocab, state):
         wordindex_bytes = state.pop('wordindex_bytes')
         vocab.__dict__.update(state)
-        vocab.wordflann = pyflann.FLANN()
-        import tempfile
-        assert not ut.WIN32, 'Need to fix this on WIN32. Cannot write to temp file'
-        temp = tempfile.NamedTemporaryFile(delete=True)
+        #flannclass = pyflann.FLANN
+        flannclass = pickle_flann.PickleFLANN
+        vocab.wordflann = flannclass()
         try:
-            temp.write(wordindex_bytes)
-            temp.file.flush()
-            vocab.wordflann.load_index(temp.name, vocab.wx_to_word)
+            vocab.wordflann.loads(wordindex_bytes, vocab.wx_to_word)
         except Exception:
-            raise
-        finally:
-            temp.close()
+            print('Fixing vocab problem')
+            vocab.build()
 
     def build(vocab, verbose=True):
         num_vecs = len(vocab.wx_to_word)
         if vocab.wordflann is None:
-            vocab.wordflann = pyflann.FLANN()
+            #flannclass = pyflann.FLANN
+            flannclass = pickle_flann.PickleFLANN
+            vocab.wordflann = flannclass()
         if verbose:
-            print('[nnindex] ...building kdtree over %d points (this may take a sec).' % num_vecs)
+            print(' ...build kdtree with %d points (may take a sec).' % num_vecs)
             tt = ut.tic(msg='Building vocab index')
         if num_vecs == 0:
             print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS.')
@@ -239,7 +178,7 @@ class VisualVocab(ut.NiceRepr):
             idx_to_maws = [[1.0]] * len(idx_to_wxs)
         return idx_to_wxs, idx_to_maws
 
-    def invert_assignment(vocab, idx_to_wxs, idx_to_maws):
+    def invert_assignment(vocab, idx_to_wxs, idx_to_maws, verbose=False):
         """
         Inverts assignment of vectors to words into words to vectors.
 
@@ -256,8 +195,8 @@ class VisualVocab(ut.NiceRepr):
         wx_to_idxs = dict(zip(wx_keys, idxs_list))
         maws_list = vt.apply_jagged_grouping(idx_to_maws, groupxs)
         wx_to_maws = dict(zip(wx_keys, maws_list))
-        if ut.VERBOSE:
-            print('[smk_index.assign] L___ End Assign vecs to words.')
+        if verbose:
+            print('[vocab] L___ End Assign vecs to words.')
         return (wx_to_idxs, wx_to_maws)
 
     def render_vocab_word(vocab, inva, wx, fnum=None):
@@ -305,7 +244,8 @@ class VisualVocab(ut.NiceRepr):
             patch_img = average_patch
 
         # Stack them together
-        solidbar = np.zeros((patch_img.shape[0], int(patch_img.shape[1] * .1), 3), dtype=patch_img.dtype)
+        solidbar = np.zeros((patch_img.shape[0],
+                             int(patch_img.shape[1] * .1), 3), dtype=patch_img.dtype)
         border_color = (100, 10, 10)  # bgr, darkblue
         if ut.is_float(solidbar):
             solidbar[:, :, :] = (np.array(border_color) / 255)[None, None]
@@ -321,543 +261,51 @@ class VisualVocab(ut.NiceRepr):
         word_img = vt.stack_image_list(img_list, vert=False, modifysize=True)
         return word_img
 
-    def render_vocab(vocab, inva, use_data=False):
+    def render_vocab(vocab):
         """
         Renders the average patch of each word.
         This is a quick visualization of the entire vocabulary.
 
         CommandLine:
             python -m ibeis.algo.smk.vocab_indexer render_vocab --show
-            python -m ibeis.algo.smk.vocab_indexer render_vocab --show --use-data
-            python -m ibeis.algo.smk.vocab_indexer render_vocab --show --debug-depc
 
         Example:
             >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
-            >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=10000)
-            >>> use_data = ut.get_argflag('--use-data')
-            >>> vocab = inva.vocab
-            >>> all_words = vocab.render_vocab(inva, use_data=use_data)
+            >>> vocab = testdata_vocab('PZ_MTEST', num_words=10000)
+            >>> all_words = vocab.render_vocab()
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
             >>> pt.qt4ensure()
             >>> pt.imshow(all_words)
             >>> ut.show_if_requested()
         """
-        # Get words with the most assignments
-        sortx = ut.argsort(list(inva.wx_to_num.values()))[::-1]
-        wx_list = ut.take(list(inva.wx_to_num.keys()), sortx)
-
+        import plottool as pt
+        wx_list = list(range(len(vocab)))
         wx_list = ut.strided_sample(wx_list, 64)
 
         word_patch_list = []
         for wx in ut.ProgIter(wx_list, bs=True, lbl='building patches'):
-            word = inva.vocab.wx_to_word[wx]
-            if use_data:
-                word_patch = inva.get_word_patch(wx)
-            else:
-                word_patch = vt.inverted_sift_patch(word, 64)
-            import plottool as pt
+            word = vocab.wx_to_word[wx]
+            word_patch = vt.inverted_sift_patch(word, 64)
             word_patch = pt.render_sift_on_patch(word_patch, word)
             word_patch_list.append(word_patch)
 
-        #for wx, p in zip(wx_list, word_patch_list):
-        #    inva._word_patches[wx] = p
         all_words = vt.stack_square_images(word_patch_list)
         return all_words
 
 
-@ut.reloadable_class
-class ForwardIndex(ut.NiceRepr, SMKCacheable):
-    """
-    A Forward Index of Stacked Features
+def cast_residual_integer(rvecs):
+    # same trunctation hack as in SIFT. values will typically not reach the
+    # maximum, so we can multiply by a higher number for better fidelity.
+    return np.clip(np.round(rvecs * 255.0), -127, 127).astype(np.int8)
+    #return np.clip(np.round(rvecs * 255.0), -127, 127).astype(np.int8)
 
-    A stack of features from multiple annotations.
-    Contains a method to create an inverted index given a vocabulary.
-    """
-    __columns__ = ['ax_to_aid', 'ax_to_nFeat', 'idx_to_fx', 'idx_to_ax',
-                   'idx_to_vec', 'aid_to_ax']
-    __version__ = 1
 
-    def __init__(fstack, ibs=None, aid_list=None, config=None, name=None):
-        # Basic Info
-        fstack.ibs = ibs
-        fstack.config = config
-        fstack.name = name
-        #-- Stack 1 --
-        fstack.ax_to_aid = aid_list
-        fstack.ax_to_nFeat = None
-        fstack.aid_to_ax = None
-        #-- Stack 2 --
-        fstack.idx_to_fx = None
-        fstack.idx_to_ax = None
-        fstack.idx_to_vec = None
-        # --- Misc ---
-        fstack.num_feat = None
+def uncast_residual_integer(rvecs):
+    return rvecs.astype(np.float) / 255.0
 
-    def build(fstack):
-        print('building forward index')
-        ibs = fstack.ibs
-        config = fstack.config
-        ax_to_vecs = ibs.depc.d.get_feat_vecs(fstack.ax_to_aid, config=config)
-        #-- Stack 1 --
-        fstack.ax_to_nFeat = [len(vecs) for vecs in ax_to_vecs]
-        #-- Stack 2 --
-        fstack.idx_to_fx = np.array(ut.flatten([
-            list(range(num)) for num in fstack.ax_to_nFeat]))
-        fstack.idx_to_ax = np.array(ut.flatten([
-            [ax] * num for ax, num in enumerate(fstack.ax_to_nFeat)]))
-        fstack.idx_to_vec = np.vstack(ax_to_vecs)
-        # --- Misc ---
-        fstack.num_feat = sum(fstack.ax_to_nFeat)
-        fstack.aid_to_ax = ut.make_index_lookup(fstack.ax_to_aid)
 
-    def __nice__(fstack):
-        name = '' if fstack.name is None else fstack.name + ' '
-        if fstack.num_feat is None:
-            return '%snA=%r NotInitialized' % (name, ut.safelen(fstack.ax_to_aid))
-        else:
-            return '%snA=%r nF=%r' % (name, ut.safelen(fstack.ax_to_aid), fstack.num_feat)
-
-    def get_cfgstr(self):
-        depc = self.ibs.depc
-        annot_cfgstr = self.ibs.get_annot_hashid_visual_uuid(self.aid_list, prefix='')
-        stacked_cfg = depc.stacked_config('annotations', 'feat', self.config)
-        config_cfgstr = stacked_cfg.get_cfgstr()
-        cfgstr = '_'.join([annot_cfgstr, config_cfgstr])
-        return cfgstr
-
-    @property
-    def aid_list(fstack):
-        return fstack.ax_to_aid
-
-    def assert_self(fstack):
-        assert len(fstack.idx_to_fx) == len(fstack.idx_to_ax)
-        assert len(fstack.idx_to_fx) == len(fstack.idx_to_vec)
-        assert len(fstack.ax_to_aid) == len(fstack.ax_to_nFeat)
-        assert fstack.idx_to_ax.max() < len(fstack.ax_to_aid)
-
-
-@ut.reloadable_class
-class InvertedIndex(ut.NiceRepr, SMKCacheable):
-    """
-    Maintains an inverted index of chip descriptors that are multi-assigned to
-    a set of vocabulary words.
-
-    This stack represents the database.
-    It prorcesses the important information like
-
-    * vocab - this is the quantizer
-
-    Each word is has an inverted index to a list of:
-        (annotation index, feature index, multi-assignment weight)
-
-    Example:
-        >>> # ENABLE_LATER
-        >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
-        >>> ibs, aid_list, inva = testdata_inva('testdb1', num_words=1000)
-        >>> print(inva)
-    """
-    __columns__ = ['wx_to_idxs', 'wx_to_maws', 'wx_to_num', 'wx_list',
-                   'perword_stats', 'wx_to_idf', 'grouped_annots']
-    __version__ = 1
-
-    def __init__(inva, fstack=None, vocab=None, config={}):
-        inva.fstack = fstack
-        inva.vocab = vocab
-        inva.config = InvertedIndexConfig(**config)
-        # Corresponding arrays
-        inva.wx_to_idxs = None
-        inva.wx_to_maws = None
-        inva.wx_to_num = None
-        #
-        inva.wx_list = None
-        # Extra stuff
-        inva.perword_stats = None
-        inva._word_patches = {}
-        # Optional measures
-        inva.wx_to_idf = None
-        inva.grouped_annots = None
-
-    def build(inva):
-        print('building inverted index')
-        nAssign = inva.config.get('nAssign', 1)
-        fstack = inva.fstack
-        vocab = inva.vocab
-        idx_to_wxs, idx_to_maws = vocab.assign_to_words(fstack.idx_to_vec, nAssign)
-        wx_to_idxs, wx_to_maws = vocab.invert_assignment(idx_to_wxs, idx_to_maws)
-        # Corresponding arrays
-        inva.wx_to_idxs = wx_to_idxs
-        inva.wx_to_maws = wx_to_maws
-        inva.wx_to_num = ut.map_dict_vals(len, inva.wx_to_idxs)
-        #
-        inva.wx_list = sorted(inva.wx_to_num.keys())
-        # Extra stuff
-        inva.perword_stats = ut.get_stats(list(inva.wx_to_num.values()))
-        inva._word_patches = {}
-        # Optional measures
-        inva.grouped_annots = inva.compute_annot_groups()
-
-    def inverted_annots(inva, aids):
-        if inva.grouped_annots is None:
-            raise ValueError('grouped annots not computed')
-        ax_list = ut.take(inva.fstack.aid_to_ax, aids)
-        return ut.take(inva.grouped_annots, ax_list)
-
-    @classmethod
-    def invert(cls, fstack, vocab, nAssign=1):
-        inva = cls(fstack, vocab, config={'nAssign': nAssign})
-        inva.build()
-        return inva
-
-    def get_cfgstr(inva):
-        cfgstr = '_'.join([inva.config.get_cfgstr(),
-                           inva.vocab.config.get_cfgstr(),
-                           inva.fstack.get_cfgstr()])
-        return cfgstr
-
-    def wx_to_fxs(inva, wx):
-        return inva.fstack.idx_to_fx.take(inva.wx_to_idxs[wx], axis=0)
-
-    def wx_to_axs(inva, wx):
-        return inva.fstack.idx_to_ax.take(inva.wx_to_idxs[wx], axis=0)
-
-    def load(inva, fpath):
-        super(InvertedIndex, inva).load(fpath)
-        if inva.grouped_annots is not None:
-            for X in inva.grouped_annots:
-                X.inva = inva
-
-    def __nice__(inva):
-        fstack = inva.fstack
-        name = '' if fstack.name is None else fstack.name + ' '
-        if inva.wx_to_idxs is None:
-            return '%sNotInitialized' % (name,)
-        else:
-            return '%snW=%r mean=%.2f' % (name, ut.safelen(inva.wx_to_idxs), inva.perword_stats['mean'])
-
-    def get_patches(inva, wx, verbose=True):
-        """
-        Loads the patches assigned to a particular word in this stack
-        """
-        ax_list = inva.wx_to_axs(wx)
-        fx_list = inva.wx_to_fxs(wx)
-        config = inva.fstack.config
-        ibs = inva.fstack.ibs
-
-        # Group annotations with more than one assignment to this word, so we
-        # only have to load a chip at most once
-        unique_axs, groupxs = vt.group_indices(ax_list)
-        fxs_groups = vt.apply_grouping(fx_list, groupxs)
-
-        unique_aids = ut.take(inva.fstack.ax_to_aid, unique_axs)
-
-        all_kpts_list = ibs.depc.d.get_feat_kpts(unique_aids, config=config)
-        sub_kpts_list = vt.ziptake(all_kpts_list, fxs_groups, axis=0)
-
-        chip_list = ibs.depc_annot.d.get_chips_img(unique_aids)
-        # convert to approprate colorspace
-        #if colorspace is not None:
-        #    chip_list = vt.convert_image_list_colorspace(chip_list, colorspace)
-        # ut.print_object_size(chip_list, 'chip_list')
-        patch_size = 64
-        _prog = ut.ProgPartial(enabled=verbose, lbl='warping patches', bs=True)
-        grouped_patches_list = [
-            vt.get_warped_patches(chip, kpts, patch_size=patch_size)[0]
-            #vt.get_warped_patches(chip, kpts, patch_size=patch_size, use_cpp=True)[0]
-            for chip, kpts in _prog(zip(chip_list, sub_kpts_list),
-                                    nTotal=len(unique_aids))
-        ]
-        # Make it correspond with original fx_list and ax_list
-        word_patches = vt.invert_apply_grouping(grouped_patches_list, groupxs)
-        return word_patches
-
-    def get_word_patch(inva, wx):
-        if wx not in inva._word_patches:
-            assigned_patches = inva.get_patches(wx, verbose=False)
-            #print('assigned_patches = %r' % (len(assigned_patches),))
-            average_patch = np.mean(assigned_patches, axis=0)
-            average_patch = average_patch.astype(np.float)
-            inva._word_patches[wx] = average_patch
-        return inva._word_patches[wx]
-
-    def compute_idf(inva):
-        """
-        Use idf (inverse document frequency) to weight each word.
-
-        References:
-            https://en.wikipedia.org/wiki/Tf%E2%80%93idf#Inverse_document_frequency_2
-
-        Example:
-            >>> # ENABLE_LATER
-            >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
-            >>> ibs, aid_list, inva = testdata_inva(num_words=256)
-            >>> wx_to_idf = inva.compute_word_idf()
-            >>> assert np.all(wx_to_idf >= 0)
-            >>> prob_list = (1 / np.exp(wx_to_idf))
-            >>> assert np.all(prob_list >= 0)
-            >>> assert np.all(prob_list <= 1)
-        """
-        print('Computing idf')
-        num_docs_total = len(inva.fstack.ax_to_aid)
-        # idf denominator (the num of docs containing a word for each word)
-        # The max(maws) to denote the probab that this word indexes an annot
-        num_docs_list = np.array([
-            sum([maws.max() for maws in vt.apply_grouping(
-                inva.wx_to_maws[wx],
-                vt.group_indices(inva.wx_to_axs(wx))[1])])
-            for wx in ut.ProgIter(inva.wx_list, lbl='Compute IDF', bs=True)
-        ])
-        # Typically for IDF, 1 is added to the denom to prevent divide by 0
-        # We add epsilon to numer and denom to ensure recep is a probability
-        idf_list = np.log(np.divide(num_docs_total + 1, num_docs_list + 1))
-        wx_to_idf = dict(zip(inva.wx_list, idf_list))
-        wx_to_idf = ut.DefaultValueDict(0, wx_to_idf)
-        return wx_to_idf
-
-    def print_name_consistency(inva, ibs):
-        annots = ibs.annots(inva.fstack.ax_to_aid)
-        ax_to_nid = annots.nids
-
-        wx_to_consist = {}
-
-        for wx in inva.wx_list:
-            axs = inva.wx_to_axs(wx)
-            nids = ut.take(ax_to_nid, axs)
-            consist = len(ut.unique(nids)) / len(nids)
-            wx_to_consist[wx] = consist
-            #if len(nids) > 5:
-            #    break
-
-    def get_vecs(inva, wx):
-        """
-        Get raw vectors assigned to a word
-        """
-        vecs = inva.fstack.idx_to_vec.take(inva.wx_to_idxs[wx], axis=0)
-        return vecs
-
-    def compute_rvecs(inva, wx, asint=False):
-        """
-        Driver function for non-aggregated residual vectors to a specific word.
-
-        Notes:
-            rvec = phi(x)
-            phi(x) = x - q(x)
-            This function returns `[phi(x) for x in X_c]`
-            Where c is a word `wx`
-            IE: all residual vectors for the descriptors assigned to word c
-
-        Returns:
-            tuple : (rvecs_list, flags_list)
-
-        Example:
-            >>> # ENABLE_LATER
-            >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
-            >>> ibs, aid_list, inva = testdata_inva(num_words=256)
-            >>> wx = 1
-            >>> asint = False
-            >>> rvecs_list, error_flags = inva.compute_rvecs(1)
-        """
-        # Pick out corresonding lists of residuals and words
-        vecs = inva.get_vecs(wx)
-        word = inva.vocab.wx_to_word[wx]
-        return compute_rvec(vecs, word)
-
-    def get_grouped_rvecs(inva, wx):
-        """
-        # Get all residual vectors assigned to a word grouped by annotation
-        """
-        rvecs_list, error_flags = inva.compute_rvecs(wx)
-        ax_list = inva.wx_to_axs(wx)
-        maw_list = inva.wx_to_maws[wx]
-        # group residual vectors by annotation
-        unique_ax, groupxs = vt.group_indices(ax_list)
-        # (weighted aggregation with multi-assign-weights)
-        grouped_maws  = vt.apply_grouping(maw_list, groupxs)
-        grouped_rvecs = vt.apply_grouping(rvecs_list, groupxs)
-        grouped_errors = vt.apply_grouping(error_flags, groupxs)
-
-        # ~~Remove vectors with errors~~
-        #inner_flags = vt.apply_grouping(~error_flags, groupxs)
-        #grouped_rvecs2_ = vt.zipcompress(grouped_rvecs, inner_flags, axis=0)
-        #grouped_maws2_  = vt.zipcompress(grouped_maws, inner_flags)
-        grouped_rvecs2_ = grouped_rvecs
-        grouped_maws2_ = grouped_maws
-        grouped_errors2_ = grouped_errors
-
-        outer_flags = [len(rvecs) > 0 for rvecs in grouped_rvecs2_]
-        grouped_rvecs3_ = ut.compress(grouped_rvecs2_, outer_flags)
-        grouped_maws3_ = ut.compress(grouped_maws2_, outer_flags)
-        grouped_errors3_ = ut.compress(grouped_errors2_, outer_flags)
-        unique_ax3_ = ut.compress(unique_ax, outer_flags)
-        return unique_ax3_, grouped_rvecs3_, grouped_maws3_, grouped_errors3_
-
-    def compute_rvecs_agg(inva, wx):
-        """
-        Sums and normalizes all rvecs that belong to the same word and the same
-        annotation id
-
-        Returns:
-            ax_to_aggs: A mapping from an annotation to its aggregated vector
-                for this word and an error flag.
-
-        Notes:
-            aggvec = Phi
-            Phi(X_c) = psi(sum([phi(x) for x in X_c]))
-            psi is the identify function currently.
-            Phi is esentially a VLAD vector for a specific word.
-            Returns Phi vectors wrt each annotation.
-
-        Example:
-            >>> # ENABLE_LATER
-            >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
-            >>> ibs, aid_list, inva = testdata_inva(num_words=256)
-            >>> wx = 1
-            >>> asint = False
-            >>> ax_to_aggs = inva.compute_rvecs_agg(1)
-        """
-        tup = inva.get_grouped_rvecs(wx)
-        unique_ax3_, grouped_rvecs3_, grouped_maws3_, grouped_errors3_ = tup
-        ax_to_aggs = {
-            ax: aggregate_rvecs(rvecs, maws, errors)
-            for ax, rvecs, maws, errors in
-            zip(unique_ax3_, grouped_rvecs3_, grouped_maws3_, grouped_errors3_)
-        }
-        return ax_to_aggs
-
-    def compute_annot_groups(inva):
-        """
-        Group by annotations first and then by words
-
-            >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
-            >>> ibs, smk, qreq_ = testdata_smk()
-            >>> inva = qreq_.qinva
-        """
-        print('Computing annot groups')
-        fstack = inva.fstack
-        ax_to_X = [IndexedAnnot(ax, inva) for ax in range(len(fstack.ax_to_aid))]
-
-        for wx in ut.ProgIter(inva.wx_list, lbl='Group Annots', bs=True):
-            idxs = inva.wx_to_idxs[wx]
-            maws = inva.wx_to_maws[wx]
-            axs = fstack.idx_to_ax.take(idxs, axis=0)
-
-            unique_axs, groupxs = vt.group_indices(axs)
-            grouped_maws = vt.apply_grouping(maws, groupxs)
-            grouped_idxs = vt.apply_grouping(idxs, groupxs)
-
-            # precompute here
-            ax_to_aggs = inva.compute_rvecs_agg(wx)
-            for ax, idxs_, maws_ in zip(unique_axs, grouped_idxs,
-                                        grouped_maws):
-                X = ax_to_X[ax]
-                X.wx_to_idxs_[wx] = idxs_
-                X.wx_to_maws_[wx] = maws_
-                X.wx_to_aggs[wx] = ax_to_aggs[ax]
-        X_list = ax_to_X
-        return X_list
-
-    # def group_annots(inva):
-    #     if inva.X_list is None:
-    #         inva.X_list = inva.compute_annot_groups()
-    #     return inva.X_list
-
-    def assert_self(inva):
-        assert sorted(inva.wx_to_idxs.keys()) == sorted(inva.wx_to_maws.keys())
-        assert sorted(inva.wx_list) == sorted(inva.wx_to_maws.keys())
-        inva.fstack.assert_self()
-
-
-@ut.reloadable_class
-class IndexedAnnot(ut.NiceRepr):
-    """
-    Example:
-        >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
-        >>> ibs, smk, qreq_ = testdata_smk()
-        >>> inva = qreq_.qinva
-        >>> X_list = inva.grouped_annots
-        >>> X = X_list[0]
-        >>> X.assert_self()
-    """
-    def __init__(X, ax, inva):
-        X.ax = ax
-        X.inva = inva
-        # only idxs that belong to ax
-        X.wx_to_idxs_ = {}
-        X.wx_to_maws_ = {}
-        X.wx_to_aggs = {}
-        X.wx_to_phis = {}
-
-    def __getstate__(self):
-        return ut.delete_dict_keys(self.__dict__.copy(), 'inva')
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-
-    def __nice__(X):
-        return 'aid=%r, nW=%r' % (X.aid, len(X.wx_to_idxs_),)
-
-    @property
-    def aid(X):
-        return X.inva.fstack.ax_to_aid[X.ax]
-
-    def idxs(X, wx):
-        return X.wx_to_idxs_[wx]
-
-    def maws(X, wx):
-        return X.wx_to_maws_[wx]
-
-    def fxs(X, wx):
-        fxs = X.inva.fstack.idx_to_fx.take(X.idxs(wx), axis=0)
-        return fxs
-
-    def VLAD(X):
-        import scipy.sparse
-        num_words, word_dim = X.inva.vocab.shape
-        vlad_dim = num_words * word_dim
-        vlad_vec = scipy.sparse.lil_matrix((vlad_dim, 1))
-        for wx, aggvec in X.wx_to_aggs.items():
-            start = wx * word_dim
-            vlad_vec[start:start + word_dim] = aggvec.T
-        vlad_vec = vlad_vec.tocsc()
-        return vlad_vec
-
-    def Phi(X, wx):
-        return X.wx_to_aggs[wx][0]
-
-    def Phi_flags(X, wx):
-        return X.wx_to_aggs[wx]
-
-    def phis(X, wx):
-        rvecs =  X.phis_flags(wx)[0]
-        return rvecs
-
-    def phis_flags(X, wx):
-        if wx in X.wx_to_phis:
-            return X.wx_to_phis[wx]
-        else:
-            vocab = X.inva.vocab
-            idxs = X.idxs(wx)
-            vecs = X.inva.fstack.idx_to_vec.take(idxs, axis=0)
-            word = vocab.wx_to_word[wx]
-            rvecs, flags = compute_rvec(vecs, word)
-            return rvecs, flags
-
-    @property
-    def words(X):
-        return list(X.wx_to_aggs.keys())
-
-    def assert_self(X):
-        assert len(X.wx_to_idxs_) == len(X.wx_to_aggs)
-        for wx in X.wx_to_idxs_.keys():
-            axs = X.inva.fstack.idx_to_ax.take(X.idxs(wx), axis=0)
-            assert np.all(axs == X.ax)
-            rvecs, flags = X.phis_flags(wx)
-            maws = X.maws(wx)
-            rvec_agg, flag_agg = aggregate_rvecs(rvecs, maws, flags)
-            assert np.all(rvec_agg == X.Phi(wx))
-
-
-def compute_rvec(vecs, word, asint=False):
+def compute_rvec(vecs, word):
     """
     Compute residual vectors phi(x_c)
 
@@ -871,16 +319,14 @@ def compute_rvec(vecs, word, asint=False):
     # reset these values back to zero
     if np.any(is_zero):
         rvecs[is_zero, :] = 0
-    if asint:
-        rvecs = np.clip(np.round(rvecs * 255.0), -127, 127).astype(np.int8)
     # Determine if any errors occurred
     # FIXME: zero will drive the score of a match to 0 even though if they
     # are both 0, then it is an exact match and should be scored as a 1.
-    error_flags = np.any(np.isnan(rvecs), axis=1)
+    error_flags = is_zero
     return rvecs, error_flags
 
 
-def aggregate_rvecs(rvecs, maws, error_flags, asint=False):
+def aggregate_rvecs(rvecs, maws, error_flags):
     r"""
     Compute aggregated residual vectors Phi(X_c)
     """
@@ -901,13 +347,9 @@ def aggregate_rvecs(rvecs, maws, error_flags, asint=False):
         rvecs_agg = np.divide(weighted_sum, total_weight, out=rvecs_agg)
         vt.normalize_rows(rvecs_agg, out=rvecs_agg)
         if np.any(is_zero):
-            # Add in arrors from this step
+            # Add in errors from this step
             rvecs_agg[is_zero, :] = 0
             flags_agg[is_zero] = True
-        if asint:
-            rvecs_agg = np.clip(np.round(rvecs_agg * 255.0), -127, 127).astype(np.int8)
-        else:
-            rvecs_agg = rvecs_agg
     return rvecs_agg, flags_agg
 
 
@@ -940,8 +382,8 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
         sigma values from \cite{philbin_lost08}
         (70 ** 2) ~= 5000, (80 ** 2) ~= 6250, (86 ** 2) ~= 7500,
     """
-    if not ut.QUIET:
-        print('[smk_index.assign] compute_multiassign_weights_')
+    #if not ut.QUIET:
+    #    print('[vocab] compute_multiassign_weights_')
     if _idx_to_wx.shape[1] <= 1:
         idx_to_wxs = _idx_to_wx.tolist()
         idx_to_maws = [[1.0]] * len(idx_to_wxs)
@@ -955,10 +397,11 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
             flag_too_close = (massign_thresh == 0)
             massign_thresh[flag_too_close] = _idx_to_wdist.T[1:2].T[flag_too_close]
         # Compute the threshold fraction
-        epsilon = .001
-        np.add(epsilon, massign_thresh, out=massign_thresh)
+        eps = .001
+        np.add(eps, massign_thresh, out=massign_thresh)
         np.multiply(massign_alpha, massign_thresh, out=massign_thresh)
-        # Mark assignments as invalid if they are too far away from the nearest assignment
+        # Mark assignments as invalid if they are too far away from the nearest
+        # assignment
         invalid = np.greater_equal(_idx_to_wdist, massign_thresh)
         if ut.VERBOSE:
             nInvalid = (invalid.size - invalid.sum(), invalid.size)
@@ -971,9 +414,8 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
             # Performance hack from jegou paper: just give everyone equal weight
             masked_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid)
             idx_to_wxs  = list(map(ut.filter_Nones, masked_wxs.tolist()))
-            if ut.DEBUG2:
-                assert all([isinstance(wxs, list) for wxs in idx_to_wxs])
-            idx_to_maws = [np.ones(len(wxs), dtype=np.float32) for wxs in idx_to_wxs]
+            idx_to_maws = [np.ones(len(wxs), dtype=np.float)
+                           for wxs in idx_to_wxs]
         else:
             # More natural weighting scheme
             # Weighting as in Lost in Quantization
@@ -991,18 +433,6 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
             idx_to_wxs  = list(map(ut.filter_Nones, masked_wxs.tolist()))
             idx_to_maws = list(map(ut.filter_Nones, masked_maw.tolist()))
             #with ut.EmbedOnException():
-            if ut.DEBUG2:
-                checksum = [sum(maws) for maws in idx_to_maws]
-                for x in np.where([not ut.almost_eq(val, 1) for val in checksum])[0]:
-                    print(checksum[x])
-                    print(_idx_to_wx[x])
-                    print(masked_wxs[x])
-                    print(masked_maw[x])
-                    print(massign_thresh[x])
-                    print(_idx_to_wdist[x])
-                #all([ut.almost_eq(x, 1) for x in checksum])
-                assert all([ut.almost_eq(val, 1) for val in checksum]), (
-                    'weights did not break evenly')
     return idx_to_wxs, idx_to_maws
 
 
@@ -1018,7 +448,7 @@ def compute_vocab(depc, fid_list, config):
 
     CommandLine:
         python -m ibeis.core_annots --exec-compute_neighbor_index --show
-        python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=neighbor_index
+        python -m ibeis show_depc_annot_table_input --show --tablename=neighbor_index
 
         python -m ibeis.algo.smk.vocab_indexer --exec-compute_vocab:0
         python -m ibeis.algo.smk.vocab_indexer --exec-compute_vocab:1
@@ -1053,7 +483,7 @@ def compute_vocab(depc, fid_list, config):
         >>> depc = ibs.depc_annot
         >>> fid_list = depc.get_rowids('feat', aid_list)
         >>> config = VocabConfig()
-        >>> vocab, train_vecs = ut.exec_func_src(compute_vocab, key_list=['vocab', 'train_vecs'])
+        >>> vocab, train_vecs = ut.exec_func_src(compute_vocab, keys=['vocab', 'train_vecs'])
         >>> idx_to_vec = depc.d.get_feat_vecs(aid_list)[0]
         >>> self = vocab
         >>> ut.quit_if_noshow()
@@ -1084,7 +514,6 @@ def compute_vocab(depc, fid_list, config):
         print('Using minibatch kmeans')
         import sklearn.cluster
         rng = np.random.RandomState(config['random_seed'])
-        import warnings
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             clusterer = sklearn.cluster.MiniBatchKMeans(
@@ -1096,34 +525,159 @@ def compute_vocab(depc, fid_list, config):
         flann_params['trees'] = 4
         num_words = 128
         centroids = vt.initialize_centroids(num_words, train_vecs, 'akmeans++')
-        words, hist = vt.akmeans_iterations(train_vecs, centroids, max_iters=1000, monitor=True,
-                                            flann_params=flann_params)
-        # words, hist = vt.akmeans_iterations(train_vecs, centroids, max_iters=max_iters, monitor=True,
-        #                                     flann_params=flann_params)
-        import plottool as pt
-        ut.qt4ensure()
-        pt.multi_plot(hist['epoch_num'], [hist['loss']], fnum=2, pnum=(1, 2, 1), label_list=['loss'])
-        pt.multi_plot(hist['epoch_num'], [hist['ave_unchanged']], fnum=2, pnum=(1, 2, 2), label_list=['unchanged'])
+        words, hist = vt.akmeans_iterations(
+            train_vecs, centroids, max_iters=1000, monitor=True,
+            flann_params=flann_params)
 
     vocab = VisualVocab(words)
     vocab.build()
     return (vocab,)
 
 
-def testdata_inva(defaultdb='testdb1', **kwargs):
+@derived_attribute(
+    tablename='inverted_agg_assign', parents=['feat', 'vocab'],
+    colnames=['wx_list', 'fxs_list', 'maws_list',
+              #'rvecs_list', 'flags_list',
+              'agg_rvecs', 'agg_flags'],
+    coltypes=[list, list, list,
+              #list, list,
+              np.ndarray, np.ndarray],
+    configclass=InvertedIndexConfig,
+    fname='smk/smk_agg_rvecs',
+    chunksize=256,
+)
+def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
+    r"""
+    CommandLine:
+        python -m ibeis.control.IBEISControl show_depc_annot_table_input \
+                --show --tablename=residuals
+
+    Ignore:
+        ibs.depc['vocab'].print_table()
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
+        >>> # Test depcache access
+        >>> import ibeis
+        >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
+        >>> depc = ibs.depc_annot
+        >>> config = {'num_words': 1000, 'nAssign': 2}
+        >>> #input_tuple = (aid_list, [aid_list] * len(aid_list))
+        >>> daids = aid_list
+        >>> input_tuple = (daids, [daids])
+        >>> rowid_kw = {}
+        >>> tablename = 'inverted_agg_assign'
+        >>> target_tablename = tablename
+        >>> input_ids = depc.get_parent_rowids(tablename, input_tuple, config)
+        >>> fid_list = ut.take_column(input_ids, 0)
+        >>> vocab_id_list = ut.take_column(input_ids, 1)
+        >>> data = depc.get(tablename, input_tuple, config)
+        >>> tup = dat[1]
+    """
+    #print('[IBEIS] ASSIGN RESIDUALS:')
+    assert ut.allsame(vocab_id_list)
+    vocabid = vocab_id_list[0]
+
+    # NEED HACK TO NOT LOAD INDEXER EVERY TIME
+    this_table = depc['inverted_agg_assign']
+    vocab_table = depc['vocab']
+    if this_table._hack_chunk_cache is not None and vocabid in this_table._hack_chunk_cache:
+        vocab = this_table._hack_chunk_cache[vocabid]
+    else:
+        vocab = vocab_table.get_row_data([vocabid], 'words')[0]
+        if this_table._hack_chunk_cache is not None:
+            this_table._hack_chunk_cache[vocabid] = vocab
+
+    vecs_list = depc.get_native('feat', fid_list, 'vecs')
+    nAssign = config['nAssign']
+    int_rvec = config['int_rvec']
+
+    from concurrent import futures
+    args_gen = list(_prep_par_agg_phi_data(vocab, vecs_list, nAssign, int_rvec))
+    worker = _par_agg_phi_worker
+    #tup_list2 = [_par_agg_phi_worker(argtup) for argtup in args_gen]
+    # Build argument generator
+    import psutil
+    nprocs = psutil.cpu_count() - 1
+    executor = futures.ProcessPoolExecutor(nprocs)
+    fs_chunk = [executor.submit(worker, args) for args in args_gen]
+    t = []
+    for fs in fs_chunk:
+        tup = fs.result()
+        t.append(tup)
+        yield tup
+    executor.shutdown(wait=True)
+
+
+def _prep_par_agg_phi_data(vocab, vecs_list, nAssign, int_rvec):
+    for fx_to_vecs in vecs_list:
+        fx_to_wxs, fx_to_maws = vocab.assign_to_words(fx_to_vecs, nAssign)
+        wx_to_fxs, wx_to_maws = vocab.invert_assignment(fx_to_wxs, fx_to_maws)
+        wx_list = sorted(wx_to_fxs.keys())
+
+        word_list = ut.take(vocab.wx_to_word, wx_list)
+        fxs_list = ut.take(wx_to_fxs, wx_list)
+        maws_list = ut.take(wx_to_maws, wx_list)
+        argtup = wx_list, word_list, fxs_list, maws_list, fx_to_vecs, int_rvec
+        yield argtup
+
+
+def _par_agg_phi_worker(argtup):
+    wx_list, word_list, fxs_list, maws_list, fx_to_vecs, int_rvec = argtup
+    if int_rvec:
+        agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=np.int8)
+    else:
+        agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=np.float)
+    agg_flags = np.empty((len(wx_list), 1), dtype=np.bool)
+
+    #for idx, wx in enumerate(wx_list):
+    for idx in range(len(wx_list)):
+        word = word_list[idx]
+        fxs = fxs_list[idx]
+        maws = maws_list[idx]
+        vecs = fx_to_vecs.take(fxs, axis=0)
+
+        _rvecs, _flags = compute_rvec(vecs, word)
+        _agg_rvecs, _agg_flags = aggregate_rvecs(_rvecs, maws, _flags)
+        # Cast to integers for storage
+        if int_rvec:
+            _agg_rvecs = cast_residual_integer(_agg_rvecs)
+        agg_rvecs[idx] = _agg_rvecs[0]
+        agg_flags[idx] = _agg_flags[0]
+
+    tup = (wx_list, fxs_list, maws_list, agg_rvecs, agg_flags)
+    return tup
+
+
+def new_load_vocab(ibs, aids, config):
+    # Hack in depcache info to the loaded vocab class
+    # (maybe this becomes part of the depcache)
+    #rowid = ibs.depc.get_rowids('vocab', [aids], config=config)[0]
+    rowid = 1
+    table = ibs.depc['vocab']
+    vocab = table.get_row_data([rowid], 'words')[0]
+    vocab.rowid = rowid
+    vocab.config_history = table.get_config_history([vocab.rowid])[0]
+    vocab.config = table.get_row_configs([vocab.rowid])[0]
+    return vocab
+
+
+def testdata_vocab(defaultdb='testdb1', **kwargs):
     """
     >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
-    >>> args, kwargs = tuple(), dict()
+    >>> defaultdb='testdb1'
+    >>> kwargs = {'num_words': 1000}
     """
     import ibeis
     ibs, aid_list = ibeis.testdata_aids(defaultdb=defaultdb)
-    config = VocabConfig(**kwargs)
-    vocab = ibs.depc_annot.get('vocab', [aid_list], 'words', config=config)[0]
-    fstack = ForwardIndex(ibs, aid_list)
-    inva = InvertedIndex(fstack, vocab, config={'nAssign': 3})
-    fstack.build()
-    inva.build()
-    return ibs, aid_list, inva
+    vocab = new_load_vocab(ibs, aid_list, kwargs)
+    return vocab
+    #fstack = ForwardIndex(ibs, aid_list)
+    #inva = InvertedIndex(fstack, vocab, config={'nAssign': 3})
+    #fstack.build()
+    #inva.build()
+    #return ibs, aid_list, inva
 
 
 if __name__ == '__main__':

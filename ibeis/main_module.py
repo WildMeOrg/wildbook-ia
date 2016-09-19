@@ -4,20 +4,21 @@ This module defines the entry point into the IBEIS system
 ibeis.opendb and ibeis.main are the main entry points
 """
 from __future__ import absolute_import, division, print_function
-from six.moves import builtins
+#from six.moves import builtins
 import sys
 import multiprocessing
 
-PREINIT_MULTIPROCESSING_POOLS = '--preinit' in sys.argv
+#try:
+import utool as ut
+profile = ut.profile
+#profile = getattr(builtins, 'profile')
+#except AttributeError:
+#def profile(func):
+#    return func
+
 QUIET = '--quiet' in sys.argv
 NOT_QUIET = not QUIET
 USE_GUI = '--gui' in sys.argv or '--nogui' not in sys.argv
-
-try:
-    profile = getattr(builtins, 'profile')
-except AttributeError:
-    def profile(func):
-        return func
 
 
 def _on_ctrl_c(signal, frame):
@@ -130,8 +131,8 @@ def _init_parallel():
     from ibeis import params
     __import_parallel_modules()
     util_parallel.set_num_procs(params.args.num_procs)
-    if PREINIT_MULTIPROCESSING_POOLS:
-        util_parallel.init_pool(params.args.num_procs)
+    #if PREINIT_MULTIPROCESSING_POOLS:
+    #    util_parallel.init_pool(params.args.num_procs)
 
 
 def _close_parallel():

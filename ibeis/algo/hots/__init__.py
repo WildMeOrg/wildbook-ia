@@ -57,5 +57,5 @@ IMPORT_TUPLES = [
 ]
 """
 Regen Command:
-    makeinit.py -x smk word_index --modname ibeis.algo.hots
+    makeinit.py -x --modname ibeis.algo.hots
 """

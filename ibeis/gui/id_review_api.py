@@ -222,7 +222,6 @@ def get_review_edges(cm_list, ibs=None, review_cfg={}):
 
 
 def make_review_api(ibs, cm_list, review_cfg, qreq_=None):
-    #ranks_top=None, #name_scoring=False, #filter_reviewed=False, #filter_true_matches=False, #qreq_=None, #):
     """
     Builds columns which are displayable in a ColumnListTableWidget
 

@@ -636,12 +636,9 @@ def check_name_consistency(ibs, nid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_nids()
-        >>> # execute function
         >>> result = check_name_consistency(ibs, nid_list)
-        >>> # verify results
         >>> print(result)
     """
     #aids_list = ibs.get_name_aids(nid_list)
@@ -698,11 +695,11 @@ def check_annot_size(ibs):
     desc_list = ibs.get_annot_vecs(aid_list, ensure=False)
     kpts_list = ibs.get_annot_kpts(aid_list, ensure=False)
     vert_list = ibs.get_annot_verts(aid_list)
-    print('size(aid_list) = ' + ut.byte_str2(ut.get_object_size(aid_list)))
-    print('size(vert_list) = ' + ut.byte_str2(ut.get_object_size(vert_list)))
-    print('size(uuid_list) = ' + ut.byte_str2(ut.get_object_size(uuid_list)))
-    print('size(desc_list) = ' + ut.byte_str2(ut.get_object_size(desc_list)))
-    print('size(kpts_list) = ' + ut.byte_str2(ut.get_object_size(kpts_list)))
+    print('size(aid_list) = ' + ut.byte_str2(ut.get_object_nbytes(aid_list)))
+    print('size(vert_list) = ' + ut.byte_str2(ut.get_object_nbytes(vert_list)))
+    print('size(uuid_list) = ' + ut.byte_str2(ut.get_object_nbytes(uuid_list)))
+    print('size(desc_list) = ' + ut.byte_str2(ut.get_object_nbytes(desc_list)))
+    print('size(kpts_list) = ' + ut.byte_str2(ut.get_object_nbytes(kpts_list)))
 
 
 def check_exif_data(ibs, gid_list):
@@ -981,11 +978,8 @@ def fix_invalid_nids(ibs):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> # execute function
         >>> result = fix_invalid_nids(ibs)
-        >>> # verify results
         >>> print(result)
     """
     print('[ibs] fixing invalid nids (nids that are <= ibs.UKNOWN_NAME_ROWID)')
@@ -1024,11 +1018,8 @@ def fix_invalid_name_texts(ibs):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> # execute function
         >>> result = fix_invalid_name_texts(ibs)
-        >>> # verify results
         >>> print(result)
 
     ibs.set_name_texts(nid_list[3], '____')
@@ -1074,14 +1065,11 @@ def copy_imagesets(ibs, imgsetid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs.delete_all_imagesets()
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
         >>> imgsetid_list = ibs.get_valid_imgsetids()
-        >>> # execute function
         >>> new_imgsetid_list = copy_imagesets(ibs, imgsetid_list)
-        >>> # verify results
         >>> result = str(ibs.get_imageset_text(new_imgsetid_list))
         >>> assert [2] == list(set(map(len, ibs.get_image_imgsetids(ibs.get_valid_gids()))))
         >>> print(result)
@@ -1406,7 +1394,7 @@ def set_annot_is_hard(ibs, aid_list, flag_list):
 @register_ibs_method
 @accessor_decors.getter_1to1
 def is_nid_unknown(ibs, nid_list):
-    return [ nid <= 0 for nid in nid_list]
+    return [nid <= 0 for nid in nid_list]
 
 
 @register_ibs_method
@@ -1765,7 +1753,6 @@ def get_ungrouped_gids(ibs):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs.delete_all_imagesets()
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
@@ -1807,11 +1794,8 @@ def update_ungrouped_special_imageset(ibs):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb9')
-        >>> # execute function
         >>> result = update_ungrouped_special_imageset(ibs)
-        >>> # verify results
         >>> print(result)
     """
     # FIXME SLOW
@@ -1834,14 +1818,12 @@ def update_ungrouped_special_imageset(ibs):
 @register_ibs_method
 #@ut.time_func
 @profile
-def update_special_imagesets(ibs):
+def update_special_imagesets(ibs, use_more_special_imagesets=False):
     if ut.get_argflag('--readonly-mode'):
         # SUPER HACK
         return
     # FIXME SLOW
-    USE_MORE_SPECIAL_IMAGESETS = ibs.cfg.other_cfg.ensure_attr(
-        'use_more_special_imagesets', False)
-    if USE_MORE_SPECIAL_IMAGESETS:
+    if use_more_special_imagesets:
         #ibs.update_reviewed_unreviewed_image_special_imageset()
         ibs.update_reviewed_unreviewed_image_special_imageset(reviewed=False)
         ibs.update_exemplar_special_imageset()
@@ -2165,9 +2147,10 @@ def make_imagesettext_list(imgsetid_list, occur_cfgstr):
 
 
 @register_ibs_method
-def batch_rename_consecutive_via_species(ibs, imgsetid=None):
+def batch_rename_consecutive_via_species(ibs, imgsetid=None, location_text=None):
     """ actually sets the new consectuive names"""
-    new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species(imgsetid=imgsetid)
+    new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species(
+        imgsetid=imgsetid, location_text=location_text)
 
     def get_conflict_names(ibs, new_nid_list, new_name_list):
         other_nid_list = list(set(ibs.get_valid_nids()) - set(new_nid_list))
@@ -2186,7 +2169,7 @@ def batch_rename_consecutive_via_species(ibs, imgsetid=None):
 
 
 @register_ibs_method
-def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
+def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=None):
     """
     Just creates the nams, but does not set them
 
@@ -2200,14 +2183,11 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs._clean_species()
-        >>> # execute function
         >>> imgsetid = None
         >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, imgsetid=imgsetid)
         >>> result = ut.list_str((new_nid_list, new_name_list))
-        >>> # verify results
         >>> print(result)
         (
             [1, 2, 3, 4, 5, 6, 7],
@@ -2218,16 +2198,13 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> ibs._clean_species()
         >>> ibs.delete_all_imagesets()
         >>> ibs.compute_occurrences(config={'use_gps': False, 'seconds_thresh': 600})
-        >>> # execute function
         >>> imgsetid = ibs.get_valid_imgsetids()[1]
         >>> new_nid_list, new_name_list = get_consecutive_newname_list_via_species(ibs, imgsetid=imgsetid)
         >>> result = ut.list_str((new_nid_list, new_name_list))
-        >>> # verify results
         >>> print(result)
         (
             [4, 5, 6, 7],
@@ -2235,6 +2212,8 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
         )
     """
     print('[ibs] get_consecutive_newname_list_via_species')
+    if location_text is None:
+        location_text = 'IBEIS'
     ibs.delete_empty_nids()
     nid_list = ibs.get_valid_nids(imgsetid=imgsetid)
     #name_list = ibs.get_name_texts(nid_list)
@@ -2248,7 +2227,6 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None):
         _code2_count[code] += 1
         return _code2_count[code]
 
-    location_text = ibs.cfg.other_cfg.location_for_names
     if imgsetid is not None:
         imgset_text = ibs.get_imageset_text(imgsetid)
         imgset_text = imgset_text.replace(' ', '_').replace('\'', '').replace('"', '')
@@ -2283,7 +2261,7 @@ def set_annot_names_to_different_new_names(ibs, aid_list):
 
 
 @register_ibs_method
-def make_next_nids(ibs, *args, **kwargs):
+def make_next_nids(ibs, num=None, str_format=2, species_text=None, location_text=None):
     """
     makes name and adds it to the database returning the newly added name rowid(s)
 
@@ -2292,7 +2270,9 @@ def make_next_nids(ibs, *args, **kwargs):
     SeeAlso:
         make_next_name
     """
-    next_names = ibs.make_next_name(*args, **kwargs)
+    next_names = ibs.make_next_name(num=num, str_format=str_format,
+                                    species_text=species_text,
+                                    location_text=location_text)
     next_nids  = ibs.add_names(next_names)
     return next_nids
 
@@ -2317,7 +2297,6 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs1 = ibeis.opendb('testdb1')
         >>> ibs2 = ibeis.opendb('PZ_MTEST')
         >>> ibs3 = ibeis.opendb('NAUT_test')
@@ -2327,7 +2306,6 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         >>> ibs3._clean_species()
         >>> num = None
         >>> str_format = 2
-        >>> # execute function
         >>> next_name1 = make_next_name(ibs1, num, str_format)
         >>> next_name2 = make_next_name(ibs2, num, str_format)
         >>> next_name3 = make_next_name(ibs3, num, str_format)
@@ -2338,7 +2316,6 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         >>> next_name_list2 = make_next_name(ibs2, 5, str_format)
         >>> ibs2.delete_names(temp_nids)
         >>> next_name_list3 = make_next_name(ibs2, 5, str_format)
-        >>> # verify results
         >>> # FIXME: nautiluses are not working right
         >>> result = ut.list_str((name_list, next_name_list1, next_name_list2, next_name_list3))
         >>> print(result)
@@ -2392,7 +2369,8 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
 
 
 @register_ibs_method
-def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True):
+@profile
+def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True, assume_unique=False):
     r"""
     This function is probably the fastest of its siblings
 
@@ -2411,32 +2389,30 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> distinguish_unknowns = True
-        >>> # execute function
         >>> grouped_aids_, unique_nids = group_annots_by_name(ibs, aid_list, distinguish_unknowns)
         >>> result = str([aids.tolist() for aids in grouped_aids_])
         >>> result += '\n' + str(unique_nids.tolist())
-        >>> # verify results
         >>> print(result)
         [[11], [9], [4], [1], [2, 3], [5, 6], [7], [8], [10], [12], [13]]
         [-11, -9, -4, -1, 1, 2, 3, 4, 5, 6, 7]
     """
     import vtool as vt
-    nid_list = np.array(
-        ibs.get_annot_name_rowids(
-            aid_list, distinguish_unknowns=distinguish_unknowns))
+    nid_list = ibs.get_annot_name_rowids(
+        aid_list, distinguish_unknowns=distinguish_unknowns, assume_unique=assume_unique)
+    nid_list = np.array(nid_list)
     unique_nids, groupxs_list = vt.group_indices(nid_list)
-    grouped_aids_ = vt.apply_grouping(np.array(aid_list), groupxs_list)
+    aid_list = np.array(aid_list)
+    grouped_aids_ = vt.apply_grouping(aid_list, groupxs_list)
     return grouped_aids_, unique_nids
 
 
-def group_annots_by_known_names_nochecks(ibs, aid_list):
-    nid_list = ibs.get_annot_name_rowids(aid_list)
-    nid2_aids = ut.group_items(aid_list, nid_list)
-    return list(nid2_aids.values())
+#def group_annots_by_known_names_nochecks(ibs, aid_list):
+#    nid_list = ibs.get_annot_name_rowids(aid_list)
+#    nid2_aids = ut.group_items(aid_list, nid_list)
+#    return list(nid2_aids.values())
 
 
 @register_ibs_method
@@ -2745,39 +2721,53 @@ def get_yaw_viewtexts(yaw_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import numpy as np
-        >>> # build test data
         >>> yaw_list = [0.0, np.pi / 2, np.pi / 4, np.pi, 3.15, -.4, -8, .2, 4, 7, 20, None]
-        >>> # execute function
         >>> text_list = get_yaw_viewtexts(yaw_list)
         >>> result = ut.list_str(text_list, nl=False)
-        >>> # verify results
         >>> print(result)
         ['right', 'front', 'frontright', 'left', 'left', 'backright', 'back', 'right', 'backleft', 'frontright', 'frontright', None]
 
     """
     #import vtool as vt
     import numpy as np
-    import six
-    stdlblyaw_list = list(six.iteritems(const.VIEWTEXT_TO_YAW_RADIANS))
+    stdlblyaw_list = list(const.VIEWTEXT_TO_YAW_RADIANS.items())
     stdlbl_list = ut.get_list_column(stdlblyaw_list, 0)
-    ALTERNATE = False
-    if ALTERNATE:
-        #with ut.Timer('fdsa'):
-        TAU = np.pi * 2
-        binsize = TAU / len(const.VIEWTEXT_TO_YAW_RADIANS)
-        yaw_list_ = np.array([np.nan if yaw is None else yaw for yaw in yaw_list])
-        index_list = np.floor(.5 + (yaw_list_ % TAU) / binsize)
-        text_list = [None if np.isnan(index) else stdlbl_list[int(index)] for index in index_list]
+    #ALTERNATE = False
+    #if ALTERNATE:
+    #    #with ut.Timer('fdsa'):
+    #    TAU = np.pi * 2
+    #    binsize = TAU / len(const.VIEWTEXT_TO_YAW_RADIANS)
+    #    yaw_list_ = np.array([np.nan if yaw is None else yaw for yaw in yaw_list])
+    #    index_list = np.floor(.5 + (yaw_list_ % TAU) / binsize)
+    #    text_list = [None if np.isnan(index) else stdlbl_list[int(index)] for index in index_list]
+    #else:
+    #with ut.Timer('fdsa'):
+    stdyaw_list = np.array(ut.take_column(stdlblyaw_list, 1))
+
+    yaw_list
+
+    is_not_none = ut.flag_not_None_items(yaw_list)
+    has_nones = not all(is_not_none)
+    if has_nones:
+        yaw_list_ = ut.compress(yaw_list, is_not_none)
     else:
-        #with ut.Timer('fdsa'):
-        stdyaw_list = np.array(ut.get_list_column(stdlblyaw_list, 1))
-        textdists_list = [None if yaw is None else
-                          vt.ori_distance(stdyaw_list, yaw)
-                          for yaw in yaw_list]
-        index_list = [None if dists is None else dists.argmin()
-                      for dists in textdists_list]
-        text_list = [None if index is None else stdlbl_list[index] for index in index_list]
-        #yaw_list_ / binsize
+        yaw_list_ = yaw_list
+    yaw_list_ = np.array(yaw_list_)
+    textdists = vt.ori_distance(stdyaw_list, yaw_list_[:, None])
+    index_list = textdists.argmin(axis=1)
+    text_list_ = ut.take(stdlbl_list, index_list)
+    if has_nones:
+        text_list = ut.ungroup([text_list_], [ut.where(is_not_none)], maxval=len(is_not_none) - 1)
+    else:
+        text_list = text_list_
+
+    #textdists_list = [None if yaw is None else
+    #                  vt.ori_distance(stdyaw_list, yaw)
+    #                  for yaw in yaw_list]
+    #index_list = [None if dists is None else dists.argmin()
+    #              for dists in textdists_list]
+    #text_list = [None if index is None else stdlbl_list[index] for index in index_list]
+    #yaw_list_ / binsize
     #errors = ['%.2f' % dists[index] for dists, index in zip(textdists_list, index_list)]
     #return list(zip(yaw_list, errors, text_list))
     return text_list
@@ -2837,7 +2827,7 @@ def get_database_species(ibs, aid_list=None):
 
 
 @register_ibs_method
-def get_primary_database_species(ibs, aid_list=None):
+def get_primary_database_species(ibs, aid_list=None, speedhack=True):
     r"""
     Args:
         aid_list (list):  list of annotation ids (default = None)
@@ -2857,15 +2847,13 @@ def get_primary_database_species(ibs, aid_list=None):
         >>> print(result)
         zebra_plains
     """
-    SPEED_HACK = True
-    if SPEED_HACK:
-        if ibs.get_dbname() == 'PZ_MTEST':
-            return 'zebra_plains'
-        elif ibs.get_dbname() == 'PZ_Master0':
+    if speedhack:
+        # Use our conventions
+        if ibs.get_dbname().startswith('PZ_'):
             return 'zebra_plains'
         elif ibs.get_dbname() == 'NNP_Master':
             return 'zebra_plains'
-        elif ibs.get_dbname() == 'GZ_ALL':
+        elif ibs.get_dbname().startswith('GZ_'):
             return 'zebra_grevys'
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
@@ -2965,13 +2953,10 @@ def get_aidpair_truths(ibs, aid1_list, aid2_list):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid1_list = ibs.get_valid_aids()
         >>> aid2_list = ut.list_roll(ibs.get_valid_aids(), -1)
-        >>> # execute function
         >>> truth = get_aidpair_truths(ibs, aid1_list, aid2_list)
-        >>> # verify results
         >>> result = str(truth)
         >>> print(result)
     """
@@ -3059,13 +3044,10 @@ def merge_names(ibs, merge_name, other_names):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis  # NOQA
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> merge_name = 'zebra'
         >>> other_names = ['occl', 'jeff']
-        >>> # execute function
         >>> result = merge_names(ibs, merge_name, other_names)
-        >>> # verify results
         >>> print(result)
         >>> ibs.print_names_table()
     """
@@ -3107,37 +3089,6 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
     """
     Automatic exemplar selection algorithm based on viewpoint and quality
 
-    Ignore:
-        # We want to choose the minimum per-item weight w such that
-        # we can't pack more than N w's into the knapsack
-        w * (N + 1) > N
-        # and w < 1.0, so we can have wiggle room for preferences
-        # so
-        w * (N + 1) > N
-        w > N / (N + 1)
-        EPS = 1E-9
-        w = N / (N + 1) + EPS
-
-        # Preference denomiantor should not make any choice of
-        # feasible items infeasible, but give more weight to a few.
-        # delta_w is the wiggle room we have, but we need to choose a number
-        # much less than it.
-        prefdenom = N ** 2
-        maybe its just N + EPS?
-        N ** 2 should work though. Figure out correct value later
-        delta_w = (1 - w)
-        prefdenom = delta_w / N
-        N - (w * N)
-
-        N = 3
-        EPS = 1E-9
-        w = N / (N + 1) + EPS
-        pref_decimator = N ** 2
-        num_teir1_levels = 3
-        pref_teir1 = w / (num_teir1_levels * pref_decimator)
-        pref_teir2 = pref_teir1 / pref_decimator
-        pref_teir3 = pref_teir2 / pref_decimator
-
     References:
         # implement maximum diversity approximation instead
         http://www.csbio.unc.edu/mcmillan/pubs/ICDM07_Pan.pdf
@@ -3150,7 +3101,6 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> #ibs = ibeis.opendb('PZ_MUGU_19')
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> dry_run = True
@@ -3195,12 +3145,10 @@ def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
         >>> # 2 of the 11 annots are unknown and should not be exemplars
         >>> #ut.assert_eq(len(new_aid_list), 9)
     """
-    if exemplars_per_view is None:
-        exemplars_per_view = ibs.cfg.other_cfg.exemplars_per_view
     if aid_list is None:
         aid_list = ibs.get_valid_aids(imgsetid=imgsetid)
-    HACK = ibs.cfg.other_cfg.enable_custom_filter
-    assert not HACK, 'enable_custom_filter is no longer supported'
+    if exemplars_per_view is None:
+        exemplars_per_view = 2
     new_flag_list = get_annot_quality_viewpoint_subset(
         ibs, aid_list=aid_list, annots_per_view=exemplars_per_view,
         verbose=verbose, prog_hook=prog_hook)
@@ -3367,11 +3315,8 @@ def detect_join_cases(ibs):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> # execute function
         >>> cm_list = detect_join_cases(ibs)
-        >>> # verify results
         >>> #result = str(qres_list)
         >>> #print(result)
         >>> ut.quit_if_noshow()
@@ -3618,7 +3563,8 @@ def get_quality_filterflags(ibs, aid_list, minqual, unknown_ok=True):
 
 
 @register_ibs_method
-def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True):
+@profile
+def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True, assume_unique=False):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -3646,7 +3592,7 @@ def get_viewpoint_filterflags(ibs, aid_list, valid_yaws, unknown_ok=True):
         >>> print(result)
     """
     assert valid_yaws is None or isinstance(valid_yaws, (set, list, tuple)), 'valid_yaws is not a container'
-    yaw_list = ibs.get_annot_yaw_texts(aid_list)
+    yaw_list = ibs.get_annot_yaw_texts(aid_list, assume_unique=assume_unique)
     if unknown_ok:
         yaw_flags  = (yaw is None or (valid_yaws is None or yaw in valid_yaws)
                       for yaw in yaw_list)
@@ -3687,13 +3633,10 @@ def flag_aids_count(ibs, aid_list):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
-        >>> # execute function
         >>> gzc_flag_list = flag_aids_count(ibs, aid_list)
         >>> result = gzc_flag_list
-        >>> # verify results
         >>> print(result)
         [False, True, False, False, True, False, True, True, False, True, False, True, True]
 
@@ -4039,9 +3982,7 @@ def create_new_imageset_from_images(ibs, gid_list, new_imgsetid=None):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[::2]
-        >>> # execute function
         >>> new_imgsetid = create_new_imageset_from_images(ibs, gid_list)
-        >>> # verify results
         >>> result = new_imgsetid
         >>> print(result)
     """
@@ -4077,11 +4018,9 @@ def create_new_imageset_from_names(ibs, nid_list):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> nid_list = ibs._get_all_known_nids()[0:2]
-        >>> # execute function
         >>> new_imgsetid = ibs.create_new_imageset_from_names(nid_list)
         >>> # clean up
         >>> ibs.delete_imagesets(new_imgsetid)
-        >>> # verify results
         >>> result = new_imgsetid
         >>> print(result)
     """
@@ -4169,9 +4108,28 @@ def search_annot_notes(ibs, pattern, aid_list=None):
 
 
 @register_ibs_method
-def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True):
-    qual_flags = list(ibs.get_quality_filterflags(aid_list, minqual, unknown_ok=unknown_ok))
-    aid_list_ = ut.compress(aid_list, qual_flags)
+def filter_aids_to_quality(ibs, aid_list, minqual, unknown_ok=True, speedhack=True):
+    """
+        >>> import ibeis
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> minqual = 'good'
+        >>> x1 = filter_aids_to_quality(ibs, aid_list, 'good', True, speedhack=True)
+        >>> x2 = filter_aids_to_quality(ibs, aid_list, 'good', True, speedhack=False)
+    """
+    if speedhack:
+        list_repr = ','.join(map(str, aid_list))
+        minqual_int = const.QUALITY_TEXT_TO_INT[minqual]
+        if unknown_ok:
+            operation = 'SELECT rowid from annotations WHERE (annot_quality ISNULL OR annot_quality==-1 OR annot_quality>={minqual_int}) AND rowid IN ({aids})'
+        else:
+            operation = 'SELECT rowid from annotations WHERE annot_quality NOTNULL AND annot_quality>={minqual_int} AND rowid IN ({aids})'
+        operation = operation.format(aids=list_repr, minqual_int=minqual_int)
+        aid_list_ = ut.take_column(ibs.db.cur.execute(operation).fetchall(), 0)
+    else:
+        qual_flags = list(ibs.get_quality_filterflags(aid_list, minqual, unknown_ok=unknown_ok))
+        aid_list_ = ut.compress(aid_list, qual_flags)
     return aid_list_
 
 
@@ -4218,15 +4176,39 @@ def remove_aids_of_viewpoint(ibs, aid_list, invalid_yaws):
 
 
 @register_ibs_method
-def filter_aids_without_name(ibs, aid_list, invert=False):
-    """
+def filter_aids_without_name(ibs, aid_list, invert=False, speedhack=True):
+    r"""
     Remove aids without names
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import ibeis
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> annots = ibs.annots(aid_list)
+        >>> aid_list1_ = ibs.filter_aids_without_name(aid_list)
+        >>> aid_list2_ = ibs.filter_aids_without_name(aid_list, invert=True)
+        >>> annots1_ = ibs.annots(aid_list1_)
+        >>> annots2_ = ibs.annots(aid_list2_)
+        >>> assert len(annots1_) + len(annots2_) == len(annots)
+        >>> assert np.all(np.array(annots1_.nids) > 0)
+        >>> assert len(annots1_) == 9
+        >>> assert np.all(np.array(annots2_.nids) < 0)
+        >>> assert len(annots2_) == 4
     """
-    if invert:
-        flag_list = ibs.is_aid_unknown(aid_list)
+    if speedhack:
+        list_repr = ','.join(map(str, aid_list))
+        if invert:
+            operation = 'SELECT rowid from annotations WHERE name_rowid<=0 AND rowid IN (%s)' % (list_repr,)
+        else:
+            operation = 'SELECT rowid from annotations WHERE name_rowid>0 AND rowid IN (%s)' % (list_repr,)
+        aid_list_ = ut.take_column(ibs.db.cur.execute(operation).fetchall(), 0)
     else:
-        flag_list = ut.not_list(ibs.is_aid_unknown(aid_list))
-    aid_list_ = ut.compress(aid_list, flag_list)
+        flag_list = ibs.is_aid_unknown(aid_list)
+        if not invert:
+            flag_list = ut.not_list(flag_list)
+        aid_list_ = ut.compress(aid_list, flag_list)
     return aid_list_
 
 
@@ -4298,7 +4280,7 @@ def filter_aids_without_timestamps(ibs, aid_list, invert=False):
 
 
 @register_ibs_method
-def filter_aids_to_species(ibs, aid_list, species):
+def filter_aids_to_species(ibs, aid_list, species, speedhack=True):
     """
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -4323,12 +4305,18 @@ def filter_aids_to_species(ibs, aid_list, species):
         >>> print(result)
         aid_list_ = [9, 10]
     """
-    species_rowid      = ibs.get_species_rowids_from_text(species)
-    species_rowid_list = ibs.get_annot_species_rowids(aid_list)
-    is_valid_species   = [sid == species_rowid for sid in species_rowid_list]
-    aid_list_           = ut.compress(aid_list, is_valid_species)
-    #flag_list = [species == species_text for species_text in ibs.get_annot_species(aid_list)]
-    #aid_list_ = ut.compress(aid_list, flag_list)
+    species_rowid = ibs.get_species_rowids_from_text(species)
+    if speedhack:
+        list_repr = ','.join(map(str, aid_list))
+        operation = 'SELECT rowid from annotations WHERE (species_rowid == {species_rowid}) AND rowid IN ({aids})'
+        operation = operation.format(aids=list_repr, species_rowid=species_rowid)
+        aid_list_ = ut.take_column(ibs.db.cur.execute(operation).fetchall(), 0)
+    else:
+        species_rowid_list = ibs.get_annot_species_rowids(aid_list)
+        is_valid_species   = [sid == species_rowid for sid in species_rowid_list]
+        aid_list_          = ut.compress(aid_list, is_valid_species)
+        #flag_list = [species == species_text for species_text in ibs.get_annot_species(aid_list)]
+        #aid_list_ = ut.compress(aid_list, flag_list)
     return aid_list_
 
 

@@ -185,7 +185,7 @@ def setup_actions_menu(mainwin, back):
     menu.newAction(
         name='actionSetExemplarsFromQualityAndViewpoint',
         text='Set Exemplars from Quality and Viewpoint',
-        triggered=back.set_exemplars_from_quality_and_viewpoint,
+        triggered=back.set_exemplars_from_quality_and_viewpoint_,
         tooltip=ut.textblock(
             '''
             Uses the quality and viewpoint column to pick the best N exemplars
@@ -214,7 +214,7 @@ def setup_actions_menu(mainwin, back):
         menu.newAction(
             name='actionBatchConsecutiveLocationSpeciesRename',
             text='Consecutive Location+Species Rename',
-            triggered=back.batch_rename_consecutive_via_species,
+            triggered=back.batch_rename_consecutive_via_species_,
             tooltip=ut.textblock(
                 '''
                 Renames ALL the names in the database to
@@ -488,7 +488,7 @@ def setup_refresh_menu(mainwin, back):
     menu.newAction(
         name='actionUpdateSpecialImageSets',
         text='Refresh Special ImageSets',
-        triggered=back.update_special_imagesets)
+        triggered=back.update_special_imagesets_)
     # ---------
     menu.newAction(
         name='actionReconnectController',

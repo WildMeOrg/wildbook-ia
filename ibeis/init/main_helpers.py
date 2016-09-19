@@ -61,7 +61,6 @@ def testdata_expts(defaultdb='testdb1',
         print('[main_helpers] testdata_expts')
     import ibeis
     from ibeis.expt import harness
-    from ibeis.expt import test_result
     if a is not None:
         default_acfgstr_name_list = a
     if t is not None and p is None:
@@ -108,7 +107,8 @@ def testdata_expts(defaultdb='testdb1',
 
 
 def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
-                  return_acfg=False, verbose=None, default_aids=None):
+                  return_acfg=False, verbose=None, default_aids=None,
+                  default_set='qcfg'):
     r"""
     Grabs default testdata for functions, but is command line overrideable
 
@@ -141,7 +141,8 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
     print('[main_helpers] testdata_aids')
     if a is None:
         a = adefault
-    a, _specified_a = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str, default=a, return_was_specified=True)
+    a, _specified_a = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str,
+                                    default=a, return_was_specified=True)
     return_ibs = False
     if ibs is None:
         return_ibs = True
@@ -150,8 +151,10 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
         ibs = ibeis.opendb(defaultdb=defaultdb)
     named_defaults_dict = ut.dict_take(annotation_configs.__dict__,
                                        annotation_configs.TEST_NAMES)
-    named_qcfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
-                                   ut.get_list_column(named_defaults_dict, 'qcfg')))
+
+    named_acfg_defaults = dict(zip(annotation_configs.TEST_NAMES,
+                                   ut.get_list_column(named_defaults_dict,
+                                                      default_set)))
     # Allow command line override
     aids, _specified_aids = ut.get_argval(('--aid', '--aids'), type_=list,
                                           default=default_aids,
@@ -164,7 +167,7 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
     if need_expand:
         #base_cfg = annotation_configs.single_default
         aidcfg_combo_list = cfghelpers.parse_cfgstr_list2(
-            [a], named_qcfg_defaults, 'acfg', annotation_configs.ALIAS_KEYS,
+            [a], named_acfg_defaults, 'acfg', annotation_configs.ALIAS_KEYS,
             expand_nested=False, is_nestedcfgtype=False)
         aidcfg_combo = aidcfg_combo_list[0]
         if len(aidcfg_combo_list) != 1:
@@ -210,6 +213,7 @@ def testdata_pipecfg(p=None, t=None, ibs=None):
     return pcfgdict
 
 
+@profile
 def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
                            default_qaids=None, default_daids=None,
                            qaid_override=None, daid_override=None,

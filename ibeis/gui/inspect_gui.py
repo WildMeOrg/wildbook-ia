@@ -837,7 +837,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
 
 def make_vsone_context_options(ibs, aid1, aid2, qreq_):
     from ibeis.algo.hots import vsone_pipeline
-    def vsone_single_hack(ibs, qaid, daid, qreq_):
+    def vsone_single_hack(ibs, qaid, daid, qreq_, type_='RAT+SV'):
         import vtool as vt
         if qreq_ is None:
             qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})
@@ -845,7 +845,7 @@ def make_vsone_context_options(ibs, aid1, aid2, qreq_):
             qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict=qreq_.qparams)
         matches, metadata = vsone_pipeline.vsone_single(qaid, daid, qreq2_,
                                                         use_ibscache=True)
-        interact = vt.matching.show_matching_dict(matches, metadata, mode=1)  # NOQA
+        interact = vt.matching.show_matching_dict(matches, metadata, type_=type_, mode=1)  # NOQA
         interact.start()
 
     options =  [
@@ -853,6 +853,8 @@ def make_vsone_context_options(ibs, aid1, aid2, qreq_):
                                   ibs, aid1, aid2, qreq_=qreq_)),
         ('Run Vsone(vt)', partial(vsone_single_hack,
                                   ibs, aid1, aid2, qreq_=qreq_)),
+        ('Run Vsone(vt, orig)', partial(vsone_single_hack,
+                                        ibs, aid1, aid2, qreq_=qreq_, type_='ORIG')),
     ]
     return  options
 

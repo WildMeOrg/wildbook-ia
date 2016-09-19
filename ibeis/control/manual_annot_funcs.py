@@ -854,7 +854,7 @@ def get_annot_exemplar_flags(ibs, aid_list):
 @accessor_decors.getter_1to1
 #@cache_getter(const.ANNOTATION_TABLE, 'image_rowid')
 @register_api('/api/annot/image/rowid/', methods=['GET'])
-def get_annot_gids(ibs, aid_list):
+def get_annot_gids(ibs, aid_list, assume_unique=False):
     r"""
     Get parent image rowids of annotations
 
@@ -877,7 +877,7 @@ def get_annot_gids(ibs, aid_list):
         >>> result = get_annot_gids(ibs, aid_list)
         >>> print(result)
     """
-    gid_list = ibs.db.get(const.ANNOTATION_TABLE, ('image_rowid',), aid_list)
+    gid_list = ibs.db.get(const.ANNOTATION_TABLE, ('image_rowid',), aid_list, assume_unique=assume_unique)
     return gid_list
 
 
@@ -960,12 +960,12 @@ def get_annot_gar_rowids(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.getter_1toM
 # @register_api('/api/annot/aids/otherimage/', methods=['GET'])
-def get_annot_otherimage_aids(ibs, aid_list, daid_list=None):
+def get_annot_otherimage_aids(ibs, aid_list, daid_list=None, assume_unique=False):
     r"""
     Auto-docstr for 'get_annot_otherimage_aids'
 
     """
-    gid_list = ibs.get_annot_gids(aid_list)
+    gid_list = ibs.get_annot_gids(aid_list, assume_unique=assume_unique)
     if daid_list is None:
         image_aids_list = ibs.get_image_aids(gid_list)
         # Remove self from list
@@ -973,7 +973,7 @@ def get_annot_otherimage_aids(ibs, aid_list, daid_list=None):
                            for aids, aid in zip(image_aids_list, aid_list)]
     else:
         daids = np.array(daid_list)
-        internal_data_gids  = ibs.get_annot_gids(daids)
+        internal_data_gids  = ibs.get_annot_gids(daids, assume_unique=assume_unique)
         other_aids_list = [
             daids.compress(internal_data_gids == gid)
             for gid in gid_list
@@ -984,7 +984,7 @@ def get_annot_otherimage_aids(ibs, aid_list, daid_list=None):
 @register_ibs_method
 @accessor_decors.getter_1toM
 # @register_api('/api/annot/aids/contact/', methods=['GET'])
-def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False):
+def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False, assume_unique=False):
     r"""
     Returns the other aids that appear in the same image that this
     annotation is from.
@@ -1025,7 +1025,9 @@ def get_annot_contact_aids(ibs, aid_list, daid_list=None, check_isect=False):
         ...     assert len(gids) == 0 or gids[0] == gid, 'and same image as parent annot'
         ...     assert aid not in aids, 'should not include self'
     """
-    other_aids_list = ibs.get_annot_otherimage_aids(aid_list, daid_list=daid_list)
+    other_aids_list = ibs.get_annot_otherimage_aids(aid_list,
+                                                    daid_list=daid_list,
+                                                    assume_unique=assume_unique)
     if check_isect:
         import shapely.geometry
         # TODO: might not be accounting for rotated verticies
@@ -1505,7 +1507,8 @@ def get_annot_rotated_verts(ibs, aid_list):
 @accessor_decors.getter_1to1
 @accessor_decors.cache_getter(const.ANNOTATION_TABLE, ANNOT_YAW)
 @register_api('/api/annot/yaw/', methods=['GET'])
-def get_annot_yaws(ibs, aid_list):
+#@profile
+def get_annot_yaws(ibs, aid_list, assume_unique=False):
     r"""
     A yaw is the yaw of the annotation in radians
     Viewpoint yaw is inverted. Will be fixed soon.
@@ -1541,7 +1544,14 @@ def get_annot_yaws(ibs, aid_list):
         >>> print(result)
         [3.141592653589793, 3.141592653589793, None, 3.141592653589793, None]
     """
-    yaw_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aid_list)
+    yaw_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_YAW,), aid_list, assume_unique=assume_unique)
+    #if False:
+    #    yaw_list2 = [ibs.db.cur.execute('SELECT annot_yaw from annotations WHERE rowid=?', (aid,)).fetchone()[0] for aid in aid_list]
+    #    # misses cases when aid_list is not unique?
+    #    yaw_list3 = ut.take_column(ibs.db.cur.execute('SELECT annot_yaw from annotations WHERE rowid IN (%s) ORDER BY rowid ASC' % (','.join(map(str, aid_list)),)).fetchall(), 0)
+    #    sortx = ut.argsort(ut.argsort(aid_list))
+    #    yaw_list3 = ut.take(yaw_list3, sortx)
+    #    ut.make_index_lookup(aid_list)
     yaw_list = [yaw if yaw is not None and yaw >= 0.0 else None for yaw in yaw_list]
     return yaw_list
 
@@ -1555,6 +1565,22 @@ def get_annot_yaws_asfloat(ibs, aid_list):
     yaw_list = ibs.get_annot_yaws(aid_list)
     yaw_list = np.array(ut.replace_nones(yaw_list, np.nan))
     return yaw_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/annot/yaw/text/', methods=['GET'])
+def get_annot_yaw_texts(ibs, aid_list, assume_unique=False):
+    r"""
+    Auto-docstr for 'get_annot_yaw_texts'
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/yaw/text/
+    """
+    yaw_list = ibs.get_annot_yaws(aid_list, assume_unique=assume_unique)
+    yaw_text_list = ibsfuncs.get_yaw_viewtexts(yaw_list)
+    return yaw_text_list
 
 
 @register_ibs_method
@@ -1690,7 +1716,7 @@ def get_annot_parent_aid(ibs, aid_list):
 @accessor_decors.getter_1to1
 @accessor_decors.cache_getter(const.ANNOTATION_TABLE, NAME_ROWID, cfgkeys=['distinguish_unknowns'])
 # @register_api('/api/annot/name/rowid/', methods=['GET'])
-def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
+def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True, assume_unique=False):
     r"""
     Returns:
         list_ (list): the name id of each annotation.
@@ -1714,7 +1740,7 @@ def get_annot_name_rowids(ibs, aid_list, distinguish_unknowns=True):
     """
     id_iter = aid_list
     colnames = (NAME_ROWID,)
-    nid_list_ = ibs.db.get(const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid')
+    nid_list_ = ibs.db.get(const.ANNOTATION_TABLE, colnames, id_iter, id_colname='rowid', assume_unique=assume_unique)
     if distinguish_unknowns:
         nid_list = [(None if aid is None else -aid)
                     if nid == const.UNKNOWN_LBLANNOT_ROWID or nid is None else nid
@@ -2730,22 +2756,6 @@ def get_annot_isjunk(ibs, aid_list):
     #isjunk_list = [qual == const.QUALITY_TEXT_TO_INT['junk'] for qual in qual_list]
     isjunk_list = [qual in const.QUALITY_TEXT_TO_INTS['junk'] for qual in qual_list]
     return isjunk_list
-
-
-@register_ibs_method
-@accessor_decors.getter_1to1
-@register_api('/api/annot/yaw/text/', methods=['GET'])
-def get_annot_yaw_texts(ibs, aid_list):
-    r"""
-    Auto-docstr for 'get_annot_yaw_texts'
-
-    RESTful:
-        Method: GET
-        URL:    /api/annot/yaw/text/
-    """
-    yaw_list = ibs.get_annot_yaws(aid_list)
-    yaw_text_list = ibsfuncs.get_yaw_viewtexts(yaw_list)
-    return yaw_text_list
 
 
 @register_ibs_method

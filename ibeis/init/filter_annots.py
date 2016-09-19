@@ -3,7 +3,6 @@
 TODO:
     * cross validation
     * encounter vs database (time filtering)
-
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
@@ -12,11 +11,10 @@ import utool as ut
 import numpy as np
 import six
 from ibeis.control import controller_inject
-(print, rrr, profile) = ut.inject2(__name__, '[main_helpers]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td', 'acfg')
 
-# TODO: Make these configurable
 SEED1 = 0
 SEED2 = 42
 
@@ -29,6 +27,20 @@ else:
 
 _tup = controller_inject.make_ibs_register_decorator(__name__)
 CLASS_INJECT_KEY, register_ibs_method = _tup
+
+
+@profile
+def time_filter_annots():
+    """
+    python -m ibeis.init.filter_annots time_filter_annots --db PZ_Master1 -a ctrl:qmingt=2 --profile
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> result = time_filter_annots()
+    """
+    import ibeis
+    ibeis.testdata_expanded_aids()
 
 
 @register_ibs_method
@@ -127,6 +139,7 @@ def sample_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwa
     return aid_list_
 
 
+@profile
 def get_default_annot_filter_form():
     r"""
     Returns dictionary containing defaults for all valid filter parameters
@@ -151,7 +164,6 @@ def get_default_annot_filter_form():
 
 
 @register_ibs_method
-@profile
 def get_annot_tag_filterflags(ibs, aid_list, filter_kw,
                               request_defaultkw=False):
     r"""
@@ -276,6 +288,7 @@ def get_acfg_cacheinfo(ibs, aidcfg):
     return acfg_cacheinfo
 
 
+@profile
 def expand_single_acfg(ibs, aidcfg, verbose=None):
     """
     for main_helpers """
@@ -299,6 +312,7 @@ def expand_single_acfg(ibs, aidcfg, verbose=None):
     return aids
 
 
+@profile
 def hack_remove_label_errors(ibs, expanded_aids, verbose=None):
     qaids_, daids_ = expanded_aids
 
@@ -339,6 +353,7 @@ def hack_remove_label_errors(ibs, expanded_aids, verbose=None):
     return expanded_aids
 
 
+@profile
 def hack_extra(ibs, expanded_aids):
     # SUCH HACK to get a larger database
     from ibeis.expt import annotation_configs
@@ -493,10 +508,10 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
             # this has to be after sample_size assignment, otherwise the filtering
             # is unstable Remove queries that have labeling errors in them.
             # TODO: fix errors AND remove labels
-            #REMOVE_LABEL_ERRORS = ut.is_developer() or ut.get_argflag('--noerrors')
-            REMOVE_LABEL_ERRORS = qcfg.get('hackerrors', True)
+            #remove_label_errors = ut.is_developer() or ut.get_argflag('--noerrors')
             #ut.is_developer() or ut.get_argflag('--noerrors')
-            if REMOVE_LABEL_ERRORS:
+            remove_label_errors = qcfg.get('hackerrors', False)
+            if remove_label_errors:
                 expanded_aids = hack_remove_label_errors(ibs, expanded_aids, verbose)
 
         #ibs.print_annotconfig_stats(*expanded_aids)
@@ -817,33 +832,33 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         with VerbosityContext('is_known'):
             avail_aids = ibs.filter_aids_without_name(
                 avail_aids, invert=not aidcfg['is_known'])
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     if aidcfg.get('is_exemplar') is not None:
         flags = ibs.get_annot_exemplar_flags(avail_aids)
         is_valid = [flag == aidcfg['is_exemplar'] for flag in flags]
         with VerbosityContext('is_exemplar'):
             avail_aids = ut.compress(avail_aids, is_valid)
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     if aidcfg.get('reviewed') is not None:
         flags = ibs.get_annot_reviewed(avail_aids)
         is_valid = [flag == aidcfg['reviewed'] for flag in flags]
         with VerbosityContext('reviewed'):
             avail_aids = ut.compress(avail_aids, is_valid)
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     if aidcfg.get('multiple') is not None:
         flags = ibs.get_annot_multiple(avail_aids)
         is_valid = [flag == aidcfg['multiple'] for flag in flags]
         with VerbosityContext('multiple'):
             avail_aids = ut.compress(avail_aids, is_valid)
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     if aidcfg.get('require_timestamp') is True:
         with VerbosityContext('require_timestamp'):
             avail_aids = ibs.filter_aids_without_timestamps(avail_aids)
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     cfg_species = aidcfg.get('species')
     if isinstance(cfg_species, six.string_types) and cfg_species.lower() == 'none':
@@ -856,7 +871,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         species = metadata['species']
         with VerbosityContext('species', species=species):
             avail_aids = ibs.filter_aids_to_species(avail_aids, species)
-            avail_aids = sorted(avail_aids)
+            #avail_aids = sorted(avail_aids)
 
     if aidcfg.get('been_adjusted', None):
         # HACK to see if the annotation has been adjusted from the default
@@ -879,7 +894,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
             # Filter quality
             avail_aids = ibs.filter_aids_to_quality(
                 avail_aids, minqual, unknown_ok=not aidcfg['require_quality'])
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     if aidcfg.get('max_unixtime', None) is not None:
         max_unixtime = aidcfg.get('max_unixtime', None)
@@ -887,7 +902,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         flags = unixtimes <= max_unixtime
         with VerbosityContext('max_unixtime'):
             avail_aids = ut.compress(avail_aids, flags)
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     if aidcfg.get('min_unixtime', None) is not None:
         min_unixtime = aidcfg.get('min_unixtime', None)
@@ -895,7 +910,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         flags = unixtimes >= min_unixtime
         with VerbosityContext('min_unixtime'):
             avail_aids = ut.compress(avail_aids, flags)
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     if aidcfg.get('max_numfeat') is not None or aidcfg.get('min_numfeat') is not None:
         max_numfeat = aidcfg['max_numfeat']
@@ -972,7 +987,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
                 ]
             unknown_ok = not aidcfg['require_viewpoint']
             yaw_flags = ibs.get_viewpoint_filterflags(
-                avail_aids, valid_yaw_txts, unknown_ok=unknown_ok)
+                avail_aids, valid_yaw_txts, unknown_ok=unknown_ok, assume_unique=True)
             yaw_flags = list(yaw_flags)
             with VerbosityContext('view', 'require_viewpoint', 'view_ext',
                                   'view_ext1', 'view_ext2', valid_yaws=valid_yaw_txts):
@@ -994,7 +1009,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         flag_list = np.array(num_gt_global_list) >= min_pername_global
         with VerbosityContext('exclude_view'):
             avail_aids = ut.compress(avail_aids, flag_list)
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     if aidcfg.get('max_pername_global') is not None:
         max_pername_global = aidcfg.get('max_pername_global')
@@ -1002,7 +1017,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         flag_list = np.array(num_gt_global_list) <= max_pername_global
         with VerbosityContext('exclude_view'):
             avail_aids = ut.compress(avail_aids, flag_list)
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     # FILTER HACK integrating some notion of tag functions
     # TODO: further integrate
@@ -1011,7 +1026,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         flags = get_annot_tag_filterflags(ibs, avail_aids, filterkw)
         with VerbosityContext('has_any', 'has_none'):
             avail_aids = ut.compress(avail_aids, flags)
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     avail_aids = sorted(avail_aids)
 
@@ -1101,33 +1116,37 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
         valid_nids = [nid for nid, flag in nid2_flag.items() if flag]
         with VerbosityContext('view_pername', countstr=countstr):
             avail_aids = ut.flatten(ut.dict_take(nid2_aids, valid_nids))
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     if aidcfg['min_timedelta'] is not None:
         min_timedelta = ut.ensure_timedelta(aidcfg['min_timedelta'])
         with VerbosityContext('min_timedelta', min_timedelta=min_timedelta):
             avail_aids = ibs.filter_annots_using_minimum_timedelta(
                 avail_aids, min_timedelta)
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     # Each aid must have at least this number of other groundtruth aids
     min_pername = aidcfg['min_pername']
     if min_pername is not None:
         grouped_aids_ = ibs.group_annots_by_name(avail_aids,
-                                                 distinguish_unknowns=True)[0]
+                                                 distinguish_unknowns=True,
+                                                 assume_unique=True)[0]
         with VerbosityContext('min_pername'):
-            avail_aids = ut.flatten([
-                aids for aids in grouped_aids_ if len(aids) >= min_pername])
-        avail_aids = sorted(avail_aids)
+            flags = np.array(ut.lmap(len, grouped_aids_)) >= min_pername
+            avail_aids = ut.flatten(ut.compress(grouped_aids_, flags))
+            #avail_aids = ut.flatten([
+            #    aids for aids in grouped_aids_ if len(aids) >= min_pername])
+        #avail_aids = sorted(avail_aids)
 
     max_pername = aidcfg['max_pername']
     if max_pername is not None:
         grouped_aids_ = ibs.group_annots_by_name(avail_aids,
-                                                 distinguish_unknowns=True)[0]
+                                                 distinguish_unknowns=True,
+                                                 assume_unique=True)[0]
         with VerbosityContext('max_pername'):
             avail_aids = ut.flatten([
                 aids for aids in grouped_aids_ if len(aids) <= max_pername])
-        avail_aids = sorted(avail_aids)
+        #avail_aids = sorted(avail_aids)
 
     avail_aids = sorted(avail_aids)
 
@@ -1135,6 +1154,7 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
     return avail_aids
 
 
+@profile
 def get_reference_preference_order(ibs, gt_ref_grouped_aids,
                                    gt_avl_grouped_aids, prop_getter, cmp_func,
                                    aggfn, rng, verbose=VERB_TESTDATA):
@@ -1204,7 +1224,7 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
                 #also_exclude_overlaps = ibs.get_dbname() == 'Oxford'
                 also_exclude_overlaps = True
                 if also_exclude_overlaps:
-                    contact_aids_list = ibs.get_annot_contact_aids(ref_aids, daid_list=avail_aids)
+                    contact_aids_list = ibs.get_annot_contact_aids(ref_aids, daid_list=avail_aids, assume_unique=True)
                     # Disallow the same name in the same image
                     x = ibs.unflat_map(ibs.get_annot_nids, contact_aids_list)
                     y = ibs.get_annot_nids(ref_aids)
@@ -1331,6 +1351,7 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
     return avail_aids
 
 
+@profile
 def multi_sampled_seaturtle_queries():
     import ibeis
     from ibeis.expt import annotation_configs
@@ -1471,7 +1492,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         name_offset = 0
 
     if num_names is not None:
-        grouped_aids = ibs.group_annots_by_name(avail_aids)[0]
+        grouped_aids = ibs.group_annots_by_name(avail_aids, assume_unique=True)[0]
         with VerbosityContext('num_names'):
             name_slice = slice(name_offset, name_offset + num_names)
             avail_aids = ut.flatten(grouped_aids[name_slice])
@@ -1495,7 +1516,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
     if sample_per_name is not None:
         # For the query we just choose a single annot per name
         # For the database we have to do something different
-        grouped_aids = ibs.group_annots_by_name(avail_aids)[0]
+        grouped_aids = ibs.group_annots_by_name(avail_aids, assume_unique=True)[0]
         # Order based on some preference (like random)
         sample_seed = get_cfg('sample_seed')
         rng = np.random.RandomState(sample_seed)
@@ -1538,7 +1559,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
         rng = np.random.RandomState(SEED2)
         # Randomly sample names rather than annotations this makes sampling a
         # knapsack problem. Use a random greedy solution
-        grouped_aids = ibs.group_annots_by_name(avail_aids)[0]
+        grouped_aids = ibs.group_annots_by_name(avail_aids, assume_unique=True)[0]
         # knapsack items values and weights are are num annots per name
         knapsack_items = [(len(aids), len(aids), count)
                           for count, aids  in enumerate(grouped_aids)]
@@ -1586,6 +1607,7 @@ def subindex_annots(ibs, avail_aids, aidcfg, ref_aids=None,
     return avail_aids
 
 
+@profile
 def ensure_flatiterable(input_):
     if isinstance(input_, six.string_types):
         input_ = ut.fuzzy_int(input_)

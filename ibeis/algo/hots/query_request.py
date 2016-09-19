@@ -251,7 +251,7 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
 
 
 @ut.reloadable_class
-class QueryRequest(object):
+class QueryRequest(ut.NiceRepr):
     """
     Request object for pipline parameter run
     """

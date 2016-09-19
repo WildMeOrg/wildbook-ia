@@ -41,6 +41,13 @@ import utool as ut
 import vtool as vt
 import parse
 
+"""
+New Lynx
+
+python -m ibeis --tf ingest_rawdata --db lynx2  --imgdir "/media/raid/raw/WildME-WWF-lynx-Sept-2016/CARPETAS CATALOGO INDIVIDUOS" --ingest-type=named_folders --species=lynx --dry
+
+"""
+
 
 class Ingestable(object):
     """
@@ -346,6 +353,13 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     # Add Images
 
     gpath_list = [gpath.replace('\\', '/') for gpath in gpath_list]
+
+    if ut.get_argflag('--dry'):
+        print('Found %d names' % (len(set(name_list))))
+        print(set(name_list))
+        print('Dry Run')
+        return
+
     gid_list_ = ibs.add_images(gpath_list)
 
     # <DEBUG>
@@ -1009,11 +1023,10 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
 
     if not dryrun:
         ibs = ibeis.opendb(dbdir, allow_newdir=True)
-        ibs.cfg.other_cfg.auto_localize = False
         print('adding to table: ')
         # Add images to ibeis
         gpath_list = [join(img_dpath, gname).replace('\\', '/') for gname in gname_list]
-        gid_list = ibs.add_images(gpath_list)
+        gid_list = ibs.add_images(gpath_list, auto_localize=False)
 
         # 1) Add Query Annotations
         qgname_list, qbbox_list, qname_list, qid_list = zip(*query_annots)

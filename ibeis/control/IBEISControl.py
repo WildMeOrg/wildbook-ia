@@ -87,8 +87,9 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.web.apis_query',
     'ibeis.web.apis',
     'ibeis.core_annots',
-    'ibeis.new_annots',
     'ibeis.core_images',
+    'ibeis.algo.smk.vocab_indexer',
+    'ibeis.algo.smk.smk_pipeline',
     (('--no-cnn', '--nocnn'), 'ibeis_cnn'),
     (('--no-cnn', '--nocnn'), 'ibeis_cnn._plugin'),
     #(('--no-fluke', '--nofluke'), 'ibeis_flukematch.plugin'),
@@ -253,6 +254,7 @@ class IBEISController(BASE_CLASS):
     # --- CONSTRUCTOR / PRIVATES ---
     #-------------------------------
 
+    @profile
     def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True,
                  request_dbversion=None, force_serial=None):
         """ Creates a new IBEIS Controller associated with one database """

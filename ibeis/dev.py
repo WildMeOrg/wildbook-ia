@@ -467,10 +467,7 @@ def test_feats(ibs, qaid_list, daid_list=None):
 
     def test_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list):
         for dict_ in ut.progiter(alldictcomb, lbl='FeatCFG Combo: '):
-            # Set ibs parameters to the current config
-            for key_, val_ in six.iteritems(dict_):
-                ibs.cfg.feat_cfg[key_] = val_
-            cfgstr_ = ibs.cfg.feat_cfg.get_cfgstr()
+            cfgstr_ = ut.repr2(dict_)
             if count == 0:
                 # On first run just record info
                 kpts = ibs.get_annot_kpts(aid)
@@ -485,7 +482,7 @@ def test_feats(ibs, qaid_list, daid_list=None):
                 title_suffix = (' len(kpts) = %r \n' % len(kpts)) + cfgpackstr
                 viz.show_chip(ibs, aid, fnum=pt.next_fnum(),
                               title_suffix=title_suffix, darken=.8,
-                              ell_linewidth=2, ell_alpha=.6)
+                              ell_linewidth=2, ell_alpha=.6, config=dict_)
 
     alldictcomb = utool.flatten(map(utool.all_dict_combinations, varyparams_list))
     for count in range(NUM_PASSES):
@@ -498,82 +495,6 @@ def test_feats(ibs, qaid_list, daid_list=None):
             nKpts_list = np.array(nKpts_list)
             cfgstr_list = np.array(cfgstr_list)
             print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
-
-
-def devfunc(ibs, qaid_list):
-    """ Function for developing something """
-    print('[dev] devfunc')
-    import ibeis  # NOQA
-    from ibeis.algo import Config  # NOQA
-    #from ibeis.algo.Config import *  # NOQA
-    feat_cfg = Config.FeatureConfig()
-    #feat_cfg.printme3()
-    print('\ncfgstr..')
-    print(feat_cfg.get_cfgstr())
-    print(utool.dict_str(feat_cfg.get_hesaff_params()))
-    from ibeis import viz
-    aid = 1
-    ibs.cfg.feat_cfg.threshold = 16.0 / 3.0
-    kpts = ibs.get_annot_kpts(aid)
-    print('len(kpts) = %r' % len(kpts))
-    from ibeis.expt import experiment_configs
-    #varyparams_list = [
-    #    #{
-    #    #    'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
-    #    #    'numberOfScales': [3, 2, 1],
-    #    #    'maxIterations': [16, 32],
-    #    #    'convergenceThreshold': [.05, .1],
-    #    #    'initialSigma': [1.6, 1.2],
-    #    #},
-    #    {
-    #        #'threshold': [16.0 / 3.0, 32.0 / 3.0],  # 8.0  / 3.0
-    #        'numberOfScales': [1],
-    #        #'maxIterations': [16, 32],
-    #        #'convergenceThreshold': [.05, .1],
-    #        #'initialSigma': [6.0, 3.0, 2.0, 1.6, 1.2, 1.1],
-    #        'initialSigma': [3.2, 1.6, 0.8],
-    #        'edgeEigenValueRatio': [10, 5, 3],
-    #    },
-    #]
-    varyparams_list = [experiment_configs.featparams]
-
-    # low threshold = more keypoints
-    # low initialSigma = more keypoints
-
-    nKpts_list = []
-    cfgstr_list = []
-
-    alldictcomb = utool.flatten([utool.util_dict.all_dict_combinations(varyparams) for varyparams in featparams_list])
-    NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
-    for count in range(NUM_PASSES):
-        for aid in qaid_list:
-            #for dict_ in utool.progiter(alldictcomb, lbl='feature param comb: ', total=len(alldictcomb)):
-            for dict_ in alldictcomb:
-                for key_, val_ in six.iteritems(dict_):
-                    ibs.cfg.feat_cfg[key_] = val_
-                cfgstr_ = ibs.cfg.feat_cfg.get_cfgstr()
-                cfgstr = utool.packstr(cfgstr_, textwidth=80,
-                                        breakchars=',', newline_prefix='', break_words=False, wordsep=',')
-                if count == 0:
-                    kpts = ibs.get_annot_kpts(aid)
-                    #print('___________')
-                    #print('len(kpts) = %r' % len(kpts))
-                    #print(cfgstr)
-                    nKpts_list.append(len(kpts))
-                    cfgstr_list.append(cfgstr_)
-                if count == 1:
-                    title_suffix = (' len(kpts) = %r \n' % len(kpts)) + cfgstr
-                    viz.show_chip(ibs, aid, fnum=pt.next_fnum(),
-                                   title_suffix=title_suffix, darken=.4,
-                                   ell_linewidth=2, ell_alpha=.8)
-
-        if count == 0:
-            nKpts_list = np.array(nKpts_list)
-            cfgstr_list = np.array(cfgstr_list)
-            print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
-    pt.present()
-    locals_ = locals()
-    return locals_
 
 
 def run_dev(ibs):
@@ -609,10 +530,6 @@ def run_dev(ibs):
             # Add experiment locals to local namespace
             execstr_locals = utool.execstr_dict(expt_locals, 'expt_locals')
             exec(execstr_locals)
-        if ut.get_argflag('--devmode'):
-            # Execute the dev-func and add to local namespace
-            devfunc_locals = devfunc(ibs, qaid_list)
-            exec(utool.execstr_dict(devfunc_locals, 'devfunc_locals'))
 
     return locals()
 

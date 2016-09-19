@@ -997,8 +997,9 @@ class MainWindowBackend(GUIBACK_BASE):
         url = 'http://%s/view/names?aid=%s' % (WEB_DOMAIN, aid_str, )
         webbrowser.open(url)
 
-    def show_hough_image(back, gid, **kwargs):
-        viz.show_hough_image(back.ibs, gid, **kwargs)
+    def show_hough_image_(back, gid, **kwargs):
+        species = back.get_selected_species()
+        viz.show_hough_image(back.ibs, gid, species=species, **kwargs)
         viz.draw()
 
     def run_detection_on_imageset(back, imgsetid_list, refresh=True, **kwargs):
@@ -1448,12 +1449,14 @@ class MainWindowBackend(GUIBACK_BASE):
         if not back.are_you_sure(action='delete ALL imagesets'):
             return
         back.ibs.delete_all_imagesets()
-        back.ibs.update_special_imagesets()
+        back.update_special_imagesets_()
         back.front.update_tables()
 
     @blocking_slot()
-    def update_special_imagesets(back):
-        back.ibs.update_special_imagesets()
+    def update_special_imagesets_(back):
+        use_more_special_imagesets = back.ibs.cfg.other_cfg.ensure_attr(
+            'use_more_special_imagesets', False)
+        back.ibs.update_special_imagesets(use_more_special_imagesets)
         back.front.update_tables([gh.IMAGESET_TABLE])
 
     @blocking_slot(int)
@@ -1467,7 +1470,7 @@ class MainWindowBackend(GUIBACK_BASE):
         gid_list = ut.flatten(back.ibs.get_imageset_gids(imgsetid_list))
         back.ibs.delete_images(gid_list)
         back.ibs.delete_imagesets(imgsetid_list)
-        back.ibs.update_special_imagesets()
+        back.update_special_imagesets_()
         back.front.update_tables()
 
     @blocking_slot(int)
@@ -1492,7 +1495,7 @@ class MainWindowBackend(GUIBACK_BASE):
         if not back.are_you_sure(action='delete %d imagesets' % (len(imgsetid_list))):
             return
         back.ibs.delete_imagesets(imgsetid_list)
-        back.ibs.update_special_imagesets()
+        back.update_special_imagesets_()
         back.front.update_tables()
 
     @blocking_slot(int)
@@ -1561,7 +1564,7 @@ class MainWindowBackend(GUIBACK_BASE):
     def remove_from_imageset(back, gid_list):
         imgsetid = back.get_selected_imgsetid()
         back.ibs.unrelate_images_and_imagesets(gid_list, [imgsetid] * len(gid_list))
-        back.ibs.update_special_imagesets()
+        back.update_special_imagesets_()
         back.front.update_tables([gh.IMAGE_TABLE, gh.IMAGESET_TABLE], clear_view_selection=True)
 
     @blocking_slot(list)
@@ -1581,7 +1584,7 @@ class MainWindowBackend(GUIBACK_BASE):
             pass
         else:
             raise AssertionError('invalid mode=%r' % (mode,))
-        back.ibs.update_special_imagesets()
+        back.update_special_imagesets_()
         back.front.update_tables([gh.IMAGE_TABLE, gh.IMAGESET_TABLE], clear_view_selection=True)
 
     #--------------------------------------------------------------------------
@@ -1770,7 +1773,7 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             # Redo everything
             pass
-        back.ibs.update_special_imagesets()
+        back.update_special_imagesets_()
         print('[back] about to finish computing imagesets')
         back.front.imageset_tabwgt._close_all_tabs()
         if refresh:
@@ -2104,7 +2107,7 @@ class MainWindowBackend(GUIBACK_BASE):
         print('query_title = %r' % (query_title,))
         if daids_mode == const.VS_EXEMPLARS_KEY:
             # Automatic setting of exemplars
-            back.set_exemplars_from_quality_and_viewpoint()
+            back.set_exemplars_from_quality_and_viewpoint_()
 
         species2_expanded_aids = back._get_expanded_aids_groups(
             imgsetid, daids_mode=daids_mode,
@@ -2119,6 +2122,15 @@ class MainWindowBackend(GUIBACK_BASE):
 
         review_cfg = kwargs.copy()
         review_cfg['filter_true_matches'] = (daids_mode == const.VS_EXEMPLARS_KEY)
+
+        # Check if there is nothing to do
+        flags = []
+        for species, expanded_aids in species2_expanded_aids.items():
+            qaids, daids = expanded_aids
+            flag = len(qaids) == 1 and len(daids) == 1 and daids[0] == qaids[0]
+            flags.append(flag)
+        if len(flags) > 0 and all(flags):
+            raise AssertionError('No need to compute a query against itself')
 
         cfgdict, review_cfg = back.confirm_query_dialog2(species2_expanded_aids,
                                                          query_msg=query_msg,
@@ -3038,7 +3050,9 @@ class MainWindowBackend(GUIBACK_BASE):
             raise ValueError('back.ibs is None! must open IBEIS database first')
         if gpath_list is None:
             gpath_list = gt.select_images('Select image files to import')
-        gid_list = back.ibs.add_images(gpath_list, as_annots=as_annots)
+
+        ibs = back.ibs
+        gid_list = back.ibs.add_images(gpath_list, as_annots=as_annots, location_for_names=ibs.cfg.other_cfg.location_for_names)
         back._process_new_images(refresh, gid_list, clock_offset=clock_offset)
         return gid_list
 
@@ -3074,7 +3088,8 @@ class MainWindowBackend(GUIBACK_BASE):
         gpath_list = ut.list_images(dir_, fullpath=True, recursive=True)
         if size_filter is not None:
             raise NotImplementedError('Can someone implement the size filter?')
-        gid_list = back.ibs.add_images(gpath_list)
+        ibs = back.ibs
+        gid_list = back.ibs.add_images(gpath_list, location_for_names=ibs.cfg.other_cfg.location_for_names)
         back._process_new_images(refresh, gid_list, clock_offset=clock_offset)
         if return_dir:
             return gid_list, dir_
@@ -3140,13 +3155,13 @@ class MainWindowBackend(GUIBACK_BASE):
                 smart_xml_fpath = xml_path_list[0]
             back.ibs.compute_occurrences_smart(gid_list, smart_xml_fpath)
         if refresh:
-            back.ibs.update_special_imagesets()
+            back.update_special_imagesets_()
             #back.front.update_tables([gh.IMAGESET_TABLE])
             back.front.update_tables()
 
     def _process_new_images(back, refresh, gid_list, clock_offset=False):
         if refresh:
-            back.ibs.update_special_imagesets()
+            back.update_special_imagesets_()
             back.front.update_tables([gh.IMAGE_TABLE, gh.IMAGESET_TABLE])
         if clock_offset:
             co_wgt = clock_offset_gui.ClockOffsetWidget(back.ibs, gid_list)
@@ -3290,18 +3305,25 @@ class MainWindowBackend(GUIBACK_BASE):
         back.ibswgt.update_species_available(deleting=True)
 
     @slot_()
-    def set_exemplars_from_quality_and_viewpoint(back):
+    def set_exemplars_from_quality_and_viewpoint_(back):
+        exemplars_per_view = back.ibs.cfg.other_cfg.exemplars_per_view
         imgsetid = back.get_selected_imgsetid()
         print('set_exemplars_from_quality_and_viewpoint, imgsetid=%r' % (imgsetid,))
-        back.ibs.set_exemplars_from_quality_and_viewpoint(imgsetid=imgsetid)
+        HACK = back.ibs.cfg.other_cfg.enable_custom_filter
+        assert not HACK, 'enable_custom_filter is no longer supported'
+
+        back.ibs.set_exemplars_from_quality_and_viewpoint(imgsetid=imgsetid,
+                                                          exemplars_per_view=exemplars_per_view)
 
     @slot_()
-    def batch_rename_consecutive_via_species(back):
+    def batch_rename_consecutive_via_species_(back):
         #imgsetid = back.get_selected_imgsetid()
         #back.ibs.batch_rename_consecutive_via_species(imgsetid=imgsetid)
         imgsetid = None
         print('batch_rename_consecutive_via_species, imgsetid=%r' % (imgsetid,))
-        back.ibs.batch_rename_consecutive_via_species(imgsetid=imgsetid)
+        location_text = back.ibs.cfg.other_cfg.location_for_names
+        back.ibs.batch_rename_consecutive_via_species(imgsetid=imgsetid,
+                                                      location_text=location_text)
 
     @slot_()
     def run_tests(back):
