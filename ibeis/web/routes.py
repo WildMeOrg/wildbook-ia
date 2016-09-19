@@ -923,6 +923,11 @@ def turk_annotation():
             quality_value = 1
         multiple_value = ibs.get_annot_multiple(aid) == 1
     else:
+        try:
+            ibs.update_special_imagesets()
+            ibs.notify_observers()
+        except:
+            pass
         gid       = None
         gpath     = None
         image_src = None
