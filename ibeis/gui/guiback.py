@@ -2110,6 +2110,15 @@ class MainWindowBackend(GUIBACK_BASE):
         review_cfg = kwargs.copy()
         review_cfg['filter_true_matches'] = (daids_mode == const.VS_EXEMPLARS_KEY)
 
+        # Check if there is nothing to do
+        flags = []
+        for species, expanded_aids in species2_expanded_aids.items():
+            qaids, daids = expanded_aids
+            flag = len(qaids) == 1 and len(daids) == 1 and daids[0] == qaids[0]
+            flags.append(flag)
+        if len(flags) > 0 and all(flags):
+            raise AssertionError('No need to compute a query against itself')
+
         cfgdict, review_cfg = back.confirm_query_dialog2(species2_expanded_aids,
                                                          query_msg=query_msg,
                                                          query_title=query_title,
