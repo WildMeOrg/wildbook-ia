@@ -365,6 +365,13 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
                     _browser = ut.get_prefered_browser(PREFERED_BROWSER)
                     _browser.open_new_tab(view_occur_url)
         status_list.append(status)
+
+    try:
+        ibs.update_special_imagesets()
+        ibs.notify_observers()
+    except:
+        pass
+
     return status_list
 
 

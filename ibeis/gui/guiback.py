@@ -1474,6 +1474,19 @@ class MainWindowBackend(GUIBACK_BASE):
         back.front.update_tables()
 
     @blocking_slot(int)
+    def mark_imageset_as_shipped(back, imgsetid_list):
+        print('\n\n[back] mark_imageset_as_shipped')
+        if back.contains_special_imagesets(imgsetid_list):
+            back.display_special_imagesets_error()
+            return
+        if not back.are_you_sure(action='mark this imageset and shipped to Wildbook'):
+            return
+
+        back.ibs.set_imageset_shipped_flags(imgsetid_list, [1] * len(imgsetid_list))
+        back.ibs.update_special_imagesets()
+        back.front.update_tables()
+
+    @blocking_slot(int)
     def delete_imageset(back, imgsetid_list):
         print('\n\n[back] delete_imageset')
         if back.contains_special_imagesets(imgsetid_list):

@@ -1391,6 +1391,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('----', lambda: None),
                     ('Delete imageset AND images',
                      lambda: ibswgt.back.delete_imageset_and_images(imgsetid_list)),
+                    ('----', lambda: None),
+                    ('Mark imageset as Shipped to WildBook',
+                     lambda: ibswgt.back.mark_imageset_as_shipped(imgsetid_list)),
                 ]
             else:
                 context_options += [
