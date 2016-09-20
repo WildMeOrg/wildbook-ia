@@ -1384,6 +1384,8 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         """
         if config is None:
             config = {}
+        if source is None:
+            source = depc.root
         graph = depc.make_graph(implicit=True)
         requires_tables = ut.setdiff(ut.nx_all_nodes_between(graph, source, dest), [source])
         #requires_tables = ut.setdiff(ut.nx_all_nodes_between(depc.graph, 'annotations', 'featweight'), ['annotations'])

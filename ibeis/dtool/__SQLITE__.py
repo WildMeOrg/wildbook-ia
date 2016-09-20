@@ -18,6 +18,7 @@ TRY_NEW_SQLITE3 = False
 
 # SQL This should be the only file which imports sqlite3
 if not TRY_NEW_SQLITE3:
+    from sqlite3 import Binary, register_adapter, register_converter
     from sqlite3 import *  # NOQA
 
 #try:
@@ -89,12 +90,11 @@ def REGISTER_SQLITE3_TYPES():
     def register_numpy_dtypes():
         if VERBOSE_SQL:
             print('Register NUMPY dtypes with SQLite3')
+
+        py_int_type = long if six.PY2 else int
         for dtype in (np.int8, np.int16, np.int32, np.int64,
                       np.uint8, np.uint16, np.uint32, np.uint64):
-            if six.PY2:
-                register_adapter(dtype, long)
-            elif six.PY3:
-                register_adapter(dtype, int)
+            register_adapter(dtype, py_int_type)
         register_adapter(np.float32, float)
         register_adapter(np.float64, float)
 
