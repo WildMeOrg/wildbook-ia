@@ -429,8 +429,8 @@ def vsone_single2(ibs, qaid, daid, qconfig2_, dconfig2_, use_ibscache, verbose):
         if hack_multi_config:
             cfgdict = {'refine_method': 'affine'}
             data_config_list = query_config_list = [
-                ibs.new_query_params(affine_invariance=True),
-                ibs.new_query_params(affine_invariance=False),
+                dict(affine_invariance=True),
+                dict(affine_invariance=False),
             ]
             kpts1 = np.vstack([ibs.get_annot_kpts(qaid, config2_=config2_)
                                for config2_ in query_config_list])

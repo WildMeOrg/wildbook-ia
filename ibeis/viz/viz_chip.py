@@ -19,16 +19,14 @@ def testdata_showchip():
     kwargs = dict(ori=ut.get_argflag('--ori'), weight_label=weight_label, annote=annote)
     kwargs['notitle'] = ut.get_argflag('--notitle')
     kwargs['pts'] = ut.get_argflag('--drawpts')
-    kwargs['ell'] = ut.get_argflag('--drawell')
+    kwargs['ell'] = True or ut.get_argflag('--drawell')
     kwargs['ell_alpha'] = ut.get_argval('--ellalpha', default=.4)
     kwargs['ell_linewidth'] = ut.get_argval('--ell_linewidth', default=2)
     ut.print_dict(kwargs)
     default_config = dict(ibeis.algo.Config.FeatureWeightConfig().parse_items())
     cfgdict = ut.argparse_dict(default_config)
     print('[viz_chip.testdata] cfgdict = %r' % (cfgdict,))
-    config2_ = ibs.new_query_params(cfgdict=cfgdict)
-    print('query_cfgstr = ' + config2_.query_cfgstr)
-    print('feat_cfgstr = ' + config2_.feat_cfgstr)
+    config2_ = cfgdict
     print('[viz_chip.testdata] aid_list = %r' % (aid_list,))
     return ibs, aid_list, kwargs, config2_
 
@@ -37,6 +35,7 @@ def show_many_chips(ibs, aid_list, config2_=None, fnum=None, pnum=None):
     r"""
     CommandLine:
         python -m ibeis.viz.viz_chip --test-show_many_chips
+        python -m ibeis.viz.viz_chip --test-show_many_chips --show
         python -m ibeis.viz.viz_chip --test-show_many_chips --show --db NNP_Master3 --aids=13276,14047,14489,14906,10194,10201,12656,10150,11002,15315,7191,13127,15591,12838,13970,14123,14167 --no-annote --dpath figures --save ~/latex/crall-candidacy-2015/figures/challengechips.jpg '--caption=challenging images'
 
     Example:
@@ -105,7 +104,8 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         >>>     kpts = ut.random_sample(kpts[weights > .9], 200, seed=0)
         >>>     ecc = vt.get_kpts_eccentricity(kpts)
         >>>     scale = 1 / vt.get_scales(kpts)
-        >>>     s = ecc if config2_.affine_invariance else scale
+        >>>     #s = ecc if config2_.affine_invariance else scale
+        >>>     s = scale
         >>>     colors = pt.scores_to_color(s, cmap_='jet')
         >>>     kwargs['color'] = colors
         >>>     kwargs['kpts'] = kpts
@@ -148,11 +148,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
 
         kpts_ = vh.get_kpts(ibs, aid, in_image, config2_=config2_,
                             kpts_subset=kwargs.get('kpts_subset', None),
-                            kpts=kwargs.get('kpts', None))
-        try:
-            del kwargs['kpts']
-        except KeyError:
-            pass
+                            kpts=kwargs.pop('kpts', None))
         pt.viz_keypoints._annotate_kpts(kpts_, **kwargs)
         if not ut.get_argflag('--noaidlabel'):
             pt.upperleft_text(chip_text, color=kwargs.get('text_color', None))

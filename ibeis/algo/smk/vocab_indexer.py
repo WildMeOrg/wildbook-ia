@@ -378,6 +378,9 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
         >>> massign_sigma = 80.0
         >>> massign_equal_weights = False
 
+    Math:
+        exp(-dist / (2 * sigma ** 2))
+
     Notes:
         sigma values from \cite{philbin_lost08}
         (70 ** 2) ~= 5000, (80 ** 2) ~= 6250, (86 ** 2) ~= 7500,
@@ -554,6 +557,11 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
 
     Ignore:
         ibs.depc['vocab'].print_table()
+
+    Ignore:
+        data = ibs.depc.get('inverted_agg_assign', ([1, 2473], qreq_.daids), config=qreq_.config)
+        wxs1 = data[0][0]
+        wxs2 = data[1][0]
 
     Example:
         >>> # DISABLE_DOCTEST

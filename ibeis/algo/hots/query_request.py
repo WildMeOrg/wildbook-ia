@@ -143,10 +143,13 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         print('[qreq] piperoot = %r' % (piperoot,))
     if piperoot is not None and piperoot in ['smk']:
         from ibeis.algo.smk import smk_pipeline
-        if query_cfg is not None:
+        if query_cfg is None:
+            config = cfgdict
+        else:
             # Another config hack
             config = dict(query_cfg.parse_items())
             config.update(**cfgdict)
+
         qreq_ = smk_pipeline.SMKRequest(ibs, qaid_list, daid_list, config)
     # HACK FOR DEPC REQUESTS including flukes
     elif query_cfg is not None and isinstance(query_cfg, dtool.Config):
@@ -708,6 +711,7 @@ class QueryRequest(ut.NiceRepr):
         # Hack uses own internal state to grab name rowids
         # instead of using ibeis.
         #import utool
+
         #with utool.embed_on_exception_context:
         idxs = ut.take(qreq_.aid_to_idx, aids)
         nids = ut.take(qreq_.unique_nids, idxs)
@@ -716,8 +720,14 @@ class QueryRequest(ut.NiceRepr):
     def get_qreq_qannot_kpts(qreq_, qaids):
         return qreq_.ibs.get_annot_kpts(qaids, config2_=qreq_.extern_query_config2)
 
-    def get_qreq_dannot_kpts(qreq_, qaids):
-        return qreq_.ibs.get_annot_kpts(qaids, config2_=qreq_.extern_data_config2)
+    def get_qreq_dannot_kpts(qreq_, daids):
+        return qreq_.ibs.get_annot_kpts(daids, config2_=qreq_.extern_data_config2)
+
+    def get_qreq_dannot_fgweights(qreq_, daids):
+        return qreq_.ibs.get_annot_fgweights(daids, config2_=qreq_.extern_data_config2, ensure=False)
+
+    def get_qreq_qannot_fgweights(qreq_, qaids):
+        return qreq_.ibs.get_annot_fgweights(qaids, config2_=qreq_.extern_query_config2, ensure=False)
 
     @property
     def dnids(qreq_):

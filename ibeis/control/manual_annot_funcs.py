@@ -2639,7 +2639,7 @@ def get_annot_probchip_fpath(ibs, aid_list, config2_=None):
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()[0:10]
-        >>> config2_ = ibs.new_query_params({'fw_detector': 'cnn'})
+        >>> config2_ = {'fw_detector': 'cnn'}
         >>> probchip_fpath_list = get_annot_probchip_fpath(ibs, aid_list, config2_)
         >>> result = ('probchip_fpath_list = %s' % (str(probchip_fpath_list),))
         >>> print(result)
