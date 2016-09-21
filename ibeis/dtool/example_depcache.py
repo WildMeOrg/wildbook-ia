@@ -479,7 +479,7 @@ def testdata_depc(fname=None):
             configclass=DummyVsOneConfig,
             chunksize=2
         )
-        def vsone_matching(depc, qaids, daids, config):
+        def compute_vsone_matching(depc, qaids, daids, config):
             """
             CommandLine:
                 python -m dtool.base --exec-VsOneSimilarityRequest
