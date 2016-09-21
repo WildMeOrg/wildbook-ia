@@ -904,16 +904,6 @@ def parse_whaleshark_org_keywords():
     if verbose:
         print('[keywords] Parsing whaleshark.org keywords')
 
-    #url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter&maxSize=2'
-    #import requests
-    #resp = requests.get(url)
-    #resp.json()
-
-    #url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=truncationleftpec&maxSize=2'
-    #import requests
-    #resp = requests.get(url)
-    #resp.json()
-
     from ibeis.scripts import getshark
     url = 'http://www.whaleshark.org/getKeywordImages.jsp'
 
@@ -930,6 +920,21 @@ def parse_whaleshark_org_keywords():
         else:
             dict_ = ut.load_data(cache_fpath)
         return dict_
+
+    if False:
+        #url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter&maxSize=2'
+        #import requests
+        #resp = requests.get(url)
+        #resp.json()
+
+        url_ = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter'
+        json = cached_json_request(url_)
+        ut.save_data('nofilterwbquery.pkl', json)
+
+        #url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=truncationleftpec&maxSize=2'
+        #import requests
+        #resp = requests.get(url)
+        #resp.json()
 
     # Read all keyywords
     keywords = cached_json_request(url)['keywords']
