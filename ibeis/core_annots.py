@@ -1291,7 +1291,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
             'annot1': annot1,
             'annot2': annot2,
         }
-        vt_match = vt.vsone_matching2(metadata, cfgdict=config, verbose=verbose)
+        vt_match = vt.vsone_matching(metadata, cfgdict=config, verbose=verbose)
         matchtup = vt_match.matches['TOP+SV']
         H = vt_match.metadata['H_TOP']
         score = matchtup.fs.sum()

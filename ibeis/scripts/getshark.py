@@ -904,8 +904,19 @@ def parse_whaleshark_org_keywords():
     if verbose:
         print('[keywords] Parsing whaleshark.org keywords')
 
+    #url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter&maxSize=2'
+    #import requests
+    #resp = requests.get(url)
+    #resp.json()
+
+    #url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=truncationleftpec&maxSize=2'
+    #import requests
+    #resp = requests.get(url)
+    #resp.json()
+
     from ibeis.scripts import getshark
     url = 'http://www.whaleshark.org/getKeywordImages.jsp'
+
     cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo')
 
     def cached_json_request(url_):
