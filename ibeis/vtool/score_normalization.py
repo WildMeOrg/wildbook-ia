@@ -997,6 +997,15 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         print('[sn.pre]stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, use_nan=True, precision=5))
         #print('stats.tn_support = ' + ut.get_stats_str(tn_support, use_nan=True))
 
+    try:
+        assert not np.any(np.isnan(p_score_given_tp)), ('Need more positive support')
+        assert not np.any(np.isnan(p_score_given_tn)), ('Need more negative support')
+    except AssertionError as ex:
+        print('[sn.pre]stats:tpsupport = ' + ut.get_stats_str(score_tp_pdf.support, use_nan=True, precision=5))
+        print('[sn.pre]stats:tnsupport = ' + ut.get_stats_str(score_tn_pdf.support, use_nan=True, precision=5))
+
+        raise
+
     if True:
         # Make sure we still have probability functions
         area_tp = np.trapz(p_score_given_tp, score_domain)
@@ -1609,10 +1618,10 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
         np.trapz(data_pdf.density, data_pdf.support)
     """
     import utool as ut
-    #import scipy.stats as spstats
     import numpy as np
-    #import statsmodels
     import statsmodels.nonparametric.kde
+    #import scipy.stats as spstats
+    #import statsmodels
     data = data.astype(np.float64)  # HACK
     try:
         data_pdf = statsmodels.nonparametric.kde.KDEUnivariate(data)
