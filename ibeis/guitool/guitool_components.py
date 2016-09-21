@@ -76,6 +76,7 @@ def newSplitter(widget=None, orientation=Qt.Horizontal, verticalStretch=1):
     """
     input: widget - the central widget
     """
+    orientation = rectify_qt_const(orientation)
     splitter = QtWidgets.QSplitter(orientation, widget)
     _inject_new_widget_methods(splitter)
     # This line makes the splitter resize with the widget
@@ -1031,6 +1032,15 @@ def newWidget(parent=None, *args, **kwargs):
     return widget
 
 
+def rectify_qt_const(x):
+    if isinstance(x, six.string_types):
+        if x == ['vert', 'vertical']:
+            return Qt.Vertical
+        elif x in ['horiz', 'horizontal']:
+            return Qt.Horizontal
+    return x
+
+
 #class GuitoolWidget(QtWidgets.QWidget):
 class GuitoolWidget(WIDGET_BASE):
     """
@@ -1069,10 +1079,7 @@ class GuitoolWidget(WIDGET_BASE):
 
         if ori is not None:
             orientation = ori
-        if orientation == 'vert':
-            orientation = Qt.Vertical
-        elif orientation == 'horiz':
-            orientation = Qt.Horizontal
+        orientation = rectify_qt_const(orientation)
 
         if name is not None:
             self.setObjectName(name)
