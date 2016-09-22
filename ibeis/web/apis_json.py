@@ -1036,9 +1036,10 @@ def get_name_texts_json(ibs, name_uuid_list, **kwargs):
     return ibs.get_name_texts(nid_list, **kwargs)
 
 
-@register_api('/api/name/rowid/text/json/', methods=['GET'])
+@register_api('/api/name/uuid/text/json/', methods=['GET'])
 def get_name_rowids_from_text_json(ibs, name_text_list, **kwargs):
-    return ibs.get_name_rowids_from_text(name_text_list, **kwargs)
+    nid_list = ibs.get_name_rowids_from_text(name_text_list, **kwargs)
+    return ibs.get_name_uuids(nid_list)
 
 
 @register_api('/api/name/rowid/uuid/json/', methods=['GET'])
