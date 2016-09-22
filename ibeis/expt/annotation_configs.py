@@ -809,7 +809,7 @@ viewdiff_td1h = apply_timecontrol(viewdiff, '1h')
 
 """
 ibeis get_annotcfg_list --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd
-ibeis get_annotcfg_list --db Oxford -a oxford --acfginfo --verbtd  --veryverbtd
+ibeis get_annotcfg_list --db Oxford -a oxford --acfginfo
 """
 oxford = {
     'qcfg': ut.augdict(default['qcfg'], {
@@ -817,7 +817,7 @@ oxford = {
         'exclude_reference': True,
     }),
     'dcfg': ut.augdict(default['dcfg'], {
-        'pername': 2,
+        'sample_per_name': 2,
         'exclude_reference': True
     })
 }
