@@ -6,10 +6,9 @@ python -c "import vtool, doctest; print(doctest.testmod(vtool.nearest_neighbors)
 from __future__ import absolute_import, division, print_function
 from os.path import exists, normpath, join
 import sys
-import utool
-import utool as ut  # NOQA
+import utool as ut
 import numpy as np
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[nneighbs]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 try:
     import pyflann
@@ -198,7 +197,7 @@ def get_flann_params_cfgstr(flann_params):
         flann_valsig_ = str(ut.sortedby(flann_vals, flann_keys, reverse=True))
     else:
         flann_valsig_ = str(list(flann_params.values()))
-    flann_valsig = utool.remove_chars(flann_valsig_, ', \'[]')
+    flann_valsig = ut.remove_chars(flann_valsig_, ', \'[]')
     return flann_valsig
 
 
@@ -228,12 +227,12 @@ def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True,
     # Generate a unique filename for dpts and flann parameters
     if use_data_hash:
         # flann is dependent on the dpts
-        data_hashstr = utool.hashstr_arr27(dpts, '_DPTS')
+        data_hashstr = ut.hashstr_arr27(dpts, '_DPTS')
         flann_cfgstr += data_hashstr
     return flann_cfgstr
 
 
-#@utool.indent_func
+#@ut.indent_func
 def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
                     use_params_hash=True, use_data_hash=True, appname='vtool',
                     verbose=True):
@@ -241,8 +240,8 @@ def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
     if cache_dir == 'default':
         if verbose:
             print('[flann] using default cache dir')
-        cache_dir = utool.get_app_resource_dir(appname)
-        utool.ensuredir(cache_dir)
+        cache_dir = ut.get_app_resource_dir(appname)
+        ut.ensuredir(cache_dir)
     flann_cfgstr = get_flann_cfgstr(dpts, flann_params, cfgstr,
                                     use_params_hash=use_params_hash,
                                     use_data_hash=use_data_hash)
@@ -254,14 +253,13 @@ def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
     return flann_fpath
 
 
-def build_flann_index(dpts, flann_params, quiet=False, verbose=True, flann=None):
+def build_flann_index(dpts, flann_params, verbose=True, flann=None):
     """
     build flann with some verbosity
 
     Args:
         dpts (ndarray): database vectors
         flann_params (dict):
-        quiet (bool):
         verbose (bool):  verbosity flag
         flann (None): outvar
 
@@ -277,11 +275,10 @@ def build_flann_index(dpts, flann_params, quiet=False, verbose=True, flann=None)
         >>> # build test data
         >>> dpts = '?'
         >>> flann_params = '?'
-        >>> quiet = False
         >>> verbose = True
         >>> flann = None
         >>> # execute function
-        >>> flann = build_flann_index(dpts, flann_params, quiet, verbose, flann)
+        >>> flann = build_flann_index(dpts, flann_params, verbose, flann)
         >>> # verify results
         >>> result = str(flann)
         >>> print(result)
@@ -289,7 +286,7 @@ def build_flann_index(dpts, flann_params, quiet=False, verbose=True, flann=None)
     num_dpts = len(dpts)
     if flann is None:
         flann = pyflann.FLANN()
-    if verbose or (not quiet and num_dpts > 1E6):
+    if verbose > 1 or (verbose > 0 and num_dpts > 1E6):
         print('...building kdtree over %d points (this may take a sec).' % num_dpts)
     if num_dpts == 0:
         print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE')
@@ -300,16 +297,19 @@ def build_flann_index(dpts, flann_params, quiet=False, verbose=True, flann=None)
     return flann
 
 
-#@utool.indent_func
+#@ut.indent_func
 def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
                 use_cache=True, save=True, use_params_hash=True,
-                use_data_hash=True, appname='vtool', verbose=utool.NOT_QUIET,
-                quiet=utool.QUIET):
+                use_data_hash=True, appname='vtool', verbose=None):
     """
     Tries to load a cached flann index before doing anything
     from vtool.nn
     """
-    if verbose:
+    if verbose is None:
+        verbose = int(ut.NOT_QUIET)
+    if verbose is True:
+        verbose = 2
+    if verbose > 1:
         print('+--- START CACHED FLANN INDEX ')
     if len(dpts) == 0:
         raise AssertionError(
@@ -324,22 +324,22 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
     if use_cache and exists(flann_fpath):
         try:
             flann.load_index(flann_fpath, dpts)
-            if not quiet:
+            if verbose > 0:
                 print('...flann cache hit: %d vectors' % (len(dpts)))
-            if verbose:
+            if verbose > 1:
                 print('L___ END FLANN INDEX ')
             return flann
         except Exception as ex:
-            utool.printex(ex, '... cannot load index', iswarning=True)
+            ut.printex(ex, '... cannot load index', iswarning=True)
     # Rebuild the index otherwise
-    if not quiet:
+    if verbose > 0:
         print('...flann cache miss.')
-    flann = build_flann_index(dpts, flann_params, verbose=verbose, quiet=quiet, flann=flann)
-    if verbose:
-        print('flann.save_index(%r)' % utool.path_ndir_split(flann_fpath, n=2))
+    flann = build_flann_index(dpts, flann_params, verbose=verbose, flann=flann)
+    if verbose > 1:
+        print('flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=2))
     if save:
         flann.save_index(flann_fpath)
-    if verbose:
+    if verbose > 1:
         print('L___ END CACHED FLANN INDEX ')
     return flann
 
@@ -351,9 +351,9 @@ def flann_augment(dpts, new_dpts, cache_dir, cfgstr, new_cfgstr, flann_params,
         >>> # DISABLE_DOCTEST
         >>> from vtool.nearest_neighbors import *  # NOQA
         >>> import vtool.tests.dummy as dummy  # NOQA
-        >>> dpts = dummy.get_dummy_dpts(utool.get_nth_prime(10))
-        >>> new_dpts = dummy.get_dummy_dpts(utool.get_nth_prime(9))
-        >>> cache_dir = utool.get_app_resource_dir('vtool')
+        >>> dpts = dummy.get_dummy_dpts(ut.get_nth_prime(10))
+        >>> new_dpts = dummy.get_dummy_dpts(ut.get_nth_prime(9))
+        >>> cache_dir = ut.get_app_resource_dir('vtool')
         >>> cfgstr = '_testcfg'
         >>> new_cfgstr = '_new_testcfg'
         >>> flann_params = get_kdtree_flann_params()
@@ -522,7 +522,7 @@ def tune_flann(dpts,
         for badchar in badchar_list:
             suffix = suffix.replace(badchar, '')
         print('flann_atkwargs:')
-        print(utool.dict_str(flann_atkwargs))
+        print(ut.dict_str(flann_atkwargs))
         print('starting optimization')
         tuned_params = flann.build_index(dpts, **flann_atkwargs)
         print('finished optimization')
@@ -576,7 +576,7 @@ def tune_flann(dpts,
         #    'sorted',
         #]
         out_file = 'flann_tuned' + suffix
-        utool.write_to(out_file, ut.dict_str(tuned_params, sorted_=True, newlines=True))
+        ut.write_to(out_file, ut.dict_str(tuned_params, sorted_=True, newlines=True))
         flann.delete_index()
         if tuned_params['algorithm'] in relevant_params_dict:
             print('relevant_params=')
@@ -736,8 +736,8 @@ def invertible_stack(vecs_list, label_list):
     # endif is optional. the end of the functionscope counts as an #endif
     '#-endif'
     # Flatten generators into the inverted index
-    _flatlabels = utool.iflatten(_ax2_label)
-    _flatfeatxs = utool.iflatten(_ax2_fx)
+    _flatlabels = ut.iflatten(_ax2_label)
+    _flatfeatxs = ut.iflatten(_ax2_fx)
 
     idx2_label = np.fromiter(_flatlabels, np.int32, nFeats)
     idx2_fx = np.fromiter(_flatfeatxs, np.int32, nFeats)

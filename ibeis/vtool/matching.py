@@ -7,6 +7,7 @@ from collections import namedtuple
 
 MatchTup3 = namedtuple('MatchTup3', ('fm', 'fs', 'fm_norm'))
 MatchTup2 = namedtuple('MatchTup2', ('fm', 'fs'))
+AssignTup = namedtuple('AssignTup', ('fm', 'match_dist', 'norm_fx1', 'norm_dist'))
 
 
 # maximum SIFT matching distance based using uint8 trick from hesaff
@@ -20,7 +21,7 @@ class MatchingError(Exception):
 
 
 VSONE_DEFAULT_CONFIG = [
-    ut.ParamInfo('sver_xy_thresh', .01, min_=0.0, max_=1.0, hideif=lambda cfg: not cfg['sv_on']),
+    ut.ParamInfo('sver_xy_thresh', .01, min_=0.0, max_=None, hideif=lambda cfg: not cfg['sv_on']),
     ut.ParamInfo('ratio_thresh', .625, min_=0.0, max_=1.0),
     ut.ParamInfo('refine_method', 'homog', valid_values=['homog', 'affine']),
     ut.ParamInfo('symmetric', False),
@@ -30,8 +31,172 @@ VSONE_DEFAULT_CONFIG = [
 
     #ut.ParamInfo('affine_invariance', True),
     #ut.ParamInfo('rotation_invariance', False),
-
 ]
+
+
+@ut.reloadable_class
+class PairwiseMatch(ut.NiceRepr):
+    """
+    Newest (Sept-16) object oriented one-vs-one matching interface
+    """
+    def __init__(match, annot1=None, annot2=None):
+        match.annot1 = annot1
+        match.annot2 = annot2
+        match.fm = None
+        match.fs = None
+        match.measures = None
+        match.H_21 = None
+        match.H_12 = None
+
+        match._inplace_default = False
+
+    def __nice__(match):
+        if match.fm is None:
+            return 'None'
+        else:
+            return '%s' % (len(match),)
+
+    def __len__(match):
+        if match.fm is not None:
+            return len(match.fm)
+        else:
+            return 0
+
+    def _next_instance(match, inplace=None):
+        if inplace is None:
+            inplace = match._inplace_default
+        if inplace:
+            match_ = match
+        else:
+            match_ = match.__class__(match.annot1, match.annot2)
+            match_.H_21 = match.H_21
+            match_.H_12 = match.H_12
+            match_._inplace_default = match._inplace_default
+        return match_
+
+    def compress(match, flags, inplace=None):
+        match_ = match._next_instance(inplace)
+        match_.fm = match.fm.compress(flags, axis=0)
+        match_.fs = match.fs.compress(flags, axis=0)
+        match_.measures = ut.map_vals(
+                lambda a: a.compress(flags), match.measures)
+        return match_
+
+    def take(match, indicies, inplace=None):
+        match_ = match._next_instance(inplace)
+        match_.fm = match.fm.take(indicies, axis=0)
+        match_.fs = match.fs.take(indicies, axis=0)
+        match_.measures = ut.map_vals(
+                lambda a: a.take(indicies), match.measures)
+        return match_
+
+    def assign(match, cfgdict={}, verbose=None):
+        """
+        Assign correspondences between annots
+
+        >>> from vtool.matching import *  # NOQA
+        """
+        K = cfgdict.get('K', 1)
+        Knorm  = cfgdict.get('Knorm', 1)
+        symmetric = cfgdict.get('symmetric', False)
+        checks = cfgdict.get('checks', 800)
+        annot1 = match.annot1
+        annot2 = match.annot2
+
+        ensure_metadata_vsone(annot1, annot2, cfgdict)
+
+        if verbose is None:
+            verbose = True
+
+        num_neighbors = K + Knorm
+
+        # Search for nearest neighbors
+        fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(
+            annot1['flann'], annot2['vecs'], num_neighbors, checks)
+        if symmetric:
+            fx1_to_fx2, fx1_to_dist = normalized_nearest_neighbors(
+                annot2['flann'], annot1['vecs'], num_neighbors, checks)
+            valid_flags = flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K)
+        else:
+            valid_flags = np.ones((len(fx2_to_fx1), K), dtype=np.bool)
+
+        # Assign matches
+        assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K,
+                                                 Knorm, valid_flags)
+        fm, match_dist, fx1_norm, norm_dist = assigntup
+        ratio = np.divide(match_dist, norm_dist)
+        ratio_score = (1.0 - ratio)
+
+        match.measures = ut.odict([
+            ('match_dist', match_dist),
+            ('norm_dist', norm_dist),
+            ('ratio', ratio),
+        ])
+        match.fm = fm
+        match.fs = ratio_score
+        match.fm_norm = np.vstack([fx1_norm, fm.T[1]]).T
+        return match
+
+    def ratio_test_flags(match, cfgdict={}):
+        ratio_thresh = cfgdict.get('ratio_thresh', .625)
+        ratio = match.measures['ratio']
+        flags = np.less(ratio, ratio_thresh)
+        return flags
+
+    def sver_flags(match, cfgdict={}, return_extra=False):
+        from vtool import spatial_verification as sver
+        import vtool as vt
+        sver_xy_thresh = cfgdict.get('sver_xy_thresh', .01)
+        refine_method  = cfgdict.get('refine_method', 'homog')
+        kpts1 = match.annot1['kpts']
+        kpts2 = match.annot2['kpts']
+        dlen_sqrd2 = match.annot2['dlen_sqrd']
+        fm = match.fm
+
+        # match_weights = np.ones(len(fm))
+        match_weights = match.fs
+        svtup = sver.spatially_verify_kpts(
+            kpts1, kpts2, fm, sver_xy_thresh, dlen_sqrd2,
+            match_weights=match_weights, refine_method=refine_method)
+        if svtup is None:
+            inliers, errors, H_12 = [], [], np.eye(3)
+        else:
+            (inliers, errors, H_12) = svtup[0:3]
+
+        flags = vt.index_to_boolmask(inliers, len(fm))
+
+        if return_extra:
+            return flags, errors, H_12
+        else:
+            return flags
+
+    def apply_ratio_test(match, cfgdict={}, inplace=None):
+        flags = match.ratio_test_flags(cfgdict)
+        match_ = match.compress(flags, inplace=inplace)
+        return match_
+
+    def apply_sver(match, cfgdict={}, inplace=None):
+        flags, errors, H_12 = match.sver_flags(cfgdict, return_extra=True)
+        match_ = match.compress(flags, inplace=inplace)
+        match_.H_12 = H_12
+        return match_
+
+    def show(match, show_homog=False):
+        import plottool as pt
+        annot1 = match.annot1
+        annot2 = match.annot2
+        rchip1, kpts1, vecs1 = ut.dict_take(annot1, ['rchip', 'kpts', 'vecs'])
+        rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['rchip', 'kpts', 'vecs'])
+        fm = match.fm
+        fs = match.fs
+
+        H1 = match.H_12 if show_homog else None
+        # H2 = match.H_21 if show_homog else None
+
+        ax, xywh1, xywh2 = pt.show_chipmatch2(
+            rchip1, rchip2, kpts1, kpts2, fm, fs, colorbar_=False, H1=H1
+        )
+        return ax, xywh1, xywh2
 
 
 class SingleMatch(ut.NiceRepr):
@@ -113,12 +278,21 @@ def testdata_annot_metadata(rchip_fpath, cfgdict={}):
     return metadata
 
 
-def ensure_metadata_feats(metadata, suffix='', cfgdict={}):
+def ensure_metadata_vsone(annot1, annot2, cfgdict={}):
+    ensure_metadata_feats(annot1, cfgdict=cfgdict)
+    ensure_metadata_feats(annot2, cfgdict=cfgdict)
+    ensure_metadata_dlen_sqrd(annot2)
+    ensure_metadata_flann(annot1, cfgdict=cfgdict)
+    ensure_metadata_flann(annot2, cfgdict=cfgdict)
+    pass
+
+
+def ensure_metadata_feats(annot, suffix='', cfgdict={}):
     r"""
     Adds feature evaluation keys to a lazy dictionary
 
     Args:
-        metadata (utool.LazyDict):
+        annot (utool.LazyDict):
         suffix (str): (default = '')
         cfgdict (dict): (default = {})
 
@@ -129,15 +303,15 @@ def ensure_metadata_feats(metadata, suffix='', cfgdict={}):
         >>> # ENABLE_DOCTEST
         >>> from vtool.matching import *  # NOQA
         >>> rchip_fpath = ut.grab_test_imgpath('easy1.png')
-        >>> metadata = ut.LazyDict({'rchip_fpath': rchip_fpath})
+        >>> annot = ut.LazyDict({'rchip_fpath': rchip_fpath})
         >>> suffix = ''
         >>> cfgdict = {}
-        >>> ensure_metadata_feats(metadata, suffix, cfgdict)
-        >>> assert len(metadata._stored_results) == 1
-        >>> metadata['kpts']
-        >>> assert len(metadata._stored_results) == 4
-        >>> metadata['vecs']
-        >>> assert len(metadata._stored_results) == 5
+        >>> ensure_metadata_feats(annot, suffix, cfgdict)
+        >>> assert len(annot._stored_results) == 1
+        >>> annot['kpts']
+        >>> assert len(annot._stored_results) == 4
+        >>> annot['vecs']
+        >>> assert len(annot._stored_results) == 5
     """
     import vtool as vt
     rchip_key = 'rchip' + suffix
@@ -146,31 +320,53 @@ def ensure_metadata_feats(metadata, suffix='', cfgdict={}):
     vecs_key = 'vecs' + suffix
     rchip_fpath_key = 'rchip_fpath' + suffix
 
-    if rchip_key not in metadata:
+    if rchip_key not in annot:
         def eval_rchip1():
-            rchip_fpath1 = metadata[rchip_fpath_key]
+            rchip_fpath1 = annot[rchip_fpath_key]
             return vt.imread(rchip_fpath1)
-        metadata.set_lazy_func(rchip_key, eval_rchip1)
+        annot.set_lazy_func(rchip_key, eval_rchip1)
 
-    if kpts_key not in metadata or vecs_key not in metadata:
+    if kpts_key not in annot or vecs_key not in annot:
         def eval_feats():
-            rchip = metadata[rchip_key]
+            rchip = annot[rchip_key]
             _feats = vt.extract_features(rchip, **cfgdict)
             return _feats
 
         def eval_kpts():
-            _feats = metadata[_feats_key]
+            _feats = annot[_feats_key]
             kpts = _feats[0]
             return kpts
 
         def eval_vecs():
-            _feats = metadata[_feats_key]
+            _feats = annot[_feats_key]
             vecs = _feats[1]
             return vecs
-        metadata.set_lazy_func(_feats_key, eval_feats)
-        metadata.set_lazy_func(kpts_key, eval_kpts)
-        metadata.set_lazy_func(vecs_key, eval_vecs)
-    return metadata
+        annot.set_lazy_func(_feats_key, eval_feats)
+        annot.set_lazy_func(kpts_key, eval_kpts)
+        annot.set_lazy_func(vecs_key, eval_vecs)
+    return annot
+
+
+def ensure_metadata_dlen_sqrd(annot):
+    if 'dlen_sqrd' not in annot:
+        def eval_dlen_sqrd(annot):
+            rchip = annot['rchip']
+            dlen_sqrd = rchip.shape[0] ** 2 + rchip.shape[1] ** 2
+            return dlen_sqrd
+        annot.set_lazy_func('dlen_sqrd', lambda: eval_dlen_sqrd(annot))
+    return annot
+
+
+def ensure_metadata_flann(annot, cfgdict):
+    import vtool as vt
+    flann_params = {'algorithm': 'kdtree', 'trees': 8}
+    if 'flann' not in annot:
+        def eval_flann():
+            vecs = annot['vecs']
+            _flann = vt.flann_cache(vecs, flann_params=flann_params, verbose=False)
+            return _flann
+        annot.set_lazy_func('flann', eval_flann)
+    return annot
 
 
 def vsone_matching(metadata, cfgdict={}, verbose=None):
@@ -194,13 +390,7 @@ def vsone_matching(metadata, cfgdict={}, verbose=None):
 
     ensure_metadata_feats(annot1, cfgdict=cfgdict)
     ensure_metadata_feats(annot2, cfgdict=cfgdict)
-
-    if 'dlen_sqrd' not in annot2:
-        def eval_dlen_sqrd(annot):
-            rchip = annot['rchip']
-            dlen_sqrd = rchip.shape[0] ** 2 + rchip.shape[1] ** 2
-            return dlen_sqrd
-        annot2.set_lazy_func('dlen_sqrd', lambda: eval_dlen_sqrd(annot2))
+    ensure_metadata_dlen_sqrd(annot2)
 
     # Exceute relevant dependencies
     kpts1 = annot1['kpts']
@@ -222,7 +412,8 @@ def vsone_matching(metadata, cfgdict={}, verbose=None):
 def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
                            flann1=None, flann2=None, verbose=None):
     r"""
-    Actual logic for matching
+    logic for matching
+
     Args:
         vecs1 (ndarray[uint8_t, ndim=2]): SIFT descriptors
         vecs2 (ndarray[uint8_t, ndim=2]): SIFT descriptors
@@ -231,16 +422,14 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
 
     Ignore:
         >>> from vtool.matching import *  # NOQA
-        %pylab qt4
-        import plottool as pt
-        pt.imshow(rchip1)
-        pt.draw_kpts2(kpts1)
-
-        pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
-        pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
+        >>> ut.qt4ensure()
+        >>> import plottool as pt
+        >>> pt.imshow(rchip1)
+        >>> pt.draw_kpts2(kpts1)
+        >>> pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
+        >>> pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
     """
     import vtool as vt
-    from vtool import spatial_verification as sver
     #import vtool as vt
     sv_on = cfgdict.get('sv_on', True)
     sver_xy_thresh = cfgdict.get('sver_xy_thresh', .01)
@@ -292,19 +481,10 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
             fm_RAT, fs_RAT, fm_norm_RAT = (fm, fs, fm_norm)
 
         if sv_on:
-            # SPATIAL VERIFICATION FILTER
-            match_weights = np.ones(len(fm_RAT))
-            svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_RAT, sver_xy_thresh,
-                                               dlen_sqrd2, match_weights=match_weights,
-                                               refine_method=refine_method)
-            if svtup is not None:
-                (homog_inliers, homog_errors, H_RAT) = svtup[0:3]
-            else:
-                H_RAT = np.eye(3)
-                homog_inliers = []
-            fm_RAT_SV = fm_RAT.take(homog_inliers, axis=0)
-            fs_RAT_SV = fs_RAT.take(homog_inliers, axis=0)
-            fm_norm_RAT_SV = fm_norm_RAT[homog_inliers]
+            fm, fs, fm_norm, H_RAT = match_spatial_verification(
+                kpts1, kpts2, fm, fs, fm_norm, sver_xy_thresh, dlen_sqrd2,
+                refine_method)
+            fm_RAT_SV, fs_RAT_SV, fm_norm_RAT_SV = (fm, fs, fm_norm)
 
         #top_percent = .5
         #top_idx = ut.take_percentile(match_dist.T[0].argsort(), top_percent)
@@ -353,6 +533,25 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
         }
 
     return matches, output_metdata
+
+
+def match_spatial_verification(kpts1, kpts2, fm, fs, fm_norm, sver_xy_thresh,
+                               dlen_sqrd2, refine_method):
+    from vtool import spatial_verification as sver
+    # SPATIAL VERIFICATION FILTER
+    match_weights = np.ones(len(fm))
+    svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm, sver_xy_thresh,
+                                       dlen_sqrd2, match_weights=match_weights,
+                                       refine_method=refine_method)
+    if svtup is not None:
+        (homog_inliers, homog_errors, H_RAT) = svtup[0:3]
+    else:
+        H_RAT = np.eye(3)
+        homog_inliers = []
+    fm_SV = fm.take(homog_inliers, axis=0)
+    fs_SV = fs.take(homog_inliers, axis=0)
+    fm_norm_SV = fm_norm[homog_inliers]
+    return fm_SV, fs_SV, fm_norm_SV, H_RAT
 
 
 def empty_neighbors(num_vecs=0, K=0):
@@ -576,7 +775,9 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None, valid_f
     norm_fx1 = fx2_to_fx1[match_fx2, norm_rank]
     norm_dist = fx2_to_dist[match_fx2, norm_rank]
 
-    return fm, match_dist, norm_fx1, norm_dist
+    # assigntup = fm, match_dist, norm_fx1, norm_dist
+    assigntup = AssignTup(fm, match_dist, norm_fx1, norm_dist)
+    return assigntup
     ## Then take the valid indices from internal database
     ## annot_rowids, feature indexes, and all scores
     #valid_daid  = neighb_daid.take(flat_validx, axis=None)
