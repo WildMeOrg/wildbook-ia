@@ -68,8 +68,8 @@ def show_post_vsmany_vser():
     r""" TESTFUNC just show the input data
 
     CommandLine:
-        python -m ibeis.algo.hots.vsone_pipeline --test-show_post_vsmany_vser --show --homog
-        python -m ibeis.algo.hots.vsone_pipeline --test-show_post_vsmany_vser --show --csum --homog
+        python -m ibeis show_post_vsmany_vser --show --homog
+        python -m ibeis show_post_vsmany_vser --show --csum --homog
 
     Example:
         >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
@@ -139,7 +139,8 @@ def vsone_reranking(qreq_, cm_list_SVER, verbose=False):
         >>> #cm_list = cm_list_VSONE
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> figtitle = 'FIXME USE SUBSET OF CFGDICT'  # ut.dict_str(rrvsone_cfgdict, newlines=False)
+        >>> figtitle = 'FIXME USE SUBSET OF CFGDICT'
+        >>> # ut.dict_str(rrvsone_cfgdict, newlines=False)
         >>> show_all_ranked_matches(qreq_, cm_list_VSONE, figtitle=figtitle)
         >>> pt.show_if_requested()
     """
@@ -172,9 +173,9 @@ def extract_aligned_parts(ibs, qaid, daid, qreq_=None):
         qreq_ (QueryRequest):  query request object with hyper-parameters
 
     CommandLine:
-        python -m ibeis.algo.hots.vsone_pipeline --exec-extract_aligned_parts:0 --show --db testdb1
-        python -m ibeis.algo.hots.vsone_pipeline --exec-extract_aligned_parts:1 --show
-        python -m ibeis.algo.hots.vsone_pipeline --exec-extract_aligned_parts:1 --show  -t default:AI=False  # see x 11
+        python -m ibeis extract_aligned_parts:0 --show --db testdb1
+        python -m ibeis extract_aligned_parts:1 --show
+        python -m ibeis extract_aligned_parts:1 --show  -t default:AI=False
 
     Ipy:
         ibs.get_annot_chip_fpath([qaid, daid])
@@ -196,8 +197,9 @@ def extract_aligned_parts(ibs, qaid, daid, qreq_=None):
         >>> #pt.imshow(vt.stack_images(rchip1_, rchip2)[0])
         >>> pt.figure(doclf=True)
         >>> blend = vt.blend_images(rchip1_crop, rchip2_crop)
-        >>> vt.inspect_matches.show_matching_dict(matches, metadata, fnum=1, mode=1)
-        >>> pt.imshow(vt.stack_images(rchip1_crop, rchip2_crop)[0], pnum=(1, 2, 1), fnum=2)
+        >>> vt.show_matching_dict(matches, metadata, fnum=1, mode=1)
+        >>> stack = vt.stack_images(rchip1_crop, rchip2_crop)[0]
+        >>> pt.imshow(stack, pnum=(1, 2, 1), fnum=2)
         >>> pt.imshow(blend, pnum=(1, 2, 2), fnum=2)[0]
         >>> ut.show_if_requested()
 
@@ -418,6 +420,7 @@ def unsupervised_similarity(ibs, aids):
 def get_training_pairs():
     """
         >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
+        >>> from vtool.matching import *  # NOQA
     """
     import ibeis
     qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default')
@@ -426,6 +429,8 @@ def get_training_pairs():
     num_hard_gf = 2
     num_rand_gf = 1
     aid_pairs = []
+
+    # Extract pairs of annotation ids
     for cm in cm_list:
         cm.score_csum(qreq_)
         gt_aids = cm.get_top_gt_aids(qreq_.ibs)[0:num_gt].tolist()
@@ -433,52 +438,112 @@ def get_training_pairs():
         gf_aids = qreq_.ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.daids)
         rand_gf_aids = ut.random_sample(gf_aids, num_rand_gf)
         aid_pairs.extend([(cm.qaid, aid) for aid in gt_aids + hard_gf_aids + rand_gf_aids])
-
     aid_pairs = vt.unique_rows(np.array(aid_pairs), directed=False).tolist()
     query_aids = ut.take_column(aid_pairs, 0)
     data_aids = ut.take_column(aid_pairs, 1)
 
+    # Prepare lazy attributes for annotations
     ibs = qreq_.ibs
+    qconfig2_ = qreq_.extern_query_config2
+    dconfig2_ = qreq_.extern_data_config2
+    qannot_cfg = ibs.depc.stacked_config(None, 'featweight', qconfig2_)
+    dannot_cfg = ibs.depc.stacked_config(None, 'featweight', dconfig2_)
+    configured_annot_dict = ut.ddict(dict)
+    config_aids_pairs = [(qannot_cfg, query_aids), (dannot_cfg, data_aids)]
+    for config, aids in ut.ProgIter(config_aids_pairs, lbl='prepare annots'):
+        annot_dict = configured_annot_dict[config]
+        for aid in ut.unique(aids):
+            if aid not in annot_dict:
+                annot = ibs.get_annot_lazy_dict(aid, config)
+                flann_params = {'algorithm': 'kdtree', 'trees': 4}
+                vt.matching.ensure_metadata_flann(annot, flann_params)
+                annot_dict[aid] = annot
+                del annot['annot_context_options']
 
-    annot1_list = [ibs.get_annot_lazy_dict(qaid) for qaid in query_aids]
-    annot2_list = [ibs.get_annot_lazy_dict(daid) for daid in data_aids]
-
-    flann_params = {'algorithm': 'kdtree', 'trees': 4}
-    for annot1 in ut.ProgIter(annot1_list, 'building flanns'):
-        annot1['flann'] = vt.flann_cache(annot1['vecs'],
-                                         flann_params=flann_params)
-
-    cfgdict = {'sv_on': False, 'checks': 20}
-    match_list = [
-        vt.vsone_matching({'annot1': annot1, 'annot2': annot2}, cfgdict)
-        for annot1, annot2 in ut.ProgIter(list(zip(annot1_list, annot2_list)), lbl='vsone')
-    ]
-    # TODO: just augment original matches to quickly
-    # find the best setting for ratio_thresh and sver
-    #score_list = np.array([match.matches['RAT+SV'].fs.sum() for match in match_list])
-    #score_list = np.array([match.matches['RAT'].fs.sum() for match in match_list])
-    score_list = np.array([match.matches['ORIG'].fs.sum() for match in match_list])
+    # Extract pairs of annot objects (with shared caches)
+    annot1_list = ut.take(configured_annot_dict[qannot_cfg], query_aids)
+    annot2_list = ut.take(configured_annot_dict[dannot_cfg], data_aids)
     truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
 
+    verbose = True  # NOQA
+
+    match_list = [vt.PairwiseMatch(annot1, annot2)
+                  for annot1, annot2 in zip(annot1_list, annot2_list)]
+
+    # Preload needed attributes
+    for match in ut.ProgIter(match_list, lbl='preload'):
+        match.annot1['flann']
+        match.annot2['vecs']
+
+    cfgdict = {'checks': 20}
+    for match in ut.ProgIter(match_list, lbl='assign vsone'):
+        match.assign(cfgdict)
+
+    if False:
+        import plottool as pt
+        pt.qt4ensure()
+
+        import sklearn
+        import sklearn.metrics
+        skf = sklearn.model_selection.StratifiedKFold(n_splits=10,
+                                                      random_state=119372)
+
+        basis = {'ratio_thresh': np.linspace(.6, .7, 50).tolist()}
+        grid = ut.all_dict_combinations(basis)
+        xdata = np.array(ut.take_column(grid, 'ratio_thresh'))
+
+        def test_ratio_thresh(y_true, match_list):
+            # Try and find optional ratio threshold
+            auc_list = []
+            for cfgdict in ut.ProgIter(grid, lbl='gridsearch'):
+                y_score = [match.fs.compress(match.ratio_test_flags(cfgdict)).sum()
+                           for match in match_list]
+                auc = sklearn.metrics.roc_auc_score(y_true, y_score)
+                auc_list.append(auc)
+            auc_list = np.array(auc_list)
+            return auc_list
+
+        auc_list = test_ratio_thresh(truth_list, match_list)
+        pt.plot(xdata, auc_list)
+        subx, suby = vt.argsubmaxima(auc_list, xdata)
+        best_ratio_thresh = subx[suby.argmax()]
+
+        skf_results = []
+        y_true = truth_list
+        for train_idx, test_idx in skf.split(match_list, truth_list):
+            match_list_ = ut.take(match_list, train_idx)
+            y_true = truth_list.take(train_idx)
+            auc_list = test_ratio_thresh(y_true, match_list_)
+            subx, suby = vt.argsubmaxima(auc_list, xdata, maxima_thresh=.8)
+            best_ratio_thresh = subx[suby.argmax()]
+            skf_results.append(best_ratio_thresh)
+        print('skf_results.append = %r' % (np.mean(skf_results),))
+
+    for match in ut.ProgIter(match_list, lbl='assign vsone'):
+        match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
+
+    score_list = np.array([m.fs.sum() for m in match_list])
     encoder = vt.ScoreNormalizer()
-    #encoder.learn_kw['adjust'] = 2
-    #encoder.learn_kw['gridsize'] = 512
-    #X = score_list
-    #y = truth_list
-    # exec(ut.execstr_dict(encoder.learn_kw))
-    encoder.fit(X, y, verbose=True)
+    encoder.fit(score_list, truth_list, verbose=True)
     encoder.visualize()
 
-    # tp_support, tn_support, part_attrs = encoder.get_partitioned_support()
+    def matches_auc(match_list):
+        score_list = np.array([m.fs.sum() for m in match_list])
+        auc = sklearn.metrics.roc_auc_score(truth_list, score_list)
+        print('auc = %r' % (auc,))
+        return auc
 
-    #aids2_list = [cm.get_top_aids()[0:num_top] for cm in cm_list]
-    #aids1_list = [[cm.qaid] * len(aids2)
-    #              for cm, aids2 in zip(cm_list, aids2_list)]
-    #from ibeis.expt import experiment_helpers
-    #acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(ibs, [acfg_name])
-    #acfg = acfg_list[0]
-    #expanded_aids = expanded_aids_list[0]
-    #qaid_list, daid_list = expanded_aids
+    matchesORIG = match_list
+    matches_auc(matchesORIG)
+
+    matches_SV = [match.apply_sver(inplace=False) for match in ut.ProgIter(matchesORIG, lbl='sver')]
+    matches_auc(matches_SV)
+
+    matches_RAT = [match.apply_ratio_test(inplace=False) for match in ut.ProgIter(matchesORIG, lbl='ratio')]
+    matches_auc(matches_RAT)
+
+    matches_RAT_SV = [match.apply_ratio_test(inplace=False) for match in ut.ProgIter(matches_RAT, lbl='ratio')]
+    matches_auc(matches_RAT_SV)
 
 
 def build_vsone_metadata(qaid, daid, qreq_, use_ibscache=True):

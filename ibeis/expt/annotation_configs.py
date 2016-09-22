@@ -807,6 +807,21 @@ ibeis -e print_acfg -a viewdiff_td --db PZ_Master1 --verbtd --nocache --per_vp=T
 viewdiff_td = apply_timecontrol(viewdiff)
 viewdiff_td1h = apply_timecontrol(viewdiff, '1h')
 
+"""
+ibeis get_annotcfg_list --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd
+ibeis get_annotcfg_list --db Oxford -a oxford --acfginfo --verbtd  --veryverbtd
+"""
+oxford = {
+    'qcfg': ut.augdict(default['qcfg'], {
+        'has_any': ('query',),
+        'exclude_reference': True,
+    }),
+    'dcfg': ut.augdict(default['dcfg'], {
+        'pername': 2,
+        'exclude_reference': True
+    })
+}
+
 # THIS IS A GOOD START
 # NEED TO DO THIS CONFIG AND THEN SWITCH DCFG TO USE primary1
 

@@ -904,6 +904,21 @@ def parse_whaleshark_org_keywords():
     if verbose:
         print('[keywords] Parsing whaleshark.org keywords')
 
+    if False:
+        url_ = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter&maxSize=2'
+        #import requests
+        #resp = requests.get(url)
+        #resp.json()
+
+        # url_ = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter'
+        # json = cached_json_request(url_)
+        # ut.save_data('nofilterwbquery.pkl', json)
+
+        #url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=truncationleftpec&maxSize=2'
+        #import requests
+        #resp = requests.get(url)
+        #resp.json()
+
     from ibeis.scripts import getshark
     url = 'http://www.whaleshark.org/getKeywordImages.jsp'
 
@@ -913,6 +928,7 @@ def parse_whaleshark_org_keywords():
         import requests
         cache_fpath = join(cache_dpath, 'req_' + ut.hashstr27(url_) + '.json')
         if getshark._needs_redownload(cache_fpath, 60 * 60 * 24 * 30):
+            print('Execute request %s' % (url_,))
             resp = requests.get(url_)
             assert resp.status_code == 200
             dict_ = resp.json()
@@ -920,21 +936,6 @@ def parse_whaleshark_org_keywords():
         else:
             dict_ = ut.load_data(cache_fpath)
         return dict_
-
-    if False:
-        url_ = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter&maxSize=2'
-        #import requests
-        #resp = requests.get(url)
-        #resp.json()
-
-        url_ = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter'
-        json = cached_json_request(url_)
-        ut.save_data('nofilterwbquery.pkl', json)
-
-        #url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=truncationleftpec&maxSize=2'
-        #import requests
-        #resp = requests.get(url)
-        #resp.json()
 
     # Read all keyywords
     keywords = cached_json_request(url)['keywords']
@@ -944,14 +945,14 @@ def parse_whaleshark_org_keywords():
         print(ut.indent('\n'.join(sorted(key_list)), '* '))
 
     # Request all images belonging to each keyword
-    keyed_images = {}
-    for key in ut.ProgIter(key_list, lbl='reading index', bs=False):
+    request_results = {}
+    for key in ut.ProgIter(['nofilter'] + key_list, lbl='reading index', bs=False):
         key_url = url + '?indexName={indexName}'.format(indexName=key)
-        keyed_images[key] = cached_json_request(key_url)['images']
+        request_results[key] = cached_json_request(key_url)
 
-    key = 'nofilter'
-    key_url = url + '?indexName={indexName}'.format(indexName=key)
-    keyed_images[key] = cached_json_request(key_url)['images']
+    keyed_images = {}
+    for key, val in request_results.items():
+        keyed_images[key] = val['images']
 
     # Flatten nested structure into ColumnList (note this will cause img_url duplicates)
     parsed_info2 = ut.ddict(list)
