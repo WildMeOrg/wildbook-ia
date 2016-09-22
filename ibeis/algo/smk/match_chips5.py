@@ -19,9 +19,9 @@ class EstimatorRequest(ut.NiceRepr):
         return len(qreq_.qaids)
 
     def execute(qreq_, qaids=None, prog_hook=None, use_cache=True):
-        assert qaids is None
+        #assert qaids is None
         if qaids is not None:
-            qaids = qreq_.shallowcopy(qaids)
+            qreq_ = qreq_.shallowcopy(qaids)
         if use_cache:
             cm_list = execute_bulk(qreq_)
         else:
@@ -37,7 +37,7 @@ class EstimatorRequest(ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.new_annots import *  # NOQA
+            >>> from ibeis.algo.smk.match_chips5 import *  # NOQA
             >>> import ibeis
             >>> ibeis, smk, qreq_ = testdata_smk()
             >>> qreq2_ = qreq_.shallowcopy(qaids=1)

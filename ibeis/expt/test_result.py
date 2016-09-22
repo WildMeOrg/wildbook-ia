@@ -2342,6 +2342,24 @@ class TestResult(ut.NiceRepr):
                 pt.adjust_subplots2(use_argv=True)
         return encoder
 
+    def help(testres):
+        # list functions that accept the standard interface
+        from ibeis.expt import experiment_drawing
+        prefix = 'ibeis '
+        suffix = testres.reconstruct_test_flags()
+        func_list = [
+            testres.print_results,
+            testres.draw_rank_cdf,
+            testres.draw_match_cases,
+            experiment_drawing.embed_testres
+        ]
+        funcname_list = [ut.get_funcname(func) for func in func_list]
+        cmdstr_list = [' '.join([prefix, funcname, suffix]) for funcname in funcname_list]
+        ut.cprint('Available Functions:', 'blue')
+        print(', '.join(funcname_list))
+        ut.cprint('Available Commandline:', 'blue')
+        print('\n'.join(cmdstr_list))
+
 
 if __name__ == '__main__':
     """

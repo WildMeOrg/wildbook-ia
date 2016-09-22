@@ -906,7 +906,8 @@ def parse_whaleshark_org_keywords():
 
     from ibeis.scripts import getshark
     url = 'http://www.whaleshark.org/getKeywordImages.jsp'
-    cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo')
+
+    cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo2')
 
     def cached_json_request(url_):
         import requests
@@ -920,6 +921,21 @@ def parse_whaleshark_org_keywords():
             dict_ = ut.load_data(cache_fpath)
         return dict_
 
+    if False:
+        url_ = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter&maxSize=2'
+        #import requests
+        #resp = requests.get(url)
+        #resp.json()
+
+        url_ = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter'
+        json = cached_json_request(url_)
+        ut.save_data('nofilterwbquery.pkl', json)
+
+        #url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=truncationleftpec&maxSize=2'
+        #import requests
+        #resp = requests.get(url)
+        #resp.json()
+
     # Read all keyywords
     keywords = cached_json_request(url)['keywords']
     key_list = ut.take_column(keywords, 'indexName')
@@ -929,9 +945,13 @@ def parse_whaleshark_org_keywords():
 
     # Request all images belonging to each keyword
     keyed_images = {}
-    for key in ut.ProgIter(key_list, lbl='reading index', bs=True):
+    for key in ut.ProgIter(key_list, lbl='reading index', bs=False):
         key_url = url + '?indexName={indexName}'.format(indexName=key)
         keyed_images[key] = cached_json_request(key_url)['images']
+
+    key = 'nofilter'
+    key_url = url + '?indexName={indexName}'.format(indexName=key)
+    keyed_images[key] = cached_json_request(key_url)['images']
 
     # Flatten nested structure into ColumnList (note this will cause img_url duplicates)
     parsed_info2 = ut.ddict(list)

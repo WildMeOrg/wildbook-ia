@@ -666,22 +666,22 @@ class NewDatabaseWidget(gt.GuitoolWidget):
         self.workdir_row.edit = self.workdir_row.addNewLineEdit(self.workdir, align='right')
         self.workdir_row.button = self.workdir_row.addNewButton('...',
                                                                 shrink_to_text=True,
-                                                                clicked=self.change_workdir)
+                                                                pressed=self.change_workdir)
         self.workdir_row.viewbut = self.workdir_row.addNewButton('➤',
                                                                  shrink_to_text=True,
-                                                                 clicked=self.view_workdir)
+                                                                 pressed=self.view_workdir)
         self.workdir_row.edit.textChanged.connect(self.update_state)
         # ---
         self.current_row = self.newHWidget()
         self.create_but = self.newButton(
-            'Create in workdir', clicked=self.create_in_workdir)
+            'Create in workdir', pressed=self.create_in_workdir)
         self.current_row.lbl  = self.current_row.addNewLabel('Current choice:', align='left')
         self.current_row.edit = self.current_row.addNewLabel('{current_dbdir}', align='right')
 
         self.button_row = self.newHWidget()
-        self.button_row.addNewButton('Cancel', clicked=self.cancel)
+        self.button_row.addNewButton('Cancel', pressed=self.cancel)
         self.button_row.addNewButton('Create in a different directory',
-                                     clicked=self.create_in_customdir)
+                                     pressed=self.create_in_customdir)
         self.button_row.addWidget(self.create_but)
 
         self.update_state()

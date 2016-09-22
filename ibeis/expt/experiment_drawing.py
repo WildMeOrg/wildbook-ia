@@ -760,7 +760,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         target_label = 'accuracy (% per name)'
 
     join_acfgs = True
-    cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense', key=key, join_acfgs=join_acfgs)
+    cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(
+        bins='dense', key=key, join_acfgs=join_acfgs)
 
     #label_list = testres.get_short_cfglbls(join_acfgs=join_acfgs)
     label_list = testres.get_varied_labels(shorten=True, join_acfgs=join_acfgs)
@@ -1038,7 +1039,8 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None,
 @profile
 def draw_match_cases(ibs, testres, metadata=None, f=None,
                      show_in_notebook=False, annot_modes=None, figsize=None,
-                     case_pos_list=None, verbose=None, interact=None, **kwargs):
+                     case_pos_list=None, verbose=None, interact=None,
+                     figdir=None, **kwargs):
     r"""
     Args:
         ibs (ibeis.IBEISController):  ibeis controller object
@@ -1074,11 +1076,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             -t default:K=[1,4] \
             --filt :disagree=True,index=0:4 --show
 
-        ibeis --tf draw_match_cases --db humpbacks_fb \
-            -a default:has_any=hasnotch,mingt=2 \
-            -t default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_net=annot_simple default:proot=vsmany \
-            --qaids-override 12 --show
-
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
@@ -1086,103 +1083,86 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
         >>> filt_cfg = main_helpers.testdata_filtcfg()
         >>> metadata = None
-        >>> analysis_fpath_list = draw_match_cases(ibs, testres, metadata, f=filt_cfg)
+        >>> figdir = ut.get_argval(('--figdir', '--dpath'), type_=str, default=None)
+        >>> analysis_fpath_list = draw_match_cases(ibs, testres, metadata,
+        >>>                                        f=filt_cfg, figdir=figdir)
         >>> ut.show_if_requested()
     """
     import plottool as pt
     if ut.NOT_QUIET:
         ut.colorprint('[expt] Drawing individual results', 'yellow')
-    # FIXME: make save work
-    cfgx2_qreq_ = testres.cfgx2_qreq_
+
+    #### ARGUMENT PARSING AND RECTIFICATION ###
+    cmdaug = ut.get_argval('--cmdaug', type_=str, help_='candhack')
     if interact is None:
         interact = ut.get_argflag('--show')
-    cmdaug = ut.get_argval('--cmdaug', type_=str, default=None)
-    filt_cfg = f
-    if case_pos_list is None:
-        case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
-
-    qx_list, cfgx_list = case_pos_list.T
-    # Get configs needed for each query
-    qx2_cfgxs = ut.group_items(cfgx_list, qx_list)
-
-    show_kwargs = {
-        'N': 3,
-        'ori': True,
-        'ell_alpha': .9,
-    }
+    if figdir is None:
+        figdir = ibs.get_fig_dir()
+    show_kwargs = {'N': 3, 'ori': True, 'ell_alpha': .9}
     # show analysis
     show_kwargs['show_query'] = False
     show_kwargs['viz_name_score'] = kwargs.get('viz_name_score', True)
     show_kwargs['show_timedelta'] = True
     show_kwargs['show_gf'] = True
-    #show_kwargs['with_figtitle'] = True
     show_kwargs['with_figtitle'] = show_in_notebook
     show_kwargs['fastmode'] = True
-    #show_kwargs['with_figtitle'] = show_in_notebook
     if annot_modes is None:
         annot_modes = [0]
-    #annot_modes = [0]
-    #show_kwargs['annot_mode'] = 1 if not SHOW else 0
+    filt_cfg = f
+    if case_pos_list is None:
+        case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
+    #########################
 
-    # if False:
+    #### DIRECTORY SETUP ###
+    figdir = ut.truepath(figdir)
+    case_figdir = join(figdir, 'cases_' + ibs.get_dbname())
+    ut.ensuredir(case_figdir)
+    if ut.get_argflag(('--view-fig-directory', '--vf')):
+        ut.view_directory(case_figdir)
+    # Common directory
+    indiv_results_figdir = ut.ensuredir((case_figdir, 'indiv_results'))
+    top_rank_analysis_dir = ut.ensuredir((case_figdir, 'top_rank_analysis'))
     DO_COPY_QUEUE = True
     if DO_COPY_QUEUE:
         cpq = draw_helpers.IndividualResultsCopyTaskQueue()
+    if ut.NOT_QUIET:
+        print('case_figdir = %r' % (case_figdir,))
+    ##########################
 
-    figdir = ibs.get_fig_dir()
-    figdir = ut.truepath(ut.get_argval(('--figdir', '--dpath'), type_=str, default=figdir))
-    #figdir = join(figdir, 'cases_' + testres.get_fname_aug(withinfo=False))
-    case_figdir = join(figdir, 'cases_' + ibs.get_dbname())
-    ut.ensuredir(case_figdir)
-
-    if ut.get_argflag(('--view-fig-directory', '--vf')):
-        ut.view_directory(case_figdir)
-
-    # Common directory
-    individual_results_figdir = join(case_figdir, 'individual_results')
-    ut.ensuredir(individual_results_figdir)
-
-    top_rank_analysis_dir = join(case_figdir, 'top_rank_analysis')
-    ut.ensuredir(top_rank_analysis_dir)
-
-    qaids = testres.get_test_qaids()
-    # Ensure semantic uuids are in the APP cache.
-    ibs.get_annot_semantic_uuids(ut.take(qaids, qx_list))
-
+    #### INTERACTIVE SETUP ###
     def toggle_annot_mode():
         for ix in range(len(annot_modes)):
             annot_modes[ix] = (annot_modes[ix] + 1 % 3)
-
     def toggle_fast_mode():
         show_kwargs['fastmode'] = not show_kwargs['fastmode']
         print('show_kwargs[\'fastmode\'] = %r' % (show_kwargs['fastmode'],))
-
     custom_actions = [
         ('present', ['s'], 'present', pt.present),
         ('toggle_annot_mode', ['a'], 'toggle_annot_mode', toggle_annot_mode),
         ('toggle_fast_mode', ['f'], 'toggle_fast_mode', toggle_fast_mode,
          'Fast mode lowers drwaing quality'),
     ]
+    ##########################
 
-    analysis_fpath_list = []
-
+    cfgx2_qreq_ = testres.cfgx2_qreq_
+    qaids = testres.get_test_qaids()
     cfgx2_shortlbl = testres.get_short_cfglbls()
-
-    if ut.NOT_QUIET:
-        print('case_figdir = %r' % (case_figdir,))
-    fpaths_list = []
-
-    fnum_start = None
-    fnum = pt.ensure_fnum(fnum_start)
+    qx_list, cfgx_list = case_pos_list.T
+    # Get configs needed for each query
+    qx2_cfgxs = ut.group_items(cfgx_list, qx_list)
 
     if show_in_notebook:
         cfg_colors = pt.distinct_colors(len(testres.cfgx2_qreq_))
 
     if interact:
-        _iter = ut.InteractiveIter(qx_list, enabled=interact, custom_actions=custom_actions)
+        _iter = ut.InteractiveIter(qx_list, enabled=interact,
+                                   custom_actions=custom_actions)
     else:
         _iter = ut.ProgIter(qx_list, lbl='drawing cases')
 
+    fnum = pt.ensure_fnum(None)
+    fpaths_list = []
+    analysis_fpath_list = []
     for count, qx in enumerate(_iter):
         cfgxs = qx2_cfgxs[qx]
         qreq_list = ut.take(cfgx2_qreq_, cfgxs)
@@ -1225,7 +1205,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             cfgstr = testres.get_cfgstr(cfgx)
             query_lbl = cfgx2_shortlbl[cfgx]
             qres_dpath = 'qaid={qaid}'.format(qaid=cm.qaid)
-            individ_results_dpath = join(individual_results_figdir, qres_dpath)
+            individ_results_dpath = join(indiv_results_figdir, qres_dpath)
             ut.ensuredir(individ_results_dpath)
             # Draw Result
             # try to shorten query labels a bit
@@ -1252,9 +1232,11 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                     if show_in_notebook:
                         fnum = fnum + 1
                     if interact:
-                        cm.ishow_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
+                        cm.ishow_analysis(qreq_, figtitle=_query_lbl,
+                                          fnum=fnum, **show_kwargs)
                     else:
-                        cm.show_analysis(qreq_, figtitle=_query_lbl, fnum=fnum, **show_kwargs)
+                        cm.show_analysis(qreq_, figtitle=_query_lbl, fnum=fnum,
+                                         **show_kwargs)
                     if show_in_notebook:
                         _query_lbl = ''  # only show the query label once
                         if figsize is not None:
@@ -1291,10 +1273,23 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         # Copy summary images to query_analysis folder
         cpq.flush_copy_tasks()
 
-    # flat_case_labels = None
-    # draw_helpers.make_individual_latex_figures(ibs, fpaths_list,
-    # flat_case_labels, cfgx2_shortlbl, case_figdir, analysis_fpath_list)
     return analysis_fpath_list
+
+
+def embed_testres(testres):
+    """
+    CommandLine:
+        python -m ibeis TestResults.embed_testres
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.expt.experiment_drawing import *  # NOQA
+        >>> from ibeis.init import main_helpers
+        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
+        >>> embed_testres(testres)
+    """
+    import utool
+    utool.embed()
 
 
 if __name__ == '__main__':

@@ -79,6 +79,13 @@ def safecast_numpy_lists(arr_list, dtype=None, dims=None):
     return new_arrs
 
 
+def aslist(arr):
+    if isinstance(arr, np.ndarray):
+        return arr.tolist()
+    else:
+        return arr
+
+
 def convert_numpy(arr, dtype):
     return np.array(ut.replace_nones(arr, np.nan), dtype=dtype)
 
@@ -253,7 +260,7 @@ class _ChipMatchVisualization(object):
         name_featflag_list = ut.take(featflag_list, sorted_groupxs)
         # Get the scores for names and chips
         name_score = cm.name_score_list[nidx]
-        name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)
+        name_rank = ut.listfind(aslist(cm.name_score_list.argsort()[::-1]), nidx)
         name_annot_scores = cm.annot_score_list.take(sorted_groupxs)
 
         _ = viz_matches.show_name_matches(
@@ -970,7 +977,7 @@ class _BaseVisualization(object):
         # find features marked as invalid by name scoring
         # Get the scores for names and chips
         name_score = cm.name_score_list[nidx]
-        name_rank = ut.listfind(cm.name_score_list.argsort()[::-1].tolist(), nidx)
+        name_rank = ut.listfind(aslist(cm.name_score_list.argsort()[::-1]), nidx)
         #name_annot_scores = cm.csum_score_list.take(sorted_groupxs)
         name_annot_scores = cm.annot_score_list.take(sorted_groupxs)
 
@@ -1855,8 +1862,8 @@ class _ChipMatchDebugger(object):
         # testlog.log_passed('filtkey and fsv shapes are ok')
 
         if assert_feats and (strict or qreq_ is not None):
-            external_qaids = qreq_.qaids.tolist()
-            external_daids = qreq_.daids.tolist()
+            external_qaids = aslist(qreq_.qaids)
+            external_daids = aslist(qreq_.daids)
             proot = getattr(qreq_.qparams, 'pipeline_root', None)
             if proot == 'vsone':
                 assert len(external_qaids) == 1, 'only one external qaid for vsone'

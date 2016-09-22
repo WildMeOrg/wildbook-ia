@@ -1420,12 +1420,12 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         match_weight_list = [np.ones(len(fm), dtype=np.float64) for fm in cm.fm_list]
 
     # Make an svtup for every daid in the shortlist
-    _iter1 = zip(cm.daid_list, cm.fm_list, cm.fsv_list, cm.fk_list, kpts2_list,
+    _iter1 = zip(cm.daid_list, cm.fm_list, cm.fsv_list, kpts2_list,
                  top_dlen_sqrd_list, match_weight_list)
     if verbose:
         _iter1 = ut.ProgIter(_iter1, nTotal=len(cm.daid_list), lbl='sver shortlist', freq=1)
     svtup_list = []
-    for daid, fm, fsv, fk, kpts2, dlen_sqrd2, match_weights in _iter1:
+    for daid, fm, fsv, kpts2, dlen_sqrd2, match_weights in _iter1:
         if len(fm) == 0:
             # skip results without any matches
             sv_tup = None
