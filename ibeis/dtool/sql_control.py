@@ -1181,7 +1181,8 @@ class SQLDatabaseController(object):
         operation = op_fmtstr.format(**fmtkw)
         db.executeone(operation, [], verbose=False)
 
-    def _make_add_table_str(db, tablename=None, coldef_list=None, **metadata_keyval):
+    def _make_add_table_sqlstr(db, tablename=None, coldef_list=None, sep=' ',
+                               **metadata_keyval):
         r"""
         TODO: Foreign keys and indexed columns
 
@@ -1193,7 +1194,7 @@ class SQLDatabaseController(object):
             ?: operation
 
         CommandLine:
-            python -m dtool.sql_control _make_add_table_str --show
+            python -m dtool.sql_control _make_add_table_sqlstr --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1204,7 +1205,7 @@ class SQLDatabaseController(object):
             >>> db = depc[tablename].db
             >>> autogen_dict = db.get_table_autogen_dict(tablename)
             >>> coldef_list = autogen_dict['coldef_list']
-            >>> operation = db._make_add_table_str(tablename, coldef_list)
+            >>> operation = db._make_add_table_sqlstr(tablename, coldef_list)
             >>> print(operation)
 
         Example:
@@ -1216,7 +1217,7 @@ class SQLDatabaseController(object):
             >>> db = depc[tablename].db
             >>> autogen_dict = db.get_table_autogen_dict(tablename)
             >>> coldef_list = autogen_dict['coldef_list']
-            >>> operation = db._make_add_table_str(tablename, coldef_list)
+            >>> operation = db._make_add_table_sqlstr(tablename, coldef_list)
             >>> print(operation)
         """
         if len(coldef_list) == 0 or coldef_list is None:
@@ -1287,7 +1288,8 @@ class SQLDatabaseController(object):
         if USE_FOREIGN_HACK:
             body_list += foreign_body
 
-        table_body = ', '.join(body_list + constraint_list)
+        sep_ = ',' + sep
+        table_body = sep_.join(body_list + constraint_list)
         fmtkw = {
             'table_body': table_body,
             'tablename': tablename,
@@ -1308,7 +1310,7 @@ class SQLDatabaseController(object):
             superkeys (list or None): list of tuples of column names which
                 uniquely identifies a rowid
         """
-        operation = db._make_add_table_str(tablename, coldef_list, **metadata_keyval)
+        operation = db._make_add_table_sqlstr(tablename, coldef_list, **metadata_keyval)
         db.executeone(operation, [], verbose=False)
 
         # Handle table metdata

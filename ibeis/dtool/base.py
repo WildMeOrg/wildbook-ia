@@ -425,8 +425,6 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
 
 def make_configclass(dict_, tablename):
     """ Creates a custom config class from a dict """
-    import dtool
-
     def rectify_item(key, val):
         if val is None:
             return ut.ParamInfo(key, val)
@@ -444,6 +442,11 @@ def make_configclass(dict_, tablename):
             return ut.ParamInfo(key, val, type_=type(val))
 
     param_info_list = [rectify_item(key, val) for key, val in dict_.items()]
+    return from_param_info_list(param_info_list)
+
+
+def from_param_info_list(param_info_list, tablename='Unnamed'):
+    import dtool
     class UnnamedConfig(dtool.Config):
         _param_info_list = param_info_list
     UnnamedConfig.__name__ = str(tablename + 'Config')

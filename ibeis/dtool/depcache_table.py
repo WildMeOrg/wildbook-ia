@@ -379,6 +379,10 @@ class _TableDebugHelper(object):
     Contains printing and debug things
     """
 
+    def print_sql_info(table):
+        add_op = table.db._make_add_table_sqlstr(sep='\n    ', **table._get_addtable_kw())
+        ut.cprint(add_op, 'sql')
+
     def print_internal_info(table, all_attrs=False):
         """
         CommandLine:
@@ -401,11 +405,12 @@ class _TableDebugHelper(object):
         print('table.data_col_attrs = %s' % (
                   ut.repr3(table.data_col_attrs, nl=2),))
         # Print the infered allcol attrs
-        ut.colorprint('table.internal_col_attrs = %s' %
-                      (ut.repr3(table.internal_col_attrs, nl=1,
-                                sorted_=False)), 'python')
+        ut.cprint('table.internal_col_attrs = %s' %
+                  (ut.repr3(table.internal_col_attrs, nl=1,
+                            sorted_=False)), 'python')
         add_table_kw = table._get_addtable_kw()
         print('table.add_table_kw = %s' % (ut.repr2(add_table_kw, nl=2),))
+        table.print_sql_info()
         if all_attrs:
             # Print all attributes
             for a in ut.get_instance_attrnames(
@@ -1705,6 +1710,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         preproc_func (func): worker function
         vectorized (bool): by defaults it is assumed registered functions can
             process multiple inputs at once.
+        taggable (bool): specifies if a computed object can be disconected from
+            its ancestors and accessed via a tag.
 
     CommandLine:
         python -m dtool.depcache_table --exec-DependencyCacheTable
@@ -1725,7 +1732,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
                  docstr='no docstr', fname=None, asobject=False,
                  chunksize=None, isinteractive=False, default_to_unpack=False,
                  default_onthefly=False, rm_extern_on_delete=False,
-                 vectorized=True):
+                 vectorized=True, taggable=False):
         """
         recieves kwargs from depc._register_prop
         """
@@ -1752,6 +1759,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         table.on_delete = None
         table.default_to_unpack = default_to_unpack
         table.vectorized = vectorized
+        table.taggable = taggable
 
         #table.store_modification_time = True
         # Use the filesystem to accomplish this
