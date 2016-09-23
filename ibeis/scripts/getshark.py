@@ -922,7 +922,7 @@ def parse_whaleshark_org_keywords():
     from ibeis.scripts import getshark
     url = 'http://www.whaleshark.org/getKeywordImages.jsp'
 
-    cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo2')
+    cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo3')
 
     def cached_json_request(url_):
         import requests
@@ -930,6 +930,7 @@ def parse_whaleshark_org_keywords():
         if getshark._needs_redownload(cache_fpath, 60 * 60 * 24 * 30):
             print('Execute request %s' % (url_,))
             resp = requests.get(url_)
+            print('Got Response')
             assert resp.status_code == 200
             dict_ = resp.json()
             ut.save_data(cache_fpath, dict_)
@@ -946,7 +947,7 @@ def parse_whaleshark_org_keywords():
 
     # Request all images belonging to each keyword
     request_results = {}
-    for key in ut.ProgIter(['nofilter'] + key_list, lbl='reading index', bs=False):
+    for key in ut.ProgIter(key_list + ['nofilter'], lbl='reading index', bs=False):
         key_url = url + '?indexName={indexName}'.format(indexName=key)
         request_results[key] = cached_json_request(key_url)
 

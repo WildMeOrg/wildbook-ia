@@ -460,7 +460,13 @@ def compute_vocab(depc, fid_list, config):
         python -m ibeis.algo.smk.vocab_indexer compute_vocab:0
 
     Ignore:
-        ibs.depc['vocab'].print_table()
+        # Lev Example
+        import ibeis
+        ibs = ibeis.opendb('Oxford')
+        depc = ibs.depc
+        table = depc['vocab']
+        table.print_table()
+        table.print_internal_info()
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -563,6 +569,14 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
         wxs1 = data[0][0]
         wxs2 = data[1][0]
 
+        # Lev Example
+        import ibeis
+        ibs = ibeis.opendb('Oxford')
+        depc = ibs.depc
+        table = depc['inverted_agg_assign']
+        table.print_table()
+        table.print_internal_info()
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
@@ -570,7 +584,7 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
         >>> import ibeis
         >>> ibs, aid_list = ibeis.testdata_aids('testdb1')
         >>> depc = ibs.depc_annot
-        >>> config = {'num_words': 1000, 'nAssign': 2}
+        >>> config = {'num_words': 1000, 'nAssign': 1}
         >>> #input_tuple = (aid_list, [aid_list] * len(aid_list))
         >>> daids = aid_list
         >>> input_tuple = (daids, [daids])
@@ -587,7 +601,7 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
         >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
         >>> import ibeis
         >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford')
-        >>> config = {'num_words': 64000, 'nAssign': 2, 'int_rvec': True}
+        >>> config = {'num_words': 64000, 'nAssign': 1, 'int_rvec': True}
         >>> depc = qreq_.ibs.depc
         >>> daids = qreq_.daids
         >>> input_tuple = (daids, [daids])
@@ -673,6 +687,277 @@ def parprep_agg_phi_worker(argtup):
 
     tup = (wx_list, fxs_list, maws_list, agg_rvecs, agg_flags)
     return tup
+
+
+@ut.reloadable_class
+class InvertedAnnots2(object):
+    """
+    >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
+    >>> import ibeis
+    >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford', p='default:proot=smk,nAssign=1,num_words=64000')
+    >>> config = qreq_.qparams
+    >>> ibs = qreq_.ibs
+    >>> depc = qreq_.ibs.depc
+    >>> aids = qreq_.qaids
+    >>> input_tuple = (daids, [daids])
+    >>> inva = ut.DynStruct()
+    """
+
+    def __init__(inva, aids, qreq_):
+        print('Loading up inverted assigments')
+        tablename = 'inverted_agg_assign'
+        depc = qreq_.ibs.depc
+        input_tuple = (aids, [qreq_.daids])
+        table = depc[tablename]
+        tbl_rowids = depc.get_rowids(tablename, input_tuple, config=qreq_.config)
+        print('Reading data')
+        #if ut.is_developer():
+        #    cacher = ut.Cacher(
+        #        fname=qreq_.ibs.get_dbname(),
+        #        cfgstr=ut.hashstr_arr27(tbl_rowids, 'group'),
+        #        cache_dir=ut.truepath('~/Desktop')
+        #    )
+        #    groups = cacher.tryload()
+        #    if groups is None:
+        #        print('Developer cache miss')
+        #        groups = table.get_row_data(tbl_rowids, colnames)
+        #        cacher.save(groups)
+        #else:
+        if True:
+            with ut.Timer('Formating inverted assigments2'):
+                inva.aids = aids
+                # 431.61 vs 143.87 MB here
+                inva.wx_lists = [np.array(wx_list_[0], dtype=np.int32)
+                                 for wx_list_ in table.get_row_data(tbl_rowids, ('wx_list',), showprog=True)]
+                # Is this better to use?
+                inva.fxs_lists = [[np.array(fxs, dtype=np.uint16) for fxs in fxs_list[0]]
+                                  for fxs_list in table.get_row_data(tbl_rowids, ('fxs_list',), showprog=True)]
+                # [ut.lmap(np.array, fx_list) for fx_list in x.fxs_lists]
+                inva.maws_lists = [[np.array(m, dtype=np.float32) for m in maws[0]]
+                                   for maws in table.get_row_data(tbl_rowids, ('maws_list',), showprog=True)]
+                inva.agg_rvecs = ut.take_column(table.get_row_data(tbl_rowids, ('agg_rvecs',), showprog=True), 0)
+                inva.agg_flags = ut.take_column(table.get_row_data(tbl_rowids, ('agg_flags',), showprog=True), 0)
+                # less memory hogs
+                inva.aid_to_idx = ut.make_index_lookup(inva.aids)
+                inva.int_rvec = qreq_.qparams.int_rvec
+                inva.gamma_list = None
+                # Inverted list
+                inva.wx_to_idf = None
+                inva.wx_to_aids = None
+        else:
+            with ut.Timer('Formating inverted assigments1'):
+                colnames = ('wx_list', 'fxs_list', 'maws_list', 'agg_rvecs', 'agg_flags')
+                groups = table.get_row_data(tbl_rowids, colnames, showprog=True)
+                inva.aids = aids
+                # 431.61 vs 143.87 MB here
+                inva.wx_lists = ut.itake_column(groups, 0)
+                inva.wx_lists = [np.array(wx_list, dtype=np.int32) for wx_list in inva.wx_lists]
+                # Is this better to use?
+                # As nested lists: 471.35 MB
+                # As nested ndarrays: 157.12 MB
+                inva.fxs_lists = ut.itake_column(groups, 1)
+                inva.fxs_lists = [[np.array(fxs, dtype=np.uint16) for fxs in fxs_list] for fxs_list in inva.fxs_lists]
+                # [ut.lmap(np.array, fx_list) for fx_list in x.fxs_lists]
+                inva.maws_lists = ut.itake_column(groups, 2)
+                inva.maws_lists = [[np.array(m, dtype=np.float32)
+                                    for m in maws] for maws in inva.maws_lists]
+                inva.agg_rvecs = ut.take_column(groups, 3)
+                inva.agg_flags = ut.take_column(groups, 4)
+                # less memory hogs
+                inva.aid_to_idx = ut.make_index_lookup(inva.aids)
+                inva.int_rvec = qreq_.qparams.int_rvec
+                inva.gamma_list = None
+                # Inverted list
+                inva.wx_to_idf = None
+                inva.wx_to_aids = None
+
+    def _assert_self(inva, qreq_):
+        nfeat_list1 = ibs.get_annot_num_feats(aids, config2_=qreq_.qparams)
+        nfeat_list2 =
+        pass
+
+    def __getstate__(inva):
+        state = inva.__dict__
+        return state
+
+    def __setstate__(inva, state):
+        inva.__dict__.update(**state)
+
+    def get_size_info(inva):
+        import sys
+        def get_homog_list_nbytes_scalar(list_scalar):
+            if list_scalar is None:
+                return 0
+            if len(list_scalar) == 0:
+                return 0
+            else:
+                val = list_scalar[0]
+                item_nbytes = ut.get_object_nbytes(val)
+                return item_nbytes * len(list_scalar)
+
+        def get_homog_list_nbytes_nested(list_nested):
+            if list_nested is None:
+                return 0
+            if len(list_nested) == 0:
+                return 0
+            else:
+                val = list_nested[0]
+                if isinstance(val, np.ndarray):
+                    nbytes = sum(sys.getsizeof(v) for v in list_nested)
+                    #item_nbytes = sum(v.nbytes for v in list_nested)
+                else:
+                    nest_nbytes = sys.getsizeof(val) * len(list_nested)
+                    totals = sum(ut.lmap(len, list_nested))
+                    item_nbytes = sys.getsizeof(val[0]) * totals
+                    nbytes = nest_nbytes + item_nbytes
+                return nbytes
+
+        def get_homog_dict_nbytes_nested(dict_nested):
+            if dict_nested is None:
+                return 0
+            wxkeybytes = get_homog_list_nbytes_scalar(list(dict_nested.keys()))
+            wxvalbytes = get_homog_list_nbytes_nested(list(dict_nested.values()))
+            wxbytes = wxkeybytes + wxvalbytes + sys.getsizeof(dict_nested)
+            return wxbytes
+
+        def get_homog_dict_nbytes_scalar(dict_scalar):
+            if dict_scalar is None:
+                return 0
+            wxkeybytes = get_homog_list_nbytes_scalar(list(dict_scalar.keys()))
+            wxvalbytes = get_homog_list_nbytes_scalar(list(dict_scalar.values()))
+            wxbytes = wxkeybytes + wxvalbytes + sys.getsizeof(dict_scalar)
+            return wxbytes
+
+        sizes = {
+            'aids'       : get_homog_list_nbytes_scalar(inva.aids),
+            'wx_lists'   : get_homog_list_nbytes_nested(inva.wx_lists),
+            'fxs_lists'  : get_homog_list_nbytes_nested(inva.fxs_lists),
+            'maws_lists' : get_homog_list_nbytes_nested(inva.maws_lists),
+            'agg_rvecs'  : get_homog_list_nbytes_nested(inva.agg_rvecs),
+            'agg_flags'  : get_homog_list_nbytes_nested(inva.agg_flags),
+            'aid_to_idx' : get_homog_dict_nbytes_scalar(inva.aid_to_idx),
+            'gamma_list' : get_homog_list_nbytes_scalar(inva.gamma_list),
+            'wx_to_aids' : get_homog_dict_nbytes_nested(inva.wx_to_aids),
+            'wx_to_idf'  : get_homog_dict_nbytes_scalar(inva.wx_to_idf),
+        }
+        return sizes
+
+    def print_size_info(inva):
+        sizes = inva.get_size_info()
+        sizes = ut.sort_dict(sizes, value_key=ut.identity)
+        total_nbytes =  sum(sizes.values())
+        print(ut.align(ut.repr3(ut.map_dict_vals(ut.byte_str2, sizes), strvals=True), ':'))
+        print('total_nbytes = %r' % (ut.byte_str2(total_nbytes),))
+
+    def get_nbytes(inva):
+        sizes = inva.get_size_info()
+        total_nbytes =  sum(sizes.values())
+        return total_nbytes
+
+    @profile
+    def compute_gammas(inva, wx_to_idf, alpha, thresh):
+        from ibeis.algo.smk import smk_pipeline
+        _prog = ut.ProgPartial(nTotal=len(inva.wx_lists), bs=True, lbl='gamma', adjust=True)
+        _iter = zip(inva.wx_lists, inva.agg_rvecs, inva.agg_flags)
+        gamma_list = []
+        for wx_list, phiX_list, flagsX_list in _prog(_iter):
+            if inva.int_rvec:
+                phiX_list = uncast_residual_integer(phiX_list)
+            gammaX = smk_pipeline.gamma(wx_list, phiX_list, flagsX_list,
+                                        wx_to_idf, alpha, thresh)
+            gamma_list.append(gammaX)
+        return gamma_list
+
+    @profile
+    def compute_idf(inva):
+        with ut.Timer('Computing idf'):
+            num_docs_total = len(inva.aids)
+            # idf denominator (the num of docs containing a word for each word)
+            # The max(maws) to denote the probab that this word indexes an annot
+            #wx_to_ndocs = ut.DefaultValueDict(0)
+            #wx_to_ndocs = ut.ddict(lambda: 0)
+
+            wx_list = sorted(inva.wx_to_aids.keys())
+            wx_to_ndocs = {wx: 0.0 for wx in wx_list}
+
+            if True:
+                # Unweighted documents
+                wx_to_ndocs = {wx: len(set(aids))
+                               for wx, aids in inva.wx_to_aids.items()}
+            else:
+                # Weighted documents
+                for wx, maws in zip(ut.iflatten(inva.wx_lists), ut.iflatten(inva.maws_lists)):
+                    # Determine how many documents use each word
+                    wx_to_ndocs[wx] += min(1.0, sum(maws))
+
+            #wx_list = sorted(wx_to_ndocs.keys())
+            ndocs_arr = np.array(ut.take(wx_to_ndocs, wx_list), dtype=np.float)
+            # Typically for IDF, 1 is added to the denom to prevent divide by 0
+            # We add epsilon to numer and denom to ensure recep is a probability
+            out = ndocs_arr
+            out = np.add(ndocs_arr, 1, out=out)
+            out = np.divide(num_docs_total + 1, ndocs_arr, out=out)
+            idf_list = np.log(ndocs_arr, out=out)
+
+            wx_to_idf = dict(zip(wx_list, idf_list))
+            wx_to_idf = ut.DefaultValueDict(0, wx_to_idf)
+            return wx_to_idf
+
+    @profile
+    @ut.memoize
+    def get_annot(inva, aid):
+        idx = inva.aid_to_idx[aid]
+        X = SingleAnnot2(inva, idx)
+        return X
+
+    def compute_inverted_list(inva):
+        with ut.Timer('Building inverted list'):
+            wx_to_aids = ut.ddict(list)
+            for aid, wxs in zip(inva.aids, inva.wx_lists):
+                for wx in wxs:
+                    wx_to_aids[wx].append(aid)
+            return wx_to_aids
+
+
+@ut.reloadable_class
+class SingleAnnot2(object):
+    def __init__(X, inva, idx):
+        X.aid = inva.aids[idx]
+        X.wx_list = inva.wx_lists[idx]
+        X.fxs_list = inva.fxs_lists[idx]
+        X.maws_list = inva.maws_lists[idx]
+        X.agg_rvecs = inva.agg_rvecs[idx]
+        X.agg_flags = inva.agg_flags[idx]
+        X.gamma = inva.gamma_list[idx]
+        X.wx_to_idx = ut.make_index_lookup(X.wx_list)
+        X.int_rvec = inva.int_rvec
+
+        X.wx_set = set(X.wx_list)
+
+    @property
+    def words(X):
+        return X.wx_set
+
+    @profile
+    def fxs(X, c):
+        idx = X.wx_to_idx[c]
+        fxs = X.fxs_list[idx]
+        return fxs
+
+    @profile
+    def maws(X, c):
+        idx = X.wx_to_idx[c]
+        maws = X.maws_list[idx]
+        return maws
+
+    @profile
+    def Phi_flags(X, c):
+        idx = X.wx_to_idx[c]
+        PhiX = X.agg_rvecs[idx]
+        if X.int_rvec:
+            PhiX = uncast_residual_integer(PhiX)
+        flags = X.agg_flags[idx]
+        return PhiX, flags
 
 
 def new_load_vocab(ibs, aids, config):

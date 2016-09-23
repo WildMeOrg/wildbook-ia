@@ -66,6 +66,10 @@ baseline = [{
 }]
 #baseline = [{}]
 
+smk = [{
+    'proot': 'smk'
+}]
+
 ScoreMech = candidacy_namescore = [
     {
         'score_method':      ['nsum'],
