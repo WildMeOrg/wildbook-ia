@@ -821,7 +821,7 @@ oxford = {
         'exclude_reference': True,
     }),
     'dcfg': ut.augdict(default['dcfg'], {
-        'sample_per_name': 2,
+        # 'sample_per_name': 2,
         'exclude_reference': True
     })
 }
