@@ -746,54 +746,61 @@ class InvertedAnnots2(object):
         #        groups = table.get_row_data(tbl_rowids, colnames)
         #        cacher.save(groups)
         #else:
-        if True:
-            with ut.Timer('Formating inverted assigments2'):
-                inva.aids = aids
-                table.default_to_unpack = True
-                # 431.61 vs 143.87 MB here
-                inva.wx_lists = [np.array(wx_list_, dtype=np.int32)
-                                 for wx_list_ in table.get_row_data(tbl_rowids, ('wx_list',), showprog='load wxs')]
-                # Is this better to use?
-                inva.fxs_lists = [[np.array(fxs, dtype=np.uint16) for fxs in fxs_list]
-                                  for fxs_list in table.get_row_data(tbl_rowids, ('fxs_list',), showprog='load fxs')]
-                # [ut.lmap(np.array, fx_list) for fx_list in x.fxs_lists]
-                inva.maws_lists = [[np.array(m, dtype=np.float32) for m in maws]
-                                   for maws in table.get_row_data(tbl_rowids, ('maws_list',), showprog='load maws')]
-                inva.agg_rvecs = table.get_row_data(tbl_rowids, ('agg_rvecs',), showprog='load agg_rvecs')
-                inva.agg_flags = table.get_row_data(tbl_rowids, ('agg_flags',), showprog='load agg_flags')
-                # less memory hogs
-                inva.aid_to_idx = ut.make_index_lookup(inva.aids)
-                inva.int_rvec = qreq_.qparams.int_rvec
-                inva.gamma_list = None
-                # Inverted list
-                inva.wx_to_idf = None
-                inva.wx_to_aids = None
-        else:
-            with ut.Timer('Formating inverted assigments1'):
-                colnames = ('wx_list', 'fxs_list', 'maws_list', 'agg_rvecs', 'agg_flags')
-                groups = table.get_row_data(tbl_rowids, colnames, showprog=True)
-                inva.aids = aids
-                # 431.61 vs 143.87 MB here
-                inva.wx_lists = ut.itake_column(groups, 0)
-                inva.wx_lists = [np.array(wx_list, dtype=np.int32) for wx_list in inva.wx_lists]
-                # Is this better to use?
-                # As nested lists: 471.35 MB
-                # As nested ndarrays: 157.12 MB
-                inva.fxs_lists = ut.itake_column(groups, 1)
-                inva.fxs_lists = [[np.array(fxs, dtype=np.uint16) for fxs in fxs_list] for fxs_list in inva.fxs_lists]
-                # [ut.lmap(np.array, fx_list) for fx_list in x.fxs_lists]
-                inva.maws_lists = ut.itake_column(groups, 2)
-                inva.maws_lists = [[np.array(m, dtype=np.float32)
-                                    for m in maws] for maws in inva.maws_lists]
-                inva.agg_rvecs = ut.take_column(groups, 3)
-                inva.agg_flags = ut.take_column(groups, 4)
-                # less memory hogs
-                inva.aid_to_idx = ut.make_index_lookup(inva.aids)
-                inva.int_rvec = qreq_.qparams.int_rvec
-                inva.gamma_list = None
-                # Inverted list
-                inva.wx_to_idf = None
-                inva.wx_to_aids = None
+        with ut.Timer('Formating inverted assigments2'):
+            inva.aids = aids
+            table.default_to_unpack = True
+            # 431.61 vs 143.87 MB here
+            inva.wx_lists = [np.array(wx_list_, dtype=np.int32)
+                             for wx_list_ in table.get_row_data(
+                                 tbl_rowids, ('wx_list',),
+                                 showprog='load wxs')]
+            # Is this better to use?
+            inva.fxs_lists = [[np.array(fxs, dtype=np.uint16) for fxs in fxs_list]
+                              for fxs_list in table.get_row_data(
+                                  tbl_rowids, ('fxs_list',),
+                                  showprog='load fxs')]
+            # [ut.lmap(np.array, fx_list) for fx_list in x.fxs_lists]
+            inva.maws_lists = [[np.array(m, dtype=np.float32) for m in maws]
+                               for maws in table.get_row_data(
+                                   tbl_rowids, ('maws_list',),
+                                   showprog='load maws')]
+            inva.agg_rvecs = table.get_row_data(tbl_rowids, ('agg_rvecs',),
+                                                showprog='load agg_rvecs')
+            inva.agg_flags = table.get_row_data(tbl_rowids, ('agg_flags',),
+                                                showprog='load agg_flags')
+            # less memory hogs
+            inva.aid_to_idx = ut.make_index_lookup(inva.aids)
+            inva.int_rvec = qreq_.qparams.int_rvec
+            inva.gamma_list = None
+            # Inverted list
+            inva.wx_to_idf = None
+            inva.wx_to_aids = None
+        # else:
+        #     with ut.Timer('Formating inverted assigments1'):
+        #         colnames = ('wx_list', 'fxs_list', 'maws_list', 'agg_rvecs', 'agg_flags')
+        #         groups = table.get_row_data(tbl_rowids, colnames, showprog=True)
+        #         inva.aids = aids
+        #         # 431.61 vs 143.87 MB here
+        #         inva.wx_lists = ut.itake_column(groups, 0)
+        #         inva.wx_lists = [np.array(wx_list, dtype=np.int32) for wx_list in inva.wx_lists]
+        #         # Is this better to use?
+        #         # As nested lists: 471.35 MB
+        #         # As nested ndarrays: 157.12 MB
+        #         inva.fxs_lists = ut.itake_column(groups, 1)
+        #         inva.fxs_lists = [[np.array(fxs, dtype=np.uint16) for fxs in fxs_list] for fxs_list in inva.fxs_lists]
+        #         # [ut.lmap(np.array, fx_list) for fx_list in x.fxs_lists]
+        #         inva.maws_lists = ut.itake_column(groups, 2)
+        #         inva.maws_lists = [[np.array(m, dtype=np.float32)
+        #                             for m in maws] for maws in inva.maws_lists]
+        #         inva.agg_rvecs = ut.take_column(groups, 3)
+        #         inva.agg_flags = ut.take_column(groups, 4)
+        #         # less memory hogs
+        #         inva.aid_to_idx = ut.make_index_lookup(inva.aids)
+        #         inva.int_rvec = qreq_.qparams.int_rvec
+        #         inva.gamma_list = None
+        #         # Inverted list
+        #         inva.wx_to_idf = None
+        #         inva.wx_to_aids = None
 
     def _assert_self(inva, qreq_):
         ibs = qreq_.ibs
@@ -982,14 +989,19 @@ class SingleAnnot2(object):
         maws = X.maws_list[idx]
         return maws
 
-    @profile
-    def Phi_flags(X, c):
-        idx = X.wx_to_idx[c]
-        PhiX = X.agg_rvecs[idx]
+    def phis_flags_list(X, idxs):
+        phis_list = ut.take(X.rvecs_list, idxs)
+        flags_list = ut.take(X.flags_list, idxs)
         if X.int_rvec:
-            PhiX = uncast_residual_integer(PhiX)
-        flags = X.agg_flags[idx]
-        return PhiX, flags
+            phis_list = ut.lmap(uncast_residual_integer, phis_list)
+        return phis_list, flags_list
+
+    def Phis_flags(X, idxs):
+        Phis = X.agg_rvecs.take(idxs, axis=0)
+        flags = X.agg_flags.take(idxs, axis=0)
+        if X.int_rvec:
+            Phis = uncast_residual_integer(Phis)
+        return Phis, flags
 
     def _assert_self(X, qreq_):
         import utool as ut

@@ -324,6 +324,14 @@ class SMK(ut.NiceRepr):
         gammaX = X.gamma
         wx_to_idf = qreq_.dinva.wx_to_idf
 
+        debug = True
+        if debug:
+            qnid = qreq_.get_qreq_annot_nids([qaid])[0]
+            daids = np.array(qreq_.daids)
+            dnids = qreq_.get_qreq_annot_nids(daids)
+            correct_aids = daids[np.where(dnids == qnid)[0]]
+            daid = correct_aids[0]
+
         #with ut.Timer('scoring', verbose=verbose):
         for daid in _prog(valid_daids):
             Y = qreq_.dinva.get_annot(daid)
@@ -390,15 +398,12 @@ class SMK(ut.NiceRepr):
 
 @profile
 def agg_match_scores(X, Y, X_idx, Y_idx, alpha, thresh):
-    # Agg speedup
-    PhiX = X.agg_rvecs.take(X_idx, axis=0)
-    PhiY = X.agg_rvecs.take(X_idx, axis=0)
-    flagsX = X.agg_flags.take(X_idx, axis=0)
-    flagsY = Y.agg_flags.take(Y_idx, axis=0)
-    if X.int_rvec:
-        PhiX = vocab_indexer.uncast_residual_integer(PhiX)
-        PhiY = vocab_indexer.uncast_residual_integer(PhiY)
-    u = (PhiX * PhiY).sum(axis=1)
+    # Can speedup aggregate with one vector per word assumption.
+    PhisX, flagsX = X.Phis_flags(X_idx)
+    PhisY, flagsY = Y.Phis_flags(Y_idx)
+    # Take dot product between correponding VLAD vectors
+    u = (PhisX * PhisY).sum(axis=1)
+    # Propogate error flags
     flags = np.logical_or(flagsX.T[0], flagsY.T[0])
     u[flags] = 1
     score_list = selectivity(u, alpha, thresh, out=u)
@@ -447,16 +452,12 @@ def agg_build_matches(X, Y, X_idx, Y_idx, score_list):
 def sep_match_scores(X, Y, X_idx, Y_idx, alpha, thresh):
     raise NotImplementedError('sep version not finished')
     # Agg speedup
-    phisX = X.rvecs.take(X_idx, axis=0)
-    phisY = X.rvecs.take(X_idx, axis=0)
-    flagsX = X.flags.take(X_idx, axis=0)
-    flagsY = Y.flags.take(Y_idx, axis=0)
+    phisX_list, flagsY_list = X.phis_flags_list(X_idx)
+    phisY_list, flagsX_list = Y.phis_flags_list(Y_idx)
     scores_list = []
-    for phiX, phiY in zip(phisX, phisY):
-        if X.int_rvec:
-            phisX = vocab_indexer.uncast_residual_integer(phisX)
-            phisY = vocab_indexer.uncast_residual_integer(phisY)
-        u = (phiX * phiY).sum(axis=1)
+    _iter = zip(phisX_list, phisY_list, flagsX_list, flagsY_list)
+    for phisX, phisY, flagsX, flagsY in _iter:
+        u = (phisX * phisY).sum(axis=1)
         flags = np.logical_or(flagsX.T[0], flagsY.T[0])
         u[flags] = 1
         scores = selectivity(u, alpha, thresh, out=u)
