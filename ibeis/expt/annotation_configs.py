@@ -810,6 +810,10 @@ viewdiff_td1h = apply_timecontrol(viewdiff, '1h')
 """
 ibeis get_annotcfg_list --db Oxford -a default:qhas_any=\(query,\),dpername=2,exclude_reference=True --acfginfo --verbtd  --veryverbtd
 ibeis get_annotcfg_list --db Oxford -a oxford --acfginfo
+('_QSUUIDS((55)qxlgljvomqpdvlny)', '_DSUUIDS((4240)vhtqsdkrwetbftis)'),
+
+ibeis draw_rank_cdf --db Oxford --save oxfordccm.png -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[False] -a oxford
+
 """
 oxford = {
     'qcfg': ut.augdict(default['qcfg'], {

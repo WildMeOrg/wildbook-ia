@@ -443,7 +443,7 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
     tablename='vocab', parents=['feat*'],
     colnames=['words'], coltypes=[VisualVocab],
     configclass=VocabConfig, chunksize=1, fname='visual_vocab',
-    vectorized=False,
+    taggable=True, vectorized=False,
 )
 def compute_vocab(depc, fid_list, config):
     r"""
@@ -582,6 +582,21 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
         >>> vocab_id_list = ut.take_column(input_ids, 1)
         >>> data = depc.get(tablename, input_tuple, config)
         >>> tup = dat[1]
+
+    Example:
+        >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
+        >>> import ibeis
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford')
+        >>> config = {'num_words': 64000, 'nAssign': 2, 'int_rvec': True}
+        >>> depc = qreq_.ibs.depc
+        >>> daids = qreq_.daids
+        >>> input_tuple = (daids, [daids])
+        >>> rowid_kw = {}
+        >>> tablename = 'inverted_agg_assign'
+        >>> target_tablename = tablename
+        >>> input_ids = depc.get_parent_rowids(tablename, input_tuple, config)
+        >>> fid_list = ut.take_column(input_ids, 0)
+        >>> vocab_id_list = ut.take_column(input_ids, 1)
     """
     #print('[IBEIS] ASSIGN RESIDUALS:')
     assert ut.allsame(vocab_id_list)
@@ -597,28 +612,30 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
         if this_table._hack_chunk_cache is not None:
             this_table._hack_chunk_cache[vocabid] = vocab
 
+    print('Grab Vecs')
     vecs_list = depc.get_native('feat', fid_list, 'vecs')
     nAssign = config['nAssign']
     int_rvec = config['int_rvec']
 
     from concurrent import futures
-    args_gen = list(_prep_par_agg_phi_data(vocab, vecs_list, nAssign, int_rvec))
-    worker = _par_agg_phi_worker
-    #tup_list2 = [_par_agg_phi_worker(argtup) for argtup in args_gen]
-    # Build argument generator
-    import psutil
-    nprocs = psutil.cpu_count() - 1
+    print('Building residual args')
+    worker = parprep_agg_phi_worker
+    args_gen = parprep_agg_phi_args(vocab, vecs_list, nAssign, int_rvec)
+    args_gen = [args for args in ut.ProgIter(args_gen, nTotal=len(vecs_list), lbl='building args')]
+    nprocs = ut.num_unused_cpus(thresh=10) - 1
+    print('Creatinmg process pools')
     executor = futures.ProcessPoolExecutor(nprocs)
-    fs_chunk = [executor.submit(worker, args) for args in args_gen]
-    t = []
-    for fs in fs_chunk:
-        tup = fs.result()
-        t.append(tup)
-        yield tup
-    executor.shutdown(wait=True)
+    try:
+        fs_chunk = [executor.submit(worker, args) for args in args_gen]
+        for fs in fs_chunk:
+            yield fs.result()
+    except Exception:
+        raise
+    finally:
+        executor.shutdown(wait=True)
 
 
-def _prep_par_agg_phi_data(vocab, vecs_list, nAssign, int_rvec):
+def parprep_agg_phi_args(vocab, vecs_list, nAssign, int_rvec):
     for fx_to_vecs in vecs_list:
         fx_to_wxs, fx_to_maws = vocab.assign_to_words(fx_to_vecs, nAssign)
         wx_to_fxs, wx_to_maws = vocab.invert_assignment(fx_to_wxs, fx_to_maws)
@@ -631,7 +648,7 @@ def _prep_par_agg_phi_data(vocab, vecs_list, nAssign, int_rvec):
         yield argtup
 
 
-def _par_agg_phi_worker(argtup):
+def parprep_agg_phi_worker(argtup):
     wx_list, word_list, fxs_list, maws_list, fx_to_vecs, int_rvec = argtup
     if int_rvec:
         agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=np.int8)
@@ -686,6 +703,98 @@ def testdata_vocab(defaultdb='testdb1', **kwargs):
     #fstack.build()
     #inva.build()
     #return ibs, aid_list, inva
+
+
+def render_vocab(vocab, inva=None, use_data=False):
+    """
+    Renders the average patch of each word.
+    This is a quick visualization of the entire vocabulary.
+
+    CommandLine:
+        python -m ibeis.algo.smk.vocab_indexer render_vocab --show
+        python -m ibeis.algo.smk.vocab_indexer render_vocab --show --use-data
+        python -m ibeis.algo.smk.vocab_indexer render_vocab --show --debug-depc
+
+    Example:
+        >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
+        >>> ibs, aid_list, voab = testdata_vocab('PZ_MTEST', num_words=10000)
+        >>> use_data = ut.get_argflag('--use-data')
+        >>> vocab = inva.vocab
+        >>> all_words = vocab.render_vocab(inva, use_data=use_data)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> pt.imshow(all_words)
+        >>> ut.show_if_requested()
+    """
+    # Get words with the most assignments
+    sortx = ut.argsort(list(inva.wx_to_num.values()))[::-1]
+    wx_list = ut.take(list(inva.wx_to_num.keys()), sortx)
+
+    wx_list = ut.strided_sample(wx_list, 64)
+
+    word_patch_list = []
+    for wx in ut.ProgIter(wx_list, bs=True, lbl='building patches'):
+        word = inva.vocab.wx_to_word[wx]
+        if use_data:
+            word_patch = inva.get_word_patch(wx)
+        else:
+            word_patch = vt.inverted_sift_patch(word, 64)
+        import plottool as pt
+        word_patch = pt.render_sift_on_patch(word_patch, word)
+        word_patch_list.append(word_patch)
+
+    #for wx, p in zip(wx_list, word_patch_list):
+    #    inva._word_patches[wx] = p
+    all_words = vt.stack_square_images(word_patch_list)
+    return all_words
+
+
+def get_patches(inva, wx, verbose=True):
+    """
+    Loads the patches assigned to a particular word in this stack
+    """
+    ax_list = inva.wx_to_axs(wx)
+    fx_list = inva.wx_to_fxs(wx)
+    config = inva.fstack.config
+    ibs = inva.fstack.ibs
+
+    # Group annotations with more than one assignment to this word, so we
+    # only have to load a chip at most once
+    unique_axs, groupxs = vt.group_indices(ax_list)
+    fxs_groups = vt.apply_grouping(fx_list, groupxs)
+
+    unique_aids = ut.take(inva.fstack.ax_to_aid, unique_axs)
+
+    all_kpts_list = ibs.depc.d.get_feat_kpts(unique_aids, config=config)
+    sub_kpts_list = vt.ziptake(all_kpts_list, fxs_groups, axis=0)
+
+    chip_list = ibs.depc_annot.d.get_chips_img(unique_aids)
+    # convert to approprate colorspace
+    #if colorspace is not None:
+    #    chip_list = vt.convert_image_list_colorspace(chip_list, colorspace)
+    # ut.print_object_size(chip_list, 'chip_list')
+    patch_size = 64
+    _prog = ut.ProgPartial(enabled=verbose, lbl='warping patches', bs=True)
+    grouped_patches_list = [
+        vt.get_warped_patches(chip, kpts, patch_size=patch_size)[0]
+        #vt.get_warped_patches(chip, kpts, patch_size=patch_size, use_cpp=True)[0]
+        for chip, kpts in _prog(zip(chip_list, sub_kpts_list),
+                                nTotal=len(unique_aids))
+    ]
+    # Make it correspond with original fx_list and ax_list
+    word_patches = vt.invert_apply_grouping(grouped_patches_list, groupxs)
+    return word_patches
+
+
+def get_word_patch(inva, wx):
+    if wx not in inva._word_patches:
+        assigned_patches = inva.get_patches(wx, verbose=False)
+        #print('assigned_patches = %r' % (len(assigned_patches),))
+        average_patch = np.mean(assigned_patches, axis=0)
+        average_patch = average_patch.astype(np.float)
+        inva._word_patches[wx] = average_patch
+    return inva._word_patches[wx]
 
 
 if __name__ == '__main__':

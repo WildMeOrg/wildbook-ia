@@ -542,7 +542,7 @@ def get_training_pairs():
     matches_RAT = [match.apply_ratio_test(inplace=False) for match in ut.ProgIter(matchesORIG, lbl='ratio')]
     matches_auc(matches_RAT)
 
-    matches_RAT_SV = [match.apply_ratio_test(inplace=False) for match in ut.ProgIter(matches_RAT, lbl='ratio')]
+    matches_RAT_SV = [match.apply_sver(inplace=False) for match in ut.ProgIter(matches_RAT, lbl='ratio')]
     matches_auc(matches_RAT_SV)
 
 
