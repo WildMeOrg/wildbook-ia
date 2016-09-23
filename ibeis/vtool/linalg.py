@@ -520,34 +520,48 @@ def transform_points_with_homography(H, _xys):
     return xy_t
 
 
-def normalize_rows(arr1, out=None):
-    """
-    Returns all row vectors normalized by their 2-norm magnitude
+def normalize_rows(arr, out=None):
+    """ DEPRICATE """
+    assert len(arr.shape) == 2
+    return normalize(arr, axis=1, out=out)
+
+
+def normalize(arr, ord=None, axis=None, out=None):
+    r"""
+    Returns all row vectors normalized by their magnitude.
 
     Args:
-        arr1 (ndarray): row vectors to normalize
+        arr (ndarray): row vectors to normalize
+        ord (int): type of norm to use (defaults to 2-norm)
+        axis (int): axis to normalize
+        out (ndarray): preallocated output
 
-    Returns:
-        ndarray: arr1_normed
-
-    CommandLine:
-        python -m vtool.linalg --test-normalize_rows
+    SeeAlso:
+        np.linalg.norm
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.linalg import *  # NOQA
-        >>> arr1 = np.array([[1, 2, 3, 4, 5], [2, 2, 2, 2, 2]])
-        >>> arr1_normed = normalize_rows(arr1)
-        >>> result = ut.hz_str('arr1_normed = ', ut.numpy_str(arr1_normed, precision=2))
-        >>> assert np.allclose((arr1_normed ** 2).sum(axis=1), [1, 1])
+        >>> arr = np.array([[1, 2, 3, 4, 5], [2, 2, 2, 2, 2]])
+        >>> arr_normed = normalize(arr, axis=1)
+        >>> result = ut.hz_str('arr_normed = ', ut.numpy_str(arr_normed, precision=2))
+        >>> assert np.allclose((arr_normed ** 2).sum(axis=1), [1, 1])
         >>> print(result)
-        arr1_normed = np.array([[ 0.13,  0.27,  0.4 ,  0.54,  0.67],
-                                [ 0.45,  0.45,  0.45,  0.45,  0.45]], dtype=np.float64)
+        arr_normed = np.array([[ 0.13,  0.27,  0.4 ,  0.54,  0.67],
+                               [ 0.45,  0.45,  0.45,  0.45,  0.45]], dtype=np.float64)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.linalg import *  # NOQA
+        >>> arr = np.array([ 0.6,  0.1, -0.6])
+        >>> arr_normed = normalize(arr)
+        >>> result = ut.hz_str('arr_normed = ', ut.numpy_str(arr_normed, precision=2))
+        >>> assert np.allclose((arr_normed ** 2).sum(), [1])
+        >>> print(result)
     """
-    assert len(arr1.shape) == 2
-    norm_ = npl.norm(arr1, axis=1)
-    arr1_normed = np.divide(arr1, norm_[:, None], out=out)
-    return arr1_normed
+    norm_ = np.linalg.norm(arr, ord=ord, axis=axis, keepdims=True)
+    arr_normed = np.divide(arr, norm_, out=out)
+    return arr_normed
 
 
 def random_affine_args(zoom_pdf=None,

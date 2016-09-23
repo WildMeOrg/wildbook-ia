@@ -8,14 +8,13 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import range, zip, map
 import six
-import utool
 import utool as ut
 import sys
 import numpy as np
 import scipy.sparse as spsparse
 import vtool.nearest_neighbors as nntool
 
-(print, rrr, profile) = utool.inject2(__name__, '[clustering2]')
+(print, rrr, profile) = ut.inject2(__name__, '[clustering2]')
 
 
 CLUSTERS_FNAME = 'akmeans_centroids'
@@ -36,13 +35,13 @@ def assert_centroids(centroids, data, nCentroids, clip_centroids):
     try:
         assert centroids.shape[0] == nCentroids, 'bad number of centroids'
     except Exception as ex:
-        utool.printex(ex, keys=dbgkeys, iswarning=clip_centroids)
+        ut.printex(ex, keys=dbgkeys, iswarning=clip_centroids)
         if not clip_centroids:
             raise
     try:
         assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
     except Exception as ex:
-        utool.printex(ex, keys=dbgkeys)
+        ut.printex(ex, keys=dbgkeys)
         raise
 
 
@@ -74,7 +73,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     if data.shape[0] < nCentroids:
         dbgkeys = ['centroids.shape', 'nCentroids', 'data.shape', ]
         ex = AssertionError('less data than centroids')
-        utool.printex(ex, keys=dbgkeys, iswarning=clip_centroids)
+        ut.printex(ex, keys=dbgkeys, iswarning=clip_centroids)
         if not clip_centroids:
             raise ex
         else:
@@ -83,8 +82,8 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     # filename prefix constants
     if cache_dir == 'default':
         print('[akmeans] using default cache dir')
-        cache_dir = utool.get_app_resource_dir(appname)
-        utool.ensuredir(cache_dir)
+        cache_dir = ut.get_app_resource_dir(appname)
+        ut.ensuredir(cache_dir)
     # Build a cfgstr if the full one is not specified
     akmeans_cfgstr = get_akmeans_cfgstr(data, nCentroids, max_iters,
                                         initmethod, flann_params,
@@ -93,7 +92,7 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
         # Try and load a previous centroiding
         if not use_cache or force_recomp:
             raise UserWarning('forceing recommpute')
-        centroids = utool.load_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr)
+        centroids = ut.load_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr)
         print('[akmeans.precompute] load successful')
         if refine:
             # Refines the centroid centers if specified
@@ -104,18 +103,18 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
         try:
             assert centroids.shape[0] == nCentroids, 'bad number of centroids'
         except Exception as ex:
-            utool.printex(ex, keys=dbgkeys, iswarning=clip_centroids)
+            ut.printex(ex, keys=dbgkeys, iswarning=clip_centroids)
             if not clip_centroids:
                 raise
         try:
             assert centroids.shape[1] == data.shape[1], 'bad dimensionality'
         except Exception as ex:
-            utool.printex(ex, keys=dbgkeys)
+            ut.printex(ex, keys=dbgkeys)
             raise
         print('L___ END CACHED AKMEANS')
         return centroids
     except IOError as ex:
-        utool.printex(ex, 'cache miss', iswarning=True)
+        ut.printex(ex, 'cache miss', iswarning=True)
     except UserWarning:
         pass
     # First time computation
@@ -126,20 +125,20 @@ def cached_akmeans(data, nCentroids, max_iters=5, flann_params={},
     #    #import utool
     #    print('[akmeans.precompute] using flann.kmeans... (hope this is approximate)')
     #    flann = p yflann.FLANN()
-    #    with utool.Timer('testing time of 1 kmeans iteration') as timer:
+    #    with ut.Timer('testing time of 1 kmeans iteration') as timer:
     #        centroids = flann.kmeans(data, nCentroids, max_iterations=1)
     #    estimated_time = max_iters * timer.ellapsed
-    #    print('Current time:            ' + utool.get_timestamp('printable'))
-    #    print('Estimated Total Time:    ' + utool.get_unix_timedelta_str(estimated_time))
-    #    print('Estimated finish time:   ' + utool.get_timestamp('printable', delta_seconds=estimated_time))
+    #    print('Current time:            ' + ut.get_timestamp('printable'))
+    #    print('Estimated Total Time:    ' + ut.get_unix_timedelta_str(estimated_time))
+    #    print('Estimated finish time:   ' + ut.get_timestamp('printable', delta_seconds=estimated_time))
     #    print('Begining computation...')
     #    centroids = flann.kmeans(data, nCentroids, max_iterations=max_iters)
-    #    print('The true finish time is: ' + utool.get_timestamp('printable'))
+    #    print('The true finish time is: ' + ut.get_timestamp('printable'))
     #else:
     centroids = akmeans(data, nCentroids, max_iters, initmethod, flann_params)
     assert_centroids(centroids, data, nCentroids, clip_centroids)
     print('[akmeans.precompute] save and return')
-    utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
+    ut.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
     print('L___ END CACHED AKMEANS')
     return centroids
 
@@ -227,7 +226,7 @@ def akmeans_plusplus_init(data, K, samples_per_iter=None, flann_params=None):
     centers = data.take(center_indices, axis=0)
     build_params = flann.build_index(np.array(centers), **flann_params)  # NOQA
     num_sample = min(samples_per_iter, len(data))
-    progiter = utool.progiter(range(0, K), lbl='akmeans++ init', freq=200)
+    progiter = ut.progiter(range(0, K), lbl='akmeans++ init', freq=200)
     _iter = progiter.iter_rate()
     six.next(_iter)
 
@@ -301,13 +300,13 @@ def refine_akmeans(data, centroids, max_iters=5,
     """
     print('[akmeans.precompute] refining:')
     if cache_dir == 'default':
-        cache_dir = utool.get_app_resource_dir('vtool')
-        utool.ensuredir(cache_dir)
+        cache_dir = ut.get_app_resource_dir('vtool')
+        ut.ensuredir(cache_dir)
     if akmeans_cfgstr is None:
         akmeans_cfgstr = nntool.get_flann_cfgstr(
             data, flann_params, cfgstr, use_data_hash)
     centroids = akmeans_iterations(data, centroids, max_iters, flann_params, 0, 10)
-    utool.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
+    ut.save_cache(cache_dir, CLUSTERS_FNAME, akmeans_cfgstr, centroids)
     return centroids
 
 
@@ -514,15 +513,15 @@ def compute_centroids(data, centroids, datax2_centroidx):
 
 def jagged_group(groupids_list):
     """ flattens and returns group indexes into the flattened list """
-    #flatx2_itemx = np.array(utool.flatten(itemxs_iter))
-    flatids = np.array(utool.flatten(groupids_list))
+    #flatx2_itemx = np.array(ut.flatten(itemxs_iter))
+    flatids = np.array(ut.flatten(groupids_list))
     keys, groupxs = group_indices(flatids)
     return keys, groupxs
 
 
 def apply_jagged_grouping(unflat_items, groupxs):
     """ takes unflat_list and flat group indices. Returns the unflat grouping """
-    flat_items = np.array(utool.flatten(unflat_items))
+    flat_items = np.array(ut.flatten(unflat_items))
     item_groups = apply_grouping(flat_items, groupxs)
     return item_groups
     #itemxs_iter = [[count] * len(idx2_groupid) for count, idx2_groupid in enumerate(groupids_list)]
@@ -889,7 +888,7 @@ def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False
         items_list (list): value_i is a list that corresponds to outer_keys_i
 
     Returns:
-        utool.ddict of dicts: outerkey2_innerkey2_items
+        ut.ddict of dicts: outerkey2_innerkey2_items
 
     Examples:
         >>> from vtool.clustering2 import *  # NOQA
@@ -898,7 +897,7 @@ def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False
         >>> items_list = [[1, 2, 3], [4], [5, 6], [7]]
         >>> ensure_numpy = True
         >>> outerkey2_innerkey2_items = double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy)
-        >>> print(utool.dict_str(outerkey2_innerkey2_items))
+        >>> print(ut.dict_str(outerkey2_innerkey2_items))
         {
             10: {300: array([6]), 100: array([1])},
             20: {400: array([7]), 100: array([2, 3])},
@@ -907,7 +906,7 @@ def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False
 
         >>> from vtool.clustering2 import *  # NOQA
         >>> len_ = 3000
-        >>> incrementer = utool.make_incrementer()
+        >>> incrementer = ut.make_incrementer()
         >>> nOuterList = [np.random.randint(300) for _ in range(len_)]
         >>> # Define big double_group input
         >>> inner_key_list = np.random.randint(100, size=len_) * 1000 + 1000
@@ -915,8 +914,8 @@ def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False
         >>> items_list = [np.array([incrementer() for _ in range(nOuter_)]) for nOuter_ in nOuterList]
         >>> ensure_numpy = False
         >>> outerkey2_innerkey2_items = double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy)
-        >>> print(utool.dict_str(outerkey2_innerkey2_items))
-        >>> print(utool.dict_str(outerkey2_innerkey2_items[0]))
+        >>> print(ut.dict_str(outerkey2_innerkey2_items))
+        >>> print(ut.dict_str(outerkey2_innerkey2_items[0]))
 
     Timeit:
         %timeit double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy)
@@ -925,7 +924,7 @@ def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False
         inner_key_list = np.array(inner_key_list)
         outer_keys_list = np.array(map(np.array, outer_keys_list))
         items_list = np.array(map(np.array, items_list))
-    outerkey2_innerkey2_items = utool.ddict(dict)
+    outerkey2_innerkey2_items = ut.ddict(dict)
     _iter =  zip(inner_key_list, outer_keys_list, items_list)
     for inner_key, outer_keys, items in _iter:
         group_outerkeys, groupxs = group_indices(outer_keys)
@@ -933,7 +932,7 @@ def double_group(inner_key_list, outer_keys_list, items_list, ensure_numpy=False
         for outer_key, subitems in zip(group_outerkeys, subitem_iter):
             outerkey2_innerkey2_items[outer_key][inner_key] = subitems
     return outerkey2_innerkey2_items
-    #daid2_wx2_drvecs = utool.ddict(lambda: utool.ddict(list))
+    #daid2_wx2_drvecs = ut.ddict(lambda: ut.ddict(list))
     #for wx, aids, rvecs in zip(wx_sublist, aids_list, rvecs_list1):
     #    group_aids, groupxs = clustertool.group_indices(aids)
     #    rvecs_group = clustertool.apply_grouping(rvecs, groupxs)
@@ -966,7 +965,7 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     """
     # http://www.janeriksolem.net/2012/03/isomap-with-scikit-learn.html
     if __debug__ and False:
-        utool.printex(Exception('INFO'), keys=[
+        ut.printex(Exception('INFO'), keys=[
             (type, 'data'),
             'data',
             'data.shape',
@@ -1012,12 +1011,12 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
     clus_colors = np.array(df2.distinct_colors(nCentroids, brightness=.95))
     assert labels != 'centroids' or nColors == K
     if __debug__ and False:
-        utool.printex(Exception('INFO'), keys=[
+        ut.printex(Exception('INFO'), keys=[
             'colors',
-            (utool.get_stats, 'colors'),
+            (ut.get_stats, 'colors'),
             'colors.shape',
             'datax2_label',
-            (utool.get_stats, 'datax2_label'),
+            (ut.get_stats, 'datax2_label'),
             'datax2_label.shape',
         ])
     assert len(datax2_label.shape) == 1, repr(datax2_label.shape)
@@ -1044,7 +1043,6 @@ def plot_centroids(data, centroids, num_pca_dims=3, whiten=False,
         ax.set_aspect('equal')
         df2.dark_background(ax)
         #ax.set_alpha(.1)
-        #utool.embed()
         #ax.set_frame_on(False)
     ax = df2.plt.gca()
     waswhitestr = ' +whitening' * whiten
