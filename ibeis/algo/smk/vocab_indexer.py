@@ -773,7 +773,7 @@ class InvertedAnnots2(object):
 
     def _assert_self(inva, qreq_):
         nfeat_list1 = ibs.get_annot_num_feats(aids, config2_=qreq_.qparams)
-        nfeat_list2 =
+        # nfeat_list2 =
         pass
 
     def __getstate__(inva):
