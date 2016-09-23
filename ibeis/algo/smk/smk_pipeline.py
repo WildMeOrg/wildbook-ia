@@ -457,7 +457,7 @@ def sep_match_scores(X, Y, X_idx, Y_idx, alpha, thresh):
     scores_list = []
     _iter = zip(phisX_list, phisY_list, flagsX_list, flagsY_list)
     for phisX, phisY, flagsX, flagsY in _iter:
-        u = (phisX * phisY).sum(axis=1)
+        u = phisX.dot(phisY.T)
         flags = np.logical_or(flagsX.T[0], flagsY.T[0])
         u[flags] = 1
         scores = selectivity(u, alpha, thresh, out=u)
