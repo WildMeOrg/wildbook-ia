@@ -116,6 +116,11 @@ class SMKRequest(mc5.EstimatorRequest):
         qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
 
     def ensure_data(qreq_):
+        """
+            >>> import ibeis
+            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford',
+            >>>                              p='default:proot=smk,nAssign=1,num_words=64000,sv_on=False')
+        """
         print('Ensure data for %s' % (qreq_,))
 
         memtrack = ut.MemoryTracker()

@@ -176,6 +176,7 @@ class VisualVocab(ut.NiceRepr):
         else:
             idx_to_wxs = _idx_to_wx.tolist()
             idx_to_maws = [[1.0]] * len(idx_to_wxs)
+
         return idx_to_wxs, idx_to_maws
 
     def invert_assignment(vocab, idx_to_wxs, idx_to_maws, verbose=False):
@@ -194,6 +195,7 @@ class VisualVocab(ut.NiceRepr):
         idxs_list = vt.apply_jagged_grouping(jagged_idxs, groupxs)
         wx_to_idxs = dict(zip(wx_keys, idxs_list))
         maws_list = vt.apply_jagged_grouping(idx_to_maws, groupxs)
+        maws_list = [np.array(maws, dtype=np.float32) for maws in maws_list]
         wx_to_maws = dict(zip(wx_keys, maws_list))
         if verbose:
             print('[vocab] L___ End Assign vecs to words.')
@@ -315,7 +317,7 @@ def compute_rvec(vecs, word):
     rvecs = np.subtract(word.astype(np.float), vecs.astype(np.float))
     # If a vec is a word then the residual is 0 and it cant be L2 noramlized.
     is_zero = np.all(rvecs == 0, axis=1)
-    vt.normalize_rows(rvecs, out=rvecs)
+    vt.normalize(rvecs, axis=1, out=rvecs)
     # reset these values back to zero
     if np.any(is_zero):
         rvecs[is_zero, :] = 0
@@ -329,28 +331,36 @@ def compute_rvec(vecs, word):
 def aggregate_rvecs(rvecs, maws, error_flags):
     r"""
     Compute aggregated residual vectors Phi(X_c)
+
+        >>> rvecs = np.array([[ 0.30151134,  0.90453403, -0.30151134],
+        >>>                   [ 0.70710678,  0.        , -0.70710678]])
+        >>> maws = np.array([.1, .7])
+        >>> error_flags = np.array([False, False])
+        >>> agg_rvec, agg_flag = aggregate_rvecs(rvecs, maws, error_flags)
     """
     # Propogate errors from previous step
-    flags_agg = np.any(error_flags, axis=0, keepdims=True)
+    agg_flag = np.any(error_flags, axis=0)
     if rvecs.shape[0] == 0:
-        rvecs_agg = np.empty((0, rvecs.shape[1]), dtype=np.float)
+        raise ValueError('cannot compute without rvecs')
     if rvecs.shape[0] == 1:
-        rvecs_agg = rvecs
+        # Efficiency shortcut
+        agg_rvec = rvecs
     else:
-        # Prealloc sum output (do not assign the result of sum)
-        rvecs_agg = np.empty((1, rvecs.shape[1]), dtype=np.float)
-        out = rvecs_agg[0]
+        # Prealloc residual vector
+        agg_rvec = np.empty(rvecs.shape[1], dtype=np.float)
+        out = agg_rvec
+
         # Take weighted average of multi-assigned vectors
-        weighted_sum = (maws[:, None] * rvecs).sum(axis=0, out=out)
-        total_weight = maws.sum()
-        is_zero = np.all(rvecs_agg == 0, axis=1)
-        rvecs_agg = np.divide(weighted_sum, total_weight, out=rvecs_agg)
-        vt.normalize_rows(rvecs_agg, out=rvecs_agg)
-        if np.any(is_zero):
-            # Add in errors from this step
-            rvecs_agg[is_zero, :] = 0
-            flags_agg[is_zero] = True
-    return rvecs_agg, flags_agg
+        coeff = np.divide(maws, maws.sum())[:, None]
+        agg_rvec = (coeff * rvecs).sum(axis=0, out=out)
+        is_zero = np.all(agg_rvec == 0)
+
+        # Renormalize
+        vt.normalize(agg_rvec, axis=0, out=agg_rvec)
+
+        if is_zero:
+            agg_flag = True
+    return agg_rvec, agg_flag
 
 
 def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
@@ -600,7 +610,7 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
     Example:
         >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
         >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford')
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford', p='default:proot=smk,nAssign=1,num_words=64000')
         >>> config = {'num_words': 64000, 'nAssign': 1, 'int_rvec': True}
         >>> depc = qreq_.ibs.depc
         >>> daids = qreq_.daids
@@ -635,7 +645,8 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
     print('Building residual args')
     worker = parprep_agg_phi_worker
     args_gen = parprep_agg_phi_args(vocab, vecs_list, nAssign, int_rvec)
-    args_gen = [args for args in ut.ProgIter(args_gen, nTotal=len(vecs_list), lbl='building args')]
+    args_gen = [args for args in ut.ProgIter(args_gen, nTotal=len(vecs_list),
+                                             lbl='building args')]
     nprocs = ut.num_unused_cpus(thresh=10) - 1
     print('Creatinmg process pools')
     executor = futures.ProcessPoolExecutor(nprocs)
@@ -650,16 +661,22 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
 
 
 def parprep_agg_phi_args(vocab, vecs_list, nAssign, int_rvec):
-    for fx_to_vecs in vecs_list:
-        fx_to_wxs, fx_to_maws = vocab.assign_to_words(fx_to_vecs, nAssign)
-        wx_to_fxs, wx_to_maws = vocab.invert_assignment(fx_to_wxs, fx_to_maws)
-        wx_list = sorted(wx_to_fxs.keys())
-
-        word_list = ut.take(vocab.wx_to_word, wx_list)
-        fxs_list = ut.take(wx_to_fxs, wx_list)
-        maws_list = ut.take(wx_to_maws, wx_list)
-        argtup = wx_list, word_list, fxs_list, maws_list, fx_to_vecs, int_rvec
+    for vecs in vecs_list:
+        argtup = single_phi_args(vocab, vecs, nAssign, int_rvec)
         yield argtup
+
+
+def single_phi_args(vocab, vecs, nAssign, int_rvec):
+    fx_to_vecs = vecs
+    fx_to_wxs, fx_to_maws = vocab.assign_to_words(fx_to_vecs, nAssign)
+    wx_to_fxs, wx_to_maws = vocab.invert_assignment(fx_to_wxs, fx_to_maws)
+    wx_list = sorted(wx_to_fxs.keys())
+
+    word_list = ut.take(vocab.wx_to_word, wx_list)
+    fxs_list = ut.take(wx_to_fxs, wx_list)
+    maws_list = ut.take(wx_to_maws, wx_list)
+    argtup = wx_list, word_list, fxs_list, maws_list, fx_to_vecs, int_rvec
+    return argtup
 
 
 def parprep_agg_phi_worker(argtup):
@@ -672,18 +689,21 @@ def parprep_agg_phi_worker(argtup):
 
     #for idx, wx in enumerate(wx_list):
     for idx in range(len(wx_list)):
+        # wx = wx_list[idx]
         word = word_list[idx]
         fxs = fxs_list[idx]
         maws = maws_list[idx]
         vecs = fx_to_vecs.take(fxs, axis=0)
 
         _rvecs, _flags = compute_rvec(vecs, word)
-        _agg_rvecs, _agg_flags = aggregate_rvecs(_rvecs, maws, _flags)
+        # rvecs = _rvecs  # NOQA
+        # error_flags = _flags  # NOQA
+        _agg_rvec, _agg_flag = aggregate_rvecs(_rvecs, maws, _flags)
         # Cast to integers for storage
         if int_rvec:
-            _agg_rvecs = cast_residual_integer(_agg_rvecs)
-        agg_rvecs[idx] = _agg_rvecs[0]
-        agg_flags[idx] = _agg_flags[0]
+            _agg_rvec = cast_residual_integer(_agg_rvec)
+        agg_rvecs[idx] = _agg_rvec
+        agg_flags[idx] = _agg_flag
 
     tup = (wx_list, fxs_list, maws_list, agg_rvecs, agg_flags)
     return tup
@@ -970,6 +990,31 @@ class SingleAnnot2(object):
             PhiX = uncast_residual_integer(PhiX)
         flags = X.agg_flags[idx]
         return PhiX, flags
+
+    def _assert_self(X, qreq_):
+        import utool as ut
+        all_fxs = sorted(ut.flatten(X.fxs_list))
+        assert len(all_fxs) > all_fxs[-1]
+        assert (len(all_fxs) ==
+                qreq_.ibs.get_annot_num_feats(X.aid, qreq_.config))
+
+        nAssign = qreq_.qparams['nAssign']
+        int_rvec = qreq_.qparams['int_rvec']
+        vocab = new_load_vocab(qreq_.ibs, qreq_.daids, qreq_.config)
+        annots = qreq_.ibs.annots([X.aid], config=qreq_.config)
+        vecs = annots.vecs[0]
+
+        argtup = single_phi_args(vocab, vecs, nAssign, int_rvec)
+        wx_list, word_list, fxs_list, maws_list, fx_to_vecs, int_rvec = argtup
+        assert np.all(X.wx_list == wx_list)
+        assert np.all([all(a == b) for a, b in zip(X.fxs_list, fxs_list)])
+        assert np.all([all(a == b) for a, b in zip(X.maws_list, maws_list)])
+        tup = parprep_agg_phi_worker(argtup)
+        (wx_list, fxs_list, maws_list, agg_rvecs, agg_flags) = tup
+        assert np.all(X.agg_rvecs == agg_rvecs)
+        assert np.all(X.agg_flags == agg_flags)
+        assert X.agg_rvecs is not agg_rvecs
+        assert X.agg_flags is not agg_flags
 
 
 def new_load_vocab(ibs, aids, config):
