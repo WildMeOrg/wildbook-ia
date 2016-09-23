@@ -1537,7 +1537,7 @@ def grab_webcam_image():
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> pt.imshow(img)
-        >>> #vt.imwrite('webcap.jpg', img)
+        >>> vt.imwrite('webcap.jpg', img)
         >>> ut.show_if_requested()
     """
     import cv2
