@@ -10,6 +10,86 @@ except ImportError:
     INSPECT_BASE = object
 
 
+def lazy_test_annot(key):
+    rchip_fpath = ut.grab_test_imgpath(key)
+    annot = ut.LazyDict({
+        'aid': key.split('.')[0],
+        'nid': key[0:4],
+        'rchip_fpath': rchip_fpath
+    })
+    return annot
+
+
+def match_inspect_graph():
+    """
+
+    CommandLine:
+        python -m vtool.inspect_matches match_inspect_graph --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.inspect_matches import *  # NOQA
+        >>> import vtool as vt
+        >>> gt.ensure_qapp()
+        >>> ut.qt4ensure()
+        >>> self = match_inspect_graph()
+        >>> self.show()
+        >>> ut.quit_if_noshow()
+        >>> self.update()
+        >>> gt.qtapp_loop(qwin=self, freq=10)
+    """
+    import vtool as vt
+    annots = [lazy_test_annot('easy1.png'),
+              lazy_test_annot('easy2.png'),
+              lazy_test_annot('easy3.png'),
+              lazy_test_annot('zebra.png'),
+              lazy_test_annot('hard3.png')]
+    matches = [vt.PairwiseMatch(a1, a2) for a1, a2 in ut.combinations(annots, 2)]
+    self = MultiMatchInspector(matches=matches)
+    return self
+
+
+class MultiMatchInspector(INSPECT_BASE):
+
+    def initialize(self, matches):
+        self.matches = matches
+
+        self.splitter = self.addNewSplitter(orientation='horiz')
+        # tab_widget = self.addNewTabWidget(verticalStretch=1)
+        # self.edge_tab = tab_widget.addNewTab('Edges')
+        # self.match_tab = tab_widget.addNewTab('Matches')
+
+        self.edge_api_widget = gt.APIItemWidget(
+            doubleClicked=self.edge_doubleclick)
+        self.match_inspector = MatchInspector(match=None)
+
+        self.splitter.addWidget(self.edge_api_widget)
+        self.splitter.addWidget(self.match_inspector)
+
+        self.populate_edge_model()
+
+    def edge_doubleclick(self, qtindex):
+        row = qtindex.row()
+        match = self.matches[row]
+        self.match_inspector.set_match(match)
+
+    def populate_edge_model(self):
+        edge_api = gt.CustomAPI(
+            col_name_list=['index', 'aid1', 'aid2'],
+            col_getter_dict={
+                'index': list(range(len(self.matches))),
+                'aid1': [m.annot1['aid'] for m in self.matches],
+                'aid2': [m.annot2['aid'] for m in self.matches],
+            }, sort_reverse=False)
+        headers = edge_api.make_headers(tblnice='Edges')
+        self.edge_api_widget.change_headers(headers)
+        self.edge_api_widget.resize_headers(edge_api)
+        self.edge_api_widget.view.verticalHeader().setVisible(True)
+        # self.edge_api_widget.view.verticalHeader().setDefaultSectionSize(24)
+        # self.edge_api_widget.view.verticalHeader().setDefaultSectionSize(221)
+        # self.edge_tab.setTabText('Matches (%r)' % (self.edge_api_widget.model.num_rows_total))
+
+
 class MatchInspector(INSPECT_BASE):
     """
     CommandLine:
@@ -17,54 +97,51 @@ class MatchInspector(INSPECT_BASE):
 
     Example:
         >>> from vtool.inspect_matches import *  # NOQA
+        >>> import vtool as vt
         >>> gt.ensure_qapp()
         >>> ut.qt4ensure()
-        >>> rchip_fpath1 = ut.grab_test_imgpath('easy1.png')
-        >>> rchip_fpath2 = ut.grab_test_imgpath('easy2.png')
-        >>> metadata = ut.LazyDict()
-        >>> metadata['annot1'] = ut.LazyDict()
-        >>> metadata['annot2'] = ut.LazyDict()
-        >>> metadata['annot1']['rchip_fpath'] = rchip_fpath1
-        >>> metadata['annot2']['rchip_fpath'] = rchip_fpath2
-        >>> self = MatchInspector(metadata=metadata)
+        >>> annot1 = lazy_test_annot('easy1.png')
+        >>> annot2 = lazy_test_annot('easy2.png')
+        >>> match = vt.PairwiseMatch(annot1, annot2)
+        >>> self = MatchInspector(match=match)
         >>> self.show()
         >>> ut.quit_if_noshow()
         >>> self.update()
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
 
-    def initialize(self, metadata):
-        self.metadata = metadata
+    def set_match(self, match=None):
+        self.match = match
+        self.update()
+
+    def initialize(self, match):
+        self.match = match
         self._setup_configs()
         self._setup_layout()
 
-    def _setup_configs(self):
+    def _new_confg_widget(self, cfg, changed=None):
         from guitool import PrefWidget2
+        user_mode = 0
+        cfg_widget = PrefWidget2.EditConfigWidget(
+            config=cfg, user_mode=user_mode, parent=self, changed=changed)
+        return cfg_widget
+
+    def _setup_configs(self):
         from vtool import matching
         import dtool
 
-        class TmpVsoneConfig(dtool.Config):
-            _param_info_list = (
-                matching.VSONE_DEFAULT_CONFIG
-            )
-        self.config = TmpVsoneConfig()
+        TmpVsOneConfig = dtool.from_param_info_list(
+            matching.VSONE_DEFAULT_CONFIG)
+        self.config = TmpVsOneConfig()
+        self.config_widget = self._new_confg_widget(
+            self.config, changed=self.on_cfg_changed)
 
-        class TmpDisplayConfig(dtool.Config):
-            _param_info_list = [
-                ut.ParamInfo('show_homog', False)
-            ]
+        TmpDisplayConfig = dtool.from_param_info_list([
+            ut.ParamInfo('show_homog', False)
+        ])
         self.disp_config = TmpDisplayConfig()
-
-        def new_confg_widget(cfg, changed=None):
-            user_mode = 0
-            cfg_widget = PrefWidget2.EditConfigWidget(
-                config=cfg, user_mode=user_mode, parent=self, changed=changed)
-            return cfg_widget
-
-        self.config_widget = new_confg_widget(self.config,
-                                              changed=self.on_cfg_changed)
-        self.disp_config_widget = new_confg_widget(self.disp_config,
-                                                   changed=self.on_cfg_changed)
+        self.disp_config_widget = self._new_confg_widget(
+            self.disp_config, changed=self.on_cfg_changed)
 
     def _setup_layout(self):
         self.mpl_widget = MatplotlibWidget()
@@ -79,38 +156,17 @@ class MatchInspector(INSPECT_BASE):
         splitter.addWidget(self.mpl_widget)
 
     def execute_vsone(self):
-        from vtool import matching
         print('Execute vsone')
         cfgdict = self.config.asdict()
-        print('cfgdict = %s' % (ut.repr2(cfgdict),))
-        metadata = self.metadata
-        match = matching.vsone_matching(metadata, cfgdict)
 
-        import plottool as pt
-        annot1 = self.metadata['annot1']
-        annot2 = self.metadata['annot2']
-        rchip1, kpts1, vecs1 = ut.dict_take(annot1, ['rchip', 'kpts', 'vecs'])
-        rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['rchip', 'kpts', 'vecs'])
-        type_ = 'RAT+SV'
-        fm, fs = match.matches[type_][0:2]
+        match = self.match
+        match.apply_all(cfgdict)
 
-        if self.disp_config['show_homog']:
-            H1 = metadata['H_' + type_.split('+')[0]]
-        else:
-            H1 = None
-
-        #fsv = fs[:, None]
-        fig = self.mpl_widget.fig
+        self.mpl_widget.clf()
         ax = self.mpl_widget.ax
-        ax.cla()
-        #fig.clf()
-        print('fm = %r' % (len(fm),))
-        ax, xywh1, xywh2 = pt.show_chipmatch2(
-            rchip1, rchip2, kpts1, kpts2, fm, fs, H1=H1,
-            ax=ax, colorbar_=False,
-        )
+        match.show(ax=ax, **self.disp_config)
         #fig.show()
-        fig.canvas.draw()
+        self.mpl_widget.fig.canvas.draw()
 
     def update(self):
         print('update')
@@ -128,7 +184,6 @@ class MatplotlibWidget(INSPECT_BASE):
 
     def initialize(self):
         import plottool as pt
-        from plottool.interactions import zoom_factory, pan_factory
         #from plottool import interact_helpers as ih
         from plottool import abstract_interaction
         from guitool import __PYQT__
@@ -137,27 +192,32 @@ class MatplotlibWidget(INSPECT_BASE):
         else:
             import matplotlib.backends.backend_qt5agg as backend_qt
         FigureCanvas = backend_qt.FigureCanvasQTAgg
-
         self.fig = pt.plt.figure()
         self.fig._no_raise_plottool = True
         self.canvas = FigureCanvas(self.fig)
-
+        self.addWidget(self.canvas)
         #self.canvas.manager = ut.DynStruct()
         #self.canvas.manager.window = self
-
-        self.ax = self.fig.add_subplot(1, 1, 1)
-        #self.ax.plot([1, 2, 3], [1, 2, 3])
-        self.addWidget(self.canvas)
-
-        self.pan_events = pan_factory(self.ax)
-        self.zoon_events = zoom_factory(self.ax)
+        self.reset_ax()
         #ih.connect_callback(self.fig, 'button_press_event', self.on_click)
         #ih.connect_callback(self.fig, 'draw_event', self.draw_callback)
         #ih.connect_callback(self.fig, 'pick_event', self.on_pick)
-
         self.MOUSE_BUTTONS = abstract_interaction.AbstractInteraction.MOUSE_BUTTONS
         self.setMinimumHeight(20)
         self.setMinimumWidth(20)
+
+    def clf(self):
+        self.fig.clf()
+        self.reset_ax()
+
+    def reset_ax(self):
+        # from plottool.interactions import zoom_factory, pan_factory
+        self.ax = self.fig.add_subplot(1, 1, 1)
+        import plottool as pt
+        pt.adjust_subplots2(left=0, right=1, top=1, bottom=0)
+        # self.pan_events = pan_factory(self.ax)
+        # self.zoon_events = zoom_factory(self.ax)
+        return self.ax
 
     #def on_click(self, event):
     #    from plottool import interact_helpers as ih

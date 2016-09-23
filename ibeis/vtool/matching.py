@@ -51,10 +51,14 @@ class PairwiseMatch(ut.NiceRepr):
         match._inplace_default = False
 
     def __nice__(match):
-        if match.fm is None:
-            return 'None'
-        else:
-            return '%s' % (len(match),)
+        parts = []
+        if 'aid' in match.annot1:
+            aid1 = match.annot1['aid']
+            aid2 = match.annot2['aid']
+            vsstr = '%s-vs-%s' % (aid1, aid2)
+            parts.append(vsstr)
+        parts.append('None' if match.fm is None else len(match.fm))
+        return ' '.join(parts)
 
     def __len__(match):
         if match.fm is not None:
@@ -170,6 +174,14 @@ class PairwiseMatch(ut.NiceRepr):
         else:
             return flags
 
+    def apply_all(match, cfgdict):
+        match.H_21 = None
+        match.H_12 = None
+        match.assign(cfgdict)
+        match.apply_ratio_test(cfgdict, inplace=True)
+        if cfgdict['sv_on']:
+            match.apply_sver(cfgdict, inplace=True)
+
     def apply_ratio_test(match, cfgdict={}, inplace=None):
         flags = match.ratio_test_flags(cfgdict)
         match_ = match.compress(flags, inplace=inplace)
@@ -181,7 +193,7 @@ class PairwiseMatch(ut.NiceRepr):
         match_.H_12 = H_12
         return match_
 
-    def show(match, show_homog=False):
+    def show(match, ax=None, show_homog=False):
         import plottool as pt
         annot1 = match.annot1
         annot2 = match.annot2
@@ -194,7 +206,7 @@ class PairwiseMatch(ut.NiceRepr):
         # H2 = match.H_21 if show_homog else None
 
         ax, xywh1, xywh2 = pt.show_chipmatch2(
-            rchip1, rchip2, kpts1, kpts2, fm, fs, colorbar_=False, H1=H1
+            rchip1, rchip2, kpts1, kpts2, fm, fs, colorbar_=False, H1=H1, ax=ax
         )
         return ax, xywh1, xywh2
 
