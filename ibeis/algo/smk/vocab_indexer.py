@@ -698,9 +698,12 @@ class InvertedAnnots2(object):
     >>> config = qreq_.qparams
     >>> ibs = qreq_.ibs
     >>> depc = qreq_.ibs.depc
+    >>> aids = qreq_.daids
     >>> aids = qreq_.qaids
-    >>> input_tuple = (daids, [daids])
+    >>> input_tuple = (aids, [qreq_.daids])
     >>> inva = ut.DynStruct()
+
+    >>> inva = InvertedAnnots2(aids, qreq_)
     """
 
     def __init__(inva, aids, qreq_):
@@ -726,17 +729,18 @@ class InvertedAnnots2(object):
         if True:
             with ut.Timer('Formating inverted assigments2'):
                 inva.aids = aids
+                table.default_to_unpack = True
                 # 431.61 vs 143.87 MB here
-                inva.wx_lists = [np.array(wx_list_[0], dtype=np.int32)
-                                 for wx_list_ in table.get_row_data(tbl_rowids, ('wx_list',), showprog=True)]
+                inva.wx_lists = [np.array(wx_list_, dtype=np.int32)
+                                 for wx_list_ in table.get_row_data(tbl_rowids, ('wx_list',), showprog='load wxs')]
                 # Is this better to use?
-                inva.fxs_lists = [[np.array(fxs, dtype=np.uint16) for fxs in fxs_list[0]]
-                                  for fxs_list in table.get_row_data(tbl_rowids, ('fxs_list',), showprog=True)]
+                inva.fxs_lists = [[np.array(fxs, dtype=np.uint16) for fxs in fxs_list]
+                                  for fxs_list in table.get_row_data(tbl_rowids, ('fxs_list',), showprog='load fxs')]
                 # [ut.lmap(np.array, fx_list) for fx_list in x.fxs_lists]
-                inva.maws_lists = [[np.array(m, dtype=np.float32) for m in maws[0]]
-                                   for maws in table.get_row_data(tbl_rowids, ('maws_list',), showprog=True)]
-                inva.agg_rvecs = ut.take_column(table.get_row_data(tbl_rowids, ('agg_rvecs',), showprog=True), 0)
-                inva.agg_flags = ut.take_column(table.get_row_data(tbl_rowids, ('agg_flags',), showprog=True), 0)
+                inva.maws_lists = [[np.array(m, dtype=np.float32) for m in maws]
+                                   for maws in table.get_row_data(tbl_rowids, ('maws_list',), showprog='load maws')]
+                inva.agg_rvecs = table.get_row_data(tbl_rowids, ('agg_rvecs',), showprog='load agg_rvecs')
+                inva.agg_flags = table.get_row_data(tbl_rowids, ('agg_flags',), showprog='load agg_flags')
                 # less memory hogs
                 inva.aid_to_idx = ut.make_index_lookup(inva.aids)
                 inva.int_rvec = qreq_.qparams.int_rvec
@@ -772,9 +776,17 @@ class InvertedAnnots2(object):
                 inva.wx_to_aids = None
 
     def _assert_self(inva, qreq_):
-        nfeat_list1 = ibs.get_annot_num_feats(aids, config2_=qreq_.qparams)
-        # nfeat_list2 =
-        pass
+        ibs = qreq_.ibs
+        assert len(inva.aids) == len(inva.wx_lists)
+        assert len(inva.aids) == len(inva.fxs_lists)
+        assert len(inva.aids) == len(inva.maws_lists)
+        assert len(inva.aids) == len(inva.agg_rvecs)
+        assert len(inva.aids) == len(inva.agg_flags)
+        nfeat_list1 = ibs.get_annot_num_feats(inva.aids, config2_=qreq_.qparams)
+        nfeat_list2 = [sum(ut.lmap(len, fx_list)) for fx_list in inva.fxs_lists]
+        nfeat_list3 = [sum(ut.lmap(len, maws)) for maws in inva.maws_lists]
+        ut.assert_lists_eq(nfeat_list1, nfeat_list2)
+        ut.assert_lists_eq(nfeat_list1, nfeat_list3)
 
     def __getstate__(inva):
         state = inva.__dict__
