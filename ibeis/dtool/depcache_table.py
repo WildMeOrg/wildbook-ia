@@ -393,7 +393,7 @@ class _TableDebugHelper(object):
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache2 import testdata_depc3
             >>> depc = testdata_depc3()
-            >>> tablenames = ['neighbs', 'indexer']
+            >>> tablenames = ['labeler', 'vsone', 'neighbs', 'indexer']
             >>> for table in ut.take(depc, tablenames): # .tables:
             >>>     table.print_internal_info()
         """
@@ -488,17 +488,6 @@ class _TableDebugHelper(object):
             print('rowid = %r' % (rowid,))
             print(ut.repr3(table.get_model_inputs(uuid), nl=1))
 
-
-@ut.reloadable_class
-class _TableGeneralHelper(ut.NiceRepr):
-    """ helper """
-
-    def __nice__(table):
-        num_parents = len(table.parent_tablenames)
-        num_cols = len(table.data_colnames)
-        return '(%s) nP=%d%s nC=%d' % (table.tablename, num_parents, '*' if
-                                       False and table.ismulti else '', num_cols)
-
     def _assert_self(table):
         assert len(table.data_colnames) == len(table.data_coltypes), (
             'specify same number of colnames and coltypes')
@@ -549,6 +538,348 @@ class _TableGeneralHelper(ut.NiceRepr):
                     args. IE: You need a default __init__(self) method
                     ''')
                 raise AssertionError(msg)
+
+
+@ut.reloadable_class
+class _TableInternalSetup(ut.NiceRepr):
+    """ helper that sets up column information """
+
+    def _infer_datacol(table):
+        """
+        Constructs the columns needed to represent relationship to data
+
+        Infers interal properties about this table given the colnames and
+        datatypes
+
+        CommandLine:
+            python -m dtool.depcache_table --exec-_infer_datacol --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache import testdata_depc
+            >>> depc = testdata_depc()
+            >>> for table in depc.tables:
+            >>>     print('----')
+            >>>     table._infer_datacol()
+            >>>     print(table)
+            >>>     print('table.data_col_attrs = %s' %
+            >>>           ut.repr3(table.data_col_attrs, nl=8))
+            >>> table = depc['probchip']
+            >>> table = depc['spam']
+            >>> table = depc['vsone']
+        """
+        data_col_attrs = []
+
+        # Parse column datatypes
+        _iter = enumerate(zip(table.data_colnames, table.data_coltypes))
+        for data_colx, (colname, coltype) in _iter:
+            colattr = ut.odict()
+            # Check column input subtypes
+            is_tuple     = isinstance(coltype, tuple)
+            is_func      = ut.is_func_or_method(coltype)
+            is_externtup = is_tuple and coltype[0] == 'extern'
+            is_functup   = is_tuple and ut.is_func_or_method(coltype[0])
+            is_exttype   = isinstance(coltype, ExternType)
+            # Check column input main types
+            is_normal   = coltype in lite.TYPE_TO_SQLTYPE
+            #is_normal   = not (is_tuple or is_func)
+            isnested   = is_tuple and not (is_func or is_externtup)
+            is_external = (is_func or is_functup or is_externtup or is_exttype)
+            # Switch on input types
+            colattr['colname'] = colname
+            colattr['coltype'] = coltype
+            colattr['data_colx'] = data_colx
+            if is_normal:
+                # Normal non-nested column
+                sqltype = lite.TYPE_TO_SQLTYPE[coltype]
+                colattr['intern_colname'] = colname
+                colattr['sqltype'] = sqltype
+                colattr['is_normal'] = is_normal
+            elif isnested:
+                # Nested non-function normal columns
+                colattr['isnested'] = isnested
+                nestattrs = colattr['nestattrs'] = []
+                for count, subtype in enumerate(coltype):
+                    nestattr = ut.odict()
+                    nestattrs.append(nestattr)
+                    flat_colname = '%s_%d' % (colname, count)
+                    sqltype = lite.TYPE_TO_SQLTYPE[subtype]
+                    nestattr['flat_colname'] = flat_colname
+                    nestattr['sqltype'] = sqltype
+            elif is_external:
+                # Nested external funcs
+                write_func = None
+                if is_exttype:
+                    read_func = coltype.read_func
+                    write_func = coltype.write_func
+                    if coltype.extern_ext is not None:
+                        colattr['extern_ext'] = coltype.extern_ext
+                    if coltype.extkey is not None:
+                        colattr['extkey'] = coltype.extkey
+                elif is_externtup:
+                    read_func = coltype[1]
+                    if len(coltype) > 2:
+                        write_func = coltype[2]
+                    if len(coltype) > 3:
+                        colattr['extern_ext'] = coltype[3]
+                elif is_functup:
+                    read_func = coltype[0]
+                else:
+                    read_func = coltype
+                intern_colname = colname + EXTERN_SUFFIX
+                sqltype = lite.TYPE_TO_SQLTYPE[str]
+                colattr['is_external'] = True
+                colattr['intern_colname'] = intern_colname
+                colattr['write_func'] = write_func
+                colattr['read_func'] = read_func
+                colattr['sqltype'] = sqltype
+            else:
+                # External class column
+                assert (hasattr(coltype, '__getstate__') and
+                        hasattr(coltype, '__setstate__')), (
+                            'External classes must have __getstate__ and '
+                            '__setstate__ methods')
+                read_func, write_func = make_extern_io_funcs(table, coltype)
+                sqltype = lite.TYPE_TO_SQLTYPE[str]
+                intern_colname = colname + EXTERN_SUFFIX
+                #raise AssertionError('external class columns')
+                colattr['is_external'] = True
+                colattr['is_external_class'] = True
+                colattr['coltype'] = coltype
+                colattr['intern_colname'] = intern_colname
+                colattr['write_func'] = write_func
+                colattr['read_func'] = read_func
+                colattr['sqltype'] = sqltype
+            data_col_attrs.append(colattr)
+        return data_col_attrs
+
+    def _infer_parentcol(table):
+        """
+        construct columns to represent relationship to parent
+
+        CommandLine:
+            python -m dtool.depcache_table _infer_parentcol --show
+
+        Returns:
+            list: list of dictionaries for each parent
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache2 import testdata_depc3
+            >>> depc = testdata_depc3()
+            >>> table = depc['indexer']
+            >>> table = depc['neighbs']
+            >>> parent_col_attrs = table._infer_parentcol()
+            >>> result = ('parent_col_attrs = %s' % (ut.repr2(parent_col_attrs, nl=2),))
+            >>> print(result)
+
+        Ignore:
+            >>> from dtool.depcache_table import *  # NOQA
+            >>> from dtool.example_depcache2 import testdata_depc3
+            >>> depc = testdata_depc3()
+            >>> depc.d.get_indexer_data([1, 2, 3])
+            >>> import uuid
+            >>> depc.d.get_indexer_data([uuid.UUID('a01eda32-e4e0-b139-3274-e91d1b3e9ecf')])
+
+
+        """
+        parent_tablenames = table.parent_tablenames
+        parent_col_attrs = []
+
+        # Handle dependencies when a parent are pairwise between tables
+        parent_id_prefixs1 = []
+        parent_id_prefixs2 = []
+        seen_ = ut.ddict(lambda: 1)
+
+        for parent_colx, col in enumerate(parent_tablenames):
+            colattr = ut.odict()
+            # Detect multicolumns
+            if col.endswith('*'):
+                ismulti = True
+                parent_table = col[:-1]
+            else:
+                ismulti = False
+                parent_table = col
+            colattr['col'] = col
+            colattr['ismulti'] = ismulti
+            colattr['parent_table'] = parent_table
+            colattr['parent_colx'] = parent_colx
+            parent_id_prefixs1.append(parent_table)
+            parent_col_attrs.append(colattr)
+
+        colhist = ut.dict_hist(parent_id_prefixs1)
+        for parent_colx, col in enumerate(parent_id_prefixs1):
+            colattr = parent_col_attrs[parent_colx]
+            if colhist[col] > 1:
+                # Duplicate column names recieve indicies
+                nwise_idx = seen_[col]
+                nwise_total = colhist[col]
+                prefix = col + str(nwise_idx)
+                seen_[col] += 1
+                colattr['isnwise'] = True
+                colattr['nwise_total'] = nwise_total
+                colattr['nwise_idx'] = nwise_idx
+            else:
+                prefix = col
+                colattr['isnwise'] = False
+            colattr['prefix'] = prefix
+            parent_id_prefixs2.append(prefix)
+
+        # Handle case when parent are a set of ids
+        for colattr, prefix in zip(parent_col_attrs, parent_id_prefixs2):
+            column_ismulti = colattr['ismulti']
+            if column_ismulti:
+                # Case when dependencies are many to one hash of set items
+                colname = prefix + '_setuuid'
+                sqltype = 'UUID NOT NULL'
+                INPUT_SIZE_SUFFIX = 'setsize'
+                extra_cols = []
+                extra_cols += [{
+                    'intern_colname': prefix + '_' + INPUT_SIZE_SUFFIX,
+                    'sqltype': 'INTEGER NOT NULL',
+                    #'doc': 'size of an input set for this model',
+                }]
+                # File that maintains manifest of model inputs
+                #INPUT_FPATH_SUFFIX = 'setfpath'
+                #extra_cols += [{
+                #'intern_colname': prefix + '_' + INPUT_FPATH_SUFFIX,
+                #'sqltype': 'TEXT'
+                #}]
+                colattr['extra_cols'] = extra_cols
+                #colattr['issuper'] = True
+            else:
+                # Normal case when dependencies are one to one
+                colname = prefix + '_rowid'
+                sqltype = 'INTEGER NOT NULL'
+            colattr['intern_colname'] = colname
+            colattr['sqltype'] = sqltype
+
+        parent_col_attrs = [
+            ut.order_dict_by(colattr, ['intern_colname', 'sqltype'])
+            for colattr in parent_col_attrs]
+        return parent_col_attrs
+
+    def _infer_allcol(table):
+        r"""
+        Combine information from parentcol and datacol
+        Build column definitions that will directly define SQL columns
+        """
+        internal_col_attrs = []
+
+        # Append primary column
+        colattr = ut.odict([
+            ('intern_colname', table.rowid_colname),
+            ('sqltype', 'INTEGER PRIMARY KEY'),
+            ('isprimary', True),
+        ])
+        colattr['intern_colx'] = len(internal_col_attrs)
+        internal_col_attrs.append(colattr)
+
+        # Append parent columns
+        for parent_colattr in table.parent_col_attrs:
+            colattr = ut.odict()
+            colattr['intern_colname'] = parent_colattr['intern_colname']
+            colattr['parent_table'] = parent_colattr['parent_table']
+            colattr['ismulti'] = parent_colattr['ismulti']
+            colattr['isnwise'] = parent_colattr['isnwise']
+            if colattr['isnwise']:
+                colattr['nwise_total'] = parent_colattr['nwise_total']
+                colattr['nwise_idx'] = parent_colattr['nwise_idx']
+            colattr['sqltype'] = parent_colattr['sqltype']
+            colattr['parent_colx'] = parent_colattr['parent_colx']
+            colattr['intern_colx'] = len(internal_col_attrs)
+            colattr['isparent'] = True
+            colattr['issuper'] = True
+            internal_col_attrs.append(colattr)
+
+        # Append config columns
+        colattr = ut.odict([
+            ('intern_colname', CONFIG_ROWID),
+            ('sqltype', 'INTEGER DEFAULT 0'),
+            ('issuper', True),
+        ])
+        colattr['intern_colx'] = len(internal_col_attrs)
+        internal_col_attrs.append(colattr)
+
+        # Append quick access column
+        if table.ismulti:
+            # Append model uuid column
+            colattr = ut.odict()
+            colattr['intern_colname'] = table.model_uuid_colname
+            colattr['sqltype'] = 'UUID NOT NULL'
+            colattr['intern_colx'] = len(internal_col_attrs)
+            internal_col_attrs.append(colattr)
+
+            # Append model uuid column
+            colattr = ut.odict()
+            colattr['intern_colname'] = table.is_augmented_colname
+            colattr['sqltype'] = 'INTEGER DEFAULT 0'
+            colattr['intern_colx'] = len(internal_col_attrs)
+            internal_col_attrs.append(colattr)
+
+            if False:
+                # TODO: eventually enable
+                if table.taggable:
+                    colattr = ut.odict()
+                    colattr['intern_colname'] = 'model_tag'
+                    colattr['sqltype'] = 'TEXT'
+                    colattr['intern_colx'] = len(internal_col_attrs)
+                    internal_col_attrs.append(colattr)
+                    pass
+        else:
+            # Append primary rowid column
+            pass
+
+        # Append data columns
+        for data_colattr in table.data_col_attrs:
+            colname = data_colattr['colname']
+            if data_colattr.get('isnested', False):
+                for nestcol in data_colattr['nestattrs']:
+                    colattr = ut.odict()
+                    colattr['intern_colname'] = nestcol['flat_colname']
+                    colattr['sqltype'] = nestcol['sqltype']
+                    colattr['intern_colx'] = len(internal_col_attrs)
+                    colattr['data_colx'] = data_colattr['data_colx']
+                    colattr['colname'] = colname
+                    colattr['isdata'] = True
+                    internal_col_attrs.append(colattr)
+            else:
+                colattr = ut.odict()
+                colattr['intern_colname'] = data_colattr['intern_colname']
+                colattr['sqltype'] = data_colattr['sqltype']
+                colattr['intern_colx'] = len(internal_col_attrs)
+                colattr['data_colx'] = data_colattr['data_colx']
+                colattr['isdata'] = True
+                colattr['colname'] = colname
+                if data_colattr.get('is_external', False):
+                    colattr['is_external_pointer'] = True
+                    colattr['write_func'] = data_colattr['write_func']
+                    colattr['read_func'] = data_colattr['read_func']
+                internal_col_attrs.append(colattr)
+
+        # Append extra columns
+        for parent_colattr in table.parent_col_attrs:
+            for extra_colattr in parent_colattr.get('extra_cols', []):
+                colattr = ut.odict()
+                colattr['intern_colname'] = extra_colattr['intern_colname']
+                colattr['sqltype'] = extra_colattr['sqltype']
+                colattr['intern_colx'] = len(internal_col_attrs)
+                colattr['isextra'] = True
+                internal_col_attrs.append(colattr)
+        return internal_col_attrs
+
+
+@ut.reloadable_class
+class _TableGeneralHelper(ut.NiceRepr):
+    """ helper """
+
+    def __nice__(table):
+        num_parents = len(table.parent_tablenames)
+        num_cols = len(table.data_colnames)
+        return '(%s) nP=%d%s nC=%d' % (table.tablename, num_parents, '*' if
+                                       False and table.ismulti else '', num_cols)
 
     #@property
     #def _table_colnames(table):
@@ -837,38 +1168,6 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> compute_order = table.compute_order
             >>> print('compute_order = %s' % (ut.repr3(compute_order, nl=1),))
         """
-        #expanded_input_graph = table.expanded_input_graph
-        #rootmost_inputs = table.rootmost_inputs
-        #ordered_compute_nodes = [rmi.compute_order() for rmi in rootmost_inputs]
-        ##compute_order = [[node[0] for node in nodes]
-        ##                 for nodes in ordered_compute_nodes]
-        #flat_node_order_ = ut.unique(ut.flatten(ordered_compute_nodes))
-        #topsort = list(nx.topological_sort(expanded_input_graph))
-        #toprank = ut.dict_take(ut.make_index_lookup(topsort), flat_node_order_)
-        #sortx = ut.argsort(toprank)
-        #flat_node_order = ut.take(flat_node_order_, sortx)
-
-        ## Compute which branches in the tree each node belongs to
-        #node_to_branchids = ut.group_items(*zip(*[
-        #    #(node, s[1])
-        #    (s[1], node)
-        #    for s, t in ut.product(ut.nx_source_nodes(expanded_input_graph),
-        #                           ut.nx_sink_nodes(expanded_input_graph))
-        #    for node in ut.nx_all_nodes_between(expanded_input_graph, s, t)
-        #]))
-        #branch_ids = ut.lmap(tuple, ut.dict_take(node_to_branchids, flat_node_order))
-        #tablenames = ut.take_column(flat_node_order, 0)
-        #rootmost_exi_branches = ut.dict_take(node_to_branchids, rootmost_inputs)
-        #rootmost_exi_branches = ut.lmap(tuple, rootmost_exi_branches)
-        #rootmost_tables = ut.take_column(rootmost_inputs, 0)
-        #input_compute_ids = list(zip(rootmost_tables, rootmost_exi_branches))
-
-        #depend_compute_ids = list(zip(tablenames, branch_ids))
-
-        #compute_order = {
-        #    'input_compute_ids': input_compute_ids,
-        #    'depend_compute_ids': depend_compute_ids,
-        #}
         rootmost_inputs = table.rootmost_inputs
         compute_order = rootmost_inputs.get_compute_order()
         return compute_order
@@ -916,322 +1215,6 @@ class _TableGeneralHelper(ut.NiceRepr):
                             for colattr in table.internal_col_attrs]
         colnames = tuple(ut.compress(intern_colnames, insertable_flags))
         return colnames
-
-    def _infer_datacol(table):
-        """
-        Constructs the columns needed to represent relationship to data
-
-        Infers interal properties about this table given the colnames and
-        datatypes
-
-        CommandLine:
-            python -m dtool.depcache_table --exec-_infer_datacol --show
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> for table in depc.tables:
-            >>>     print('----')
-            >>>     table._infer_datacol()
-            >>>     print(table)
-            >>>     print('table.data_col_attrs = %s' %
-            >>>           ut.repr3(table.data_col_attrs, nl=8))
-            >>> table = depc['probchip']
-            >>> table = depc['spam']
-            >>> table = depc['vsone']
-        """
-        data_col_attrs = []
-
-        # Parse column datatypes
-        _iter = enumerate(zip(table.data_colnames, table.data_coltypes))
-        for data_colx, (colname, coltype) in _iter:
-            colattr = ut.odict()
-            # Check column input subtypes
-            is_tuple     = isinstance(coltype, tuple)
-            is_func      = ut.is_func_or_method(coltype)
-            is_externtup = is_tuple and coltype[0] == 'extern'
-            is_functup   = is_tuple and ut.is_func_or_method(coltype[0])
-            is_exttype   = isinstance(coltype, ExternType)
-            # Check column input main types
-            is_normal   = coltype in lite.TYPE_TO_SQLTYPE
-            #is_normal   = not (is_tuple or is_func)
-            isnested   = is_tuple and not (is_func or is_externtup)
-            is_external = (is_func or is_functup or is_externtup or is_exttype)
-            # Switch on input types
-            colattr['colname'] = colname
-            colattr['coltype'] = coltype
-            colattr['data_colx'] = data_colx
-            if is_normal:
-                # Normal non-nested column
-                sqltype = lite.TYPE_TO_SQLTYPE[coltype]
-                colattr['intern_colname'] = colname
-                colattr['sqltype'] = sqltype
-                colattr['is_normal'] = is_normal
-            elif isnested:
-                # Nested non-function normal columns
-                colattr['isnested'] = isnested
-                nestattrs = colattr['nestattrs'] = []
-                for count, subtype in enumerate(coltype):
-                    nestattr = ut.odict()
-                    nestattrs.append(nestattr)
-                    flat_colname = '%s_%d' % (colname, count)
-                    sqltype = lite.TYPE_TO_SQLTYPE[subtype]
-                    nestattr['flat_colname'] = flat_colname
-                    nestattr['sqltype'] = sqltype
-            elif is_external:
-                # Nested external funcs
-                write_func = None
-                if is_exttype:
-                    read_func = coltype.read_func
-                    write_func = coltype.write_func
-                    if coltype.extern_ext is not None:
-                        colattr['extern_ext'] = coltype.extern_ext
-                    if coltype.extkey is not None:
-                        colattr['extkey'] = coltype.extkey
-                elif is_externtup:
-                    read_func = coltype[1]
-                    if len(coltype) > 2:
-                        write_func = coltype[2]
-                    if len(coltype) > 3:
-                        colattr['extern_ext'] = coltype[3]
-                elif is_functup:
-                    read_func = coltype[0]
-                else:
-                    read_func = coltype
-                intern_colname = colname + EXTERN_SUFFIX
-                sqltype = lite.TYPE_TO_SQLTYPE[str]
-                colattr['is_external'] = True
-                colattr['intern_colname'] = intern_colname
-                colattr['write_func'] = write_func
-                colattr['read_func'] = read_func
-                colattr['sqltype'] = sqltype
-            else:
-                # External class column
-                assert (hasattr(coltype, '__getstate__') and
-                        hasattr(coltype, '__setstate__')), (
-                            'External classes must have __getstate__ and '
-                            '__setstate__ methods')
-                read_func, write_func = make_extern_io_funcs(table, coltype)
-                sqltype = lite.TYPE_TO_SQLTYPE[str]
-                intern_colname = colname + EXTERN_SUFFIX
-                #raise AssertionError('external class columns')
-                colattr['is_external'] = True
-                colattr['is_external_class'] = True
-                colattr['coltype'] = coltype
-                colattr['intern_colname'] = intern_colname
-                colattr['write_func'] = write_func
-                colattr['read_func'] = read_func
-                colattr['sqltype'] = sqltype
-            data_col_attrs.append(colattr)
-        return data_col_attrs
-
-    def _infer_parentcol(table):
-        """
-        construct columns to represent relationship to parent
-
-        CommandLine:
-            python -m dtool.depcache_table _infer_parentcol --show
-
-        Returns:
-            list: list of dictionaries for each parent
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache2 import testdata_depc3
-            >>> depc = testdata_depc3()
-            >>> table = depc['indexer']
-            >>> table = depc['neighbs']
-            >>> parent_col_attrs = table._infer_parentcol()
-            >>> result = ('parent_col_attrs = %s' % (ut.repr2(parent_col_attrs, nl=2),))
-            >>> print(result)
-
-        Ignore:
-            >>> from dtool.depcache_table import *  # NOQA
-            >>> from dtool.example_depcache2 import testdata_depc3
-            >>> depc = testdata_depc3()
-            >>> depc.d.get_indexer_data([1, 2, 3])
-            >>> import uuid
-            >>> depc.d.get_indexer_data([uuid.UUID('a01eda32-e4e0-b139-3274-e91d1b3e9ecf')])
-
-
-        """
-        parent_tablenames = table.parent_tablenames
-        parent_col_attrs = []
-
-        # Handle dependencies when a parent are pairwise between tables
-        parent_id_prefixs1 = []
-        parent_id_prefixs2 = []
-        seen_ = ut.ddict(lambda: 1)
-
-        for parent_colx, col in enumerate(parent_tablenames):
-            colattr = ut.odict()
-            # Detect multicolumns
-            if col.endswith('*'):
-                ismulti = True
-                parent_table = col[:-1]
-            else:
-                ismulti = False
-                parent_table = col
-            colattr['col'] = col
-            colattr['ismulti'] = ismulti
-            colattr['parent_table'] = parent_table
-            colattr['parent_colx'] = parent_colx
-            parent_id_prefixs1.append(parent_table)
-            parent_col_attrs.append(colattr)
-
-        colhist = ut.dict_hist(parent_id_prefixs1)
-        for parent_colx, col in enumerate(parent_id_prefixs1):
-            colattr = parent_col_attrs[parent_colx]
-            if colhist[col] > 1:
-                # Duplicate column names recieve indicies
-                nwise_idx = seen_[col]
-                nwise_total = colhist[col]
-                prefix = col + str(nwise_idx)
-                seen_[col] += 1
-                colattr['isnwise'] = True
-                colattr['nwise_total'] = nwise_total
-                colattr['nwise_idx'] = nwise_idx
-            else:
-                prefix = col
-                colattr['isnwise'] = False
-            colattr['prefix'] = prefix
-            parent_id_prefixs2.append(prefix)
-
-        # Handle case when parent are a set of ids
-        for colattr, prefix in zip(parent_col_attrs, parent_id_prefixs2):
-            column_ismulti = colattr['ismulti']
-            if column_ismulti:
-                # Case when dependencies are many to one hash of set items
-                colname = prefix + '_setuuid'
-                sqltype = 'UUID NOT NULL'
-                INPUT_SIZE_SUFFIX = 'setsize'
-                extra_cols = []
-                extra_cols += [{
-                    'intern_colname': prefix + '_' + INPUT_SIZE_SUFFIX,
-                    'sqltype': 'INTEGER NOT NULL',
-                    #'doc': 'size of an input set for this model',
-                }]
-                # File that maintains manifest of model inputs
-                #INPUT_FPATH_SUFFIX = 'setfpath'
-                #extra_cols += [{
-                #'intern_colname': prefix + '_' + INPUT_FPATH_SUFFIX,
-                #'sqltype': 'TEXT'
-                #}]
-                colattr['extra_cols'] = extra_cols
-                #colattr['issuper'] = True
-            else:
-                # Normal case when dependencies are one to one
-                colname = prefix + '_rowid'
-                sqltype = 'INTEGER NOT NULL'
-            colattr['intern_colname'] = colname
-            colattr['sqltype'] = sqltype
-
-        parent_col_attrs = [
-            ut.order_dict_by(colattr, ['intern_colname', 'sqltype'])
-            for colattr in parent_col_attrs]
-        return parent_col_attrs
-
-    def _infer_allcol(table):
-        r"""
-        Combine information from parentcol and datacol
-        Build column definitions that will directly define SQL columns
-        """
-        internal_col_attrs = []
-
-        # Append primary column
-        colattr = ut.odict([
-            ('intern_colname', table.rowid_colname),
-            ('sqltype', 'INTEGER PRIMARY KEY'),
-            ('isprimary', True),
-        ])
-        colattr['intern_colx'] = len(internal_col_attrs)
-        internal_col_attrs.append(colattr)
-
-        # Append parent columns
-        for parent_colattr in table.parent_col_attrs:
-            colattr = ut.odict()
-            colattr['intern_colname'] = parent_colattr['intern_colname']
-            colattr['parent_table'] = parent_colattr['parent_table']
-            colattr['ismulti'] = parent_colattr['ismulti']
-            colattr['isnwise'] = parent_colattr['isnwise']
-            if colattr['isnwise']:
-                colattr['nwise_total'] = parent_colattr['nwise_total']
-                colattr['nwise_idx'] = parent_colattr['nwise_idx']
-            colattr['sqltype'] = parent_colattr['sqltype']
-            colattr['parent_colx'] = parent_colattr['parent_colx']
-            colattr['intern_colx'] = len(internal_col_attrs)
-            colattr['isparent'] = True
-            colattr['issuper'] = True
-            internal_col_attrs.append(colattr)
-
-        # Append config columns
-        colattr = ut.odict([
-            ('intern_colname', CONFIG_ROWID),
-            ('sqltype', 'INTEGER DEFAULT 0'),
-            ('issuper', True),
-        ])
-        colattr['intern_colx'] = len(internal_col_attrs)
-        internal_col_attrs.append(colattr)
-
-        # Append quick access column
-        if table.ismulti:
-            # Append model uuid column
-            colattr = ut.odict()
-            colattr['intern_colname'] = table.model_uuid_colname
-            colattr['sqltype'] = 'UUID NOT NULL'
-            colattr['intern_colx'] = len(internal_col_attrs)
-            internal_col_attrs.append(colattr)
-
-            # Append model uuid column
-            colattr = ut.odict()
-            colattr['intern_colname'] = table.is_augmented_colname
-            colattr['sqltype'] = 'INTEGER DEFAULT 0'
-            colattr['intern_colx'] = len(internal_col_attrs)
-            internal_col_attrs.append(colattr)
-        else:
-            # Append primary rowid column
-            pass
-
-        # Append data columns
-        for data_colattr in table.data_col_attrs:
-            colname = data_colattr['colname']
-            if data_colattr.get('isnested', False):
-                for nestcol in data_colattr['nestattrs']:
-                    colattr = ut.odict()
-                    colattr['intern_colname'] = nestcol['flat_colname']
-                    colattr['sqltype'] = nestcol['sqltype']
-                    colattr['intern_colx'] = len(internal_col_attrs)
-                    colattr['data_colx'] = data_colattr['data_colx']
-                    colattr['colname'] = colname
-                    colattr['isdata'] = True
-                    internal_col_attrs.append(colattr)
-            else:
-                colattr = ut.odict()
-                colattr['intern_colname'] = data_colattr['intern_colname']
-                colattr['sqltype'] = data_colattr['sqltype']
-                colattr['intern_colx'] = len(internal_col_attrs)
-                colattr['data_colx'] = data_colattr['data_colx']
-                colattr['isdata'] = True
-                colattr['colname'] = colname
-                if data_colattr.get('is_external', False):
-                    colattr['is_external_pointer'] = True
-                    colattr['write_func'] = data_colattr['write_func']
-                    colattr['read_func'] = data_colattr['read_func']
-                internal_col_attrs.append(colattr)
-
-        # Append extra columns
-        for parent_colattr in table.parent_col_attrs:
-            for extra_colattr in parent_colattr.get('extra_cols', []):
-                colattr = ut.odict()
-                colattr['intern_colname'] = extra_colattr['intern_colname']
-                colattr['sqltype'] = extra_colattr['sqltype']
-                colattr['intern_colx'] = len(internal_col_attrs)
-                colattr['isextra'] = True
-                internal_col_attrs.append(colattr)
-        return internal_col_attrs
 
 
 @ut.reloadable_class
@@ -1695,9 +1678,18 @@ class _TableComputeHelper(object):
 
 
 @ut.reloadable_class
-class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableComputeHelper, _TableConfigHelper):
+class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
+                           _TableDebugHelper, _TableComputeHelper,
+                           _TableConfigHelper):
     r"""
     An individual node in the dependency graph.
+
+    All SQL column information is stored in:
+        internal_col_attrs - keeps track of internal info
+
+    Additional metadata about specific columns is stored in
+        parent_col_attrs - keeps track of parent info
+        data_col_attrs - keeps track of computed data
 
     Attributes:
         db (dtool.SQLDatabaseController): pointer to underlying database
@@ -1842,8 +1834,6 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
         coldef_list = [(colattr['intern_colname'], colattr['sqltype'])
                        for colattr in table.internal_col_attrs]
         superkeys = [table.superkey_colnames]
-        #if table.ismulti:
-        #    superkeys += [(table.model_uuid_colname,)]
         add_table_kw = ut.odict([
             ('tablename', table.tablename,),
             ('coldef_list', coldef_list,),
@@ -1859,6 +1849,10 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
 
     def _get_all_rowids(table):
         return table.db.get_all_rowids(table.tablename)
+
+    @property
+    def number_of_rows(table):
+        return table.db.get_row_count(table.tablename)
 
     #@profile
     def ensure_rows(table, parent_ids_, preproc_args, config=None,
@@ -2289,7 +2283,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
     def get_row_data(table, tbl_rowids, colnames=None, _debug=None,
                      read_extern=True, num_retries=1, eager=True,
                      nInput=None, ensure=True, delete_on_fail=True,
-                     showprog=False):
+                     showprog=False, unpack_columns=None):
         r"""
         FIXME: unpacking is confusing with sql controller
         TODO: Clean up and allow for eager=False
@@ -2357,7 +2351,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
                                        ut.trunc_repr(tbl_rowids)))
         ####
         # Resolve requested column names
-        unpack_columns = table.default_to_unpack
+        if unpack_columns is None:
+            unpack_columns = table.default_to_unpack
         if colnames is None:
             requested_colnames = table.data_colnames
         elif isinstance(colnames, six.string_types):
@@ -2638,6 +2633,56 @@ class DependencyCacheTable(_TableGeneralHelper, _TableDebugHelper, _TableCompute
             unpack_scalars=unpack_scalars, keepwrap=keepwrap,
             showprog=showprog)
         return prop_list
+
+    def export_rows(table, rowid, target):
+        """
+        The goal of this is to export taggable data that can be used
+        independantly of its dependant features.
+
+        TODO List:
+            * Gather information about columns
+                * Native and (localized) external data
+                    - <table>_rowid - non-transferable
+                    - Parent UUIDS - non-transferable
+                    - config rowid - non-transferable
+                    - model_uuid -
+                    - augment_bit - transferable - trivial
+                    - words_extern_uri - copy to destination
+                    - feat_setsize - transferable - trivial
+                    - model_tag
+
+                * Should also gather info from manifest:
+                    * feat_setuuid_primary_ids - non-transferable
+                    * feat_setuuid_model_input - non-transferable
+
+                * Should gather exhaustive config history
+
+            * Save to disk
+
+            * Add function to reload data in exported format
+
+            * Getters should be able to specify a tag inplace of the root input
+            for the tagged. Additionally native root-ids should also be
+            allowed.
+
+
+        rowid = 1
+        """
+        raise NotImplementedError('unfinished')
+        colnames = tuple(table.db.get_column_names(table.tablename))
+        colvals = table.db.get(table.tablename, colnames, [rowid])[0]  # NOQA
+
+        uuid = table.get_model_uuid([rowid])[0]
+        manifest_data = table.get_model_inputs(uuid)  # NOQA
+
+        config_history = table.get_config_history([rowid])  # NOQA
+
+        table.parent_col_attrs = table._infer_parentcol()
+        table.data_col_attrs
+        table.internal_col_attrs
+
+        table.db.cur.execute('SELECT * FROM {tablename} WHERE rowid=?')
+        pass
 
 
 if __name__ == '__main__':

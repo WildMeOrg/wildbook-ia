@@ -494,6 +494,15 @@ class _CoreDependencyCache(object):
             #rowids = rowid_dict[output_edge]
             return parent_rowids
 
+    def check_rowids(depc, tablename, input_tuple, config={}):
+        """
+        Returns a list of flags where True means the row has been computed and
+        False means that it needs to be computed.
+        """
+        existing_rowids = depc.get_rowids(tablename, input_tuple, config=config, ensure=False)
+        flags = ut.flag_not_None_items(existing_rowids)
+        return flags
+
     def get_rowids(depc, tablename, input_tuple, **rowid_kw):
         """
         Used to get tablename rowids. Ensures rows exist unless ensure=False.

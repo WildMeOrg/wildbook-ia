@@ -527,24 +527,22 @@ class SQLDatabaseController(object):
     # API INTERFACE
     #==============
 
+    def get_row_count(db, tblname):
+        fmtdict = {'tblname': tblname, }
+        operation_fmt = 'SELECT COUNT(*) FROM {tblname}'
+        count = db._executeone_operation_fmt(operation_fmt, fmtdict)
+        return count
+
     def get_all_rowids(db, tblname, **kwargs):
         """ returns a list of all rowids from a table in ascending order """
         fmtdict = {'tblname': tblname, }
-        operation_fmt = '''
-        SELECT rowid
-        FROM {tblname}
-        ORDER BY rowid ASC
-        '''
+        operation_fmt = 'SELECT rowid FROM {tblname} ORDER BY rowid ASC'
         return db._executeone_operation_fmt(operation_fmt, fmtdict, **kwargs)
 
     def get_all_col_rows(db, tblname, colname):
         """ returns a list of all rowids from a table in ascending order """
         fmtdict = {'colname': colname, 'tblname': tblname, }
-        operation_fmt = '''
-        SELECT {colname}
-        FROM {tblname}
-        ORDER BY rowid ASC
-        '''
+        operation_fmt = 'SELECT {colname} FROM {tblname} ORDER BY rowid ASC'
         return db._executeone_operation_fmt(operation_fmt, fmtdict)
 
     def get_all_rowids_where(db, tblname, where_clause, params, **kwargs):
@@ -802,7 +800,7 @@ class SQLDatabaseController(object):
         if VERBOSE_SQL:
             print('[sql]' + ut.get_caller_name(list(range(1, 4))) + ' db.get(%r, %r, ...)' %
                   (tblname, colnames,))
-        assert isinstance(colnames, tuple), 'must specify column names to get from'
+        assert isinstance(colnames, tuple), 'must specify column names TUPLE to get from'
         #if isinstance(colnames, six.string_types):
         #    colnames = (colnames,)
 
