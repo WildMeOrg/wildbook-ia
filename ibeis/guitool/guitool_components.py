@@ -921,6 +921,7 @@ def newFrame(*args, **kwargs):
     kwargs = kwargs.copy()
     widget = QtWidgets.QFrame()
     orientation = kwargs.get('orientation', None)
+    orientation = rectify_qt_const(orientation)
     if orientation is None:
         orientation = Qt.Vertical
     if orientation == Qt.Vertical:
@@ -928,7 +929,7 @@ def newFrame(*args, **kwargs):
     elif orientation == Qt.Horizontal:
         layout = QtWidgets.QHBoxLayout(widget)
     else:
-        raise NotImplementedError('orientation')
+        raise NotImplementedError('orientation=%r' % (orientation,))
     widget.setLayout(layout)
     _inject_new_widget_methods(widget)
     return widget
@@ -1034,7 +1035,7 @@ def newWidget(parent=None, *args, **kwargs):
 
 def rectify_qt_const(x):
     if isinstance(x, six.string_types):
-        if x == ['vert', 'vertical']:
+        if x in ['vert', 'vertical']:
             return Qt.Vertical
         elif x in ['horiz', 'horizontal']:
             return Qt.Horizontal
@@ -1095,7 +1096,7 @@ class GuitoolWidget(WIDGET_BASE):
         elif orientation == Qt.Horizontal:
             layout = QtWidgets.QHBoxLayout(self)
         else:
-            raise NotImplementedError('orientation')
+            raise NotImplementedError('orientation=%r' % (orientation,))
         if spacing is not None:
             layout.setSpacing(spacing)
         if margin is not None:

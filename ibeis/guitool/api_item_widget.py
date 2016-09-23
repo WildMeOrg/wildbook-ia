@@ -73,7 +73,7 @@ class CustomAPI(object):
     def __init__(self, col_name_list=None, col_types_dict={}, col_getter_dict={},
                  col_bgrole_dict={}, col_ider_dict={}, col_setter_dict={},
                  editable_colnames={}, sortby=None, get_thumb_size=None,
-                 sort_reverse=True, col_width_dict={}, strict=False,
+                 sort_reverse=False, col_width_dict={}, strict=False,
                  col_display_role_func_dict=None, **kwargs):
         if VERBOSE_ITEM_WIDGET:
             print('[CustomAPI] <__init__>')
@@ -205,7 +205,9 @@ class CustomAPI(object):
         # Mark edtiable columns
         self.col_edit_list = [name in editable_colnames for name in col_name_list]
         # Mark the sort column index
-        if ut.is_str(sortby):
+        if sortby is None:
+            self.col_sort_index = 0
+        elif ut.is_str(sortby):
             self.col_sort_index = self.col_name_list.index(sortby)
         else:
             self.col_sort_index = sortby
@@ -327,9 +329,8 @@ class APIItemWidget(WIDGET_BASE):
     """
 
     def __init__(widget, headers=None, parent=None,
-                 model_class=APIItemModel,
-                 view_class=APITableView,
-                 tblnice='APIItemWidget'):
+                 model_class=APIItemModel, view_class=APITableView,
+                 tblnice='APIItemWidget', doubleClicked=None):
         WIDGET_BASE.__init__(widget, parent)
         # Create vertical layout for the table to go into
         widget.vert_layout = QtWidgets.QVBoxLayout(widget)
@@ -347,6 +348,8 @@ class APIItemWidget(WIDGET_BASE):
             APIItemWidget.change_headers(widget, headers)
         widget.connect_signals()
         widget.api = None
+        if doubleClicked:
+            widget.view.doubleClicked.connect(doubleClicked)
 
     def connect_api(widget, api, autopopulate=True):
         widget.api = api
