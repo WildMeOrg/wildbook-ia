@@ -52,7 +52,7 @@ try:
 
     from ibeis.init import sysres
     from ibeis.main_module import (main, _preload, _init_numpy, main_loop,
-                                   test_main, opendb, opendb_in_background, opendb_bg_web)
+                                   opendb, opendb_in_background, opendb_bg_web)
     from ibeis.control.IBEISControl import IBEISController
     from ibeis.algo.hots.query_request import QueryRequest
     from ibeis.algo.hots.chip_match import ChipMatch, AnnotMatch

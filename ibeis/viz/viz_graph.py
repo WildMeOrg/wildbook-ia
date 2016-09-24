@@ -797,7 +797,7 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
     return self
 
 
-def test_web_graphs(self, infr):
+def tryout_web_graphs(self, infr):
     """
     https://plot.ly/python/
 
@@ -830,7 +830,7 @@ def test_web_graphs(self, infr):
     # python -m SimpleHTTPServer 8000
 
 
-def test_with_qt():
+def tryout_with_qt():
     import sys
     from PyQt4 import QtCore, QtWebKit, QtWidgets
     from os.path import join, dirname

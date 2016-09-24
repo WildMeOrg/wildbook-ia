@@ -2,11 +2,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six  # NOQA
 import utool as ut
 import numpy as np
-from ibeis.algo.hots.bayes import make_name_model, test_model, draw_tree_model
-print, rrr, profile = ut.inject2(__name__, '[demobayes]')
+from ibeis.algo.hots.bayes import make_name_model, temp_model, draw_tree_model
+print, rrr, profile = ut.inject2(__name__)
 
 
-def testdata_demo_cfgs():
+def trytestdata_demo_cfgs():
     alias_keys = {'nA': 'num_annots', 'nN': 'num_names', 'nS': 'num_scores'}
     cfg_list = ut.parse_argv_cfg('--ev', alias_keys=alias_keys)
     return cfg_list
@@ -72,7 +72,7 @@ def demo_bayesnet(cfg={}):
         score_evidence = []
         discr_p_same = None
         discr_domain = None
-    model, evidence, query_results = test_model(
+    model, evidence, query_results = temp_model(
         num_annots=num_annots, num_names=num_names,
         num_scores=num_scores,
         score_evidence=score_evidence,
@@ -125,7 +125,7 @@ def classify_k(cfg={}):
         for x in range(len(score_evidence)):
             score_evidence[x] = 0
 
-    model, evidence, query_results = test_model(
+    model, evidence, query_results = temp_model(
         num_annots=num_annots, num_names=num_annots,
         num_scores=num_scores,
         mode=1,
@@ -168,7 +168,7 @@ def classify_k(cfg={}):
 
         if using_soft:
             # Demo with soft evidence
-            model, evidence, query_results2 = test_model(
+            model, evidence, query_results2 = temp_model(
                 num_annots=num_annots2, num_names=num_annots2,
                 num_scores=num_scores,
                 mode=1,
@@ -183,7 +183,7 @@ def classify_k(cfg={}):
 
         if 1:
             # Demo with full evidence
-            model, evidence, query_results2 = test_model(
+            model, evidence, query_results2 = temp_model(
                 num_annots=num_annots2, num_names=num_annots2,
                 num_scores=num_scores,
                 mode=1,
@@ -615,13 +615,13 @@ def classify_one_new_unknown():
             #name_evidence=[{0: .99}, {0: .99}, {1: .99}, {1: .99}, None],
             #name_evidence=[0, {0: .99}, {1: .99}, 1, None],
         )
-        test_model(score_evidence=[1, 0, 0, 0, 0, 1], mode=1, **constkw)
+        temp_model(score_evidence=[1, 0, 0, 0, 0, 1], mode=1, **constkw)
 
     #from ibeis.algo.hots.demobayes import *
     constkw = dict(
         num_annots=4, num_names=4,
     )
-    model, evidence = test_model(
+    model, evidence = temp_model(
         mode=1,
         # lll and llh have strikingly different
         # probability of M marginals
@@ -631,7 +631,7 @@ def classify_one_new_unknown():
         **constkw)
 
 
-def test_triangle_property():
+def tst_triangle_property():
     r"""
     CommandLine:
         python -m ibeis.algo.hots.demobayes --exec-test_triangle_property --show
@@ -646,7 +646,7 @@ def test_triangle_property():
         num_annots=3, num_names=3,
         name_evidence=[],
     )
-    test_model(
+    temp_model(
         mode=1,
         other_evidence={
             'Mab': False,
@@ -669,7 +669,7 @@ def demo_structure():
         >>> ut.show_if_requested()
     """
     constkw = dict(score_evidence=[], name_evidence=[], mode=3)
-    model, = test_model(num_annots=4, num_names=4, **constkw)
+    model, = temp_model(num_annots=4, num_names=4, **constkw)
     draw_tree_model(model)
 
 
@@ -760,15 +760,15 @@ def demo_single_add():
     # Initially there are only two annotations that have a strong match
     name_evidence = [{0: .9}]  # Soft label
     name_evidence = [0]  # Hard label
-    test_model(num_annots=2, num_names=5, score_evidence=[1], name_evidence=name_evidence)
+    temp_model(num_annots=2, num_names=5, score_evidence=[1], name_evidence=name_evidence)
     # Adding a new annotation does not change the original probabilites
-    test_model(num_annots=3, num_names=5, score_evidence=[1], name_evidence=name_evidence)
+    temp_model(num_annots=3, num_names=5, score_evidence=[1], name_evidence=name_evidence)
     # Adding evidence that Na matches Nc does not influence the probability
     # that Na matches Nb. However the probability that Nb matches Nc goes up.
-    test_model(num_annots=3, num_names=5, score_evidence=[1, 1], name_evidence=name_evidence)
+    temp_model(num_annots=3, num_names=5, score_evidence=[1, 1], name_evidence=name_evidence)
     # However, once Nb is scored against Nb that does increase the likelihood
     # that all 3 are fred goes up significantly.
-    test_model(num_annots=3, num_names=5, score_evidence=[1, 1, 1],
+    temp_model(num_annots=3, num_names=5, score_evidence=[1, 1, 1],
                name_evidence=name_evidence)
 
 
@@ -779,14 +779,14 @@ def demo_conflicting_evidence():
     """
     # Initialized with two annots. Each are pretty sure they are someone else
     constkw = dict(num_annots=2, num_names=5, score_evidence=[])
-    test_model(name_evidence=[{0: .9}, {1: .9}], **constkw)
+    temp_model(name_evidence=[{0: .9}, {1: .9}], **constkw)
     # Having evidence that they are different increases this confidence.
-    test_model(name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 0}, **constkw)
+    temp_model(name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 0}, **constkw)
     # However,, confusion is introduced if there is evidence that they are the same
-    test_model(name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 1}, **constkw)
+    temp_model(name_evidence=[{0: .9}, {1: .9}], other_evidence={'Sab': 1}, **constkw)
     # When Na is forced to be fred, this doesnt change Nbs evaulatation by more
     # than a few points
-    test_model(name_evidence=[0, {1: .9}], other_evidence={'Sab': 1}, **constkw)
+    temp_model(name_evidence=[0, {1: .9}], other_evidence={'Sab': 1}, **constkw)
 
 
 def demo_ambiguity():
@@ -809,7 +809,7 @@ def demo_ambiguity():
         #name_evidence=[],
         #name_evidence=[{0: '+eps'}, {1: '+eps'}, {2: '+eps'}],
     )
-    test_model(score_evidence=[0, 0, 1], mode=1,
+    temp_model(score_evidence=[0, 0, 1], mode=1,
                **constkw)
 
 
@@ -887,9 +887,9 @@ def demo_annot_idependence_overlap():
         #name_evidence=[0, None, None, None]
         #name_evidence=[0, None, None, None]
     )
-    test_model(score_evidence=[1, 1, 1, None, None, None], **constkw)
-    test_model(score_evidence=[1, 1, 0, None, None, None], **constkw)
-    test_model(score_evidence=[1, 0, 0, None, None, None], **constkw)
+    temp_model(score_evidence=[1, 1, 1, None, None, None], **constkw)
+    temp_model(score_evidence=[1, 1, 0, None, None, None], **constkw)
+    temp_model(score_evidence=[1, 0, 0, None, None, None], **constkw)
 
 
 def demo_modes():
@@ -912,11 +912,11 @@ def demo_modes():
         #}
     )
     # The first mode uses a hidden Match layer
-    test_model(mode=1, **constkw)
+    temp_model(mode=1, **constkw)
     # The second mode directly maps names to scores
-    test_model(mode=2, **constkw)
-    test_model(mode=3, noquery=True, **constkw)
-    test_model(mode=4, noquery=True, **constkw)
+    temp_model(mode=2, **constkw)
+    temp_model(mode=3, noquery=True, **constkw)
+    temp_model(mode=4, noquery=True, **constkw)
 
 
 def demo_name_annot_complexity():
@@ -935,21 +935,21 @@ def demo_name_annot_complexity():
     """
     constkw = dict(score_evidence=[], name_evidence=[], mode=1)
     # Initially there are 2 annots and 4 names
-    model, = test_model(num_annots=2, num_names=4, **constkw)
+    model, = temp_model(num_annots=2, num_names=4, **constkw)
     draw_tree_model(model)
     # Adding a name causes the probability of the other names to go down
-    model, = test_model(num_annots=2, num_names=5, **constkw)
+    model, = temp_model(num_annots=2, num_names=5, **constkw)
     draw_tree_model(model)
     # Adding an annotation wihtout matches dos not effect probabilities of
     # names
-    model, = test_model(num_annots=3, num_names=5, **constkw)
+    model, = temp_model(num_annots=3, num_names=5, **constkw)
     draw_tree_model(model)
-    model, = test_model(num_annots=4, num_names=10, **constkw)
+    model, = temp_model(num_annots=4, num_names=10, **constkw)
     draw_tree_model(model)
     # Given A annots, the number of score nodes is (A ** 2 - A) / 2
-    model, = test_model(num_annots=5, num_names=5, **constkw)
+    model, = temp_model(num_annots=5, num_names=5, **constkw)
     draw_tree_model(model)
-    #model, = test_model(num_annots=6, num_names=5, score_evidence=[], name_evidence=[], mode=1)
+    #model, = temp_model(num_annots=6, num_names=5, score_evidence=[], name_evidence=[], mode=1)
     #draw_tree_model(model)
 
 
@@ -969,7 +969,7 @@ def demo_model_idependencies():
         >>> ut.show_if_requested()
     """
     num_names = ut.get_argval('--num-names', default=3)
-    model = test_model(num_annots=num_names, num_names=num_names, score_evidence=[], name_evidence=[])[0]
+    model = temp_model(num_annots=num_names, num_names=num_names, score_evidence=[], name_evidence=[])[0]
     # This model has the following independenceis
     idens = model.get_independencies()
 

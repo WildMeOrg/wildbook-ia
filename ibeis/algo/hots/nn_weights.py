@@ -678,15 +678,15 @@ def gravity_match_weighter(nns_list, nnvalid0_list, qreq_):
     #qfx2_score *= qfx2_gvweight
 
 
-def test_all_normalized_weights():
+def all_normalized_weights_test():
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.nn_weights --exec-test_all_normalized_weights
+        python -m ibeis.algo.hots.nn_weights --exec-all_normalized_weights_test
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> test_all_normalized_weights()
+        >>> all_normalized_weights_test()
     """
     from ibeis.algo.hots import nn_weights
     import six
@@ -699,7 +699,7 @@ def test_all_normalized_weights():
     nnvalid0_list = args.nnvalid0_list
     qaid = qreq_.qaids[0]
 
-    def test_weight_fn(nn_weight, nns_list, qreq_, qaid):
+    def tst_weight_fn(nn_weight, nns_list, qreq_, qaid):
         normweight_fn = nn_weights.__dict__[nn_weight + '_fn']
         weight_list1, nomx_list1 = nn_weights.nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
         weights1 = weight_list1[0]
@@ -716,7 +716,7 @@ def test_all_normalized_weights():
         normweight_key = nn_weight + '_fn'
         if normweight_key not in nn_weights.__dict__:
             continue
-        test_weight_fn(nn_weight, nns_list, qreq_, qaid)
+        tst_weight_fn(nn_weight, nns_list, qreq_, qaid)
 
 
 if __name__ == '__main__':

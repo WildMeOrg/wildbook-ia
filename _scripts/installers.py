@@ -369,7 +369,7 @@ def get_dist_app_fpath():
     return app_fpath
 
 
-def test_suite():
+def run_suite_test():
     app_fpath = get_dist_app_fpath()
     ut.assert_exists(app_fpath, 'app fpath must exist', info=True, verbose=True)
     ut.cmd(app_fpath + ' --run-utool-tests')
@@ -377,7 +377,7 @@ def test_suite():
     #ut.cmd(app_fpath + ' --run-ibeis-tests')
 
 
-def test_run_app():
+def run_app_test():
     """
     Execute the installed app
     """
@@ -459,9 +459,9 @@ def main():
     if BUILD_INSTALLER or ALL:
         package_installer()
     if TEST_CODE or ALL:
-        test_suite()
+        run_suite_test()
     if TEST_RUN or ALL:
-        test_run_app()
+        run_app_test()
     print('[installer] L___ FINISH MAIN ___')
 
 

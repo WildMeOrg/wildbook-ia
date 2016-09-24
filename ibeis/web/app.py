@@ -14,12 +14,12 @@ from ibeis.web import appfuncs as appf
 import utool as ut
 
 
-def test_html_error():
+def tst_html_error():
     r"""
     This test will show what our current errors look like
 
     CommandLine:
-        python -m ibeis.web.app --exec-test_html_error
+        python -m ibeis.web.app --exec-tst_html_error
 
     Example:
         >>> # DISABLE_DOCTEST

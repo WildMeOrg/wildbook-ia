@@ -185,6 +185,11 @@ def run_tests():
 
     module_list = [sys.modules[name] for name in doctest_modname_list2]
 
+    # Write to py.test / nose format
+    if ut.get_argflag('--tonose'):
+        convert_tests_from_ibeis_to_nose(module_list)
+        return 0
+
     nPass, nTotal, failed_cmd_list = ut.doctest_module_list(module_list)
 
     if coverage:
@@ -199,6 +204,64 @@ def run_tests():
         return 1
     else:
         return 0
+
+
+def convert_tests_from_ibeis_to_nose(module_list):
+    # PARSE OUT TESTABLE DOCTESTTUPS
+    #import utool as ut
+    testtup_list = []
+    seen_ = set()
+
+    topimport_list = []
+
+    for module in module_list:
+        mod_doctest_tup = ut.get_module_doctest_tup(module=module,
+                                                    verbose=False,
+                                                    allexamples=True)
+        enabled_testtup_list, frame_fpath, all_testflags, module = mod_doctest_tup
+        flags = [tup.src not in seen_ for tup in enabled_testtup_list]
+        enabled_testtup_list = ut.compress(enabled_testtup_list, flags)
+        testtup_list.extend(enabled_testtup_list)
+        if len(enabled_testtup_list) > 0:
+            topimport_list.append('from %s import *  # NOQA' % (module.__name__,))
+
+    print('Found %d test tups' % (len(testtup_list)))
+
+    autogen_test_src_funcs = []
+    #import redbaron
+    for testtup in testtup_list:
+        name = testtup.name
+        num  = testtup.num
+        src  = testtup.src
+        want = testtup.want
+        import re
+        src = re.sub('# ENABLE_DOCTEST\n', '', src)
+        src = re.sub('from [^*]* import \* *# NOQA\n', '', src)
+        src = re.sub('from [^*]* import \*\n', '', src)
+
+        src = ut.str_between(src, None, 'ut.quit_if_noshow').rstrip('\n')
+        src = ut.str_between(src, None, 'ut.show_if_requested').rstrip('\n')
+        # import utool
+        # utool.embed()
+        """
+        """
+        #flag = testtup.flag
+        if want.endswith('\n'):
+            want = want[:-1]
+        if want:
+            #src_node = redbaron.RedBaron(src)
+            #if len(src_node.find_all('name', 'result')) > 0:
+            #    src_node.append('assert result == %r' % (want,))
+            if '\nresult = ' in src:
+                src += '\nassert str(result) == %r' % (want,)
+        func_src = 'def test_%s_%d():\n' % (name.replace('.', '_'), num,) + ut.indent(src)
+        autogen_test_src_funcs.append(func_src)
+
+    autogen_test_src = '\n'.join(topimport_list) + '\n\n\n' + '\n\n\n'.join(autogen_test_src_funcs) + '\n'
+    from ibeis import tests
+    from os.path import join
+    moddir = ut.get_module_dir(tests)
+    ut.writeto(join(moddir, 'test_autogen_nose_tests.py'), autogen_test_src)
 
 #if __name__ == '__main__':
 #    """

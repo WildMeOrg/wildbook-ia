@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#zR -*- coding: utf-8 -*-
 """
 ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview  # NOQA
 """

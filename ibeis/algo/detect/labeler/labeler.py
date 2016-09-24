@@ -143,7 +143,7 @@ def load_images(cache_data_filename='test_data.npy',
     return data_list, label_list
 
 
-def test_labeler(output_path):
+def labeler_test(output_path):
     print('[labeler] Loading the labeler training data')
     data_list, label_list = load_images()
 
@@ -260,4 +260,4 @@ if __name__ == '__main__':
     # Train network on Labeler training data
     train_labeler(OUTPUT_PATH)
     # # Test network on Labeler training data
-    # test_labeler(OUTPUT_PATH)
+    # labeler_test(OUTPUT_PATH)

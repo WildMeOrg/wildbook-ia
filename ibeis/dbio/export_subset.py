@@ -1626,15 +1626,15 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
 #             count=count, averts1=averts1, averts2=averts2,)
 
 
-def test_merge():
+def slow_merge_test():
     r"""
     CommandLine:
-        python -m ibeis.dbio.export_subset --test-test_merge
+        python -m ibeis.dbio.export_subset --test-slow_merge_test
 
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.dbio.export_subset import *  # NOQA
-        >>> result = test_merge()
+        >>> result = slow_merge_test()
         >>> print(result)
     """
     from ibeis.dbio import export_subset

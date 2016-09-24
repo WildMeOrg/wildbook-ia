@@ -494,7 +494,7 @@ def view_publish_dir():
     ut.vd(PUBLISH_DIR)
 
 
-def test_single_annot_distinctiveness_params(ibs, aid):
+def tst_single_annot_distinctiveness_params(ibs, aid):
     r"""
 
     CommandLine:

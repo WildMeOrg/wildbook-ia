@@ -620,7 +620,7 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> qaid_list = [1]
         >>> daid_list = [1, 2, 3, 4, 5]
-        >>> ibs = ibeis.test_main(db='testdb1')
+        >>> ibs = ibeis.opendb_test(db='testdb1')
         >>> qreq_ = ibs.new_query_request(qaid_list, daid_list)
         >>> cm = ibs.query_chips(qaid_list, daid_list, use_cache=False, qreq_=qreq_)[0]
         >>> ut.quit_if_noshow()
@@ -634,7 +634,7 @@ def query_chips(ibs, qaid_list=None, daid_list=None, cfgdict=None,
         >>> from ibeis.control.IBEISControl import *  # NOQA
         >>> qaid_list = [1]
         >>> daid_list = [1, 2, 3, 4, 5]
-        >>> ibs = ibeis.test_main(db='testdb1')
+        >>> ibs = ibeis.opendb_test(db='testdb1')
         >>> cfgdict = {'pipeline_root':'BC_DTW'}
         >>> qreq_ = ibs.new_query_request(qaid_list, daid_list, cfgdict=cfgdict, verbose=True)
         >>> cm = ibs.query_chips(qreq_=qreq_)[0]

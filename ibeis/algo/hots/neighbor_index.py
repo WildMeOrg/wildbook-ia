@@ -184,7 +184,7 @@ class NeighborIndex(object):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-        >>> nnindexer, qreq_, ibs = test_nnindexer()
+        >>> nnindexer, qreq_, ibs = testdata_nnindexer()
     """
     ext     = '.flann'
     prefix1 = 'flann'
@@ -301,7 +301,7 @@ class NeighborIndex(object):
             >>> # SLOW_DOCTEST
             >>> # (IMPORTANT)
             >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-            >>> nnindexer, qreq_, ibs = test_nnindexer(use_memcache=False)
+            >>> nnindexer, qreq_, ibs = testdata_nnindexer(use_memcache=False)
             >>> remove_daid_list = [8, 9, 10, 11]
             >>> K = 2
             >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
@@ -364,7 +364,7 @@ class NeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-            >>> nnindexer, qreq_, ibs = test_nnindexer(use_memcache=False)
+            >>> nnindexer, qreq_, ibs = testdata_nnindexer(use_memcache=False)
             >>> new_daid_list = [2, 3, 4]
             >>> K = 2
             >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
@@ -618,7 +618,7 @@ class NeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-            >>> nnindexer, qreq_, ibs = test_nnindexer()
+            >>> nnindexer, qreq_, ibs = testdata_nnindexer()
             >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> K = 2
             >>> nnindexer.debug_nnindexer()
@@ -641,7 +641,7 @@ class NeighborIndex(object):
         Example2:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-            >>> nnindexer, qreq_, ibs = test_nnindexer()
+            >>> nnindexer, qreq_, ibs = testdata_nnindexer()
             >>> qfx2_vec = np.empty((0, 128), dtype=nnindexer.get_dtype())
             >>> K = 2
             >>> (qfx2_idx, qfx2_dist) = nnindexer.knn(qfx2_vec, K)
@@ -818,7 +818,7 @@ class NeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-            >>> nnindexer, qreq_, ibs = test_nnindexer(dbname='testdb1')
+            >>> nnindexer, qreq_, ibs = testdata_nnindexer(dbname='testdb1')
             >>> qfx2_nnidx = np.array([[0, 1, 2], [3, 4, 5]])
             >>> qfx2_fgw = nnindexer.get_nn_fgws(qfx2_nnidx)
         """
@@ -978,9 +978,9 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
         return (qfx2_idx, qfx2_dist, iter_count)
 
 
-def test_nnindexer(*args, **kwargs):
-    from ibeis.algo.hots.neighbor_index_cache import test_nnindexer
-    return test_nnindexer(*args, **kwargs)
+def testdata_nnindexer(*args, **kwargs):
+    from ibeis.algo.hots.neighbor_index_cache import testdata_nnindexer
+    return testdata_nnindexer(*args, **kwargs)
 
 
 if __name__ == '__main__':

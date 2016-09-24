@@ -441,60 +441,60 @@ def get_sortbystr(str_list, key_list, strlbl=None, keylbl=None):
     return boxjoin(sorted_strs, header)
 
 
-@devcmd('test_feats')
-def test_feats(ibs, qaid_list, daid_list=None):
-    """
-    test_feats shows features using several different parameters
+# @devcmd('test_feats')
+# def tst_feats(ibs, qaid_list, daid_list=None):
+#     """
+#     test_feats shows features using several different parameters
 
-    Args:
-        ibs (IBEISController):
-        qaid_list (int): query annotation id
+#     Args:
+#         ibs (IBEISController):
+#         qaid_list (int): query annotation id
 
-    CommandLine:
-        python dev.py -t test_feats --db PZ_MTEST --all --qindex 0 --show -w
+#     CommandLine:
+#         python dev.py -t test_feats --db PZ_MTEST --all --qindex 0 --show -w
 
-    Example:
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> qaid_list = [1]
-    """
-    from ibeis import viz
-    from ibeis.expt import experiment_configs
-    import utool as ut
+#     Example:
+#         >>> import ibeis
+#         >>> ibs = ibeis.opendb('testdb1')
+#         >>> qaid_list = [1]
+#     """
+#     from ibeis import viz
+#     from ibeis.expt import experiment_configs
+#     import utool as ut
 
-    NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
-    varyparams_list = [experiment_configs.featparams]
+#     NUM_PASSES = 1 if not utool.get_argflag('--show') else 2
+#     varyparams_list = [experiment_configs.featparams]
 
-    def test_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list):
-        for dict_ in ut.progiter(alldictcomb, lbl='FeatCFG Combo: '):
-            cfgstr_ = ut.repr2(dict_)
-            if count == 0:
-                # On first run just record info
-                kpts = ibs.get_annot_kpts(aid)
-                nKpts_list.append(len(kpts))
-                cfgstr_list.append(cfgstr_)
-            if count == 1:
-                kpts = ibs.get_annot_kpts(aid)
-                # If second run happens display info
-                cfgpackstr = utool.packstr(cfgstr_, textwidth=80,
-                                              breakchars=',', newline_prefix='',
-                                              break_words=False, wordsep=',')
-                title_suffix = (' len(kpts) = %r \n' % len(kpts)) + cfgpackstr
-                viz.show_chip(ibs, aid, fnum=pt.next_fnum(),
-                              title_suffix=title_suffix, darken=.8,
-                              ell_linewidth=2, ell_alpha=.6, config=dict_)
+#     def tst_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list):
+#         for dict_ in ut.progiter(alldictcomb, lbl='FeatCFG Combo: '):
+#             cfgstr_ = ut.repr2(dict_)
+#             if count == 0:
+#                 # On first run just record info
+#                 kpts = ibs.get_annot_kpts(aid)
+#                 nKpts_list.append(len(kpts))
+#                 cfgstr_list.append(cfgstr_)
+#             if count == 1:
+#                 kpts = ibs.get_annot_kpts(aid)
+#                 # If second run happens display info
+#                 cfgpackstr = utool.packstr(cfgstr_, textwidth=80,
+#                                               breakchars=',', newline_prefix='',
+#                                               break_words=False, wordsep=',')
+#                 title_suffix = (' len(kpts) = %r \n' % len(kpts)) + cfgpackstr
+#                 viz.show_chip(ibs, aid, fnum=pt.next_fnum(),
+#                               title_suffix=title_suffix, darken=.8,
+#                               ell_linewidth=2, ell_alpha=.6, config=dict_)
 
-    alldictcomb = utool.flatten(map(utool.all_dict_combinations, varyparams_list))
-    for count in range(NUM_PASSES):
-        nKpts_list = []
-        cfgstr_list = []
-        for aid in qaid_list:
-            test_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list)
-            #for dict_ in alldictcomb:
-        if count == 0:
-            nKpts_list = np.array(nKpts_list)
-            cfgstr_list = np.array(cfgstr_list)
-            print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
+#     alldictcomb = utool.flatten(map(utool.all_dict_combinations, varyparams_list))
+#     for count in range(NUM_PASSES):
+#         nKpts_list = []
+#         cfgstr_list = []
+#         for aid in qaid_list:
+#             test_featcfg_combo(ibs, aid, alldictcomb, count, nKpts_list, cfgstr_list)
+#             #for dict_ in alldictcomb:
+#         if count == 0:
+#             nKpts_list = np.array(nKpts_list)
+#             cfgstr_list = np.array(cfgstr_list)
+#             print(get_sortbystr(cfgstr_list, nKpts_list, 'cfg', 'nKpts'))
 
 
 def run_dev(ibs):

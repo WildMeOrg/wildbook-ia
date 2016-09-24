@@ -696,7 +696,7 @@ def monitor_wildbook_logs(verbose=ut.NOT_QUIET):
     return wb_url
 
 
-def test_wildbook_login():
+def tryout_wildbook_login():
     r"""
     Helper function to test wildbook login automagically
 
@@ -704,12 +704,12 @@ def test_wildbook_login():
         tuple: (wb_target, tomcat_dpath)
 
     CommandLine:
-        python -m ibeis test_wildbook_login
+        python -m ibeis tryout_wildbook_login
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.control.wildbook_manager import *  # NOQA
-        >>> test_wildbook_login()
+        >>> tryout_wildbook_login()
     """
     # Use selenimum to login to wildbook
     import ibeis

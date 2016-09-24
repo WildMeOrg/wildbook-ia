@@ -779,7 +779,19 @@ def compute_feats(depc, cid_list, config=None):
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core('PZ_MTEST', 100)
         >>> config = {'dim_size': 450}
-        >>> num_feats = depc.get('feat', aid_list, 'num_feats', config=config, recompute=True)
+        >>> cid_list = depc.get_rowids('chips', aid_list, config=config)
+        >>> config = FeatConfig()
+        >>> featgen = compute_feats(depc, cid_list, config)
+        >>> feat_list = list(featgen)
+        >>> idx = 5
+        >>> (nFeat, kpts, vecs) = feat_list[idx]
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> chip = depc.get_native('chips', cid_list[idx:idx + 1], 'img')[0]
+        >>> pt.interact_keypoints.KeypointInteraction(chip, kpts, vecs, autostart=True)
+        >>> ut.show_if_requested()
+
+        >>> #num_feats = depc.get('feat', aid_list, 'num_feats', config=config, recompute=True)
 
         ibs.delete_annot_feats(aid_list)
         ibs.get_annot_feat_rowids(aid_list)
@@ -812,8 +824,10 @@ def compute_feats(depc, cid_list, config=None):
         # eager evaluation.
         # TODO: Check if there is any benefit to just passing in the iterator.
         arg_list = list(arg_iter)
-        featgen = ut.generate(gen_feat_worker, arg_list, nTasks=nInput, freq=10,
-                              ordered=True, force_serial=ibs.force_serial)
+        # TODO: futures_generate
+        featgen = ut.generate(gen_feat_worker, arg_list, nTasks=nInput,
+                              freq=10, ordered=True,
+                              force_serial=ibs.force_serial)
     elif feat_type == 'hesaff+siam128':
         from ibeis_cnn import _plugin
         assert maskmethod is None, 'not implemented'
@@ -1065,7 +1079,7 @@ class VsOneConfig(dtool.Config):
     ]
 
 
-def test_cut(ibs, parent_rowids_T, score_list2):
+def cut_test(ibs, parent_rowids_T, score_list2):
 
     unique_aids = ut.unique(ut.flatten(parent_rowids_T))
     #for view in set(ibs.get_annot_yaw_texts(unique_aids)):

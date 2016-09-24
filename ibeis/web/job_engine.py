@@ -38,17 +38,17 @@ Notes:
     We are essentially goint to be spawning two processes.
     We can test these simultaniously using
 
-        python -m ibeis.web.job_engine test_job_engine
+        python -m ibeis.web.job_engine job_engine_tester
 
     We can test these separately by first starting the background server
-        python -m ibeis.web.job_engine test_job_engine --bg
+        python -m ibeis.web.job_engine job_engine_tester --bg
 
         Alternative:
-            python -m ibeis.web.job_engine test_job_engine --bg --no-engine
-            python -m ibeis.web.job_engine test_job_engine --bg --only-engine --fg-engine
+            python -m ibeis.web.job_engine job_engine_tester --bg --no-engine
+            python -m ibeis.web.job_engine job_engine_tester --bg --only-engine --fg-engine
 
     And then running the forground process
-        python -m ibeis.web.job_engine test_job_engine --fg
+        python -m ibeis.web.job_engine job_engine_tester --fg
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 #if False:
@@ -183,7 +183,7 @@ def get_job_status(ibs, jobid):
         python -m ibeis.web.job_engine --exec-get_job_status
 
         # Start job queue in its own process
-        python -m ibeis.web.job_engine test_job_engine --bg
+        python -m ibeis.web.job_engine job_engine_tester --bg
         # Start web server in its own process
         ./main.py --web --fg
         pass
@@ -230,20 +230,20 @@ def _get_random_open_port():
     return port
 
 
-def test_job_engine():
+def job_engine_tester():
     """
     CommandLine:
-        python -m ibeis.web.job_engine --exec-test_job_engine
-        python -b -m ibeis.web.job_engine --exec-test_job_engine
+        python -m ibeis.web.job_engine --exec-job_engine_tester
+        python -b -m ibeis.web.job_engine --exec-job_engine_tester
 
-        python -m ibeis.web.job_engine test_job_engine
-        python -m ibeis.web.job_engine test_job_engine --bg
-        python -m ibeis.web.job_engine test_job_engine --fg
+        python -m ibeis.web.job_engine job_engine_tester
+        python -m ibeis.web.job_engine job_engine_tester --bg
+        python -m ibeis.web.job_engine job_engine_tester --fg
 
     Example:
         >>> # SCRIPT
         >>> from ibeis.web.job_engine import *  # NOQA
-        >>> test_job_engine()
+        >>> job_engine_tester()
     """
     _init_signals()
     # now start a few clients, and fire off some requests

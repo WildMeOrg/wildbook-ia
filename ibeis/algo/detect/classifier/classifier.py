@@ -143,7 +143,7 @@ def load_images(cache_data_filename='test_data.npy',
     return data_list, label_list
 
 
-# def test_classifier(output_path):
+# def classifier_test(output_path):
 #     print('[classifier] Loading the classifier training data')
 #     data_list, label_list = load_images()
 

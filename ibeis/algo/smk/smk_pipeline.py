@@ -28,6 +28,7 @@ class SMKRequestConfig(dtool.Config):
         ut.ParamInfo('smk_thresh', 0.0),
         #ut.ParamInfo('smk_thresh', -1.0),
         ut.ParamInfo('agg', True),
+        ut.ParamInfo('smk_version', 2),
     ]
     _sub_config_list = [
         core_annots.ChipConfig,

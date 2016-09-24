@@ -1931,7 +1931,7 @@ def get_short_infostr(ibs):
     return infostr
 
 
-def test_name_consistency(ibs):
+def tst_name_consistency(ibs):
     """
     Example:
         >>> import ibeis

@@ -121,21 +121,21 @@ def testdata_ensure_unconverted_hsdb():
     return hsdb_dir
 
 
-def test_open_to_convert():
-    r"""
-    CommandLine:
-        python -m ibeis.dbio.ingest_hsdb --test-test_open_to_convert
+# def test_open_to_convert():
+#     r"""
+#     CommandLine:
+#         python -m ibeis.dbio.ingest_hsdb --test-test_open_to_convert
 
-    Example:
-        >>> # VERY_UNSTABLE_DOCTEST
-        >>> from ibeis.dbio.ingest_hsdb import *  # NOQA
-        >>> result = test_open_to_convert()
-        >>> print(result)
-    """
-    import ibeis
-    hsdb_dir = testdata_ensure_unconverted_hsdb()
-    ibs = ibeis.opendb(dbdir=hsdb_dir)
-    ibs.print_cachestats_str()
+#     Example:
+#         >>> # VERY_UNSTABLE_DOCTEST
+#         >>> from ibeis.dbio.ingest_hsdb import *  # NOQA
+#         >>> result = test_open_to_convert()
+#         >>> print(result)
+#     """
+#     import ibeis
+#     hsdb_dir = testdata_ensure_unconverted_hsdb()
+#     ibs = ibeis.opendb(dbdir=hsdb_dir)
+#     ibs.print_cachestats_str()
 
 
 def convert_hsdb_to_ibeis(hsdb_dir, **kwargs):

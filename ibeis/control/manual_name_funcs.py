@@ -164,22 +164,21 @@ def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBO
         Method: DELETE
         URL:    /api/name/
 
-
-    Example:
-        >>> # UNPORTED_DOCTEST
-        >>> gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
-        >>> gid_list = ibs.add_images(gpath_list)
-        >>> bbox_list = [(0, 0, 100, 100)]*len(gid_list)
-        >>> name_list = ['a', 'b', 'a', 'd']
-        >>> aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
-        >>> assert len(aid_list) != 0, "No annotations added"
-        >>> nid_list = ibs.get_valid_nids()
-        >>> assert len(nid_list) != 0, "No names added"
-        >>> nid = nid_list[0]
-        >>> assert nid is not None, "nid is None"
-        >>> ibs.delete_names(nid)
-        >>> all_nids = ibs.get_valid_nids()
-        >>> assert nid not in all_nids, "NID not deleted"
+    # Ignore:
+    #     >>> # UNPORTED_DOCTEST
+    #     >>> gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
+    #     >>> gid_list = ibs.add_images(gpath_list)
+    #     >>> bbox_list = [(0, 0, 100, 100)]*len(gid_list)
+    #     >>> name_list = ['a', 'b', 'a', 'd']
+    #     >>> aid_list = ibs.add_annots(gid_list, bbox_list=bbox_list, name_list=name_list)
+    #     >>> assert len(aid_list) != 0, "No annotations added"
+    #     >>> nid_list = ibs.get_valid_nids()
+    #     >>> assert len(nid_list) != 0, "No names added"
+    #     >>> nid = nid_list[0]
+    #     >>> assert nid is not None, "nid is None"
+    #     >>> ibs.delete_names(nid)
+    #     >>> all_nids = ibs.get_valid_nids()
+    #     >>> assert nid not in all_nids, "NID not deleted"
 
     """
     if verbose:

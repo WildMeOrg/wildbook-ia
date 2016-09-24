@@ -492,7 +492,7 @@ def get_training_pairs():
         grid = ut.all_dict_combinations(basis)
         xdata = np.array(ut.take_column(grid, 'ratio_thresh'))
 
-        def test_ratio_thresh(y_true, match_list):
+        def _ratio_thresh(y_true, match_list):
             # Try and find optional ratio threshold
             auc_list = []
             for cfgdict in ut.ProgIter(grid, lbl='gridsearch'):
@@ -503,7 +503,7 @@ def get_training_pairs():
             auc_list = np.array(auc_list)
             return auc_list
 
-        auc_list = test_ratio_thresh(truth_list, match_list)
+        auc_list = _ratio_thresh(truth_list, match_list)
         pt.plot(xdata, auc_list)
         subx, suby = vt.argsubmaxima(auc_list, xdata)
         best_ratio_thresh = subx[suby.argmax()]
@@ -513,7 +513,7 @@ def get_training_pairs():
         for train_idx, test_idx in skf.split(match_list, truth_list):
             match_list_ = ut.take(match_list, train_idx)
             y_true = truth_list.take(train_idx)
-            auc_list = test_ratio_thresh(y_true, match_list_)
+            auc_list = _ratio_thresh(y_true, match_list_)
             subx, suby = vt.argsubmaxima(auc_list, xdata, maxima_thresh=.8)
             best_ratio_thresh = subx[suby.argmax()]
             skf_results.append(best_ratio_thresh)

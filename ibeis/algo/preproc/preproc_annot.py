@@ -148,18 +148,18 @@ def testdata_preproc_annot():
     return ibs, aid_list
 
 
-def test_annotation_uuid(ibs):
-    """ Consistency test """
-    # DEPRICATE
-    aid_list        = ibs.get_valid_aids()
-    bbox_list       = ibs.get_annot_bboxes(aid_list)
-    theta_list      = ibs.get_annot_thetas(aid_list)
-    image_uuid_list = ibs.get_annot_image_uuids(aid_list)
+# def test_annotation_uuid(ibs):
+#     """ Consistency test """
+#     # DEPRICATE
+#     aid_list        = ibs.get_valid_aids()
+#     bbox_list       = ibs.get_annot_bboxes(aid_list)
+#     theta_list      = ibs.get_annot_thetas(aid_list)
+#     image_uuid_list = ibs.get_annot_image_uuids(aid_list)
 
-    annotation_uuid_list1 = ibs.get_annot_uuids(aid_list)
-    annotation_uuid_list2 = make_annotation_uuids(image_uuid_list, bbox_list, theta_list)
+#     annotation_uuid_list1 = ibs.get_annot_uuids(aid_list)
+#     annotation_uuid_list2 = make_annotation_uuids(image_uuid_list, bbox_list, theta_list)
 
-    assert annotation_uuid_list1 == annotation_uuid_list2
+#     assert annotation_uuid_list1 == annotation_uuid_list2
 
 
 #def distinguish_unknown_nids(ibs, aid_list, nid_list_):

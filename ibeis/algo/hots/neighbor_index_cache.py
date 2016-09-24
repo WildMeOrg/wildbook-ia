@@ -285,7 +285,7 @@ def request_ibeis_nnindexer(qreq_, verbose=True, **kwargs):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> nnindexer, qreq_, ibs = test_nnindexer(None)
+        >>> nnindexer, qreq_, ibs = testdata_nnindexer(None)
         >>> nnindexer = request_ibeis_nnindexer(qreq_)
     """
     daid_list = qreq_.get_internal_daids()
@@ -661,13 +661,13 @@ def new_neighbor_index(daid_list, vecs_list, fgws_list, fxs_list, flann_params, 
     return nnindexer
 
 
-def test_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
+def testdata_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
     r"""
 
     Ignore:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> nnindexer, qreq_, ibs = test_nnindexer('PZ_Master1')
+        >>> nnindexer, qreq_, ibs = testdata_nnindexer('PZ_Master1')
         >>> S = np.cov(nnindexer.idx2_vec.T)
         >>> import plottool as pt
         >>> pt.ensure_pylab_qt4()
@@ -676,7 +676,7 @@ def test_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.neighbor_index_cache import *  # NOQA
-        >>> nnindexer, qreq_, ibs = test_nnindexer()
+        >>> nnindexer, qreq_, ibs = testdata_nnindexer()
     """
     import ibeis
     daid_list = [7, 8, 9, 10, 11]

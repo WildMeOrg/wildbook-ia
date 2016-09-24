@@ -262,17 +262,17 @@ class ClockOffsetWidget(QtWidgets.QWidget):
         print("[co_gui] Base datetime is %r" % co_wgt.dtime)
 
 
-def test_clock_offset():
+def clock_offset_test():
     r"""
     CommandLine:
-        python -m ibeis.gui.clock_offset_gui --test-test_clock_offset
+        python -m ibeis.gui.clock_offset_gui --test-clock_offset_test
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.gui.clock_offset_gui import *  # NOQA
         >>> # build test data
         >>> # execute function
-        >>> result = test_clock_offset()
+        >>> result = clock_offset_test()
         >>> # verify results
         >>> print(result)
     """

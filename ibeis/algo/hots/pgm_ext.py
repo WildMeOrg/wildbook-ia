@@ -742,7 +742,7 @@ def coin_example():
     return model
 
 
-def test_markovmodel():
+def markovmodel_test():
     """
         >>> from ibeis.algo.hots.pgm_ext import *  # NOQA
     """

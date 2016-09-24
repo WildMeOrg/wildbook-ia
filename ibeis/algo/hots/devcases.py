@@ -163,7 +163,7 @@ def myquery():
     top_aids = qres.get_top_aids()  # NOQA
     qres_orig = qres  # NOQA
 
-    def test_config(qreq_, qres_orig, cfgdict):
+    def try_config(qreq_, qres_orig, cfgdict):
         """ function to grid search over """
         qres_copy = copy.deepcopy(qres_orig)
         qreq_vsone_ = qreq_
@@ -182,7 +182,7 @@ def myquery():
     gridsearch = ut.GridSearch(grid_basis, label='qvuuid=%r' % (qvuuid,))
     print('Begin Grid Search')
     for cfgdict in ut.ProgressIter(gridsearch, lbl='GridSearch'):
-        qres_copy, tp_score, tn_score = test_config(qreq_, qres_orig, cfgdict)
+        qres_copy, tp_score, tn_score = try_config(qreq_, qres_orig, cfgdict)
         gridsearch.append_result(tp_score, tn_score)
     print('Finish Grid Search')
 

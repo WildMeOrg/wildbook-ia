@@ -86,7 +86,7 @@ def generate_all():
     return fname, script, line_list
 
 
-def test_database_intersection():
+def database_intersection_test():
     """
     # PZ_FlankHack is a pure subset of PZ_Master0, but there are minor changes between them
     python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master0  # NOQA

@@ -249,6 +249,9 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
         Method: POST
         URL:    /api/image/
 
+    CommandLine:
+        python -m ibeis.control.manual_image_funcs --test-add_images
+
     Example0:
         >>> # ENABLE_DOCTEST
         >>> # Test returns None on fail to add
@@ -1053,17 +1056,13 @@ def get_image_paths(ibs, gid_list):
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> #gid_list = ibs.get_valid_gids()
-        >>> # execute function
         >>> #gpath_list = get_image_paths(ibs, gid_list)
         >>> new_gpath = ut.unixpath(ut.grab_test_imgpath('carl.jpg'))
         >>> gid_list = ibs.add_images([new_gpath], auto_localize=False)
         >>> new_gpath_list = get_image_paths(ibs, gid_list)
-        >>> # verify results
         >>> ut.assert_eq(new_gpath, new_gpath_list[0])
         >>> result = str(new_gpath_list)
-        >>> # clean up the database!
         >>> ibs.delete_images(gid_list)
-        >>> # ibs.delete_images(new_gids)
         >>> print(result)
         """
     #ut.assert_all_not_None(gid_list, 'gid_list', key_list=['gid_list'])
@@ -1833,9 +1832,9 @@ def delete_images(ibs, gid_list, trash_images=True):
         Method: DELETE
         URL:    /api/image/
 
-    Example:
+    Ignore:
         >>> # UNPORTED_DOCTEST
-        >>> gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
+        >>> gpath_list = ut.get_test_gpaths(ndata=None)[0:4]
         >>> gid_list = ibs.add_images(gpath_list)
         >>> bbox_list = [(0, 0, 100, 100)] * len(gid_list)
         >>> name_list = ['a', 'b', 'a', 'd']
@@ -1913,9 +1912,9 @@ def delete_image_thumbs(ibs, gid_list, **config2_):
         Method: DELETE
         URL:    /api/image/thumb/
 
-    Example:
+    Ignore:
         >>> # UNPORTED_DOCTEST
-        >>> gpath_list = grabdata.get_test_gpaths(ndata=None)[0:4]
+        >>> gpath_list = ut.get_test_gpaths(ndata=None)[0:4]
         >>> gid_list = ibs.add_images(gpath_list)
         >>> bbox_list = [(0, 0, 100, 100)] * len(gid_list)
         >>> name_list = ['a', 'b', 'a', 'd']

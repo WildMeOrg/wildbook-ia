@@ -201,7 +201,7 @@ def random_case_set():
     return labels, pairwise_feats
 
 
-def test_rf_classifier():
+def try_rf_classifier():
     # TODO: Evaluate TPOT
     # http://www.randalolson.com/2016/05/08/tpot-a-python-tool-for-automating-data-science/
     # https://www.reddit.com/r/MachineLearning/comments/4ij8dw/tpot_a_python_tool_for_automating_machine_learning/
@@ -314,7 +314,7 @@ def make_test_pairwise_labels2(cases1, cases2):
     return label
 
 
-def test_em():
+def try_em():
     """
     CommandLine:
         python -m ibeis.algo.hots.testem test_em --show
@@ -512,7 +512,7 @@ def test_em():
     return P, Pn, PL, gam, num_labels
 
 
-def test_em2(prob_names, prob_annots=None):
+def try_em2(prob_names, prob_annots=None):
     """
     assert prob_names.shape == (nAnnots, nNames)
     """

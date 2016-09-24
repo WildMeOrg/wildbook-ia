@@ -143,7 +143,7 @@ def load_images(cache_data_filename='test_data.npy',
     return data_list, label_list
 
 
-def test_qualifier(output_path):
+def qualifier_test(output_path):
     print('[qualifier] Loading the qualifier training data')
     data_list, label_list = load_images()
 

@@ -18,7 +18,7 @@ from ibeis.viz import interact
 from ibeis.dbio import ingest_hsdb
 
 
-def test_openworkdirs():
+def openworkdirs_test():
     """
     problems:
         PZ_DanExt_All

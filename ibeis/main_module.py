@@ -503,8 +503,8 @@ def start(*args, **kwargs):
     return main(*args, **kwargs)
 
 
-def test_main(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
-              db=None):
+def opendb_test(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
+                db=None):
     """ alias for main() """  # + main.__doc__
     from ibeis.init import sysres
     _preload()

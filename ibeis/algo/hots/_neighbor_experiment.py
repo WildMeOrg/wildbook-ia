@@ -361,7 +361,7 @@ def subindexer_time_experiment():
     #pt.update()
 
 
-def test_incremental_add(ibs):
+def trytest_incremental_add(ibs):
     r"""
     Args:
         ibs (IBEISController):
@@ -426,7 +426,7 @@ def test_incremental_add(ibs):
     #    if
 
 
-def test_multiple_add_removes():
+def trytest_multiple_add_removes():
     r"""
     CommandLine:
         python -m ibeis.algo.hots._neighbor_experiment --exec-test_multiple_add_removes

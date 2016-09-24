@@ -25,7 +25,7 @@ from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 VERBOSE_QREQ = ut.get_module_verbosity_flags('qreq')
 
 
-def testdata_newqreq(defaultdb):
+def testdata_newqreq(defaultdb='testdb1'):
     """
     Returns:
         (ibeis.IBEISController, list, list)
@@ -1224,14 +1224,14 @@ class QueryRequest(ut.NiceRepr):
         return cm_list
 
 
-def test_cfg_deepcopy():
+def cfg_deepcopy_test():
     """
     TESTING FUNCTION
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.query_request import *  # NOQA
-        >>> result = test_cfg_deepcopy()
+        >>> result = cfg_deepcopy_test()
         >>> print(result)
     """
     import ibeis

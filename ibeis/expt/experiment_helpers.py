@@ -143,7 +143,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     if ibs is None:
         configclass_list = [Config.QueryConfig] * len(_pcfgdict_list)
     else:
-        root_to_config = ibs.depc_annot.configclass_dict
+        root_to_config = ibs.depc_annot.configclass_dict.copy()
         from ibeis.algo.smk import smk_pipeline
         root_to_config['smk'] = smk_pipeline.SMKRequestConfig
         configclass_list = [

@@ -550,14 +550,14 @@ def filterflags_general_tags(tags_list,
         flags_ = [len(has_all.intersection(tags_)) == len(has_all) for tags_ in tags_list_]
         logic_func(flags, flags_, out=flags)
 
-    def test_item(tags_, fields, op, compare):
+    def check_item(tags_, fields, op, compare):
         t_flags = [any([compare(t, f) for f in fields]) for t in tags_]
         num_passed = sum(t_flags)
         flag = op(num_passed, 0)
         return flag
 
     def flag_tags(tags_list, fields, op, compare):
-        flags = [test_item(tags_, fields, op, compare) for tags_ in tags_list_]
+        flags = [check_item(tags_, fields, op, compare) for tags_ in tags_list_]
         return flags
 
     def execute_filter(flags, tags_list, fields, op, compare):

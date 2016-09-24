@@ -28,7 +28,7 @@ MATCH_TTYPE = 'same'
 SCORE_TTYPE = 'evidence_match'
 
 
-def test_model(num_annots, num_names, score_evidence=[], name_evidence=[],
+def temp_model(num_annots, num_names, score_evidence=[], name_evidence=[],
                other_evidence={}, noquery=False, verbose=None,
                **kwargs):
     if verbose is None:

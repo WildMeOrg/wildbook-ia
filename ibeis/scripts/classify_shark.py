@@ -844,7 +844,7 @@ class ClfProblem(object):
             #0.707 (+/-0.043) for {u'C': 100}
             #0.702 (+/-0.047) for {u'C': 1000}
 
-    def test_classifier(problem, clf, test_idx):
+    def classifier_test(problem, clf, test_idx):
         print('[problem] test classifier on %d data points' % (len(test_idx),))
         data = problem.ds.data
         target = problem.ds.target
@@ -1141,7 +1141,7 @@ def shark_svm():
         clf = sklearn.svm.SVC()
         clf.__dict__.update(**ut.load_data(clf_fpath))
 
-    def test_classifier(clf, X_test, y_test):
+    def classifier_test(clf, X_test, y_test):
         print('[problem] test classifier on %d data points' % (len(test_idx),))
         if len(clf.classes_) == 2:
             # Adapt _ovr_decision_function for 2-class case
@@ -1171,7 +1171,7 @@ def shark_svm():
     test_idx = ds._split_idxs['test']
     X_test = ds.data.take(test_idx, axis=0)
     y_test = ds.target.take(test_idx, axis=0)
-    result = test_classifier(clf, X_test, y_test)
+    result = classifier_test(clf, X_test, y_test)
     result.compile_results()
     result.print_report()
 
