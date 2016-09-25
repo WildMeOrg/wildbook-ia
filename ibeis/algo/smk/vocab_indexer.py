@@ -594,7 +594,8 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
         fs_chunk = [executor.submit(worker, args)
                     for args in ut.ProgIter(args_gen, lbl='submit proc')]
         for fs in ut.ProgIter(fs_chunk, lbl='getting phi result'):
-            yield fs.result()
+            tup = fs.result()
+            yield tup
     except Exception:
         raise
     finally:
