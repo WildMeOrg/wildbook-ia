@@ -647,8 +647,9 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
     args_gen = parprep_agg_phi_args(vocab, vecs_list, nAssign, int_rvec)
     args_gen = [args for args in ut.ProgIter(args_gen, nTotal=len(vecs_list),
                                              lbl='building args')]
-    nprocs = ut.num_unused_cpus(thresh=10) - 1
-    print('Creatinmg process pools')
+    # nprocs = ut.num_unused_cpus(thresh=10) - 1
+    nprocs = ut.num_cpus()
+    print('Creatinmg %d processes' % (nprocs,))
     executor = futures.ProcessPoolExecutor(nprocs)
     try:
         print('Submiting workers')
