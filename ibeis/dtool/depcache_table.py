@@ -1454,7 +1454,6 @@ class _TableComputeHelper(object):
 
         return fname_list
 
-    #@profile
     def _get_extern_fnames(table, parent_rowids, config_rowid, config, extern_colattr=None):
         """
         TODO:
@@ -1490,11 +1489,13 @@ class _TableComputeHelper(object):
         ]
         return fname_list
 
-    #def _raw_call():
-    #    pass
-    #@profile
     def _compute_dirty_rows(table, dirty_parent_ids, dirty_preproc_args,
                             config_rowid, config, verbose=True):
+        """
+        dirty_preproc_args = preproc_args
+        dirty_parent_ids = parent_rowids
+        config_ = config
+        """
         nInput = len(dirty_parent_ids)
         if verbose:
             print('[deptbl.compute] nInput = %r' % (nInput,))
@@ -1502,21 +1503,23 @@ class _TableComputeHelper(object):
         # Pack arguments into column-wise order to send to the func
         argsT = zip(*dirty_preproc_args)
         argsT = list(argsT)  # TODO: remove
+
         # HACK extract config if given a request
         config_ = config.config if hasattr(config, 'config') else config
 
         # call registered worker function
-        if not table.vectorized:
+        if table.vectorized:
+            # Function is written in a way that only accepts multiple inputs at
+            # once and generates output
+            proptup_gen = table.preproc_func(table.depc, *argsT,
+                                             config=config_)
+        else:
             # Function is written in a way that only accepts a single row of
             # input at a time
             proptup_gen = (
                 table.preproc_func(table.depc, *argrow, config=config_)
-                for argrow in zip(*argsT))
-        else:
-            # Function is written in a way that only accepts
-            # multiple inputs at once and generates output
-            proptup_gen = table.preproc_func(table.depc, *argsT,
-                                             config=config_)
+                for argrow in zip(*argsT)
+            )
 
         DEBUG_LIST_MODE = True
         if DEBUG_LIST_MODE:
@@ -1532,11 +1535,9 @@ class _TableComputeHelper(object):
         if DEBUG_LIST_MODE:
             dirty_params_iter = list(dirty_params_iter)
             assert len(dirty_params_iter) == nInput
-        # TODO: Separate into func which can be specified as a callback.
         # None data means that there was an error for a specific row
         return dirty_params_iter
 
-    #@profile
     def _chunk_compute_dirty_rows(table, dirty_parent_ids, dirty_preproc_args,
                                   config_rowid, config, verbose=True):
         """
@@ -1594,36 +1595,8 @@ class _TableComputeHelper(object):
                 dirty_params_iter = table._compute_dirty_rows(
                     dirty_parent_ids_chunk, dirty_preproc_args_chunk,
                     config_rowid, config)
-                ##dirty_parent_ids_chunk, dirty_preproc_args_chunk = list(zip(*dirty_chunk))
-                ## Pack arguments into column-wise order to send to the func
-                #argsT = zip(*dirty_preproc_args_chunk)
-                #argsT = list(argsT)  # TODO: remove
-                ## HACK extract config if given a request
-                #config_ = config.config if hasattr(config, 'config') else config
-                ## call registered worker function
-                #if table.vectorized:
-                #    # Function is written in a way that only accepts a single
-                #    # row of input at a time
-                #    proptup_gen = (
-                #        table.preproc_func(table.depc, *argrow, config=config_)
-                #        for argrow in zip(*argsT))
-                #else:
-                #    # Function is written in a way that only accepts
-                #    # multiple inputs at once and generates output
-                #    proptup_gen = table.preproc_func(table.depc, *argsT,
-                #                                     config=config_)
 
                 DEBUG_LIST_MODE = True
-                #if DEBUG_LIST_MODE:
-                #    proptup_gen = list(proptup_gen)
-                #    num_output = len(proptup_gen)
-                #    assert num_output == nChunkInput, (
-                #        'Input and output sizes do not agree. '
-                #        'num_output=%r, num_input=%r' % (num_output, nChunkInput,))
-                ## Append rowids and rectify nested and external columns
-                #dirty_params_iter = table.prepare_storage(
-                #    dirty_parent_ids_chunk, proptup_gen, dirty_preproc_args_chunk,
-                #    config_rowid, config_)
                 if DEBUG_LIST_MODE:
                     dirty_params_iter = list(dirty_params_iter)
                     assert len(dirty_params_iter) == nChunkInput
@@ -1871,6 +1844,9 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                 gen = table._chunk_compute_dirty_rows(dirty_parent_ids,
                                                       dirty_preproc_args,
                                                       config_rowid, config)
+                """
+                colnames, dirty_params_iter, nChunkInput = next(gen)
+                """
                 for colnames, dirty_params_iter, nChunkInput in gen:
                     table.db._add(table.tablename, colnames, dirty_params_iter,
                                   nInput=nChunkInput)
@@ -2320,6 +2296,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         if colnames is None:
             requested_colnames = table.data_colnames
         elif isinstance(colnames, six.string_types):
+            # Unpack columns if only a single column is requested.
             requested_colnames = (colnames,)
             unpack_columns = True
         else:

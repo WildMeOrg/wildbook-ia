@@ -89,7 +89,7 @@ class _CoreDependencyCache(object):
     def _register_prop(depc, tablename, parents=None, colnames=None,
                        coltypes=None, preproc_func=None, fname=None,
                        configclass=None, requestclass=None,
-                       **kwargs):
+                       default_to_unpack=None, **kwargs):
         """
         Registers a table with this dependency cache.
         Essentially passes args down to make a DependencyTable.
@@ -110,13 +110,14 @@ class _CoreDependencyCache(object):
             if coltypes is None:
                 coltypes = np.ndarray
         # Check if just a single column is given
-        if not ut.isiterable(colnames):
-            colnames = [colnames]
-            coltypes = [coltypes]
-            default_to_unpack = True
-        else:
-            default_to_unpack = False
-            colnames = ut.lmap(six.text_type, colnames)
+        if default_to_unpack is None:
+            if ut.isiterable(colnames):
+                default_to_unpack = False
+                colnames = ut.lmap(six.text_type, colnames)
+            else:
+                colnames = [colnames]
+                coltypes = [coltypes]
+                default_to_unpack = True
         if coltypes is None:
             raise ValueError('must specify coltypes of %s' % (tablename,))
             coltypes = [np.ndarray] * len(colnames)
@@ -584,7 +585,7 @@ class _CoreDependencyCache(object):
         _debug = depc._debug if _debug is None else _debug
         _kwargs = rowid_kw.copy()
         config = _kwargs.pop('config', {})
-        _hack_rootmost = _kwargs.pop('_hack_rootmost', {})
+        _hack_rootmost = _kwargs.pop('_hack_rootmost', False)
         _recompute_all = _kwargs.pop('recompute_all', False)
         recompute = _kwargs.pop('recompute', _recompute_all)
         table = depc[target_tablename]
