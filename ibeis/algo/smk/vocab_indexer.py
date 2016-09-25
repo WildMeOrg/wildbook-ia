@@ -651,8 +651,9 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
     print('Creatinmg process pools')
     executor = futures.ProcessPoolExecutor(nprocs)
     try:
+        print('Submiting workers')
         fs_chunk = [executor.submit(worker, args) for args in args_gen]
-        for fs in fs_chunk:
+        for fs in ut.ProgIter(fs_chunk, lbl='getting phi result'):
             yield fs.result()
     except Exception:
         raise
