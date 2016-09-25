@@ -368,16 +368,19 @@ class TableInput(ut.NiceRepr):
                     # sure what the general solution is. Too hungry to think
                     # about that.
                     if len(inputs.rmi_list) > 1:
-                        parent_nodes = [rmi.compute_order()[-2].args[0] for rmi in inputs.rmi_list]
+                        parent_nodes = [rmi.compute_order()[-2].args[0]
+                                        for rmi in inputs.rmi_list]
                         order_lookup = ut.make_index_lookup(inputs.table.parents())
                         sortx = ut.take(order_lookup, parent_nodes)
                         inputs.rmi_list = ut.take(rmi_list, sortx)
             else:
                 rootmost_exi_nodes = list(rootmost_nodes)
                 rootmost_depc_nodes = [node[0] for node in rootmost_exi_nodes]
-                ranks = ut.nx_dag_node_rank(inputs.table.depc.graph, rootmost_depc_nodes)
+                ranks = ut.nx_dag_node_rank(inputs.table.depc.graph,
+                                            rootmost_depc_nodes)
                 # make tiebreaker attribute
-                ranks_breaker = ut.nx_dag_node_rank(inputs.exi_graph.reverse(), rootmost_exi_nodes)
+                ranks_breaker = ut.nx_dag_node_rank(inputs.exi_graph.reverse(),
+                                                    rootmost_exi_nodes)
                 sortx = ut.argsort(list(zip(ranks, [-x for x in ranks_breaker])))
                 #sortx = ut.argsort(ranks)
                 inputs.rmi_list = ut.take(rmi_list, sortx)
@@ -387,7 +390,7 @@ class TableInput(ut.NiceRepr):
             pass
 
     def __nice__(inputs):
-        return ' ' + repr(inputs.rmi_list)
+        return repr(inputs.rmi_list)
 
     def __len__(inputs):
         return len(inputs.rmi_list)
@@ -416,11 +419,11 @@ class TableInput(ut.NiceRepr):
     def total_expand(inputs):
         source_nodes = list(ut.nx_source_nodes(inputs.exi_graph))
         sink = list(ut.nx_sink_nodes(inputs.exi_graph))[0]
-        rmi_list = [RootMostInput(node, sink, inputs.exi_graph) for node in source_nodes]
-        new_inputs = TableInput(rmi_list, inputs.exi_graph, inputs.table, reorder=True)
+        rmi_list = [RootMostInput(node, sink, inputs.exi_graph)
+                    for node in source_nodes]
+        new_inputs = TableInput(rmi_list, inputs.exi_graph, inputs.table,
+                                reorder=True)
         return new_inputs
-
-        #pass
 
     def expand_input(inputs, index, inplace=False):
         """
@@ -437,7 +440,8 @@ class TableInput(ut.NiceRepr):
             >>> print('inputs = %r' % (inputs,))
         """
         if isinstance(index, six.string_types):
-            index_list = ut.where([rmi.tablename == index for rmi in inputs.rmi_list])
+            index_list = ut.where([rmi.tablename == index
+                                   for rmi in inputs.rmi_list])
             if len(index_list) == 0:
                 index = 0
             else:
@@ -449,7 +453,8 @@ class TableInput(ut.NiceRepr):
             #raise AssertionError('no parents to expand')
             new_rmi_list = inputs.rmi_list[:]
         else:
-            new_rmi_list = ut.insert_values(inputs.rmi_list, index, parent_level, inplace)
+            new_rmi_list = ut.insert_values(inputs.rmi_list, index,
+                                            parent_level, inplace)
             new_rmi_list = ut.unique(new_rmi_list)
         if inplace:
             inputs.rmi_list = new_rmi_list
@@ -469,8 +474,6 @@ class TableInput(ut.NiceRepr):
         rgraph = inputs.exi_graph.reverse()
         toprank = ut.nx_topsort_rank(rgraph, flat_node_order_)
         sortx = ut.argsort(toprank)[::-1]
-        #dagrank = ut.nx_dag_node_rank(rgraph, flat_node_order_)
-        #sortx = ut.argsort(dagrank)[::-1]
         flat_compute_order = ut.take(flat_node_order_, sortx)
         # Inputs are pre-computed.
         for rmi in inputs.rmi_list:
@@ -479,26 +482,37 @@ class TableInput(ut.NiceRepr):
 
     def flat_compute_edges(inputs):
         """
+        Defines order of computation that maps input_ids to target_ids.
+
         Returns:
             list: compute_edges
                 Each item is a tuple in the form
                     ([parent_1, ..., parent_n], node_i)
-                All parents should be known before you reach the i-th item in the list.
-                Results of the the i-th item may be used in subsequent item computations.
-
+                All parents should be known before you reach the i-th item in
+                the list.
+                Results of the the i-th item may be used in subsequent item
+                computations.
         """
         flat_compute_order = inputs.flat_compute_order()
-        compute_edges = [(list(inputs.exi_graph.predecessors(node)), node) for node in flat_compute_order]
+        compute_edges = []
+        exi_graph = inputs.exi_graph
+        for output_node in flat_compute_order:
+            input_nodes = list(exi_graph.predecessors(output_node))
+            edge = (input_nodes, output_node)
+            compute_edges.append(edge)
         return compute_edges
 
     def flat_compute_rmi_edges(inputs):
+        """ Wraps flat compute edges in RMI structure """
         sink = list(ut.nx_sink_nodes(inputs.exi_graph))[0]
-
-        compute_rmi_edges = [
-            ([RootMostInput(node, sink, inputs.exi_graph) for node in nodes],
-             RootMostInput(output_node, sink, inputs.exi_graph) )
-            for nodes, output_node in inputs.flat_compute_edges()
-        ]
+        exi_graph = inputs.exi_graph
+        compute_rmi_edges = []
+        for input_nodes, output_node in inputs.flat_compute_edges():
+            input_rmis = [RootMostInput(node, sink, exi_graph)
+                          for node in input_nodes]
+            output_rmis = RootMostInput(output_node, sink, exi_graph)
+            edge = (input_rmis, output_rmis)
+            compute_rmi_edges.append(edge)
         return compute_rmi_edges
 
     def flat_input_order(inputs):
@@ -533,34 +547,6 @@ class TableInput(ut.NiceRepr):
         rootmost_tables = ut.take_column(exi_nodes, 0)
         input_compute_ids = list(zip(rootmost_tables, rootmost_exi_branches))
         return input_compute_ids
-
-    def get_compute_order(inputs):
-        """
-        Defines order of computation that maps input_ids to target_ids.
-
-        Returns:
-            list: compute_order
-                Each item in the list is a tuple of the form:
-                    (tablename_i, [branchid_1, ..., branchid_n])
-                The order of the list indicates which table is computed first
-                The table property must be computed for each branch specified
-                by branch_id. before moving to the next item in compute_order
-        """
-        #node_to_branchids = inputs.get_node_to_branch_ids()
-
-        #flat_compute_order = inputs.flat_compute_order()
-        #branch_ids = ut.dict_take(node_to_branchids, flat_compute_order)
-        #tablenames = ut.take_column(flat_compute_order, 0)
-        #depend_compute_ids = list(zip(tablenames, branch_ids))
-
-        # remove inputs that should be given
-        #depend_compute_ids2 = depend_compute_ids[:]
-        #input_compute_ids = inputs.get_input_branch_ids()
-        #for w in input_compute_ids:
-        #    depend_compute_ids2.remove(w)
-
-        #compute_order = depend_compute_ids2
-        return inputs.flat_compute_edges()
 
     def show_exi_graph(inputs, inter=None):
         """
@@ -637,14 +623,15 @@ def get_rootmost_inputs(exi_graph, table):
         >>> inputs = inputs_.expand_input(1)
         >>> rmi = inputs.rmi_list[0]
         >>> result = ('inputs = %s' % (inputs,)) + '\n'
-        >>> result += ('compute_order = %s' % (ut.repr2(inputs.get_compute_order(), nl=1)))
+        >>> result += ('compute_order = %s' % (ut.repr2(inputs.flat_compute_edges(), nl=1)))
         >>> print(result)
     """
     # Take out the shallowest (wrt target) rootmost nodes
     attrs = ut.nx_get_default_node_attributes(exi_graph, 'rootmost', False)
     rootmost_exi_nodes = [node for node, v in attrs.items() if v]
     sink = list(ut.nx_sink_nodes(exi_graph))[0]
-    rmi_list = [RootMostInput(node, sink, exi_graph) for node in rootmost_exi_nodes]
+    rmi_list = [RootMostInput(node, sink, exi_graph)
+                for node in rootmost_exi_nodes]
     inputs = TableInput(rmi_list, exi_graph, table, reorder=True)
     #x = inmputs.parent_level()[0].parent_level()[0]  # NOQA
     return inputs

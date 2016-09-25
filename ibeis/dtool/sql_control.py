@@ -1024,9 +1024,9 @@ class SQLDatabaseController(object):
             if eager:
                 if showprog:
                     if isinstance(showprog, six.string_types):
-                        lbl = 'sqlread'
-                    else:
                         lbl = showprog
+                    else:
+                        lbl = 'sqlread'
                     prog = ut.ProgPartial(adjust=True, nTotal=nInput, freq=1, lbl=lbl, bs=True)
                     params_iter = prog(params_iter)
                 results_iter = [list(context.execute_and_generate_results(params))

@@ -1046,7 +1046,7 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> import plottool as pt
             >>> table = depc['smk_match']
             >>> table.show_input_graph()
-            >>> print(depc['smk_match'].compute_order)
+            >>> #print(depc['smk_match'].flat_compute_edges)
             >>> ut.show_if_requested()
         """
         import plottool as pt
@@ -1101,7 +1101,6 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> table = depc[tablename]
             >>> table.show_input_graph()
             >>> pt.interactions.zoom_factory()
-            >>> print('table.compute_order = %s' % ut.repr2(table.compute_order, nl=2))
             >>> ut.show_if_requested()
         """
         from dtool import input_helpers
@@ -1127,7 +1126,7 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> table = depc[tablename]
             >>> inputs = table.rootmost_inputs
             >>> result = ('inputs = %s' % (inputs,))
-            >>> print('compute_order = %s' % (ut.repr2(inputs.get_compute_order(), nl=1)))
+            >>> print('compute_order = %s' % (ut.repr2(inputs.flat_compute_edges(), nl=1)))
             >>> print(result)
             inputs = <TableInput [annot[t], vocab[t], inv_index[t]]>
         """
@@ -1136,41 +1135,6 @@ class _TableGeneralHelper(ut.NiceRepr):
         #depc_graph = table.depc.graph
         rootmost_inputs = input_helpers.get_rootmost_inputs(exi_graph, table)
         return rootmost_inputs
-
-    @property
-    @ut.memoize
-    def compute_order(table):
-        """
-        CommandLine:
-            python -m dtool.depcache_table compute_order --show
-
-        Example:
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> import plottool as pt
-            >>> pt.ensure_pylab_qt4()
-            >>> depc = testdata_depc()
-            >>> #tablename = 'multitest_score'
-            >>> tablename = 'neighbs'
-            >>> table = depc[tablename]
-            >>> compute_order = table.compute_order
-            >>> print('compute_order = %s' % (ut.repr3(compute_order, nl=1),))
-
-        Example:
-            >>> from dtool.depcache_control import *  # NOQA
-            >>> from dtool.example_depcache2 import *  # NOQA
-            >>> import plottool as pt
-            >>> pt.ensure_pylab_qt4()
-            >>> depc = testdata_depc_annot()
-            >>> #tablename = 'multitest_score'
-            >>> tablename = 'vsone'
-            >>> table = depc[tablename]
-            >>> compute_order = table.compute_order
-            >>> print('compute_order = %s' % (ut.repr3(compute_order, nl=1),))
-        """
-        rootmost_inputs = table.rootmost_inputs
-        compute_order = rootmost_inputs.get_compute_order()
-        return compute_order
 
     @ut.memoize
     def requestable_col_attrs(table):

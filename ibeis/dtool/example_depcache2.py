@@ -71,7 +71,6 @@ def testdata_depc3(in_memory=True):
         >>> depc['neighbs'].show_input_graph(inter)
         >>> inter.start()
         >>> #depc['viewpoint_classification'].show_input_graph()
-        >>> print(depc['smk_match'].compute_order)
         >>> ut.show_if_requested()
     """
     import dtool
@@ -134,7 +133,6 @@ def testdata_depc4(in_memory=True):
         >>> depc['neighbs'].show_input_graph(inter)
         >>> inter.start()
         >>> #depc['viewpoint_classification'].show_input_graph()
-        >>> print(depc['smk_match'].compute_order)
         >>> ut.show_if_requested()
     """
     import dtool

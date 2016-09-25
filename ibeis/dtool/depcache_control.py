@@ -351,7 +351,38 @@ class _CoreDependencyCache(object):
     # -----------------------------
     # STATE GETTERS
 
-    def get_parent_rowids(depc, target_tablename, input_tuple, config=None, **kwargs):
+    def rectify_input_tuple(depc, exi_inputs, input_tuple):
+
+        if isinstance(input_tuple, (list, np.ndarray)):
+            input_tuple = (input_tuple,)
+        if len(exi_inputs) == 1:
+            # HACK: for simple case where we only need one parent
+            if isinstance(input_tuple, (tuple,)):
+                if len(input_tuple) == 0:
+                    input_tuple = []
+                elif len(input_tuple) > 1:
+                    if not ut.isiterable(input_tuple[0]):
+                        input_tuple = (input_tuple,)
+        assert len(exi_inputs) == len(input_tuple), (
+            '#expected=%d, #got=%d' % (len(exi_inputs), len(input_tuple)))
+
+        # rectify input depth
+        rectified_input = []
+        for x, d in zip(input_tuple, exi_inputs.expected_input_depth()):
+            if d == 0:
+                if not ut.isiterable(x):
+                    rectified_input.append([x])
+                else:
+                    rectified_input.append(x)
+            else:
+                if ut.list_depth(x) == 0:
+                    rectified_input.append([x])
+                else:
+                    rectified_input.append(x)
+        return rectified_input
+
+    def get_parent_rowids(depc, target_tablename, input_tuple, config=None,
+                          **kwargs):
         """
         Returns the parent rowids needed to get / compute a property of
         tablename
@@ -372,17 +403,20 @@ class _CoreDependencyCache(object):
                     input_tuple = ([1, 2, 3, ..., N],)
 
                 For a single multi inputs:
-                If you want to get two vocabs for even and odd annots then you have:
+                If you want to get two vocabs for even and odd annots then you
+                have:
                     ([[0, 2, 4, ...], [1, 3, 5, ...]],)
 
                 For a single comparasion version multi inputs:
-                If you want to query the first N annotats against two vocabs then you have:
+                If you want to query the first N annotats against two
+                vocabs then you have:
                     ([1, 2, 3, ..., N], [[0, 2, 4, ...], [1, 3, 5, ...]],)
                 (Note this only works if broadcasting is on)
         """
         _kwargs = kwargs.copy()
         _recompute = _kwargs.pop('recompute_all', False)
         _debug = _kwargs.get('_debug', False)
+        _hack_rootmost = _kwargs.pop('_hack_rootmost', False)
         _debug = depc._debug if _debug is None else _debug
         if config is None:
             config = {}
@@ -395,60 +429,42 @@ class _CoreDependencyCache(object):
                 print(' * input_tuple=%s' % (ut.trunc_repr(input_tuple),))
                 print(' * config = %r' % (config,))
             target_table = depc[target_tablename]
-            exi_inputs = target_table.rootmost_inputs.total_expand()
+
+            # TODO: Expand to the appropriate given inputs
+            if _hack_rootmost:
+                # Hack: if true, we are given inputs in rootmost form
+                exi_inputs = target_table.rootmost_inputs
+            else:
+                # otherwise we are given inputs in totalroot form
+                exi_inputs = target_table.rootmost_inputs.total_expand()
             if _debug:
                 print(' * exi_inputs=%s' % (exi_inputs,))
 
-            if isinstance(input_tuple, (list, np.ndarray)):
-                input_tuple = (input_tuple,)
-            if len(exi_inputs) == 1:
-                # HACK: for simple case where we only need one parent
-                if isinstance(input_tuple, (tuple,)):
-                    if len(input_tuple) == 0:
-                        input_tuple = []
-                    elif len(input_tuple) > 1:
-                        if not ut.isiterable(input_tuple[0]):
-                            input_tuple = (input_tuple,)
-            assert len(exi_inputs) == len(input_tuple), (
-                '#expected=%d, #got=%d' % (len(exi_inputs), len(input_tuple)))
-
-            # rectify input depth
-            rectified_input = []
-            for x, d in zip(input_tuple, exi_inputs.expected_input_depth()):
-                if d == 0:
-                    if not ut.isiterable(x):
-                        rectified_input.append([x])
-                    else:
-                        rectified_input.append(x)
-                else:
-                    #if ut.list_depth(x) > 1:
-                    #    assert len(x) == 1
-                    #    rectified_input.append(x[0])
-                    if ut.list_depth(x) == 0:
-                        rectified_input.append([x])
-                    else:
-                        rectified_input.append(x)
-                #assert ut.list_depth(rectified_input[-1]) == 0, 'bad input depth'
+            rectified_input = depc.rectify_input_tuple(exi_inputs,
+                                                       input_tuple)
 
             rowid_dict = {}
-            for node, rowids in zip(exi_inputs.rmi_list, rectified_input):
-                rowid_dict[node] = rowids
+            for rmi, rowids in zip(exi_inputs.rmi_list, rectified_input):
+                rowid_dict[rmi] = rowids
 
             compute_edges = exi_inputs.flat_compute_rmi_edges()
             if _debug:
                 print(' * compute_edges=%s' % (ut.repr2(compute_edges, nl=2),))
-            for input_nodes, output_edge in compute_edges:
+            for input_nodes, output_node in compute_edges:
                 if _debug:
-                    print(' * COMPUTING EDGE %r -- %r' % (input_nodes, output_edge))
-                #ut.colorprint('output_edge = %r' % (output_edge,), 'yellow')
-                tablekey = output_edge.tablename
+                    print(' * COMPUTING EDGE %r -- %r' % (input_nodes,
+                                                          output_node))
+                #ut.colorprint('output_node = %r' % (output_node,), 'yellow')
+                tablekey = output_node.tablename
                 table = depc[tablekey]
                 # ensure correct ordering to the table
                 input_tablekeys = [n.tablename for n in input_nodes]
-                sortx = ut.list_alignment(table.parent_id_tablenames, input_tablekeys)
+                sortx = ut.list_alignment(table.parent_id_tablenames,
+                                          input_tablekeys)
                 input_nodes_ = ut.take(input_nodes, sortx)
-                input_multi_flags = [node.ismulti and node in exi_inputs.rmi_list
-                                     for node in input_nodes_]
+                input_multi_flags = [
+                    node.ismulti and node in exi_inputs.rmi_list
+                    for node in input_nodes_]
 
                 # Args currently go in like this:
                 # args  = [..., (pid_{i,1}, pid_{i,2}, ..., pid_{i,M}), ...]
@@ -457,11 +473,13 @@ class _CoreDependencyCache(object):
                 # i = row, j = col
                 sig_multi_flags = table.get_parent_col_attr('ismulti')
                 parent_rowidsT = ut.take(rowid_dict, input_nodes_)
-                #[[rowidsT] if flag else rowidsT for flag, rowidsT in zip(sig_multi_flags, parent_rowidsT)]
                 parent_rowids_  = []
-                # TODO: will need to figure out which columns to zip and which columns to product
-                # (ie take product over ones that have 1 item, and zip ones that have equal amount of items)
-                for flag1, flag2, rowidsT in zip(sig_multi_flags, input_multi_flags, parent_rowidsT):
+                # TODO: will need to figure out which columns to zip and which
+                # columns to product (ie take product over ones that have 1
+                # item, and zip ones that have equal amount of items)
+                for flag1, flag2, rowidsT in zip(sig_multi_flags,
+                                                 input_multi_flags,
+                                                 parent_rowidsT):
                     if flag1 and flag2:
                         parent_rowids_.append(rowidsT)
                     elif flag1 and not flag2:
@@ -475,23 +493,26 @@ class _CoreDependencyCache(object):
                 # that must be broadcast.
                 rowlens = list(map(len, parent_rowids_))
                 maxlen = max(rowlens)
-                parent_rowids2_ = [r * maxlen if len(r) == 1 else r for r in parent_rowids_]
+                parent_rowids2_ = [r * maxlen if len(r) == 1 else r
+                                   for r in parent_rowids_]
                 _parent_rowids = list(zip(*parent_rowids2_))
                 #_parent_rowids = list(ut.product(*parent_rowids_))
 
-                if output_edge.tablename != target_tablename:
+                if output_node.tablename != target_tablename:
                     # Get table configuration
                     config_ = depc._ensure_config(tablekey, config, _debug)
 
-                    output_rowids = table.get_rowid(_parent_rowids, config=config_,
-                                                    recompute=_recompute,  **_kwargs)
-                    rowid_dict[output_edge] = output_rowids
+                    output_rowids = table.get_rowid(_parent_rowids,
+                                                    config=config_,
+                                                    recompute=_recompute,
+                                                    **_kwargs)
+                    rowid_dict[output_node] = output_rowids
                     #table.get_model_inputs(table.get_model_uuid(output_rowids)[0])
                 else:
                     # We are only computing up to the parents of the table here.
                     parent_rowids = _parent_rowids
                     break
-            #rowids = rowid_dict[output_edge]
+            #rowids = rowid_dict[output_node]
             return parent_rowids
 
     def check_rowids(depc, tablename, input_tuple, config={}):
@@ -499,7 +520,8 @@ class _CoreDependencyCache(object):
         Returns a list of flags where True means the row has been computed and
         False means that it needs to be computed.
         """
-        existing_rowids = depc.get_rowids(tablename, input_tuple, config=config, ensure=False)
+        existing_rowids = depc.get_rowids(tablename, input_tuple,
+                                          config=config, ensure=False)
         flags = ut.flag_not_None_items(existing_rowids)
         return flags
 
@@ -562,12 +584,15 @@ class _CoreDependencyCache(object):
         _debug = depc._debug if _debug is None else _debug
         _kwargs = rowid_kw.copy()
         config = _kwargs.pop('config', {})
+        _hack_rootmost = _kwargs.pop('_hack_rootmost', {})
         _recompute_all = _kwargs.pop('recompute_all', False)
         recompute = _kwargs.pop('recompute', _recompute_all)
         table = depc[target_tablename]
 
         parent_rowids = depc.get_parent_rowids(target_tablename, input_tuple,
-                                               config=config, **_kwargs)
+                                               config=config,
+                                               _hack_rootmost=_hack_rootmost,
+                                               **_kwargs)
 
         with ut.Indenter('[GetRowId-%s]' % (target_tablename,),
                          enabled=_debug):
