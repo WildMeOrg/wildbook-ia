@@ -201,68 +201,6 @@ class VisualVocab(ut.NiceRepr):
             print('[vocab] L___ End Assign vecs to words.')
         return (wx_to_idxs, wx_to_maws)
 
-    def render_vocab_word(vocab, inva, wx, fnum=None):
-        """
-        Creates a visualization of a visual word. This includes the average patch,
-        the SIFT-like representation of the centroid, and some of the patches that
-        were assigned to it.
-
-        CommandLine:
-            python -m ibeis.algo.smk.vocab_indexer render_vocab_word --show
-
-        Example:
-            >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
-            >>> ibs, aid_list, inva = testdata_inva('PZ_MTEST', num_words=10000)
-            >>> vocab = inva.vocab
-            >>> sortx = ut.argsort(list(inva.wx_to_num.values()))[::-1]
-            >>> wx_list = ut.take(list(inva.wx_to_num.keys()), sortx)
-            >>> wx = wx_list[0]
-            >>> ut.quit_if_noshow()
-            >>> import plottool as pt
-            >>> ut.qt4ensure()
-            >>> fnum = 2
-            >>> fnum = pt.ensure_fnum(fnum)
-            >>> # Interactive visualization of many words
-            >>> for wx in ut.InteractiveIter(wx_list):
-            >>>     word_img = vocab.render_vocab_word(inva, wx, fnum)
-            >>>     pt.imshow(word_img, fnum=fnum, title='Word %r/%r' % (wx, len(inva.vocab)))
-            >>>     pt.update()
-            >>> ut.show_if_requested()
-        """
-        import plottool as pt
-        # Create the contributing patch image
-        word_patches = inva.get_patches(wx)
-        stacked_patches = vt.stack_square_images(word_patches)
-
-        # Create the average word image
-        word = inva.vocab.wx_to_word[wx]
-        average_patch = np.mean(word_patches, axis=0)
-        #vecs = inva.get_vecs(wx)
-        #assert np.allclose(word, vecs.mean(axis=0))
-        with_sift = True
-        if with_sift:
-            patch_img = pt.render_sift_on_patch(average_patch, word)
-        else:
-            patch_img = average_patch
-
-        # Stack them together
-        solidbar = np.zeros((patch_img.shape[0],
-                             int(patch_img.shape[1] * .1), 3), dtype=patch_img.dtype)
-        border_color = (100, 10, 10)  # bgr, darkblue
-        if ut.is_float(solidbar):
-            solidbar[:, :, :] = (np.array(border_color) / 255)[None, None]
-        else:
-            solidbar[:, :, :] = np.array(border_color)[None, None]
-        patch_img2 = vt.inverted_sift_patch(word)
-        patch_img = vt.rectify_to_uint8(patch_img)
-        patch_img2 = vt.rectify_to_uint8(patch_img2)
-        solidbar = vt.rectify_to_uint8(solidbar)
-        stacked_patches = vt.rectify_to_uint8(stacked_patches)
-        patch_img2, patch_img = vt.make_channels_comparable(patch_img2, patch_img)
-        img_list = [patch_img, solidbar, patch_img2, solidbar, stacked_patches]
-        word_img = vt.stack_image_list(img_list, vert=False, modifysize=True)
-        return word_img
-
     def render_vocab(vocab):
         """
         Renders the average patch of each word.
@@ -649,11 +587,12 @@ def compute_residual_assignments(depc, fid_list, vocab_id_list, config):
                                              lbl='building args')]
     # nprocs = ut.num_unused_cpus(thresh=10) - 1
     nprocs = ut.num_cpus()
-    print('Creatinmg %d processes' % (nprocs,))
+    print('Creating %d processes' % (nprocs,))
     executor = futures.ProcessPoolExecutor(nprocs)
     try:
         print('Submiting workers')
-        fs_chunk = [executor.submit(worker, args) for args in args_gen]
+        fs_chunk = [executor.submit(worker, args)
+                    for args in ut.ProgIter(args_gen, lbl='submit proc')]
         for fs in ut.ProgIter(fs_chunk, lbl='getting phi result'):
             yield fs.result()
     except Exception:
@@ -711,118 +650,7 @@ def parprep_agg_phi_worker(argtup):
     return tup
 
 
-@ut.reloadable_class
-class InvertedAnnots2(object):
-    """
-    >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
-    >>> import ibeis
-    >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford', p='default:proot=smk,nAssign=1,num_words=64000')
-    >>> config = qreq_.qparams
-    >>> ibs = qreq_.ibs
-    >>> depc = qreq_.ibs.depc
-    >>> aids = qreq_.daids
-    >>> aids = qreq_.qaids
-    >>> input_tuple = (aids, [qreq_.daids])
-    >>> inva = ut.DynStruct()
-
-    >>> inva = InvertedAnnots2(aids, qreq_)
-    """
-
-    def __init__(inva, aids, qreq_):
-        print('Loading up inverted assigments')
-        tablename = 'inverted_agg_assign'
-        depc = qreq_.ibs.depc
-        input_tuple = (aids, [qreq_.daids])
-        table = depc[tablename]
-        tbl_rowids = depc.get_rowids(tablename, input_tuple, config=qreq_.config)
-        print('Reading data')
-        #if ut.is_developer():
-        #    cacher = ut.Cacher(
-        #        fname=qreq_.ibs.get_dbname(),
-        #        cfgstr=ut.hashstr_arr27(tbl_rowids, 'group'),
-        #        cache_dir=ut.truepath('~/Desktop')
-        #    )
-        #    groups = cacher.tryload()
-        #    if groups is None:
-        #        print('Developer cache miss')
-        #        groups = table.get_row_data(tbl_rowids, colnames)
-        #        cacher.save(groups)
-        #else:
-        with ut.Timer('Formating inverted assigments2'):
-            inva.aids = aids
-            table.default_to_unpack = True
-            # 431.61 vs 143.87 MB here
-            inva.wx_lists = [np.array(wx_list_, dtype=np.int32)
-                             for wx_list_ in table.get_row_data(
-                                 tbl_rowids, ('wx_list',),
-                                 showprog='load wxs')]
-            # Is this better to use?
-            inva.fxs_lists = [[np.array(fxs, dtype=np.uint16) for fxs in fxs_list]
-                              for fxs_list in table.get_row_data(
-                                  tbl_rowids, ('fxs_list',),
-                                  showprog='load fxs')]
-            # [ut.lmap(np.array, fx_list) for fx_list in x.fxs_lists]
-            inva.maws_lists = [[np.array(m, dtype=np.float32) for m in maws]
-                               for maws in table.get_row_data(
-                                   tbl_rowids, ('maws_list',),
-                                   showprog='load maws')]
-            inva.agg_rvecs = table.get_row_data(tbl_rowids, ('agg_rvecs',),
-                                                showprog='load agg_rvecs')
-            inva.agg_flags = table.get_row_data(tbl_rowids, ('agg_flags',),
-                                                showprog='load agg_flags')
-            # less memory hogs
-            inva.aid_to_idx = ut.make_index_lookup(inva.aids)
-            inva.int_rvec = qreq_.qparams.int_rvec
-            inva.gamma_list = None
-            # Inverted list
-            inva.wx_to_idf = None
-            inva.wx_to_aids = None
-        # else:
-        #     with ut.Timer('Formating inverted assigments1'):
-        #         colnames = ('wx_list', 'fxs_list', 'maws_list', 'agg_rvecs', 'agg_flags')
-        #         groups = table.get_row_data(tbl_rowids, colnames, showprog=True)
-        #         inva.aids = aids
-        #         # 431.61 vs 143.87 MB here
-        #         inva.wx_lists = ut.itake_column(groups, 0)
-        #         inva.wx_lists = [np.array(wx_list, dtype=np.int32) for wx_list in inva.wx_lists]
-        #         # Is this better to use?
-        #         # As nested lists: 471.35 MB
-        #         # As nested ndarrays: 157.12 MB
-        #         inva.fxs_lists = ut.itake_column(groups, 1)
-        #         inva.fxs_lists = [[np.array(fxs, dtype=np.uint16) for fxs in fxs_list] for fxs_list in inva.fxs_lists]
-        #         # [ut.lmap(np.array, fx_list) for fx_list in x.fxs_lists]
-        #         inva.maws_lists = ut.itake_column(groups, 2)
-        #         inva.maws_lists = [[np.array(m, dtype=np.float32)
-        #                             for m in maws] for maws in inva.maws_lists]
-        #         inva.agg_rvecs = ut.take_column(groups, 3)
-        #         inva.agg_flags = ut.take_column(groups, 4)
-        #         # less memory hogs
-        #         inva.aid_to_idx = ut.make_index_lookup(inva.aids)
-        #         inva.int_rvec = qreq_.qparams.int_rvec
-        #         inva.gamma_list = None
-        #         # Inverted list
-        #         inva.wx_to_idf = None
-        #         inva.wx_to_aids = None
-
-    def _assert_self(inva, qreq_):
-        ibs = qreq_.ibs
-        assert len(inva.aids) == len(inva.wx_lists)
-        assert len(inva.aids) == len(inva.fxs_lists)
-        assert len(inva.aids) == len(inva.maws_lists)
-        assert len(inva.aids) == len(inva.agg_rvecs)
-        assert len(inva.aids) == len(inva.agg_flags)
-        nfeat_list1 = ibs.get_annot_num_feats(inva.aids, config2_=qreq_.qparams)
-        nfeat_list2 = [sum(ut.lmap(len, fx_list)) for fx_list in inva.fxs_lists]
-        nfeat_list3 = [sum(ut.lmap(len, maws)) for maws in inva.maws_lists]
-        ut.assert_lists_eq(nfeat_list1, nfeat_list2)
-        ut.assert_lists_eq(nfeat_list1, nfeat_list3)
-
-    def __getstate__(inva):
-        state = inva.__dict__
-        return state
-
-    def __setstate__(inva, state):
-        inva.__dict__.update(**state)
+class InvertedAnnotsExtras(object):
 
     def get_size_info(inva):
         import sys
@@ -895,6 +723,230 @@ class InvertedAnnots2(object):
         total_nbytes =  sum(sizes.values())
         return total_nbytes
 
+    def get_word_patch(inva, wx):
+        if not hasattr(inva, 'word_patches'):
+            inva._word_patches = {}
+        if wx not in inva._word_patches:
+            assigned_patches = inva.get_patches(wx, verbose=False)
+            #print('assigned_patches = %r' % (len(assigned_patches),))
+            average_patch = np.mean(assigned_patches, axis=0)
+            average_patch = average_patch.astype(np.float)
+            inva._word_patches[wx] = average_patch
+        return inva._word_patches[wx]
+
+    def get_patches(inva, wx, ibs, verbose=True):
+        """
+        Loads the patches assigned to a particular word in this stack
+
+        >>> inva.wx_to_aids = inva.compute_inverted_list()
+        >>> verbose=True
+        """
+        config = inva.config
+        aid_list = inva.wx_to_aids[wx]
+        X_list = [inva.get_annot(aid) for aid in aid_list]
+        fxs_groups = [X.fxs(wx) for X in X_list]
+        all_kpts_list = ibs.depc.d.get_feat_kpts(aid_list, config=config)
+        sub_kpts_list = vt.ziptake(all_kpts_list, fxs_groups, axis=0)
+        total_patches = sum(ut.lmap(len, fxs_groups))
+
+        chip_list = ibs.depc_annot.d.get_chips_img(aid_list, config=config)
+        # convert to approprate colorspace
+        #if colorspace is not None:
+        #    chip_list = vt.convert_image_list_colorspace(chip_list, colorspace)
+        # ut.print_object_size(chip_list, 'chip_list')
+
+        patch_size = 64
+        shape = (total_patches, patch_size, patch_size, 3)
+        _prog = ut.ProgPartial(enabled=verbose, lbl='warping patches', bs=True)
+        _patchiter = ut.iflatten([
+            vt.get_warped_patches(chip, kpts, patch_size=patch_size)[0]
+            #vt.get_warped_patches(chip, kpts, patch_size=patch_size, use_cpp=True)[0]
+            for chip, kpts in _prog(zip(chip_list, sub_kpts_list),
+                                    nTotal=len(aid_list))
+        ])
+        word_patches = vt.fromiter_nd(_patchiter, shape, dtype=np.uint8)
+        return word_patches
+
+    def render_inverted_vocab_word(inva, wx, ibs, fnum=None):
+        """
+        Creates a visualization of a visual word. This includes the average patch,
+        the SIFT-like representation of the centroid, and some of the patches that
+        were assigned to it.
+
+        CommandLine:
+            python -m ibeis.algo.smk.vocab_indexer render_inverted_vocab_word --show
+
+        Example:
+            >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
+            >>> import plottool as pt
+            >>> qreq_, inva = testdata_inva()
+            >>> ibs = qreq_.ibs
+            >>> wx_list = list(inva.wx_to_aids.keys())
+            >>> wx = wx_list[0]
+            >>> ut.qt4ensure()
+            >>> fnum = 2
+            >>> fnum = pt.ensure_fnum(fnum)
+            >>> # Interactive visualization of many words
+            >>> for wx in ut.InteractiveIter(wx_list):
+            >>>     word_img = inva.render_inverted_vocab_word(wx, ibs, fnum)
+            >>>     pt.imshow(word_img, fnum=fnum, title='Word %r/%r' % (wx, '?'))
+            >>>     pt.update()
+        """
+        import plottool as pt
+        # Create the contributing patch image
+        word_patches = inva.get_patches(wx, ibs)
+        stacked_patches = vt.stack_square_images(word_patches)
+
+        # Create the average word image
+        vocab = ibs.depc['vocab'].get_row_data([inva.vocab_rowid], 'words')[0]
+        word = vocab.wx_to_word[wx]
+
+        average_patch = np.mean(word_patches, axis=0)
+        #vecs = inva.get_vecs(wx)
+        #assert np.allclose(word, vecs.mean(axis=0))
+        with_sift = True
+        if with_sift:
+            patch_img = pt.render_sift_on_patch(average_patch, word)
+        else:
+            patch_img = average_patch
+
+        # Stack them together
+        solidbar = np.zeros((patch_img.shape[0],
+                             int(patch_img.shape[1] * .1), 3), dtype=patch_img.dtype)
+        border_color = (100, 10, 10)  # bgr, darkblue
+        if ut.is_float(solidbar):
+            solidbar[:, :, :] = (np.array(border_color) / 255)[None, None]
+        else:
+            solidbar[:, :, :] = np.array(border_color)[None, None]
+        patch_img2 = vt.inverted_sift_patch(word)
+        patch_img = vt.rectify_to_uint8(patch_img)
+        patch_img2 = vt.rectify_to_uint8(patch_img2)
+        solidbar = vt.rectify_to_uint8(solidbar)
+        stacked_patches = vt.rectify_to_uint8(stacked_patches)
+        patch_img2, patch_img = vt.make_channels_comparable(patch_img2, patch_img)
+        img_list = [patch_img, solidbar, patch_img2, solidbar, stacked_patches]
+        word_img = vt.stack_image_list(img_list, vert=False, modifysize=True)
+        return word_img
+
+
+@ut.reloadable_class
+class InvertedAnnots2(InvertedAnnotsExtras):
+    """
+    CommandLine:
+        python -m ibeis.algo.smk.vocab_indexer InvertedAnnots2 --show
+
+    Ignore:
+        >>> from ibeis.algo.smk.vocab_indexer import *  # NOQA
+        >>> import ibeis
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford',
+        >>>                              p='default:proot=smk,nAssign=1,num_words=64000')
+        >>> config = qreq_.qparams
+        >>> ibs = qreq_.ibs
+        >>> depc = qreq_.ibs.depc
+        >>> aids = qreq_.daids
+        >>> aids = qreq_.qaids
+        >>> input_tuple = (aids, [qreq_.daids])
+        >>> inva = ut.DynStruct()
+        >>> inva = InvertedAnnots2(aids, qreq_)
+
+    Example:
+        >>> qreq_, inva = testdata_inva()
+    """
+
+    def __init__(inva):
+        inva.aids = None
+        inva.wx_lists = None
+        inva.fxs_lists = None
+        inva.agg_rvecs = None
+        inva.agg_flags = None
+        inva.aid_to_idx = None
+        inva.gamma_list = None
+        inva.wx_to_idf = None
+        inva.wx_to_aids = None
+        inva.int_rvec = None
+        inva.config = None
+        inva.vocab_rowid = None
+
+    @classmethod
+    def from_qreq(cls, aids, qreq_):
+        print('Loading up inverted assigments')
+        depc = qreq_.ibs.depc
+        vocab_aids = qreq_.daids
+        config = qreq_.qparams
+        inva = cls.from_depc(depc, aids, vocab_aids, config)
+        return inva
+
+    @classmethod
+    def from_depc(cls, depc, aids, vocab_aids, config):
+        inva = cls()
+        vocab_rowid = depc.get_rowids('vocab', (vocab_aids,), config=config)[0]
+        inva.vocab_rowid = vocab_rowid
+        tablename = 'inverted_agg_assign'
+        table = depc[tablename]
+        input_tuple = (aids, [vocab_rowid] * len(aids))
+        tbl_rowids = depc.get_rowids(tablename, input_tuple, config=config,
+                                     _hack_rootmost=True)
+        # input_tuple = (aids, [vocab_aids])
+        # tbl_rowids = depc.get_rowids(tablename, input_tuple, config=config)
+        print('Reading data')
+        inva.aids = aids
+        table.default_to_unpack = True
+        # 431.61 vs 143.87 MB here
+        inva.wx_lists = [np.array(wx_list_, dtype=np.int32)
+                         for wx_list_ in table.get_row_data(
+                             tbl_rowids, ('wx_list',),
+                             showprog='load wxs')]
+        # Is this better to use?
+        inva.fxs_lists = [[np.array(fxs, dtype=np.uint16) for fxs in fxs_list]
+                          for fxs_list in table.get_row_data(
+                              tbl_rowids, ('fxs_list',),
+                              showprog='load fxs')]
+        # [ut.lmap(np.array, fx_list) for fx_list in x.fxs_lists]
+        inva.maws_lists = [[np.array(m, dtype=np.float32) for m in maws]
+                           for maws in table.get_row_data(
+                               tbl_rowids, ('maws_list',),
+                               showprog='load maws')]
+        inva.agg_rvecs = table.get_row_data(tbl_rowids, ('agg_rvecs',),
+                                            showprog='load agg_rvecs')
+        inva.agg_flags = table.get_row_data(tbl_rowids, ('agg_flags',),
+                                            showprog='load agg_flags')
+        # less memory hogs
+        inva.aid_to_idx = ut.make_index_lookup(inva.aids)
+        inva.int_rvec = config['int_rvec']
+        inva.gamma_list = None
+        # Inverted list
+        inva.wx_to_idf = None
+        inva.wx_to_aids = None
+        inva.config = config
+        return inva
+
+    def _assert_self(inva, qreq_):
+        ibs = qreq_.ibs
+        assert len(inva.aids) == len(inva.wx_lists)
+        assert len(inva.aids) == len(inva.fxs_lists)
+        assert len(inva.aids) == len(inva.maws_lists)
+        assert len(inva.aids) == len(inva.agg_rvecs)
+        assert len(inva.aids) == len(inva.agg_flags)
+        nfeat_list1 = ibs.get_annot_num_feats(inva.aids, config2_=qreq_.qparams)
+        nfeat_list2 = [sum(ut.lmap(len, fx_list)) for fx_list in inva.fxs_lists]
+        nfeat_list3 = [sum(ut.lmap(len, maws)) for maws in inva.maws_lists]
+        ut.assert_lists_eq(nfeat_list1, nfeat_list2)
+        ut.assert_lists_eq(nfeat_list1, nfeat_list3)
+
+    def __getstate__(inva):
+        state = inva.__dict__
+        return state
+
+    def __setstate__(inva, state):
+        inva.__dict__.update(**state)
+
+    @profile
+    @ut.memoize
+    def get_annot(inva, aid):
+        idx = inva.aid_to_idx[aid]
+        X = SingleAnnot2(inva, idx)
+        return X
+
     @profile
     def compute_gammas(inva, wx_to_idf, alpha, thresh):
         from ibeis.algo.smk import smk_pipeline
@@ -944,13 +996,6 @@ class InvertedAnnots2(object):
             wx_to_idf = ut.DefaultValueDict(0, wx_to_idf)
             return wx_to_idf
 
-    @profile
-    @ut.memoize
-    def get_annot(inva, aid):
-        idx = inva.aid_to_idx[aid]
-        X = SingleAnnot2(inva, idx)
-        return X
-
     def compute_inverted_list(inva):
         with ut.Timer('Building inverted list'):
             wx_to_aids = ut.ddict(list)
@@ -969,7 +1014,10 @@ class SingleAnnot2(object):
         X.maws_list = inva.maws_lists[idx]
         X.agg_rvecs = inva.agg_rvecs[idx]
         X.agg_flags = inva.agg_flags[idx]
-        X.gamma = inva.gamma_list[idx]
+        if inva.gamma_list is None:
+            X.gamma = X
+        else:
+            X.gamma = inva.gamma_list[idx]
         X.wx_to_idx = ut.make_index_lookup(X.wx_list)
         X.int_rvec = inva.int_rvec
 
@@ -1034,8 +1082,8 @@ class SingleAnnot2(object):
 def new_load_vocab(ibs, aids, config):
     # Hack in depcache info to the loaded vocab class
     # (maybe this becomes part of the depcache)
-    #rowid = ibs.depc.get_rowids('vocab', [aids], config=config)[0]
-    rowid = 1
+    rowid = ibs.depc.get_rowids('vocab', [aids], config=config)[0]
+    # rowid = 1
     table = ibs.depc['vocab']
     vocab = table.get_row_data([rowid], 'words')[0]
     vocab.rowid = rowid
@@ -1059,6 +1107,19 @@ def testdata_vocab(defaultdb='testdb1', **kwargs):
     #fstack.build()
     #inva.build()
     #return ibs, aid_list, inva
+
+
+def testdata_inva():
+    from ibeis.algo.smk.vocab_indexer import *  # NOQA
+    import ibeis
+    qreq_ = ibeis.testdata_qreq_(
+        defaultdb='PZ_MTEST', a='default',
+        p='default:proot=smk,nAssign=1,num_words=1000')
+    aids = qreq_.daids
+    cls = InvertedAnnots2
+    inva = cls.from_qreq(aids, qreq_)
+    inva.wx_to_aids = inva.compute_inverted_list()
+    return qreq_, inva
 
 
 def render_vocab(vocab, inva=None, use_data=False):
@@ -1104,53 +1165,6 @@ def render_vocab(vocab, inva=None, use_data=False):
     #    inva._word_patches[wx] = p
     all_words = vt.stack_square_images(word_patch_list)
     return all_words
-
-
-def get_patches(inva, wx, verbose=True):
-    """
-    Loads the patches assigned to a particular word in this stack
-    """
-    ax_list = inva.wx_to_axs(wx)
-    fx_list = inva.wx_to_fxs(wx)
-    config = inva.fstack.config
-    ibs = inva.fstack.ibs
-
-    # Group annotations with more than one assignment to this word, so we
-    # only have to load a chip at most once
-    unique_axs, groupxs = vt.group_indices(ax_list)
-    fxs_groups = vt.apply_grouping(fx_list, groupxs)
-
-    unique_aids = ut.take(inva.fstack.ax_to_aid, unique_axs)
-
-    all_kpts_list = ibs.depc.d.get_feat_kpts(unique_aids, config=config)
-    sub_kpts_list = vt.ziptake(all_kpts_list, fxs_groups, axis=0)
-
-    chip_list = ibs.depc_annot.d.get_chips_img(unique_aids)
-    # convert to approprate colorspace
-    #if colorspace is not None:
-    #    chip_list = vt.convert_image_list_colorspace(chip_list, colorspace)
-    # ut.print_object_size(chip_list, 'chip_list')
-    patch_size = 64
-    _prog = ut.ProgPartial(enabled=verbose, lbl='warping patches', bs=True)
-    grouped_patches_list = [
-        vt.get_warped_patches(chip, kpts, patch_size=patch_size)[0]
-        #vt.get_warped_patches(chip, kpts, patch_size=patch_size, use_cpp=True)[0]
-        for chip, kpts in _prog(zip(chip_list, sub_kpts_list),
-                                nTotal=len(unique_aids))
-    ]
-    # Make it correspond with original fx_list and ax_list
-    word_patches = vt.invert_apply_grouping(grouped_patches_list, groupxs)
-    return word_patches
-
-
-def get_word_patch(inva, wx):
-    if wx not in inva._word_patches:
-        assigned_patches = inva.get_patches(wx, verbose=False)
-        #print('assigned_patches = %r' % (len(assigned_patches),))
-        average_patch = np.mean(assigned_patches, axis=0)
-        average_patch = average_patch.astype(np.float)
-        inva._word_patches[wx] = average_patch
-    return inva._word_patches[wx]
 
 
 if __name__ == '__main__':

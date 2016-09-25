@@ -124,7 +124,7 @@ class SMKRequest(mc5.EstimatorRequest):
         """
         print('Ensure data for %s' % (qreq_,))
 
-        memtrack = ut.MemoryTracker()
+        memtrack = ut.MemoryTracker(disable=False)
         #qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
         qreq_.ensure_nids()
 
@@ -171,12 +171,12 @@ class SMKRequest(mc5.EstimatorRequest):
         memtrack.report()
 
         dinva = dinva_cacher.ensure(
-            lambda: vocab_indexer.InvertedAnnots2(qreq_.daids, qreq_))
+            lambda: vocab_indexer.InvertedAnnots2.from_qreq(qreq_.daids, qreq_))
 
         memtrack.report()
 
         qinva = qinva_cacher.ensure(
-            lambda: vocab_indexer.InvertedAnnots2(qreq_.qaids, qreq_))
+            lambda: vocab_indexer.InvertedAnnots2.from_qreq(qreq_.qaids, qreq_))
 
         memtrack.report()
 
