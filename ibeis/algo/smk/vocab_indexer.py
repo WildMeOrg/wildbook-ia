@@ -617,7 +617,7 @@ def single_phi_args(vocab, vecs, nAssign, int_rvec):
     word_list = ut.take(vocab.wx_to_word, wx_list)
     fxs_list = ut.take(wx_to_fxs, wx_list)
     maws_list = ut.take(wx_to_maws, wx_list)
-    argtup = wx_list, word_list, fxs_list, maws_list, fx_to_vecs, int_rvec
+    argtup = (wx_list, word_list, fxs_list, maws_list, fx_to_vecs, int_rvec)
     return argtup
 
 
@@ -891,25 +891,18 @@ class InvertedAnnots2(InvertedAnnotsExtras):
         # tbl_rowids = depc.get_rowids(tablename, input_tuple, config=config)
         print('Reading data')
         inva.aids = aids
-        table.default_to_unpack = True
-        # 431.61 vs 143.87 MB here
         inva.wx_lists = [np.array(wx_list_, dtype=np.int32)
                          for wx_list_ in table.get_row_data(
-                             tbl_rowids, ('wx_list',),
-                             showprog='load wxs')]
-        # Is this better to use?
+                             tbl_rowids, 'wx_list', showprog='load wxs')]
         inva.fxs_lists = [[np.array(fxs, dtype=np.uint16) for fxs in fxs_list]
                           for fxs_list in table.get_row_data(
-                              tbl_rowids, ('fxs_list',),
-                              showprog='load fxs')]
-        # [ut.lmap(np.array, fx_list) for fx_list in x.fxs_lists]
+                              tbl_rowids, 'fxs_list', showprog='load fxs')]
         inva.maws_lists = [[np.array(m, dtype=np.float32) for m in maws]
                            for maws in table.get_row_data(
-                               tbl_rowids, ('maws_list',),
-                               showprog='load maws')]
-        inva.agg_rvecs = table.get_row_data(tbl_rowids, ('agg_rvecs',),
+                               tbl_rowids, 'maws_list', showprog='load maws')]
+        inva.agg_rvecs = table.get_row_data(tbl_rowids, 'agg_rvecs',
                                             showprog='load agg_rvecs')
-        inva.agg_flags = table.get_row_data(tbl_rowids, ('agg_flags',),
+        inva.agg_flags = table.get_row_data(tbl_rowids, 'agg_flags',
                                             showprog='load agg_flags')
         # less memory hogs
         inva.aid_to_idx = ut.make_index_lookup(inva.aids)

@@ -124,7 +124,7 @@ class SMKRequest(mc5.EstimatorRequest):
         """
         print('Ensure data for %s' % (qreq_,))
 
-        memtrack = ut.MemoryTracker(disable=False)
+        memtrack = ut.MemoryTracker(disable=True)
         #qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
         qreq_.ensure_nids()
 
