@@ -1277,22 +1277,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     return analysis_fpath_list
 
 
-def embed_testres(testres):
-    """
-    CommandLine:
-        python -m ibeis TestResults.embed_testres
-
-    Example:
-        >>> # SCRIPT
-        >>> from ibeis.expt.experiment_drawing import *  # NOQA
-        >>> from ibeis.init import main_helpers
-        >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
-        >>> embed_testres(testres)
-    """
-    import utool
-    utool.embed()
-
-
 if __name__ == '__main__':
     """
     CommandLine:

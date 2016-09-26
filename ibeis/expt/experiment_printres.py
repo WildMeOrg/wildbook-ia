@@ -112,15 +112,20 @@ def print_results(ibs, testres):
         testres (test_result.TestResult):
 
     CommandLine:
-        python dev.py -e print --db PZ_MTEST -a default:dpername=1,qpername=[1,2]  -t default:fg_on=False
-
+        python dev.py -e print --db PZ_MTEST \
+            -a default:dpername=1,qpername=[1,2]  -t default:fg_on=False
         python dev.py -e print -t best --db seals2 --allgt --vz
-        python dev.py -e print --db PZ_MTEST --allgt -t custom --print-confusion-stats
-        python dev.py -e print --db PZ_MTEST --allgt --noqcache --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats
-        python dev.py -e print --db PZ_MTEST --allgt --noqcache --qaid4 -t custom:rrvsone_on=True --print-confusion-stats
+        python dev.py -e print --db PZ_MTEST --allgt -t custom \
+            --print-confusion-stats
+        python dev.py -e print --db PZ_MTEST --allgt --noqcache \
+            --index 0:10:2 -t custom:rrvsone_on=True --print-confusion-stats
+        python dev.py -e print --db PZ_MTEST --allgt --noqcache --qaid4 \
+            -t custom:rrvsone_on=True --print-confusion-stats
         python -m ibeis print_results -t default --db PZ_MTEST -a ctrl
         python -m ibeis print_results -t default --db PZ_MTEST -a ctrl
-        python -m ibeis print_results --db PZ_MTEST -a default -t default:lnbnn_on=True default:lnbnn_on=False,bar_l2_on=True default:lnbnn_on=False,normonly_on=True
+        python -m ibeis print_results --db PZ_MTEST -a default
+            -t default:lnbnn_on=True default:lnbnn_on=False,bar_l2_on=True \
+            default:lnbnn_on=False,normonly_on=True
 
     CommandLine:
         python -m ibeis.expt.experiment_printres --test-print_results
@@ -131,17 +136,19 @@ def print_results(ibs, testres):
         >>> from ibeis.expt.experiment_printres import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> ibs, testres = main_helpers.testdata_expts(
-        >>>     'PZ_MTEST', a='default:dpername=1,qpername=[1,2]', t='default:fg_on=False')
+        >>>     'pz_mtest', a='default:dpername=1,qpername=[1,2]',
+        >>>     t='default:fg_on=false')
         >>> result = print_results(ibs, testres)
         >>> print(result)
     """
 
-    (cfg_list, cfgx2_cfgresinfo, testnameid, cfgx2_lbl, cfgx2_qreq_) = ut.dict_take(
-        testres.__dict__, ['cfg_list', 'cfgx2_cfgresinfo', 'testnameid',
-                           'cfgx2_lbl', 'cfgx2_qreq_'])
+    tup = ut.dict_take(testres.__dict__,
+                       ['cfg_list', 'cfgx2_cfgresinfo', 'testnameid',
+                        'cfgx2_lbl', 'cfgx2_qreq_'])
+    (cfg_list, cfgx2_cfgresinfo, testnameid, cfgx2_lbl, cfgx2_qreq_) = tup
 
     print(' --- PRINT RESULTS ---')
-    print(' use --rank-lt-list=1,5 to specify X_LIST')
+    # print(' use --rank-lt-list=1,5 to specify X_LIST')
     if True:
         # Num of ranks less than to score
         X_LIST = testres.get_X_LIST()
@@ -171,7 +178,8 @@ def print_results(ibs, testres):
             bestX_cfgx_list = np.where(cfgx2_nLessX == max_nLessX)[0]
             best_rankscore = '[cfg*] %d cfg(s) scored ' % len(bestX_cfgx_list)
             # FIXME
-            best_rankscore += rankscore_str(X, max_nLessX, cfgx2_nQuery[bestX_cfgx_list[0]])
+            best_rankscore += rankscore_str(X, max_nLessX,
+                                            cfgx2_nQuery[bestX_cfgx_list[0]])
             best_rankscore_summary += [best_rankscore]
 
     @ut.argv_flag_dec
@@ -264,7 +272,7 @@ def print_results(ibs, testres):
         print('\n[harn] cfgstr:\n%s' % '\n'.join(enum_cfgstr_list))
     print_cfgstr()
 
-    @ut.argv_flag_dec_true
+    @ut.argv_flag_dec
     def print_colscore():
         print('==================')
         print('[harn] Scores per Config: %s' % testnameid)
@@ -288,16 +296,15 @@ def print_results(ibs, testres):
                 print('[score] %s --- %s' % (rankstr, cfgx2_lbl[cfgx]))
     print_colscore()
 
-    ut.argv_flag_dec_true(testres.print_percent_identification_success)()
+    ut.argv_flag_dec(testres.print_percent_identification_success)()
 
     sumstrs = []
-    sumstrs.append('')
-    sumstrs.append('||===========================')
-    sumstrs.append('|| [cfg*] SUMMARY: %s' % testnameid)
+    sumstrs.append('++===========================')
+    sumstrs.append('|| [cfg*] TestName: %s' % testnameid)
     sumstrs.append('||---------------------------')
     sumstrs.append(ut.joins('\n|| ', best_rankscore_summary))
-    sumstrs.append('||===========================')
-    summary_str = '\n' + '\n'.join(sumstrs) + '\n'
+    sumstrs.append('LL===========================')
+    summary_str = '\n'.join(sumstrs)
     #print(summary_str)
     ut.colorprint(summary_str, 'blue')
 

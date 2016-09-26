@@ -116,7 +116,8 @@ def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
         sys.exit(0)
 
     testres = test_result.combine_testres_list(ibs, testres_list)
-    testres.print_results()
+    # testres.print_results()
+    print('Returning Test Result')
     return testres
 
 
@@ -134,8 +135,8 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
 
     dbname = ibs.get_dbname()
 
-    if ut.NOT_QUIET:
-        print('[harn] Make single testres')
+    # if ut.NOT_QUIET:
+    #     print('[harn] Make single testres')
 
     cfgx2_qreq_ = [
         ibs.new_query_request(qaids, daids, verbose=False, query_cfg=pipe_cfg)
@@ -149,7 +150,8 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
     if use_cache:
         try:
             bt_cachedir = ut.ensuredir((ibs.get_cachedir(), 'BULK_TEST_CACHE2'))
-            cfgstr_list = [qreq_.get_cfgstr(with_input=True) for qreq_ in cfgx2_qreq_]
+            cfgstr_list = [qreq_.get_cfgstr(with_input=True)
+                           for qreq_ in cfgx2_qreq_]
             bt_cachestr = ut.hashstr_arr27(cfgstr_list, ibs.get_dbname() + '_cfgs')
             bt_cachename = 'BULKTESTCACHE2'
             testres = ut.load_cache(bt_cachedir, bt_cachename, bt_cachestr)
@@ -168,7 +170,7 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
         prev_feat_cfgstr = None
 
     cfgx2_cfgresinfo = []
-    cfgiter = subindexer_partial(range(len(cfgx2_qreq_)), lbl='query config',
+    cfgiter = subindexer_partial(range(len(cfgx2_qreq_)), lbl='pipe config',
                                  freq=1, adjust=False, separate=True)
     # Run each pipeline configuration
     for cfgx in cfgiter:

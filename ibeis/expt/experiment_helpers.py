@@ -12,7 +12,7 @@ from ibeis.expt import experiment_configs
 from ibeis.expt import cfghelpers
 from ibeis.algo import Config
 from ibeis.init import filter_annots
-print, rrr, profile = ut.inject2(__name__, '[expt_helpers]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 def get_varied_pipecfg_lbls(cfgdict_list, pipecfg_list=None):

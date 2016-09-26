@@ -18,6 +18,7 @@ ALIAS_KEYS = {
     #'AQH': 'augment_queryside_hack',
     'QRH': 'augment_queryside_hack',
     'SV': 'sv_on',
+    'nWords': 'num_words',
     #'SVxy': 'xy_thresh',
     #'SVxy': 'xy_thresh',
 }

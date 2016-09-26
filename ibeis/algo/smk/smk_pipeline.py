@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
+"""
+Oxford Experiment:
+    ibeis TestResult --db Oxford -p smk:nwords=[64000],nAssign=[1],sv=[False] -a oxford
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import dtool
 import six
 import utool as ut
 import numpy as np
-from six.moves import zip
 from ibeis.algo.smk import match_chips5 as mc5
 from ibeis.algo.smk import vocab_indexer
+from ibeis.algo.smk import inverted_index
+from ibeis.algo.smk import smk_funcs
 from ibeis import core_annots
 from ibeis.algo import Config as old_config
 (print, rrr, profile) = ut.inject2(__name__)
@@ -28,6 +33,8 @@ class SMKRequestConfig(dtool.Config):
         ut.ParamInfo('smk_thresh', 0.0),
         #ut.ParamInfo('smk_thresh', -1.0),
         ut.ParamInfo('agg', True),
+        ut.ParamInfo('data_ma', False),  # hack for query only multiple assignment
+        ut.ParamInfo('word_weight_method', 'idf', 'wwm'),  # hack for query only multiple assignment
         ut.ParamInfo('smk_version', 2),
     ]
     _sub_config_list = [
@@ -35,7 +42,7 @@ class SMKRequestConfig(dtool.Config):
         core_annots.FeatConfig,
         old_config.SpatialVerifyConfig,
         vocab_indexer.VocabConfig,
-        vocab_indexer.InvertedIndexConfig,
+        inverted_index.InvertedIndexConfig,
         MatchHeuristicsConfig,
     ]
 
@@ -81,7 +88,6 @@ class SMKRequest(mc5.EstimatorRequest):
         >>> qreq_ = SMKRequest(ibs, qaids, daids, config)
         >>> qreq_.ensure_data()
         >>> cm_list = qreq_.execute()
-        >>> #cm_list = qreq_.execute_pipeline()
         >>> ut.quit_if_noshow()
         >>> ut.qt4ensure()
         >>> cm_list[0].ishow_analysis(qreq_, fnum=1, viz_name_score=False)
@@ -144,23 +150,38 @@ class SMKRequest(mc5.EstimatorRequest):
                 wrp.ensure = ensure
                 return wrp
 
+        import copy
+        dconfig = copy.deepcopy(qreq_.qparams)
+        qconfig = qreq_.qparams
+        if qreq_.qparams['data_ma']:
+            # Disable database-dise multi-assignment
+            dconfig['nAssign'] = 1
+
         depc = qreq_.ibs.depc
-        inva_pcfgstr = depc.stacked_config(
-            None, 'inverted_agg_assign', config=qreq_.config).get_cfgstr()
+        vocab_aids = qreq_.daids
+
+        depc = qreq_.ibs.depc
+        dinva_pcfgstr = depc.stacked_config(
+            None, 'inverted_agg_assign', config=dconfig).get_cfgstr()
+        qinva_pcfgstr = depc.stacked_config(
+            None, 'inverted_agg_assign', config=qconfig).get_cfgstr()
         dannot_vuuid = qreq_.ibs.get_annot_hashid_visual_uuid(qreq_.daids).strip('_')
         qannot_vuuid = qreq_.ibs.get_annot_hashid_visual_uuid(qreq_.qaids).strip('_')
         tannot_vuuid = dannot_vuuid
         dannot_suuid = qreq_.ibs.get_annot_hashid_semantic_uuid(qreq_.daids).strip('_')
         qannot_suuid = qreq_.ibs.get_annot_hashid_semantic_uuid(qreq_.qaids).strip('_')
 
-        inva_phashid = ut.hashstr27(inva_pcfgstr + tannot_vuuid)
-        dinva_cfgstr = '_'.join([dannot_vuuid, inva_phashid])
-        qinva_cfgstr = '_'.join([qannot_vuuid, inva_phashid])
+        dinva_phashid = ut.hashstr27(dinva_pcfgstr + tannot_vuuid)
+        qinva_phashid = ut.hashstr27(qinva_pcfgstr + tannot_vuuid)
+        dinva_cfgstr = '_'.join([dannot_vuuid, dinva_phashid])
+        qinva_cfgstr = '_'.join([qannot_vuuid, qinva_phashid])
 
-        #vocab = vocab_indexer.new_load_vocab(ibs, qreq_.daids, config)
+        wwm = qreq_.qparams['word_weight_method']
+
+        #vocab = inverted_index.new_load_vocab(ibs, qreq_.daids, config)
         dinva_cacher = make_cacher('inva', dinva_cfgstr)
         qinva_cacher = make_cacher('inva', qinva_cfgstr)
-        didf_cacher  = make_cacher('didf', dinva_cfgstr)
+        dwwm_cacher  = make_cacher('word_weight', wwm + dinva_cfgstr)
 
         gamma_phashid = ut.hashstr27(qreq_.get_pipe_cfgstr() + tannot_vuuid)
         dgamma_cfgstr = '_'.join([dannot_suuid, gamma_phashid])
@@ -171,32 +192,35 @@ class SMKRequest(mc5.EstimatorRequest):
         memtrack.report()
 
         dinva = dinva_cacher.ensure(
-            lambda: vocab_indexer.InvertedAnnots2.from_qreq(qreq_.daids, qreq_))
+            lambda: inverted_index.InvertedAnnots.from_depc(
+                depc, qreq_.daids, vocab_aids, dconfig))
 
         memtrack.report()
 
         qinva = qinva_cacher.ensure(
-            lambda: vocab_indexer.InvertedAnnots2.from_qreq(qreq_.qaids, qreq_))
+            lambda: inverted_index.InvertedAnnots.from_depc(
+                depc, qreq_.qaids, vocab_aids, qconfig))
 
         memtrack.report()
 
         dinva.wx_to_aids = dinva.compute_inverted_list()
         memtrack.report()
 
-        wx_to_idf = didf_cacher.ensure(
-            lambda: dinva.compute_idf())
-        dinva.wx_to_idf = wx_to_idf
+        wx_to_weight = dwwm_cacher.ensure(
+            lambda: dinva.compute_word_weights(wwm))
+        dinva.wx_to_weight = wx_to_weight
+        qinva.wx_to_weight = wx_to_weight
         memtrack.report()
 
         thresh = qreq_.qparams['smk_thresh']
         alpha = qreq_.qparams['smk_alpha']
 
         dinva.gamma_list = dgamma_cacher.ensure(
-            lambda: dinva.compute_gammas(wx_to_idf, alpha, thresh))
+            lambda: dinva.compute_gammas(alpha, thresh))
         memtrack.report()
 
         qinva.gamma_list = qgamma_cacher.ensure(
-            lambda: qinva.compute_gammas(wx_to_idf, alpha, thresh))
+            lambda: qinva.compute_gammas(alpha, thresh))
         memtrack.report()
 
         qreq_.qinva = qinva
@@ -277,7 +301,7 @@ class SMK(ut.NiceRepr):
             >>> daids = qreq_.daids
             >>> #ibs, daids = ibeis.testdata_aids(defaultdb='PZ_MTEST', default_set='dcfg')
             >>> qreq_ = SMKRequest(ibs, daids[0:1], daids, {'agg': True,
-            >>>                                             'num_words': 64000,
+            >>>                                             'num_words': 1000,
             >>>                                             'sv_on': True})
             >>> qreq_.ensure_data()
             >>> qaid = qreq_.qaids[0]
@@ -318,12 +342,12 @@ class SMK(ut.NiceRepr):
         valid_daids = hit_daids.compress(valid_flags)
 
         shortlist = ut.Shortlist(shortsize)
-        #gammaX = smk.gamma(X, wx_to_idf, agg, alpha, thresh)
+        #gammaX = smk.gamma(X, wx_to_weight, agg, alpha, thresh)
         _prog = ut.ProgPartial(lbl='smk scoring qaid=%r' % (qaid,),
                                enabled=verbose, bs=True, adjust=True)
 
         gammaX = X.gamma
-        wx_to_idf = qreq_.dinva.wx_to_idf
+        wx_to_weight = qreq_.dinva.wx_to_weight
 
         debug = True
         if debug:
@@ -343,12 +367,20 @@ class SMK(ut.NiceRepr):
             common_words = sorted(X.words.intersection(Y.words))
             X_idx = ut.take(X.wx_to_idx, common_words)
             Y_idx = ut.take(Y.wx_to_idx, common_words)
-            idf_list = ut.take(wx_to_idf, common_words)
+            idf_list = ut.take(wx_to_weight, common_words)
 
             if agg:
-                score_list = agg_match_scores(X, Y, X_idx, Y_idx, alpha, thresh)
+                PhisX, flagsX = X.Phis_flags(X_idx)
+                PhisY, flagsY = Y.Phis_flags(Y_idx)
+                score_list = smk_funcs.agg_match_scores(
+                    PhisX, PhisY, flagsX, flagsY, alpha, thresh)
             else:
-                score_list = sep_match_scores(X, Y, X_idx, Y_idx, alpha, thresh)
+                raise NotImplementedError('sep version not finished')
+                phisX_list, flagsY_list = X.phis_flags_list(X_idx)
+                phisY_list, flagsX_list = Y.phis_flags_list(Y_idx)
+                score_list = smk_funcs.sep_match_scores(
+                    phisX_list, phisY_list, flagsX_list, flagsY_list, alpha,
+                    thresh)
 
             score_list *= idf_list
             score_list *= gammaXY
@@ -367,11 +399,15 @@ class SMK(ut.NiceRepr):
                                enabled=verbose, bs=True, adjust=True)
         for item in _prog(shortlist):
             (score, score_list, X, Y, X_idx, Y_idx) = item
+            X_fxs = ut.take(X.fxs_list, X_idx)
+            Y_fxs = ut.take(Y.fxs_list, Y_idx)
+            X_maws = ut.take(X.maws_list, X_idx)
+            Y_maws = ut.take(Y.maws_list, Y_idx)
             # Only build matches for those that sver will use
             if agg:
-                fm, fs = agg_build_matches(X, Y, X_idx, Y_idx, score_list)
+                fm, fs = smk_funcs.agg_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list)
             else:
-                fm, fs = sep_build_matches(X, Y, X_idx, Y_idx, score_list)
+                fm, fs = smk_funcs.sep_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list)
             if len(fm) > 0:
                 #assert not np.any(np.isnan(fs))
                 daid = Y.aid
@@ -397,103 +433,6 @@ class SMK(ut.NiceRepr):
         return cm
 
 
-@profile
-def agg_match_scores(X, Y, X_idx, Y_idx, alpha, thresh):
-    # Can speedup aggregate with one vector per word assumption.
-    PhisX, flagsX = X.Phis_flags(X_idx)
-    PhisY, flagsY = Y.Phis_flags(Y_idx)
-    # Take dot product between correponding VLAD vectors
-    u = (PhisX * PhisY).sum(axis=1)
-    # Propogate error flags
-    flags = np.logical_or(flagsX.T[0], flagsY.T[0])
-    u[flags] = 1
-    score_list = selectivity(u, alpha, thresh, out=u)
-    return score_list
-
-
-@profile
-def agg_build_matches(X, Y, X_idx, Y_idx, score_list):
-    """
-    profile = make_profiler()
-    _ = profile(agg_build_matches)(X, Y, X_idx, Y_idx, score_list)
-    print(get_profile_text(profile)[0])
-
-    %timeit agg_build_matches(X, Y, X_idx, Y_idx, score_list)
-
-    """
-    # Build feature matches
-    X_fxs = ut.take(X.fxs_list, X_idx)
-    Y_fxs = ut.take(Y.fxs_list, Y_idx)
-
-    X_maws = ut.take(X.maws_list, X_idx)
-    Y_maws = ut.take(Y.maws_list, Y_idx)
-
-    # Spread word score according to contriubtion (maw) weight
-    unflat_fs = [maws1[:, None].dot(maws2[:, None].T).ravel()
-                 for maws1, maws2 in zip(X_maws, Y_maws)]
-    factor_list = np.array([contrib.sum() for contrib in unflat_fs],
-                           dtype=np.float32)
-    factor_list = np.multiply(factor_list, score_list, out=factor_list)
-    for contrib, factor in zip(unflat_fs, factor_list):
-        np.multiply(contrib, factor, out=contrib)
-
-    # itertools.product seems fastest for small arrays
-    unflat_fm = (ut.product(fxs1, fxs2)
-                 for fxs1, fxs2 in zip(X_fxs, Y_fxs))
-
-    fm = np.array(ut.flatten(unflat_fm), dtype=np.int32)
-    fs = np.array(ut.flatten(unflat_fs), dtype=np.float32)
-    isvalid = np.greater(fs, 0)
-    fm = fm.compress(isvalid, axis=0)
-    fs = fs.compress(isvalid, axis=0)
-    return fm, fs
-
-
-@profile
-def sep_match_scores(X, Y, X_idx, Y_idx, alpha, thresh):
-    raise NotImplementedError('sep version not finished')
-    # Agg speedup
-    phisX_list, flagsY_list = X.phis_flags_list(X_idx)
-    phisY_list, flagsX_list = Y.phis_flags_list(Y_idx)
-    scores_list = []
-    _iter = zip(phisX_list, phisY_list, flagsX_list, flagsY_list)
-    for phisX, phisY, flagsX, flagsY in _iter:
-        u = phisX.dot(phisY.T)
-        flags = np.logical_or(flagsX.T[0], flagsY.T[0])
-        u[flags] = 1
-        scores = selectivity(u, alpha, thresh, out=u)
-        scores_list.append(scores)
-    return scores_list
-
-
-@profile
-def sep_build_matches(X, Y, X_idx, Y_idx, score_list):
-    raise NotImplementedError('sep version not finished')
-    # Build feature matches
-    X_fxs = ut.take(X.fxs_list, X_idx)
-    Y_fxs = ut.take(Y.fxs_list, Y_idx)
-
-    X_maws = ut.take(X.maws_list, X_idx)
-    Y_maws = ut.take(Y.maws_list, Y_idx)
-
-    # Spread word score according to contriubtion (maw) weight
-    unflat_weight = [maws1[:, None].dot(maws2[:, None].T).ravel()
-                     for maws1, maws2 in zip(X_maws, Y_maws)]
-    flat_weight = np.array(ut.flatten(unflat_weight), dtype=np.float32)
-    fs = np.array(ut.flatten(score_list), dtype=np.float32)
-    np.multiply(fs, flat_weight, out=fs)
-
-    # itertools.product seems fastest for small arrays
-    unflat_fm = (ut.product(fxs1, fxs2)
-                 for fxs1, fxs2 in zip(X_fxs, Y_fxs))
-
-    fm = np.array(ut.flatten(unflat_fm), dtype=np.int32)
-    isvalid = np.greater(fs, 0)
-    fm = fm.compress(isvalid, axis=0)
-    fs = fs.compress(isvalid, axis=0)
-    return fm, fs
-
-
 def check_can_match(qaid, hit_daids, qreq_):
     can_match_samename = qreq_.qparams.can_match_samename
     can_match_sameimg = qreq_.qparams.can_match_sameimg
@@ -511,106 +450,6 @@ def check_can_match(qaid, hit_daids, qreq_):
         hit_dgids = qreq_.get_qreq_annot_gids(hit_daids)
         valid_flags[hit_dgids == qgid] = False
     return valid_flags
-
-
-@profile
-def gamma(wx_list, phisX_list, flagsX_list, wx_to_idf, alpha, thresh):
-    r"""
-    Computes gamma (self consistency criterion)
-    It is a scalar which ensures K(X, X) = 1
-
-    Returns:
-        float: sccw self-consistency-criterion weight
-
-    Math:
-        gamma(X) = (sum_{c in C} w_c M(X_c, X_c))^{-.5}
-
-        >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
-        >>> ibs, smk, qreq_= testdata_smk()
-        >>> X = qreq_.qinva.grouped_annots[0]
-        >>> wx_to_idf = qreq_.wx_to_idf
-        >>> print('X.gamma = %r' % (gamma(X),))
-    """
-    if isinstance(phisX_list, np.ndarray):
-        # Agg speedup
-        phisX = phisX_list
-        u_list = (phisX ** 2).sum(axis=1)
-        u_list[flagsX_list.T[0]] = 1
-        scores = selectivity(u_list, alpha, thresh, out=u_list)
-    else:
-        #u_list = [phisX.dot(phisX.T) for phisX in phisX_list]
-        scores = np.array([
-            selective_match_score(phisX, phisX, flagsX, flagsX, alpha,
-                                   thresh).sum()
-            for phisX, flagsX in zip(phisX_list, flagsX_list)
-        ])
-    idf_list = np.array(ut.take(wx_to_idf, wx_list))
-    scores *= idf_list
-    score = scores.sum()
-    sccw = np.reciprocal(np.sqrt(score))
-    return sccw
-
-
-@profile
-def selective_match_score(phisX, phisY, flagsX, flagsY, alpha, thresh):
-    """
-    computes the score of each feature match
-    """
-    u = phisX.dot(phisY.T)
-    # Give error flags full scores. These are typically distinctive and
-    # important cases without enough info to get residual data.
-    flags = np.logical_or(flagsX[:, None], flagsY)
-    u[flags] = 1
-    score = selectivity(u, alpha, thresh, out=u)
-    return score
-
-
-#def match_score_sep(X, Y, c):
-#    """ matching score between separated residual vectors
-
-#    flagsX = np.array([1, 0, 0], dtype=np.bool)
-#    flagsY = np.array([1, 1, 0], dtype=np.bool)
-#    phisX = vt.tests.dummy.testdata_dummy_sift(3, asint=False)
-#    phisY = vt.tests.dummy.testdata_dummy_sift(3, asint=False)
-#    """
-#    phisX, flagsX = X.phis_flags(c)
-#    phisY, flagsY = Y.phis_flags(c)
-#    # Give error flags full scores. These are typically distinctive and
-#    # important cases without enough info to get residual data.
-#    u = phisX.dot(phisY.T)
-#    flags = np.logical_or(flagsX[:, None], flagsY)
-#    u[flags] = 1
-#    return u
-
-
-@profile
-def selectivity(u, alpha=3.0, thresh=-1, out=None):
-    r"""
-    Rescales and thresholds scores. This is sigma from the SMK paper
-
-    Notes:
-        # Exact definition from paper
-        sigma_alpha(u) = bincase{
-            sign(u) * (u**alpha) if u > thresh,
-            0 otherwise,
-        }
-
-    CommandLine:
-        python -m plottool plot_func --show --range=-1,1 --setup="import ibeis" \
-                --func ibeis.algo.smk.smk_pipeline.selectivity \
-                "lambda u: sign(u) * abs(u)**3.0 * greater_equal(u, 0)" \
-    """
-    score = u
-    flags = np.less(score, thresh)
-    isign = np.sign(score)
-    score = np.abs(score, out=out)
-    score = np.power(score, alpha, out=out)
-    score = np.multiply(isign, score, out=out)
-    score[flags] = 0
-    #
-    #score = np.sign(u) * np.power(np.abs(u), alpha)
-    #score *= flags
-    return score
 
 
 def testdata_smk(*args, **kwargs):

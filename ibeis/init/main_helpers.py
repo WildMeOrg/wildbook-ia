@@ -95,6 +95,7 @@ def testdata_expts(defaultdb='testdb1',
         _load_testres = _cache_wrp(harness.run_expt)
     else:
         _load_testres = harness.run_expt
+
     testres = _load_testres(
         ibs, acfg_name_list, test_cfg_name_list, qaid_override=qaid_override,
         daid_override=daid_override, initial_aids=initial_aids,
