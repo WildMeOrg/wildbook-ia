@@ -477,6 +477,7 @@ def compute_vocab(depc, fid_list, config):
                 num_words, random_state=rng, verbose=5)
             clusterer.fit(train_vecs)
         words = clusterer.cluster_centers_
+        print('Finished clustering')
     if False:
         flann_params['checks'] = 64
         flann_params['trees'] = 4
@@ -486,8 +487,11 @@ def compute_vocab(depc, fid_list, config):
             train_vecs, centroids, max_iters=1000, monitor=True,
             flann_params=flann_params)
 
+    print('Constructing vocab')
     vocab = VisualVocab(words)
+    print('Building vocab index')
     vocab.build()
+    print('Returning vocab')
     return (vocab,)
 
 

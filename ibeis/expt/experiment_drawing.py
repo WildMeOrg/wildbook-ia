@@ -9,7 +9,7 @@ import utool as ut
 import vtool as vt
 from ibeis.expt import draw_helpers
 from six.moves import map, range
-print, rrr, profile = ut.inject2(__name__, '[expt_drawres]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 def scorediff(ibs, testres, f=None, verbose=None):
