@@ -15,7 +15,7 @@ import collections
 from six.moves import map, zip, cStringIO
 from os.path import join, exists, dirname, basename
 from dtool import __SQLITE__ as lite
-print, rrr, profile = ut.inject2(__name__, '[sql]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 METADATA_TABLE       = 'metadata'
