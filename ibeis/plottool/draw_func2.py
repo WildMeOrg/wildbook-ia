@@ -2630,6 +2630,44 @@ def draw_lines2(kpts1, kpts2, fm=None, fs=None, kpts2_offset=(0, 0),
     #plt.hexbin(x,y, cmap=plt.cm.YlOrRd_r)
 
 
+def draw_line_segments2(pts1, pts2, ax=None, **kwargs):
+    """
+    draws `N` line segments
+
+    Args:
+        pts1 (ndarray): Nx2
+        pts2 (ndarray): Nx2
+        ax (None): (default = None)
+
+    CommandLine:
+        python -m plottool.draw_func2 draw_line_segments2 --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> pts1 = np.array([(1, 1), (0, 0)])
+        >>> pts2 = np.array([(2, 2), (1, 0)])
+        >>> pt.figure(fnum=None)
+        >>> #segments = [np.array((xy1, xy2)) for xy1, xy2 in zip(pts1, pts2)]
+        >>> #draw_line_segments(segments)
+        >>> draw_line_segments2(pts1, pts2)
+        >>> ut.quit_if_noshow()
+        >>> ax = pt.gca()
+        >>> ax.set_xlim(-1, 3)
+        >>> ax.set_ylim(-1, 3)
+        >>> ut.show_if_requested()
+    """
+    if ax is None:
+        ax = gca()
+    segments = [(xy1, xy2) for xy1, xy2 in zip(pts1, pts2)]
+    linewidth = kwargs.pop('lw', kwargs.pop('linewidth', 1.0))
+    alpha = kwargs.pop('alpha', 1.0)
+    line_group = mpl.collections.LineCollection(segments, linewidth,
+                                                alpha=alpha, **kwargs)
+    ax.add_collection(line_group)
+
+
 def draw_line_segments(segments_list, **kwargs):
     """
     segments_list - list of [xs,ys,...] defining the segments
