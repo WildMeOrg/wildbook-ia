@@ -21,7 +21,7 @@ import cachetools
 
 # UTOOL PRINT STATEMENTS CAUSE RACE CONDITIONS IN QT THAT CAN LEAD TO SEGFAULTS
 # DO NOT INJECT THEM IN GUITOOL
-#print, rrr, profile = ut.inject2(__name__, '[APIItemModel]')
+#print, rrr, profile = ut.inject2(__name__)
 ut.noinject(__name__, '[APIItemModel]')
 
 #raise ImportError('refused to import guitool')
