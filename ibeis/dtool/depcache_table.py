@@ -417,10 +417,10 @@ class _TableDebugHelper(object):
                       table, with_properties=True, default=False):
                 print('  table.%s = %r' % (a, getattr(table, a)))
 
-    def print_table(table):
+    def print_table(table, ):
         table.db.print_table_csv(table.tablename)
-        if table.ismulti:
-            table.print_model_manifests()
+        #if table.ismulti:
+        #    table.print_model_manifests()
 
     def print_info(table, with_colattrs=True, with_graphattrs=True):
         """ debug function """
