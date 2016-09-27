@@ -38,7 +38,7 @@ import matplotlib as mpl
 from six.moves import zip, range
 from plottool import draw_func2 as df2
 from plottool import abstract_interaction
-print, rrr, profile = ut.inject2(__name__, '[interact_annotations]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 DEFAULT_SPECIES_TAG = '____'

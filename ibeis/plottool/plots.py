@@ -11,7 +11,7 @@ import numpy as np
 from plottool import custom_figure
 
 #ut.noinject(__name__, '[plots]')
-print, rrr, profile = ut.inject2(__name__, '[plots]')
+print, rrr, profile = ut.inject2(__name__)
 
 #custom_figure.TITLE_SIZE = 8
 # Titlesize for old non-multiplot plots
