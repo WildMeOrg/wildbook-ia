@@ -54,7 +54,7 @@ from ibeis.algo.hots import scoring
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 from collections import namedtuple
 import utool as ut
-print, rrr, profile = ut.inject2(__name__, '[pipeline]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 #=================

@@ -9,7 +9,7 @@ import numpy as np
 import utool as ut
 from ibeis.expt import experiment_helpers
 from ibeis.expt import test_result
-print, rrr, profile = ut.inject2(__name__, '[expt_harn]')
+print, rrr, profile = ut.inject2(__name__)
 
 NOMEMORY = ut.get_argflag('--nomemory')
 TESTRES_VERBOSITY = 2 - (2 * ut.QUIET)

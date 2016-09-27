@@ -7,7 +7,7 @@ from ibeis.algo.hots import scoring
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import _pipeline_helpers as plh
 from six.moves import zip, range, map  # NOQA
-print, rrr, profile = ut.inject2(__name__, '[nnweight]')
+print, rrr, profile = ut.inject2(__name__)
 
 """
 FIXME: qfx2_ no longer applies due to fgw_thresh. Need to change names in this file

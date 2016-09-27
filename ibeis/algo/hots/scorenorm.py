@@ -36,7 +36,7 @@ import utool as ut
 import vtool as vt
 import six  # NOQA
 from functools import partial
-print, rrr, profile = ut.inject2(__name__, '[scorenorm]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 class NormFeatScoreConfig(dtool.Config):

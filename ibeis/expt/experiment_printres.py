@@ -9,7 +9,7 @@ import numpy as np
 import six
 import utool as ut
 from six.moves import map, range
-print, rrr, profile = ut.inject2(__name__, '[expt_printres]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 def get_diffranks(rank_mat, qaids):

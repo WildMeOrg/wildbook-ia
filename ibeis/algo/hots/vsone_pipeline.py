@@ -59,7 +59,7 @@ from vtool import matching
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 import utool as ut
 from six.moves import zip, range, reduce  # NOQA
-print, rrr, profile = ut.inject2(__name__, '[vsonepipe]')
+print, rrr, profile = ut.inject2(__name__)
 
 #from collections import namedtuple
 

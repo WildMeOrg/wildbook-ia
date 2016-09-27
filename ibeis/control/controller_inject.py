@@ -69,7 +69,7 @@ except Exception as ex:
     if ut.SUPER_STRICT:
         raise
 # </flask>
-print, rrr, profile = ut.inject2(__name__, '[controller_inject]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 #INJECTED_MODULES = []

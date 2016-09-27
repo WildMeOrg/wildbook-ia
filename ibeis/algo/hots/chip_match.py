@@ -16,7 +16,7 @@ from ibeis.algo.hots import old_chip_match
 from ibeis.algo.hots import scoring
 from ibeis.algo.hots import name_scoring
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
-print, rrr, profile = ut.inject2(__name__, '[chip_match]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 class NeedRecomputeError(Exception):

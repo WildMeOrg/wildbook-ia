@@ -7,7 +7,7 @@ Rename to annot_cfgdef
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np  # NOQA
-print, rrr, profile = ut.inject2(__name__, '[aidcfg]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 # easier to type names to alias some of these options

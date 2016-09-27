@@ -8,7 +8,7 @@ Rename to pipe_cfgdef
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
-print, rrr, profile = ut.inject2(__name__, '[cfgbank]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 ALIAS_KEYS = {

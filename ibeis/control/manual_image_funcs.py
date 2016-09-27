@@ -26,7 +26,7 @@ import numpy as np
 import utool as ut
 import vtool as vt
 from ibeis.web import routes_ajax
-print, rrr, profile = ut.inject2(__name__, '[manual_image]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 DEBUG_THUMB = False

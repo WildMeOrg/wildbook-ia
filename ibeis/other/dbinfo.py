@@ -12,7 +12,7 @@ import numpy as np
 from collections import OrderedDict
 from utool import util_latex
 import functools
-print, rrr, profile = ut.inject2(__name__, '[dbinfo]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 def print_qd_info(ibs, qaid_list, daid_list, verbose=False):

@@ -9,7 +9,7 @@ import six  # NOQA
 from ibeis.control.accessor_decors import (getter_1to1, getter_1toM, deleter)
 import utool as ut
 from ibeis.control import controller_inject
-print, rrr, profile = ut.inject2(__name__, '[manual_feats]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)

@@ -7,7 +7,7 @@ import numpy as np
 import utool as ut
 import vtool as vt  # NOQA
 import six
-print, rrr, profile = ut.inject2(__name__, '[orig_graph_iden]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)

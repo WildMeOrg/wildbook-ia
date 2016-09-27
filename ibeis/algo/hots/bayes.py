@@ -15,7 +15,7 @@ from six.moves import zip
 from ibeis.algo.hots import pgm_ext
 from ibeis.algo.hots import pgm_viz
 
-print, rrr, profile = ut.inject2(__name__, '[bayes]')
+print, rrr, profile = ut.inject2(__name__)
 
 #SPECIAL_BASIS_POOL = ['fred', 'sue', 'tom']
 SPECIAL_BASIS_POOL = []

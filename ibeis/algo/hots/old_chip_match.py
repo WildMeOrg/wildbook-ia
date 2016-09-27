@@ -4,7 +4,7 @@ import numpy as np
 import utool as ut
 import six
 from ibeis.algo.hots import hstypes
-print, rrr, profile = ut.inject2(__name__, '[old_chip_match]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 class AlignedListDictProxy(ut.DictLike_old):

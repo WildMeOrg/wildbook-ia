@@ -5,7 +5,7 @@ import numpy as np
 from six.moves import zip, map, filter, range  # NOQA
 from functools import partial  # NOQA
 from ibeis.control import controller_inject
-print, rrr, profile = ut.inject2(__name__, '[annotmatch_funcs]')
+print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)

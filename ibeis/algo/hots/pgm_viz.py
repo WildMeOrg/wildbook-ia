@@ -5,7 +5,7 @@ import six  # NOQA
 import utool as ut
 import numpy as np
 from six.moves import zip
-print, rrr, profile = ut.inject2(__name__, '[pgmext]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 def print_ascii_graph(model_):

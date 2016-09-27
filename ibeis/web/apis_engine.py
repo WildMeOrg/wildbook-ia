@@ -7,7 +7,7 @@ import six
 import utool as ut
 import uuid  # NOQA
 from ibeis.control import accessor_decors, controller_inject
-print, rrr, profile = ut.inject2(__name__, '[apis_engine]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = (

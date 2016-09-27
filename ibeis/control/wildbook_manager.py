@@ -20,7 +20,7 @@ import re
 import time
 import os
 from os.path import dirname, join, basename, splitext
-print, rrr, profile = ut.inject2(__name__, '[manual_wildbook]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 #PREFERED_BROWSER = 'chrome'

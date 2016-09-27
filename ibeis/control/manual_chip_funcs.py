@@ -16,7 +16,7 @@ from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
-print, rrr, profile = ut.inject2(__name__, '[manual_chips]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)

@@ -6,7 +6,7 @@ import vtool as vt  # NOQA
 import plottool as pt
 import six
 import networkx as nx
-print, rrr, profile = ut.inject2(__name__, '[graph_inference]')
+print, rrr, profile = ut.inject2(__name__)
 
 # Monkey patch networkx
 nx.set_edge_attrs = nx.set_edge_attributes

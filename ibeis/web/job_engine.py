@@ -64,7 +64,7 @@ import random
 from os.path import join
 from functools import partial
 from ibeis.control import controller_inject
-print, rrr, profile = ut.inject2(__name__, '[job_engine]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 CLASS_INJECT_KEY, register_ibs_method = (

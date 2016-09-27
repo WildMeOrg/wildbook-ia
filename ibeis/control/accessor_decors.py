@@ -4,7 +4,7 @@ import six
 import utool as ut
 from six.moves import builtins
 from utool._internal.meta_util_six import get_funcname
-print, rrr, profile = ut.inject2(__name__, '[decor]')
+print, rrr, profile = ut.inject2(__name__)
 
 DEBUG_ADDERS  = ut.get_argflag(('--debug-adders', '--verbadd'))
 DEBUG_SETTERS = ut.get_argflag(('--debug-setters', '--verbset'))

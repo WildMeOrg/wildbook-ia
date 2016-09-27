@@ -14,7 +14,7 @@ except ImportError:
     HAS_PGMPY = False
     pass
 # from ibeis.algo.hots.pgm_viz import *  # NOQA
-print, rrr, profile = ut.inject2(__name__, '[pgmext]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 def define_model(cpd_list):

@@ -18,7 +18,7 @@ from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 import scipy.stats.mstats as spmstat
 from six.moves import zip, range, map  # NOQA
 #profile = ut.profile
-print, rrr, profile = ut.inject2(__name__, '[scoring]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__)
 
 
 def score_chipmatch_list(qreq_, cm_list, score_method, progkw=None):

@@ -274,7 +274,7 @@ testdata_expanded_aids = main_helpers.testdata_expanded_aids
 testdata_aids = main_helpers.testdata_aids
 
 # Utool generated init makeinit.py
-print, rrr, profile = ut.inject2(__name__, '[ibeis]')
+print, rrr, profile = ut.inject2(__name__)
 
 def reload_subs(verbose=True):
     """ Reloads ibeis and submodules """

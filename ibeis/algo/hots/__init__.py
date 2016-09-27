@@ -19,7 +19,7 @@ from ibeis.algo.hots import pipeline
 from ibeis.algo.hots import precision_recall
 from ibeis.algo.hots import query_request
 from ibeis.algo.hots import _pipeline_helpers
-print, rrr, profile = ut.inject2(__name__, '[ibeis.algo.hots]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 def reload_subs(verbose=True):

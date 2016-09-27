@@ -14,7 +14,7 @@ import six  # NOQA
 from ibeis import constants as const
 from ibeis.init import sysres
 from ibeis.algo.hots import hstypes
-print, rrr, profile = ut.inject2(__name__, '[distinctnorm]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 DCVS_DEFAULT = ut.ParamInfoList('distinctivness', [

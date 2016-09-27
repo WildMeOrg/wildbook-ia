@@ -14,7 +14,7 @@ import utool as ut
 import vtool as vt
 import uuid as uuid_module
 import six
-print, rrr, profile = ut.inject2(__name__, '[apis]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)

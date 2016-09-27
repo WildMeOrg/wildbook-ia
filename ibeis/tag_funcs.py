@@ -6,7 +6,7 @@ import numpy as np
 import vtool as vt
 import utool as ut
 from ibeis.control import controller_inject
-print, rrr, profile = ut.inject2(__name__, '[tag_funcs]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 # Create dectorator to inject functions in this module into the IBEISController

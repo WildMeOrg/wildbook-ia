@@ -39,7 +39,7 @@ from ibeis.gui.models_and_views import (IBEISStripeModel, IBEISTableView,
 from plottool import color_funcs
 import utool as ut
 import plottool as pt
-print, rrr, profile = ut.inject2(__name__, '[newgui]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 VERBOSE_GUI = ut.VERBOSE or ut.get_argflag(('--verbose-gui', '--verbgui'))
