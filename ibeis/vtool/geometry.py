@@ -462,6 +462,13 @@ def scale_bbox(bbox, sx, sy=None):
     return bboxT
 
 
+def scale_extents(extents, sx, sy=None):
+    bbox = bbox_from_extent(extents)
+    bboxT = scale_bbox(bbox, sx, sy)
+    extentsT = extent_from_bbox(bboxT)
+    return extentsT
+
+
 def scaled_verts_from_bbox_gen(bbox_list, theta_list, sx=1, sy=1):
     r"""
     Helps with drawing scaled bbounding boxes on thumbnails
