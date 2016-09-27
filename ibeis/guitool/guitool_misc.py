@@ -9,7 +9,7 @@ import sys
 import logging
 from guitool.guitool_decorators import slot_
 from guitool import guitool_main
-#print, print_, printDBG, rrr, profile = utool.inject(__name__, '[guitool_misc]')
+#print, rrr, profile = utool.inject2(__name__)
 import utool as ut
 ut.noinject(__name__, '[guitool.misc]', DEBUG=False)
 
