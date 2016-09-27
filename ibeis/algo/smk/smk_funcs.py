@@ -34,18 +34,19 @@ References:
 
 Notes:
     * Results from SMK Oxford Paper (mAP)
-    ASMK nAssign=1, sv=False: .78
-    ASMK nAssign=5, sv=False: .82
+    ASMK nAssign=1, SV=False: .78
+    ASMK nAssign=5, SV=False: .82
 
-    * My Results
-    smk:nAssign=1,sv=True,: .58
-    smk:nAssign=1,sv=False,: .38
-
-    Philbin with tf-idf ranking sv=False
+    Philbin with tf-idf ranking SV=False
     SIFT: .636, RootSIFT: .683 (+.05)
 
-    Philbin with tf-idf ranking sv=True
+    Philbin with tf-idf ranking SV=True
     SIFT: .672, RootSIFT: .720 (+.05)
+
+
+    * My Results (WITH BAD QUERY BBOXES)
+    smk:nAssign=1,SV=True,: .58
+    smk:nAssign=1,SV=False,: .38
 
 Differences Between this and SMK
    * No RootSIFT
@@ -240,9 +241,18 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
         tuple : (idx_to_wxs, idx_to_maws)
 
     Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> _idx_to_wx = np.array([[0, 1], [2, 3], [4, 5], [2, 0]])
+        >>> _idx_to_wdist = np.array([[.1, .11], [.2, .25], [.03, .25], [0, 1]])
         >>> massign_alpha = 1.2
         >>> massign_sigma = 80.0
         >>> massign_equal_weights = False
+        >>> idx_to_wxs, idx_to_maws = weight_multi_assigns(
+        >>>     _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,
+        >>>     massign_equal_weights)
+        >>> print('idx_to_wxs = %s' % (ut.repr4(idx_to_wxs),))
+        >>> print('idx_to_maws = %s' % (ut.repr4(idx_to_maws),))
     """
     if _idx_to_wx.shape[1] <= 1:
         idx_to_wxs = _idx_to_wx.tolist()
@@ -271,7 +281,7 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
             # Performance hack from jegou paper: just give everyone equal weight
             masked_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid)
             idx_to_wxs  = ut.lmap(ut.filter_Nones, masked_wxs.tolist())
-            idx_to_maws = [np.ones(len(wxs), dtype=np.float)
+            idx_to_maws = [np.ones(len(wxs), dtype=np.float32)
                            for wxs in idx_to_wxs]
         else:
             # More natural weighting scheme
@@ -287,9 +297,10 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
             masked_maw = np.divide(masked_unorm_maw, masked_norm)
             masked_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid)
             # Remove masked weights and word indexes
-            idx_to_wxs  = list(map(ut.filter_Nones, masked_wxs.tolist()))
-            idx_to_maws = list(map(ut.filter_Nones, masked_maw.tolist()))
-            #with ut.EmbedOnException():
+            idx_to_wxs  = [np.array(ut.filter_Nones(wxs), dtype=np.int32)
+                           for wxs in masked_wxs.tolist()]
+            idx_to_maws = [np.array(ut.filter_Nones(maw), dtype=np.float32)
+                           for maw in masked_maw.tolist()]
     return idx_to_wxs, idx_to_maws
 
 
@@ -298,6 +309,10 @@ def assign_to_words(vocab, idx_to_vec, nAssign, massign_alpha=1.2,
                     verbose=None):
     """
     Assigns descriptor-vectors to nearest word.
+
+    Notes:
+        Maybe move out of this file? The usage of vocab is out of this file
+        scope.
 
     Args:
         wordflann (FLANN): nearest neighbor index over words
@@ -351,15 +366,28 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
     Inverts assignment of vectors to words into words to vectors.
 
     Example:
-        >>> idx_to_idx = np.arange(len(idx_to_wxs))
-        >>> other_idx_to_prop = (idx_to_idx,)
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> idx_to_wxs = [
+        >>>     np.array([0, 4], dtype=np.int32),
+        >>>     np.array([2], dtype=np.int32),
+        >>>     np.array([2, 0], dtype=np.int32),
+        >>> ]
+        >>> idx_to_maws = [
+        >>>     np.array([ 0.5,  0.5], dtype=np.float32),
+        >>>     np.array([ 1.], dtype=np.float32),
+        >>>     np.array([ 0.5,  0.5], dtype=np.float32),
+        >>> ]
         >>> wx_to_idxs, wx_to_maws = invert_assigns(idx_to_wxs, idx_to_maws)
+        >>> print('wx_to_idxs = %s' % (ut.repr4(wx_to_idxs),))
+        >>> print('wx_to_maws = %s' % (ut.repr4(wx_to_maws),))
     """
     # Invert mapping -- Group by word indexes
     idx_to_nAssign = [len(wxs) for wxs in idx_to_wxs]
     jagged_idxs = [[idx] * num for idx, num in enumerate(idx_to_nAssign)]
     wx_keys, groupxs = vt.jagged_group(idx_to_wxs)
     idxs_list = vt.apply_jagged_grouping(jagged_idxs, groupxs)
+    idxs_list = [np.array(idxs, dtype=np.int32) for idxs in idxs_list]
     wx_to_idxs = dict(zip(wx_keys, idxs_list))
     maws_list = vt.apply_jagged_grouping(idx_to_maws, groupxs)
     maws_list = [np.array(maws, dtype=np.float32) for maws in maws_list]
@@ -371,11 +399,36 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
 
 @profile
 def agg_match_scores(PhisX, PhisY, flagsX, flagsY, alpha, thresh):
+    """
+    Scores matches to multiple words using aggregate residual vectors
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> PhisX = np.array([[ 0.        ,  0.        ],
+        >>>                   [-1.        ,  0.        ],
+        >>>                   [ 0.85085751,  0.52539652],
+        >>>                   [-0.89795083, -0.4400958 ],
+        >>>                   [-0.99934547,  0.03617512]])
+        >>> PhisY = np.array([[ 0.88299408, -0.46938411],
+        >>>                   [-0.12096522, -0.99265675],
+        >>>                   [-0.99948266, -0.03216222],
+        >>>                   [-0.08394916, -0.99647004],
+        >>>                   [-0.96414952, -0.26535957]])
+        >>> flagsX = np.array([True, False, False, True, False])[:, None]
+        >>> flagsY = np.array([False, False, False, True, False])[:, None]
+        >>> alpha = 3.0
+        >>> thresh = 0.0
+        >>> score_list = agg_match_scores(PhisX, PhisY, flagsX, flagsY, alpha, thresh)
+        >>> print('score_list = ' + ut.repr2(score_list, precision=4))
+        score_list = np.array([ 1.    ,  0.0018,  0.    ,  1.0,  0.868 ])
+    """
     # Can speedup aggregate with one vector per word assumption.
     # Take dot product between correponding VLAD vectors
     u = (PhisX * PhisY).sum(axis=1)
     # Propogate error flags
     flags = np.logical_or(flagsX.T[0], flagsY.T[0])
+    assert len(flags) == len(u), 'mismatch'
     u[flags] = 1
     score_list = selectivity(u, alpha, thresh, out=u)
     return score_list
@@ -383,6 +436,10 @@ def agg_match_scores(PhisX, PhisY, flagsX, flagsY, alpha, thresh):
 
 @profile
 def sep_match_scores(phisX_list, phisY_list, flagsX_list, flagsY_list, alpha, thresh):
+    """
+    Scores matches to multiple words using lists of separeated residual vectors
+
+    """
     scores_list = []
     _iter = zip(phisX_list, phisY_list, flagsX_list, flagsY_list)
     for phisX, phisY, flagsX, flagsY in _iter:
@@ -396,6 +453,27 @@ def sep_match_scores(phisX_list, phisY_list, flagsX_list, flagsY_list, alpha, th
 
 @profile
 def agg_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list):
+    r"""
+    Returns:
+        tuple: (fm, fs)
+
+    CommandLine:
+        python -m ibeis.algo.smk.smk_funcs agg_build_matches --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> map_int = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.int32))
+        >>> map_float = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.float32))
+        >>> X_fxs = map_int([[0, 1], [2, 3, 4], [5]])
+        >>> Y_fxs = map_int([[8], [0, 4], [99]])
+        >>> X_maws = map_float([[1, 1], [1, 1, 1], [1]])
+        >>> Y_maws = map_float([[1], [1, 1], [1]])
+        >>> score_list = np.array([1, 2, 3], dtype=np.float32)
+        >>> (fm, fs) = agg_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list)
+        >>> print('fm = ' + ut.repr2(fm))
+        >>> print('fs = ' + ut.repr2(fs))
+    """
     # Build feature matches
     # Spread word score according to contriubtion (maw) weight
     unflat_fs = [maws1[:, None].dot(maws2[:, None].T).ravel()

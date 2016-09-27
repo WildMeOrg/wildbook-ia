@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Oxford Experiment:
-    ibeis TestResult --db Oxford -p smk:nwords=[64000],nAssign=[1],sv=[False] -a oxford
+    ibeis TestResult --db Oxford -p smk:nWords=[64000],nAssign=[1],SV=[False] -a oxford
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import dtool
@@ -349,7 +349,7 @@ class SMK(ut.NiceRepr):
         gammaX = X.gamma
         wx_to_weight = qreq_.dinva.wx_to_weight
 
-        debug = True
+        debug = False
         if debug:
             qnid = qreq_.get_qreq_annot_nids([qaid])[0]
             daids = np.array(qreq_.daids)

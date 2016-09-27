@@ -819,10 +819,14 @@ oxford = {
     'qcfg': ut.augdict(default['qcfg'], {
         'has_any': ('query',),
         'exclude_reference': True,
+        'minqual': 'poor',
+        'require_quality': False,
     }),
     'dcfg': ut.augdict(default['dcfg'], {
         # 'sample_per_name': 2,
-        'exclude_reference': True
+        'exclude_reference': True,
+        'minqual': 'poor',
+        'require_quality': False,
     })
 }
 

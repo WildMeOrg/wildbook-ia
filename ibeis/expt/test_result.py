@@ -2365,16 +2365,23 @@ class TestResult(ut.NiceRepr):
         Then, for each query compute the average precision.
         Then take the mean of all average precisions to obtain the mAP.
 
-
-
+        Script:
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('Oxford')
+            >>> #ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True]')
+            >>> ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False]')
         """
         import sklearn.metrics
         qaids = testres.get_test_qaids()
         ibs = testres.ibs
 
-        #import plottool as pt
-        #pt.qt4ensure()
-        #pt.figure()
+        PLOT = True
+        PLOT = False
+
+        if PLOT:
+            import plottool as pt
+            pt.qt4ensure()
+            pt.figure()
 
         cfgx2_cms = []
         for qreq_ in testres.cfgx2_qreq_:
@@ -2382,9 +2389,12 @@ class TestResult(ut.NiceRepr):
             #cm_list = [cm.extend_results(qreq_) for cm in cm_list]
             for cm in cm_list:
                 cm.score_csum(qreq_)
+                #cm.sortself()
             cfgx2_cms.append(cm_list)
 
         map_list = []
+        unique_names, groupxs = ut.group_indices(ibs.annots(qaids).names)
+
         for cm in cfgx2_cms:
             avep_list = []
             #fnum = pt.ensure_fnum(None)
@@ -2395,21 +2405,32 @@ class TestResult(ut.NiceRepr):
                 y_true  = (cm.qnid == cm.dnid_list).compress(flags)
                 y_score = cm.annot_score_list.compress(flags)
 
-                precision, recall, thresholds = sklearn.metrics.precision_recall_curve(y_true, y_score)
-
-                #pt.plot(precision, recall)
-
                 y_score[~np.isfinite(y_score)] = 0
                 y_score = np.nan_to_num(y_score)
-                avep = [
-                    sklearn.metrics.average_precision_score(y_true, y_score, average=average)
-                    for average in ['micro', 'macro', 'samples', 'weighted']
-                ]
+                #sortx = np.argsort(y_score)
+                #y_true = y_
+                #print(cm.get_annot_ranks(cm.get_top_gt_aids(ibs)))
 
+                precision, recall, thresholds = sklearn.metrics.precision_recall_curve(y_true, y_score)
+
+                if PLOT:
+                    pt.plot(precision, recall)
+
+                avep = sklearn.metrics.average_precision_score(y_true, y_score)
+                #avep = [
+                #    sklearn.metrics.average_precision_score(y_true, y_score, average=average)
+                #    for average in ['micro', 'macro', 'samples', 'weighted']
+                #]
+                #if np.any(np.isnan(avep)):
+                #    break
                 # if np.isnan(avep):
                 #     break
                 avep_list.append(avep)
-            mean_ave_precision = np.mean(avep_list, axis=0)
+            #mean_ave_precision = np.mean(avep_list, axis=0)
+            name_to_ave = [np.mean(a) for a in ut.apply_grouping(avep_list, groupxs)]
+            name_to_ave_ = dict(zip(unique_names, name_to_ave))
+            print('name_to_ave_ = %s' % (ut.align(ut.repr3(name_to_ave_, precision=3), ':')))
+            mean_ave_precision = np.mean(name_to_ave)
             print('mean_ave_precision = %r' % (mean_ave_precision,))
             map_list.append(mean_ave_precision)
         return map_list
@@ -2418,10 +2439,6 @@ class TestResult(ut.NiceRepr):
         """
         CommandLine:
             python -m ibeis TestResults.embed_testres
-
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('Oxford')
-            >>> ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True]')
 
         Example:
             >>> # SCRIPT
