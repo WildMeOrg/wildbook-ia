@@ -12,15 +12,12 @@ CommandLine:
 from __future__ import absolute_import, division, print_function
 import ctypes as C
 import numpy as np
-#import vtool
 import vtool.keypoint as ktool
 import utool as ut
 from os.path import dirname, join, realpath
-
 # TODO: move to utool?
 from vtool.other import asserteq, compare_implementations  # NOQA
-
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[sver_c]')
+print, rrr, profile = ut.inject2(__name__)
 
 TAU = 2 * np.pi  # References: tauday.com
 c_double_p = C.POINTER(C.c_double)
