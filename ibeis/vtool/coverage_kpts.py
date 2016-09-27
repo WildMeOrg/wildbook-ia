@@ -8,7 +8,7 @@ import numpy as np
 import utool as ut
 from vtool import patch as ptool
 from vtool import keypoint as ktool
-print, rrr, profile = ut.inject2(__name__, '[cov]', DEBUG=False)
+print, rrr, profile = ut.inject2(__name__)
 
 
 # TODO: integrate more
