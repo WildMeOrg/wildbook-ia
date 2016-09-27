@@ -67,7 +67,6 @@ from plottool.mpl_sift import draw_sifts, render_sift_on_patch
 from plottool import fig_presenter
 
 import utool
-#print, print_, printDBG, rrr, profile = utool.inject(__name__, '[plottool]')
 
 #def reload_subs():
 #    rrr()

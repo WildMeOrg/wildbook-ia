@@ -8,8 +8,7 @@ from plottool import interact_helpers as ih
 from plottool.viz_featrow import draw_feat_row
 from plottool.viz_keypoints import show_keypoints
 from plottool import abstract_interaction
-
-(print, rrr, profile) = ut.inject2(__name__, '[interact_kpts]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 class KeypointInteraction(abstract_interaction.AbstractInteraction):
@@ -80,7 +79,8 @@ class KeypointInteraction(abstract_interaction.AbstractInteraction):
             else:
                 print('...nearest')
                 x, y = event.xdata, event.ydata
-                fx = ut.nearest_point(x, y, kpts)[0]
+                import vtool as vt
+                fx = vt.nearest_point(x, y, kpts)[0]
                 self._select_ith_kpt(fx)
         elif viztype == 'warped':
             hs_fx = ph.get_plotdat(ax, 'fx', None)
@@ -167,7 +167,8 @@ def ishow_keypoints(chip, kpts, desc, fnum=0, figtitle=None, nodraw=False, **kwa
                 else:
                     print('...nearest')
                     x, y = event.xdata, event.ydata
-                    fx = ut.nearest_point(x, y, kpts)[0]
+                    import vtool as vt
+                    fx = vt.nearest_point(x, y, kpts)[0]
                     _select_ith_kpt(fx)
             elif viztype == 'warped':
                 hs_fx = ph.get_plotdat(ax, 'fx', None)
