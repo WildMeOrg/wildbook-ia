@@ -2359,17 +2359,73 @@ class TestResult(ut.NiceRepr):
                 pt.adjust_subplots2(use_argv=True)
         return encoder
 
+    def map_score(testres):
+        """
+        For each query compute a precision recall curve.
+        Then, for each query compute the average precision.
+        Then take the mean of all average precisions to obtain the mAP.
+
+
+
+        """
+        import sklearn.metrics
+        qaids = testres.get_test_qaids()
+        ibs = testres.ibs
+
+        #import plottool as pt
+        #pt.qt4ensure()
+        #pt.figure()
+
+        cfgx2_cms = []
+        for qreq_ in testres.cfgx2_qreq_:
+            cm_list = qreq_.execute(qaids)
+            #cm_list = [cm.extend_results(qreq_) for cm in cm_list]
+            for cm in cm_list:
+                cm.score_csum(qreq_)
+            cfgx2_cms.append(cm_list)
+
+        map_list = []
+        for cm in cfgx2_cms:
+            avep_list = []
+            #fnum = pt.ensure_fnum(None)
+            #pt.figure(fnum=fnum)
+            for cm in cm_list:
+                # Ignore junk images
+                flags   = np.array(ibs.annots(cm.daid_list).quality_texts) != 'junk'
+                y_true  = (cm.qnid == cm.dnid_list).compress(flags)
+                y_score = cm.annot_score_list.compress(flags)
+
+                precision, recall, thresholds = sklearn.metrics.precision_recall_curve(y_true, y_score)
+
+                #pt.plot(precision, recall)
+
+                y_score[~np.isfinite(y_score)] = 0
+                y_score = np.nan_to_num(y_score)
+                avep = [
+                    sklearn.metrics.average_precision_score(y_true, y_score, average=average)
+                    for average in ['micro', 'macro', 'samples', 'weighted']
+                ]
+
+                # if np.isnan(avep):
+                #     break
+                avep_list.append(avep)
+            mean_ave_precision = np.mean(avep_list, axis=0)
+            print('mean_ave_precision = %r' % (mean_ave_precision,))
+            map_list.append(mean_ave_precision)
+        return map_list
+
     def embed_testres(testres):
         """
         CommandLine:
             python -m ibeis TestResults.embed_testres
 
             >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p=':proot=smk,nwords=[64000],nAssign=[1],sv=[False]')
+            >>> ibs = ibeis.opendb('Oxford')
+            >>> ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True]')
 
         Example:
             >>> # SCRIPT
-            >>> from ibeis.expt.experiment_drawing import *  # NOQA
+            >>> from ibeis.expt.test_result import *  # NOQA
             >>> from ibeis.init import main_helpers
             >>> ibs, testres = main_helpers.testdata_expts(defaultdb='PZ_MTEST')
             >>> embed_testres(testres)
@@ -2405,41 +2461,6 @@ class TestResult(ut.NiceRepr):
         print(', '.join(funcname_list))
         ut.cprint('Available Commandline:', 'blue')
         print('\n'.join(cmdstr_list))
-
-    def map_score(testres):
-        """
-        For each query compute a precision recall curve.
-        Then, for each query compute the average precision.
-        Then take the mean of all average precisions to obtain the mAP.
-        """
-        import sklearn.metrics
-        qaids = testres.get_test_qaids()
-        ibs = testres.ibs
-
-        map_list = []
-        for qreq_ in testres.cfgx2_qreq_:
-            cm_list = qreq_.execute(qaids)
-            cm_list = [cm.extend_results(qreq_) for cm in cm_list]
-            for cm in cm_list:
-                cm.score_csum(qreq_)
-            avep_list = []
-            for cm in cm_list:
-                # Ignore junk images
-                flags   = np.array(ibs.annots(cm.daid_list).quality_texts) != 'junk'
-                y_true  = (cm.qnid == cm.dnid_list).compress(flags)
-                y_score = cm.annot_score_list.compress(flags)
-
-                precision, recall, thresholds = sklearn.metrics.precision_recall_curve(y_true, y_score)
-                y_score[~np.isfinite(y_score)] = 0
-                y_score = np.nan_to_num(y_score)
-                avep = sklearn.metrics.average_precision_score(y_true, y_score)
-                # if np.isnan(avep):
-                #     break
-                avep_list.append(avep)
-            mean_ave_precision = np.mean(avep_list)
-            print('mean_ave_precision = %r' % (mean_ave_precision,))
-            map_list.append(mean_ave_precision)
-        return map_list
 
 
 if __name__ == '__main__':

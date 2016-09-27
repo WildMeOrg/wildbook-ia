@@ -19,10 +19,8 @@ class VocabConfig(dtool.Config):
         ut.ParamInfo('algorithm', 'minibatch', 'alg'),
         ut.ParamInfo('random_seed', 42, 'seed'),
         ut.ParamInfo('num_words', 1000, 'n'),
-        #ut.ParamInfo('num_words', 64000),
         ut.ParamInfo('version', 1),
         ut.ParamInfo('n_init', 3, hideif=lambda cfg: cfg['algorithm'] != 'minibatch' or cfg['n_init'] == 3),
-        #ut.ParamInfo('n_jobs', -1, hide=True),
     ]
 
 
@@ -52,12 +50,6 @@ class VisualVocab(ut.NiceRepr):
         return vocab.wx_to_word.shape
 
     def __getstate__(vocab):
-        """
-        http://www.linuxscrew.com/2010/03/24/fastest-way-to-create-ramdisk-in-ubuntulinux/
-        sudo mkdir /tmp/ramdisk; chmod 777 /tmp/ramdisk
-        sudo mount -t tmpfs -o size=256M tmpfs /tmp/ramdisk/
-        http://zeblog.co/?p=1588
-        """
         state = vocab.__dict__.copy()
         if 'wx2_word' in state:
             state['wx_to_word'] = state.pop('wx2_word')
@@ -68,7 +60,6 @@ class VisualVocab(ut.NiceRepr):
     def __setstate__(vocab, state):
         wordindex_bytes = state.pop('wordindex_bytes')
         vocab.__dict__.update(state)
-        #flannclass = pyflann.FLANN
         flannclass = pickle_flann.PickleFLANN
         vocab.wordflann = flannclass()
         try:
@@ -80,7 +71,6 @@ class VisualVocab(ut.NiceRepr):
     def build(vocab, verbose=True):
         num_vecs = len(vocab.wx_to_word)
         if vocab.wordflann is None:
-            #flannclass = pyflann.FLANN
             flannclass = pickle_flann.PickleFLANN
             vocab.wordflann = flannclass()
         if verbose:
@@ -169,13 +159,27 @@ def compute_vocab(depc, fid_list, config):
         python -m ibeis.algo.smk.vocab_indexer compute_vocab:0
 
     Ignore:
-        # Lev Example
-        import ibeis
-        ibs = ibeis.opendb('Oxford')
-        depc = ibs.depc
-        table = depc['vocab']
-        table.print_table()
-        table.print_internal_info()
+        >>> # Lev Oxford Debug Example
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('Oxford')
+        >>> depc = ibs.depc
+        >>> table = depc['vocab']
+        >>> # Check what currently exists in vocab table
+        >>> table.print_configs()
+        >>> table.print_table()
+        >>> table.print_internal_info()
+        >>> # Grab aids used to compute vocab
+        >>> from ibeis.expt.experiment_helpers import get_annotcfg_list
+        >>> expanded_aids_list = get_annotcfg_list(ibs, ['oxford'])[1]
+        >>> qaids, daids = expanded_aids_list[0]
+        >>> vocab_aids = daids
+        >>> config = {'num_words': 64000}
+        >>> exists = depc.check_rowids('vocab', [vocab_aids], config=config)
+        >>> print('exists = %r' % (exists,))
+        >>> vocab_rowid = depc.get_rowids('vocab', [vocab_aids], config=config)[0]
+        >>> print('vocab_rowid = %r' % (vocab_rowid,))
+        >>> vocab = table.get_row_data([vocab_rowid], 'words')[0]
+        >>> print('vocab = %r' % (vocab,))
 
     Example:
         >>> # DISABLE_DOCTEST

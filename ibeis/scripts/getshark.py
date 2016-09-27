@@ -1163,7 +1163,7 @@ def download_missing_images(parsed):
         for img_url, new_fpath in _prog(_iter, lbl='downloading sharks'):
             try:
                 ut.download_url(img_url, new_fpath, verbose=False)
-            except ZeroDivisionError:
+            except (ZeroDivisionError, IOError):
                 pass
 
 

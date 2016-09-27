@@ -915,31 +915,40 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         name, num, quality = parse.parse(gt_format, gt_fname)
         return (name, num, quality)
 
+    @ut.memoize
+    def _tmpread(gt_fpath):
+        return ut.readfrom(gt_fpath)
+
     def _read_oxsty_gtfile(gt_fpath, name, quality, img_dpath, ignore_list):
         oxsty_annot_info_list = []
         # read the individual ground truth file
-        with open(gt_fpath, 'r') as file:
-            line_list = file.read().splitlines()
-            for line in line_list:
-                if line == '':
-                    continue
-                fields = line.split(' ')
-                gname = fields[0].replace('oxc1_', '') + '.jpg'
-                # >:( Because PARIS just cant keep paths consistent
-                if gname.find('paris_') >= 0:
-                    paris_hack = gname[6:gname.rfind('_')]
-                    gname = join(paris_hack, gname)
-                if gname in ignore_list:
-                    continue
-                if len(fields) > 1:  # if has bbox
-                    bbox =  [int(round(float(x))) for x in fields[1:]]
-                else:
-                    # Get annotation width / height
-                    gpath = join(img_dpath, gname)
-                    h, w, c = vt.imread(gpath, orient='auto').shape
-                    bbox = [0, 0, w, h]
-                oxsty_annot_info = (gname, bbox)
-                oxsty_annot_info_list.append(oxsty_annot_info)
+        line_list = _tmpread(gt_fpath).splitlines()
+        #line_list = file.read().splitlines()
+        for line in line_list:
+            if line == '':
+                continue
+            fields = line.split(' ')
+            gname = fields[0].replace('oxc1_', '') + '.jpg'
+            # >:( Because PARIS just cant keep paths consistent
+            if gname.find('paris_') >= 0:
+                paris_hack = gname[6:gname.rfind('_')]
+                gname = join(paris_hack, gname)
+            if gname in ignore_list:
+                continue
+            if len(fields) > 1:
+                # if has bbox
+                #x1, y1, w, h =  [int(round(float(x))) for x in fields[1:]]
+                x1, y1, x2, y2 =  [int(round(float(x))) for x in fields[1:]]
+                w = x2 - x1
+                h = y2 - y1
+                bbox = [x1, y1, w, h]
+            else:
+                # Get annotation width / height
+                gpath = join(img_dpath, gname)
+                h, w, c = vt.imread(gpath, orient='auto').shape
+                bbox = [0, 0, w, h]
+            oxsty_annot_info = (gname, bbox)
+            oxsty_annot_info_list.append(oxsty_annot_info)
         return oxsty_annot_info_list
 
     gt_dpath = ut.existing_subpath(dbdir,
@@ -995,7 +1004,7 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
     # Remove duplicates img.jpg : (*1.txt, *2.txt, ...) -> (*.txt)
     gname2_annots     = ut.ddict(list)
     multinamed_gname_list = []
-    for gname, val in gname2_annots_raw.iteritems():
+    for gname, val in gname2_annots_raw.items():
         val_repr = list(map(repr, val))
         unique_reprs = set(val_repr)
         unique_indexes = [val_repr.index(urep) for urep in unique_reprs]
@@ -1089,6 +1098,62 @@ def ingest_oxford_style_db(dbdir, dryrun=False):
         """
         python -m ibeis --tf filter_annots_general --db Oxford --has_any=[query]
         """
+    if False:
+        """
+        dbname = 'Oxford'
+        """
+        import pandas as pd
+        columns = ['gt_fname', 'name', 'num', 'quality']
+        rows = [(gt_fname,) + _parse_oxsty_gtfname(gt_fname) for gt_fname in gt_fname_list]
+        df = pd.DataFrame(rows, columns=columns)
+        query_df = df[df['quality'] == 'query']
+        #query_df = query_df.assign(bbox=None)
+
+        query_annot_rows = []
+        for row in query_df.iterrows():
+            gt_fname, name, num, quality = row[1]._values
+            if gt_fname == 'corrupted_files.txt':
+                continue
+            #Get name, quality, and num from fname
+            gt_fpath = join(gt_dpath, gt_fname)
+            oxsty_annot_info_sublist = _read_oxsty_gtfile(
+                gt_fpath, name, quality, img_dpath, ignore_list)
+            for (gname, bbox) in oxsty_annot_info_sublist:
+                query_annot_rows.append((gname, bbox, name, num))
+
+        query_df2 = pd.DataFrame(query_annot_rows, columns=['gname', 'bbox', 'name', 'num'])
+
+        # Fix query bounding boxes
+        ibs = ibeis.opendb(dbdir)
+        qaids = ibs.filter_annots_general(has_any='query')
+        qannots = ibs.annots(qaids)
+
+        # Ensure query_df2 are aligned with database qannots
+        import numpy as np
+        qannot_basename = [basename(p) for p in ibs.get_image_uris_original(qannots.gids)]
+        imgname_to_idx = ut.make_index_lookup(qannot_basename)
+        sortx1 = ut.take(imgname_to_idx, query_df2['gname'].values)
+        query_df3 = query_df2.take(np.argsort(sortx1))
+
+        assert np.all(qannots.names == query_df3['name'].values)
+
+        # Sort by name
+        unique_names, groupxs = ut.group_indices(qannots.names)
+        sortx2 = ut.flatten(groupxs)
+        qannots4 = qannots.take(sortx2)
+        query_df4 = query_df3.take(sortx2)
+
+        old_bboxes = np.array(qannots4.bboxes, dtype=np.float)
+        new_bboxes = np.array(query_df4['bbox'].values.tolist(), dtype=np.float)
+        new_ar = new_bboxes.T[2] / new_bboxes.T[3]
+        old_ar = old_bboxes.T[2] / old_bboxes.T[3]
+        print(new_ar == old_ar)
+        print(new_ar)
+        print(old_ar)
+
+        ibs.set_annot_bboxes(qannots4.aids, new_bboxes)
+
+        ibs.images(qannots4.gids).append_to_imageset('Queries')
 
 
 def ingest_serengeti_mamal_cameratrap(species):

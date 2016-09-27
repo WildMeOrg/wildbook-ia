@@ -25,6 +25,28 @@ References:
     Hamming embedding and weak geometric consistency for large scale image search
     https://lear.inrialpes.fr/pubs/2008/JDS08/jegou_hewgc08.pdf
 
+    Three things everyone should know to improve object retrieval
+    https://www.robots.ox.ac.uk/~vgg/publications/2012/Arandjelovic12/arandjelovic12.pdf
+
+    Object retrieval with large vocabularies and fast spatial matching
+    http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
+
+
+Notes:
+    * Results from SMK Oxford Paper (mAP)
+    ASMK nAssign=1, sv=False: .78
+    ASMK nAssign=5, sv=False: .82
+
+    * My Results
+    smk:nAssign=1,sv=True,: .58
+    smk:nAssign=1,sv=False,: .38
+
+    Philbin with tf-idf ranking sv=False
+    SIFT: .636, RootSIFT: .683 (+.05)
+
+    Philbin with tf-idf ranking sv=True
+    SIFT: .672, RootSIFT: .720 (+.05)
+
 Differences Between this and SMK
    * No RootSIFT
    * No SIFT Centering
@@ -47,11 +69,55 @@ def cast_residual_integer(rvecs):
     quantize residual vectors to 8-bits using the same trunctation hack as in
     SIFT. values will typically not reach the maximum, so we can multiply by a
     higher number for better fidelity.
+
+    Args:
+        rvecs (ndarray[float64_t]):
+
+    Returns:
+        ndarray[uint8_t]:
+
+    CommandLine:
+        python -m ibeis.algo.smk.smk_funcs cast_residual_integer --show
+
+    Example:
+        >>> # ENABLE_DOCTET
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> rvecs = testdata_rvecs(dim=128)['rvecs'][4:]
+        >>> rvecs_int8 = cast_residual_integer(rvecs)
+        >>> rvecs_float = uncast_residual_integer(rvecs_int8)
+        >>> # Casting from float to int8 will result in a max quantization error
+        >>> measured_error = np.abs(rvecs_float - rvecs)
+        >>> # But there are limits on what this error can be
+        >>> cutoff = 127  # np.iinfo(np.int8).max
+        >>> fidelity = 255.0
+        >>> theory_error_in = 1 / fidelity
+        >>> theory_error_out = (fidelity - cutoff) / fidelity
+        >>> # Determine if any compoment values exceed the cutoff
+        >>> is_inside = (np.abs(rvecs * fidelity) < cutoff)
+        >>> # Check theoretical maximum for values inside and outside cutoff
+        >>> error_stats_in = ut.get_stats(measured_error[is_inside])
+        >>> error_stats_out = ut.get_stats(measured_error[~is_inside])
+        >>> print('inside cutoff error stats: ' + ut.repr4(error_stats_in, precision=8))
+        >>> print('outside cutoff error stats: ' + ut.repr4(error_stats_out, precision=8))
+        >>> assert rvecs_int8.dtype == np.int8
+        >>> assert np.all(measured_error[is_inside] < theory_error_in)
+        >>> assert np.all(measured_error[~is_inside] < theory_error_out)
     """
+    # maybe don't round?
+    #return np.clip(rvecs * 255.0, -127, 127).astype(np.int8)
+    # TODO: -128, 127
     return np.clip(np.round(rvecs * 255.0), -127, 127).astype(np.int8)
 
 
 def uncast_residual_integer(rvecs):
+    """
+    Args:
+        rvecs (ndarray[uint8_t]):
+
+    Returns:
+        ndarray[float64_t]:
+
+    """
     return rvecs.astype(np.float) / 255.0
 
 
@@ -61,6 +127,28 @@ def compute_rvec(vecs, word):
 
     Subtract each vector from its quantized word to get the resiudal, then
     normalize residuals to unit length.
+
+    CommandLine:
+        python -m ibeis.algo.smk.smk_funcs compute_rvec --show
+
+    Example:
+        >>> # ENABLE_DOCTET
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> vecs, words = ut.take(testdata_rvecs(), ['vecs', 'words'])
+        >>> word = words[-1]
+        >>> rvecs, error_flags = compute_rvec(vecs, word)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.figure()
+        >>> # recenter residuals for visualization
+        >>> cvecs = (word[None, :] - rvecs)
+        >>> pt.plot(word[0], word[1], 'r*', markersize=12, label='word')
+        >>> pt.plot(vecs.T[0], vecs.T[1], 'go', label='original vecs')
+        >>> pt.plot(cvecs.T[0], cvecs.T[1], 'b.', label='re-centered rvec')
+        >>> pt.draw_line_segments2(cvecs, [word] * len(cvecs), alpha=.5, color='black')
+        >>> pt.gca().set_aspect('equal')
+        >>> pt.legend()
+        >>> ut.show_if_requested()
     """
     rvecs = np.subtract(word.astype(np.float), vecs.astype(np.float))
     # If a vec is a word then the residual is 0 and it cant be L2 noramlized.
@@ -76,12 +164,40 @@ def aggregate_rvecs(rvecs, maws, error_flags):
     r"""
     Compute aggregated residual vectors Phi(X_c)
 
+    #Example:
+    #    >>> rvecs = np.array([[ 0.30151134,  0.90453403, -0.30151134],
+    #    >>>                   [ 0.70710678,  0.        , -0.70710678]])
+    #    >>> maws = np.array([.1, .7])
+    #    >>> error_flags = np.array([False, False])
+    #    >>> agg_rvec, agg_flag = aggregate_rvecs(rvecs, maws, error_flags)
+
+    CommandLine:
+        python -m ibeis.algo.smk.smk_funcs aggregate_rvecs --show
+
     Example:
-        >>> rvecs = np.array([[ 0.30151134,  0.90453403, -0.30151134],
-        >>>                   [ 0.70710678,  0.        , -0.70710678]])
-        >>> maws = np.array([.1, .7])
-        >>> error_flags = np.array([False, False])
+        >>> # ENABLE_DOCTET
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> vecs, words = ut.take(testdata_rvecs(), ['vecs', 'words'])
+        >>> word = words[-1]
+        >>> rvecs, error_flags = compute_rvec(vecs, word)
+        >>> maws = [1.0] * len(rvecs)
         >>> agg_rvec, agg_flag = aggregate_rvecs(rvecs, maws, error_flags)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> pt.figure()
+        >>> # recenter residuals for visualization
+        >>> agg_cvec = word - agg_rvec
+        >>> cvecs = (word[None, :] - rvecs)
+        >>> pt.plot(word[0], word[1], 'r*', markersize=12, label='word')
+        >>> pt.plot(agg_cvec[0], agg_cvec[1], 'ro', label='re-centered agg_rvec')
+        >>> pt.plot(vecs.T[0], vecs.T[1], 'go', label='original vecs')
+        >>> pt.plot(cvecs.T[0], cvecs.T[1], 'b.', label='re-centered rvec')
+        >>> pt.draw_line_segments2([word] * len(cvecs), cvecs, alpha=.5, color='black')
+        >>> pt.draw_line_segments2([word], [agg_cvec], alpha=.5, color='red')
+        >>> pt.gca().set_aspect('equal')
+        >>> pt.legend()
+        >>> ut.show_if_requested()
     """
     # Propogate errors from previous step
     agg_flag = np.any(error_flags, axis=0)
@@ -417,7 +533,7 @@ def inv_doc_freq(ndocs_total, ndocs_per_word, adjust=True):
         ndarrary: idf_per_word
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
         >>> ndocs_total = 21
         >>> ndocs_per_word = [0, 21, 20, 2, 15, 8, 12, 1, 2]
@@ -438,6 +554,78 @@ def inv_doc_freq(ndocs_total, ndocs_per_word, adjust=True):
     out = np.divide(ndocs_total, out, out=out)
     idf_per_word = np.log(out, out=out)
     return idf_per_word
+
+
+def testdata_rvecs(dim=2):
+    """
+    two dimensional test data
+
+    CommandLine:
+        python -m ibeis.algo.smk.smk_funcs testdata_rvecs --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> data = testdata_rvecs()
+        >>> ut.quit_if_noshow()
+        >>> exec(ut.execstr_dict(data))
+        >>> import plottool as pt
+        >>> from scipy.spatial import Voronoi, voronoi_plot_2d
+        >>> pt.qt4ensure()
+        >>> fig = pt.figure()
+        >>> vor = Voronoi(words)
+        >>> pt.plot(words.T[0], words.T[1], 'r*', label='words')
+        >>> pt.plot(vecs.T[0], vecs.T[1], 'b.', label='vecs')
+        >>> # lines showing assignments (and residuals)
+        >>> pts1 = vecs
+        >>> pts2 = words[idx_to_wx.T[0]]
+        >>> pt.draw_line_segments2(pts1, pts2)
+        >>> pt.plot(vecs.T[0], vecs.T[1], 'g.', label='vecs')
+        >>> voronoi_plot_2d(vor, show_vertices=False, ax=pt.gca())
+        >>> extents = vt.get_pointset_extents(np.vstack((vecs, words)))
+        >>> extents = vt.scale_extents(extents, 1.1)
+        >>> ax = pt.gca()
+        >>> ax.set_aspect('equal')
+        >>> ax.set_xlim(*extents[0:2])
+        >>> ax.set_ylim(*extents[2:4])
+        >>> ut.show_if_requested()
+    """
+    from sklearn.metrics.pairwise import euclidean_distances
+    rng = np.random.RandomState(42)
+    #dim = dim
+    nvecs = 13
+    nwords = 5
+    words = rng.rand(nwords, dim)
+    vecs = rng.rand(nvecs, dim)
+    # Create vector = word special case
+    words[0, :] = 0.0
+    vecs[0, :] = 0.0
+    # Create aggregate canceling special case
+    # TODO: ensure no other words are closer
+    words[1, :] = 2.0
+    vecs[1:3, :] = 2.0
+    vecs[1, 0] = 1.2
+    vecs[2, 0] = 2.2
+    #vt.normalize(words, axis=1, inplace=True)
+    #vt.normalize(vecs, axis=1, inplace=True)
+    dist_mat = euclidean_distances(vecs, words)
+    nAssign = 1
+    sortx2d = dist_mat.argsort(axis=1)
+    row_offset = np.arange(sortx2d.shape[0])[:, None]
+    sortx1d = (row_offset * sortx2d.shape[1] + sortx2d).ravel()
+    idx_to_dist = dist_mat.take(sortx1d).reshape(sortx2d.shape)[:, :nAssign]
+    idx_to_wx = sortx2d[:, :nAssign]
+    rvecs, flags = compute_rvec(vecs, words[idx_to_wx.T[0]])
+
+    data = {
+        'idx_to_dist': idx_to_dist,
+        'idx_to_wx': idx_to_wx,
+        'rvecs': rvecs,
+        'vecs': vecs,
+        'words': words,
+        'flags': flags,
+    }
+    return data
 
 
 if __name__ == '__main__':
