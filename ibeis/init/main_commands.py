@@ -12,7 +12,7 @@ from ibeis import params
 from ibeis.other import ibsfuncs
 from ibeis.init import sysres
 from os.path import join
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[commands]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 def vdq(dbdir):

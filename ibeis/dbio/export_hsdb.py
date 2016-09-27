@@ -3,13 +3,11 @@
 """
 Converts an IBEIS database to a hotspotter db
 """
-# TODO: ADD COPYRIGHT TAG
 from __future__ import absolute_import, division, print_function
 from six.moves import map
 from os.path import join, relpath
-#import ibeis
 import utool as ut
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[export_hsdb]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 def get_hsdb_image_gpaths(ibs, gid_list):

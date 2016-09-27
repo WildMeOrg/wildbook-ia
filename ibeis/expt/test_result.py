@@ -2407,6 +2407,11 @@ class TestResult(ut.NiceRepr):
         print('\n'.join(cmdstr_list))
 
     def map_score(testres):
+        """
+        For each query compute a precision recall curve.
+        Then, for each query compute the average precision.
+        Then take the mean of all average precisions to obtain the mAP.
+        """
         import sklearn.metrics
         qaids = testres.get_test_qaids()
         ibs = testres.ibs

@@ -6,8 +6,7 @@ from os import listdir
 import utool as ut
 import numpy as np
 import cv2
-print, print_, printDBG, rrr, profile = ut.inject(
-    __name__, '[orientation]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 def load_orientation(source_path='orientation',

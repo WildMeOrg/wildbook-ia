@@ -7,7 +7,7 @@ from ibeis.control.controller_inject import make_ibs_register_decorator
 import functools
 import utool as ut
 import uuid
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[manual_imageset]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 IMAGESET_END_TIME_POSIX   = 'imageset_end_time_posix'

@@ -19,9 +19,11 @@ References:
     A Context Dissimilarity Measure for Accurate and Efficient Image Search
     https://lear.inrialpes.fr/pubs/2007/JHS07/jegou_cdm.pdf
 
-
     Video Google: A text retrieval approach to object matching in videos
     http://www.robots.ox.ac.uk/~vgg/publications/papers/sivic03.pdf
+
+    Hamming embedding and weak geometric consistency for large scale image search
+    https://lear.inrialpes.fr/pubs/2008/JDS08/jegou_hewgc08.pdf
 
 Differences Between this and SMK
    * No RootSIFT

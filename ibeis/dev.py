@@ -33,8 +33,6 @@ from __future__ import absolute_import, division, print_function
 import multiprocessing
 import sys
 import numpy as np
-import six
-#from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS, DEVCMD_FUNCTIONS2, devcmd2
 from ibeis._devscript import devcmd,  DEVCMD_FUNCTIONS, DEVPRECMD_FUNCTIONS
 import utool as ut
 from utool.util_six import get_funcname
@@ -55,7 +53,7 @@ from ibeis.other import dbinfo  # NOQA
 from ibeis.expt import experiment_configs  # NOQA
 from ibeis.expt import harness  # NOQA
 from ibeis import params  # NOQA
-print, print_, printDBG, rrr, profile = utool.inject(__name__, '[dev]')
+print, rrr, profile = utool.inject2(__name__)
 
 
 #------------------

@@ -14,8 +14,7 @@ except:
     print('[ibeis.algo.detect] WARNING: Could not load CNN library for some detectors (ignore for now)')
     pass
 
-print, print_, printDBG, rrr, profile = ut.inject(
-    __name__, '[classifier]')
+print, rrr, profile = ut.inject2(__name__)
 
 MODEL_DOMAIN = 'https://lev.cs.rpi.edu/public/models/'
 

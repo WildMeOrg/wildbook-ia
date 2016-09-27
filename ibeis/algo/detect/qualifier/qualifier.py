@@ -13,8 +13,7 @@ try:
     from jpcnn.core import JPCNN_Network, JPCNN_Data
 except:
     pass
-print, print_, printDBG, rrr, profile = ut.inject(
-    __name__, '[qualifier]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 MODEL_DOMAIN = 'https://lev.cs.rpi.edu/public/models/'

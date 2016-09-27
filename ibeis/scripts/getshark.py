@@ -781,8 +781,82 @@ def parse_whaleshark_org():
     """
     Read list of all iamges from wildbook
 
+    Combines old and new
+
     >>> from ibeis.scripts.getshark import *  # NOQA
     """
+    from ibeis.scripts import getshark
+
+    parsed1 = getshark.parse_whaleshark_org_old()
+    # Also parse using the keyword method
+    parsed2 = getshark.parse_whaleshark_org_keywords()
+
+    print('Parsed %d urls from XML jsp' % (len(parsed1),))
+    print('Parsed %d urls from keywords' % (len(parsed2),))
+
+    # Apply keywords to existing images
+    #raise NotImplementedError('suffix is now unreliable for comparing encounters')
+
+    # Use suffix as a key to create a merger mapping between indices
+    print('Merging keyword and XML jsp results')
+    suffix_to_idx1 = ut.make_index_lookup(parsed1['suffix'])
+    suffix_to_idx2 = ut.make_index_lookup(parsed2['suffix'])
+    idx1_to_idx2 = ut.dict_take(suffix_to_idx2, parsed1['suffix'], None)
+    idx2_to_idx1 = ut.dict_take(suffix_to_idx1, parsed2['suffix'], None)
+
+    # Find the items that are unique to each set
+    unmatched_idx1 = ut.where(ut.not_list(idx1_to_idx2))
+    unmatched_idx2 = ut.where(ut.not_list(idx2_to_idx1))
+    print('There are %d unique entries in the XML results' % (len(unmatched_idx1),))
+    print('There are %d unique entries in the jsp results' % (len(unmatched_idx2),))
+
+    #nonmatching1 = parsed1.take(unmatched_idx1)
+    #nonmatching2 = parsed2.take(unmatched_idx2)
+
+    # Find the items that are common between both sets
+    match_idx1 = ut.filter_Nones(idx2_to_idx1)
+    match_idx2 = ut.filter_Nones(idx1_to_idx2)
+
+    #matching1 = parsed1.take(match_idx1)
+    #matching2 = parsed2.take(match_idx2)
+    assert len(match_idx1) == len(match_idx2)
+    print('There are %d items in common' % (len(match_idx1),))
+
+    # Make columns agree between parsed1 and parsed2
+    del parsed1['localid']
+    parsed1['uuid'] = [None] * len(parsed1)
+    parsed1['keywords'] = [[] for _ in range(len(parsed1))]
+    ut.setdiff(parsed2.keys(), parsed1.keys())
+    ut.setdiff(parsed1.keys(), parsed2.keys())
+
+    parsed = parsed2 + parsed1
+    parsed.cast_column('keywords', ut.oset)
+    parsed.cast_column('new_fname', ut.ensure_iterable)
+    parsed.cast_column('img_url', ut.ensure_iterable)
+    parsed.cast_column('encounter', ut.ensure_iterable)
+    parsed = parsed.merge_rows('suffix', merge_scalars=False)
+    parsed.cast_column('keywords', list)
+    parsed.cast_column('new_fname', lambda v: v[0])
+    parsed.cast_column('img_url', lambda v: v[0])
+    parsed.cast_column('encounter', lambda v: v[0])
+
+    if True:
+        parsed._meta['ignore'] = ['new_fname', 'img_url', 'suffix']
+        parsed.print()
+
+    #nonmatching1['nameid'] = [None] * len(nonmatching1)
+    #nonmatching1['localid'] = [None] * len(nonmatching1)
+    # Merge keywords from matching parts in parsed2 into parsed1
+    #parsed1['keywords'] = [[] for _ in range(len(parsed1))]
+    #for idx1, keys in zip(match_idx1, matching2['keywords']):
+    #    parsed1['keywords'][idx1].extend(keys)
+
+    #parsed = parsed2 + nonmatching1
+    print('Parsed %d total urls' % (len(parsed),))
+    return parsed
+
+
+def parse_whaleshark_org_old():
     from xml.dom.minidom import parseString
     from ibeis.scripts import getshark
 
@@ -867,35 +941,7 @@ def parse_whaleshark_org():
 
     prefix = commonprefix(parsed1['img_url'])
     parsed1['suffix'] = [url_[len(prefix):] for url_ in parsed1['img_url']]
-
-    # Also parse using the keyword method
-    parsed2 = getshark.parse_whaleshark_org_keywords()
-
-    print('Parsed %d urls from XML jsp' % (len(parsed1),))
-    print('Parsed %d urls from keywords' % (len(parsed2),))
-
-    # Apply keywords to existing images
-    suffix_to_idx = ut.make_index_lookup(parsed1['suffix'])
-    matching_idx = ut.dict_take(suffix_to_idx, parsed2['suffix'], None)
-    match_idx1 = ut.filter_Nones(matching_idx)
-    #matching1 = parsed1.take(match_idx1)
-    matching2 = parsed2.take(ut.where(matching_idx))
-    print('Merging keyword and XML jsp results')
-    print('There are %d items in common' % (len(matching2),))
-    nonmatching2 = parsed2.take(ut.where(ut.not_list(matching_idx)))
-
-    # add in default values for parsed2
-    nonmatching2['nameid'] = [None] * len(nonmatching2)
-    nonmatching2['localid'] = [None] * len(nonmatching2)
-
-    # Merge keywords from matching parts in parsed2 into parsed1
-    parsed1['keywords'] = [[] for _ in range(len(parsed1))]
-    for idx1, keys in zip(match_idx1, matching2['keywords']):
-        parsed1['keywords'][idx1].extend(keys)
-
-    parsed = parsed1 + nonmatching2
-    print('Parsed %d total urls' % (len(parsed),))
-    return parsed
+    return parsed1
 
 
 def parse_whaleshark_org_keywords():
@@ -904,32 +950,32 @@ def parse_whaleshark_org_keywords():
     if verbose:
         print('[keywords] Parsing whaleshark.org keywords')
 
-    if False:
-        url_ = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter&maxSize=2'
-        #import requests
-        #resp = requests.get(url)
-        #resp.json()
+    #if False:
+    #    key_url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter&maxSize=2'
+    #    #import requests
+    #    #resp = requests.get(url)
+    #    #resp.json()
 
-        # url_ = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter'
-        # json = cached_json_request(url_)
-        # ut.save_data('nofilterwbquery.pkl', json)
+    #    # key_url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=nofilter'
+    #    # json = cached_json_request(key_url)
+    #    # ut.save_data('nofilterwbquery.pkl', json)
 
-        #url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=truncationleftpec&maxSize=2'
-        #import requests
-        #resp = requests.get(url)
-        #resp.json()
+    #    #url = 'http://www.whaleshark.org/getKeywordImages.jsp?indexName=truncationleftpec&maxSize=2'
+    #    #import requests
+    #    #resp = requests.get(url)
+    #    #resp.json()
 
     from ibeis.scripts import getshark
     url = 'http://www.whaleshark.org/getKeywordImages.jsp'
 
     cache_dpath = ut.ensure_app_resource_dir('utool', 'sharkinfo3')
 
-    def cached_json_request(url_):
+    def cached_json_request(key_url):
         import requests
-        cache_fpath = join(cache_dpath, 'req_' + ut.hashstr27(url_) + '.json')
-        if getshark._needs_redownload(cache_fpath, 60 * 60 * 24 * 30):
-            print('Execute request %s' % (url_,))
-            resp = requests.get(url_)
+        cache_fpath = join(cache_dpath, 'req_' + ut.hashstr27(key_url) + '.json')
+        if getshark._needs_redownload(cache_fpath, 60 * 60 * 24 * 3000):
+            print('Execute request %s' % (key_url,))
+            resp = requests.get(key_url)
             print('Got Response')
             assert resp.status_code == 200
             dict_ = resp.json()
@@ -961,7 +1007,10 @@ def parse_whaleshark_org_keywords():
         for imgdict in images:
             parsed_info2['img_url'].append(imgdict['url'])
             parsed_info2['encounter'].append(imgdict['correspondingEncounterNumber'])
-            parsed_info2['keywords'].append([key])
+            parsed_info2['nameid'].append(imgdict.get('individualID', None))
+            parsed_info2['uuid'].append(imgdict['uuid'])
+            parsed_info2['keywords'].append(imgdict['keywords'])
+            #parsed_info2['keywords'].append([key])
     parsed2_ = ut.ColumnLists(parsed_info2)
 
     # Fix trivial (all non-keyword entries are the same) duplicates
@@ -969,9 +1018,11 @@ def parse_whaleshark_org_keywords():
     parsed2 = parsed2_.merge_rows('img_url', merge_scalars=False)
     parsed2.cast_column('keywords', list)
 
+    assert len(parsed2.get_multis('uuid')) == 0, 'uuids must be unique'
+
     if verbose:
-        injured_keywords = get_injured_tags(parsed2['keywords'])
-        other_keywords = get_injured_tags(parsed2['keywords'], invert=True)
+        injured_keywords = getshark.get_injured_tags(parsed2['keywords'])
+        other_keywords = getshark.get_injured_tags(parsed2['keywords'], invert=True)
         injured_keyhist = ut.dict_hist(ut.flatten(injured_keywords), ordered=True)
         other_keyhist = ut.dict_hist(ut.flatten(other_keywords), ordered=True)
         print('Scraped %r images with keywords' % (len(parsed2)))
@@ -998,11 +1049,15 @@ def parse_whaleshark_org_keywords():
                                      keys, val in co_occur.items()])
         print(ut.repr3(co_occur_percent, precision=2, nl=1))
 
-        _ = get_injur_categories(injured_keywords, verbose=True)  # NOQA
+        _ = getshark.get_injur_categories(injured_keywords, verbose=True)  # NOQA
 
     prefix = commonprefix(parsed2['img_url'])
     parsed2['suffix'] = [url_[len(prefix):] for url_ in parsed2['img_url']]
+    # Hack off encounters so it aggrees with parsed1
+    parsed2['suffix'] = [url_.lstrip('encounters/') for url_ in parsed2['suffix']]
     parsed2['new_fname'] = [suffix.replace('/', '--') for suffix in parsed2['suffix']]
+
+    assert len(parsed2.get_multis('suffix')) == 0, 'hack invalidated something'
     return parsed2
 
 

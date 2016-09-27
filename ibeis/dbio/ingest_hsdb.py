@@ -12,7 +12,7 @@ from six.moves import zip, map
 import utool as ut
 import re
 import csv
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[ingest_hsbd]')
+print, rrr, profile = ut.inject2(__name__)
 
 
 SUCCESS_FLAG_FNAME = '_hsdb_to_ibeis_convert_success'

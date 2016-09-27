@@ -18,7 +18,7 @@ from ibeis import constants as const
 import utool as ut
 from ibeis.control import controller_inject
 from ibeis.control import accessor_decors  # NOQA
-print, print_, printDBG, rrr, profile = ut.inject(__name__, '[autogen_party]')
+print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)

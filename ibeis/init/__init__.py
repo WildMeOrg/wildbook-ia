@@ -9,8 +9,6 @@
 #from ibeis.init import main_helpers
 #from ibeis.init import sysres
 #import utool
-#print, print_, printDBG, rrr, profile = utool.inject(
-#    __name__, '[ibeis.init]')
 
 
 #def reassign_submodule_attributes(verbose=True):
