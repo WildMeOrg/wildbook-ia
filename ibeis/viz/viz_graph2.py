@@ -859,7 +859,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         """
         event_key = event.key()
         options = self.get_edge_options()
-        option_dict = gt.make_option_dict(options)
+        option_dict = gt.make_option_dict(options, shortcuts=True)
         handled = False
         for key, func in option_dict.items():
             if event_key == getattr(QtCore.Qt, 'Key_' + key.upper()):

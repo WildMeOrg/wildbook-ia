@@ -365,6 +365,7 @@ class QueryResultsWidget(gt.APIItemWidget):
                 option_dict = {key[key.find('&') + 1]: val for key, val in options
                                if '&' in key}
                 return option_dict
+            # TODO: use guitool options dict
             #print('option_dict = %s' % (ut.repr3(option_dict, nl=2),))
             option_dict = make_option_dict(options)
 

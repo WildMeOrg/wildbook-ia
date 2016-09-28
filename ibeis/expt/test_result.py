@@ -2369,7 +2369,7 @@ class TestResult(ut.NiceRepr):
             >>> import ibeis
             >>> ibs = ibeis.opendb('Oxford')
             >>> #ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True]')
-            >>> ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False]')
+            >>> ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True]')
         """
         import sklearn.metrics
         qaids = testres.get_test_qaids()
@@ -2386,7 +2386,7 @@ class TestResult(ut.NiceRepr):
         cfgx2_cms = []
         for qreq_ in testres.cfgx2_qreq_:
             cm_list = qreq_.execute(qaids)
-            #cm_list = [cm.extend_results(qreq_) for cm in cm_list]
+            cm_list = [cm.extend_results(qreq_) for cm in cm_list]
             for cm in cm_list:
                 cm.score_csum(qreq_)
                 #cm.sortself()

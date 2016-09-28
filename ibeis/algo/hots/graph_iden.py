@@ -475,9 +475,9 @@ class AnnotInferenceVisualization(object):
                           if state == 'nomatch'}
         nx.set_edge_attrs(graph, 'implicit', _dz(nonmatch_edges, [True]))
 
+        edges = list(graph.edges())
         if only_reviewed:
             # only reviewed edges contribute
-            edges = list(graph.edges())
             unreviewed_edges = ut.setdiff(edges, reviewed_states.keys())
             nx.set_edge_attrs(graph, 'implicit', _dz(unreviewed_edges, [True]))
             nx.set_edge_attrs(graph, 'style', _dz(unreviewed_edges, ['invis']))
@@ -673,9 +673,6 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
 
     def connected_compoment_status(infr):
         r"""
-        Args:
-
-
         Returns:
             tuple: (num_names, num_inconsistent)
 
