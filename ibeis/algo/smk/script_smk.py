@@ -128,7 +128,7 @@ def load_external_data2():
 
     dbdir = ut.truepath('/raid/work/Oxford/')
     data_fpath2 = join(dbdir, 'oxford_data2.pkl')
-    if ut.checkpath(data_fpath2):
+    if not ut.checkpath(data_fpath2):
         daids = annots.aids
         Y_list = []
         for aid, vecs in ut.ProgIter(zip(daids, vecs_list), nTotal=len(daids)):
@@ -141,6 +141,17 @@ def load_external_data2():
     else:
         external_data2 = ut.load_data(data_fpath2)
         Y_list = external_data2['Y_list']
+
+    # TODO: be better
+    wx_to_weight = ut.ddict(lambda: np.float32(1.0))
+    alpha = 3.0
+    thresh = 0.0
+    weight_list = np.array(ut.take(wx_to_weight, X.wx_list))
+    phisX = smk_funcs.uncast_residual_integer(X.agg_rvecs)
+    flagsX = X.agg_flags
+    X.gamma = smk_funcs.gamma_agg(phisX, flagsX, weight_list, alpha, thresh)
+    score = smk_pipeline.match_kernel_agg(X, X, wx_to_weight, alpha, thresh)[0]
+    assert score == 1.0
 
     annots._internal_attrs['kpts'] = kpts_list
     annots._internal_attrs['vecs'] = vecs_list
