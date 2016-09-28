@@ -1013,21 +1013,38 @@ class _AnnotMatchConvenienceGetter(object):
     # Score-Based Result Functions
     #------------------
 
+    def pandas_annot_info(cm):
+        import pandas as pd
+        data = {
+            'daid': cm.daid_list,
+            'dnid': cm.dnid_list,
+            'score': cm.annot_score_list,
+            'rank': cm.annot_score_list.argsort()[::-1].argsort(),
+            'truth': (cm.dnid_list == cm.qnid).astype(np.int),
+        }
+        annot_df = pd.DataFrame(data)
+        annot_df.sort('rank', inplace=True)
+        annot_df.reset_index(inplace=True, drop=True)
+        return annot_df
+
+    def pandas_name_info(cm):
+        import pandas as pd
+        data = {
+            'dnid': cm.unique_nids,
+            'score': cm.name_score_list,
+            'ranks': cm.name_score_list.argsort()[::-1].argsort(),
+            'truth': cm.unique_nids == cm.qnid,
+        }
+        name_df = pd.DataFrame(data)
+        return name_df
+
     def get_annot_ave_precision(cm):
         import sklearn.metrics
-        #daid_list = cm.daid_list
-        dnid_list = cm.dnid_list
-        y_true  = (cm.qnid == dnid_list).astype(np.int)
-        y_score = cm.annot_score_list
-        y_score[~np.isfinite(y_score)] = 0
-        y_score = np.nan_to_num(y_score)
-        #sortx = np.argsort(y_score)[::-1]
-        #daid_list = daid_list.take(sortx)
-        #dnid_list = dnid_list.take(sortx)
-        #y_true = y_true.take(sortx)
-        #y_score = y_score.take(sortx)
-        #print(cm.get_annot_ranks(cm.get_top_gt_aids(ibs)))
+        annot_df = cm.pandas_annot_info()
+        y_true = annot_df['truth'].values
+        y_score = annot_df['score'].values
         avep = sklearn.metrics.average_precision_score(y_true, y_score)
+        print('avep = %r' % (avep,))
         return avep
 
     def get_top_scores(cm, ntop=None):

@@ -458,12 +458,15 @@ def verify_score(qreq_, cm):
     """
     Recompute all SMK things for two annotations and compare scores.
 
+    >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
     >>> import ibeis
     >>> qreq_ = ibeis.testdata_qreq_(
     >>>     defaultdb='Oxford', a='oxford',
     >>>     p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True')
     >>> cm_list = qreq_.execute()
-
+    >>> mAP = np.mean([cm.get_annot_ave_precision() for cm in cm_list])
+    >>> print('mAP = %.3f' % (mAP,))
+    >>> cm = cm_list[-1]
 
     cm.print_inspect_str(qreq_)
     cm.show_single_annotmatch(qreq_, daid1)
