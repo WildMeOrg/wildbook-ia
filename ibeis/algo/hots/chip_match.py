@@ -1013,6 +1013,23 @@ class _AnnotMatchConvenienceGetter(object):
     # Score-Based Result Functions
     #------------------
 
+    def get_annot_ave_precision(cm):
+        import sklearn.metrics
+        #daid_list = cm.daid_list
+        dnid_list = cm.dnid_list
+        y_true  = (cm.qnid == dnid_list).astype(np.int)
+        y_score = cm.annot_score_list
+        y_score[~np.isfinite(y_score)] = 0
+        y_score = np.nan_to_num(y_score)
+        #sortx = np.argsort(y_score)[::-1]
+        #daid_list = daid_list.take(sortx)
+        #dnid_list = dnid_list.take(sortx)
+        #y_true = y_true.take(sortx)
+        #y_score = y_score.take(sortx)
+        #print(cm.get_annot_ranks(cm.get_top_gt_aids(ibs)))
+        avep = sklearn.metrics.average_precision_score(y_true, y_score)
+        return avep
+
     def get_top_scores(cm, ntop=None):
         sortx = cm.score_list.argsort()[::-1]
         _top_scores = vt.list_take_(cm.score_list, sortx)
