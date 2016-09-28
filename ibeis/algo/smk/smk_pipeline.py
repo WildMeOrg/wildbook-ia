@@ -57,7 +57,7 @@ class SMKRequest(mc5.EstimatorRequest):
         python -m ibeis.algo.smk.smk_pipeline SMKRequest --show
 
         python -m ibeis draw_rank_cdf --db GZ_ALL --show \
-            -p :proot=smk,num_words=[64000,4000],nAssign=[1,5],sv_on=[False] \
+            -p :proot=smk,num_words=[64000,4000],nAssign=[1,5],sv_on=[False,True] \
             -a ctrl:qmingt=2
 
         python -m ibeis draw_rank_cdf --db PZ_MTEST --show \
