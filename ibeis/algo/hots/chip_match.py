@@ -1032,10 +1032,12 @@ class _AnnotMatchConvenienceGetter(object):
         data = {
             'dnid': cm.unique_nids,
             'score': cm.name_score_list,
-            'ranks': cm.name_score_list.argsort()[::-1].argsort(),
-            'truth': cm.unique_nids == cm.qnid,
+            'rank': cm.name_score_list.argsort()[::-1].argsort(),
+            'truth': (cm.unique_nids == cm.qnid).astype(np.int),
         }
         name_df = pd.DataFrame(data)
+        name_df.sort('rank', inplace=True)
+        name_df.reset_index(inplace=True, drop=True)
         return name_df
 
     def get_annot_ave_precision(cm):
@@ -1043,6 +1045,15 @@ class _AnnotMatchConvenienceGetter(object):
         annot_df = cm.pandas_annot_info()
         y_true = annot_df['truth'].values
         y_score = annot_df['score'].values
+        avep = sklearn.metrics.average_precision_score(y_true, y_score)
+        print('avep = %r' % (avep,))
+        return avep
+
+    def get_name_ave_precision(cm):
+        import sklearn.metrics
+        name_df = cm.pandas_name_info()
+        y_true = name_df['truth'].values
+        y_score = name_df['score'].values
         avep = sklearn.metrics.average_precision_score(y_true, y_score)
         print('avep = %r' % (avep,))
         return avep
