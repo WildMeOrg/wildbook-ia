@@ -27,12 +27,18 @@ def make_option_dict(options, shortcuts=True):
             key[key.find('&') + 1] if '&' in key else None
             for key in keys
         ]
-        ut.assert_unique(shortcut_keys, name='shortcut_keys', ignore=[None])
+        try:
+            ut.assert_unique(shortcut_keys, name='shortcut_keys', ignore=[None])
+        except AssertionError:
+            print('shortcut_keys = %r' % (shortcut_keys,))
+            print('options = %r' % (ut.repr2(options),))
+            raise
         shortcut_dict = {
-            sc_key: (make_option_dict(val, shortcuts=True)
-                     if isinstance(val, list) else val)
+            sc_key: val
+            #sc_key: (make_option_dict(val, shortcuts=True)
+            #         if isinstance(val, list) else val)
             for (sc_key, val) in zip(shortcut_keys, values)
-            if sc_key is not None
+            if sc_key is not None and not isinstance(val, list)
         }
         return shortcut_dict
     else:
