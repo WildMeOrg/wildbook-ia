@@ -533,7 +533,7 @@ def sep_build_matches(X_fxs, Y_fxs, scores_list):
         >>> print('fm = ' + ut.repr2(fm))
         >>> print('fs = ' + ut.repr2(fs))
         >>> assert len(fm) == len(fs)
-        >>> assert score_list.sum() == fs.sum()
+        >>> assert np.isclose(np.sum(ut.total_flatten(scores_list)), fs.sum())
     """
     fs = np.array(ut.total_flatten(scores_list), dtype=np.float32)
     unflat_fm = (ut.product(fxs1, fxs2)
