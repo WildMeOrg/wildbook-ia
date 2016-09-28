@@ -350,7 +350,6 @@ class SMK(ut.NiceRepr):
         _prog = ut.ProgPartial(lbl='smk scoring qaid=%r' % (qaid,),
                                enabled=verbose, bs=True, adjust=True)
 
-        gammaX = X.gamma
         wx_to_weight = qreq_.dinva.wx_to_weight
 
         debug = False
@@ -361,36 +360,16 @@ class SMK(ut.NiceRepr):
             correct_aids = daids[np.where(dnids == qnid)[0]]
             daid = correct_aids[0]
 
-        #with ut.Timer('scoring', verbose=verbose):
-        for daid in _prog(valid_daids):
-            Y = qreq_.dinva.get_annot(daid)
-            gammaY = Y.gamma
-            gammaXY = gammaX * gammaY
-
-            # Words in common define matches
-            common_words = sorted(X.words.intersection(Y.words))
-            X_idx = ut.take(X.wx_to_idx, common_words)
-            Y_idx = ut.take(Y.wx_to_idx, common_words)
-            idf_list = ut.take(wx_to_weight, common_words)
-
-            if agg:
-                PhisX, flagsX = X.Phis_flags(X_idx)
-                PhisY, flagsY = Y.Phis_flags(Y_idx)
-                score_list = smk_funcs.agg_match_scores(
-                    PhisX, PhisY, flagsX, flagsY, alpha, thresh)
-            else:
-                raise NotImplementedError('sep version not finished')
-                phisX_list, flagsY_list = X.phis_flags_list(X_idx)
-                phisY_list, flagsX_list = Y.phis_flags_list(Y_idx)
-                score_list = smk_funcs.sep_match_scores(
-                    phisX_list, phisY_list, flagsX_list, flagsY_list, alpha,
-                    thresh)
-
-            score_list *= idf_list
-            score_list *= gammaXY
-            score = score_list.sum()
-            item = (score, score_list, X, Y, X_idx, Y_idx)
-            shortlist.insert(item)
+        if agg:
+            for daid in _prog(valid_daids):
+                Y = qreq_.dinva.get_annot(daid)
+                item = match_kernel_agg(X, Y, wx_to_weight, alpha, thresh)
+                shortlist.insert(item)
+        else:
+            for daid in _prog(valid_daids):
+                Y = qreq_.dinva.get_annot(daid)
+                item = match_kernel_sep(X, Y, wx_to_weight, alpha, thresh)
+                shortlist.insert(item)
 
         # Build chipmatches for the shortlist results
 
@@ -402,14 +381,15 @@ class SMK(ut.NiceRepr):
         _prog = ut.ProgPartial(lbl='smk build cm qaid=%r' % (qaid,),
                                enabled=verbose, bs=True, adjust=True)
         for item in _prog(shortlist):
-            (score, score_list, X, Y, X_idx, Y_idx) = item
+            (score, score_list, Y, X_idx, Y_idx) = item
             X_fxs = ut.take(X.fxs_list, X_idx)
             Y_fxs = ut.take(Y.fxs_list, Y_idx)
             # Only build matches for those that sver will use
             if agg:
                 X_maws = ut.take(X.maws_list, X_idx)
                 Y_maws = ut.take(Y.maws_list, Y_idx)
-                fm, fs = smk_funcs.agg_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list)
+                fm, fs = smk_funcs.agg_build_matches(X_fxs, Y_fxs, X_maws,
+                                                     Y_maws, score_list)
             else:
                 fm, fs = smk_funcs.sep_build_matches(X_fxs, Y_fxs, score_list)
             if len(fm) > 0:
@@ -433,8 +413,58 @@ class SMK(ut.NiceRepr):
         return cm
 
 
+def match_kernel_agg(X, Y, wx_to_weight, alpha, thresh):
+    gammaXY = X.gamma * Y.gamma
+    # Words in common define matches
+    isect_words = sorted(X.words.intersection(Y.words))
+    X_idx = ut.take(X.wx_to_idx, isect_words)
+    Y_idx = ut.take(Y.wx_to_idx, isect_words)
+    idf_list = ut.take(wx_to_weight, isect_words)
+
+    PhisX, flagsX = X.Phis_flags(X_idx)
+    PhisY, flagsY = Y.Phis_flags(Y_idx)
+    score_list = smk_funcs.agg_match_scores(
+        PhisX, PhisY, flagsX, flagsY, alpha, thresh)
+
+    score_list *= idf_list
+    score_list *= gammaXY
+    score = score_list.sum()
+    item = (score, score_list, Y, X_idx, Y_idx)
+    return item
+
+
+def match_kernel_sep(X, Y, wx_to_weight, alpha, thresh):
+    gammaXY = X.gamma * Y.gamma
+    # Words in common define matches
+    isect_words = sorted(X.words.intersection(Y.words))
+    X_idx = ut.take(X.wx_to_idx, isect_words)
+    Y_idx = ut.take(Y.wx_to_idx, isect_words)
+    idf_list = ut.take(wx_to_weight, isect_words)
+
+    phisX_list, flagsY_list = X.phis_flags_list(X_idx)
+    phisY_list, flagsX_list = Y.phis_flags_list(Y_idx)
+    score_list = smk_funcs.sep_match_scores(
+        phisX_list, phisY_list, flagsX_list, flagsY_list, alpha,
+        thresh)
+
+    score_list *= idf_list
+    score_list *= gammaXY
+    score = score_list.sum()
+    item = (score, score_list, Y, X_idx, Y_idx)
+    return item
+
+
 def verify_score(qreq_, cm):
     """
+    Recompute all SMK things for two annotations and compare scores.
+
+    >>> import ibeis
+    >>> qreq_ = ibeis.testdata_qreq_(
+    >>>     defaultdb='Oxford', a='oxford',
+    >>>     p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True')
+    >>> cm_list = qreq_.execute()
+
+
     cm.print_inspect_str(qreq_)
     cm.show_single_annotmatch(qreq_, daid1)
     cm.show_single_annotmatch(qreq_, daid2)
@@ -447,13 +477,15 @@ def verify_score(qreq_, cm):
     vocab = ibs.depc['vocab'].get_row_data([qreq_.dinva.vocab_rowid], 'words')[0]
     wx_to_weight = qreq_.dinva.wx_to_weight
 
-    aid = qaid
+    aid = qaid  # NOQA
     config = qreq_.qparams
 
-    def make_temporary_annot(aid, config):
+    def make_temporary_annot(aid, vocab, wx_to_weight, ibs, config):
         from ibeis.algo.smk import smk_funcs
         from ibeis.algo.smk import inverted_index
         nAssign = config.get('nAssign', 1)
+        alpha = config.get('smk_alpha', 3.0)
+        thresh = config.get('smk_thresh', 3.0)
         # Compute assignments
         fx_to_vecs = ibs.get_annot_vecs(aid, config2_=config)
         fx_to_wxs, fx_to_maws = smk_funcs.assign_to_words(vocab, fx_to_vecs, nAssign)
@@ -480,12 +512,31 @@ def verify_score(qreq_, cm):
         X.fxs_list = fxs_list
         X.maws_list = maws_list
         X.agg_rvecs = agg_rvecs
+        X.agg_flags = agg_flags
         X.wx_to_idx = ut.make_index_lookup(X.wx_list)
         X.int_rvec = False
         X.wx_set = set(X.wx_list)
 
-    make_temporary_annot(qaid, config)
-    make_temporary_annot(daid1, config)
+        weight_list = np.array(ut.take(wx_to_weight, wx_list))
+        X.gamma = smk_funcs.gamma_agg(X.agg_rvecs, X.agg_flags, weight_list,
+                                      alpha, thresh)
+        return X
+
+    alpha = config.get('smk_alpha', 3.0)
+    thresh = config.get('smk_thresh', 3.0)
+    X = make_temporary_annot(qaid, vocab, wx_to_weight, ibs, config)
+
+    Y1 = make_temporary_annot(daid1, vocab, wx_to_weight, ibs, config)
+    item = match_kernel_agg(X, Y1, wx_to_weight, alpha, thresh)
+    score = item[0]
+    assert np.isclose(score, cm.aid2_annot_score[daid1])
+
+    Y2 = make_temporary_annot(daid2, vocab, wx_to_weight, ibs, config)
+    item = match_kernel_agg(X, Y2, wx_to_weight, alpha, thresh)
+    score = item[0]
+    assert np.isclose(score, cm.aid2_annot_score[daid2])
+
+    #Y2 = make_temporary_annot(daid2, vocab, wx_to_weight, ibs, config)
 
 
 def check_can_match(qaid, hit_daids, qreq_):
