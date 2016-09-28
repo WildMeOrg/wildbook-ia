@@ -35,7 +35,7 @@ class SMKRequestConfig(dtool.Config):
         ut.ParamInfo('agg', True),
         ut.ParamInfo('data_ma', False),  # hack for query only multiple assignment
         ut.ParamInfo('word_weight_method', 'idf', 'wwm'),  # hack for query only multiple assignment
-        ut.ParamInfo('smk_version', 2),
+        ut.ParamInfo('smk_version', 3),
     ]
     _sub_config_list = [
         core_annots.ChipConfig,
@@ -405,13 +405,13 @@ class SMK(ut.NiceRepr):
             (score, score_list, X, Y, X_idx, Y_idx) = item
             X_fxs = ut.take(X.fxs_list, X_idx)
             Y_fxs = ut.take(Y.fxs_list, Y_idx)
-            X_maws = ut.take(X.maws_list, X_idx)
-            Y_maws = ut.take(Y.maws_list, Y_idx)
             # Only build matches for those that sver will use
             if agg:
+                X_maws = ut.take(X.maws_list, X_idx)
+                Y_maws = ut.take(Y.maws_list, Y_idx)
                 fm, fs = smk_funcs.agg_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list)
             else:
-                fm, fs = smk_funcs.sep_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list)
+                fm, fs = smk_funcs.sep_build_matches(X_fxs, Y_fxs, score_list)
             if len(fm) > 0:
                 #assert not np.any(np.isnan(fs))
                 daid = Y.aid

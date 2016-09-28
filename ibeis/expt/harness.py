@@ -39,6 +39,9 @@ def run_expt(ibs, acfg_name_list, test_cfg_name_list, use_cache=None,
         python -m ibeis.expt.harness run_expt --pcfginfo
         python -m ibeis.expt.harness run_expt
 
+    Ignore:
+        test_cfg_name_list = [p]
+
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.expt.harness import *  # NOQA

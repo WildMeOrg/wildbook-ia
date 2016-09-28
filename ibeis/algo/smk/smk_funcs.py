@@ -48,6 +48,11 @@ Notes:
     smk:nAssign=1,SV=True,: .58
     smk:nAssign=1,SV=False,: .38
 
+    Yesterday I got
+    .22 when I fixed the bounding boxes
+    And now I'm getting
+    .08 and .32 (sv=[F,T]) after deleting and redoing everything (also removing junk images)
+
 Differences Between this and SMK
    * No RootSIFT
    * No SIFT Centering
@@ -454,6 +459,9 @@ def sep_match_scores(phisX_list, phisY_list, flagsX_list, flagsY_list, alpha, th
 @profile
 def agg_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list):
     r"""
+    Builds explicit features matches. Break and distribute up each aggregate
+    score amongst its contributing features.
+
     Returns:
         tuple: (fm, fs)
 
@@ -473,16 +481,18 @@ def agg_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list):
         >>> (fm, fs) = agg_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list)
         >>> print('fm = ' + ut.repr2(fm))
         >>> print('fs = ' + ut.repr2(fs))
+        >>> assert len(fm) == len(fs)
+        >>> assert score_list.sum() == fs.sum()
     """
     # Build feature matches
     # Spread word score according to contriubtion (maw) weight
-    unflat_fs = [maws1[:, None].dot(maws2[:, None].T).ravel()
-                 for maws1, maws2 in zip(X_maws, Y_maws)]
-    factor_list = np.array([contrib.sum() for contrib in unflat_fs],
-                           dtype=np.float32)
-    factor_list = np.multiply(factor_list, score_list, out=factor_list)
-    for contrib, factor in zip(unflat_fs, factor_list):
-        np.multiply(contrib, factor, out=contrib)
+    unflat_contrib = [maws1[:, None].dot(maws2[:, None].T).ravel()
+                      for maws1, maws2 in zip(X_maws, Y_maws)]
+    unflat_factor = [contrib / contrib.sum() for contrib in unflat_contrib]
+    #factor_list = np.divide(score_list, factor_list, out=factor_list)
+    for score, factor in zip(score_list, unflat_factor):
+        np.multiply(score, factor, out=factor)
+    unflat_fs = unflat_factor
 
     # itertools.product seems fastest for small arrays
     unflat_fm = (ut.product(fxs1, fxs2)
@@ -497,18 +507,37 @@ def agg_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list):
 
 
 @profile
-def sep_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list):
-    # Spread word score according to contriubtion (maw) weight
-    unflat_weight = [maws1[:, None].dot(maws2[:, None].T).ravel()
-                     for maws1, maws2 in zip(X_maws, Y_maws)]
-    flat_weight = np.array(ut.flatten(unflat_weight), dtype=np.float32)
-    fs = np.array(ut.flatten(score_list), dtype=np.float32)
-    np.multiply(fs, flat_weight, out=fs)
+def sep_build_matches(X_fxs, Y_fxs, scores_list):
+    r"""
+    Just build matches. Scores have already been broken up. No need to do that.
 
-    # itertools.product seems fastest for small arrays
+    Returns:
+        tuple: (fm, fs)
+
+    CommandLine:
+        python -m ibeis.algo.smk.smk_funcs agg_build_matches --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> map_int = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.int32))
+        >>> map_float = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.float32))
+        >>> X_fxs = map_int([[0, 1], [2, 3, 4], [5]])
+        >>> Y_fxs = map_int([[8], [0, 4], [99]])
+        >>> scores_list = map_float([
+        >>>     [[.1], [.2],],
+        >>>     [[.3, .4], [.4, .6], [.5, .9],],
+        >>>     [[.4]],
+        >>> ])
+        >>> (fm, fs) = sep_build_matches(X_fxs, Y_fxs, scores_list)
+        >>> print('fm = ' + ut.repr2(fm))
+        >>> print('fs = ' + ut.repr2(fs))
+        >>> assert len(fm) == len(fs)
+        >>> assert score_list.sum() == fs.sum()
+    """
+    fs = np.array(ut.total_flatten(scores_list), dtype=np.float32)
     unflat_fm = (ut.product(fxs1, fxs2)
                  for fxs1, fxs2 in zip(X_fxs, Y_fxs))
-
     fm = np.array(ut.flatten(unflat_fm), dtype=np.int32)
     isvalid = np.greater(fs, 0)
     fm = fm.compress(isvalid, axis=0)

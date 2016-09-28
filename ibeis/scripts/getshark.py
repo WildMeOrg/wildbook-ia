@@ -35,7 +35,7 @@ def sync_whalesharks():
     parsed = getshark.postprocess_tags_filter(parsed)
 
     # Download images that we dont have yet
-    download_missing_images(parsed)
+    getshark.download_missing_images(parsed)
 
     # Change variable name to info now that we downloaded
     parsed_dl = parsed.copy()
@@ -1161,8 +1161,11 @@ def download_missing_images(parsed):
         _iter = list(zip(missing['img_url'], missing['new_fpath']))
         _prog = ut.ProgPartial(bs=True, freq=10)
         for img_url, new_fpath in _prog(_iter, lbl='downloading sharks'):
+            #url = img_url
+            #filename = new_fpath
+            #break
             try:
-                ut.download_url(img_url, new_fpath, verbose=False)
+                ut.download_url(img_url, new_fpath, verbose=False, new=True)
             except (ZeroDivisionError, IOError):
                 pass
 

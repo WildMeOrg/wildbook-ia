@@ -2369,19 +2369,14 @@ class TestResult(ut.NiceRepr):
             >>> import ibeis
             >>> ibs = ibeis.opendb('Oxford')
             >>> #ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True]')
-            >>> ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True]')
+            >>> ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True],can_match_sameimg=True')
         """
         import sklearn.metrics
         qaids = testres.get_test_qaids()
         ibs = testres.ibs
 
-        PLOT = True
         PLOT = False
-
-        if PLOT:
-            import plottool as pt
-            pt.qt4ensure()
-            pt.figure()
+        PLOT = True
 
         cfgx2_cms = []
         for qreq_ in testres.cfgx2_qreq_:
@@ -2389,32 +2384,43 @@ class TestResult(ut.NiceRepr):
             cm_list = [cm.extend_results(qreq_) for cm in cm_list]
             for cm in cm_list:
                 cm.score_csum(qreq_)
-                #cm.sortself()
+            #    #cm.sortself()
             cfgx2_cms.append(cm_list)
 
         map_list = []
         unique_names, groupxs = ut.group_indices(ibs.annots(qaids).names)
 
-        for cm in cfgx2_cms:
-            avep_list = []
+        for cm_list, qreq_ in zip(cfgx2_cms, testres.cfgx2_qreq_):
+            if PLOT:
+                import plottool as pt
+                pt.qt4ensure()
+                fnum = pt.ensure_fnum(None)
+                pt.figure(fnum=fnum)
+                avep_list = []
             #fnum = pt.ensure_fnum(None)
             #pt.figure(fnum=fnum)
             for cm in cm_list:
                 # Ignore junk images
                 flags   = np.array(ibs.annots(cm.daid_list).quality_texts) != 'junk'
-                y_true  = (cm.qnid == cm.dnid_list).compress(flags)
+                assert np.all(flags)
+                daid_list = cm.daid_list
+                dnid_list = cm.dnid_list
+                y_true  = (cm.qnid == dnid_list).compress(flags).astype(np.int)
                 y_score = cm.annot_score_list.compress(flags)
 
                 y_score[~np.isfinite(y_score)] = 0
                 y_score = np.nan_to_num(y_score)
-                #sortx = np.argsort(y_score)
-                #y_true = y_
+                sortx = np.argsort(y_score)[::-1]
+                daid_list = daid_list.take(sortx)
+                dnid_list = dnid_list.take(sortx)
+                y_true = y_true.take(sortx)
+                y_score = y_score.take(sortx)
                 #print(cm.get_annot_ranks(cm.get_top_gt_aids(ibs)))
 
                 precision, recall, thresholds = sklearn.metrics.precision_recall_curve(y_true, y_score)
 
                 if PLOT:
-                    pt.plot(precision, recall)
+                    pt.plot2(recall, precision, marker='', linestyle='-', x_label='recall', y_label='precision')
 
                 avep = sklearn.metrics.average_precision_score(y_true, y_score)
                 #avep = [
