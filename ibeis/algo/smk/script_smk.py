@@ -154,11 +154,16 @@ def make_external_annot(aid, vecs, vocab):
     # Compute assignments
     fx_to_vecs = vecs
     fx_to_wxs, fx_to_maws = smk_funcs.assign_to_words(vocab, fx_to_vecs, nAssign)
-    wx_to_fxs, wx_to_maws = smk_funcs.invert_assigns(fx_to_wxs, fx_to_maws)
     """
     z = np.array(ut.take_column(fx_to_wxs, 0)) + 1
-    y = wordid_list[0]
+    y = np.array(wordid_list[0])
+    float((z == y).sum()) / len(y)
+
+    vocab.flann_params['checks'] = 5120
+    vocab.flann_params['trees'] = 8
+    vocab.build()
     """
+    wx_to_fxs, wx_to_maws = smk_funcs.invert_assigns(fx_to_wxs, fx_to_maws)
     # Build Aggregate Residual Vectors
     wx_list = sorted(wx_to_fxs.keys())
     word_list = ut.take(vocab.wx_to_word, wx_list)
