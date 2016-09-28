@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Oxford Experiment:
-    ibeis TestResult --db Oxford -p smk:nWords=[64000],nAssign=[1],SV=[False] -a oxford
+    ibeis TestResult --db Oxford -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True -a oxford
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import dtool
@@ -324,11 +324,11 @@ class SMK(ut.NiceRepr):
         alpha  = qreq_.qparams['smk_alpha']
         thresh = qreq_.qparams['smk_thresh']
         agg    = qreq_.qparams['agg']
-        nNameShortList  = qreq_.qparams.nNameShortlistSVER
         #nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
 
         sv_on   = qreq_.qparams.sv_on
         if sv_on:
+            nNameShortList  = qreq_.qparams.nNameShortlistSVER
             shortsize = nNameShortList
         else:
             shortsize = None
@@ -427,14 +427,65 @@ class SMK(ut.NiceRepr):
         #    cm.assert_self(qreq_=qreq_, verbose=True)
 
         if sv_on:
-            #top_aids = cm.get_name_shortlist_aids(nNameShortList, nAnnotPerName)
-            #cm = cm.shortlist_subset(top_aids)
-            #with ut.Timer('sver', verbose=verbose):
-            # Spatially verify chip matches and rescore
             cm = pipeline.sver_single_chipmatch(qreq_, cm, verbose=verbose)
             cm.score_maxcsum(qreq_)
 
         return cm
+
+
+def verify_score(qreq_, cm):
+    """
+    cm.print_inspect_str(qreq_)
+    cm.show_single_annotmatch(qreq_, daid1)
+    cm.show_single_annotmatch(qreq_, daid2)
+    """
+    ibs = qreq_.ibs
+    qaid = cm.qaid
+    daid1 = cm.get_top_truth_aids(ibs, ibs.const.TRUTH_MATCH)[0]
+    daid2 = cm.get_top_truth_aids(ibs, ibs.const.TRUTH_MATCH, invert=True)[0]
+
+    vocab = ibs.depc['vocab'].get_row_data([qreq_.dinva.vocab_rowid], 'words')[0]
+    wx_to_weight = qreq_.dinva.wx_to_weight
+
+    aid = qaid
+    config = qreq_.qparams
+
+    def make_temporary_annot(aid, config):
+        from ibeis.algo.smk import smk_funcs
+        from ibeis.algo.smk import inverted_index
+        nAssign = config.get('nAssign', 1)
+        # Compute assignments
+        fx_to_vecs = ibs.get_annot_vecs(aid, config2_=config)
+        fx_to_wxs, fx_to_maws = smk_funcs.assign_to_words(vocab, fx_to_vecs, nAssign)
+        wx_to_fxs, wx_to_maws = smk_funcs.invert_assigns(fx_to_wxs, fx_to_maws)
+        # Build Aggregate Residual Vectors
+        wx_list = sorted(wx_to_fxs.keys())
+        word_list = ut.take(vocab.wx_to_word, wx_list)
+        fxs_list = ut.take(wx_to_fxs, wx_list)
+        maws_list = ut.take(wx_to_maws, wx_list)
+        agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=np.float)
+        agg_flags = np.empty((len(wx_list), 1), dtype=np.bool)
+        for idx in range(len(wx_list)):
+            word = word_list[idx]
+            fxs = fxs_list[idx]
+            maws = maws_list[idx]
+            vecs = fx_to_vecs.take(fxs, axis=0)
+            _rvecs, _flags = smk_funcs.compute_rvec(vecs, word)
+            _agg_rvec, _agg_flag = smk_funcs.aggregate_rvecs(_rvecs, maws, _flags)
+            agg_rvecs[idx] = _agg_rvec
+            agg_flags[idx] = _agg_flag
+        X = inverted_index.SingleAnnot()
+        X.aid = aid
+        X.wx_list = wx_list
+        X.fxs_list = fxs_list
+        X.maws_list = maws_list
+        X.agg_rvecs = agg_rvecs
+        X.wx_to_idx = ut.make_index_lookup(X.wx_list)
+        X.int_rvec = False
+        X.wx_set = set(X.wx_list)
+
+    make_temporary_annot(qaid, config)
+    make_temporary_annot(daid1, config)
 
 
 def check_can_match(qaid, hit_daids, qreq_):

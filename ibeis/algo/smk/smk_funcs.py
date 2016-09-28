@@ -52,6 +52,8 @@ Notes:
     .22 when I fixed the bounding boxes
     And now I'm getting
     .08 and .32 (sv=[F,T]) after deleting and redoing everything (also removing junk images)
+    After fix of normalization I get
+    .38 and .44
 
 Differences Between this and SMK
    * No RootSIFT

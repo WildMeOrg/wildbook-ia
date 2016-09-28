@@ -359,7 +359,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
     @ut.memoize
     def get_annot(inva, aid):
         idx = inva.aid_to_idx[aid]
-        X = SingleAnnot(inva, idx)
+        X = SingleAnnot.from_inva(inva, idx)
         return X
 
     def compute_inverted_list(inva):
@@ -442,20 +442,31 @@ class InvertedAnnots(InvertedAnnotsExtras):
 
 @ut.reloadable_class
 class SingleAnnot(object):
-    def __init__(X, inva, idx):
+    def __init__(X):
+        X.aid = None
+        X.wx_list = None
+        X.fxs_list = None
+        X.maws_list = None
+        X.agg_rvecs = None
+        X.agg_flags = None
+        X.gamma = None
+        X.wx_to_idx = None
+        X.int_rvec = None
+        X.wx_set = None
+
+    @classmethod
+    def from_inva(cls, inva, idx):
+        X = cls()
         X.aid = inva.aids[idx]
         X.wx_list = inva.wx_lists[idx]
         X.fxs_list = inva.fxs_lists[idx]
         X.maws_list = inva.maws_lists[idx]
         X.agg_rvecs = inva.agg_rvecs[idx]
         X.agg_flags = inva.agg_flags[idx]
-        if inva.gamma_list is None:
-            X.gamma = X
-        else:
+        if inva.gamma_list is not None:
             X.gamma = inva.gamma_list[idx]
         X.wx_to_idx = ut.make_index_lookup(X.wx_list)
         X.int_rvec = inva.int_rvec
-
         X.wx_set = set(X.wx_list)
 
     @property

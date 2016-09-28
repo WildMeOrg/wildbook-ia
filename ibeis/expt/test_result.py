@@ -2366,17 +2366,19 @@ class TestResult(ut.NiceRepr):
         Then take the mean of all average precisions to obtain the mAP.
 
         Script:
-            >>> import ibeis
-            >>> ibs = ibeis.opendb('Oxford')
+            >>> #ibs = ibeis.opendb('Oxford')
             >>> #ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True]')
+            >>> import ibeis
             >>> ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False,True],can_match_sameimg=True')
+            >>> import ibeis
+            >>> ibs, testres = ibeis.testdata_expts('Oxford', a='oxford', p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True')
         """
         import sklearn.metrics
         qaids = testres.get_test_qaids()
         ibs = testres.ibs
 
-        PLOT = False
         PLOT = True
+        PLOT = False
 
         cfgx2_cms = []
         for qreq_ in testres.cfgx2_qreq_:
@@ -2396,7 +2398,7 @@ class TestResult(ut.NiceRepr):
                 pt.qt4ensure()
                 fnum = pt.ensure_fnum(None)
                 pt.figure(fnum=fnum)
-                avep_list = []
+            avep_list = []
             #fnum = pt.ensure_fnum(None)
             #pt.figure(fnum=fnum)
             for cm in cm_list:

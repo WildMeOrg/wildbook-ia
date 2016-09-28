@@ -186,7 +186,7 @@ class _ChipMatchVisualization(object):
             python -m ibeis --tf ChipMatch.show_single_namematch --show
             python -m ibeis --tf ChipMatch.show_single_namematch --show --qaid 1
             python -m ibeis --tf ChipMatch.show_single_namematch --show --qaid 1 \
-                    --dpath figures --save ~/latex/crall-candidacy-2015/figures/namematch.jpg
+                --dpath figures --save ~/latex/crall-candidacy-2015/figures/namematch.jpg
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1031,12 +1031,14 @@ class _AnnotMatchConvenienceGetter(object):
         top_aids = ut.listclip(_top_aids, ntop)
         return top_aids
 
-    def get_top_truth_aids(cm, ibs, truth, ntop=None):
+    def get_top_truth_aids(cm, ibs, truth, ntop=None, invert=False):
         """ top scoring aids of a certain truth value """
         sortx = cm.score_list.argsort()[::-1]
         _top_aids = vt.list_take_(cm.daid_list, sortx)
         truth_list = ibs.get_aidpair_truths([cm.qaid] * len(_top_aids), _top_aids)
         flag_list = truth_list == truth
+        if invert:
+            flag_list = np.logical_not(flag_list)
         _top_aids = _top_aids.compress(flag_list, axis=0)
         top_truth_aids = ut.listclip(_top_aids, ntop)
         return top_truth_aids
@@ -1501,8 +1503,8 @@ class _ChipMatchDebugger(object):
 
         ibs = qreq_.ibs
 
-        top_aids   = np.array(cm.get_top_aids(6), dtype=np.int32)
-        top_scores = np.array(cm.get_annot_scores(top_aids), dtype=np.float64)
+        top_aids   = cm.get_top_aids(6)
+        top_scores = cm.get_annot_scores(top_aids)
         #top_rawscores = np.array(cm.get_aid_scores(top_aids, rawscore=True), dtype=np.float64)
         top_ranks  = np.arange(len(top_aids))
         top_list   = [top_aids, top_scores, top_ranks]
@@ -1518,19 +1520,20 @@ class _ChipMatchDebugger(object):
         #top_stack = np.array(top_stack, dtype=object)
         top_stack = np.array(top_stack, dtype=np.float)
         #np.int32)
-        top_str = np.array_str(top_stack, precision=3, suppress_small=True, max_line_width=200)
+        top_str = np.array_str(top_stack, precision=3, suppress_small=True,
+                               max_line_width=200)
 
         top_lbl = '\n'.join(top_lbls)
         inspect_list = ['QueryResult', qreq_.get_cfgstr(), ]
         if ibs is not None:
-            gt_aids = cm.get_top_gt_aids(qreq_.ibs)
+            gt_aids = ut.aslist(cm.get_top_gt_aids(qreq_.ibs))
             gt_ranks  = cm.get_annot_ranks(gt_aids)
             gt_scores = cm.get_annot_scores(gt_aids)
             inspect_list.append('len(cm.daid_list) = %r' % len(cm.daid_list))
             inspect_list.append('len(cm.unique_nids) = %r' % len(cm.unique_nids))
             inspect_list.append('gt_ranks = %r' % gt_ranks)
             inspect_list.append('gt_aids = %r' % gt_aids)
-            inspect_list.append('gt_scores = %r' % gt_scores)
+            inspect_list.append('gt_scores = %s' % ut.repr2(gt_scores, precision=6))
 
         inspect_list.extend([
             'qaid=%r ' % cm.qaid,
