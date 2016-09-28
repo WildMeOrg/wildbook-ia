@@ -524,6 +524,15 @@ class SingleAnnot(object):
         assert X.agg_rvecs is not agg_rvecs
         assert X.agg_flags is not agg_flags
 
+    def nbytes_info(X):
+        size_info = ut.map_vals(ut.get_object_nbytes, X.__dict__)
+        return size_info
+
+    def nbytes(X):
+        size_info = X.nbytes_info()
+        nbytes = sum(size_info.values())
+        return nbytes
+
 
 @derived_attribute(tablename='inverted_agg_assign', parents=['feat', 'vocab'],
                    colnames=['wx_list', 'fxs_list', 'maws_list',

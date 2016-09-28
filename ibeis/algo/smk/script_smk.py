@@ -126,21 +126,26 @@ def load_external_data2():
                    for uri in ibs.images(annots.gids).uris_original]
     assert intern_uris == uri_order
 
-    daids = annots.aids
-    X_list = []
-    for aid, vecs in ut.ProgIter(zip(daids, vecs_list), nTotal=len(daids)):
-        X = make_external_annot(aid, vecs, vocab)
-        X_list.append(X)
+    dbdir = ut.truepath('/raid/work/Oxford/')
+    data_fpath2 = join(dbdir, 'oxford_data2.pkl')
+    if ut.checkpath(data_fpath2):
+        daids = annots.aids
+        Y_list = []
+        for aid, vecs in ut.ProgIter(zip(daids, vecs_list), nTotal=len(daids)):
+            X = make_external_annot(aid, vecs, vocab)
+            Y_list.append(X)
+        external_data2 = {
+            'Y_list': Y_list,
+        }
+        ut.save_data(data_fpath2, external_data2)
+    else:
+        external_data2 = ut.load_data(data_fpath2)
+        Y_list = external_data2['Y_list']
 
     annots._internal_attrs['kpts'] = kpts_list
     annots._internal_attrs['vecs'] = vecs_list
     annots._internal_attrs['wordid'] = wordid_list
     annots._ibs = None
-
-    external_data2 = {
-        'X_list': X_list,
-    }
-    ut.save_data('oxford_data2.pkl', external_data2)
 
 
 def make_external_annot(aid, vecs, vocab):
@@ -150,12 +155,19 @@ def make_external_annot(aid, vecs, vocab):
     fx_to_vecs = vecs
     fx_to_wxs, fx_to_maws = smk_funcs.assign_to_words(vocab, fx_to_vecs, nAssign)
     wx_to_fxs, wx_to_maws = smk_funcs.invert_assigns(fx_to_wxs, fx_to_maws)
+    """
+    z = np.array(ut.take_column(fx_to_wxs, 0)) + 1
+    y = wordid_list[0]
+    """
     # Build Aggregate Residual Vectors
     wx_list = sorted(wx_to_fxs.keys())
     word_list = ut.take(vocab.wx_to_word, wx_list)
     fxs_list = ut.take(wx_to_fxs, wx_list)
     maws_list = ut.take(wx_to_maws, wx_list)
-    agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=np.float)
+    if int_rvec:
+        agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=np.int8)
+    else:
+        agg_rvecs = np.empty((len(wx_list), fx_to_vecs.shape[1]), dtype=np.float)
     agg_flags = np.empty((len(wx_list), 1), dtype=np.bool)
     for idx in range(len(wx_list)):
         word = word_list[idx]
@@ -170,7 +182,7 @@ def make_external_annot(aid, vecs, vocab):
         agg_flags[idx] = _agg_flag
     X = inverted_index.SingleAnnot()
     X.aid = aid
-    X.wx_list = wx_list
+    X.wx_list = np.array(wx_list, dtype=np.int32)
     X.fxs_list = fxs_list
     X.maws_list = maws_list
     X.agg_rvecs = agg_rvecs
@@ -178,6 +190,13 @@ def make_external_annot(aid, vecs, vocab):
     X.wx_to_idx = ut.make_index_lookup(X.wx_list)
     X.int_rvec = int_rvec
     X.wx_set = set(X.wx_list)
+
+    # Ensure casting
+    #for X in ut.ProgIter(X_list):
+    #    X.agg_rvecs = smk_funcs.cast_residual_integer(X.agg_rvecs)
+    #    X.wx_list = np.array(X.wx_list, dtype=np.int32)
+    #    X.wx_to_idx = ut.map_dict_vals(np.int32, X.wx_to_idx)
+    #    X.wx_to_idx = ut.map_dict_keys(np.int32, X.wx_to_idx)
     return X
 
 

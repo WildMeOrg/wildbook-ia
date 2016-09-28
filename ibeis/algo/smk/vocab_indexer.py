@@ -94,7 +94,9 @@ class VisualVocab(ut.NiceRepr):
         assert nAssign > 0, 'cannot assign to 0 neighbors'
         try:
             idx_to_vec = idx_to_vec.astype(vocab.wordflann._FLANN__curindex_data.dtype)
-            _idx_to_wx, _idx_to_wdist = vocab.wordflann.nn_index(idx_to_vec, nAssign)
+            checks = vocab.flann_params['checks']
+            _idx_to_wx, _idx_to_wdist = vocab.wordflann.nn_index(
+                idx_to_vec, nAssign, checks=checks)
         except pyflann.FLANNException as ex:
             ut.printex(ex, 'probably misread the cached flann_fpath=%r' % (
                 getattr(vocab.wordflann, 'flann_fpath', None),))
