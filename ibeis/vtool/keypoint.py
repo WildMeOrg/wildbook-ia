@@ -1777,6 +1777,7 @@ def get_xy_axis_extents(kpts):
         maxy = warped_corners[:, 1, :].max(axis=1)
         miny = warped_corners[:, 1, :].min(axis=1)
     else:
+        # Find minimum and maximum points on the ellipse
         a = kpts.T[2]
         c = kpts.T[3]
         d = kpts.T[4]
