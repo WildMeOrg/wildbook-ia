@@ -363,13 +363,8 @@ class InvertedAnnots(InvertedAnnotsExtras):
         return X
 
     def compute_inverted_list(inva):
-        """
-        """
         with ut.Timer('Building inverted list'):
-            wx_to_aids = ut.ddict(list)
-            for aid, wxs in zip(inva.aids, inva.wx_lists):
-                for wx in wxs:
-                    wx_to_aids[wx].append(aid)
+            wx_to_aids = smk_funcs.invert_lists(inva.aids, inva.wx_lists)
             return wx_to_aids
 
     @profile

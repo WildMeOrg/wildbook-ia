@@ -404,6 +404,27 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
     return (wx_to_idxs, wx_to_maws)
 
 
+def invert_lists(aids, wx_lists):
+    """
+    takes corresponding lists of (aids, wxs) and maps wxs to aids
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> aids = [1, 2, 3]
+        >>> wx_lists = [[0, 1], [20, 0, 1], [3]]
+        >>> wx_to_aids = invert_lists(aids, wx_lists)
+        >>> result = ('wx_to_aids = %s' % (ut.repr2(wx_to_aids),))
+        >>> print(result)
+        wx_to_aids = {0: [1, 2], 1: [1, 2], 3: [3], 20: [2]}
+    """
+    wx_to_aids = ut.ddict(list)
+    for aid, wxs in zip(aids, wx_lists):
+        for wx in wxs:
+            wx_to_aids[wx].append(aid)
+    return wx_to_aids
+
+
 @profile
 def agg_match_scores(PhisX, PhisY, flagsX, flagsY, alpha, thresh):
     """
