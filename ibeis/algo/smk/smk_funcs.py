@@ -404,7 +404,7 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
     return (wx_to_idxs, wx_to_maws)
 
 
-def invert_lists(aids, wx_lists):
+def invert_lists(aids, wx_lists, all_wxs=None):
     """
     takes corresponding lists of (aids, wxs) and maps wxs to aids
 
@@ -418,238 +418,14 @@ def invert_lists(aids, wx_lists):
         >>> print(result)
         wx_to_aids = {0: [1, 2], 1: [1, 2], 3: [3], 20: [2]}
     """
-    wx_to_aids = ut.ddict(list)
+    if all_wxs is None:
+        wx_to_aids = ut.ddict(list)
+    else:
+        wx_to_aids = {wx: [] for wx in all_wxs}
     for aid, wxs in zip(aids, wx_lists):
         for wx in wxs:
             wx_to_aids[wx].append(aid)
     return wx_to_aids
-
-
-@profile
-def agg_match_scores(PhisX, PhisY, flagsX, flagsY, alpha, thresh):
-    """
-    Scores matches to multiple words using aggregate residual vectors
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
-        >>> PhisX = np.array([[ 0.        ,  0.        ],
-        >>>                   [-1.        ,  0.        ],
-        >>>                   [ 0.85085751,  0.52539652],
-        >>>                   [-0.89795083, -0.4400958 ],
-        >>>                   [-0.99934547,  0.03617512]])
-        >>> PhisY = np.array([[ 0.88299408, -0.46938411],
-        >>>                   [-0.12096522, -0.99265675],
-        >>>                   [-0.99948266, -0.03216222],
-        >>>                   [-0.08394916, -0.99647004],
-        >>>                   [-0.96414952, -0.26535957]])
-        >>> flagsX = np.array([True, False, False, True, False])[:, None]
-        >>> flagsY = np.array([False, False, False, True, False])[:, None]
-        >>> alpha = 3.0
-        >>> thresh = 0.0
-        >>> score_list = agg_match_scores(PhisX, PhisY, flagsX, flagsY, alpha, thresh)
-        >>> print('score_list = ' + ut.repr2(score_list, precision=4))
-        score_list = np.array([ 1.    ,  0.0018,  0.    ,  1.0,  0.868 ])
-    """
-    # Can speedup aggregate with one vector per word assumption.
-    # Take dot product between correponding VLAD vectors
-    u = (PhisX * PhisY).sum(axis=1)
-    # Propogate error flags
-    flags = np.logical_or(flagsX.T[0], flagsY.T[0])
-    assert len(flags) == len(u), 'mismatch'
-    u[flags] = 1
-    score_list = selectivity(u, alpha, thresh, out=u)
-    return score_list
-
-
-@profile
-def sep_match_scores(phisX_list, phisY_list, flagsX_list, flagsY_list, alpha, thresh):
-    """
-    Scores matches to multiple words using lists of separeated residual vectors
-
-    """
-    scores_list = []
-    _iter = zip(phisX_list, phisY_list, flagsX_list, flagsY_list)
-    for phisX, phisY, flagsX, flagsY in _iter:
-        u = phisX.dot(phisY.T)
-        flags = np.logical_or(flagsX.T[0], flagsY.T[0])
-        u[flags] = 1
-        scores = selectivity(u, alpha, thresh, out=u)
-        scores_list.append(scores)
-    return scores_list
-
-
-@profile
-def agg_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list):
-    r"""
-    Builds explicit features matches. Break and distribute up each aggregate
-    score amongst its contributing features.
-
-    Returns:
-        tuple: (fm, fs)
-
-    CommandLine:
-        python -m ibeis.algo.smk.smk_funcs agg_build_matches --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
-        >>> map_int = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.int32))
-        >>> map_float = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.float32))
-        >>> X_fxs = map_int([[0, 1], [2, 3, 4], [5]])
-        >>> Y_fxs = map_int([[8], [0, 4], [99]])
-        >>> X_maws = map_float([[1, 1], [1, 1, 1], [1]])
-        >>> Y_maws = map_float([[1], [1, 1], [1]])
-        >>> score_list = np.array([1, 2, 3], dtype=np.float32)
-        >>> (fm, fs) = agg_build_matches(X_fxs, Y_fxs, X_maws, Y_maws, score_list)
-        >>> print('fm = ' + ut.repr2(fm))
-        >>> print('fs = ' + ut.repr2(fs))
-        >>> assert len(fm) == len(fs)
-        >>> assert score_list.sum() == fs.sum()
-    """
-    # Build feature matches
-    # Spread word score according to contriubtion (maw) weight
-    unflat_contrib = [maws1[:, None].dot(maws2[:, None].T).ravel()
-                      for maws1, maws2 in zip(X_maws, Y_maws)]
-    unflat_factor = [contrib / contrib.sum() for contrib in unflat_contrib]
-    #factor_list = np.divide(score_list, factor_list, out=factor_list)
-    for score, factor in zip(score_list, unflat_factor):
-        np.multiply(score, factor, out=factor)
-    unflat_fs = unflat_factor
-
-    # itertools.product seems fastest for small arrays
-    unflat_fm = (ut.product(fxs1, fxs2)
-                 for fxs1, fxs2 in zip(X_fxs, Y_fxs))
-
-    fm = np.array(ut.flatten(unflat_fm), dtype=np.int32)
-    fs = np.array(ut.flatten(unflat_fs), dtype=np.float32)
-    isvalid = np.greater(fs, 0)
-    fm = fm.compress(isvalid, axis=0)
-    fs = fs.compress(isvalid, axis=0)
-    return fm, fs
-
-
-@profile
-def sep_build_matches(X_fxs, Y_fxs, scores_list):
-    r"""
-    Just build matches. Scores have already been broken up. No need to do that.
-
-    Returns:
-        tuple: (fm, fs)
-
-    CommandLine:
-        python -m ibeis.algo.smk.smk_funcs agg_build_matches --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
-        >>> map_int = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.int32))
-        >>> map_float = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.float32))
-        >>> X_fxs = map_int([[0, 1], [2, 3, 4], [5]])
-        >>> Y_fxs = map_int([[8], [0, 4], [99]])
-        >>> scores_list = map_float([
-        >>>     [[.1], [.2],],
-        >>>     [[.3, .4], [.4, .6], [.5, .9],],
-        >>>     [[.4]],
-        >>> ])
-        >>> (fm, fs) = sep_build_matches(X_fxs, Y_fxs, scores_list)
-        >>> print('fm = ' + ut.repr2(fm))
-        >>> print('fs = ' + ut.repr2(fs))
-        >>> assert len(fm) == len(fs)
-        >>> assert np.isclose(np.sum(ut.total_flatten(scores_list)), fs.sum())
-    """
-    fs = np.array(ut.total_flatten(scores_list), dtype=np.float32)
-    unflat_fm = (ut.product(fxs1, fxs2)
-                 for fxs1, fxs2 in zip(X_fxs, Y_fxs))
-    fm = np.array(ut.flatten(unflat_fm), dtype=np.int32)
-    isvalid = np.greater(fs, 0)
-    fm = fm.compress(isvalid, axis=0)
-    fs = fs.compress(isvalid, axis=0)
-    return fm, fs
-
-
-@profile
-def gamma_agg(phisX, flagsX, weight_list, alpha, thresh):
-    r"""
-    Computes gamma (self consistency criterion)
-    It is a scalar which ensures K(X, X) = 1
-
-    Returns:
-        float: sccw self-consistency-criterion weight
-
-    Math:
-        gamma(X) = (sum_{c in C} w_c M(X_c, X_c))^{-.5}
-
-    Example:
-        >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
-        >>> ibs, smk, qreq_= testdata_smk()
-        >>> X = qreq_.qinva.grouped_annots[0]
-        >>> wx_to_weight = qreq_.wx_to_weight
-        >>> print('X.gamma = %r' % (gamma(X),))
-    """
-    scores = agg_match_scores(phisX, phisX, flagsX, flagsX, alpha, thresh)
-    sccw = sccw_normalize(scores, weight_list)
-    return sccw
-
-
-@profile
-def gamma_sep(phisX_list, flagsX_list, weight_list, alpha, thresh):
-    scores_list = sep_match_scores(phisX_list, phisX_list, flagsX_list,
-                                   flagsX_list, alpha, thresh)
-    scores = np.array([scores.sum() for scores in scores_list])
-    sccw = sccw_normalize(scores)
-    return sccw
-
-
-def sccw_normalize(scores, weight_list):
-    scores *= weight_list
-    score = scores.sum()
-    sccw = np.reciprocal(np.sqrt(score))
-    return sccw
-
-
-@profile
-def selective_match_score(phisX, phisY, flagsX, flagsY, alpha, thresh):
-    """
-    computes the score of each feature match
-    """
-    u = phisX.dot(phisY.T)
-    # Give error flags full scores. These are typically distinctive and
-    # important cases without enough info to get residual data.
-    flags = np.logical_or(flagsX[:, None], flagsY)
-    u[flags] = 1
-    score = selectivity(u, alpha, thresh, out=u)
-    return score
-
-
-@profile
-def selectivity(u, alpha=3.0, thresh=-1, out=None):
-    r"""
-    Rescales and thresholds scores. This is sigma from the SMK paper
-
-    Notes:
-        # Exact definition from paper
-        sigma_alpha(u) = bincase{
-            sign(u) * (u**alpha) if u > thresh,
-            0 otherwise,
-        }
-
-    CommandLine:
-        python -m plottool plot_func --show --range=-1,1 --setup="import ibeis" \
-                --func ibeis.algo.smk.smk_pipeline.selectivity \
-                "lambda u: sign(u) * abs(u)**3.0 * greater_equal(u, 0)" \
-    """
-    score = u
-    flags = np.less(score, thresh)
-    isign = np.sign(score)
-    score = np.abs(score, out=out)
-    score = np.power(score, alpha, out=out)
-    score = np.multiply(isign, score, out=out)
-    score[flags] = 0
-    #
-    #score = np.sign(u) * np.power(np.abs(u), alpha)
-    #score *= flags
-    return score
 
 
 def inv_doc_freq(ndocs_total, ndocs_per_word, adjust=True):
@@ -684,6 +460,253 @@ def inv_doc_freq(ndocs_total, ndocs_per_word, adjust=True):
     out = np.divide(ndocs_total, out, out=out)
     idf_per_word = np.log(out, out=out)
     return idf_per_word
+
+
+@profile
+def match_scores_agg(PhisX, PhisY, flagsX, flagsY, alpha, thresh):
+    """
+    Scores matches to multiple words using aggregate residual vectors
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> PhisX = np.array([[ 0.        ,  0.        ],
+        >>>                   [-1.        ,  0.        ],
+        >>>                   [ 0.85085751,  0.52539652],
+        >>>                   [-0.89795083, -0.4400958 ],
+        >>>                   [-0.99934547,  0.03617512]])
+        >>> PhisY = np.array([[ 0.88299408, -0.46938411],
+        >>>                   [-0.12096522, -0.99265675],
+        >>>                   [-0.99948266, -0.03216222],
+        >>>                   [-0.08394916, -0.99647004],
+        >>>                   [-0.96414952, -0.26535957]])
+        >>> flagsX = np.array([True, False, False, True, False])[:, None]
+        >>> flagsY = np.array([False, False, False, True, False])[:, None]
+        >>> alpha = 3.0
+        >>> thresh = 0.0
+        >>> score_list = match_scores_agg(PhisX, PhisY, flagsX, flagsY, alpha, thresh)
+        >>> print('score_list = ' + ut.repr2(score_list, precision=4))
+        score_list = np.array([ 1.    ,  0.0018,  0.    ,  1.0,  0.868 ])
+    """
+    # Can speedup aggregate with one vector per word assumption.
+    # Take dot product between correponding VLAD vectors
+    u = (PhisX * PhisY).sum(axis=1)
+    # Propogate error flags
+    flags = np.logical_or(flagsX.T[0], flagsY.T[0])
+    assert len(flags) == len(u), 'mismatch'
+    u[flags] = 1
+    score_list = selectivity(u, alpha, thresh, out=u)
+    return score_list
+
+
+@profile
+def match_scores_sep(phisX_list, phisY_list, flagsX_list, flagsY_list, alpha,
+                     thresh):
+    """
+    Scores matches to multiple words using lists of separeated residual vectors
+
+    """
+    scores_list = []
+    _iter = zip(phisX_list, phisY_list, flagsX_list, flagsY_list)
+    for phisX, phisY, flagsX, flagsY in _iter:
+        u = phisX.dot(phisY.T)
+        flags = np.logical_or(flagsX.T[0], flagsY.T[0])
+        u[flags] = 1
+        scores = selectivity(u, alpha, thresh, out=u)
+        scores_list.append(scores)
+    return scores_list
+
+
+@profile
+def build_matches_agg(X_fxs, Y_fxs, X_maws, Y_maws, score_list):
+    r"""
+    Builds explicit features matches. Break and distribute up each aggregate
+    score amongst its contributing features.
+
+    Returns:
+        tuple: (fm, fs)
+
+    CommandLine:
+        python -m ibeis.algo.smk.smk_funcs build_matches_agg --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> map_int = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.int32))
+        >>> map_float = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.float32))
+        >>> X_fxs = map_int([[0, 1], [2, 3, 4], [5]])
+        >>> Y_fxs = map_int([[8], [0, 4], [99]])
+        >>> X_maws = map_float([[1, 1], [1, 1, 1], [1]])
+        >>> Y_maws = map_float([[1], [1, 1], [1]])
+        >>> score_list = np.array([1, 2, 3], dtype=np.float32)
+        >>> (fm, fs) = build_matches_agg(X_fxs, Y_fxs, X_maws, Y_maws, score_list)
+        >>> print('fm = ' + ut.repr2(fm))
+        >>> print('fs = ' + ut.repr2(fs))
+        >>> assert len(fm) == len(fs)
+        >>> assert score_list.sum() == fs.sum()
+    """
+    # Build feature matches
+    # Spread word score according to contriubtion (maw) weight
+    unflat_contrib = [maws1[:, None].dot(maws2[:, None].T).ravel()
+                      for maws1, maws2 in zip(X_maws, Y_maws)]
+    unflat_factor = [contrib / contrib.sum() for contrib in unflat_contrib]
+    #factor_list = np.divide(score_list, factor_list, out=factor_list)
+    for score, factor in zip(score_list, unflat_factor):
+        np.multiply(score, factor, out=factor)
+    unflat_fs = unflat_factor
+
+    # itertools.product seems fastest for small arrays
+    unflat_fm = (ut.product(fxs1, fxs2)
+                 for fxs1, fxs2 in zip(X_fxs, Y_fxs))
+
+    fm = np.array(ut.flatten(unflat_fm), dtype=np.int32)
+    fs = np.array(ut.flatten(unflat_fs), dtype=np.float32)
+    isvalid = np.greater(fs, 0)
+    fm = fm.compress(isvalid, axis=0)
+    fs = fs.compress(isvalid, axis=0)
+    return fm, fs
+
+
+@profile
+def build_matches_sep(X_fxs, Y_fxs, scores_list):
+    r"""
+    Just build matches. Scores have already been broken up. No need to do that.
+
+    Returns:
+        tuple: (fm, fs)
+
+    CommandLine:
+        python -m ibeis.algo.smk.smk_funcs build_matches_agg --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> map_int = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.int32))
+        >>> map_float = ut.partial(ut.lmap, ut.partial(np.array, dtype=np.float32))
+        >>> X_fxs = map_int([[0, 1], [2, 3, 4], [5]])
+        >>> Y_fxs = map_int([[8], [0, 4], [99]])
+        >>> scores_list = map_float([
+        >>>     [[.1], [.2],],
+        >>>     [[.3, .4], [.4, .6], [.5, .9],],
+        >>>     [[.4]],
+        >>> ])
+        >>> (fm, fs) = build_matches_sep(X_fxs, Y_fxs, scores_list)
+        >>> print('fm = ' + ut.repr2(fm))
+        >>> print('fs = ' + ut.repr2(fs))
+        >>> assert len(fm) == len(fs)
+        >>> assert np.isclose(np.sum(ut.total_flatten(scores_list)), fs.sum())
+    """
+    fs = np.array(ut.total_flatten(scores_list), dtype=np.float32)
+    unflat_fm = (ut.product(fxs1, fxs2)
+                 for fxs1, fxs2 in zip(X_fxs, Y_fxs))
+    fm = np.array(ut.flatten(unflat_fm), dtype=np.int32)
+    isvalid = np.greater(fs, 0)
+    fm = fm.compress(isvalid, axis=0)
+    fs = fs.compress(isvalid, axis=0)
+    return fm, fs
+
+
+@profile
+def gamma_agg(phisX, flagsX, weight_list, alpha, thresh):
+    r"""
+    Computes gamma (self consistency criterion)
+    It is a scalar which ensures K(X, X) = 1
+
+    Returns:
+        float: sccw self-consistency-criterion weight
+
+    Math:
+        gamma(X) = (sum_{c in C} w_c M(X_c, X_c))^{-.5}
+
+    Example:
+        >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
+        >>> ibs, smk, qreq_= testdata_smk()
+        >>> X = qreq_.qinva.grouped_annots[0]
+        >>> wx_to_weight = qreq_.wx_to_weight
+        >>> print('X.gamma = %r' % (gamma(X),))
+    """
+    scores = match_scores_agg(phisX, phisX, flagsX, flagsX, alpha, thresh)
+    sccw = sccw_normalize(scores, weight_list)
+    return sccw
+
+
+@profile
+def gamma_sep(phisX_list, flagsX_list, weight_list, alpha, thresh):
+    scores_list = match_scores_sep(phisX_list, phisX_list, flagsX_list,
+                                   flagsX_list, alpha, thresh)
+    scores = np.array([scores.sum() for scores in scores_list])
+    sccw = sccw_normalize(scores)
+    return sccw
+
+
+def sccw_normalize(scores, weight_list):
+    scores *= weight_list
+    score = scores.sum()
+    sccw = np.reciprocal(np.sqrt(score))
+    return sccw
+
+
+@profile
+def selective_match_score(phisX, phisY, flagsX, flagsY, alpha, thresh):
+    """
+    computes the score of each feature match
+    """
+    u = phisX.dot(phisY.T)
+    # Give error flags full scores. These are typically distinctive and
+    # important cases without enough info to get residual data.
+    flags = np.logical_or(flagsX[:, None], flagsY)
+    u[flags] = 1
+    score = selectivity(u, alpha, thresh, out=u)
+    return score
+
+
+@profile
+def selectivity(u, alpha=3.0, thresh=0.0, out=None):
+    r"""
+    The selectivity function thresholds and applies a power law.
+
+    This downweights weak matches.
+    The following is the exact definition from SMK paper.
+    sigma_alpha(u) = (sign(u) * (u ** alpha) if u > thresh else 0)
+
+    Args:
+        u (ndarray): input score between (-1, +1)
+        alpha (float): power law (default = 3.0)
+        thresh (float): number between 0 and 1 (default = 0.0)
+        out (None): inplace output (default = None)
+
+    Returns:
+        float: score
+
+    CommandLine:
+        python -m plottool plot_func --show --range=-1,1  \
+            --setup="import ibeis" \
+            --func ibeis.algo.smk.smk_funcs.selectivity \
+            "lambda u: sign(u) * abs(u)**3.0 * greater_equal(u, 0)"
+        python -m ibeis.algo.smk.smk_funcs selectivity --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> u = np.array([-1.0, -.5, -.1, 0, .1, .5, 1.0])
+        >>> alpha = 3.0
+        >>> thresh = 0
+        >>> score = selectivity(u, alpha, thresh)
+        >>> result = ut.repr2(score.tolist(), precision=4)
+        >>> print(result)
+        [0.0000, 0.0000, 0.0000, 0.0000, 0.0010, 0.1250, 1.0000]
+    """
+    score = u
+    flags = np.less(score, thresh)
+    isign = np.sign(score)
+    score = np.abs(score, out=out)
+    score = np.power(score, alpha, out=out)
+    score = np.multiply(isign, score, out=out)
+    score[flags] = 0
+    #
+    #score = np.sign(u) * np.power(np.abs(u), alpha)
+    #score *= flags
+    return score
 
 
 def testdata_rvecs(dim=2):

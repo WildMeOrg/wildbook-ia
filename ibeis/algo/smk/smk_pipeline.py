@@ -388,10 +388,10 @@ class SMK(ut.NiceRepr):
             if agg:
                 X_maws = ut.take(X.maws_list, X_idx)
                 Y_maws = ut.take(Y.maws_list, Y_idx)
-                fm, fs = smk_funcs.agg_build_matches(X_fxs, Y_fxs, X_maws,
+                fm, fs = smk_funcs.build_matches_agg(X_fxs, Y_fxs, X_maws,
                                                      Y_maws, score_list)
             else:
-                fm, fs = smk_funcs.sep_build_matches(X_fxs, Y_fxs, score_list)
+                fm, fs = smk_funcs.build_matches_sep(X_fxs, Y_fxs, score_list)
             if len(fm) > 0:
                 #assert not np.any(np.isnan(fs))
                 daid = Y.aid
@@ -413,21 +413,26 @@ class SMK(ut.NiceRepr):
         return cm
 
 
-def match_kernel_agg(X, Y, wx_to_weight, alpha, thresh):
-    gammaXY = X.gamma * Y.gamma
-    # Words in common define matches
+def word_isect(X, Y, wx_to_weight):
     isect_words = sorted(X.words.intersection(Y.words))
     X_idx = ut.take(X.wx_to_idx, isect_words)
     Y_idx = ut.take(Y.wx_to_idx, isect_words)
-    idf_list = ut.take(wx_to_weight, isect_words)
+    weights = ut.take(wx_to_weight, isect_words)
+    return X_idx, Y_idx, weights
+
+
+def match_kernel_agg(X, Y, wx_to_weight, alpha, thresh):
+    gammaXY = X.gamma * Y.gamma
+    # Words in common define matches
+    X_idx, Y_idx, weights = word_isect(X, Y, wx_to_weight)
 
     PhisX, flagsX = X.Phis_flags(X_idx)
     PhisY, flagsY = Y.Phis_flags(Y_idx)
-    score_list = smk_funcs.agg_match_scores(
+    score_list = smk_funcs.match_scores_agg(
         PhisX, PhisY, flagsX, flagsY, alpha, thresh)
 
-    score_list *= idf_list
-    score_list *= gammaXY
+    norm_weights = (weights * gammaXY)
+    score_list *= norm_weights
     score = score_list.sum()
     item = (score, score_list, Y, X_idx, Y_idx)
     return item
@@ -436,21 +441,20 @@ def match_kernel_agg(X, Y, wx_to_weight, alpha, thresh):
 def match_kernel_sep(X, Y, wx_to_weight, alpha, thresh):
     gammaXY = X.gamma * Y.gamma
     # Words in common define matches
-    isect_words = sorted(X.words.intersection(Y.words))
-    X_idx = ut.take(X.wx_to_idx, isect_words)
-    Y_idx = ut.take(Y.wx_to_idx, isect_words)
-    idf_list = ut.take(wx_to_weight, isect_words)
+    X_idx, Y_idx, weights = word_isect(X, Y, wx_to_weight)
 
     phisX_list, flagsY_list = X.phis_flags_list(X_idx)
     phisY_list, flagsX_list = Y.phis_flags_list(Y_idx)
-    score_list = smk_funcs.sep_match_scores(
+    scores_list = smk_funcs.match_scores_sep(
         phisX_list, phisY_list, flagsX_list, flagsY_list, alpha,
         thresh)
 
-    score_list *= idf_list
-    score_list *= gammaXY
-    score = score_list.sum()
-    item = (score, score_list, Y, X_idx, Y_idx)
+    norm_weights = (weights * gammaXY)
+    for scores, w in zip(scores_list, norm_weights):
+        scores *= w
+
+    score = [s.sum() for s in scores_list].sum()
+    item = (score, scores_list, Y, X_idx, Y_idx)
     return item
 
 

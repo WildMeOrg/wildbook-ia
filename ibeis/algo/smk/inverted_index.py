@@ -405,7 +405,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
                 wx_to_weight = dict(zip(wx_list, idf_per_word))
                 wx_to_weight = ut.DefaultValueDict(0, wx_to_weight)
         elif method == 'uniform':
-            wx_to_weight = {wx: 1 for wx in wx_list}
+            wx_to_weight = {wx: 1.0 for wx in wx_list}
         return wx_to_weight
 
     @profile
@@ -422,7 +422,8 @@ class InvertedAnnots(InvertedAnnotsExtras):
         """
         # TODO: sep
         wx_to_weight = inva.wx_to_weight
-        _prog = ut.ProgPartial(nTotal=len(inva.wx_lists), bs=True, lbl='gamma', adjust=True)
+        _prog = ut.ProgPartial(nTotal=len(inva.wx_lists), bs=True, lbl='gamma',
+                               adjust=True)
         _iter = zip(inva.wx_lists, inva.agg_rvecs, inva.agg_flags)
         gamma_list = []
         for wx_list, phiX_list, flagsX_list in _prog(_iter):
@@ -436,7 +437,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
 
 
 @ut.reloadable_class
-class SingleAnnot(object):
+class SingleAnnot(ut.NiceRepr):
     def __init__(X):
         X.aid = None
         X.wx_list = None
@@ -448,6 +449,9 @@ class SingleAnnot(object):
         X.wx_to_idx = None
         X.int_rvec = None
         X.wx_set = None
+
+    def __nice___(X):
+        return '%s' % (X.aid,)
 
     @classmethod
     def from_inva(cls, inva, idx):
