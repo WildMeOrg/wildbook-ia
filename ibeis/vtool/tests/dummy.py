@@ -467,7 +467,7 @@ def get_kpts_dummy_img(kpts, sf=1.0, intensity=200):
         pt.update()
 
     """
-    w, h = ktool.get_kpts_image_extent(kpts)
+    w, h = ktool.get_kpts_image_extent_old(kpts)
     img_w = w * sf
     img_h = h * sf
     img = dummy_img(img_w, img_h, intensity=intensity)

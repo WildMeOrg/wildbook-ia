@@ -749,7 +749,7 @@ def get_kpts_eccentricity(kpts):
         >>> import plottool as pt
         >>> colors = pt.scores_to_color(ecc)
         >>> pt.draw_kpts2(kpts, color=colors, ell_linewidth=6)
-        >>> wh = np.array(vt.get_kpts_image_extent(kpts))
+        >>> wh = np.array(vt.get_kpts_image_extent_old(kpts))
         >>> ax = pt.gca()
         >>> ax.set_xlim(0, wh[0])
         >>> ax.set_ylim(0, wh[1])
@@ -802,8 +802,8 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
         >>> import plottool as pt
         >>> pt.draw_kpts2(kpts, color=pt.ORANGE, ell_linewidth=6)
         >>> pt.draw_kpts2(kpts_, color=pt.LIGHT_BLUE, ell_linewidth=4)
-        >>> wh1 = np.array(vt.get_kpts_image_extent(kpts))
-        >>> wh2 = np.array(vt.get_kpts_image_extent(kpts_))
+        >>> wh1 = np.array(vt.get_kpts_image_extent_old(kpts))
+        >>> wh2 = np.array(vt.get_kpts_image_extent_old(kpts_))
         >>> wh = np.maximum(wh1, wh2)
         >>> ax = pt.gca()
         >>> ax.set_xlim(0, wh[0])
@@ -1675,56 +1675,165 @@ def invert_invV_mats(invV_mats):
     return V_mats
 
 
-#@profile
-def get_invV_xy_axis_extents(invV_mats):
-    """ gets the scales of the major and minor elliptical axis.
-        from invV_mats (faster)
-    """
-    if invV_mats.shape[1] == 3:
-        # Take the SVD of only the shape part
-        invV_mats = invV_mats[:, 0:2, 0:2]
-    Us_list = [linalgtool.svd(invV)[0:2] for invV in invV_mats]
-    def Us_axis_extent(U, s):
-        """ Columns of U.dot(S) are in principle scaled directions """
-        return np.sqrt(U.dot(np.diag(s)) ** 2).T.sum(0)
-    xyexnts = np.array([Us_axis_extent(U, s) for U, s in Us_list])
-    return xyexnts
-
-
 def get_xy_axis_extents(kpts):
-    """
-    gets the scales of the major and minor elliptical axis from kpts
-    (slower due to conversion to invV_mats)
+    r"""
+    gets the diameter of the xaxis and yaxis of the keypoint.
 
     Args:
         kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
 
     Returns:
-        xyexnts:
+        ndarray: (2xN) column1 is X extent and column2 is Y extent
+
+    Ignore:
+        # Working on figuring relationship between us and VGG
+        X, Y, A, B, C = kpts[0][0:5]
+        X, Y = 0, 0
+        theta = np.linspace(0, np.pi * 2)
+        circle_xy = np.vstack([np.cos(theta), np.sin(theta)])
+        invV = invV_mats[0, 0:2, 0:2]
+        x, y = invV.dot(circle_xy)
+        V = np.linalg.inv(invV)
+        E = V.T.dot(V)
+        [[A, B], [_, C]] = E
+        [[A_, B_], [_, C_]] = E
+        print(A*(x-X) ** 2 + 2*B*(x-X)*(y-Y) + C*(y-Y) ** 2 - 1)
+
+        # Determine formula for min/maxing x and y
+        import sympy
+        x, y = sympy.symbols('x, y', real=True)
+        a, d = sympy.symbols('a, d', real=True, positive=True)
+        c = sympy.symbols('c', real=True)
+        theta = sympy.symbols('theta', real=True, nonnegative=True)
+        xeqn = sympy.Eq(x, a * sympy.cos(theta))
+        yeqn = sympy.Eq(y, c * sympy.sin(theta) + v * d)
+        dxdt = sympy.solve(sympy.diff(xeqn, theta), 0)
+        dydt = sympy.solve(sympy.diff(yeqn, theta), 0)
+
+        # Ugg, cant get sympy to do trig derivative, do it manually
+        dxdt = -a * sin(theta)
+        dydt = d * cos(theta) - c * sin(theta)
+        critical_thetas = solve(Eq(dxdt, 0), theta)
+        critical_thetas += solve(Eq(dydt, 0), theta)
+        [a, _, c, d] = invV.ravel()
+        critical_thetas = [
+            0, np.pi,
+            -2 * np.arctan((c + np.sqrt(c ** 2 + d ** 2)) / d),
+            -2 * np.arctan((c - np.sqrt(c ** 2 + d ** 2)) / d),
+        ]
+        critical_uvs = np.vstack([np.cos(critical_thetas),
+                                  np.sin(critical_thetas)])
+        critical_xys = invV.dot(critical_uvs)
 
     CommandLine:
-        python -m vtool.keypoint --test-get_xy_axis_extents
+        python -m vtool.keypoint --test-get_xy_axis_extents --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
-        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> kpts = vt.dummy.get_dummy_kpts()[0:5]
+        >>> kpts[:, 0] += np.arange(len(kpts)) * 30
+        >>> kpts[:, 1] += np.arange(len(kpts)) * 30
         >>> xyexnts = get_xy_axis_extents(kpts)
         >>> result = ut.repr2(xyexnts)
         >>> print(result)
-        np.array([[  6.2212909 ,  24.91645859],
-                  [  2.79504602,  24.7306281 ],
-                  [ 16.43837149,  19.39813418],
-                  [ 18.23215582,  25.76692184],
-                  [ 19.78704902,  16.82756301]])
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.cla()
+        >>> pt.draw_kpts2(kpts, color='red', ell_linewidth=6, rect=True)
+        >>> ax = pt.gca()
+        >>> extent = np.array(get_kpts_image_extent2(kpts))
+        >>> extent = vt.scale_extents(extent, 1.1)
+        >>> ax.set_xlim(*extent[0:2])
+        >>> ax.set_ylim(*extent[2:4])
+        >>> xs, ys = vt.get_xys(kpts)
+        >>> radii = xyexnts / 2
+        >>> horiz_pts1 = np.array([(xs - radii.T[0]), ys]).T
+        >>> horiz_pts2 = np.array([(xs + radii.T[0]), ys]).T
+        >>> vert_pts1 = np.array([xs, (ys - radii.T[1])]).T
+        >>> vert_pts2 = np.array([xs, (ys + radii.T[1])]).T
+        >>> pt.draw_line_segments2(horiz_pts1, horiz_pts2, color='g')
+        >>> pt.draw_line_segments2(vert_pts1, vert_pts2, color='b')
+        >>> ut.show_if_requested()
+        np.array([[ 10.43315411,  58.5216589 ],
+                  [  4.71017647,  58.5216589 ],
+                  [ 24.43314171,  45.09558868],
+                  [ 26.71114159,  63.47679138],
+                  [ 32.10540009,  30.28536987]])
     """
-    invV_mats2x2 = get_invVR_mats2x2(kpts)
-    xyexnts = get_invV_xy_axis_extents(invV_mats2x2)
+    BBOX = True
+    if BBOX:
+        # Either use bbox or elliptical points
+        invV_mats2x2 = get_invVR_mats2x2(kpts)
+        corners = np.array([
+            [-1,  1, 1, -1],
+            [-1, -1, 1,  1],
+        ])
+        warped_corners = np.array([invV.dot(corners)
+                                   for invV in invV_mats2x2])
+        maxx = warped_corners[:, 0, :].max(axis=1)
+        minx = warped_corners[:, 0, :].min(axis=1)
+        maxy = warped_corners[:, 1, :].max(axis=1)
+        miny = warped_corners[:, 1, :].min(axis=1)
+    else:
+        a = kpts.T[2]
+        c = kpts.T[3]
+        d = kpts.T[4]
+        # x_crit_thetas = np.array([[0, np.pi]])
+        # x_crit_u = np.cos(x_crit_thetas)
+        # x_crit_v = np.sin(x_crit_thetas)
+        x_crit_u = np.array([[1], [-1]])
+        x_crit_v = np.array([[0], [0]])
+        x_crit_x = a * x_crit_u
+        x_crit_y = c * x_crit_u + d * x_crit_v
+
+        part = np.sqrt(c ** 2 + d ** 2)
+        y_crit_thetas1 = -2 * np.arctan((c + part) / d)
+        y_crit_thetas2 = -2 * np.arctan((c - part) / d)
+        y_crit_thetas = np.vstack(
+            (y_crit_thetas1, y_crit_thetas2))
+        y_crit_u = np.cos(y_crit_thetas)
+        y_crit_v = np.sin(y_crit_thetas)
+        y_crit_x = a * y_crit_u
+        y_crit_y = c * y_crit_u + d * y_crit_v
+
+        crit_x = np.vstack([y_crit_x, x_crit_x])
+        crit_y = np.vstack([y_crit_y, x_crit_y])
+        maxx = crit_x.max(axis=0)
+        minx = crit_x.min(axis=0)
+        maxy = crit_y.max(axis=0)
+        miny = crit_y.min(axis=0)
+
+    w = maxx - minx
+    h = maxy - miny
+    xyexnts = np.vstack([w, h]).T
+    # else:
+    #     xyexnts = []
+    #     invV_mats2x2 = get_invVR_mats2x2(kpts)
+    #     for invV, kp in zip(invV_mats2x2, kpts):
+    #         # use manually calculated derivatives to find extents
+    #         c, d = kp[[3, 4]]
+    #         critical_thetas = [
+    #             0, np.pi,
+    #             -2 * np.arctan((c + np.sqrt(c ** 2 + d ** 2)) / d),
+    #             -2 * np.arctan((c - np.sqrt(c ** 2 + d ** 2)) / d),
+    #         ]
+    #         critical_uvs = np.vstack([np.cos(critical_thetas),
+    #                                   np.sin(critical_thetas)])
+    #         critical_xys = invV.dot(critical_uvs)
+    #         minx, miny = critical_xys.min(axis=1)
+    #         maxx, maxy = critical_xys.max(axis=1)
+    #         # Columns of U.dot(S) are in principle scaled directions
+    #         w = maxx - minx
+    #         h = maxy - miny
+    #         xyexnts.append((w, h))
+    #     xyexnts = np.array(xyexnts)
+    # xyexnts = get_invV_xy_axis_extents(invV_mats2x2)
     return xyexnts
 
 
-def get_kpts_image_extent(kpts):
+def get_kpts_image_extent_old(kpts):
     """
     returns the width and height of keypoint bounding box
     This combines xy and shape information
@@ -1739,18 +1848,24 @@ def get_kpts_image_extent(kpts):
         tuple: wh_bound
 
     CommandLine:
-        python -m vtool.keypoint --test-get_kpts_image_extent
+        python -m vtool.keypoint --test-get_kpts_image_extent_old
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
         >>> kpts = vt.dummy.get_dummy_kpts()
-        >>> wh_bound = get_kpts_image_extent(kpts)
+        >>> wh_bound = get_kpts_image_extent_old(kpts)
         >>> result = kpts_repr(np.array(wh_bound))
         >>> print(result)
         array([ 51.79,  54.77])
     """
+    # FIXME: this should produce the same result why not?
+    # x1, x2, y1, y2 = get_kpts_image_extent2(kpts)
+    # w = x2 - x1
+    # h = y2 - y1
+    # wh_bound = (w, h)
+    # return wh_bound
     xs, ys = get_xys(kpts)
     xyexnts = get_xy_axis_extents(kpts)
     width = (xs + xyexnts.T[0]).max()
@@ -1819,7 +1934,7 @@ def get_kpts_dlen_sqrd(kpts):
     """
     if len(kpts) == 0:
         return 0.0
-    w, h = get_kpts_image_extent(kpts)
+    w, h = get_kpts_image_extent_old(kpts)
     dlen_sqrd = (w ** 2) + (h ** 2)
     return dlen_sqrd
 

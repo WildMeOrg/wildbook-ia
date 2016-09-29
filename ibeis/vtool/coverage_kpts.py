@@ -416,7 +416,7 @@ def testdata_coverage(fname=None):
         kpts = np.vstack((kpts, [0.01, 10, 1, 1, 1, 0]))
         kpts = np.vstack((kpts, [0.94, 11.5, 1, 1, 1, 0]))
         weights = np.ones(len(kpts))
-    chipsize = tuple(vt.iceil(vt.get_kpts_image_extent(kpts)).tolist())
+    chipsize = tuple(vt.iceil(vt.get_kpts_image_extent_old(kpts)).tolist())
     return kpts, chipsize, weights
 
 

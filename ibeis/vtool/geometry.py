@@ -463,6 +463,11 @@ def scale_bbox(bbox, sx, sy=None):
 
 
 def scale_extents(extents, sx, sy=None):
+    """
+    Args:
+        extent (ndarray): tl_x, br_x, tl_y, br_y
+
+    """
     bbox = bbox_from_extent(extents)
     bboxT = scale_bbox(bbox, sx, sy)
     extentsT = extent_from_bbox(bboxT)
@@ -527,6 +532,42 @@ def scaled_verts_from_bbox(bbox, theta, sx, sy):
 
 
 def point_inside_bbox(point, bbox):
+    r"""
+    Flags points that are strictly inside a bounding box.
+    Points on the boundary are not considered inside.
+
+    Args:
+        point (ndarray): one or more points to test (2xN)
+        bbox (tuple): a bounding box in  (x, y, w, h) format
+
+    Returns:
+        bool or ndarray: True if the point is in the bbox
+
+    CommandLine:
+        python -m vtool.geometry point_inside_bbox --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.geometry import *  # NOQA
+        >>> point = np.array([
+        >>>     [3, 2], [4, 1], [2, 3], [1, 1], [0, 0],
+        >>>     [4, 9.5], [9, 9.5], [7, 2], [7, 8], [9, 3]
+        >>> ]).T
+        >>> bbox = (3, 2, 5, 7)
+        >>> flag = point_inside_bbox(point, bbox)
+        >>> flag = flag.astype(np.int)
+        >>> result = ('flag = %s' % (ut.repr2(flag),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> verts = np.array(verts_from_bbox(bbox, close=True))
+        >>> pt.plot(verts.T[0], verts.T[1], 'b-')
+        >>> pt.plot(point[0][flag], point[1][flag], 'go')
+        >>> pt.plot(point[0][~flag], point[1][~flag], 'rx')
+        >>> pt.plt.xlim(0, 10); pt.plt.ylim(0, 10)
+        >>> pt.show_if_requested()
+        flag = np.array([0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
+    """
     x, y = point
     tl_x, br_x, tl_y, br_y = extent_from_bbox(bbox)
     inside_x = np.logical_and(tl_x < x, x < br_x)
